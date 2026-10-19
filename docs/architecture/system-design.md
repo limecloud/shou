@@ -72,7 +72,7 @@ flowchart LR
 
 Each request uses a current-user temporary channel: a `0700` directory and `0600` files. Request/result versions, request identity, parent identity, output size, progress and snapshot structure are checked before evidence reaches Core. Malformed, missing, timed-out or cancelled work cannot become a complete snapshot. Scope, matching, candidate eligibility, plans and receipts remain owned by the shared core.
 
-Cancellation or the wall-clock deadline requests termination of only the owned read child and returns without waiting for process exit. At most two live read children are retained, including a child still awaiting kernel exit; further work returns a resource limitation. A child watchdog also terminates it on parent exit or its deadline. This bounds desktop waiting and child accumulation; it does not promise immediate completion of a kernel request. Trash, restoration and permanent removal remain parent-process operations with native identity/manifests revalidation and existing confirmation/receipt gates. No model or agent is introduced. Worker source is implemented; packaged runtime and scan-stop acceptance remain pending.
+Cancellation or the wall-clock deadline requests termination of only the owned read child and returns without waiting for process exit. At most two live read children are retained, including a child still awaiting kernel exit; further work returns a resource limitation. A child watchdog also terminates it on parent exit or its deadline. This bounds desktop waiting and child accumulation; it does not promise immediate completion of a kernel request. Trash, restoration and permanent removal remain parent-process operations with native identity/manifests revalidation and existing confirmation/receipt gates. No model or agent is introduced. Automated checks cover evidence equivalence, cancellation, timeout, the two-child cap and capacity recovery. The packaged desktop has passed scan-stop and partial-result checks; exact runtime coverage is recorded in [acceptance](../engineering/acceptance-and-testing.md).
 
 ### Common application scanning
 
@@ -140,6 +140,8 @@ Enable Swift 6 concurrency checks; provisional minimum macOS is 14. UI state is 
 
 Serialize destructive execution within a process and use platform-backed locks across processes. A Swift actor cannot protect independent GUI/CLI processes. Inject filesystem, clock, and persistence only at actual external boundaries.
 
+The macOS application delegate and a forwarding window delegate guard termination and closing during mutations. They request cancellation through `AppModel` and await its execution task. Core checks cancellation before each item and before journaling; the native adapter finishes journaled Trash/restore verification in the parent rather than a cancellable read worker. Failure keeps the window available for review. Follow-up identity is the pair `(executionId, itemId)`, so matching item IDs in different batches do not share eligibility.
+
 ## 6. Local persistence
 
 Begin with versioned JSON objects and streamable large manifests. Adopt SQLite only if measured query/volume needs justify it.
@@ -172,6 +174,15 @@ Provide public rules, capability discovery, structured CLI results, and stable p
 
 MCP is outside current scope; additional protocols require demonstrated integration needs. See [agent workflow](../ai/coding-agent-integration.md).
 
+## Startup discovery boundary
+
+`StartupInventoryService` owns read orchestration independently of cleanup storage. Core defines `StartupInventoryReading` and portable evidence/coverage models; `NativeStartupInventory` owns macOS directories, bounded physical reads and property-list interpretation. CLI and SwiftUI use the same service. The desktop opens Login Items through the public ServiceManagement API. No launchctl, runtime control or privileged helper is involved. See [startup discovery](../product/startup-items.md).
+
 ## 10. Engineering principles
 
 KISS: one core with limited declarative semantics. DRY: reuse validation, protection, plans, and execution. YAGNI: no speculative cloud, scripting, privileged daemon, or model platform. SOLID: explicit responsibilities and minimal platform-facing interfaces.
+
+
+## Application uninstall boundary
+
+Application discovery and uninstall are a separate domain from rebuildable-cache rules. `ShouEngine` owns exact component associations, consent, current exclusions and digest-bound plans; `ApplicationCatalogReading` and `ApplicationUninstallChecking` supply platform evidence. The existing `TrashExecution` journal is shared with cleanup. Each uninstall item records an exact original parent and component kind, allowing one receipt to cover several Library families and an installation directory. `ReceiptOrigins` validates those associations before history inspection or restoration. A separate restricted application-parent identity capability preserves ordinary workspace-root restrictions. See [application uninstall](../product/application-uninstall.md) for architecture, flow and sequence diagrams.

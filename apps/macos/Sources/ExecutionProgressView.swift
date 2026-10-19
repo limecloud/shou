@@ -1,4 +1,5 @@
 import SwiftUI
+import Accessibility
 
 struct ExecutionProgressView: View {
     let title: String
@@ -10,7 +11,7 @@ struct ExecutionProgressView: View {
     let stopLabel: String
     let stoppingLabel: String
     let onStop: () -> Void
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
 
     private var completed: Int { min(max(0, processedCount), max(0, totalCount)) }
 
@@ -35,6 +36,8 @@ struct ExecutionProgressView: View {
             Group {
                 if totalCount > 0 {
                     ProgressView(value: Double(completed), total: Double(totalCount))
+                } else if reduceMotion {
+                    Image(systemName: "hourglass").accessibilityHidden(true)
                 } else {
                     ProgressView()
                 }
@@ -42,6 +45,7 @@ struct ExecutionProgressView: View {
             .progressViewStyle(.linear)
             .accessibilityLabel(title)
             .accessibilityValue(countText)
+            .accessibilityIdentifier("cleanup.progress")
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: completed)
 
             Text(currentPath ?? "")
@@ -55,5 +59,9 @@ struct ExecutionProgressView: View {
         .padding(.vertical, 14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.bar)
+        .onAppear { AccessibilityNotification.Announcement(title).post() }
+        .onChange(of: stopRequested) { _, stopping in
+            if stopping { AccessibilityNotification.Announcement(stoppingLabel).post() }
+        }
     }
 }

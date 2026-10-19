@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.1.0
+        default: v0.2.0
 
 permissions:
   contents: read
@@ -44,6 +44,9 @@ jobs:
           python3 scripts/verify-cli.py dist/Shou.app/Contents/Helpers/shou
           python3 apps/cli/Tests/verify-confirmation.py dist/Shou.app/Contents/Helpers/shou
           python3 scripts/verify-native-cli.py dist/Shou.app/Contents/Helpers/shou --native-trash-purge
+          python3 scripts/verify-uninstall-cli.py dist/Shou.app/Contents/Helpers/shou
+      - name: Packaged read worker exits after its requesting parent
+        run: python3 scripts/verify-read-worker-lifecycle.py --bin dist/Shou.app/Contents/Helpers/shou --evidence "$RUNNER_TEMP/shou-read-worker-lifecycle"
 
   package:
     needs: verify

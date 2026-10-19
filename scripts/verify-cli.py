@@ -20,22 +20,57 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     (artifacts / 'artifact.bin').write_bytes(b'x' * 8192)
     environment = dict(os.environ, SHOU_DATA_DIR=str(base / 'store'))
 
-    def run(*arguments, expected=0):
+    def run(*arguments, expected=0, env_override=None):
         global checks
-        process = subprocess.run([str(binary), *arguments, '--json'], env=environment,
+        process = subprocess.run([str(binary), *arguments, '--json'], env=env_override or environment,
                                  stdin=subprocess.DEVNULL, capture_output=True, text=True,
                                  start_new_session=True, timeout=30)
-        assert process.returncode == expected, (arguments, process.returncode, process.stdout, process.stderr)
+        accepted = (expected,) if isinstance(expected, int) else expected
+        assert process.returncode in accepted, (arguments, process.returncode, process.stdout, process.stderr)
         envelope = json.loads(process.stdout)
         assert envelope['api_version'] == '1.0'
-        assert envelope['ok'] == (expected == 0), envelope
+        assert envelope['ok'] == (process.returncode == 0), envelope
         assert 'error' in envelope and 'next_actions' in envelope
         checks += 1
         return envelope
 
+    blocked_store = base / 'startup-store-file'
+    blocked_store.write_text('preserve this file; startup discovery does not open a record store')
+    startup_environment = dict(environment, SHOU_DATA_DIR=str(blocked_store))
+    startup = run('startup', 'list', expected=(0, 6), env_override=startup_environment)['data']
+    assert startup['scope'] == 'launchd_definitions' and startup['include_system'] is False
+    assert len(startup['sources']) == 3
+    assert all(not source['location']['system_owned'] for source in startup['sources'])
+    assert startup['unavailable_sources'] == ['login_items', 'background_task_registrations', 'embedded_helpers']
+    assert all(item['configured_state'] == 'unknown' and item['runtime_state'] == 'unknown'
+               and item['control_capability'] == 'system_settings' and 'program_arguments' not in item
+               and 'environment_variables' not in item for item in startup['items'])
+    system_startup = run('startup', 'list', '--include-system', 'true', expected=(0, 6), env_override=startup_environment)['data']
+    assert system_startup['include_system'] is True and len(system_startup['sources']) == 5
+    assert sum(source['location']['system_owned'] for source in system_startup['sources']) == 2
+    run('startup', 'list', '--include-system', 'yes', expected=2)
+    run('startup', 'list', '--enable', 'true', expected=2)
+    assert blocked_store.read_text() == 'preserve this file; startup discovery does not open a record store'
+    assert not (base / 'store').exists()
+
+    applications = run('applications', 'list', expected=(0, 6), env_override=startup_environment)['data']
+    assert applications['scope'] == 'application_directories'
+    assert all(not source['source']['system_owned'] for source in applications['sources'])
+    assert len(applications['sources']) == 2
+    assert applications['unavailable_sources'] == ['other_accounts', 'custom_install_locations', 'package_receipts', 'embedded_helpers']
+    run('applications', 'list', '--include-system', 'yes', expected=2)
+    run('applications', 'uninstall', '--plan-id', 'missing', '--yes', 'true', expected=2)
+    run('applications', 'plan', '--review-id', 'missing', '--component', 'missing', '--include-user-data', 'yes', expected=2)
+    run('applications', 'inspect', '--path', str(workspace), '--max-entries', '0', expected=2)
+    assert blocked_store.read_text() == 'preserve this file; startup discovery does not open a record store'
+
     capabilities = run('capabilities')['data']
     assert capabilities['platform'] == 'macos'
     assert all('side_effect' in entry and 'required' in entry for entry in capabilities['commands'])
+    assert next(entry for entry in capabilities['commands'] if entry['command'] == 'applications uninstall')['side_effect'] == 'destructive'
+    assert next(entry for entry in capabilities['commands'] if entry['command'] == 'applications plan')['repeated'] == ['component']
+    startup_command = next(entry for entry in capabilities['commands'] if entry['command'] == 'startup list')
+    assert startup_command['side_effect'] == 'read' and startup_command['optional'] == ['include-system']
     scan_command=next(entry for entry in capabilities['commands'] if entry['command'] == 'scan')
     assert scan_command['exactly_one'] == ['workspace', 'location']
     assert 'scope' in scan_command['optional']
@@ -138,6 +173,72 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     invalid = dict(definition, shell='echo untrusted')
     rule_file.write_text(json.dumps(invalid))
     run('rules', 'import', '--file', str(rule_file), expected=2)
+    assert any(entry['command'] == 'exclusions global add' for entry in capabilities['commands'])
+    empty_exclusions = run('exclusions', 'list')['data']
+    assert empty_exclusions['global_patterns'] == [] and empty_exclusions['effective_patterns'] == []
+    run('exclusions', 'list', '--workspace', 'unknown-workspace', expected=2)
+    run('workspaces', 'exclude', 'add', '--workspace', workspace_id, '--project', '../project', '--pattern', '**', expected=2)
+    run('workspaces', 'exclude', 'add', '--workspace', workspace_id, '--project', 'project', '--pattern', '**')
+    project_exclusions = run('exclusions', 'list', '--workspace', workspace_id)['data']
+    assert project_exclusions['workspace_patterns'] == ['project/**']
+    assert run('exclusions', 'global', 'add', '--pattern', '**/target/**')['data']['global_patterns'] == ['**/target/**']
+    combined = run('exclusions', 'list', '--workspace', workspace_id)['data']
+    assert combined['workspace_id'] == workspace_id
+    assert combined['effective_patterns'] == ['project/**', '**/target/**']
+    run('exclusions', 'global', 'add', '--pattern', '/outside', expected=2)
+    blocked_scan = run('scan', '--workspace', workspace_id)['data']
+    blocked_results = run('scan', 'results', '--scan-id', blocked_scan['scan_id'])['data']['candidates']
+    blocked_target = next(item for item in blocked_results if item['relative_path'] == 'project/target')
+    assert not blocked_target['eligible'] and 'excluded_descendant' in blocked_target['reasons']
+    run('plan', 'create', '--scan-id', blocked_scan['scan_id'], '--candidate', blocked_target['id'], expected=2)
+    assert run('exclusions', 'global', 'remove', '--pattern', '**/target/**')['data']['global_patterns'] == []
+    assert run('exclusions', 'list', '--workspace', workspace_id)['data']['workspace_patterns'] == ['project/**']
+    run('workspaces', 'exclude', 'remove', '--workspace', workspace_id, '--project', 'project', '--pattern', '**')
+    assert run('exclusions', 'list', '--workspace', workspace_id)['data']['effective_patterns'] == []
+    assert (artifacts / 'artifact.bin').read_bytes() == b'x' * 8192
+    inspection_command = next(entry for entry in capabilities['commands'] if entry['command'] == 'history inspect')
+    assert inspection_command['side_effect'] == 'read' and inspection_command['required'] == ['execution-id']
+    run('history', 'inspect', '--execution-id', 'execution_missing', expected=2)
+    run('history', 'inspect', '--execution-id', 'execution_missing', '--max-seconds', 'invalid', expected=2)
+    saved_item = plan['items'][0]
+    inspection_id = 'execution_cli_inspection'
+    synthetic = {
+        'id': inspection_id, 'plan_id': plan['id'], 'workspace': plan['workspace'],
+        'created_at': plan['created_at'], 'entry_point': 'cli', 'state': 'executing',
+        'items': [{'id': saved_item['id'], 'original_path': str(artifacts),
+                   'relative_path': 'project/target', 'manifest': saved_item['manifest'],
+                   'state': 'moving', 'allocated_bytes_estimate': 8192}]
+    }
+    history_directory = base / 'store/history'
+    history_directory.mkdir(exist_ok=True, mode=0o700)
+    receipt_path = history_directory / f'{inspection_id}.json'
+    receipt_path.write_text(json.dumps(synthetic))
+    receipt_path.chmod(0o600)
+    before_inspection = receipt_path.read_bytes()
+    inspected = run('history', 'inspect', '--execution-id', inspection_id)['data']
+    assert inspected['unfinished'] and inspected['recorded_state'] == 'executing'
+    assert inspected['items'][0]['state'] == 'verified_original'
+    assert inspected['items'][0]['original']['state'] == 'matches'
+    assert inspected['items'][0]['trash']['state'] == 'not_recorded'
+    limited = run('history', 'inspect', '--execution-id', inspection_id, '--max-entries', '1', expected=6)
+    assert limited['data']['status'] == 'partial'
+    run('history', 'inspect', '--execution-id', inspection_id, '--max-entries', '0', expected=2)
+    followup_directory = base / 'store/followups'
+    followup_directory.mkdir(exist_ok=True, mode=0o700)
+    followup_path = followup_directory / 'followup_cli_inspection.json'
+    followup_path.write_text(json.dumps({'id': 'followup_cli_inspection', 'execution_id': inspection_id,
+                                       'item_id': saved_item['id'], 'action': 'restore',
+                                       'created_at': plan['created_at'], 'state': 'pending'}))
+    followup_path.chmod(0o600)
+    pending = run('history', 'inspect', '--execution-id', inspection_id, expected=6)['data']
+    assert pending['unfinished'] and pending['items'][0]['state'] == 'needs_verification'
+    with open(base / 'store/.mutation.lock', 'a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        run('history', 'inspect', '--execution-id', inspection_id, expected=4)
+        fcntl.flock(lock, fcntl.LOCK_UN)
+    assert receipt_path.read_bytes() == before_inspection
+    assert json.loads(followup_path.read_text())['state'] == 'pending'
+    assert (artifacts / 'artifact.bin').read_bytes() == b'x' * 8192
     run('workspaces', 'remove', '--workspace', workspace_id)
     assert (artifacts / 'artifact.bin').exists()
     assert run('workspaces', 'list')['data'] == []

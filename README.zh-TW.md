@@ -15,9 +15,9 @@
 
 ## 下載與安裝
 
-Shou v0.1.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Silicon 與 Intel Mac。開啟磁碟映像，將 **Shou.app** 拖入 **Applications**。介面提供英文與簡體中文。
+Shou v0.2.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Silicon 與 Intel Mac。開啟磁碟映像，將 **Shou.app** 拖入 **Applications**。介面提供英文與簡體中文。
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 此版本使用 ad-hoc 簽章，未經 Apple 公證。如首次啟動遭阻擋，確認下載來源後，前往**系統設定 → 隱私權與安全性 → 強制打開**。
 
@@ -25,6 +25,9 @@ Shou v0.1.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Silic
 
 | | |
 | --- | --- |
+| **應用程式移除** | 先檢視應用程式及明確關聯的檔案，再確認移除。個人資料須另外同意，移至垃圾桶的元件可復原。 |
+| **啟動項目** | 檢視啟動項目定義並開啟 macOS 登入項目設定；Shou 不直接啟用或停用項目。 |
+| **排除規則** | 在全域或個別專案中保護資料夾；個人規則修改後會儲存為停用的新版本。 |
 | **應用程式快取** | 集中檢視 Chrome、Edge、Firefox、Codex、Claude、QQ、微信等快取。 |
 | **開發工具與專案** | 尋找 npm、Cargo、Xcode、Python、Go 快取，以及 Rust target、Node.js 相依套件與 Swift 建置產物。 |
 | **空間分析** | 透過矩形樹圖與目錄清單逐層檢視資料夾大小。 |

@@ -15,9 +15,9 @@
 
 ## 다운로드 및 설치
 
-Shou v0.1.0은 **macOS 14 이상**을 지원합니다. 유니버설 앱은 Apple Silicon 및 Intel Mac에서 실행됩니다. 디스크 이미지에서 **Shou.app**을 **Applications**로 옮기세요. UI는 영어와 중국어 간체를 제공합니다.
+Shou v0.2.0은 **macOS 14 이상**을 지원합니다. 유니버설 앱은 Apple Silicon 및 Intel Mac에서 실행됩니다. 디스크 이미지에서 **Shou.app**을 **Applications**로 옮기세요. UI는 영어와 중국어 간체를 제공합니다.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 이 버전은 ad-hoc 서명을 사용하며 Apple 공증을 받지 않았습니다. 첫 실행이 차단되면 출처를 확인한 뒤 **시스템 설정 → 개인정보 보호 및 보안**에서 실행을 허용하세요.
 
@@ -25,6 +25,9 @@ Shou v0.1.0은 **macOS 14 이상**을 지원합니다. 유니버설 앱은 Apple
 
 | | |
 | --- | --- |
+| **앱 제거** | 앱과 정확히 연결된 파일을 검토한 후 제거합니다. 개인 데이터는 별도 동의가 필요하며 휴지통에서 복원할 수 있습니다. |
+| **시작 항목** | 시작 정의를 확인하고 macOS 로그인 항목 설정을 엽니다. Shou는 항목을 직접 켜거나 끄지 않습니다. |
+| **제외 규칙** | 전체 또는 프로젝트별로 폴더를 보호합니다. 개인 규칙 변경은 비활성 새 버전으로 저장됩니다. |
 | **앱 캐시** | Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat 등의 캐시를 함께 확인합니다. |
 | **개발 도구 및 프로젝트** | npm, Cargo, Xcode, Python, Go 캐시와 Rust target, Node.js 의존성, Swift 결과물을 찾습니다. |
 | **공간 분석** | 트리맵과 폴더 목록으로 저장 공간을 살펴봅니다. |

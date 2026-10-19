@@ -1,10 +1,40 @@
 import SwiftUI
 import ShouCore
 
+private struct ShouReduceMotionKey: EnvironmentKey {
+    static let defaultValue=false
+}
+
+extension EnvironmentValues {
+    var shouReduceMotion: Bool {
+        get { self[ShouReduceMotionKey.self] }
+        set { self[ShouReduceMotionKey.self]=newValue }
+    }
+}
+
+@propertyWrapper struct ReduceMotion: DynamicProperty {
+    @Environment(\.accessibilityReduceMotion) private var systemPreference
+    @Environment(\.shouReduceMotion) private var appPreference
+    var wrappedValue: Bool { systemPreference || appPreference }
+}
+
+struct ActivityIndicator: View {
+    let title: String
+    @ReduceMotion private var reduceMotion
+
+    var body: some View {
+        if reduceMotion {
+            Label(title, systemImage: "hourglass").accessibilityElement(children: .combine)
+        } else {
+            ProgressView(title)
+        }
+    }
+}
+
 struct CapacityValue: View {
     let bytes: Int64
     let measured: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
 
     private func formatted(unit: Bool) -> String {
         let formatter=ByteCountFormatter()
@@ -32,7 +62,7 @@ struct CapacityValue: View {
 struct CapacityDots: View {
     let segments: [(Int64, Color)]
     let scanning: Bool
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -45,6 +75,7 @@ struct CapacityDots: View {
                 }.transition(.opacity)
             } else { field(phase: nil).transition(.opacity) }
         }.animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: scanning)
+            .accessibilityHidden(true)
     }
 
     private func field(phase: Double?) -> some View {
@@ -98,7 +129,7 @@ struct CapacityDots: View {
 
 struct ScanActivity: View {
     var model: AppModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
     private var stage: Int { model.scanProgress?.stage == "saving" ? 2 : model.scanProgress?.stage == "analysis" ? 1 : 0 }
     private let stages=["Discover files", "Match rules", "Save results"]
 
@@ -114,12 +145,18 @@ struct ScanActivity: View {
                 Spacer(minLength: 0)
             }.font(.system(size: 12, weight: .medium))
                 .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: stage)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(model.t("Scan progress"))
+                .accessibilityValue(model.t(stages[stage]))
+                .accessibilityIdentifier("scan.stage")
             VStack(alignment: .leading, spacing: 8) {
                 Text(model.status).font(.system(size: 13, weight: .medium)).monospacedDigit()
+                    .accessibilityIdentifier("scan.status")
                 let currentPath=model.scanProgress?.currentPath ?? ""
                 Text(currentPath.isEmpty ? model.scanningLocation?.path ?? model.workspace?.path ?? "" : currentPath)
                     .font(.system(size: 11, design: .monospaced)).foregroundStyle(.secondary)
                     .lineLimit(2).truncationMode(.middle).frame(height: 30, alignment: .topLeading)
+                    .help(currentPath.isEmpty ? model.scanningLocation?.path ?? model.workspace?.path ?? "" : currentPath)
                 Text(model.t("Results appear here when analysis finishes. Nothing is selected automatically."))
                     .font(.caption).foregroundStyle(.tertiary)
             }

@@ -15,9 +15,9 @@ Um limpador nativo do macOS para caches, projetos de desenvolvimento e pastas qu
 
 ## Download e instalação
 
-Shou v0.1.0 requer **macOS 14 ou posterior**. O app universal funciona em Apple Silicon e Intel. Arraste **Shou.app** da imagem de disco para **Applications**. A interface está em inglês e chinês simplificado.
+Shou v0.2.0 requer **macOS 14 ou posterior**. O app universal funciona em Apple Silicon e Intel. Arraste **Shou.app** da imagem de disco para **Applications**. A interface está em inglês e chinês simplificado.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Esta versão tem assinatura ad-hoc e não é notarizada pela Apple. Se a abertura for bloqueada, verifique a origem e consulte **Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim**.
 
@@ -25,6 +25,9 @@ Esta versão tem assinatura ad-hoc e não é notarizada pela Apple. Se a abertur
 
 | | |
 | --- | --- |
+| **Desinstalar apps** | Revise o app e os arquivos associados antes de desinstalar. Dados pessoais exigem consentimento separado; os componentes enviados à Lixeira podem ser restaurados. |
+| **Itens de inicialização** | Consulte as definições de inicialização e abra os ajustes de itens de início do macOS. O Shou não ativa nem desativa itens. |
+| **Exclusões** | Proteja pastas globalmente ou por projeto. Alterações em regras pessoais são salvas como uma nova versão desativada. |
 | **Caches de aplicativos** | Revise juntos os caches do Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat e outros apps. |
 | **Desenvolvimento e projetos** | Encontre caches npm, Cargo, Xcode, Python e Go, Rust target, dependências Node.js e produtos Swift. |
 | **Análise de espaço** | Explore pastas com um mapa de árvore e uma lista de diretórios. |

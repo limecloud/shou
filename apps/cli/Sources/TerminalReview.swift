@@ -11,6 +11,9 @@ struct TerminalReviewScope: Encodable {
         init(_ workspace: Workspace) {
             id=workspace.id; rootRef=workspace.rootRef; path=workspace.path
         }
+        init(application: ApplicationDefinition) {
+            id=application.id; rootRef="application-uninstall"; path=application.path
+        }
     }
 
     struct Item: Encodable {
@@ -31,6 +34,16 @@ struct TerminalReviewScope: Encodable {
             limitations=candidate?.limitations ?? [locale == "zh-CN" ? "原清理计划的风险和重建信息不可用；请先核对操作记录与具体路径。" : "Original cleanup risk and rebuild metadata are unavailable; review history and the exact paths before continuing."]
             ruleVersions=candidate?.ruleVersions ?? [:]
         }
+        init(component: UninstallComponent) {
+            id=component.id; originalPath=component.path; trashPath=nil; allocatedBytesEstimate=component.allocatedBytesEstimate
+            risk=component.requiresUserDataConsent ? "personal_data" : "application_removal"
+            rebuildNotes=[]; limitations=["exact_bundle_identifier_association"] + component.warnings; ruleVersions=[:]
+        }
+        init(uninstallItem item: ItemReceipt) {
+            id=item.id; originalPath=item.originalPath; trashPath=item.trashPath; allocatedBytesEstimate=item.allocatedBytesEstimate
+            risk=item.uninstallOrigin?.kind.requiresUserDataConsent == true ? "personal_data" : "application_removal"
+            rebuildNotes=[]; limitations=["exact_bundle_identifier_association"]; ruleVersions=[:]
+        }
     }
 
     let action: String
@@ -43,6 +56,13 @@ struct TerminalReviewScope: Encodable {
     let irreversible: Bool
     let notes: [String]
     let items: [Item]
+
+    init(uninstall plan: ApplicationUninstallPlan, locale: String) {
+        action="uninstall"; planId=plan.id; executionId=nil; digest=plan.digest; workspace=WorkspaceScope(application: plan.application)
+        selectedItemCount=plan.components.count; allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=false
+        notes=[locale == "zh-CN" ? "将以下明确选中的应用组件移入废纸篓。个人数据仅在单独同意后纳入；可从历史记录恢复，不覆盖已有文件。移入废纸篓不代表已释放空间。" : "Move only these selected application components to Trash. Personal data is included only with separate consent. Restore from history without overwriting existing files. Moving to Trash does not free disk space."]
+        items=plan.components.map(Item.init(component:))
+    }
 
     init(plan: CleanupPlan, locale: String) {
         action="trash"; planId=plan.id; executionId=nil; digest=plan.digest
@@ -66,6 +86,7 @@ struct TerminalReviewScope: Encodable {
         }
         let plan=originalPlan.flatMap { $0.id == receipt.planId && $0.workspace.id == receipt.workspace.id ? $0 : nil }
         items=selected.map { item in
+            if item.uninstallOrigin != nil { return Item(uninstallItem: item) }
             let candidate=plan?.items.first { $0.id == item.id && $0.candidate.relativePath == item.relativePath }?.candidate
             return Item(id: item.id, originalPath: item.originalPath, trashPath: item.trashPath,
                         bytes: item.allocatedBytesEstimate, candidate: candidate, locale: locale)

@@ -4,8 +4,10 @@ import ShouPlatform
 import AppKit
 import Observation
 import UniformTypeIdentifiers
+import Accessibility
 
 @main struct ShouApp: App {
+    @NSApplicationDelegateAdaptor(ShouApplicationDelegate.self) private var applicationDelegate
     @State private var model=AppModel()
     @AppStorage("ShouAppearance") private var appearance="system"
     init() { NSApplication.shared.applicationIconImage=AppIdentity.icon }
@@ -17,7 +19,8 @@ import UniformTypeIdentifiers
                 .tint(Color(red: 0.78, green: 0.34, blue: 0.03))
                 .accentColor(Color(red: 0.78, green: 0.34, blue: 0.03))
                 .frame(minWidth: 900, minHeight: 620)
-                .task { await model.refresh() }
+                .background(OperationWindowGuard(model: model))
+                .task { applicationDelegate.model=model; await model.initialize() }
         }
         .defaultSize(width: 1160, height: 780)
         .commands {
@@ -86,6 +89,14 @@ struct CleanupCompletion: Identifiable {
     var selection=Set<String>()
     var history: [ExecutionReceipt]=[]
     var followups: [FollowUpReceipt]=[]
+    var startupInventory: StartupInventory?
+    var applicationCatalog: ApplicationCatalog?
+    var applicationReview: ApplicationUninstallReview?
+    var applicationsLoading=false
+    var applicationsIncludeSystem=false
+    var startupIncludeSystem=false
+    var startupLoading=false
+    private let startupService=StartupInventoryService(source: NativeStartupInventory())
     var busy=false { didSet { updater.operationInProgress=busy } }
     var scanning=false
     var isExecuting=false
@@ -95,16 +106,30 @@ struct CleanupCompletion: Identifiable {
     var statusKey=""
     var prompt: ReviewPrompt?
     var completion: CleanupCompletion?
+    var historyInspection: HistoryInspectionRequest?
+    var showingExclusions=false
     var language=AppLanguage(savedValue: UserDefaults.standard.string(forKey: "ShouLanguage")) {
         didSet { UserDefaults.standard.set(language.rawValue, forKey: "ShouLanguage") }
     }
+    var reduceMotion=UserDefaults.standard.bool(forKey: "ShouReduceMotion") {
+        didSet { UserDefaults.standard.set(reduceMotion, forKey: "ShouReduceMotion") }
+    }
     private var task: Task<Void, Never>?
+    private var operationHadError=false
     private var operationID=UUID()
-    let engine: ShouEngine?
-    init() {
+    private(set) var engine: ShouEngine?
+    var initializing=true
+    private var initializationStarted=false
+    func initialize() async {
+        guard !initializationStarted else { return }
+        initializationStarted=true; busy=true
+        defer { initializing=false; busy=false }
+        let readWorker=Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/shou")
         do {
-            let readWorker=Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/shou")
-            engine=ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence())
+            engine=try await Task.detached(priority: .userInitiated) {
+                ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+            }.value
+            await refresh()
         }
         catch { engine=nil; self.error=error.localizedDescription }
     }
@@ -118,6 +143,14 @@ struct CleanupCompletion: Identifiable {
             return String(format: t(key), locale: language.locale, progress.entryCount)
         }
         return t(statusKey)
+    }
+    var executionTitle: String {
+        switch executionProgress?.stage {
+        case "moving": t("Moving items to Trash…")
+        case "restoring": t("Restoring selected items…")
+        case "purging": t("Permanently removing selected items…")
+        default: t("Checking selected items…")
+        }
     }
     func date(_ value: Date) -> String { value.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(language.locale)) }
     var workspace: Workspace? { configuration.workspaces.first { $0.id == workspaceId } }
@@ -178,7 +211,34 @@ struct CleanupCompletion: Identifiable {
             selection.subtract(incompatible); selection.insert(candidate.id)
         } else { selection.remove(candidate.id) }
     }
-    func startScan(preset: Preset? = nil) {
+    func selectOverviewCandidates(_ candidates: [Candidate], selected: Bool) {
+        guard !busy else { return }
+        let candidates=CleanupOverview.candidates(candidates).filter(\.eligible)
+        let ids=Set(candidates.map(\.id))
+        guard selected else { selection.subtract(ids); return }
+        let paths=Set(candidates.map(\.relativePath))
+        var ancestors=Set<String>()
+        for path in paths {
+            var parent=StorageIndex.parent(path)
+            while parent != "." { ancestors.insert(parent); parent=StorageIndex.parent(parent) }
+        }
+        // Overview targets are disjoint. Resolve existing ancestor/descendant
+        // selections once, then publish the whole group as one observation.
+        let incompatible=(snapshot?.candidates ?? []).filter { candidate in
+            guard selection.contains(candidate.id) else { return false }
+            if ancestors.contains(candidate.relativePath) { return true }
+            var parent=StorageIndex.parent(candidate.relativePath)
+            while parent != "." {
+                if paths.contains(parent) { return true }
+                parent=StorageIndex.parent(parent)
+            }
+            return false
+        }.map(\.id)
+        var updated=selection
+        updated.subtract(incompatible); updated.formUnion(ids)
+        selection=updated
+    }
+    func startScan(preset: Preset? = nil, focusAfterScan: String? = nil) {
         guard let engine, !workspaceId.isEmpty, !busy else { return }
         busy=true; scanning=true; selection=[]; scanProgress=nil; statusKey="Scanning selected workspace…"
         let id=preset?.workspaceId ?? workspaceId
@@ -193,12 +253,75 @@ struct CleanupCompletion: Identifiable {
                     }
                 })
                 workspaceId=id
+                if let path=focusAfterScan {
+                    browsingPath=StorageIndex.parent(path); focusedPath=path
+                }
                 statusKey=snapshot?.status == "complete" ? "Scan complete. Review candidates before cleanup." : "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup."
             } catch { if !Task.isCancelled { self.error=error.localizedDescription }; statusKey="Scan stopped." }
         }
     }
     func scanCurrentSection() {
-        if section == "smart" { scanCommonLocations() } else { startScan() }
+        if section == "smart" { scanCommonLocations() }
+        else if section == "startup" { scanStartup() }
+        else if section == "applications" { scanApplications() }
+        else { startScan() }
+    }
+    func scanStartup() {
+        guard !busy else { return }
+        busy=true; startupLoading=true; startupInventory=nil
+        statusKey="Reading startup definitions…"
+        let options=StartupInventoryOptions(includeSystem: startupIncludeSystem)
+        task=Task {
+            defer { busy=false; startupLoading=false }
+            do {
+                startupInventory=try await startupService.scan(options: options)
+                statusKey=startupInventory?.status == "complete" ? "Startup definitions checked. Review coverage before drawing conclusions." : "Some startup definitions could not be inspected."
+            } catch {
+                if Task.isCancelled { statusKey="Startup scan stopped." }
+                else { statusKey="Startup discovery unavailable."; self.error=error.localizedDescription }
+            }
+        }
+    }
+    func scanApplications() {
+        guard let engine, !busy else { return }
+        busy=true; applicationsLoading=true; applicationReview=nil
+        statusKey="Reading installed applications…"
+        let options=ApplicationCatalogOptions(includeSystem: applicationsIncludeSystem)
+        task=Task {
+            defer { busy=false; applicationsLoading=false }
+            do {
+                applicationCatalog=try await engine.applications(options: options)
+                statusKey="Applications checked. Review components before uninstalling."
+            } catch {
+                if !Task.isCancelled { self.error=error.localizedDescription }
+                statusKey="Application scan stopped."
+            }
+        }
+    }
+    func inspectApplication(_ application: ApplicationDefinition) {
+        guard let engine, !busy else { return }
+        busy=true; applicationsLoading=true; statusKey="Reviewing application components…"
+        task=Task {
+            defer { busy=false; applicationsLoading=false }
+            do { applicationReview=try await engine.reviewApplication(path: application.path); statusKey="Ready to review" }
+            catch { if !Task.isCancelled { self.error=error.localizedDescription }; statusKey="Application review stopped." }
+        }
+    }
+    func previewUninstall(_ review: ApplicationUninstallReview, componentIds: [String], includeUserData: Bool) {
+        guard let engine, !busy else { return }
+        busy=true; statusKey="Preparing cleanup preview…"
+        task=Task {
+            defer { busy=false }
+            do {
+                let plan=try await engine.createUninstallPlan(reviewId: review.id, componentIds: componentIds, includeUserData: includeUserData)
+                prompt=ReviewPrompt(id: plan.id, digest: plan.digest, action: "uninstall", paths: plan.components.map(\.path), itemIds: [], byteEstimate: plan.allocatedBytesEstimate,
+                    impacts: [plan.includesUserData ? "Selected personal app data will also move to Trash." : "Personal app data is retained.", "Shared groups, package receipts and external helpers are not removed."])
+                statusKey="Ready to review"
+            } catch {
+                statusKey="Review application components again."
+                if !Task.isCancelled { self.error=error.localizedDescription }
+            }
+        }
     }
     func scanCommonLocations() {
         guard let engine, !busy else { return }
@@ -255,13 +378,21 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func cancel() { if isExecuting { stopRequested=true }; task?.cancel() }
+    func stopAndWaitForExecution() async -> Bool {
+        guard isExecuting else { return !operationHadError && error == nil }
+        let running=task
+        cancel()
+        await running?.value
+        return !operationHadError && error == nil
+    }
     func importRule() {
+        guard !busy else { return }
         let panel=NSOpenPanel(); panel.allowedContentTypes=[.json]; panel.allowsMultipleSelection=false
-        guard panel.runModal() == .OK, let url=panel.url, let engine else { return }
+        guard panel.runModal() == .OK, let url=panel.url else { return }
         Task {
             do {
                 let handle=try FileHandle(forReadingFrom: url); defer { try? handle.close() }
-                _ = try await engine.importRule(handle.read(upToCount: 262_145) ?? Data()); await refresh(); section="rules"
+                try await saveRule(handle.read(upToCount: 262_145) ?? Data())
             } catch { self.error=error.localizedDescription }
         }
     }
@@ -281,16 +412,63 @@ struct CleanupCompletion: Identifiable {
     }
     func removeWorkspace(_ root: Workspace) {
         guard let engine, !busy else { return }
-        Task { do { try await engine.removeWorkspace(root.id); snapshot=nil; selection=[]; await refresh() } catch { self.error=error.localizedDescription } }
+        busy=true
+        Task {
+            defer { busy=false }
+            do { try await engine.removeWorkspace(root.id); invalidateScanEvidence(); await refresh() }
+            catch { self.error=error.localizedDescription }
+        }
     }
     func setEnabled(_ record: RuleRecord, enabled: Bool) { setEnabled(record.rule, enabled: enabled) }
     func setEnabled(_ rule: CleanupRule, enabled: Bool) {
-        guard let engine else { return }
-        Task { do { _ = try await engine.setRule(ruleId: rule.id, workspaceId: workspaceId, enabled: enabled, version: rule.version); snapshot=nil; selection=[]; await refresh() } catch { self.error=error.localizedDescription } }
+        guard let engine, !busy else { return }
+        let id=workspaceId
+        busy=true
+        Task {
+            defer { busy=false }
+            do { _ = try await engine.setRule(ruleId: rule.id, workspaceId: id, enabled: enabled, version: rule.version); invalidateScanEvidence(); await refresh() }
+            catch { self.error=error.localizedDescription }
+        }
     }
     func exclude(_ candidate: Candidate) {
-        guard let engine else { return }
-        Task { do { _ = try await engine.setExclusion(workspaceId: workspaceId, pattern: candidate.relativePath + "/**", remove: false); await refresh(); startScan() } catch { self.error=error.localizedDescription } }
+        guard engine != nil, !busy else { return }
+        let id=workspaceId
+        Task {
+            do {
+                try await saveExclusion(workspaceId: id, pattern: candidate.relativePath + "/**", remove: false)
+                if workspaceId == id { startScan() }
+            } catch { self.error=error.localizedDescription }
+        }
+    }
+    func saveExclusion(workspaceId: String?, pattern: String, remove: Bool, project: String? = nil) async throws {
+        guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }
+        guard !busy else { throw ShouError("store_busy", "Another operation is in progress.") }
+        busy=true
+        defer { busy=false }
+        if let workspaceId {
+            _ = try await engine.setExclusion(workspaceId: workspaceId, pattern: pattern, remove: remove, project: project)
+        } else {
+            _ = try await engine.setGlobalExclusion(pattern: pattern, remove: remove)
+        }
+        invalidateScanEvidence(); await refresh()
+    }
+    func revealPath(_ path: String) {
+        guard let workspace else { return }
+        NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: workspace.path).appendingPathComponent(path)])
+    }
+    func copyPath(_ path: String) {
+        guard let workspace else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(URL(fileURLWithPath: workspace.path).appendingPathComponent(path).path, forType: .string)
+    }
+    func showInSpaceAnalysis(_ path: String) {
+        guard !busy else { return }
+        section="storage"
+        if snapshot?.scope == .full {
+            browsingPath=StorageIndex.parent(path); focusedPath=path
+        } else {
+            startScan(focusAfterScan: path)
+        }
     }
     func previewCleanup() {
         guard let engine, let snapshot, !busy, !selected.isEmpty else { return }
@@ -306,17 +484,20 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func review(_ receipt: ExecutionReceipt, items: [ItemReceipt], action: String) {
-        guard let engine else { return }
-        Task {
+        guard let engine, !busy, !items.isEmpty else { return }
+        busy=true; statusKey="Preparing action preview…"
+        task=Task {
+            defer { busy=false }
             do {
                 let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: items.map(\.id), action: action)
                 prompt=ReviewPrompt(id: receipt.id, digest: digest, action: action, paths: items.map(\.originalPath), itemIds: items.map(\.id), byteEstimate: items.reduce(0) { $0 + $1.allocatedBytesEstimate })
+                statusKey="Ready to review"
             } catch { self.error=error.localizedDescription }
         }
     }
     func confirm(_ review: ReviewPrompt) {
         guard let engine, !busy else { return }
-        prompt=nil; busy=true; scanProgress=nil; isExecuting=true; stopRequested=false; executionProgress=nil
+        prompt=nil; busy=true; scanProgress=nil; isExecuting=true; stopRequested=false; executionProgress=nil; operationHadError=false
         let operation=UUID(); operationID=operation
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
@@ -332,23 +513,60 @@ struct CleanupCompletion: Identifiable {
                                 self.executionProgress=update
                             }
                         })) }
-                        catch { failures.append(plan.workspacePath + "\n" + error.localizedDescription) }
+                        catch {
+                            if (error as? ShouError)?.code != "cancelled" { operationHadError=true }
+                            failures.append(plan.workspacePath + "\n" + error.localizedDescription)
+                        }
                     }
+                    if receipts.contains(where: { $0.items.contains { ["failed", "unknown", "moving"].contains($0.state) } }) { operationHadError=true }
                     completion=CleanupCompletion(receipts: receipts, failures: failures)
                     commonSelection=[]
                     if receipts.contains(where: { $0.items.contains { $0.state == "trashed" || $0.state == "unknown" } }) { systemResult=nil; commonReview=CleanupReview() }
                     statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" } ? "Moved to Trash. Available disk space is measured separately." : "Some items were not moved. Inspect history."
+                } else if review.action == "uninstall" {
+                    let receipt=try await engine.executeUninstall(planId: review.id, confirmedDigest: review.digest, entryPoint: "desktop", progress: { [weak self] update in
+                        Task { @MainActor in
+                            guard let self, self.isExecuting, self.operationID == operation else { return }
+                            self.executionProgress=update
+                        }
+                    })
+                    if receipt.items.contains(where: { ["failed", "unknown", "moving"].contains($0.state) }) { operationHadError=true }
+                    completion=CleanupCompletion(receipts: [receipt])
+                    applicationReview=nil; applicationCatalog=nil
+                    statusKey=receipt.state == "completed" ? "Application components moved to Trash. Restore them from History." : "Some items were not moved. Inspect history."
                 } else {
-                    let results=try await engine.followUp(executionId: review.id, itemIds: review.itemIds, action: review.action, confirmedDigest: review.digest)
-                    if results.contains(where: { $0.state != "completed" }) { error=results.compactMap(\.error).joined(separator: "\n") }
+                    let results=try await engine.followUp(executionId: review.id, itemIds: review.itemIds, action: review.action, confirmedDigest: review.digest, progress: { [weak self] update in
+                        Task { @MainActor in
+                            guard let self, self.isExecuting, self.operationID == operation else { return }
+                            self.executionProgress=update
+                        }
+                    })
+                    if results.contains(where: { $0.state != "completed" }) {
+                        operationHadError=true
+                        statusKey="Some selected items could not be processed. Inspect history."
+                        error=results.compactMap(\.error).joined(separator: "\n")
+                    } else if Task.isCancelled && results.count < review.itemIds.count {
+                        statusKey="Operation stopped. Review History for remaining items."
+                    } else {
+                        statusKey=review.action == "restore" ? "Selected items restored." : "Selected items permanently removed."
+                    }
                 }
                 snapshot=nil; selection=[]; section="history"; await refresh()
             } catch { self.error=error.localizedDescription; await refresh() }
         }
     }
-    func saveRule(_ data: Data) async throws {
+    func saveRule(_ data: Data, requireNewVersion: Bool = false) async throws {
         guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }
-        _ = try await engine.importRule(data); await refresh(); section="rules"
+        guard !busy else { throw ShouError("store_busy", "Another operation is in progress.") }
+        busy=true
+        defer { busy=false }
+        _ = try await engine.importRule(data, requireNewVersion: requireNewVersion)
+        invalidateScanEvidence()
+        await refresh(); section="rules"
+    }
+    private func invalidateScanEvidence() {
+        snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; prompt=nil
+        statusKey="Configuration changed; scan again."
     }
     func savePreset(_ name: String) {
         guard let engine else { return }
@@ -360,11 +578,12 @@ struct CleanupCompletion: Identifiable {
 
 struct ContentView: View {
     @Bindable var model: AppModel
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var inspector=false
     @State private var ruleEditor=false
     private var navigationSelection: Binding<String> {
         Binding(get: { model.section }, set: { section in
-            guard ["smart", "overview", "storage", "rules", "history", "settings"].contains(section) else { return }
+            guard ["smart", "overview", "storage", "rules", "startup", "applications", "history", "settings"].contains(section) else { return }
             model.section=section
         })
     }
@@ -376,6 +595,8 @@ struct ContentView: View {
                     Label(model.t("Project Cleanup"), systemImage: "hammer").tag("overview")
                     Label(model.t("Space Analysis"), systemImage: "square.grid.2x2").tag("storage")
                     Label(model.t("Rules"), systemImage: "line.3.horizontal.decrease.circle").tag("rules")
+                    Label(model.t("Startup Items"), systemImage: "power.circle").tag("startup")
+                    Label(model.t("Applications"), systemImage: "square.stack.3d.up").tag("applications")
                     Label(model.t("History"), systemImage: "clock.arrow.circlepath").tag("history")
                 }
                 Section(model.t("Workspaces")) {
@@ -402,27 +623,36 @@ struct ContentView: View {
             VStack(spacing: 0) {
                 if model.section == "smart" { SmartScanView(model: model) }
                 else if model.section == "rules" { RulesView(model: model, editor: $ruleEditor) }
+                else if model.section == "startup" { StartupInventoryView(model: model) }
+                else if model.section == "applications" { ApplicationsView(model: model) }
                 else if model.section == "history" { HistoryView(model: model) }
                 else if model.section == "settings" { SettingsView(model: model, updater: model.updater) }
                 else if model.section == "storage" { StorageBrowser(model: model, ruleEditor: $ruleEditor, inspector: inspector) }
                 else { CleanupView(model: model, inspector: inspector) }
                 if model.isExecuting {
-                    ExecutionProgressView(title: model.t(model.executionProgress?.stage == "preflight" ? "Checking selected items…" : model.executionProgress == nil ? "Processing selected items…" : "Moving items to Trash…"),
+                    ExecutionProgressView(title: model.executionTitle,
                         currentPath: model.executionProgress?.path, processedCount: model.executionProgress?.processedCount ?? 0,
                         totalCount: model.executionProgress?.itemCount ?? 0,
                         countText: model.executionProgress.map { String(format: model.t("%lld of %lld items processed"), $0.processedCount, $0.itemCount) } ?? "",
-                        stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping after the current item…"), onStop: model.cancel)
+                        stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping at a safe boundary…"), onStop: model.cancel)
                 }
                 Divider()
                 HStack {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                        .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.2.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .overlay {
+                if model.initializing {
+                    ActivityIndicator(title: model.t("Opening local data…")).padding(24)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                }
+            }
             .toolbar {
                 ToolbarItemGroup {
-                    if model.section != "settings" {
+                    if model.section != "settings" && model.section != "startup" && model.section != "applications" {
                         Button { model.addWorkspace() } label: { Label(model.t("Add Workspace"), systemImage: "folder.badge.plus") }.disabled(model.busy)
                     }
                     if model.section == "overview" || model.section == "storage" { Button { if model.scanning { model.cancel() } else { model.scanCurrentSection() } } label: {
@@ -438,10 +668,27 @@ struct ContentView: View {
         }
         .sheet(item: $model.prompt) { review in ConfirmationView(model: model, review: review) }
         .sheet(item: $model.completion) { result in CleanupResultView(model: model, result: result) }
+        .sheet(item: $model.historyInspection) { request in HistoryInspectionView(model: model, executionId: request.id) }
         .sheet(isPresented: $ruleEditor) { RuleWizard(model: model, initialPattern: model.ruleDraftPattern) }
+        .sheet(isPresented: $model.showingExclusions) { ExclusionsView(model: model) }
         .alert(model.t("Unable to complete the operation"), isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error=nil } })) {
             Button(model.t("OK")) { model.error=nil }
         } message: { Text(model.diagnostic(model.error ?? "")) }
+        .environment(\.shouReduceMotion, model.reduceMotion)
+        .transaction { transaction in
+            if systemReduceMotion || model.reduceMotion {
+                transaction.animation=nil
+                transaction.disablesAnimations=true
+            }
+        }
+        .onChange(of: model.scanning) { _, _ in
+            AccessibilityNotification.Announcement(model.status).post()
+        }
+        .onChange(of: model.isExecuting) { _, executing in
+            if !executing && model.completion == nil && model.error == nil {
+                AccessibilityNotification.Announcement(model.status).post()
+            }
+        }
     }
 }
 
@@ -473,9 +720,11 @@ struct RulesView: View {
     @Binding var editor: Bool
     @State private var presetName=""
     @State private var presetAlert=false
+    @State private var editingRule: RuleRecord?
+    @State private var ruleSource="all"
     var body: some View {
         VStack(alignment: .leading) {
-            HStack { VStack(alignment: .leading) { Text(model.t("Rules")).font(.largeTitle); Text(model.t("Built-in rules work immediately. Personal rules are imported as disabled drafts.")).foregroundStyle(.secondary) }; Spacer(); Button(model.t("Import…")) { model.importRule() }; Button(model.t("New Rule…")) { model.ruleDraftPattern="**/target"; editor=true }.disabled(model.workspace == nil) }.padding(24)
+            HStack { VStack(alignment: .leading) { Text(model.t("Rules")).font(.largeTitle); Text(model.t("Built-in rules work immediately. Personal rules are imported as disabled drafts.")).foregroundStyle(.secondary) }; Spacer(); Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy); Button(model.t("Import…")) { model.importRule() }.disabled(model.busy); Button(model.t("New Rule…")) { model.ruleDraftPattern="**/target"; editor=true }.disabled(model.workspace == nil || model.busy) }.padding(24)
             HStack {
                 if !model.configuration.workspaces.isEmpty {
                     Picker(model.t("Workspace"), selection: $model.workspaceId) {
@@ -493,99 +742,72 @@ struct RulesView: View {
                     }
                 }.fixedSize().disabled(model.busy)
             }.padding(.horizontal, 24).padding(.bottom, 10)
+            Picker(model.t("Rule Source"), selection: $ruleSource) {
+                Text(model.t("All Rules")).tag("all")
+                Text(model.t("Built-in Rules")).tag("builtin")
+                Text(model.t("Personal Rules")).tag("personal")
+            }.pickerStyle(.segmented).frame(maxWidth: 440).padding(.horizontal, 24).padding(.bottom, 10)
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(model.t("Built-in Rules")).font(.headline)
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(model.builtins) { rule in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Toggle(model.t(rule.name), isOn: Binding(get: { !model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == rule.id && !$0.enabled } }, set: { model.setEnabled(rule, enabled: $0) })).toggleStyle(.switch).disabled(model.busy)
-                                    Text(model.t(rule.risk.rebuildNote)).font(.callout).foregroundStyle(.secondary)
-                                    Text(model.t(rule.risk.limitations.first ?? "")).font(.caption).foregroundStyle(.secondary)
-                                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                                if rule.id != model.builtins.last?.id { Divider() }
-                            }
-                        }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+                    if ruleSource != "personal" {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(model.t("Built-in Rules")).font(.headline)
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(model.builtins) { rule in
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        Toggle(model.t(rule.name), isOn: Binding(get: { !model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == rule.id && !$0.enabled } }, set: { model.setEnabled(rule, enabled: $0) })).toggleStyle(.switch).disabled(model.busy)
+                                        Text(model.t(rule.risk.rebuildNote)).font(.callout).foregroundStyle(.secondary)
+                                        Text(model.t(rule.risk.limitations.first ?? "")).font(.caption).foregroundStyle(.secondary)
+                                    }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                                    if rule.id != model.builtins.last?.id { Divider() }
+                                }
+                            }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+                        }
                     }
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(model.t("Personal Rules")).font(.headline)
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(model.configuration.rules) { record in
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack {
-                                        Label(record.rule.name, systemImage: "doc.text").font(.headline); Spacer()
-                                        let enabled=model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == record.rule.id && $0.version == record.rule.version && $0.enabled }
-                                        Toggle(model.t("Enabled"), isOn: Binding(get: { enabled }, set: { model.setEnabled(record, enabled: $0) })).toggleStyle(.switch).disabled(model.workspace == nil || model.busy)
-                                    }
-                                    Text(record.rule.description).font(.callout).foregroundStyle(.secondary)
-                                    Text(record.rule.id + " · " + record.rule.version + " · " + record.rule.scope.rootRef).font(.caption.monospaced()).foregroundStyle(.tertiary)
-                                    Text(record.rule.risk.rebuildNote).font(.caption)
-                                    HStack {
-                                        Button(model.t("Preview Draft")) { model.previewRule(record) }.disabled(model.busy || model.workspace == nil)
-                                            .buttonStyle(.bordered)
-                                            .accessibilityIdentifier("rules.preview." + record.rule.id)
-                                        Button(model.t("Export Rule…")) { model.exportRule(record) }
-                                            .buttonStyle(.bordered)
-                                            .accessibilityIdentifier("rules.export." + record.rule.id)
-                                    }
-                                }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                                if record.id != model.configuration.rules.last?.id { Divider() }
+                    if ruleSource != "builtin" {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(model.t("Personal Rules")).font(.headline)
+                            if model.configuration.rules.isEmpty {
+                                Text(model.t("Create or import a personal rule to describe your own build outputs and caches.")).font(.callout).foregroundStyle(.secondary).padding(.vertical, 12)
                             }
-                        }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(model.configuration.rules) { record in
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack {
+                                            Label(record.rule.name, systemImage: "doc.text").font(.headline); Spacer()
+                                            let enabled=model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == record.rule.id && $0.version == record.rule.version && $0.enabled }
+                                            Toggle(model.t("Enabled"), isOn: Binding(get: { enabled }, set: { model.setEnabled(record, enabled: $0) })).toggleStyle(.switch).disabled(model.workspace == nil || model.busy)
+                                        }
+                                        Text(record.rule.description).font(.callout).foregroundStyle(.secondary)
+                                        Text(record.rule.id + " · " + record.rule.version + " · " + record.rule.scope.rootRef).font(.caption.monospaced()).foregroundStyle(.tertiary)
+                                        Text(record.rule.risk.rebuildNote).font(.caption)
+                                        HStack {
+                                            Button(model.t("Edit Rule…")) { editingRule=record }.disabled(model.busy)
+                                                .buttonStyle(.bordered)
+                                                .accessibilityIdentifier("rules.edit." + record.id)
+                                            Button(model.t("Preview Draft")) { model.previewRule(record) }.disabled(model.busy || model.workspace == nil)
+                                                .buttonStyle(.bordered)
+                                                .accessibilityIdentifier("rules.preview." + record.rule.id)
+                                            Button(model.t("Export Rule…")) { model.exportRule(record) }
+                                                .buttonStyle(.bordered)
+                                                .accessibilityIdentifier("rules.export." + record.rule.id)
+                                        }
+                                    }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                                    if record.id != model.configuration.rules.last?.id { Divider() }
+                                }
+                            }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+                        }
                     }
                 }.padding(.horizontal, 24).padding(.bottom, 24)
             }
         }
+        .sheet(item: $editingRule) { RuleRevisionEditor(model: model, original: $0) }
         .onChange(of: model.workspaceId) { _, _ in model.snapshot=nil; model.selection=[]; Task { await model.refresh() } }
         .alert(model.t("Save Preset"), isPresented: $presetAlert) {
             TextField(model.t("Name"), text: $presetName)
             Button(model.t("Save")) { model.savePreset(presetName); presetName="" }.disabled(presetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             Button(model.t("Cancel"), role: .cancel) {}
         }
-    }
-}
-
-struct HistoryView: View {
-    @Bindable var model: AppModel
-    @State private var selection=Set<String>()
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                ForEach(model.history) { receipt in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack { Text(model.date(receipt.createdAt)); Text(model.t(receipt.state)); Text(model.t(receipt.entryPoint == "desktop" ? "Desktop" : "CLI")); Spacer(); Text(receipt.id).font(.caption.monospaced()) }
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(receipt.items) { item in
-                                let completed=model.followups.first { $0.itemId == item.id && $0.state == "completed" }
-                                let state=receipt.state == "cancelled" && item.state == "pending" ? "Skipped" : item.state
-                                HStack {
-                                    Toggle(isOn: Binding(get: { selection.contains(item.id) }, set: { if $0 { selection.insert(item.id) } else { selection.remove(item.id) } })) { VStack(alignment: .leading) { Text(item.relativePath).font(.body.monospaced()); Text(model.diagnostic(item.error ?? completed?.action ?? state)).font(.caption).foregroundStyle(.secondary) } }.toggleStyle(.checkbox).disabled(item.state != "trashed" || completed != nil)
-                                    Spacer(); Text(model.bytes(item.allocatedBytesEstimate)).monospacedDigit()
-                                }.padding(12)
-                                Divider()
-                            }
-                            HStack {
-                                Text(model.t("Moved to Trash; this is not freed space.")).font(.caption).foregroundStyle(.secondary)
-                                Spacer()
-                                Button(model.t("View Results")) { model.completion=CleanupCompletion(receipts: [receipt]) }
-                                    .buttonStyle(.bordered)
-                                    .accessibilityIdentifier("history.results." + receipt.id)
-                                let items=receipt.items.filter { item in
-                                    selection.contains(item.id) && item.state == "trashed" && !model.followups.contains { $0.itemId == item.id && $0.state == "completed" }
-                                }
-                                Button(model.t("Restore…")) { model.review(receipt, items: items, action: "restore") }.disabled(items.isEmpty || model.busy)
-                                    .buttonStyle(.bordered)
-                                    .accessibilityIdentifier("history.restore." + receipt.id)
-                                Button(model.t("Permanently Remove…"), role: .destructive) { model.review(receipt, items: items, action: "purge") }.disabled(items.isEmpty || model.busy)
-                                    .buttonStyle(.bordered)
-                                    .accessibilityIdentifier("history.remove." + receipt.id)
-                            }.padding(12)
-                        }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-            }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
-        }.overlay { if model.history.isEmpty { ContentUnavailableView(model.t("No cleanup history"), systemImage: "clock") } }
     }
 }
 

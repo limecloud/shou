@@ -19,6 +19,8 @@
 | --- | --- |
 | 了解为什么做 | [PRD](product/prd.md) → [用户故事](product/user-stories-and-use-cases.md) |
 | 对照实际占用问题 | [开发者空间场景](product/developer-space-scenarios.md) → [规则规范](rules/rule-specification.md) |
+| 检查启动项来源 | [启动项发现](product/startup-items.md) → [CLI 合同](ai/agent-and-cli-contract.md) |
+| 卸载应用与审阅关联文件 | [应用卸载](product/application-uninstall.md) → [安全设计](security/cleanup-safety.md) |
 | 开始界面设计 | [macOS 产品体验](product/macos-experience.md) → [参考设计](engineering/reference-design.md) → [流程与时序](architecture/workflows-and-sequences.md) |
 | 规划多语言支持 | [国际化规范](product/internationalization.md) → [验收与测试](engineering/acceptance-and-testing.md) |
 | 实现核心能力 | [系统架构](architecture/system-design.md) → [数据模型](architecture/data-model.md) → [规则规范](rules/rule-specification.md) |
@@ -35,7 +37,7 @@
 4. **用户掌握执行权**：规则通过校验不等于获得清理授权；每次执行都绑定具体计划和确认。
 5. **原生优先**：SwiftUI、AppKit、系统文件选择器、菜单、快捷键与辅助功能形成一致体验。
 6. **数据口径诚实**：占用、移到废纸篓与可用容量变化分开呈现；扫描不完整时明确说明。
-7. **先形成小闭环**：工作区授权 → 扫描 → 个人规则 → 预览 → 确认 → 清理记录；后续扩展卸载与启动项。
+7. **围绕可审阅闭环扩展**：工作区 → 扫描 → 个人规则 → 预览 → 确认 → 清理记录；应用卸载共用回执与恢复，启动项发现保持只读边界。
 8. **双入口独立可用**：桌面端与 CLI 共享业务逻辑，各自完成核心任务；CLI 执行不依赖打开桌面端。
 9. **平台边界前置**：采用 `apps/`、`packages/`、`scripts/`、`docs/` 分层；共享 Swift 核心不依赖 AppKit、Darwin 或 Win32，平台能力独立适配。
 10. **国际化**：英文为公开文档默认语言，提供多语言 README 和简体中文技术文档；界面、CLI 与规则显示文案遵循统一的本地化规范。

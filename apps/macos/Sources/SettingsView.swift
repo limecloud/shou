@@ -33,17 +33,28 @@ struct SettingsView: View {
                             Text(model.t("Dark")).tag("dark")
                         }.labelsHidden().frame(width: 200)
                     }
+                    Divider().padding(.leading, 58)
+                    row("Reduce Motion", "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion.", icon: "pause.circle") {
+                        Toggle(model.t("Reduce Motion"), isOn: $model.reduceMotion)
+                            .labelsHidden().toggleStyle(.switch)
+                            .help(model.t("Use static indicators and immediate transitions. When off, follow macOS Reduce Motion."))
+                            .accessibilityIdentifier("settings.reduceMotion")
+                    }
                 }
                 group("Software Updates") {
                     row("Automatic update checks", "Get notified when a new version is available.", icon: "arrow.triangle.2.circlepath") {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
                     }
                     Divider().padding(.leading, 58)
-                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"), "Updates are verified before installation.", icon: "shippingbox") {
+                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.2.0"), "Updates are verified before installation.", icon: "shippingbox") {
                         Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
                 }
                 group("Scanning and Privacy") {
+                    row("Exclusions", "Keep chosen files and projects out of cleanup.", icon: "hand.raised") {
+                        Button(model.t("Manage…")) { model.showingExclusions=true }.disabled(model.busy)
+                    }
+                    Divider().padding(.leading, 58)
                     row("Full Disk Access", "Allow access to application caches that macOS protects.", icon: "internaldrive") {
                         Button { openURL(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) } label: {
                             Label(model.t("System Settings…"), systemImage: "arrow.up.right.square")

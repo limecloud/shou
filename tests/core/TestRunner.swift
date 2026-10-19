@@ -24,6 +24,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-interruption-child" {
+            do { try await historyInterruptionChild(CommandLine.arguments[2]) }
+            catch { Foundation.exit(1) }
+            Foundation.exit(1)
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--native-large-trash-only"] {
             do {
                 try await nativeLargeTargetTrashAndRestore()
@@ -45,6 +50,21 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("UTC decision precision", { try utcTimestampsPreserveDecisionPrecision() }),
             ("Chinese desktop default and saved language", { try desktopLanguageDefaultsAndSavedChoice() }),
             ("Runtime localization switches in both directions", { try localizedResourcesSwitchWithoutProcessRestart() }),
+            ("Application discovery validates before read and cancellation", { try await applicationCatalogValidatesBeforeReadAndHonorsCancellation() }),
+            ("Application catalog preserves distinct paths and explicit scope", { try nativeApplicationCatalogPreservesDistinctPathsAndBoundsItsScope() }),
+            ("Application catalog rejects unsafe metadata with explicit gaps", { try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps() }),
+            ("File targets bind bounded content and preserve legacy manifests", { try fileTargetsRequireBoundedContentEvidenceAndKeepLegacyManifestsStable() }),
+            ("Uninstall preview separates personal data without file mutation", { try await uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles() }),
+            ("Uninstall restores independent component origins", { try await uninstallCompleteLoopRestoresIndependentComponentOrigins() }),
+            ("Uninstall refuses stale evidence, running apps, sharing and exclusions", { try await uninstallRefusesChangedEvidenceRunningApplicationsAndExcludedData() }),
+            ("Uninstall rechecks activity before mutation intent", { try await uninstallRechecksActivityAtTheJournalBoundary() }),
+            ("Uninstall coverage gaps and personal-data consent resist tampering", { try await uninstallCoverageGapsRequireExplicitChoicesAndConsentCannotBeForged() }),
+            ("Uninstall parent siblings preserve identity without weakening target checks", { try await uninstallParentSiblingChangesPreservePlansButNotTargetChanges() }),
+            ("Native uninstall activity and explicit container metadata", { try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() }),
+            ("Startup discovery validates before read and cancellation", { try await startupInventoryValidatesBeforeReadingAndHonorsCancellation() }),
+            ("Startup definitions keep state unknown and omit credentials", { try nativeStartupInventoryKeepsStateUnknownAndOmitsSecrets() }),
+            ("Startup discovery rejects links, special and invalid definitions", { try nativeStartupInventoryRejectsUnsafeAndInvalidDefinitions() }),
+            ("Startup discovery retains explicit budget gaps", { try nativeStartupInventoryReportsBudgetGapsWithoutLosingValidItems() }),
             ("Explicit platform-scoped known locations", { try knownLocationsAreExplicitAndPlatformScoped() }),
             ("Native location availability uses directory metadata", { try nativeAvailabilityDistinguishesDirectoriesWithoutFollowingLinks() }),
             ("Native root identity requires search without enumeration", { try nativeRootIdentityNeedsOnlySearchAccess() }),
@@ -89,6 +109,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Changed Trash metadata, identity and descendants stay blocked", { try await changedTrashMetadataIdentityAndDescendantsStillRefuseRestore() }),
             ("Full descendant manifest invalidation", { try await fullManifestDetectsDescendantChange() }),
             ("Configuration invalidation", { try await exclusionChangesInvalidatePlan() }),
+            ("Global exclusions protect current/future roots and reject forged plans", { try await globalExclusionsProtectAllRootsAndRejectForgedPlans() }),
+            ("Project exclusions remain literal and workspace-scoped", { try await projectExclusionsStayLiteralAndScopedToTheirWorkspace() }),
+            ("Global exclusion storage preserves legacy and downgrade boundaries", { try await globalExclusionStorageRetainsLegacyAndDowngradeBoundaries() }),
             ("Protected descendants", { try await protectedDescendantBlocksParent() }),
             ("Opaque links preserve external targets", { try await internalLinkDoesNotTraverseOrPurgeOutside() }),
             ("Ancestor link refusal", { try ancestorLinksRefused() }),
@@ -106,7 +129,17 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Cross-process mutation lock", { try crossProcessLockCannotBeAcquiredTwice() }),
             ("Restore conflict and Trash expansion", { try await restoreNeverOverwritesAndTrashExpansionBlocksPurge() }),
             ("Immutable rule versions", { try await identicalImportIsIdempotentAndMutationConflicts() }),
+            ("Rule revisions stay disabled and invalidate old evidence", { try await revisedRuleStaysDisabledAndInvalidatesOldEvidence() }),
             ("Journal failure prevents mutation", { try await journalFailurePreventsMutation() }),
+            ("History inspection preserves receipts and verifies conflict and restore", { try await historyInspectionPreservesRecordsAndDetectsConflictChangesAndRestore() }),
+            ("History inspection blocks changed and bounded evidence", { try await historyInspectionBlocksChangedAndBudgetLimitedEvidence() }),
+            ("Per-item journal boundaries survive write failure", { try await perItemJournalFailuresNeverLookLikeSkippedWork() }),
+            ("Follow-up cancellation preserves unstarted items and completed receipts", { try await followUpCancellationPreservesUnstartedItemsAndCompletedReceipts() }),
+            ("Follow-up eligibility stays isolated by execution", { try await followUpEligibilityIsIsolatedByExecution() }),
+            ("Follow-up progress preserves durable cancellation boundaries", { try await followUpProgressPreservesDurableCancellationBoundary() }),
+            ("Follow-up progress counts failed outcomes without overwriting", { try await followUpProgressCountsFailedOutcomeWithoutOverwriting() }),
+            ("Unfinished restore is never retried by inspection", { try await unfinishedRestoreIsObservedWithoutRetryingOrRewriting() }),
+            ("Process exit after move preserves intent and rejects replay", { try await processExitAfterMovingRetainsIntentAndCannotReplay() }),
             ("Directory replacement refusal", { try await replacementDirectoryIsNotProcessed() }),
             ("Stored plans do not grant authority", { try await persistedPlanCannotBypassCurrentPolicy() }),
             ("Confirmation and partial-scan gates", { try await wrongConfirmationAndPartialScansCannotExecute() }),
@@ -122,6 +155,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         var failures=0
         let includeNativePurge=CommandLine.arguments.contains("--native-trash-purge")
         if CommandLine.arguments.contains("--native-trash") || includeNativePurge {
+            cases.append(("Native file Trash and conflict-safe restoration", { try await nativeFileTargetTrashAndConflictSafeRestore() }))
+            cases.append(("Native uninstall and independent restoration of generated components", { try await uninstallCompleteLoopRestoresIndependentComponentOrigins(nativeTrash: true) }))
+            cases.append(("Native Trash cancellation after intent completes one item and restores", { try await nativeTrashCancellationAfterIntentFinishesOneItemAndRestores() }))
             let title=includeNativePurge ? "Complete catalog with native Trash, restoration, and explicit permanent removal" : "Complete catalog with native Trash and restoration"
             cases.append((title, { try await nativeCatalogCleanupAndRestore(includePurge: includeNativePurge) }))
         }

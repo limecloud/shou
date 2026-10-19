@@ -143,12 +143,16 @@ func nativeCatalogCleanupAndRestore(includePurge: Bool = false) async throws {
         }
 
         let moved=try await trash()
+        let trashedInspection=try await engine.inspectHistory(executionId: moved.id)
+        try expect(trashedInspection.status == "complete" && trashedInspection.items.allSatisfy { $0.state == "verified_trash" && $0.original.state == "missing" && $0.trash.state == "matches" })
         let itemIds=moved.items.map(\.id)
         let restoreDigest=try await engine.followUpDigest(executionId: moved.id, itemIds: itemIds, action: "restore")
         let restored=try await engine.followUp(executionId: moved.id, itemIds: itemIds, action: "restore", confirmedDigest: restoreDigest)
         try expect(restored.count == itemIds.count && restored.allSatisfy { $0.state == "completed" })
         for item in moved.items { try receiptObjectIsAbsentFromTrash(item) }
         try expect(try fileHashes(home) == original)
+        let restoredInspection=try await engine.inspectHistory(executionId: moved.id)
+        try expect(restoredInspection.status == "complete" && restoredInspection.items.allSatisfy { $0.state == "restored" && $0.original.state == "matches" && $0.trash.state == "missing" })
 
         if includePurge {
             let removed=try await trash()

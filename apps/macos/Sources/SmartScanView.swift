@@ -4,7 +4,7 @@ import AppKit
 
 struct SmartScanView: View {
     @Bindable var model: AppModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
     @State private var category="all"
     @State private var query=""
     @State private var showMissing=false
@@ -278,27 +278,5 @@ private struct CommonRuleRow: View {
                 }
             }.padding(.vertical, 8)
         }
-    }
-}
-
-/// NSButton supplies the standard macOS mixed checkbox state and keyboard behavior.
-private struct SelectionCheckbox: NSViewRepresentable {
-    let state: NSControl.StateValue
-    let enabled: Bool
-    let label: String
-    let action: () -> Void
-    func makeCoordinator() -> Coordinator { Coordinator(action) }
-    func makeNSView(context: Context) -> NSButton {
-        let button=NSButton(checkboxWithTitle: "", target: context.coordinator, action: #selector(Coordinator.toggle))
-        button.allowsMixedState=true
-        return button
-    }
-    func updateNSView(_ button: NSButton, context: Context) {
-        context.coordinator.action=action; button.state=state; button.isEnabled=enabled; button.setAccessibilityLabel(label)
-    }
-    @MainActor final class Coordinator: NSObject {
-        var action: () -> Void
-        init(_ action: @escaping () -> Void) { self.action=action }
-        @objc func toggle() { action() }
     }
 }

@@ -9,6 +9,7 @@ import Glibc
 #if canImport(Darwin) || canImport(Glibc)
 public struct NativeFileSystem: PlatformFileSystem {
     private let readWorkerExecutable: URL?
+    private let applicationRoots: [String]
     public var platform: String {
         #if os(macOS)
         "macos"
@@ -26,7 +27,29 @@ public struct NativeFileSystem: PlatformFileSystem {
         "Native Trash is unavailable on this platform."
         #endif
     }
-    public init(readWorkerExecutable: URL? = nil) { self.readWorkerExecutable=readWorkerExecutable }
+    public init(readWorkerExecutable: URL? = nil, applicationRoots: [String]? = nil) {
+        self.readWorkerExecutable=readWorkerExecutable
+        self.applicationRoots=applicationRoots ?? [FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path, "/Applications"]
+    }
+    public func applicationParentIdentity(_ path: String) throws -> FileEntry {
+        let components=try SecurePaths.components(path)
+        guard "/" + components.joined(separator: "/") == path,
+              path.rangeOfCharacter(from: .controlCharacters) == nil,
+              applicationRoots.contains(where: { root in
+                  if path == root { return true }
+                  guard path.hasPrefix(root + "/") else { return false }
+                  let relative=path.dropFirst(root.count + 1).split(separator: "/")
+                  return relative.count <= 2 && !relative.contains { $0.lowercased().hasSuffix(".app") }
+              }) else { throw ShouError("permission_denied", "Application parent is outside supported installation directories.") }
+        let descriptor=try SecurePaths.directory(path, readFinalDirectory: false)
+        defer { close(descriptor) }
+        var metadata=stat()
+        guard fstat(descriptor, &metadata) == 0 else { throw SecurePaths.failure("Inspect application parent", path: path) }
+        guard (try URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeIsLocalKey])).volumeIsLocal == true else {
+            throw ShouError("capability_unavailable", "Application removal requires a local installation directory.")
+        }
+        return SecurePaths.entry(metadata, path: ".")
+    }
     public func locationAvailability(_ path: String) -> LocationAvailability {
         // Availability needs only directory metadata. Foundation attributes can
         // query extended attributes and stall discovery of known locations.
@@ -37,6 +60,18 @@ public struct NativeFileSystem: PlatformFileSystem {
         let failure=errno
         if failure == ENOENT || failure == ENOTDIR { return .missing }
         return .unavailable("The scan location could not be inspected.")
+    }
+    public func targetAvailability(_ path: String) -> LocationAvailability {
+        do {
+            let (parent, name)=try SecurePaths.parent(path)
+            defer { close(parent) }
+            var metadata=stat()
+            if fstatat(parent, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0 {
+                let type=metadata.st_mode & S_IFMT
+                return type == S_IFREG || type == S_IFDIR ? .available : .unavailable("The target is a link or an unsupported file type.")
+            }
+            return errno == ENOENT ? .missing : .unavailable("The target could not be inspected.")
+        } catch { return .unavailable(error.localizedDescription) }
     }
     public func rootIdentity(_ path: String) throws -> FileEntry {
         if let readWorkerExecutable {
@@ -64,6 +99,40 @@ public struct NativeFileSystem: PlatformFileSystem {
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspect(path, budget: budget, cancelled: cancelled, progress: { _ in })
     }
+    public func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true)
+    }
+    private func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, useWorker: Bool) throws -> TreeSnapshot {
+        let (parent, name)=try SecurePaths.parent(path, cancelled: cancelled)
+        defer { close(parent) }
+        var metadata=stat()
+        guard fstatat(parent, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect target", path: path) }
+        if metadata.st_mode & S_IFMT == S_IFDIR {
+            if useWorker { return try inspect(path, budget: budget, cancelled: cancelled) }
+            return try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: { _ in })
+        }
+        guard metadata.st_mode & S_IFMT == S_IFREG else { throw ShouError("invalid_argument", "Only a regular file or directory can be inspected as a target.") }
+        guard (1...1_000_000).contains(budget.maxEntries), budget.maxSeconds.isFinite, (1...600).contains(budget.maxSeconds), (1...128).contains(budget.maxDepth) else { throw ShouError("resource_limit", "The target read budget was exhausted.") }
+        let descriptor=openat(parent, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        guard descriptor >= 0 else { throw SecurePaths.failure("Open target without following links", path: path) }
+        defer { close(descriptor) }
+        var opened=stat(), current=stat()
+        var expected=SecurePaths.entry(metadata, path: ".")
+        guard fstat(descriptor, &opened) == 0, fstatat(parent, name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+              SecurePaths.entry(opened, path: ".") == expected, SecurePaths.entry(current, path: ".") == expected else {
+            throw ShouError("plan_stale", "The file changed while inspecting its metadata.")
+        }
+        if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
+        let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
+        let bytes=try NativeDefinitionFiles.bytes(directory: parent, name: name, path: path, maximumBytes: 16_777_216, deadline: deadline, cancelled: cancelled)
+        guard fstat(descriptor, &opened) == 0, SecurePaths.entry(opened, path: ".") == expected else {
+            throw ShouError("plan_stale", "The file changed while reading its content digest.")
+        }
+        if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
+        expected.contentDigest=Digest.sha256(bytes)
+        let values=try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
+        return TreeSnapshot(entries: [expected], complete: true, issues: [], caseSensitive: values?.volumeSupportsCaseSensitiveNames ?? true)
+    }
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
         if let readWorkerExecutable {
             return try NativeReadClient(executable: readWorkerExecutable).inspect(path, rules: nil, budget: budget, cancelled: cancelled, progress: progress)
@@ -77,7 +146,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try inspectTree(path, cleanupRules: rules, budget: budget, cancelled: cancelled, progress: progress)
     }
     private func inspectTree(_ path: String, cleanupRules: [CleanupRule]?, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
-        let root = try SecurePaths.directory(path); defer { close(root) }
+        let root = try SecurePaths.directory(path, cancelled: cancelled); defer { close(root) }
         var metadata=stat()
         guard fstat(root, &metadata) == 0 else { throw SecurePaths.failure("Inspect root", path: path) }
         let device = metadata.st_dev
@@ -149,9 +218,11 @@ public struct NativeFileSystem: PlatformFileSystem {
     public func isTrashLocation(_ path: String) -> Bool {
         #if os(macOS)
         let item=URL(fileURLWithPath: path)
-        guard let trash=try? FileManager.default.url(for: .trashDirectory, in: .userDomainMask, appropriateFor: item, create: false),
+        // A restored or removed child no longer exists. Resolve its volume from
+        // the existing parent so read-only history checks can still prove absence.
+        guard let trash=try? FileManager.default.url(for: .trashDirectory, in: .userDomainMask, appropriateFor: item.deletingLastPathComponent(), create: false),
               item.deletingLastPathComponent().standardizedFileURL.path == trash.standardizedFileURL.path,
-              let descriptor=try? SecurePaths.directory(trash.path, readFinalDirectory: false) else { return false }
+              let descriptor=try? SecurePaths.directory(trash.path, readFinalDirectory: false, cancelled: { false }) else { return false }
         defer { close(descriptor) }
         var metadata=stat()
         return fstat(descriptor, &metadata) == 0 && metadata.st_uid == getuid()
@@ -160,43 +231,56 @@ public struct NativeFileSystem: PlatformFileSystem {
         #endif
     }
     private func verify(_ path: String, _ expected: [FileEntry], trashReceipt: Bool = false) throws {
-        let current = try inspect(path, budget: ScanBudget(maxEntries: max(100_000, expected.count + 1), maxSeconds: 180), cancelled: { Task.isCancelled })
+        let current = try inspectMutationTarget(path, entryCount: expected.count)
         guard current.complete, current.entries.count == expected.count,
               zip(current.entries, expected).allSatisfy({ observed, saved in
                   observed == saved || (trashReceipt && observed.matchesTrashRoot(as: saved))
               }) else { throw ShouError("plan_stale", "The target or its descendants changed.", details: ["path": path]) }
     }
+    private func inspectMutationTarget(_ path: String, entryCount: Int) throws -> TreeSnapshot {
+        // Once the caller journals an operation, finish its native verification
+        // without delegating to a cancellable scan worker. Stop between items.
+        try inspectTarget(path, budget: ScanBudget(maxEntries: max(100_000, entryCount + 1), maxSeconds: 180), cancelled: { false }, useWorker: false)
+    }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
         #if os(macOS)
-        guard let original=expected.first(where: { $0.path == "." }), original.kind == "directory" else {
-            throw ShouError("invalid_argument", "A complete directory manifest is required before moving to Trash.")
+        guard let original=expected.first(where: { $0.path == "." }),
+              original.kind == "directory" || (original.kind == "file" && expected.count == 1 && original.contentDigest != nil) else {
+            throw ShouError("invalid_argument", "A complete file or directory manifest is required before moving to Trash.")
         }
-        let (parentFD, name)=try SecurePaths.parent(path); defer { close(parentFD) }
-        let targetFD=openat(parentFD, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+        let (parentFD, name)=try SecurePaths.parent(path, cancelled: { false }); defer { close(parentFD) }
+        let targetFD=openat(parentFD, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC | (original.kind == "directory" ? O_DIRECTORY : 0))
         guard targetFD >= 0 else { throw SecurePaths.failure("Open Trash target without following links", path: path) }
         defer { close(targetFD) }
         var parent=stat(), pinned=stat()
         guard fstat(parentFD, &parent) == 0, fstat(targetFD, &pinned) == 0,
-              SecurePaths.entry(pinned, path: ".") == original else {
+              SecurePaths.entry(pinned, path: ".") == original.metadata else {
             throw ShouError("plan_stale", "The Trash target changed before verification.")
         }
         try verify(path, expected)
-        let (currentParentFD, currentName)=try SecurePaths.parent(path); defer { close(currentParentFD) }
+        let (currentParentFD, currentName)=try SecurePaths.parent(path, cancelled: { false }); defer { close(currentParentFD) }
         var currentParent=stat(), currentTarget=stat()
         guard currentName == name, fstat(currentParentFD, &currentParent) == 0,
               SecurePaths.entry(parent, path: ".").sameObject(as: SecurePaths.entry(currentParent, path: ".")),
               fstatat(parentFD, name, &currentTarget, AT_SYMLINK_NOFOLLOW) == 0,
-              SecurePaths.entry(currentTarget, path: ".") == original else {
+              SecurePaths.entry(currentTarget, path: ".") == original.metadata else {
             throw ShouError("plan_stale", "The Trash target or its parent changed before the system operation.")
         }
         var destination: NSURL?
-        try FileManager.default.trashItem(at: URL(fileURLWithPath: path), resultingItemURL: &destination)
-        guard let destination, destination.isFileURL, let destinationPath=destination.path else {
-            throw ShouError("io_error", "Trash operation did not report its destination. Inspect the system Trash before retrying.")
+        do { try FileManager.default.trashItem(at: URL(fileURLWithPath: path), resultingItemURL: &destination) }
+        catch {
+            // An API failure alone cannot prove the original is still in place.
+            do { try verify(path, expected) }
+            catch { throw ShouError("trash_outcome_unknown", "Trash operation could not be reconciled. Verify the recorded locations before taking another action.") }
+            throw error
         }
-        let tree = try? inspect(destinationPath, budget: ScanBudget(maxEntries: max(100_000, expected.count + 1), maxSeconds: 180), cancelled: { false })
+        guard let destination, destination.isFileURL, let destinationPath=destination.path else {
+            throw ShouError("trash_outcome_unknown", "Trash operation did not report its destination. Inspect the system Trash before retrying.")
+        }
+        let tree = try? inspectMutationTarget(destinationPath, entryCount: expected.count)
         let moved = tree?.entries.first { $0.path == "." }
         var verified = tree?.complete == true && moved.map { original.sameObject(as: $0) } == true && isTrashLocation(destinationPath)
+        if original.kind == "file" { verified = verified && moved?.matchesTrashRoot(as: original) == true }
         if let tree {
             // Moving a directory changes its root ctime, but must preserve every descendant.
             let descendants = tree.entries.filter { $0.path != "." }
@@ -209,8 +293,8 @@ public struct NativeFileSystem: PlatformFileSystem {
     }
     public func restore(_ path: String, to destination: String, expected: [FileEntry]) throws {
         try verify(path, expected, trashReceipt: true)
-        let (sourceFD, sourceName) = try SecurePaths.parent(path); defer { close(sourceFD) }
-        let (destinationFD, destinationName) = try SecurePaths.parent(destination); defer { close(destinationFD) }
+        let (sourceFD, sourceName) = try SecurePaths.parent(path, cancelled: { false }); defer { close(sourceFD) }
+        let (destinationFD, destinationName) = try SecurePaths.parent(destination, cancelled: { false }); defer { close(destinationFD) }
         #if canImport(Darwin)
         guard renameatx_np(sourceFD, sourceName, destinationFD, destinationName, UInt32(RENAME_EXCL)) == 0 else {
             if errno == EEXIST { throw ShouError("restore_conflict", "Restore destination already exists; nothing was overwritten.") }
@@ -221,6 +305,9 @@ public struct NativeFileSystem: PlatformFileSystem {
         #endif
     }
     public func purge(_ path: String, expected: [FileEntry]) throws {
+        guard expected.first(where: { $0.path == "." })?.kind == "directory" else {
+            throw ShouError("capability_unavailable", "Permanent removal of file targets is unavailable.")
+        }
         try verify(path, expected, trashReceipt: true)
         // Only known manifest entries are removed. New entries cause rmdir to fail.
         for entry in expected.sorted(by: { $0.path.split(separator: "/").count == $1.path.split(separator: "/").count ? $0.path > $1.path : $0.path.split(separator: "/").count > $1.path.split(separator: "/").count }) where entry.path != "." {
@@ -237,7 +324,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         var info=stat()
         guard let original = expected.first(where: { $0.path == "." }), fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0,
               SecurePaths.entry(info, path: ".").sameObject(as: original) else { throw ShouError("plan_stale", "Receipt root changed.") }
-        guard unlinkat(fd, name, AT_REMOVEDIR) == 0 else { throw SecurePaths.failure("Remove empty receipt directory", path: path) }
+        guard unlinkat(fd, name, AT_REMOVEDIR) == 0 else { throw SecurePaths.failure("Remove receipt target", path: path) }
     }
 }
 #endif

@@ -47,16 +47,20 @@ struct FixtureFileSystem: PlatformFileSystem {
     let trash: URL
     var platform: String { "macos" }
     var supportsTrash: Bool { true }
+    func locationAvailability(_ path: String) -> LocationAvailability { native.locationAvailability(path) }
     func rootIdentity(_ path: String) throws -> FileEntry { try native.rootIdentity(path) }
+    func applicationParentIdentity(_ path: String) throws -> FileEntry { try native.applicationParentIdentity(path) }
+    func targetAvailability(_ path: String) -> LocationAvailability { native.targetAvailability(path) }
+    func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot { try native.inspectTarget(path, budget: budget, cancelled: cancelled) }
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot { try native.inspect(path, budget: budget, cancelled: cancelled) }
     func availableBytes(_ path: String) -> Int64? { native.availableBytes(path) }
     func isTrashLocation(_ path: String) -> Bool { URL(fileURLWithPath: path).deletingLastPathComponent().path == trash.path }
     func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
-        let before=try native.inspect(path, budget: ScanBudget(), cancelled: { false })
+        let before=try native.inspectTarget(path, budget: ScanBudget(), cancelled: { false })
         guard before.complete, before.entries == expected else { throw ShouError("plan_stale", "Fixture changed.") }
         let destination=trash.appendingPathComponent(UUID().uuidString)
         try FileManager.default.moveItem(at: URL(fileURLWithPath: path), to: destination)
-        let after=try native.inspect(destination.path, budget: ScanBudget(), cancelled: { false })
+        let after=try native.inspectTarget(destination.path, budget: ScanBudget(), cancelled: { false })
         return TrashResult(path: destination.path, manifest: after.entries, verified: after.complete)
     }
     func restore(_ path: String, to destination: String, expected: [FileEntry]) throws { try native.restore(path, to: destination, expected: expected) }
@@ -212,6 +216,40 @@ func identicalImportIsIdempotentAndMutationConflicts() async throws {
     try expect(first.digest == second.digest)
     try expect(try await engine.configuration().rules.count == 1)
     try await expectThrows { try await engine.importRule(fixtureRule(minimum: 1)) }
+}
+
+func revisedRuleStaysDisabledAndInvalidatesOldEvidence() async throws {
+    let fixture=try Fixture()
+    let (engine, root, scan, candidate)=try await fixture.ready()
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
+    let original=try CleanupRule.parse(fixtureRule())
+    var revision=original
+    revision.version="0.1.1"
+    revision.match.relativePatterns.append("**/generated-cache")
+    revision.exclude.relativePatterns=["**/keep/**"]
+    revision.conditions.minAllocatedBytes=1
+    let record=try await engine.importRule(Codec.encode(revision), requireNewVersion: true)
+    try await expectThrows { try await engine.importRule(Codec.encode(revision), requireNewVersion: true) }
+    try expect(record.rule == revision)
+    let config=try await engine.configuration()
+    try expect(config.rules.count == 2)
+    try expect(config.rules.contains { $0.rule == original })
+    try expect(!config.bindings.contains { $0.ruleId == revision.id && $0.version == revision.version })
+    try expect(config.bindings.contains { $0.ruleId == original.id && $0.version == original.version && $0.enabled })
+    try await expectThrows { try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id]) }
+    try await expectThrows { try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
+    let preview=try await engine.scan(workspaceId: root.id, previewRule: record.rule)
+    try expect(preview.previewOnly)
+    let previewId=try require(preview.candidates.first(where: \.eligible)?.id)
+    try await expectThrows { try await engine.createPlan(scanId: preview.id, candidateIds: [previewId]) }
+    _ = try await engine.setRule(ruleId: revision.id, workspaceId: root.id, enabled: true, version: revision.version)
+    let enabled=try await engine.configuration().bindings.filter { $0.ruleId == revision.id && $0.workspaceId == root.id }
+    try expect(enabled.count == 1 && enabled[0].version == revision.version && enabled[0].enabled)
+    let fresh=try await engine.scan(workspaceId: root.id)
+    let freshCandidate=try require(fresh.candidates.first { $0.relativePath == candidate.relativePath && $0.eligible })
+    _ = try await engine.createPlan(scanId: fresh.id, candidateIds: [freshCandidate.id])
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+    try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.trash.path).isEmpty)
 }
 
 struct UnwritableJournalStore: RecordStore {

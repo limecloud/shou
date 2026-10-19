@@ -5,7 +5,7 @@ import AppKit
 
 struct CleanupView: View {
     @Bindable var model: AppModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
     let inspector: Bool
     var body: some View {
         VStack(spacing: 0) {
@@ -45,7 +45,7 @@ struct CleanupPageHeader: View {
 
 struct CleanupSummary: View {
     var model: AppModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
     private var segments: [(String, Int64, Color)] {
         var values=model.categories.map { (categoryTitle($0.id, model: model), $0.allocatedBytesEstimate, categoryColor($0.id)) }
         let known=values.reduce(Int64(0)) { $0 + $1.1 }
@@ -176,10 +176,10 @@ struct PathActions: View {
     var model: AppModel
     let path: String
     var body: some View {
-        if let root=model.workspace {
-            Button(model.t("Reveal in Finder")) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: root.path + "/" + path)]) }
-            Button(model.t("Copy Path")) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(root.path + "/" + path, forType: .string) }
-            Button(model.t("Show in Space Analysis")) { model.section="storage"; model.browsingPath=StorageIndex.parent(path); model.focusedPath=path }
+        if model.workspace != nil {
+            Button(model.t("Reveal in Finder")) { model.revealPath(path) }
+            Button(model.t("Copy Path")) { model.copyPath(path) }
+            Button(model.t("Show in Space Analysis")) { model.showInSpaceAnalysis(path) }
         }
     }
 }

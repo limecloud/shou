@@ -15,9 +15,9 @@ Un limpiador nativo de macOS para cachés, proyectos de desarrollo y carpetas qu
 
 ## Descarga e instalación
 
-Shou v0.1.0 requiere **macOS 14 o posterior**. La app universal funciona en Apple Silicon e Intel. Arrastra **Shou.app** de la imagen de disco a **Applications**. La interfaz está en inglés y chino simplificado.
+Shou v0.2.0 requiere **macOS 14 o posterior**. La app universal funciona en Apple Silicon e Intel. Arrastra **Shou.app** de la imagen de disco a **Applications**. La interfaz está en inglés y chino simplificado.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Esta versión tiene firma ad-hoc y no está notarizada por Apple. Si macOS bloquea el inicio, comprueba la fuente y consulta **Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente**.
 
@@ -25,6 +25,9 @@ Esta versión tiene firma ad-hoc y no está notarizada por Apple. Si macOS bloqu
 
 | | |
 | --- | --- |
+| **Desinstalar apps** | Revisar la app y los archivos vinculados antes de desinstalar. Los datos personales requieren consentimiento aparte; los componentes enviados a la Papelera se pueden restaurar. |
+| **Elementos de inicio** | Consultar las definiciones de inicio y abrir los ajustes de inicio de sesión de macOS. Shou no activa ni desactiva elementos. |
+| **Exclusiones** | Proteger carpetas globalmente o por proyecto. Las reglas modificadas se guardan como una nueva versión desactivada. |
 | **Cachés de aplicaciones** | Revisa juntas las cachés de Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat y otras apps. |
 | **Desarrollo y proyectos** | Detecta cachés npm, Cargo, Xcode, Python y Go, Rust target, dependencias Node.js y productos Swift. |
 | **Análisis de espacio** | Explora carpetas con un mapa de árbol y una lista de directorios. |

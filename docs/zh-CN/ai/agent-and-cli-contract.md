@@ -32,11 +32,14 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | --- | --- | --- |
 | `capabilities` | R | 返回真实能力、平台限制、合同版本与输入定义 |
 | `locations list` | R | 固定根、存在状态、规则 ID 与检查问题 |
+| `startup list` | R | 有预算的 macOS launchd 配置发现；可选 `--include-system true\|false`，默认 false；系统设置引导，运行／当前配置状态未知 |
 | `system scan` | W | 以清理模式扫描可用固定根，可显式纳入已登记项目 |
 | `workspaces list / show` | R | 查看根绑定与当前入口访问状态 |
 | `workspaces add` | W | 注册明确路径与 `root_ref`，不等于系统授予访问权限 |
 | `workspaces remove` | W | 取消注册工作区、绑定与方案，保留目标文件和清理记录 |
-| `workspaces exclude add / remove` | W | 管理排除，变更使旧计划失效 |
+| `workspaces exclude add / remove` | W | 工作区排除；可选 `--project` 将模式限定在确切的项目相对目录下 |
+| `exclusions list` | R | 查看全局、可选工作区模式及合并后的有效模式 |
+| `exclusions global add / remove` | W | 保护当前及未来所有工作区；变更使旧扫描与计划失效 |
 | `rules schema` | R | 返回随当前构建固定的规则 Schema，不联网 |
 | `rules validate` | R | 检查结构与静态语义，报告未验证的根绑定 |
 | `rules import` | W | 添加版本化规则，默认禁用草稿 |
@@ -49,11 +52,14 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | `plan show` | R | 展示路径、风险、动作、摘要、有效期与下一步 |
 | `plan execute` | D | 在交互终端确认当前计划后执行 |
 | `history list / show` | R | 查询执行和逐项结果 |
+| `history inspect` | R | 有界核验记录中的原始／废纸篓确切路径，不修改记录或重试操作 |
 | `history restore` | D | 单独确认后恢复明确记录对应的项目 |
 | `history purge` | D | 单独确认永久移除明确记录对应的本次项目 |
 | `presets list / save / show / scan` | R/W | 复用规则组合；`scan` 只生成新扫描，不复用删除许可 |
 
 CLI 参数、GUI 表单和错误均来自同一领域合同；实际命令支持范围必须由 `capabilities` 发现，不能只凭文档假定可用。
+
+`startup list --json` 不打开清理存储。`scope` 为 `launchd_definitions`，完整性仅适用于请求的来源；`unavailable_sources` 明确列出该范围之外的登录项、后台注册与应用内辅助程序。来源缺口返回 partial 信封与退出码 `6`。不返回参数和环境变量值，当前配置／运行状态保持 `unknown`，不能修改启动设置；详见[启动项发现](../product/startup-items.md)。
 
 ## 4. 终端操作示例
 
@@ -94,6 +100,20 @@ shou history show --execution-id "execution_example" --json
 ```
 
 `rules preview` 产生的草稿预览不能直接用于执行；启用后重新扫描，再选择候选创建计划。`plan create` 没有缺省全选，多个候选通过重复 `--candidate` 显式提供。
+
+### 排除管理
+
+```sh
+shou exclusions list --workspace "ws_example" --json
+shou exclusions global add --pattern "**/keep/**" --json
+shou workspaces exclude add --workspace "ws_example" --project "apps/demo" --pattern "**" --json
+shou workspaces exclude remove --workspace "ws_example" --project "apps/demo" --pattern "**" --json
+shou exclusions global remove --pattern "**/keep/**" --json
+```
+
+全局模式相对于每个已登记根生效，也覆盖以后登记的根。`--project` 必须是确切的工作区相对目录，不允许通配符或向上访问父目录；上述示例保存为 `apps/demo/**`。CLI 的项目范围仍须显式提供 `--pattern`。全局、工作区和规则自身排除共同生效，工作区不能覆盖全局保护。后代命中排除时，包含它的清理目标整体受阻，原因为 `excluded_descendant`，不会仅删除目录中的其余部分。
+
+`exclusions list` 返回 `global_patterns`、`workspace_patterns` 及稳定去重后的 `effective_patterns`，指定工作区时同时返回 `workspace_id`。规则自身的排除保留在规则定义中，不属于这份配置列表。修改保护只更新配置，使旧证据失效并要求重新扫描，不自动清理。首次保存非空全局保护时，本地配置升级为版本 `2`；旧构建会拒绝读取，移除最后一条全局模式后仍不降级，详见[数据模型](../architecture/data-model.md)。
 
 ## 5. 统一结果信封
 
@@ -166,6 +186,10 @@ shou history show --execution-id "execution_example" --json
 - 同 ID 同版本同内容导入返回已有规则；同版本不同内容返回冲突。
 - 恢复与永久移除以执行记录及项目 ID 定位，每项重新核验；不能接受任意废纸篓路径。
 
+`history inspect --execution-id "execution_example" --json` 取得共享修改锁后返回当前身份／目录清单观察，不改写回执；其他操作仍持锁时返回 `store_busy`。可选 `--max-entries`、`--max-seconds` 遵循扫描预算限制，共同约束全部目录检查。结果包含 `recorded_state`、`unfinished`、`checked_at`，以及每项的 `original`、`trash` 和最新 `follow_up`。位置状态为 `matches`、`missing`、`changed`、`unavailable`、`not_recorded`；项目汇总包括 `verified_trash`、`verified_original`、`restore_conflict`、`restored`、`purged`、`missing`、`needs_verification`。证据不完整或不明确时返回 `status=partial` 与退出码 `6`。
+
+`matches` 比较对象身份及已保存目录清单，不对文件内容作密码学哈希。核验完成不等于清理完成，也不构成授权。即使在原路径观察到对象，未完成的后续操作仍保持阻止。若进程在系统废纸篓调用内退出，来不及记录返回位置，Shou 会说明目标位置未知，不枚举废纸篓、不猜测名称、不重放操作。新的逐项记录在文件调用前持久化 `moving`，丢失结果时不会显示为跳过。
+
 桌面端显示真实执行阶段、当前路径、已处理／总项目数及明确的停止请求状态。Core 在安全项目边界停止启动新项；已开始的单次系统废纸篓调用可能先完成，再核验并记录结果。进度不是完成回执或已释放空间，也不改变 CLI 单个结果 JSON 信封合同。
 
 ## 10. 版本与兼容
@@ -192,3 +216,10 @@ shou scan --workspace "ws_example" --scope full --json
 shou analysis summary --scan-id "scan_example" --json
 shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 ```
+
+
+## 应用发现与卸载
+
+`applications list [--include-system true|false] --json` 是有界只读发现，不打开清理存储。`applications inspect --path <exact-app-path>` 保存组件审阅，可选扫描预算沿用既有上限。`applications plan --review-id <id> --component <id>... [--include-user-data true|false]` 要求明确选择可处理组件并包含应用本身；个人数据同意默认 false。`applications plan show --plan-id <id>` 返回审阅范围。
+
+`applications uninstall --plan-id <id>` 为破坏性操作，需要控制终端及完整短语 `UNINSTALL <plan-id>`，不提供无人确认参数。结果沿用历史回执，包含 `operation=application_uninstall` 和逐项原父目录证据。`history inspect` 及单独确认的 `history restore` 覆盖所有组件父目录；卸载回执拒绝 `history purge`。JSON 明确提供组件 `eligible`、`requires_user_data_consent`、`reasons` 和 `warnings`；提示不构成执行权限。详见[应用卸载](../product/application-uninstall.md)。

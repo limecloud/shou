@@ -15,9 +15,9 @@
 
 ## Завантаження та встановлення
 
-Shou v0.1.0 потребує **macOS 14 або новішої**. Універсальна програма працює на Apple Silicon та Intel. Перетягніть **Shou.app** з образу диска до **Applications**. Інтерфейс доступний англійською та спрощеною китайською.
+Shou v0.2.0 потребує **macOS 14 або новішої**. Універсальна програма працює на Apple Silicon та Intel. Перетягніть **Shou.app** з образу диска до **Applications**. Інтерфейс доступний англійською та спрощеною китайською.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Версія має підпис ad-hoc і не нотаризована Apple. У разі блокування запуску перевірте джерело та відкрийте **Системні параметри → Приватність і безпека**, щоб дозволити запуск.
 
@@ -25,6 +25,9 @@ Shou v0.1.0 потребує **macOS 14 або новішої**. Універс�
 
 | | |
 | --- | --- |
+| **Видалення програм** | Перегляньте програму й точно пов’язані файли перед видаленням. Особисті дані потребують окремої згоди; компоненти з Кошика можна відновити. |
+| **Автозапуск** | Переглядайте визначення запуску та відкривайте параметри об’єктів входу macOS. Shou не вмикає й не вимикає їх. |
+| **Виключення** | Захищайте папки глобально або в окремому проєкті. Змінені правила зберігаються як нова вимкнена версія. |
 | **Кеші програм** | Переглядайте разом кеші Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat та інших програм. |
 | **Розробка та проєкти** | Знаходьте кеші npm, Cargo, Xcode, Python і Go, Rust target, залежності Node.js та продукти Swift. |
 | **Аналіз місця** | Досліджуйте папки за допомогою деревної карти й списку каталогів. |

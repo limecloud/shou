@@ -18,6 +18,8 @@ Shou turns personal cleanup decisions into inspectable, reusable rules for local
 | --- | --- |
 | Understand the product | [PRD](product/prd.md) → [Stories and use cases](product/user-stories-and-use-cases.md) |
 | Understand developer storage | [Developer scenarios](product/developer-space-scenarios.md) → [Rules](rules/rule-specification.md) |
+| Inspect startup sources | [Startup discovery](product/startup-items.md) → [CLI contract](ai/agent-and-cli-contract.md) |
+| Uninstall an application | [Application uninstall](product/application-uninstall.md) → [Safety](security/cleanup-safety.md) |
 | Design the interface | [macOS experience](product/macos-experience.md) → [Reference design](engineering/reference-design.md) → [Workflows](architecture/workflows-and-sequences.md) |
 | Plan localization | [Internationalization](product/internationalization.md) → [Acceptance](engineering/acceptance-and-testing.md) |
 | Implement shared behavior | [Architecture](architecture/system-design.md) → [Data model](architecture/data-model.md) → [Rules](rules/rule-specification.md) |

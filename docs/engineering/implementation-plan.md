@@ -30,7 +30,7 @@ flowchart LR
     M2 --> M3[Confirmed execution in both entry points]
     M3 --> M4[macOS MVP acceptance]
     M4 --> M5[Windows prototype and delivery]
-    M4 --> Later[Uninstall, startup, more templates]
+    M4 --> Later[Uninstall, more templates]
 ```
 
 Dates depend on estimates and prototype outcomes. Safety gates cannot be skipped for a deadline.
@@ -84,7 +84,7 @@ Build shared Swift core and `shou.exe` on Windows; deliver runtime dependencies.
 
 ## 4. Later candidates
 
-Broader templates, uninstall ownership analysis, startup discovery/settings guidance, safe sharing, project archival, and worktree workflows. Evaluate additional protocols only when a demonstrated need exceeds CLI capabilities.
+Broader templates, uninstall ownership analysis, separately evaluated startup control, safe sharing, project archival, and worktree workflows. Evaluate additional protocols only when a demonstrated need exceeds CLI capabilities.
 
 Model integration and agent development are not roadmap candidates.
 
@@ -104,3 +104,12 @@ Model integration and agent development are not roadmap candidates.
 ## 6. Definition of done
 
 Persistent features update shared services, CLI discovery/inputs/results/errors/next actions, GUI, tests, contract versions, documentation, and relevant translations together. Unsupported platforms remain explicit. Share behavior, isolate real external dependencies, and avoid unused infrastructure.
+
+## Startup first stage
+
+F15 now has a shared read-only discovery service, independent CLI `startup list`, native searchable table, explicit source coverage and public macOS Login Items settings navigation. This stage does not implement enable/disable, full registration inventory or runtime control. Its evidence is tracked separately in [acceptance](acceptance-and-testing.md) and its scope in [startup discovery](../product/startup-items.md).
+
+
+## Application uninstall first stage
+
+F14 now has source implementations for bounded application discovery, exact identifier component review, separate personal-data consent, digest-bound plans, shared native Trash journaling, per-component history inspection and no-overwrite restoration, exposed through CLI and native SwiftUI. [Application uninstall](../product/application-uninstall.md) records implemented scope and pending orphan-only discovery, shared-group and external-registration work. Automated and desktop evidence remain independently recorded in [acceptance](acceptance-and-testing.md); the broader completion objective remains active.

@@ -145,6 +145,7 @@ Validate the implemented hierarchy, partial selection, parent/child conflicts, l
 ## Acknowledgements
 
 - [MangoDisk](https://github.com/harry0703/MangoDisk): available source informed semantic category navigation, rule/source selection, explicit confirmation and itemized outcomes. Direct interaction with the installed deep-cleanup page confirmed category/rule/path hierarchy, mixed selection and the fixed bottom selection/action region; its cleanup action was not triggered. Inspected owners include `cleanup-result-categories.ts`, `md-cleanup-rule-groups.vue`, `cleanup-rule-selection.ts`, `md-cleanup-plan-dialog.vue`, `md-cleanup-result-dialog.vue`, and Core cleanup scan/execution modules.
+- [MangoDisk](https://github.com/harry0703/MangoDisk) startup source informed the separation of definition evidence, configured state, runtime state and control capability. Inspected owners include Core `startup/models.rs` and platform `macos/startup/mod.rs` and `launchd.rs`. Shou independently implements native read-only discovery and public macOS settings navigation; it does not adopt the reference implementation's helper or state-changing operations.
 - [Pulse](https://pulse.egoist.dev/): compact native capacity summaries and space distribution presentation.
 - [BuhoCleaner](https://www.drbuho.com/buhocleaner): disk exploration and grouped cleanup presentation.
 

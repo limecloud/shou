@@ -15,9 +15,9 @@
 
 ## Загрузка и установка
 
-Shou v0.1.0 требует **macOS 14 или новее**. Универсальная версия работает на Apple Silicon и Intel. Перетащите **Shou.app** из образа диска в **Applications**. Интерфейс доступен на английском и упрощённом китайском.
+Shou v0.2.0 требует **macOS 14 или новее**. Универсальная версия работает на Apple Silicon и Intel. Перетащите **Shou.app** из образа диска в **Applications**. Интерфейс доступен на английском и упрощённом китайском.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Версия подписана ad-hoc и не нотарифицирована Apple. При блокировке запуска проверьте источник и откройте **Системные настройки → Конфиденциальность и безопасность** для разрешения запуска.
 
@@ -25,6 +25,9 @@ Shou v0.1.0 требует **macOS 14 или новее**. Универсаль�
 
 | | |
 | --- | --- |
+| **Удаление приложений** | Проверьте приложение и точно связанные файлы перед удалением. Личные данные требуют отдельного согласия; компоненты из Корзины можно восстановить. |
+| **Автозагрузка** | Просматривайте определения запуска и открывайте настройки объектов входа macOS. Shou не включает и не отключает их. |
+| **Исключения** | Защищайте папки глобально или в отдельном проекте. Изменённые правила сохраняются как новая отключённая версия. |
 | **Кэши приложений** | Просматривайте вместе кэши Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat и других программ. |
 | **Разработка и проекты** | Находите кэши npm, Cargo, Xcode, Python и Go, Rust target, зависимости Node.js и продукты Swift. |
 | **Анализ места** | Изучайте папки с помощью карты дерева и списка каталогов. |

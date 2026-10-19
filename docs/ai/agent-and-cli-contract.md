@@ -29,11 +29,14 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | --- | --- | --- |
 | `capabilities` | R | Actual support, contract version, limitations, inputs |
 | `locations list` | R | Explicit built-in roots, availability, rule IDs and inspection issues |
+| `startup list` | R | Bounded macOS launchd-definition inventory; optional `--include-system true\|false`, default false; settings guidance and unknown runtime/configured state |
 | `system scan` | W | Cleanup-scope scan of available built-in roots; optionally include registered projects |
 | `workspaces list / show` | R | Bindings and current-entry-point access |
 | `workspaces add` | W | Register explicit path/root reference; not OS authorization |
 | `workspaces remove` | W | Unregister root, bindings, and presets; preserve target files and receipts |
-| `workspaces exclude add / remove` | W | Exclusions; invalidate old plans |
+| `workspaces exclude add / remove` | W | Workspace exclusions; optional `--project` scopes the pattern to an exact relative project directory |
+| `exclusions list` | R | Global and optional workspace patterns, plus the effective combination |
+| `exclusions global add / remove` | W | Protection for all current and future workspaces; invalidate old scans/plans |
 | `rules schema` | R | Bundled schema, no network retrieval |
 | `rules validate` | R | Structure/static semantics and unverified bindings |
 | `rules import` | W | Versioned disabled draft |
@@ -46,11 +49,14 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | `plan show` | R | Paths, action, risk, digest, expiry, next actions |
 | `plan execute` | D | Current-plan interactive confirmation |
 | `history list / show` | R | Batch and item outcomes |
+| `history inspect` | R | Bounded inspection of exact recorded original/Trash paths; no record changes or operation retries |
 | `history restore` | D | Separately confirm verified receipt items |
 | `history purge` | D | Separately confirm irreversible removal of this batch’s items |
 | `presets list / save / show / scan` | R/W | Reuse logic; scan creates fresh evidence, not permission |
 
 Discover actual availability rather than assuming every documented command exists.
+
+`startup list --json` does not open cleanup storage. Its `scope` is `launchd_definitions`; completeness applies to the requested sources, while `unavailable_sources` identifies Login Items, background registrations and embedded helpers outside that scope. Source failures retain a partial envelope and exit `6`. Arguments/environment values are omitted; configured/runtime states remain `unknown`. It cannot change startup settings. See [startup discovery](../product/startup-items.md).
 
 ## 4. Example workflow
 
@@ -91,6 +97,20 @@ shou history show --execution-id "execution_example" --json
 ```
 
 Draft preview snapshots are not executable: enable, rescan, then select candidates. `plan create` has no implicit select-all; repeat `--candidate` for additional items.
+
+### Exclusion management
+
+```sh
+shou exclusions list --workspace "ws_example" --json
+shou exclusions global add --pattern "**/keep/**" --json
+shou workspaces exclude add --workspace "ws_example" --project "apps/demo" --pattern "**" --json
+shou workspaces exclude remove --workspace "ws_example" --project "apps/demo" --pattern "**" --json
+shou exclusions global remove --pattern "**/keep/**" --json
+```
+
+Global patterns are relative to every registered root, including roots registered later. `--project` must be an exact workspace-relative directory without wildcards or parent traversal; the example persists `apps/demo/**`. The CLI requires `--pattern` in project scope. Global, workspace and per-rule exclusions accumulate; a workspace cannot override a global protection. Matching a descendant blocks the containing cleanup target with `excluded_descendant` rather than partially deleting that directory.
+
+`exclusions list` returns `global_patterns`, `workspace_patterns` and their stable, deduplicated `effective_patterns`; `workspace_id` is present when requested. Per-rule exclusions stay in rule definitions and are not included in this configuration list. Changing protection only changes configuration, invalidates existing evidence and requires a fresh scan; it never starts cleanup. Adding the first nonempty global protection upgrades local configuration to version `2`. Earlier builds refuse this configuration, even after the last global pattern is removed; see the [data model](../architecture/data-model.md).
 
 ## 5. Result envelope
 
@@ -152,6 +172,10 @@ TTY interaction does not prove a human identity. External agents remain subject 
 
 Repeated execution returns `already_executed` and existing receipt references. After timeout/interruption, query state before any retry. Reimporting identical same-version content is idempotent; changed content conflicts. Recovery/purge accepts verified receipt/item IDs, not arbitrary Trash paths.
 
+`history inspect --execution-id "execution_example" --json` acquires the shared mutation lease and returns current metadata/manifest observations without rewriting receipts. A live competing operation returns `store_busy`. Optional `--max-entries` and `--max-seconds` use the scan budget limits and bound aggregate manifest inspection. The report contains `recorded_state`, `unfinished`, `checked_at`, and per-item `original`, `trash` and latest `follow_up`. Object observations are `matches`, `missing`, `changed`, `unavailable` or `not_recorded`; item summaries include `verified_trash`, `verified_original`, `restore_conflict`, `restored`, `purged`, `missing` and `needs_verification`. Incomplete/ambiguous observations produce `status=partial` and exit `6`.
+
+`matches` checks identity and the saved directory manifest, not cryptographic file contents. A completed inspection is not a completed cleanup or authorization. A pending follow-up stays blocked even when an object is observed at the original location. If a process exits inside the system Trash call before its returned path is recorded, Shou reports the missing destination as unknown; it does not enumerate Trash, guess names or replay the operation. Every started item now has a durable `moving` state before the filesystem call, so a lost result cannot be displayed as a skipped item.
+
 The desktop displays actual execution stage, current path and processed/total items, with a visible stop-request state. Core stops starting new items at a safe boundary. A system Trash call already in progress may finish; its verified result is recorded before stopping. Progress is not a completion receipt or freed-space claim, and does not change the CLI's single-result JSON envelope.
 
 ## 9. Compatibility
@@ -178,3 +202,10 @@ shou scan --workspace "ws_example" --scope full --json
 shou analysis summary --scan-id "scan_example" --json
 shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 ```
+
+
+## Application discovery and uninstall
+
+`applications list [--include-system true|false] --json` is a bounded read that does not open the cleanup store. `applications inspect --path <exact-app-path>` saves a component review; optional scan budgets use the existing limits. `applications plan --review-id <id> --component <id>... [--include-user-data true|false]` requires explicit eligible components including the application. Personal-data consent defaults false. `applications plan show --plan-id <id>` exposes the reviewed scope.
+
+`applications uninstall --plan-id <id>` is destructive and requires a controlling terminal plus the exact `UNINSTALL <plan-id>` phrase. There is no unattended confirmation option. The result is an ordinary history receipt with `operation=application_uninstall` and per-item original-parent evidence. `history inspect` and separately confirmed `history restore` work across all component parents; uninstall receipts reject `history purge`. JSON component `eligible`, `requires_user_data_consent`, `reasons` and `warnings` are explicit, and warnings do not authorize execution. See [application uninstall](../product/application-uninstall.md).

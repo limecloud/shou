@@ -18,8 +18,8 @@ enum SecurePaths {
         guard !components.contains(".."), !components.contains(".") else { throw ShouError("invalid_argument", "Dot path components are not supported.") }
         return components
     }
-    static func directory(_ path: String, readFinalDirectory: Bool = true) throws -> Int32 {
-        if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+    static func directory(_ path: String, readFinalDirectory: Bool = true, cancelled: () -> Bool = { Task.isCancelled }) throws -> Int32 {
+        if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
         let components = try components(path)
         #if canImport(Darwin)
         // Traversing an ancestor does not require permission to list its contents.
@@ -34,21 +34,21 @@ enum SecurePaths {
         var returned=false
         defer { if !returned { close(current) } }
         for (index, part) in components.enumerated() {
-            if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+            if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
             let access=readFinalDirectory && index == components.count - 1 ? O_RDONLY | O_DIRECTORY : searchOnly
             let next = openat(current, part, access | O_NOFOLLOW | O_CLOEXEC)
             guard next >= 0 else { throw failure("Open directory without following links", path: path) }
             close(current)
             current = next
         }
-        if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
         returned=true
         return current
     }
-    static func parent(_ path: String) throws -> (Int32, String) {
+    static func parent(_ path: String, cancelled: () -> Bool = { Task.isCancelled }) throws -> (Int32, String) {
         let parts = try components(path)
         guard let name = parts.last else { throw ShouError("invalid_argument", "Filesystem roots are protected.") }
-        return (try directory("/" + parts.dropLast().joined(separator: "/"), readFinalDirectory: false), name)
+        return (try directory("/" + parts.dropLast().joined(separator: "/"), readFinalDirectory: false, cancelled: cancelled), name)
     }
     static func entry(_ metadata: stat, path: String) -> FileEntry {
         let type = metadata.st_mode & S_IFMT

@@ -1,21 +1,32 @@
 import SwiftUI
 import ShouCore
+import Accessibility
 
 struct CleanupResultView: View {
     @Bindable var model: AppModel
     let result: CleanupCompletion
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ReduceMotion private var reduceMotion
     @State private var appeared=false
 
     private var items: [ItemReceipt] { result.receipts.flatMap(\.items) }
-    private var moved: Int { items.filter { $0.state == "trashed" }.count }
-    private var skipped: Int { items.filter { $0.state == "pending" || $0.state == "skipped" }.count }
-    private var failed: Int { items.filter { $0.state == "failed" }.count }
+    private struct ItemOutcome: Identifiable {
+        let id: String
+        let item: ItemReceipt
+        let state: ResultState
+    }
+    private var outcomes: [ItemOutcome] {
+        result.receipts.flatMap { receipt in
+            receipt.items.map { ItemOutcome(id: receipt.id + "/" + $0.id, item: $0, state: ResultState($0.state, executionState: receipt.state)) }
+        }
+    }
+    private var moved: Int { outcomes.filter { $0.state == .moved }.count }
+    private var skipped: Int { outcomes.filter { $0.state == .skipped }.count }
+    private var failed: Int { outcomes.filter { $0.state == .failed }.count }
     private var unverified: Int { items.count - moved - skipped - failed }
     private var complete: Bool { result.failures.isEmpty && !items.isEmpty && result.receipts.allSatisfy { $0.state == "completed" } && moved == items.count }
     private var title: String {
-        model.t(complete ? "Cleanup complete" : result.receipts.contains { $0.state == "cancelled" } ? "Cleanup stopped" : "Cleanup finished with issues")
+        model.t(complete ? "Cleanup complete" : result.receipts.contains { $0.state == "executing" } ? "Unfinished cleanup" : result.receipts.contains { $0.state == "cancelled" } ? "Cleanup stopped" : "Cleanup finished with issues")
     }
 
     var body: some View {
@@ -66,9 +77,9 @@ struct CleanupResultView: View {
                             .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).padding(12)
                     }
                     if !result.failures.isEmpty && !items.isEmpty { Divider() }
-                    ForEach(items) { item in
-                        resultRow(item)
-                        if item.id != items.last?.id { Divider().padding(.leading, 44) }
+                    ForEach(outcomes) { outcome in
+                        resultRow(outcome.item, state: outcome.state)
+                        if outcome.id != outcomes.last?.id { Divider().padding(.leading, 44) }
                     }
                 }
             }
@@ -91,7 +102,10 @@ struct CleanupResultView: View {
         .padding(24)
         .frame(width: 680)
         .onExitCommand { dismiss() }
-        .onAppear { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) { appeared=true } }
+        .onAppear {
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) { appeared=true }
+            AccessibilityNotification.Announcement(title).post()
+        }
     }
 
     private func metric(_ label: String, value: String) -> some View {
@@ -105,8 +119,7 @@ struct CleanupResultView: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func resultRow(_ item: ItemReceipt) -> some View {
-        let state=ResultState(item.state)
+    private func resultRow(_ item: ItemReceipt, state: ResultState) -> some View {
         return HStack(alignment: .top, spacing: 11) {
             Image(systemName: state.symbol).font(.system(size: 16))
                 .foregroundStyle(state.color).frame(width: 20).padding(.top, 2)
@@ -124,7 +137,7 @@ struct CleanupResultView: View {
                     .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
                 if let error=item.error, !error.isEmpty {
-                    Text(model.t(error)).font(.caption).foregroundStyle(.secondary)
+                    Text(model.diagnostic(error)).font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                 } else if state == .skipped {
                     Text(model.t("Not processed after cleanup stopped."))
@@ -140,10 +153,11 @@ struct CleanupResultView: View {
     private enum ResultState: Equatable {
         case moved, skipped, failed, unverified
 
-        init(_ state: String) {
+        init(_ state: String, executionState: String) {
             switch state {
             case "trashed": self = .moved
-            case "pending", "skipped": self = .skipped
+            case "skipped": self = .skipped
+            case "pending" where executionState == "cancelled": self = .skipped
             case "failed": self = .failed
             default: self = .unverified
             }

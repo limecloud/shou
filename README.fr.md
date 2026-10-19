@@ -15,9 +15,9 @@ Un nettoyeur macOS natif pour les caches, les projets de développement et les d
 
 ## Téléchargement et installation
 
-Shou v0.1.0 nécessite **macOS 14 ou ultérieur**. L’app universelle fonctionne sur Apple Silicon et Intel. Glissez **Shou.app** de l’image disque vers **Applications**. L’interface est en anglais et chinois simplifié.
+Shou v0.2.0 nécessite **macOS 14 ou ultérieur**. L’app universelle fonctionne sur Apple Silicon et Intel. Glissez **Shou.app** de l’image disque vers **Applications**. L’interface est en anglais et chinois simplifié.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Cette version est signée ad-hoc et non notariée par Apple. Si le premier lancement est bloqué, vérifiez la source puis consultez **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**.
 
@@ -25,6 +25,9 @@ Cette version est signée ad-hoc et non notariée par Apple. Si le premier lance
 
 | | |
 | --- | --- |
+| **Désinstallation** | Examiner une app et ses fichiers précisément associés avant de la supprimer. Les données personnelles exigent un accord distinct ; les composants déplacés sont restaurables. |
+| **Éléments de démarrage** | Consulter les définitions de démarrage et ouvrir les réglages macOS des éléments de connexion. Shou ne les active ni ne les désactive. |
+| **Exclusions** | Protéger des dossiers globalement ou par projet. Les règles modifiées sont enregistrées dans une nouvelle version désactivée. |
 | **Caches des applications** | Examinez ensemble les caches de Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat et autres apps. |
 | **Développement et projets** | Repérez les caches npm, Cargo, Xcode, Python et Go, Rust target, les dépendances Node.js et les produits Swift. |
 | **Analyse de l’espace** | Explorez les dossiers avec une carte arborescente et une liste. |

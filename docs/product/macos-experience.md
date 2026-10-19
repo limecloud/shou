@@ -32,7 +32,7 @@ flowchart LR
     App --> Settings[Settings window]
 ```
 
-Add uninstall/startup navigation only when implemented; do not present unavailable primary actions as functional.
+Startup Items now opens the [definition-discovery workflow](startup-items.md), with search, exact-path details, coverage and native Login Items settings guidance. Uninstall navigation remains unavailable until implemented.
 
 ## 3. Window layout
 
@@ -58,6 +58,14 @@ Provide expansion, breadcrumbs, sorting, Finder reveal, path copying, exclusion,
 
 Scope → purpose and rebuild prerequisites → retention/exclusions → preview → save. Bind existing workspaces rather than request unrestricted paths. Advanced JSON uses the same validation; preserve unsupported editor constructs rather than silently rewriting them.
 
+Personal rules now offer Edit Rule for the complete JSON definition, retaining multiple patterns, exclusions, platforms and conditions. The editor suggests an unused patch version, requires the original rule ID, reports validation issues and requires validation again after text changes. Saving adds a disabled version; existing workspace bindings retain their version. Preview the new draft, explicitly enable it and rescan. Importing, saving or toggling rules clears desktop scan evidence and selections. Core checks version uniqueness again under its mutation lock to reject concurrent CLI imports. A source picker switches between all, built-in and personal rules.
+
+### Exclusions and protection
+
+Open Exclusions from Rules or Settings → Scanning and Privacy → Manage. The native sheet provides All Workspaces, Workspace and Project scopes, validates relative patterns, previews the stored pattern and supports individual removal. Global patterns are inherited by current and future workspaces; their inherited list directs editing to All Workspaces. Rule-specific exclusions remain in each rule definition.
+
+Project scope takes an exact relative directory; leaving its pattern empty protects the whole project, for example `demo/**`. Absolute paths, parent traversal and wildcard project directories are rejected. Excluding a descendant protects the entire containing cleanup target. A successful change clears old scan results, selections and confirmation state and requests a new scan. Removing protection updates configuration without changing files. The global scope explains that saving global protection upgrades local configuration and earlier builds cannot read it.
+
 ### Cleanup preview
 
 No default select-all. Display exact paths and sources; merge repeated matches and resolve parent/child conflicts. Use “Move to Trash · N items” and an original native sheet for final review. Changes to selection, rules, exclusions, or action invalidate the previous digest and confirmation.
@@ -66,11 +74,21 @@ No default select-all. Display exact paths and sources; merge repeated matches a
 
 Separate success, skip, failure, cancellation, and unknown states. Use “Moved to Trash,” not “Space freed.” Permanent removal of this batch is a separate destructive action and confirmation. Enable restoration only after verifying the recorded object.
 
+Each history batch offers Verify Locations. Its cancellable native sheet compares the exact recorded original and Trash manifests, displays occupied restore destinations, changed/missing objects and unfinished follow-ups, and allows another read-only check. It retains original receipts and does not retry actions. Unknown or pending follow-ups remain unavailable for restore/removal. Failed follow-up messages appear beside the affected history item; resolving a known restore conflict still requires a separate reviewed retry.
+
+An executing record displays Unfinished cleanup. Its pending/moving items need verification; only pending items in a cancelled batch display as skipped. Diagnostic lines are localized individually. Selections and follow-up states stay isolated by batch even when item IDs are shared.
+
+Each batch has a native three-state checkbox for its currently available items, a selected count and Clear Selection above its item list. Completed or pending follow-ups cannot be selected. Selecting a batch only changes selection; Restore and Permanently Remove still open an exact-path preview and require separate confirmation. Selection is disabled while preparing that preview or executing an operation, and completed items leave the selection when history refreshes.
+
 ## 5. Native interactions
 
 Use system file panels and native Settings (`⌘,`). Respect window closing and `⌘W`; quitting or closing during operations must explain progress and stop safely rather than hide ongoing deletion. Provide visible cancellable scans, meaningful focus order, native context menus, and inspectable paths.
 
+During confirmed cleanup, restoration or permanent removal, `⌘W` and `⌘Q` show a localized native alert with **Keep Open** as the default. **Stop and Close** or **Stop and Quit** requests cancellation and waits for the execution task and its receipts. Errors or uncertain outcomes keep the application open for review. Successful closing dismisses the completion sheet and closes the window; closing a window leaves the app running, while quitting terminates it. Completed work is not automatically restored. An idle window closes normally.
+
 Avoid single-key destructive shortcuts. Recovery is a specific operation, not a promise of transactional Undo. Do not read sensitive file contents by default for previews.
+
+Render the window before opening local data in the background. During initialization, show Opening local data and disable business actions while keeping sidebar navigation and normal quit available. A blocked filesystem call must not block the main thread or expose unloaded data as executable results.
 
 ## 6. States and wording
 
@@ -88,6 +106,10 @@ Avoid single-key destructive shortcuts. Recovery is a specific operation, not a 
 ## 7. Accessibility and localization
 
 Provide localized labels for icon buttons, VoiceOver descriptions for selection/progress/errors, keyboard completion of core tasks, and text/icon alternatives to color and charts.
+
+Settings includes a persistent Reduce Motion switch. Off follows macOS; on also requests reduced motion within Shou. The effective setting is the logical OR of the app and system preferences, including sheets. Static hourglass labels replace indeterminate activity indicators, while actual counts and paths continue updating. The scan stage has a localized accessibility name and value. Announcements cover scan start/end, execution start/stop requests and completion; per-file updates do not generate announcements. VoiceOver speech still requires separate runtime acceptance.
+
+The native cleanup outline uses arrows for browsing and expanding groups, Space to toggle the focused item or group, and Shift-F10 for the focused path's context menu. Keyboard and pointer selection share eligibility checks; protected items remain unchecked. Group changes publish one selection update and preserve selections in other categories. Sorting and language changes retain expansion, the focused candidate identity and checked items. The outline and checkboxes expose localized names, full paths and protection/rebuild explanations; high-risk items include an explicit risk description.
 
 Use String Catalogs, full sentences, placeholders, plural rules, locale-aware formatting, and layout expansion. Preserve exact paths and IDs; support Unicode and long filenames. Bytes are internal integers; UI uses explicitly defined decimal units. See [internationalization](internationalization.md).
 
@@ -135,7 +157,9 @@ Crossfade activity into results in 250 ms. Use 200–350 ms numeric transitions 
 
 The desktop uses a bounded 500,000-entry / 180-second scan; the CLI defaults to 100,000 entries / 60 seconds and can explicitly raise bounded limits. Carry the selected scope and budget into plan revalidation. Incomplete coverage remains visible; independent complete targets retain eligibility while incomplete targets are blocked.
 
-During execution, a compact native status region shows the actual stage, current path and processed/total items. A stop request changes the visible state and disables repeated requests. Stop at a safe item boundary: a single system Trash call may finish before stopping and its result must be recorded. The completion view separates location-level issues from failed item receipts, and distinguishes moved, skipped and unverified items. This specifies the interaction contract; the updated GUI journey still requires actual acceptance.
+During execution, a compact native status region shows the actual stage, current path and processed/total items. A stop request changes the visible state and disables repeated requests. A journaled Trash or restore item finishes verification and records its result before stopping. Permanent removal may stop between recorded descendants and leave a partial item requiring review. The completion view separates location-level issues from failed item receipts, and distinguishes moved, skipped and unverified items. Actual coverage is recorded in [acceptance](../engineering/acceptance-and-testing.md).
+
+Restoration and permanent removal use the same progress region. The total is the explicitly selected follow-up set; the processed count advances only after an outcome is persisted, including a failed outcome. It is not a success count. Read-only checking and the actual restoring/removing stage retain their own labels. Stopping leaves unstarted items available for a newly reviewed operation.
 
 ### Native navigation and catalog coverage
 

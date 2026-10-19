@@ -15,9 +15,9 @@ Ein nativer macOS-Cleaner für App-Caches, Entwicklungsprojekte und wachsende Or
 
 ## Download und Installation
 
-Shou v0.1.0 benötigt **macOS 14 oder neuer**. Die Universal-App läuft auf Apple Silicon und Intel Macs. Ziehe **Shou.app** aus dem Disk-Image nach **Applications**. Die Oberfläche ist auf Englisch und vereinfachtem Chinesisch verfügbar.
+Shou v0.2.0 benötigt **macOS 14 oder neuer**. Die Universal-App läuft auf Apple Silicon und Intel Macs. Ziehe **Shou.app** aus dem Disk-Image nach **Applications**. Die Oberfläche ist auf Englisch und vereinfachtem Chinesisch verfügbar.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Diese Version ist ad-hoc signiert und nicht von Apple notarisiert. Bei blockiertem Erststart prüfe die Downloadquelle und anschließend **Systemeinstellungen → Datenschutz & Sicherheit → Dennoch öffnen**.
 
@@ -25,6 +25,9 @@ Diese Version ist ad-hoc signiert und nicht von Apple notarisiert. Bei blockiert
 
 | | |
 | --- | --- |
+| **Apps deinstallieren** | App und eindeutig zugehörige Dateien vor dem Entfernen prüfen. Persönliche Daten erfordern eine separate Zustimmung; verschobene Komponenten sind wiederherstellbar. |
+| **Startobjekte** | Startdefinitionen prüfen und die macOS-Anmeldeobjekte öffnen. Shou aktiviert oder deaktiviert keine Einträge. |
+| **Ausschlüsse** | Ordner global oder pro Projekt schützen. Geänderte eigene Regeln werden als deaktivierte neue Version gespeichert. |
 | **App-Caches** | Caches von Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat und weiteren Apps gemeinsam prüfen. |
 | **Entwicklung und Projekte** | Caches von npm, Cargo, Xcode, Python und Go sowie Rust target, Node.js-Abhängigkeiten und Swift-Builds finden. |
 | **Speicheranalyse** | Ordnergrößen mit einer Treemap und einer Verzeichnisliste erkunden. |

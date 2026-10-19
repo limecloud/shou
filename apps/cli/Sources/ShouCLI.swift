@@ -23,12 +23,21 @@ struct CommandSpec: Codable, Sendable {
 let commands: [CommandSpec] = [
     .init("capabilities", "read", [], [], "Discover implemented operations, inputs, limits, and platform capabilities."),
     .init("locations list", "read", [], [], "List built-in application and developer cache roots, their existence, and scoped rules; does not scan or grant access."),
+    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report coverage and unknown configured/runtime states; never changes startup settings. Login Items and background registrations remain in System Settings."),
+    .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles with explicit directory coverage; never changes applications."),
+    .init("applications inspect", "snapshot", ["path"], ["max-entries", "max-seconds"], "Review an application and exact bundle-identifier associations. Personal data is separate; shared groups and package receipts are not removed."),
+    .init("applications plan", "plan", ["review-id", "component"], ["include-user-data"], repeated: ["component"], "Plan explicitly selected eligible components, including the application. Personal data requires include-user-data true; defaults false."),
+    .init("applications plan show", "read", ["plan-id"], [], "Inspect an uninstall plan, exact components, consent, digest and expiry."),
+    .init("applications uninstall", "destructive", ["plan-id"], [], "Move reviewed application components to native Trash after current-scope terminal confirmation. Restore through history."),
     .init("workspaces list", "read", [], [], "List registered workspaces."),
     .init("workspaces show", "read", ["workspace"], [], "Show workspace and current process access."),
     .init("workspaces add", "configuration", ["path", "root-ref"], [], "Register a local workspace; does not grant OS permissions."),
     .init("workspaces remove", "configuration", ["workspace"], [], "Unregister a workspace and its bindings; does not remove target files or history."),
-    .init("workspaces exclude add", "configuration", ["workspace", "pattern"], [], "Exclude a relative pattern."),
-    .init("workspaces exclude remove", "configuration", ["workspace", "pattern"], [], "Remove an explicit exclusion."),
+    .init("workspaces exclude add", "configuration", ["workspace", "pattern"], ["project"], "Exclude a workspace-relative pattern, or a pattern under a literal relative project directory."),
+    .init("workspaces exclude remove", "configuration", ["workspace", "pattern"], ["project"], "Remove an explicit workspace exclusion; project uses the same literal prefix as add."),
+    .init("exclusions list", "read", [], ["workspace"], "List global patterns and, optionally, workspace and combined patterns. Per-rule exclusions remain in rule definitions."),
+    .init("exclusions global add", "configuration", ["pattern"], [], "Protect a relative pattern in all current and future workspaces. Requires configuration version 2; older builds refuse it."),
+    .init("exclusions global remove", "configuration", ["pattern"], [], "Remove a global exclusion. This does not remove workspace or per-rule exclusions."),
     .init("rules schema", "read", [], [], "Get the bundled rule schema."),
     .init("rules validate", "read", ["file"], [], "Validate structure and static semantics without importing."),
     .init("rules import", "configuration", ["file"], [], "Import an immutable disabled draft."),
@@ -49,6 +58,7 @@ let commands: [CommandSpec] = [
     .init("plan execute", "destructive", ["plan-id"], [], "Move current plan targets to Trash after terminal confirmation."),
     .init("history list", "read", [], [], "List execution receipts."),
     .init("history show", "read", ["execution-id"], [], "Show item states and follow-up receipts."),
+    .init("history inspect", "read", ["execution-id"], ["max-entries", "max-seconds"], "Verify exact recorded original and Trash locations without changing files or receipts; never searches Trash or retries interrupted actions."),
     .init("history restore", "destructive", ["execution-id", "item"], [], repeated: ["item"], "Confirm and restore selected verified receipt items without overwrite."),
     .init("history purge", "destructive", ["execution-id", "item"], [], repeated: ["item"], "Separately confirm irreversible removal of selected receipt items."),
     .init("presets list", "read", [], [], "List reusable rule selections."),
@@ -120,7 +130,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.1.0"
+    static let version = "0.2.0"
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         await run()
@@ -140,6 +150,13 @@ enum Terminal {
         }
         data.append(10); try FileHandle.standardOutput.write(contentsOf: data)
     }
+    static func result(_ value: JSONValue, warnings: [String] = [], next: [JSONValue] = [], json: Bool) throws {
+        var envelope=try ResultEnvelope(data: value, warnings: warnings, nextActions: next)
+        let partial=value["status"] == .string("partial") || value["state"] == .string("partial") || value.array?.contains(where: { $0["state"] == .string("failed") }) == true
+        if partial { envelope.ok=false; envelope.status="partial" }
+        try output(envelope, json: json)
+        if partial { exit(6) }
+    }
     static func run() async {
         let raw=Array(CommandLine.arguments.dropFirst())
         if raw == ["--version"] { print("shou \(version) (CLI API 1.0, rule format 1.0)"); return }
@@ -156,10 +173,24 @@ enum Terminal {
                 if args.json { try output(ResultEnvelope(data: help), json: true) } else { print(help) }
                 return
             }
+            if args.command == "applications list" {
+                let includeSystem=args.values["include-system"]?.first ?? "false"
+                guard ["true", "false"].contains(includeSystem) else { throw ShouError("invalid_argument", "Include-system must be true or false.") }
+                let catalog=try await ApplicationCatalogService(source: NativeApplicationCatalog()).scan(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true"))
+                try result(try .from(catalog), warnings: [], json: args.json)
+                return
+            }
+            if args.command == "startup list" {
+                let includeSystem=args.values["include-system"]?.first ?? "false"
+                guard ["true", "false"].contains(includeSystem) else { throw ShouError("invalid_argument", "Include-system must be true or false.") }
+                let inventory=try await StartupInventoryService(source: NativeStartupInventory()).scan(options: StartupInventoryOptions(includeSystem: includeSystem == "true"))
+                try result(try .from(inventory), warnings: ["Only launchd definitions were inspected. Login Items, background-task registrations and embedded helpers require System Settings. Definitions do not establish current configured or runtime state."], json: args.json)
+                return
+            }
             let directory=ProcessInfo.processInfo.environment["SHOU_DATA_DIR"].map { URL(fileURLWithPath: $0) } ?? LocalRecordStore.defaultDirectory
             let store=try LocalRecordStore(directory: directory)
             let fs=NativeFileSystem()
-            let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence())
+            let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
             var value: JSONValue = .null
             var warnings: [String] = []
             var next: [JSONValue] = []
@@ -169,6 +200,19 @@ enum Terminal {
             case "capabilities":
                 value = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(commands), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("No model integration, agent hosting, or unattended destructive execution.")])])
             case "locations list": value=try .from(await engine.knownLocations())
+            case "applications inspect":
+                guard let entries=Int(args.values["max-entries"]?.first ?? "100000"), let seconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
+                let review=try await engine.reviewApplication(path: args.value("path"), budget: ScanBudget(maxEntries: entries, maxSeconds: seconds))
+                value=try .from(review); warnings=review.limitations
+            case "applications plan":
+                let consent=args.values["include-user-data"]?.first ?? "false"
+                guard ["true", "false"].contains(consent) else { throw ShouError("invalid_argument", "Include-user-data must be true or false.") }
+                value=try .from(await engine.createUninstallPlan(reviewId: args.value("review-id"), componentIds: args.all("component"), includeUserData: consent == "true"))
+            case "applications plan show": value=try .from(await engine.uninstallPlan(args.value("plan-id")))
+            case "applications uninstall":
+                let plan=try await engine.uninstallPlan(args.value("plan-id"))
+                try Terminal.confirm(TerminalReviewScope(uninstall: plan, locale: args.locale), phrase: "UNINSTALL " + plan.id, locale: args.locale)
+                value=try .from(await engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
             case "system scan":
                 guard let maxEntries=Int(args.values["max-entries"]?.first ?? "100000"), let maxSeconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
                 let projectOption=args.values["include-projects"]?.first ?? "false"
@@ -186,7 +230,10 @@ enum Terminal {
             case "workspaces remove":
                 try await engine.removeWorkspace(args.value("workspace"))
                 value = .object(["removed": .bool(true), "workspace_id": .string(args.value("workspace"))])
-            case "workspaces exclude add", "workspaces exclude remove": value=try .from(await engine.setExclusion(workspaceId: args.value("workspace"), pattern: args.value("pattern"), remove: args.command.hasSuffix("remove")))
+            case "workspaces exclude add", "workspaces exclude remove": value=try .from(await engine.setExclusion(workspaceId: args.value("workspace"), pattern: args.value("pattern"), remove: args.command.hasSuffix("remove"), project: args.values["project"]?.first))
+            case "exclusions list": value=try .from(await engine.exclusionSettings(workspaceId: args.values["workspace"]?.first))
+            case "exclusions global add", "exclusions global remove":
+                value = .object(["global_patterns": try .from(await engine.setGlobalExclusion(pattern: args.value("pattern"), remove: args.command.hasSuffix("remove")))])
             case "rules schema": value=try CleanupRule.schema()
             case "rules validate":
                 let rule=try CleanupRule.parse(ruleData(args.value("file")))
@@ -257,6 +304,9 @@ enum Terminal {
                 try Terminal.confirm(TerminalReviewScope(plan: plan, locale: args.locale), phrase: "TRASH " + plan.id, locale: args.locale)
                 value=try .from(await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
             case "history list": value=try .from(await engine.history())
+            case "history inspect":
+                guard let maxEntries=Int(args.values["max-entries"]?.first ?? "100000"), let maxSeconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
+                value=try .from(await engine.inspectHistory(executionId: args.value("execution-id"), budget: ScanBudget(maxEntries: maxEntries, maxSeconds: maxSeconds)))
             case "history show":
                 let receipt=try await engine.history(args.value("execution-id"))
                 let followups=try await engine.followUps().filter { $0.executionId == receipt.id }
@@ -278,11 +328,7 @@ enum Terminal {
                 else { let scan=try await engine.scan(workspaceId: preset.workspaceId, ruleIds: preset.ruleIds); value=try scanValue(scan); warnings=scan.issues; next=nextResults(scan) }
             default: throw ShouError("invalid_argument", "Command is not implemented.")
             }
-            var envelope=try ResultEnvelope(data: value, warnings: warnings, nextActions: next)
-            let partial=value["status"] == .string("partial") || value["state"] == .string("partial") || value.array?.contains(where: { $0["state"] == .string("failed") }) == true
-            if partial { envelope.ok=false; envelope.status="partial" }
-            try output(envelope, json: args.json)
-            if partial { exit(6) }
+            try result(value, warnings: warnings, next: next, json: args.json)
         } catch {
             let failure=error as? ShouError ?? ShouError("io_error", error.localizedDescription)
             do { try output(ResultEnvelope(error: failure), json: raw.contains("--json")) }

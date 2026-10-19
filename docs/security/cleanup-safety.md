@@ -38,7 +38,7 @@ The desktop delegates root identity and bounded traversal to short-lived instanc
 
 Temporary IPC uses a `0700` directory and `0600` files. Readers require current-user regular files with one link, reject symlink following and enforce size limits. Request/result version and request identity, the requesting parent, progress bounds and snapshot paths/coverage are validated. Invalid, foreign, incomplete or unavailable results fail closed; progress is never authorization.
 
-Cancellation/timeout terminates only the owned read child, without waiting for kernel exit. A two-live-child cap and parent/deadline watchdog prevent unbounded accumulation; they cannot force an outstanding kernel call to finish immediately. This is a responsiveness boundary, not protection from an equally privileged malicious process. Confirmed mutations remain in the parent with live native verification. Read-worker source exists, but packaged cancellation/timeout acceptance remains pending.
+Cancellation/timeout terminates only the owned read child, without waiting for kernel exit. A two-live-child cap and parent/deadline watchdog prevent unbounded accumulation; they cannot force an outstanding kernel call to finish immediately. This is a responsiveness boundary, not protection from an equally privileged malicious process. Confirmed mutations remain in the parent with live native verification. Automated cancellation/timeout and live-child-cap checks passed; the packaged desktop also passed stopping at the previously stalled scan location. These results do not establish behavior for every blocked kernel call; see [acceptance](../engineering/acceptance-and-testing.md).
 
 ## 4. Protection
 
@@ -64,11 +64,15 @@ GUI uses native confirmation; CLI requires a controlling terminal and explicit c
 
 Acquire a cross-process lock; verify scope, configuration, root/object identity, manifests, and access. Recheck near each operation and refuse unverifiable changes. Persist intent first, record actual result identities/locations, and stop new work on journal failure. Unknown outcomes require reconciliation, not blind retry.
 
+Persist the per-item `moving` boundary before calling Trash. A pre-call journal failure prevents that call; a post-call write failure leaves a started, unfinished record. Native Trash errors are known failures only when the original manifest can still be reproduced; otherwise record an unknown outcome. History inspection obtains the same mutation lease and reads only exact saved locations. It cannot infer an unrecorded system Trash destination or authorize retries, and never enumerates unrelated Trash contents. Pending follow-up intents remain blocked even if later observations suggest restoration completed.
+
 Prototype the interaction between `FileManager.trashItem`, descriptors, identity binding, and directory replacement. If constraints cannot be met, narrow supported scenarios or ship read-only functionality. Permanent removal must stay bounded to verified manifest entries, never an unbounded recursive fallback.
 
 Generated-source exceptions require an exact trusted bundled rule and native ownership/activity facts; imported rules cannot request them. Recognized Rust `OUT_DIR` and Swift generated products do not exempt nearby source checkouts, manifests, credentials or repositories. Cargo extracted sources additionally require an unchanged source inventory, verified checksums and matching retained local archive. Missing tools, active build processes, tracked content, modifications or unavailable evidence fail closed.
 
 Execution stop is cooperative at safe item boundaries. Do not promise to interrupt a single in-progress system Trash call. Reconcile that call, retain completed results and mark remaining items accurately; a stop request is not a rollback.
+
+Read/preflight work remains cancellable. After a Trash or restore intent is persisted, native path and manifest checks finish the current item without inheriting scan-worker cancellation; identity, no-follow, ownership, budgets and no-overwrite checks remain enforced. No next item starts after cancellation, and an unstarted restore has no follow-up intent. Permanent removal can stop between descendants: an interrupted item is failed/partial, not successfully removed. Desktop quit/close waits for execution and retains the window on errors or unknown outcomes; it never grants recovery authority or retries unfinished intents.
 
 ## 7. Trash, permanent removal, restoration
 
@@ -93,3 +97,16 @@ Protect temporary and durable data with current-user permissions. Validate locki
 Independently validate ACLs, long/Unicode paths, case behavior, junctions/reparse points, mounted volumes, occupied files, Recycle Bin identities, restoration conflicts, locks/durability, runtime delivery, and clean installation.
 
 Unavailable recycling returns a capability error, never permanent-delete fallback. macOS simulations and cross-compilation do not establish Windows safety.
+
+## Startup discovery
+
+The first startup stage only reads fixed launchd definition directories; it cannot alter registration, terminate processes, enable services or delete files. Ancestor/leaf links and special files are rejected. File/source identity changes, permission failures, invalid definitions and entry/time limits remain visible in coverage; each file is limited to 256 KiB. Default budgets are 2,000 entries and five seconds, with cancellation between operations. Blocking kernel calls may outlast cooperative cancellation.
+
+Only a printable absolute executable path is retained from Program or the first ProgramArguments element. Remaining arguments and environment values are not retained or returned. Configured/runtime states stay unknown, and Disabled is only a definition hint. Login Items, background registrations and embedded helpers require the native System Settings view. Discovery uses no cleanup store or new permissions. See [startup discovery](../product/startup-items.md).
+
+
+## Application uninstall
+
+Uninstall uses exact application identity and bundle-identifier associations rather than cache-rule exceptions. Personal data needs separate consent and explicit component selection. Known duplicate identifiers protect associated data; incomplete discovery warns and prevents automatic component selection. Shared group containers, external registrations and orphan-only discovery are outside this stage. System/current apps, current-account running executables/helpers, unknown activity, other-owned content, special or multiply linked files, protected storage and exclusions block processing.
+
+The ordinary workspace-root policy is not relaxed for `/Applications`. Each receipt item validates its exact component-kind origin; application parents use a separate fixed installation-directory capability. Standalone files require bounded content evidence, at most 16 MiB. Shared durable intent, native Trash result verification and no-overwrite recovery apply to files and directories. Uninstall receipts permit restoration only; no new purge flow is introduced. Coverage, process limitations and cancellation behavior are specified in [application uninstall](../product/application-uninstall.md).

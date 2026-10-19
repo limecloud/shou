@@ -145,6 +145,7 @@ Rust／Swift 活动检查使用固定的原生 `ps`、`lsof` 调用，限定当�
 ## 鸣谢
 
 - [MangoDisk](https://github.com/harry0703/MangoDisk)：可读取源码为语义类别导航、规则／来源选择、明确确认与逐项结果提供启发。直接观察已安装版深度清理页，确认类别／规则／路径层级、部分选择和固定底部选择与操作区；未触发其清理操作。已检查的职责包括 `cleanup-result-categories.ts`、`md-cleanup-rule-groups.vue`、`cleanup-rule-selection.ts`、`md-cleanup-plan-dialog.vue`、`md-cleanup-result-dialog.vue` 与 Core 清理扫描／执行模块。
+- [MangoDisk](https://github.com/harry0703/MangoDisk) 启动项源码为配置证据、配置状态、运行状态和控制能力的分离提供启发。已检查 Core `startup/models.rs` 及平台 `macos/startup/mod.rs`、`launchd.rs`。Shou 独立实现原生只读发现及公开 macOS 设置入口，不引入参考实现的 helper 或状态修改操作。
 - [Pulse](https://pulse.egoist.dev/)：紧凑的原生容量摘要与空间分布展示。
 - [BuhoCleaner](https://www.drbuho.com/buhocleaner)：磁盘浏览与清理分组展示。
 

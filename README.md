@@ -15,9 +15,9 @@ A native macOS cleaner for application caches, development projects, and the fol
 
 ## Download and install
 
-Download Shou v0.1.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.2.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 
@@ -25,6 +25,9 @@ This release uses an ad-hoc signature and is not Apple-notarized. If macOS block
 
 | | |
 | --- | --- |
+| **Applications** | Review an app and its exact associated files before uninstalling. Personal data needs separate consent; moved components can be restored. |
+| **Startup items** | Inspect startup definitions and open macOS Login Items settings. Shou does not enable or disable them. |
+| **Exclusions** | Protect folders globally or within a project, and edit personal rules as disabled revisions. |
 | **Application caches** | Review caches from browsers, chat apps, editors, and tools, including Chrome, Edge, Firefox, Codex, Claude, QQ, and WeChat. |
 | **Developer tools and projects** | Find npm, Cargo, Xcode, Python, and Go caches, Rust target directories, Node.js dependencies, and Swift build products. |
 | **Space analysis** | Explore folder sizes with a treemap and directory list. |

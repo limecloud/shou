@@ -3,7 +3,7 @@ import Foundation
 import CryptoKit
 #endif
 
-/// Portable SHA-256, used for canonical records and metadata manifests, not file content.
+/// Portable SHA-256 for canonical records, manifests, and bounded file content.
 public enum Digest {
     private static let constants: [UInt32] = [
         0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,

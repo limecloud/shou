@@ -12,14 +12,17 @@ public struct FileEntry: Codable, Sendable, Equatable {
     public var mode: UInt32
     public var owner: UInt32
     public var links: UInt64
+    public var contentDigest: String? = nil
     public init(path: String, kind: String, device: UInt64, inode: UInt64, logicalBytes: Int64, allocatedBytes: Int64, modifiedNanoseconds: Int64, changedNanoseconds: Int64, mode: UInt32, owner: UInt32, links: UInt64) {
         self.path=path; self.kind=kind; self.device=device; self.inode=inode; self.logicalBytes=logicalBytes; self.allocatedBytes=allocatedBytes
         self.modifiedNanoseconds=modifiedNanoseconds; self.changedNanoseconds=changedNanoseconds; self.mode=mode; self.owner=owner; self.links=links
     }
     public func sameObject(as other: FileEntry) -> Bool { device == other.device && inode == other.inode && kind == other.kind }
+    public var metadata: FileEntry { var copy=self; copy.contentDigest=nil; return copy }
     public func matchesTrashRoot(as other: FileEntry) -> Bool {
-        guard path == ".", other.path == ".", kind == "directory", other.kind == "directory" else { return false }
-        // Finder may update a verified Trash directory's ctime after the move.
+        guard path == ".", other.path == ".", kind == other.kind,
+              kind == "directory" || (kind == "file" && contentDigest != nil && contentDigest == other.contentDigest) else { return false }
+        // File roots additionally require the same bounded content digest.
         var normalized=other
         normalized.changedNanoseconds=changedNanoseconds
         return self == normalized
@@ -120,6 +123,7 @@ public struct Configuration: Codable, Sendable {
     public var bindings: [RuleBinding] = []
     public var presets: [Preset] = []
     public var locale: String? = nil
+    public var globalExclusions: [String]? = nil
     public init() {}
 }
 public struct Candidate: Codable, Sendable, Identifiable {
@@ -187,6 +191,7 @@ public struct ItemReceipt: Codable, Sendable, Identifiable {
     public var state: String
     public var allocatedBytesEstimate: Int64
     public var error: String?
+    public var uninstallOrigin: UninstallReceiptOrigin? = nil
 }
 public struct ExecutionReceipt: Codable, Sendable, Identifiable {
     public var id: String
@@ -198,6 +203,7 @@ public struct ExecutionReceipt: Codable, Sendable, Identifiable {
     public var items: [ItemReceipt]
     public var volumeAvailableBefore: Int64?
     public var volumeAvailableAfter: Int64?
+    public var operation: String? = nil
     public var trashedBytesEstimate: Int64 { items.filter { $0.state == "trashed" }.reduce(0) { $0 + $1.allocatedBytesEstimate } }
 }
 public struct FollowUpReceipt: Codable, Sendable, Identifiable {
@@ -237,9 +243,12 @@ public protocol PlatformFileSystem: Sendable {
     var supportsTrash: Bool { get }
     var trashUnavailableReason: String? { get }
     func locationAvailability(_ path: String) -> LocationAvailability
+    func targetAvailability(_ path: String) -> LocationAvailability
     func rootIdentity(_ path: String) throws -> FileEntry
+    func applicationParentIdentity(_ path: String) throws -> FileEntry
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
+    func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func availableBytes(_ path: String) -> Int64?
     func isTrashLocation(_ path: String) -> Bool
@@ -248,7 +257,14 @@ public protocol PlatformFileSystem: Sendable {
     func purge(_ path: String, expected: [FileEntry]) throws
 }
 extension PlatformFileSystem {
+    public func applicationParentIdentity(_ path: String) throws -> FileEntry {
+        throw ShouError("capability_unavailable", "Application removal is unavailable on this filesystem.")
+    }
     public var trashUnavailableReason: String? { nil }
+    public func targetAvailability(_ path: String) -> LocationAvailability { locationAvailability(path) }
+    public func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspect(path, budget: budget, cancelled: cancelled)
+    }
     public func locationAvailability(_ path: String) -> LocationAvailability {
         do { _ = try rootIdentity(path); return .available }
         catch { return .unavailable(error.localizedDescription) }

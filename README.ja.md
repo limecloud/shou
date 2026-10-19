@@ -15,9 +15,9 @@
 
 ## ダウンロードとインストール
 
-Shou v0.1.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
+Shou v0.2.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
 
-[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.2.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.2.0/Shou-0.2.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.2.0/shou-0.2.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 この版は ad-hoc 署名で、Apple の公証は受けていません。初回起動がブロックされた場合は、配布元を確認してから**システム設定 → プライバシーとセキュリティ**で開く許可を確認してください。
 
@@ -25,6 +25,9 @@ Shou v0.1.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Si
 
 | | |
 | --- | --- |
+| **アプリのアンインストール** | アプリと明確に関連するファイルを確認してから削除。個人データには別の同意が必要で、ゴミ箱から復元できます。 |
+| **起動項目** | 起動定義を確認し、macOS のログイン項目設定を開けます。Shou は項目を直接有効・無効にしません。 |
+| **除外設定** | 全体またはプロジェクト単位でフォルダを保護。個人ルールの変更は無効な新バージョンとして保存。 |
 | **アプリのキャッシュ** | Chrome、Edge、Firefox、Codex、Claude、QQ、WeChat などをまとめて確認。 |
 | **開発ツールとプロジェクト** | npm、Cargo、Xcode、Python、Go のキャッシュ、Rust target、Node.js の依存関係、Swift 成果物を検出。 |
 | **容量の分析** | ツリーマップとフォルダ一覧で容量を階層ごとに確認。 |
