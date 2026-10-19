@@ -29,7 +29,8 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | --- | --- | --- |
 | `capabilities` | R | Actual support, contract version, limitations, inputs |
 | `locations list` | R | Explicit built-in roots, availability, rule IDs and inspection issues |
-| `startup list` | R | Bounded macOS launchd-definition inventory; optional `--include-system true\|false`, default false; settings guidance and unknown runtime/configured state |
+| `startup list` | R | Bounded macOS launchd-definition inventory; optional `--include-system true\|false`, default false; best-effort runtime/configured state with explicit unknowns and settings guidance |
+| `startup control` | W | Revalidate an exact current-user LaunchAgent plist, then enable or disable it through the current user's `launchctl`; interactive confirmation required, no process termination or system-daemon changes |
 | `system scan` | W | Cleanup-scope scan of available built-in roots; optionally include registered projects |
 | `workspaces list / show` | R | Bindings and current-entry-point access |
 | `workspaces add` | W | Register explicit path/root reference; not OS authorization |
@@ -56,7 +57,7 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 
 Discover actual availability rather than assuming every documented command exists.
 
-`startup list --json` does not open cleanup storage. Its `scope` is `launchd_definitions`; completeness applies to the requested sources, while `unavailable_sources` identifies Login Items, background registrations and embedded helpers outside that scope. Source failures retain a partial envelope and exit `6`. Arguments/environment values are omitted; configured/runtime states remain `unknown`. It cannot change startup settings. See [startup discovery](../product/startup-items.md).
+`startup list --json` does not open cleanup storage. Its `scope` is `launchd_definitions`; completeness applies to the requested sources, while `unavailable_sources` identifies Login Items, background registrations and embedded helpers outside that scope. Source failures retain a partial envelope and exit `6`. Arguments/environment values are omitted. For current-user LaunchAgents, Shou performs a bounded read of `launchctl print-disabled` and the exact service domain; values are `enabled`, `disabled`, `loaded`, `running` or `not_loaded` when observed, and `unknown` when the command is unavailable or the deadline expires. These are point-in-time facts and do not grant control authority. `startup control --path <exact-path> --action enable|disable` accepts only a path returned by discovery under the current user's `~/Library/LaunchAgents`; it rechecks the parent, owner, regular-file type, plist Label and bytes, then requires `STARTUP ENABLE|DISABLE <label>` on the current TTY. See [startup discovery](../product/startup-items.md).
 
 ## 4. Example workflow
 

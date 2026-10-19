@@ -33,15 +33,58 @@ public struct StartupDefinition: Codable, Sendable, Equatable, Identifiable {
     public let programPath: String?
     public let disabledByDefinition: Bool
     public let triggers: [String]
-    // A definition does not establish launchd overrides, registration or process state.
+    // Platform readers may provide bounded point-in-time observations. Unknown
+    // remains valid when a source cannot be queried; these facts never grant
+    // mutation authority.
     public let configuredState: String
     public let runtimeState: String
     public let controlCapability: String
-    public init(sourceId: String, path: String, label: String, programPath: String?, disabledByDefinition: Bool, triggers: [String]) {
+    public init(sourceId: String, path: String, label: String, programPath: String?, disabledByDefinition: Bool, triggers: [String], configuredState: String = "unknown", runtimeState: String = "unknown", controlCapability: String = "system_settings") {
         self.id=Digest.sha256(Data((sourceId + "\0" + path).utf8))
         self.sourceId=sourceId; self.path=path; self.label=label; self.programPath=programPath
         self.disabledByDefinition=disabledByDefinition; self.triggers=triggers
-        self.configuredState="unknown"; self.runtimeState="unknown"; self.controlCapability="system_settings"
+        self.configuredState=configuredState; self.runtimeState=runtimeState; self.controlCapability=controlCapability
+    }
+}
+
+public enum StartupControlAction: String, Codable, Sendable {
+    case enable
+    case disable
+}
+
+public struct StartupControlResult: Codable, Sendable, Equatable {
+    public let definitionId: String
+    public let label: String
+    public let action: StartupControlAction
+    public let configuredState: String
+    public let runtimeState: String
+    public let controlCapability: String
+    public let message: String
+    public init(definitionId: String, label: String, action: StartupControlAction, configuredState: String, runtimeState: String, controlCapability: String, message: String) {
+        self.definitionId=definitionId; self.label=label; self.action=action; self.configuredState=configuredState; self.runtimeState=runtimeState; self.controlCapability=controlCapability; self.message=message
+    }
+}
+
+/// A platform adapter must enforce its own source and identity boundaries before changing startup state.
+public protocol StartupControlling: Sendable {
+    func apply(definition: StartupDefinition, action: StartupControlAction) throws -> StartupControlResult
+}
+
+public struct UnavailableStartupControl: StartupControlling {
+    public init() {}
+    public func apply(definition: StartupDefinition, action: StartupControlAction) throws -> StartupControlResult {
+        throw ShouError("capability_unavailable", "Direct startup control is unavailable on this platform or for this source.")
+    }
+}
+
+public actor StartupControlService {
+    private let controller: any StartupControlling
+    public init(controller: any StartupControlling) { self.controller=controller }
+    public func apply(definition: StartupDefinition, action: StartupControlAction) throws -> StartupControlResult {
+        guard definition.controlCapability != "system_settings" else {
+            throw ShouError("capability_unavailable", "This startup source must be managed in System Settings.")
+        }
+        return try controller.apply(definition: definition, action: action)
     }
 }
 

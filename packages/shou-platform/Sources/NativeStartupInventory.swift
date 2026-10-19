@@ -5,6 +5,36 @@ import Darwin
 import CoreFoundation
 #endif
 
+/// Pure parsers for `launchctl` output. They are kept separate from process
+/// execution so state semantics can be verified without changing startup items.
+public enum LaunchctlStateParser {
+    public static func configuredStates(_ output: String) -> [String: String] {
+        var result: [String: String] = [:]
+        for line in output.split(whereSeparator: \.isNewline) {
+            let value=String(line).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard value.hasPrefix("\""), let closing=value.dropFirst().firstIndex(of: "\"") else { continue }
+            let label=String(value[value.index(after: value.startIndex)..<closing])
+            let remainder=value[value.index(after: closing)...].trimmingCharacters(in: .whitespacesAndNewlines)
+            guard remainder.hasPrefix("=>") else { continue }
+            let state=remainder.dropFirst(2).trimmingCharacters(in: .whitespacesAndNewlines)
+            guard (state == "enabled" || state == "disabled"), !label.isEmpty else { continue }
+            result[label]=String(state)
+        }
+        return result
+    }
+
+    public static func runtimeState(status: Int32, output: String) -> String {
+        guard status == 0 else {
+            let lower=output.lowercased()
+            if lower.contains("could not find service") || lower.contains("service not found") || lower.contains("no such process") {
+                return "not_loaded"
+            }
+            return "unknown"
+        }
+        return output.lowercased().contains("state = running") ? "running" : "loaded"
+    }
+}
+
 public struct NativeStartupInventory: StartupInventoryReading {
     public static let maximumDefinitionBytes=262_144
     private let locations: [StartupLocation]
@@ -47,6 +77,7 @@ public struct NativeStartupInventory: StartupInventoryReading {
                 let listing=try NativeDefinitionFiles.names(directory, limit: options.maxEntries-visited, deadline: deadline)
                 count=listing.names.count; visited += count
                 if listing.truncated { issues.append(StartupInventoryIssue(sourceId: location.id, path: location.path, code: "resource_limit")) }
+                let launchctl=location.id == "macos.user_agents" ? LaunchctlSession(deadline: deadline) : nil
                 for name in listing.names where name.hasSuffix(".plist") {
                     try checkCancellation()
                     if ContinuousClock.now >= deadline {
@@ -55,7 +86,10 @@ public struct NativeStartupInventory: StartupInventoryReading {
                     let path=location.path + "/" + name
                     do {
                         let data=try NativeDefinitionFiles.bytes(directory: directory, name: name, path: path, deadline: deadline)
-                        items.append(try parse(data, location: location, path: path)); found += 1
+                        let label=labelFromData(data)
+                        let configured=launchctl?.configuredState(for: label)
+                        let runtime=launchctl?.runtimeState(for: label)
+                        items.append(try parse(data, location: location, path: path, configuredState: configured, runtimeState: runtime)); found += 1
                     } catch let error as ShouError {
                         if error.code == "cancelled" { throw error }
                         issues.append(StartupInventoryIssue(sourceId: location.id, path: path, code: error.code))
@@ -87,7 +121,7 @@ public struct NativeStartupInventory: StartupInventoryReading {
     private func checkCancellation() throws {
         if Task.isCancelled { throw ShouError("cancelled", "Startup scan stopped.") }
     }
-    private func parse(_ data: Data, location: StartupLocation, path: String) throws -> StartupDefinition {
+    private func parse(_ data: Data, location: StartupLocation, path: String, configuredState: String? = nil, runtimeState: String? = nil) throws -> StartupDefinition {
         guard let dictionary=try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
               let label=dictionary["Label"] as? String, printable(label, limit: 512), !label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw ShouError("invalid_definition", "Startup definition is invalid.")
@@ -114,10 +148,60 @@ public struct NativeStartupInventory: StartupInventoryReading {
         else if let values=dictionary["ProgramArguments"] as? [String] { program=values.first }
         if let value=program, (!value.hasPrefix("/") || !printable(value, limit: 4_096)) { program=nil }
         // Arguments and environment values may contain credentials; do not retain them.
-        return StartupDefinition(sourceId: location.id, path: path, label: label, programPath: program, disabledByDefinition: disabled, triggers: triggers)
+        let capability=location.id == "macos.user_agents" ? "launchctl_user_agent" : "system_settings"
+        return StartupDefinition(sourceId: location.id, path: path, label: label, programPath: program, disabledByDefinition: disabled, triggers: triggers,
+            configuredState: configuredState ?? "unknown", runtimeState: runtimeState ?? "unknown", controlCapability: capability)
+    }
+    private func labelFromData(_ data: Data) -> String {
+        guard let dictionary=try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+              let label=dictionary["Label"] as? String else { return "" }
+        return label
     }
     private func printable(_ value: String, limit: Int) -> Bool {
         !value.isEmpty && value.utf8.count <= limit && value.rangeOfCharacter(from: .controlCharacters) == nil
     }
     #endif
 }
+
+#if os(macOS)
+private struct LaunchctlSession {
+    let domain: String
+    let configured: [String: String]
+    let deadline: ContinuousClock.Instant
+
+    init?(deadline: ContinuousClock.Instant) {
+        guard ContinuousClock.now < deadline else { return nil }
+        self.domain="gui/\(getuid())"
+        self.deadline=deadline
+        guard let result=Self.run(["print-disabled", domain], deadline: deadline), result.status == 0 else {
+            self.configured=[:]
+            return
+        }
+        self.configured=LaunchctlStateParser.configuredStates(result.output)
+    }
+
+    func configuredState(for label: String) -> String? {
+        guard !label.isEmpty else { return nil }
+        return configured[label]
+    }
+
+    func runtimeState(for label: String) -> String? {
+        guard !label.isEmpty, ContinuousClock.now < deadline,
+              let result=Self.run(["print", domain + "/" + label], deadline: deadline) else { return "unknown" }
+        return LaunchctlStateParser.runtimeState(status: result.status, output: result.output)
+    }
+
+    private static func run(_ arguments: [String], deadline: ContinuousClock.Instant) -> (status: Int32, output: String)? {
+        guard ContinuousClock.now < deadline else { return nil }
+        let process=Process()
+        process.executableURL=URL(fileURLWithPath: "/bin/launchctl")
+        process.arguments=arguments
+        let output=Pipe(), errors=Pipe()
+        process.standardOutput=output; process.standardError=errors
+        do { try process.run() } catch { return nil }
+        process.waitUntilExit()
+        let data=output.fileHandleForReading.readDataToEndOfFile() + errors.fileHandleForReading.readDataToEndOfFile()
+        return (process.terminationStatus, String(decoding: data.prefix(16_384), as: UTF8.self))
+    }
+}
+#endif

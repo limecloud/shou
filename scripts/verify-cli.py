@@ -42,14 +42,20 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     assert len(startup['sources']) == 3
     assert all(not source['location']['system_owned'] for source in startup['sources'])
     assert startup['unavailable_sources'] == ['login_items', 'background_task_registrations', 'embedded_helpers']
-    assert all(item['configured_state'] == 'unknown' and item['runtime_state'] == 'unknown'
-               and item['control_capability'] == 'system_settings' and 'program_arguments' not in item
-               and 'environment_variables' not in item for item in startup['items'])
+    assert all(item['configured_state'] in {'unknown', 'enabled', 'disabled'}
+               and item['runtime_state'] in {'unknown', 'loaded', 'running', 'not_loaded'}
+               and item['control_capability'] == ('launchctl_user_agent' if item['source_id'] == 'macos.user_agents' else 'system_settings')
+               and 'program_arguments' not in item and 'environment_variables' not in item for item in startup['items'])
     system_startup = run('startup', 'list', '--include-system', 'true', expected=(0, 6), env_override=startup_environment)['data']
     assert system_startup['include_system'] is True and len(system_startup['sources']) == 5
     assert sum(source['location']['system_owned'] for source in system_startup['sources']) == 2
     run('startup', 'list', '--include-system', 'yes', expected=2)
     run('startup', 'list', '--enable', 'true', expected=2)
+    user_agent = next((item for item in startup['items'] if item['control_capability'] == 'launchctl_user_agent'), None)
+    if user_agent:
+        denied = run('startup', 'control', '--path', user_agent['path'], '--action', 'disable', expected=(2, 7))
+        assert denied['error']['code'] == 'confirmation_required'
+    run('startup', 'control', '--path', str(base / 'missing.plist'), '--action', 'disable', expected=2)
     assert blocked_store.read_text() == 'preserve this file; startup discovery does not open a record store'
     assert not (base / 'store').exists()
 

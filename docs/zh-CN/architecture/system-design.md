@@ -200,7 +200,7 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 
 ## 启动项发现边界
 
-`StartupInventoryService` 独立于清理存储，负责只读协调。Core 定义 `StartupInventoryReading` 和可移植的证据／覆盖模型，`NativeStartupInventory` 负责 macOS 来源目录、有界物理读取与属性列表解析。CLI 和 SwiftUI 共用该服务，桌面通过公开 ServiceManagement API 打开登录项设置，不执行 launchctl，不提供运行控制或特权 helper。见[启动项发现](../product/startup-items.md)。
+`StartupInventoryService` 独立于清理存储，负责只读协调。Core 定义 `StartupInventoryReading` 和可移植的证据／覆盖模型，`NativeStartupInventory` 负责 macOS 来源目录、有界物理读取、属性列表解析及当前用户 Agent 的固定枚举只读 `launchctl` 状态查询。CLI 和 SwiftUI 共用该服务，桌面通过公开 ServiceManagement API 打开登录项设置；状态查询不改变设置，也不需要特权 helper，修改仍是单独确认的当前用户能力。见[启动项发现](../product/startup-items.md)。
 
 ## 10. 工程原则
 

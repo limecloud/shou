@@ -30,7 +30,7 @@ flowchart LR
     M2 --> M3[Confirmed execution in both entry points]
     M3 --> M4[macOS MVP acceptance]
     M4 --> M5[Windows prototype and delivery]
-    M4 --> Later[Uninstall, more templates]
+    M4 --> Later[Remaining uninstall scope, more templates]
 ```
 
 Dates depend on estimates and prototype outcomes. Safety gates cannot be skipped for a deadline.
@@ -84,7 +84,7 @@ Build shared Swift core and `shou.exe` on Windows; deliver runtime dependencies.
 
 ## 4. Later candidates
 
-Broader templates, uninstall ownership analysis, separately evaluated startup control, safe sharing, project archival, and worktree workflows. Evaluate additional protocols only when a demonstrated need exceeds CLI capabilities.
+Broader templates, orphan/shared-data ownership and external-registration handling, complete startup-registration coverage, safe sharing, project archival, and worktree workflows. Evaluate additional protocols only when a demonstrated need exceeds CLI capabilities.
 
 Model integration and agent development are not roadmap candidates.
 
@@ -107,9 +107,13 @@ Persistent features update shared services, CLI discovery/inputs/results/errors/
 
 ## Startup first stage
 
-F15 now has a shared read-only discovery service, independent CLI `startup list`, native searchable table, explicit source coverage and public macOS Login Items settings navigation. This stage does not implement enable/disable, full registration inventory or runtime control. Its evidence is tracked separately in [acceptance](acceptance-and-testing.md) and its scope in [startup discovery](../product/startup-items.md).
+F15 now has a shared discovery and restricted control service, independent CLI `startup list`/`startup control`, native searchable table, explicit source coverage and public macOS Login Items settings navigation. Control is limited to current-user LaunchAgents, revalidated before execution and protected by interactive confirmation; complete registration inventory, system daemons and runtime process control remain outside scope. Its evidence is tracked separately in [acceptance](acceptance-and-testing.md) and its scope in [startup discovery](../product/startup-items.md).
 
 
 ## Application uninstall first stage
 
-F14 now has source implementations for bounded application discovery, exact identifier component review, separate personal-data consent, digest-bound plans, shared native Trash journaling, per-component history inspection and no-overwrite restoration, exposed through CLI and native SwiftUI. [Application uninstall](../product/application-uninstall.md) records implemented scope and pending orphan-only discovery, shared-group and external-registration work. Automated and desktop evidence remain independently recorded in [acceptance](acceptance-and-testing.md); the broader completion objective remains active.
+F14 now has source implementations for bounded application discovery, exact identifier component review, verified shared group-container discovery, separate personal-data consent, digest-bound plans, shared native Trash journaling, per-component history inspection and no-overwrite restoration, exposed through CLI and native SwiftUI. Core and CLI contracts plus generated-fixture Trash → restore pass; the tested build is locally installed. [Application uninstall](../product/application-uninstall.md) records implemented scope and pending orphan-only discovery, external-registration, other-account and custom-location work. Precise automated, desktop and installation limits remain recorded in [acceptance](acceptance-and-testing.md); the broader completion objective remains active.
+
+## Personal-rule wizard first stage
+
+F03 now has a native three-step authoring flow: bounded scope selection, conditions and preservation, then measured read-only preview. It reuses the closed rule parser and scan engine, exposes exact reasons for size, age, marker and protection decisions, keeps drafts disabled until explicit enablement and a fresh scan, and shares the same CLI rule format. The isolated desktop closure moved only the eligible generated target to Trash and restored it with unchanged hashes. Remaining release gates, third-party client coverage and Windows evidence remain open.

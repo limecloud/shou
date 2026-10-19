@@ -83,7 +83,7 @@ struct CleanupCompletion: Identifiable {
     var storage=StorageIndex(entries: [])
     var browsingPath="."
     var focusedPath: String?
-    var ruleDraftPattern="**/target"
+    var ruleDraftPattern=""
     var builtins: [CleanupRule]=[]
     var scanProgress: ScanProgress?
     var selection=Set<String>()
@@ -96,7 +96,10 @@ struct CleanupCompletion: Identifiable {
     var applicationsIncludeSystem=false
     var startupIncludeSystem=false
     var startupLoading=false
+    var startupControlLoading=false
+    var startupControlResult: StartupControlResult?
     private let startupService=StartupInventoryService(source: NativeStartupInventory())
+    private let startupControlService=StartupControlService(controller: NativeStartupControl())
     var busy=false { didSet { updater.operationInProgress=busy } }
     var scanning=false
     var isExecuting=false
@@ -282,6 +285,22 @@ struct CleanupCompletion: Identifiable {
             }
         }
     }
+    func controlStartup(_ definition: StartupDefinition, action: StartupControlAction) {
+        guard !busy else { return }
+        busy=true; startupControlLoading=true; error=nil
+        task=Task {
+            do {
+                let result=try await startupControlService.apply(definition: definition, action: action)
+                startupControlResult=result; statusKey=action == .enable ? "Startup definition enabled." : "Startup definition disabled."
+                busy=false; startupControlLoading=false
+                scanStartup()
+            } catch {
+                busy=false; startupControlLoading=false
+                if !Task.isCancelled { self.error=error.localizedDescription }
+                statusKey="Startup control failed."
+            }
+        }
+    }
     func scanApplications() {
         guard let engine, !busy else { return }
         busy=true; applicationsLoading=true; applicationReview=nil
@@ -403,6 +422,34 @@ struct CleanupCompletion: Identifiable {
             defer { busy=false; scanning=false }
             do { snapshot=try await engine.scan(workspaceId: workspaceId, previewRule: record.rule); section="overview"; statusKey="Draft preview only. Enable the rule and rescan before cleanup." }
             catch { self.error=error.localizedDescription }
+        }
+    }
+    func previewRuleDraft(_ data: Data, workspaceId: String, completion: @escaping (Result<(ScanSnapshot, [PersonalRulePreviewRow]), Error>) -> Void) {
+        guard let engine else { completion(.failure(ShouError("io_error", "Local store is unavailable."))); return }
+        guard !busy else { completion(.failure(ShouError("store_busy", "Another operation is in progress."))); return }
+        let rule: CleanupRule
+        do { rule=try CleanupRule.parse(data) }
+        catch { completion(.failure(error)); return }
+        let operation=UUID(); operationID=operation
+        busy=true; scanning=true; scanProgress=nil; statusKey="Previewing personal rule…"
+        task=Task {
+            defer { busy=false; scanning=false; scanProgress=nil }
+            do {
+                let result=try await engine.scan(workspaceId: workspaceId, previewRule: rule, scope: .cleanup, progress: { [weak self] progress in
+                    Task { @MainActor in
+                        guard let self, self.scanning, self.operationID == operation else { return }
+                        self.scanProgress=progress
+                    }
+                })
+                let analysis=Task.detached(priority: .userInitiated) { try PersonalRulePreview.rows(snapshot: result, rule: rule) }
+                let rows=try await withTaskCancellationHandler { try await analysis.value } onCancel: { analysis.cancel() }
+                try Task.checkCancellation()
+                statusKey="Draft preview only. Enable the rule and rescan before cleanup."
+                completion(.success((result, rows)))
+            } catch {
+                statusKey=Task.isCancelled ? "Rule preview stopped." : "Rule preview could not finish."
+                completion(.failure(error))
+            }
         }
     }
     func exportRule(_ record: RuleRecord) {
@@ -641,7 +688,7 @@ struct ContentView: View {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.2.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {
@@ -724,7 +771,7 @@ struct RulesView: View {
     @State private var ruleSource="all"
     var body: some View {
         VStack(alignment: .leading) {
-            HStack { VStack(alignment: .leading) { Text(model.t("Rules")).font(.largeTitle); Text(model.t("Built-in rules work immediately. Personal rules are imported as disabled drafts.")).foregroundStyle(.secondary) }; Spacer(); Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy); Button(model.t("Import…")) { model.importRule() }.disabled(model.busy); Button(model.t("New Rule…")) { model.ruleDraftPattern="**/target"; editor=true }.disabled(model.workspace == nil || model.busy) }.padding(24)
+            HStack { VStack(alignment: .leading) { Text(model.t("Rules")).font(.largeTitle); Text(model.t("Built-in rules work immediately. Personal rules are imported as disabled drafts.")).foregroundStyle(.secondary) }; Spacer(); Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy); Button(model.t("Import…")) { model.importRule() }.disabled(model.busy); Button(model.t("New Rule…")) { model.ruleDraftPattern=""; editor=true }.disabled(model.workspace == nil || model.busy) }.padding(24)
             HStack {
                 if !model.configuration.workspaces.isEmpty {
                     Picker(model.t("Workspace"), selection: $model.workspaceId) {
@@ -836,56 +883,6 @@ struct ConfirmationView: View {
             }
             HStack { Spacer(); Button(model.t("Cancel"), role: .cancel) { dismiss() }.keyboardShortcut(.cancelAction); Button(model.t("Confirm"), role: review.action == "restore" ? nil : .destructive) { model.confirm(review) }.keyboardShortcut(.defaultAction) }
         }.padding(24).frame(width: 650)
-    }
-}
-
-struct RuleWizard: View {
-    var model: AppModel
-    @Environment(\.dismiss) private var dismiss
-    @State private var name=""
-    @State private var pattern="**/target"
-    @State private var marker="Cargo.toml"
-    @State private var rebuild=""
-    @State private var limitations=""
-    @State private var age=14
-    @State private var megabytes=100
-    @State private var highRisk=false
-    @State private var issue: String?
-    init(model: AppModel, initialPattern: String = "**/target") {
-        self.model=model; _pattern=State(initialValue: initialPattern)
-        _marker=State(initialValue: initialPattern == "**/target" ? "Cargo.toml" : "")
-    }
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text(model.t("Create a Personal Rule")).font(.title2.bold())
-            Form {
-                LabeledContent(model.t("Workspace"), value: model.workspace?.rootRef ?? "")
-                TextField(model.t("Rule name"), text: $name)
-                TextField(model.t("Relative pattern"), text: $pattern)
-                TextField(model.t("Parent project marker"), text: $marker)
-                Stepper(String(format: model.t("Newest modification at least %lld days ago"), age), value: $age, in: 0...3650)
-                Stepper(String(format: model.t("At least %lld MB allocated"), megabytes), value: $megabytes, in: 0...100_000, step: 100)
-                TextField(model.t("How can these files be rebuilt?"), text: $rebuild, axis: .vertical)
-                TextField(model.t("Limitations and data to preserve"), text: $limitations, axis: .vertical)
-                Toggle(model.t("High risk (required for installed dependencies)"), isOn: $highRisk)
-            }.formStyle(.grouped)
-            if let issue { Text(issue).foregroundStyle(.red).font(.caption) }
-            Text(model.t("Saved as a disabled draft. Review and enable it in Rules, then scan again.")).font(.caption).foregroundStyle(.secondary)
-            HStack { Spacer(); Button(model.t("Cancel")) { dismiss() }.keyboardShortcut(.cancelAction); Button(model.t("Save Draft")) { save() }.buttonStyle(.borderedProminent).disabled(name.isEmpty || rebuild.isEmpty || limitations.isEmpty) }
-        }.padding(24).frame(width: 650, height: 600)
-    }
-    private func save() {
-        guard let workspace=model.workspace else { return }
-        var match: [String: JSONValue] = ["kind": .string("directory"), "relative_patterns": .array([.string(pattern)])]
-        if !marker.isEmpty { match["project_markers"] = .object(["location": .string("parent"), "all_of": .array([.string(marker)])]) }
-        let rule: JSONValue = .object([
-            "schema_version": .string("1.0"), "id": .string("personal." + UUID().uuidString.lowercased()), "version": .string("0.1.0"), "name": .string(name), "description": .string(rebuild), "platforms": .array([.string("macos")]),
-            "scope": .object(["root_ref": .string(workspace.rootRef), "max_depth": .integer(8), "follow_symlinks": .bool(false), "cross_filesystems": .bool(false)]),
-            "match": .object(match),
-            "conditions": .object(["min_allocated_bytes": .integer(Int64(megabytes) * 1_000_000), "newest_descendant_modified_days_at_least": .integer(Int64(age))]),
-            "exclude": .object(["relative_patterns": .array([])]), "risk": .object(["declared_level": .string(highRisk ? "high" : "review"), "rebuild_note": .string(rebuild), "limitations": .array([.string(limitations)])]), "action": .object(["type": .string("trash")])
-        ])
-        Task { do { try await model.saveRule(Codec.encode(rule)); dismiss() } catch { issue=error.localizedDescription } }
     }
 }
 

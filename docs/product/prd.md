@@ -78,8 +78,8 @@ P0 is required for the initial usable release; P1 extends the validated loop; P2
 | F11 | Independent CLI and agent contract | P0 | Workspace/rule management, scan, plan, interactive execution, history, JSON |
 | F12 | Developer templates and personal outputs | P0 | Rust artifacts, specific Node.js caches, reviewed npm dependencies, personal outputs |
 | F13 | Broader cache templates | P1 | Evidence, platform constraints, risks, regression fixtures |
-| F14 | Uninstall and associated files | P1 | [macOS first stage](application-uninstall.md): exact associations, separate personal-data consent, shared-data protection, native Trash and per-component restoration; orphan-only discovery and external registrations remain pending |
-| F15 | Startup management | P1 | First-stage launchd discovery and native settings guidance implemented; direct management requires separate API evaluation and acceptance |
+| F14 | Uninstall and associated files | P1 | [macOS first stage](application-uninstall.md): exact associations, verified shared group containers, separate personal-data consent, duplicate-identifier protection, native Trash and per-component restoration; orphan-only discovery and external registrations remain pending |
+| F15 | Startup management | P1 | First-stage launchd discovery and restricted current-user LaunchAgent enable/disable with native settings guidance implemented; system sources, complete registration inventory and runtime control require separate acceptance |
 | F16 | Sharing and additional protocols | P2 | Strip local information; add protocols only for demonstrated integration needs |
 | F17 | Monorepo and platform boundaries | P0 | Shared core excludes Apple/Windows-specific APIs |
 | F18 | Native Windows and CLI | P2 | Actual Windows build/runtime, paths, ACLs, links, Recycle Bin, distribution |

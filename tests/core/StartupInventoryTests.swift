@@ -19,6 +19,39 @@ private struct StartupFixtureSource: StartupInventoryReading {
     }
 }
 
+func launchctlStateParsersKeepOnlyDocumentedStates() throws {
+    let output="""
+    disabled services = {
+        "com.example.enabled" => enabled
+        "com.example.disabled" => disabled
+        "ignored" => running
+        not-a-service => disabled
+    }
+    """
+    let states=LaunchctlStateParser.configuredStates(output)
+    try expect(states == ["com.example.enabled": "enabled", "com.example.disabled": "disabled"])
+    try expect(LaunchctlStateParser.runtimeState(status: 0, output: "state = running") == "running")
+    try expect(LaunchctlStateParser.runtimeState(status: 0, output: "state = exited") == "loaded")
+    try expect(LaunchctlStateParser.runtimeState(status: 113, output: "Could not find service") == "not_loaded")
+    try expect(LaunchctlStateParser.runtimeState(status: 1, output: "permission denied") == "unknown")
+}
+
+private final class StartupControlRecorder: @unchecked Sendable {
+    private let mutex=NSLock()
+    private(set) var actions: [(String, StartupControlAction)]=[]
+    func record(_ definition: StartupDefinition, _ action: StartupControlAction) {
+        mutex.lock(); defer { mutex.unlock() }
+        actions.append((definition.id, action))
+    }
+}
+private struct StartupFixtureController: StartupControlling {
+    let recorder: StartupControlRecorder
+    func apply(definition: StartupDefinition, action: StartupControlAction) throws -> StartupControlResult {
+        recorder.record(definition, action)
+        return StartupControlResult(definitionId: definition.id, label: definition.label, action: action, configuredState: action == .enable ? "enabled" : "disabled", runtimeState: "unknown", controlCapability: definition.controlCapability, message: "fixture")
+    }
+}
+
 func startupInventoryValidatesBeforeReadingAndHonorsCancellation() async throws {
     let calls=StartupReadCounter()
     let service=StartupInventoryService(source: StartupFixtureSource(calls: calls))
@@ -36,6 +69,27 @@ func startupInventoryValidatesBeforeReadingAndHonorsCancellation() async throws 
     let result=try await service.scan()
     try expect(calls.value == 1 && result.scope == "launchd_definitions")
     try expect(result.unavailableSources == ["login_items", "background_task_registrations", "embedded_helpers"])
+}
+
+func startupControlRequiresPlatformCapabilityAndForwardsExplicitAction() async throws {
+    let recorder=StartupControlRecorder()
+    let service=StartupControlService(controller: StartupFixtureController(recorder: recorder))
+    let readOnly=StartupDefinition(sourceId: "fixture.user", path: "/tmp/LaunchAgents/example.plist", label: "dev.example", programPath: "/usr/bin/true", disabledByDefinition: false, triggers: [])
+    try await expectThrows { try await service.apply(definition: readOnly, action: .disable) }
+    try expect(recorder.actions.isEmpty)
+    let controllable=StartupDefinition(sourceId: "macos.user_agents", path: "/Users/test/Library/LaunchAgents/example.plist", label: "dev.example", programPath: "/usr/bin/true", disabledByDefinition: false, triggers: [], controlCapability: "launchctl_user_agent")
+    let result=try await service.apply(definition: controllable, action: .disable)
+    try expect(result.action == .disable && result.configuredState == "disabled" && recorder.actions.count == 1 && recorder.actions[0].1 == .disable)
+}
+
+func nativeStartupControlRefusesSystemAndOutOfScopeDefinitions() throws {
+    #if os(macOS)
+    let controller=NativeStartupControl(homeDirectory: URL(fileURLWithPath: "/tmp/shou-startup-control-test"))
+    let system=StartupDefinition(sourceId: "macos.local_agents", path: "/Library/LaunchAgents/example.plist", label: "com.example.test", programPath: "/usr/bin/true", disabledByDefinition: false, triggers: [])
+    try expectThrows { try controller.apply(definition: system, action: .disable) }
+    let wrongParent=StartupDefinition(sourceId: "macos.user_agents", path: "/tmp/example.plist", label: "com.example.test", programPath: "/usr/bin/true", disabledByDefinition: false, triggers: [], controlCapability: "launchctl_user_agent")
+    try expectThrows { try controller.apply(definition: wrongParent, action: .disable) }
+    #endif
 }
 
 #if os(macOS)

@@ -93,3 +93,11 @@ struct TerminalReviewScope: Encodable {
         }
     }
 }
+
+struct StartupControlReviewScope: Encodable {
+    let action: String
+    let label: String
+    let path: String
+    let source: String
+    let notes: [String]
+}

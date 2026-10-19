@@ -23,7 +23,8 @@ struct CommandSpec: Codable, Sendable {
 let commands: [CommandSpec] = [
     .init("capabilities", "read", [], [], "Discover implemented operations, inputs, limits, and platform capabilities."),
     .init("locations list", "read", [], [], "List built-in application and developer cache roots, their existence, and scoped rules; does not scan or grant access."),
-    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report coverage and unknown configured/runtime states; never changes startup settings. Login Items and background registrations remain in System Settings."),
+    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report best-effort configured/runtime states and explicit unknowns; never changes startup settings. Login Items and background registrations remain in System Settings."),
+    .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent after rechecking its plist, owner, label and exact path. Action is enable or disable; system definitions remain read-only."),
     .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles with explicit directory coverage; never changes applications."),
     .init("applications inspect", "snapshot", ["path"], ["max-entries", "max-seconds"], "Review an application and exact bundle-identifier associations. Personal data is separate; shared groups and package receipts are not removed."),
     .init("applications plan", "plan", ["review-id", "component"], ["include-user-data"], repeated: ["component"], "Plan explicitly selected eligible components, including the application. Personal data requires include-user-data true; defaults false."),
@@ -111,7 +112,7 @@ struct Arguments {
 }
 
 enum Terminal {
-    static func confirm(_ scope: TerminalReviewScope, phrase: String, locale: String) throws {
+    static func confirm<T: Encodable>(_ scope: T, phrase: String, locale: String) throws {
         guard let tty=FileHandle(forUpdatingAtPath: "/dev/tty"), isatty(tty.fileDescriptor) == 1 else { throw ShouError("confirmation_required", "An interactive terminal is required. No targets were changed.") }
         defer { try? tty.close() }
         let scopeObject=try JSONSerialization.jsonObject(with: Codec.encode(scope))
@@ -130,7 +131,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.2.0"
+    static let version = "0.3.0"
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         await run()
@@ -184,7 +185,22 @@ enum Terminal {
                 let includeSystem=args.values["include-system"]?.first ?? "false"
                 guard ["true", "false"].contains(includeSystem) else { throw ShouError("invalid_argument", "Include-system must be true or false.") }
                 let inventory=try await StartupInventoryService(source: NativeStartupInventory()).scan(options: StartupInventoryOptions(includeSystem: includeSystem == "true"))
-                try result(try .from(inventory), warnings: ["Only launchd definitions were inspected. Login Items, background-task registrations and embedded helpers require System Settings. Definitions do not establish current configured or runtime state."], json: args.json)
+                try result(try .from(inventory), warnings: ["Only launchd definitions were inspected. Login Items, background-task registrations and embedded helpers require System Settings. Configured/runtime state is a best-effort read and may change immediately after inspection."], json: args.json)
+                return
+            }
+            if args.command == "startup control" {
+                let actionValue=args.value("action").lowercased()
+                guard let action=StartupControlAction(rawValue: actionValue) else { throw ShouError("invalid_argument", "Startup action must be enable or disable.") }
+                let inventory=try NativeStartupInventory().read(options: StartupInventoryOptions(includeSystem: false))
+                guard let definition=inventory.items.first(where: { $0.path == args.value("path") }) else {
+                    throw ShouError("invalid_argument", "The startup definition is not a current-user LaunchAgent in the inspected sources.")
+                }
+                let phrase="STARTUP \(action.rawValue.uppercased()) \(definition.label)"
+                let scope=StartupControlReviewScope(action: action.rawValue, label: definition.label, path: definition.path, source: definition.sourceId,
+                    notes: [args.locale == "zh-CN" ? "仅修改当前用户 LaunchAgent 的 launchd 覆盖设置，不会终止已运行进程。执行前会重新核验 plist、所有者和标签。" : "Only the current user's LaunchAgent launchd override will change; running processes are not terminated. The plist, owner and label are rechecked before execution."])
+                try Terminal.confirm(scope, phrase: phrase, locale: args.locale)
+                let controlResult=try NativeStartupControl().apply(definition: definition, action: action)
+                try result(try .from(controlResult), json: args.json)
                 return
             }
             let directory=ProcessInfo.processInfo.environment["SHOU_DATA_DIR"].map { URL(fileURLWithPath: $0) } ?? LocalRecordStore.defaultDirectory
@@ -224,7 +240,7 @@ enum Terminal {
             case "workspaces list": value=try .from(await engine.configuration().workspaces)
             case "workspaces show":
                 let workspace=try await engine.workspace(args.value("workspace"))
-                let accessible=(try? fs.rootIdentity(workspace.path).sameObject(as: workspace.identity)) == true
+                let accessible=try await engine.workspaceAccessible(args.value("workspace"))
                 value = .object(["workspace": try .from(workspace), "accessible": .bool(accessible)])
             case "workspaces add": value=try .from(await engine.addWorkspace(path: args.value("path"), rootRef: args.value("root-ref")))
             case "workspaces remove":

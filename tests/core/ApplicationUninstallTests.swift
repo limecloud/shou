@@ -10,12 +10,18 @@ import Glibc
 private final class UninstallFixtureEvidence: ApplicationUninstallChecking, @unchecked Sendable {
     private let lock=NSLock()
     private var active=false
+    private var verifiedGroupPaths: [String]=[]
     func setRunning(_ value: Bool) { lock.lock(); defer { lock.unlock() }; active=value }
+    func setVerifiedGroupPaths(_ paths: [String]) { lock.lock(); defer { lock.unlock() }; verifiedGroupPaths=paths }
     func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
         lock.lock(); defer { lock.unlock() }
         return ApplicationUninstallFacts(currentUser: getuid(), running: active, currentApplication: false)
     }
     func containerIdentifier(at path: String) throws -> String { "dev.shou.fixture.uninstall" }
+    func groupContainerPaths(for bundleIdentifier: String) throws -> [String] {
+        lock.lock(); defer { lock.unlock() }
+        return bundleIdentifier == "dev.shou.fixture.uninstall" ? verifiedGroupPaths : []
+    }
 }
 
 private struct UninstallFixture {
@@ -24,7 +30,7 @@ private struct UninstallFixture {
     let app: URL
     let evidence: UninstallFixtureEvidence
     let catalog: NativeApplicationCatalog
-    init(nativeTrash: Bool = false) throws {
+    init(nativeTrash: Bool = false, includeGroupContainer: Bool = false) throws {
         fixture=try Fixture(); evidence=UninstallFixtureEvidence()
         let applications=fixture.workspace.appendingPathComponent("Applications")
         app=applications.appendingPathComponent("Shou Generated Uninstall " + UUID().uuidString + ".app")
@@ -35,6 +41,7 @@ private struct UninstallFixture {
             try fixture.put(path, "generated component " + path)
         }
         try fixture.put("Library/Group Containers/dev.shou.fixture.uninstall/shared.bin", "Shared data must survive.")
+        if includeGroupContainer { evidence.setVerifiedGroupPaths([fixture.workspace.appendingPathComponent("Library/Group Containers/dev.shou.fixture.uninstall").path]) }
         try fixture.put("Library/Application Support/Unrelated/personal.bin", "Unrelated personal data must survive.")
         catalog=NativeApplicationCatalog(sources: [ApplicationSource(id: "fixture.apps", path: applications.path)])
         let filesystem=NativeFileSystem(applicationRoots: [applications.path])
@@ -49,6 +56,21 @@ private struct UninstallFixture {
         }
         return result
     }
+}
+
+func uninstallReviewIncludesOnlyVerifiedGroupContainers() async throws {
+    let fixture=try UninstallFixture(includeGroupContainer: true), before=try fixture.hashes()
+    let review=try await fixture.engine.reviewApplication(path: fixture.app.path)
+    let group=try require(review.components.first { $0.kind == .groupContainer })
+    try expect(group.eligible && group.requiresUserDataConsent && group.path.hasSuffix("Library/Group Containers/dev.shou.fixture.uninstall"))
+    let selected=review.components.filter(\.eligible)
+    let plan=try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: selected.map(\.id), includeUserData: true)
+    try expect(plan.components.contains { $0.kind == .groupContainer })
+    let receipt=try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "group-container-fixture")
+    try expect(receipt.state == "completed" && receipt.items.contains { $0.uninstallOrigin?.kind == .groupContainer })
+    let digest=try await fixture.engine.followUpDigest(executionId: receipt.id, itemIds: receipt.items.map(\.id), action: "restore")
+    _=try await fixture.engine.followUp(executionId: receipt.id, itemIds: receipt.items.map(\.id), action: "restore", confirmedDigest: digest)
+    try expect(try fixture.hashes() == before)
 }
 
 func uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles() async throws {
@@ -191,5 +213,15 @@ func nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() throws {
     try FileManager.default.moveItem(at: metadata, to: container.appendingPathComponent("retained.plist"))
     try FileManager.default.createSymbolicLink(atPath: metadata.path, withDestinationPath: "retained.plist")
     try expectThrows { try evidence.containerIdentifier(at: container.path) }
+
+    let groupRoot=fixture.fixture.workspace.appendingPathComponent("Library/Group Containers")
+    let group=groupRoot.appendingPathComponent("group.dev.shou.fixture.uninstall")
+    try FileManager.default.createDirectory(at: group, withIntermediateDirectories: true)
+    let groupMetadata=group.appendingPathComponent(".com.apple.containermanagerd.metadata.plist")
+    try PropertyListSerialization.data(fromPropertyList: ["MCMMetadataIdentifier": "group.dev.shou.fixture.uninstall", "secret": "never-return"], format: .binary, options: 0).write(to: groupMetadata)
+    let groupEvidence=NativeApplicationUninstallEvidence(homeDirectory: fixture.fixture.workspace)
+    try expect(try groupEvidence.groupContainerPaths(for: "dev.shou.fixture.uninstall") == [group.path])
+    try Data("invalid".utf8).write(to: groupMetadata)
+    try expect(try groupEvidence.groupContainerPaths(for: "dev.shou.fixture.uninstall").isEmpty)
     #endif
 }

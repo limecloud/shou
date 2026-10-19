@@ -47,6 +47,30 @@ public actor ShouEngine {
         }
         return copy
     }
+    /// A mounted macOS volume may receive a different `st_dev` value after a
+    /// remount while keeping the same directory inode. The persisted workspace
+    /// binding must survive that benign remount, but it must still reject a
+    /// replaced directory. Only the root binding uses this compatibility rule;
+    /// target manifests continue to require their exact device/inode evidence.
+    private func rootIdentityMatches(_ current: FileEntry, _ saved: FileEntry) -> Bool {
+        current.sameObject(as: saved) ||
+            (current.kind == "directory" && saved.kind == "directory" &&
+             current.inode == saved.inode && current.owner == saved.owner)
+    }
+
+    private func refreshedWorkspace(_ config: Configuration, index: Int, current: FileEntry) throws -> Workspace {
+        let saved=config.workspaces[index]
+        guard rootIdentityMatches(current, saved.identity) else {
+            throw ShouError("access_expired", "Workspace identity changed; select the workspace again.")
+        }
+        // Keep the durable configuration digest stable for the scan. The
+        // current root identity is carried by this snapshot-only workspace;
+        // silently rewriting configuration here would invalidate the snapshot
+        // immediately after it was saved.
+        var refreshed=saved
+        refreshed.identity=current
+        return refreshed
+    }
     private func save<T: Encodable>(_ value: T, collection: String, id: String) throws { try store.write(collection, id: id, data: Codec.encode(value)) }
     private func load<T: Decodable>(_ type: T.Type, collection: String, id: String) throws -> T {
         guard let data = try store.read(collection, id: id) else { throw ShouError("invalid_argument", "Record does not exist.", details: ["id": id]) }
@@ -76,6 +100,11 @@ public actor ShouEngine {
     public func workspace(_ id: String) throws -> Workspace {
         guard let workspace = try configuration().workspaces.first(where: { $0.id == id }) else { throw ShouError("invalid_argument", "Unknown workspace.", details: ["id": id]) }
         return workspace
+    }
+    public func workspaceAccessible(_ id: String) throws -> Bool {
+        let workspace=try workspace(id)
+        do { return rootIdentityMatches(try filesystem.rootIdentity(workspace.path), workspace.identity) }
+        catch { return false }
     }
     public func exclusionSettings(workspaceId: String? = nil) throws -> ExclusionSettings {
         let config=try configuration()
@@ -141,9 +170,10 @@ public actor ShouEngine {
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         try budget.validate()
         let config = try configuration()
-        guard let registered = config.workspaces.first(where: { $0.id == workspaceId }) else { throw ShouError("invalid_argument", "Unknown workspace.") }
+        guard let index=config.workspaces.firstIndex(where: { $0.id == workspaceId }) else { throw ShouError("invalid_argument", "Unknown workspace.") }
+        let currentIdentity=try filesystem.rootIdentity(config.workspaces[index].path)
+        let registered=try refreshedWorkspace(config, index: index, current: currentIdentity)
         let workspace=protectedWorkspace(registered, configuration: config)
-        guard try filesystem.rootIdentity(workspace.path).sameObject(as: workspace.identity) else { throw ShouError("access_expired", "Workspace identity changed; select the workspace again.") }
         var rules: [CleanupRule] = []
         if let previewRule {
             guard previewRule.scope.rootRef == workspace.rootRef && previewRule.platforms.contains(filesystem.platform) else { throw ShouError("invalid_rule", "Preview rule root or platform does not match.") }
@@ -206,7 +236,7 @@ public actor ShouEngine {
         guard plan.executionId == nil else { throw ShouError("already_executed", "This plan already has an execution record.", details: ["execution_id": plan.executionId ?? ""]) }
         guard confirmedDigest == plan.digest else { throw ShouError("confirmation_required", "Confirmation does not match the current plan.") }
         guard plan.expiresAt > now(), try Digest.of(configuration()) == plan.configurationDigest,
-              try filesystem.rootIdentity(plan.workspace.path).sameObject(as: plan.workspace.identity) else { throw ShouError("plan_stale", "Plan expired or workspace/configuration changed; preview again.") }
+              rootIdentityMatches(try filesystem.rootIdentity(plan.workspace.path), plan.workspace.identity) else { throw ShouError("plan_stale", "Plan expired or workspace/configuration changed; preview again.") }
         guard filesystem.supportsTrash else { throw ShouError("capability_unavailable", filesystem.trashUnavailableReason ?? "System Trash is unavailable; no deletion fallback is permitted.") }
         let currentConfig = try configuration()
         guard let registered = currentConfig.workspaces.first(where: { $0.id == plan.workspace.id }),

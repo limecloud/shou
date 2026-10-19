@@ -198,7 +198,17 @@ workspace/
 | 过滤后的便捷选择与紧凑布局 | 项目类别选择仅包含本类 4 个合格项；搜索 Rust 后缩小为 2 项，普通选择会排除这些高风险项；搜索 npm 后仅选中 1 项，随后全部清空；窄窗口分类切换与固定底栏仍可操作 | `ui-cleanup-acceptance/gui-final-ui-verification.json` |
 | 桌面永久移除 | 独立生成的 106,496 字节目标完成 GUI 扫描 → 审阅后 Trash → 单独审阅永久移除并获得用户明确确认；follow-up 完成，确切废纸篓目标不存在，两份保留源码哈希一致，历史中恢复／移除按钮均禁用 | `ui-cleanup-acceptance/gui-permanent-removal-verification.json` |
 | 启动项发现首阶段 | 核心 114/114、CLI 合同 84 项、4 项 TTY 取消及原生 CLI Trash／restore 通过。新增用例覆盖有界 XML／binary 配置读取、未知状态、私密参数／环境值不输出、同标签独立对象、系统来源主动包含、非法输入、链接／FIFO／超限文件及明确预算缺口；损坏的清理存储路径不阻止只读 CLI。独立桌面验证本机 44 项配置、名称／来源／可执行路径搜索、确切访达定位及复制、空匹配、覆盖说明、重读、中英切换与默认／窄窗口布局。包含 Apple 来源后发现 873 项、五个来源，19 个问题明确列出；公开 API 进入原生“登录项与扩展”页，没有修改控件。保留并修正首轮夹具权限、缺失翻译及表格布局溢出问题，最终独立应用正常退出 | `startup-inventory-core-native-final.log`、`startup-inventory-cli-final.log`、`startup-inventory-tty-final.log`、`startup-inventory-native-cli-final.log`、`ui-startup-acceptance/run03/gui-final-verification.json`、`ui-startup-acceptance/run04/gui-final-verification.json` |
-| 启动项发现安装 | 已备份并更新 `/Applications/Shou.app`，暂存与安装包完整清单一致，签名及桌面／CLI 独立产物检查通过；693 个资源键通过两种运行语言检查。安装版中文冷启动、44 项只读列表、中文覆盖、英文／中文即时切换、原生登录项设置跳转及 CLI partial／退出码 6 通过；36 份真实记录与 882 份已检查启动配置文件哈希均保留。独立应用正常退出，本机停留中文启动项页且空闲。配置／运行状态仍未知，本轮不证明直接控制、完整注册覆盖、启动项 GUI 停止时机、VoiceOver、Windows 或发布门槛通过 | `desktop-startup-final-install.json`、`startup-inventory-production-stage.log`、`ui-startup-acceptance/run04/installed-gui-final-verification.json`、`installed-cli-default.json` |
+| 启动项发现与受限控制安装 | 已备份并更新 `/Applications/Shou.app`，暂存与安装包完整清单一致，签名及桌面／CLI 独立产物检查通过；核心启停合同、CLI 能力发现及当前用户 LaunchAgent 平台适配通过，执行前重新核验 plist、所有者、标签和父目录并要求 TTY 确认。发现阶段现在对当前用户 Agent 有界执行只读 `launchctl print-disabled` 和准确服务查询，展示 `enabled`、`disabled`、`loaded`、`running`、`not_loaded` 或 `unknown`。安装版中文冷启动、44 项只读列表、状态标签、中文覆盖、英文／中文即时切换、原生登录项设置跳转及 CLI partial／退出码 6 通过；36 份真实记录与 882 份已检查启动配置文件哈希均保留。当前用户 LaunchAgent 详情显示独立“启用／停用”按钮和二次确认说明。没有对用户真实启动项执行 launchctl 改动。完整注册覆盖、启动项 GUI 控制时机、VoiceOver、Windows 或发布门槛仍待验收 | `desktop-startup-final-install.json`、`startup-inventory-production-stage.log`、`ui-startup-acceptance/run04/installed-gui-final-verification.json`、`installed-cli-default.json`、`startup-control-contract-acceptance.json`、当前核心／CLI 测试输出 |
+| 应用卸载核心与 CLI | 核心 127/127、真实 CLI 合同 89 项及原生 CLI 卸载／恢复通过，覆盖安装物理身份、确切标识关联、个人数据同意、配置／目标变化拒绝、活动与系统保护、文件内容摘要、父目录身份、无覆盖恢复及卸载 purge 拒绝。原生 CLI 实测个人数据同意、无 TTY 拒绝、TTY 取消、5 组件 Trash、独立恢复、保留哨兵与原始哈希；既有原生 CLI 清理／恢复回归同样通过，没有 purge | `uninstall-core-native-final02.log`、`uninstall-cli-reviewed-final.log`、`uninstall-native-cli-reviewed-final.log`、`uninstall-regression-native-cli-final.log` |
+| 桌面应用卸载闭环 | 独立应用／存储验证应用发现、确切路径／标识搜索、个人数据独立同意和撤销后清空选择，中英切换保留 5 项选择，默认与约 904 × 672 布局可用。预览取消后文件不变、历史为空；再次审阅确认后，仅 5 个生成组件实际移入原生废纸篓，估计分配容量 819,200 字节，程序包最后处理。历史展示完整原路径且不提供永久移除，5 项位置核验均匹配；再单独预览并确认 GUI 恢复，5 条逐项后续记录完成，包含保留哨兵的 8 个原始文件哈希全一致，旧 Trash 路径不存在、原始回执字节不变。包含系统来源后发现 112 个应用；Calculator 及其容器受保护，无法选择或预览卸载 | `ui-uninstall-acceptance/run04/gui-observations.json`、`gui-trashed-verification.json`、`cli-inspection-before-restore.json`、`gui-restored-verification.json`、`gui-final-verification.json` |
+| 应用卸载安装 | 已备份旧包并更新 `/Applications/Shou.app`；验收版与安装版可执行载荷一致，暂存／安装包清单一致，签名与独立产物检查通过，包内无测试存储环境。安装版中文冷启动、应用管理、英文／中文即时切换、既有历史只读、重读与空匹配搜索通过，包内只读 CLI 如实返回 partial／退出码 6。36 份真实配置／历史／后续记录哈希均保留。完整恢复后的生成应用与数据归档至验收目录，8 个文件哈希一致，应用列表不再匹配其标识；781 个资源键通过双语检查 | `desktop-uninstall-final-install.json`、`uninstall-final-install.log`、`ui-uninstall-acceptance/run04/installed-package-manifest.json`、`installed-gui-final-verification.json`、`installed-cli-applications.json`、`fixture-archive-verification.json` |
+| 个人规则向导与清理闭环 | 核心 `shou-tests --native-trash` 131/131 通过，独立 CLI 检查 89 项通过。独立桌面夹具验证了 NSOpenPanel 精确目录、工作区相对模式、父目录标记、容量／年龄条件、非法边界输入、多行重建说明、子项排除、只读预览解释、可取消且保持禁用的草稿、显式启用、全新扫描、审阅后的原生废纸篓、历史位置核验与单独确认恢复。预览得到 1 项符合、1 项受保护、1 项缺少标记；实际只清理符合项。恢复后 9 个夹具文件哈希、原始回执和 36 份生产记录哈希均未变化。两种运行语言通过 837 个资源键检查；安装包更新时未带测试存储环境，英文／中文向导入口均已复核 | `.build/personal-rule-wizard-core-native.log`、`.build/personal-rule-wizard-cli.log`、`.build/ui-rule-wizard-acceptance/run01/`、`.build/desktop-personal-rule-wizard-final-install.json`、Computer Use 观察 |
+| 公共更新源与安装版“已是最新”路径 | 公共 Sparkle feed 返回带 enclosure 签名字段的 0.3.0 条目，已发布 DMG／CLI 资产可访问。已安装 0.3.0 应用从设置页查询更新并显示本地化“您使用的就是最新版！”对话框。本次只验证查询，没有安装更新 | `.build/public-appcast-acceptance.xml`、`.build/public-appcast-fetch.json`、Computer Use 观察 |
+| 卷重挂载后的工作区身份 | 根目录 inode 稳定而设备标识变化时，只在本次扫描上下文接受该根目录，不改写持久化配置摘要；根目录被替换时仍由原身份门禁拒绝。发布构建在 `/Applications/Shou.app` 完成项目扫描并到达 partial 结果页，选择一个生成的构建目标后打开确认审阅，随后在任何真实文件变更前取消。 | `.build/debug/shou-tests`（128/128）、安装版 `/Applications/Shou.app`、Computer Use AX 观察 |
+
+应用卸载本轮覆盖已安装应用的受支持确切关联和经系统元数据确认的共享组容器；原应用已不存在时的无主残留发现、外部辅助服务注销、其他账户／自定义路径、卸载 GUI 停止时机、VoiceOver、Windows 与发布门槛仍未通过验收。产品不接入模型或托管 Agent。卸载回执支持恢复，永久移除仍被阻止，详见[卸载合同](../product/application-uninstall.md)。
+
+保留的早期卸载记录暴露了导航路由缺项、禁用控件 AX 回调和父目录时间戳比较过严；最终构建复核导航及禁选，父目录比较路径／设备／inode，目标清单继续严格检查，旁边语言偏好写入不再令计划失效。首次恢复核验脚本误以为只有一条聚合后续记录，修正后严格要求 5 条不同项目的完成记录。安装版一次重读尝试返回 `noWindowsAvailable`，应用进程仍在；重开窗口后重读及搜索通过，该中断原因未确定。早期失败观察、E30 与旧临时夹具异常继续保留。
 
 这里的标准扫描跑完指流程到达结果页，实际状态为 **partial**：无法访问或超时的位置被明确列出，没有冒充完整扫描。本轮没有清理用户真实缓存或项目；测试目标移入废纸篓不记作已释放磁盘空间。
 
@@ -223,13 +233,3 @@ python3 "scripts/verify-read-worker-lifecycle.py" \
 最终完整性核对发现停止测试夹具存在尚未解释的变化：目录仍在，12,336 个预期文件均已不在原位置。抽查目录修改时间为本机 16:05:44，晚于 16:00:28 恢复时哈希核验成功记录，早于本次最终安装；Shou 没有更新的清理回执或恢复记录。工作区移除源码只修改登记、绑定与组合；原 1,035 文件夹具在移除登记后仍全部哈希一致。这些事实无法确定变化原因，应保留此前恢复结果的历史证据，**不能将停止夹具的最终完整性计为通过**。证据：`ui-cleanup-acceptance/gui-final-registration-and-hash-verification.json`。
 
 首个临时目录历史核验 GUI 夹具在尚未确认任何桌面清理时，后续发现工作区与已保存记录缺失。原因未知，该次尝试不计入清理／恢复通过。保留 `ui-history-inspection-acceptance/incomplete-temporary-fixture.json` 及原始夹具清单；另行建立于构建目录的 `run02` 有独立完整性证据。新增核验不能解释这次变化，也不能解释此前停止夹具异常。若进程在系统废纸篓调用内退出且未记录返回路径，结果仍未知；核验不会搜索废纸篓或制造恢复权限。
-
-## 12. v0.2.0 候选验收
-
-固定的 v0.2.0 源码通过 127/127 调试检查、89 项真实 CLI 合同与四项取消确认。74 条内置规则、460 个模式在生成夹具上完成真实废纸篓 → 恢复 → 废纸篓 → 显式永久移除，保留文件与恢复哈希一致。原生卸载 CLI 另行通过五组件清理、个人数据同意、TTY 拒绝／取消与独立恢复。
-
-新生成的 100,103 文件目标完成真实废纸篓与恢复，100,204 项完整清单、后代元数据、哨兵哈希和保留源码一致。父进程退出检查中读取子进程停止，没有返回结果，100,008 个生成文件条目保留。
-
-独立的正式 v0.1.0 可执行文件从签名 localhost 源下载 v0.2.0 候选调试应用，完成安装与重启。安装后的可执行文件匹配更新，五个配置／工作区基线文件哈希保留，再次检查显示 v0.2.0 为最新。底部设置、Command-comma、语言切换及排除范围／兼容提示通过。新的生成应用通过精确五组件审阅 → 显式选择个人数据 → 确认移入废纸篓 → 历史记录独立确认恢复；全部文件哈希与外部保留文件一致，原废纸篓路径消失，重复恢复禁用。
-
-本机证据位于 `.shou-local/`：`v0.2.0-debug-tests.log`、`v0.2.0-large-tests.log`、`v0.2.0-worker-lifecycle/verification.json`、`v0.2.0-upgrade-verification.json`、`v0.2.0-gui-trashed-verification.json` 与 `v0.2.0-gui-restored-verification.json`。本轮通过不解释上文旧夹具异常。通用 Release 打包、签名检查及 Intel 原生执行仍为独立发布门槛，GitHub Actions 必须完成后才能公开发布。

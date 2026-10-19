@@ -6,7 +6,8 @@ import Darwin
 #endif
 
 public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
-    public init() {}
+    private let homeDirectory: URL
+    public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) { self.homeDirectory=homeDirectory }
     public func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
         #if os(macOS)
         let deadline=ContinuousClock.now.advanced(by: .seconds(3))
@@ -51,6 +52,46 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         return identifier
         #else
         throw ShouError("ownership_unverified", "Container ownership could not be verified.")
+        #endif
+    }
+    public func groupContainerPaths(for bundleIdentifier: String) throws -> [String] {
+        #if os(macOS)
+        guard bundleIdentifier.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", options: .regularExpression) != nil else {
+            throw ShouError("ownership_unverified", "Group container ownership could not be verified.")
+        }
+        let root=homeDirectory.appendingPathComponent("Library/Group Containers", isDirectory: true).path
+        let descriptor: Int32
+        do { descriptor=try SecurePaths.directory(root) }
+        catch let error as ShouError where error.code == "io_error" || error.code == "permission_denied" { throw error }
+        catch { return [] }
+        defer { close(descriptor) }
+        let listing=try NativeDefinitionFiles.names(descriptor, limit: 2_048, deadline: ContinuousClock.now.advanced(by: .seconds(3)))
+        var matches: [String]=[]
+        for name in listing.names {
+            if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
+            guard name.rangeOfCharacter(from: .controlCharacters) == nil else { continue }
+            var metadata=stat()
+            guard fstatat(descriptor, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0,
+                  metadata.st_mode & S_IFMT == S_IFDIR else { continue }
+            let path=root + "/" + name
+            do {
+                let child=try SecurePaths.directory(path)
+                defer { close(child) }
+                let metadataName=".com.apple.containermanagerd.metadata.plist"
+                let bytes=try NativeDefinitionFiles.bytes(directory: child, name: metadataName, path: path + "/" + metadataName,
+                    deadline: ContinuousClock.now.advanced(by: .seconds(2)))
+                guard let dictionary=try PropertyListSerialization.propertyList(from: bytes, options: [], format: nil) as? [String: Any],
+                      let identifier=dictionary["MCMMetadataIdentifier"] as? String,
+                      identifier == bundleIdentifier || identifier == "group." + bundleIdentifier else { continue }
+                matches.append(path)
+            } catch let error as ShouError {
+                if error.code == "cancelled" { throw error }
+                continue
+            } catch { continue }
+        }
+        return matches.sorted()
+        #else
+        throw ShouError("unsupported_platform", "Group container discovery is currently available only on macOS.")
         #endif
     }
     private func unavailable() -> ShouError {

@@ -176,7 +176,7 @@ MCP is outside current scope; additional protocols require demonstrated integrat
 
 ## Startup discovery boundary
 
-`StartupInventoryService` owns read orchestration independently of cleanup storage. Core defines `StartupInventoryReading` and portable evidence/coverage models; `NativeStartupInventory` owns macOS directories, bounded physical reads and property-list interpretation. CLI and SwiftUI use the same service. The desktop opens Login Items through the public ServiceManagement API. No launchctl, runtime control or privileged helper is involved. See [startup discovery](../product/startup-items.md).
+`StartupInventoryService` owns read orchestration independently of cleanup storage. Core defines `StartupInventoryReading` and portable evidence/coverage models; `NativeStartupInventory` owns macOS directories, bounded physical reads, property-list interpretation and allow-listed read-only `launchctl` state queries for current-user agents. CLI and SwiftUI use the same service. The desktop opens Login Items through the public ServiceManagement API. State queries never change settings or require a privileged helper; mutation remains a separate, confirmed current-user control capability. See [startup discovery](../product/startup-items.md).
 
 ## 10. Engineering principles
 

@@ -167,14 +167,14 @@ private struct ApplicationUninstallReviewView: View {
             if let component=components.first(where: { $0.id == focused }) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(component.path).font(.caption.monospaced()).textSelection(.enabled)
-                    Text(model.t(component.kind == .application ? "The selected application bundle itself." : "Associated by an exact bundle identifier. Similar names are never sufficient ownership evidence."))
+                    Text(model.t(component.kind == .application ? "The selected application bundle itself." : component.kind == .groupContainer ? "Shared data is included only when native container metadata identifies this application." : "Associated by an exact bundle identifier. Similar names are never sufficient ownership evidence."))
                         .font(.caption).foregroundStyle(.secondary)
                     ForEach(component.reasons, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.orange) }
                     ForEach(component.warnings, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.orange) }
                 }.accessibilityIdentifier("uninstall.componentDetails")
             }
             DisclosureGroup(model.t("Scope and retained items"), isExpanded: $showLimits) {
-                Text(model.t("Shared groups, package receipts and external helpers are not removed. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan."))
+                Text(model.t("Verified group containers may be included; unverified shared data, package receipts and external helpers remain protected. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan."))
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             HStack {
@@ -200,6 +200,7 @@ private struct ApplicationUninstallReviewView: View {
         case .applicationSupport: model.t("App support data")
         case .savedState: model.t("Saved state")
         case .container: model.t("App container")
+        case .groupContainer: model.t("Shared group container")
         case .webKit: model.t("WebKit data")
         case .httpStorage: model.t("HTTP storage")
         }

@@ -3,11 +3,18 @@ import AppKit
 import ServiceManagement
 import ShouCore
 
+private struct StartupControlRequest: Identifiable {
+    let id=UUID()
+    let definition: StartupDefinition
+    let action: StartupControlAction
+}
+
 struct StartupInventoryView: View {
     @Bindable var model: AppModel
     @State private var search=""
     @State private var selection: String?
     @State private var showCoverage=false
+    @State private var pendingControl: StartupControlRequest?
     private var items: [StartupDefinition] {
         (model.startupInventory?.items ?? []).filter {
             search.isEmpty || $0.label.localizedCaseInsensitiveContains(search) || $0.path.localizedCaseInsensitiveContains(search) || ($0.programPath?.localizedCaseInsensitiveContains(search) ?? false)
@@ -24,6 +31,23 @@ struct StartupInventoryView: View {
         .onChange(of: model.startupIncludeSystem) { _, _ in selection=nil; model.scanStartup() }
         .onChange(of: model.startupLoading) { _, loading in if loading { selection=nil } }
         .sheet(isPresented: $showCoverage) { coverage }
+        .confirmationDialog(
+            model.t(pendingControl?.action == .enable ? "Enable startup definition?" : "Disable startup definition?"),
+            isPresented: Binding(get: { pendingControl != nil }, set: { if !$0 { pendingControl=nil } }),
+            titleVisibility: .visible
+        ) {
+            if let pendingControl {
+                Button(model.t(pendingControl.action == .enable ? "Enable" : "Disable")) {
+                    let request=pendingControl; self.pendingControl=nil
+                    model.controlStartup(request.definition, action: request.action)
+                }
+                Button(model.t("Cancel"), role: .cancel) { self.pendingControl=nil }
+            }
+        } message: {
+            if let pendingControl {
+                Text(String(format: model.t("This changes the current user's launchd override for %@. Existing processes are not terminated."), pendingControl.definition.label))
+            }
+        }
     }
     private var content: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -71,8 +95,18 @@ struct StartupInventoryView: View {
                     }.width(min: 180, ideal: 300)
                     TableColumn(model.t("Source")) { item in Text(sourceTitle(item.sourceId)).foregroundStyle(.secondary) }.width(min: 130, ideal: 170)
                     TableColumn(model.t("Definition")) { item in
-                        Text(model.t(item.disabledByDefinition ? "Disabled in definition" : "System state not checked"))
-                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 3) {
+                            if item.disabledByDefinition {
+                                Text(model.t("Disabled in definition"))
+                            }
+                            let states=observedStates(item)
+                            if states.isEmpty {
+                                Text(model.t("System state not checked"))
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text(states).foregroundStyle(.secondary)
+                            }
+                        }
                     }.width(min: 130, ideal: 180)
                 }.frame(minHeight: 0, maxHeight: .infinity)
                     .accessibilityIdentifier("startup.definitions")
@@ -95,6 +129,14 @@ struct StartupInventoryView: View {
             HStack {
                 Text(item.label).font(.headline).textSelection(.enabled)
                 Spacer()
+                if item.controlCapability == "launchctl_user_agent" {
+                    Button { pendingControl=StartupControlRequest(definition: item, action: .enable) } label: {
+                        Label(model.t("Enable"), systemImage: "play.circle")
+                    }.disabled(model.busy).accessibilityIdentifier("startup.enable")
+                    Button { pendingControl=StartupControlRequest(definition: item, action: .disable) } label: {
+                        Label(model.t("Disable"), systemImage: "stop.circle")
+                    }.disabled(model.busy).accessibilityIdentifier("startup.disable")
+                }
                 Button(model.t("Reveal Definition in Finder")) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: item.path)]) }
                     .accessibilityIdentifier("startup.reveal")
                 Button(model.t("Copy Path")) {
@@ -106,9 +148,31 @@ struct StartupInventoryView: View {
                 .font(.caption.monospaced()).textSelection(.enabled)
             LabeledContent(model.t("Trigger clues"), value: item.triggers.isEmpty ? model.t("Not specified") : item.triggers.map { model.t(triggerTitle($0)) }.joined(separator: " · "))
                 .font(.caption)
-            Text(model.t("Configured and runtime states are unknown. A Disabled key is a definition hint; launchd overrides may differ."))
+            if item.controlCapability == "launchctl_user_agent" {
+                Text(model.t("Direct control is limited to this user's LaunchAgents. The definition hint and launchd override can differ; recheck after changing it."))
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            let states=observedStates(item)
+            if !states.isEmpty { Text(states).font(.caption.monospaced()) }
+            Text(model.t(states.isEmpty ? "Configured and runtime states are unknown. A Disabled key is a definition hint; launchd overrides may differ." : "Observed startup state is best effort; launchd can change after this read."))
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }.padding(14).background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 10))
+    }
+    private func observedStates(_ item: StartupDefinition) -> String {
+        [item.configuredState, item.runtimeState]
+            .filter { $0 != "unknown" }
+            .map(stateTitle)
+            .joined(separator: " · ")
+    }
+    private func stateTitle(_ state: String) -> String {
+        switch state {
+        case "enabled": return model.t("Enabled")
+        case "disabled": return model.t("Disabled")
+        case "running": return model.t("Running")
+        case "loaded": return model.t("Loaded")
+        case "not_loaded": return model.t("Not loaded")
+        default: return model.t("State unavailable")
+        }
     }
     private var coverage: some View {
         VStack(alignment: .leading, spacing: 16) {

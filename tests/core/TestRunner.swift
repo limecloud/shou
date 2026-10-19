@@ -42,6 +42,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         var cases: [(String, () async throws -> Void)] = [
             ("SHA-256 known vector", { try sha256KnownVector() }),
             ("Schema and round trip", { try ruleSchemaAndRoundTrip() }),
+            ("Personal draft authoring uses the closed portable contract", { try personalDraftUsesClosedContractAndPortableFields() }),
+            ("Exact folder authoring cannot broaden workspace scope", { try exactPersonalRuleSelectionCannotExpandItsScope() }),
+            ("Personal draft preview explains conditions and stays disabled", { try await personalDraftPreviewExplainsConditionsAndPreservesDisabledState() }),
+            ("Personal draft age explanations preserve decision boundaries", { try await personalDraftAgeExplanationUsesCandidateDecisionBoundary() }),
             ("Wildcard semantics", { try wildcardSemantics() }),
             ("Wildcard language equivalence", { try wildcardMatcherPreservesLanguage() }),
             ("Wildcard descendant-prefix soundness", { try wildcardPrefixReachabilityPreservesMatches() }),
@@ -55,6 +59,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Application catalog rejects unsafe metadata with explicit gaps", { try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps() }),
             ("File targets bind bounded content and preserve legacy manifests", { try fileTargetsRequireBoundedContentEvidenceAndKeepLegacyManifestsStable() }),
             ("Uninstall preview separates personal data without file mutation", { try await uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles() }),
+            ("Uninstall includes only verified shared group containers", { try await uninstallReviewIncludesOnlyVerifiedGroupContainers() }),
             ("Uninstall restores independent component origins", { try await uninstallCompleteLoopRestoresIndependentComponentOrigins() }),
             ("Uninstall refuses stale evidence, running apps, sharing and exclusions", { try await uninstallRefusesChangedEvidenceRunningApplicationsAndExcludedData() }),
             ("Uninstall rechecks activity before mutation intent", { try await uninstallRechecksActivityAtTheJournalBoundary() }),
@@ -62,6 +67,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Uninstall parent siblings preserve identity without weakening target checks", { try await uninstallParentSiblingChangesPreservePlansButNotTargetChanges() }),
             ("Native uninstall activity and explicit container metadata", { try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() }),
             ("Startup discovery validates before read and cancellation", { try await startupInventoryValidatesBeforeReadingAndHonorsCancellation() }),
+            ("Startup control requires explicit capability and action", { try await startupControlRequiresPlatformCapabilityAndForwardsExplicitAction() }),
+            ("Launchctl state parsing stays bounded and explicit", { try launchctlStateParsersKeepOnlyDocumentedStates() }),
+            ("Native startup control refuses system and out-of-scope definitions", { try nativeStartupControlRefusesSystemAndOutOfScopeDefinitions() }),
             ("Startup definitions keep state unknown and omit credentials", { try nativeStartupInventoryKeepsStateUnknownAndOmitsSecrets() }),
             ("Startup discovery rejects links, special and invalid definitions", { try nativeStartupInventoryRejectsUnsafeAndInvalidDefinitions() }),
             ("Startup discovery retains explicit budget gaps", { try nativeStartupInventoryReportsBudgetGapsWithoutLosingValidItems() }),
@@ -144,7 +152,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Stored plans do not grant authority", { try await persistedPlanCannotBypassCurrentPolicy() }),
             ("Confirmation and partial-scan gates", { try await wrongConfirmationAndPartialScansCannotExecute() }),
             ("Store protection within workspace", { try await protectedStoreCannotBecomeCleanupTarget() }),
-            ("Workspace removal preserves files", { try await workspaceRemovalPreservesFilesAndHistory() })
+            ("Workspace removal preserves files", { try await workspaceRemovalPreservesFilesAndHistory() }),
+            ("Workspace root remount refreshes binding", { try await workspaceRootRemountRefreshesBinding() })
         ]
         for pattern in ["/tmp/cache", "../target", "**/../target", "**/foo**", "**/*", "*", "**", "a//target", "~/**/target", "${HOME}/target", "C:/target", "a\\target", "$(id)/target"] {
             cases.append(("Reject pattern \(pattern)", { try rejectsUnsafePatterns(pattern) }))

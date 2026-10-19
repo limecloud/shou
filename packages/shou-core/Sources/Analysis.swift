@@ -52,13 +52,12 @@ public enum Analysis {
             for (rule, patterns) in prepared {
                 guard rule.scope.rootRef == workspace.rootRef,
                       pathParts.count <= rule.scope.maxDepth,
-                      patterns.contains(where: { $0.matches(matchParts) }),
-                      allocated >= rule.conditions.minAllocatedBytes else { continue }
+                      patterns.contains(where: { $0.matches(matchParts) }) else { continue }
                 let parent = path.split(separator: "/").dropLast().joined(separator: "/")
                 let markers = rule.match.projectMarkers?.allOf ?? []
-                guard markers.allSatisfy({ byPath[parent.isEmpty ? $0 : parent + "/" + $0]?.kind == "file" }) else { continue }
-                if let days = rule.conditions.newestDescendantModifiedDaysAtLeast,
-                   now.timeIntervalSince1970 - Double(newest) / 1_000_000_000 < Double(days) * 86_400 { continue }
+                let missingMarkers=markers.contains { byPath[parent.isEmpty ? $0 : parent + "/" + $0]?.kind != "file" }
+                guard RuleConditions.failures(rule, allocatedBytes: allocated,
+                    newestModifiedAt: Date(timeIntervalSince1970: Double(newest) / 1_000_000_000), now: now, missingMarkers: missingMarkers).isEmpty else { continue }
                 matches.append(rule)
             }
             var parent=StorageIndex.parent(path), nestedBuiltin=false

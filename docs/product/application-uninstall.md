@@ -2,7 +2,7 @@
 
 [简体中文](../zh-CN/product/application-uninstall.md)
 
-Status: source implementation for macOS; runtime evidence is recorded in [acceptance](../engineering/acceptance-and-testing.md). Available in v0.2.0. Application uninstall is separate from rebuildable-cache rules.
+Status: implemented and locally verified on macOS with generated fixtures; the tested build is installed locally. Precise runtime evidence and limits are recorded in [acceptance](../engineering/acceptance-and-testing.md). This capability is separate from rebuildable-cache rules and from the published release's feature set.
 
 ## Purpose and experience
 
@@ -26,9 +26,10 @@ This is a series of journaled item operations, not an atomic multi-directory tra
 | Application support | `~/Library/Application Support/<id>` | Required |
 | Saved state | `~/Library/Saved Application State/<id>.savedState` | Required |
 | App container | `~/Library/Containers/<id>` and matching `MCMMetadataIdentifier` | Required |
+| Shared group container | `~/Library/Group Containers/<name>` with matching native container metadata (`<id>` or `group.<id>`) | Required |
 | WebKit, HTTP storage | Exact identifier directory under the corresponding Library family | Required |
 
-An identifier association does not prove exclusive ownership. A discovered duplicate identifier blocks associated components. Incomplete discovery is a visible warning and requires individual choices. Group Containers, package receipts, external helper registrations, custom data paths, other accounts and orphan-only discovery are outside this stage. Similar names, substrings and inferred vendor prefixes never authorize deletion. Apps with invalid metadata remain visible in discovery but cannot produce an uninstall review.
+An identifier association does not prove exclusive ownership. A discovered duplicate identifier blocks associated components. Shared group containers enter the review only after their native metadata identifies the selected bundle identifier; an unverified or shared container remains protected. Incomplete discovery is a visible warning and requires individual choices. Package receipts, external helper registrations, custom data paths, other accounts and orphan-only discovery are outside this stage. Similar names, substrings and inferred vendor prefixes never authorize deletion. Apps with invalid metadata remain visible in discovery but cannot produce an uninstall review.
 
 Discovery checks `~/Applications` and `/Applications`, plus up to two container-folder levels. `/System/Applications` is opt-in and protected. Embedded helper apps are not traversed. Budgets default to 4,000 entries and ten seconds, with explicit partial coverage. Metadata reads accept XML or binary `Contents/Info.plist` up to 256 KiB and return only approved display fields. Arguments, credentials and arbitrary metadata are not exported.
 

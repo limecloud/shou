@@ -32,7 +32,8 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | --- | --- | --- |
 | `capabilities` | R | 返回真实能力、平台限制、合同版本与输入定义 |
 | `locations list` | R | 固定根、存在状态、规则 ID 与检查问题 |
-| `startup list` | R | 有预算的 macOS launchd 配置发现；可选 `--include-system true\|false`，默认 false；系统设置引导，运行／当前配置状态未知 |
+| `startup list` | R | 有预算的 macOS launchd 配置发现；可选 `--include-system true\|false`，默认 false；返回尽力读取的运行／当前配置状态及明确的未知值，并提供系统设置引导 |
+| `startup control` | W | 重新核验当前用户 LaunchAgent 的确切 plist 后，通过当前用户 `launchctl` 启用或停用；需要交互确认，不终止进程、不修改系统 daemon |
 | `system scan` | W | 以清理模式扫描可用固定根，可显式纳入已登记项目 |
 | `workspaces list / show` | R | 查看根绑定与当前入口访问状态 |
 | `workspaces add` | W | 注册明确路径与 `root_ref`，不等于系统授予访问权限 |
@@ -59,7 +60,7 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 
 CLI 参数、GUI 表单和错误均来自同一领域合同；实际命令支持范围必须由 `capabilities` 发现，不能只凭文档假定可用。
 
-`startup list --json` 不打开清理存储。`scope` 为 `launchd_definitions`，完整性仅适用于请求的来源；`unavailable_sources` 明确列出该范围之外的登录项、后台注册与应用内辅助程序。来源缺口返回 partial 信封与退出码 `6`。不返回参数和环境变量值，当前配置／运行状态保持 `unknown`，不能修改启动设置；详见[启动项发现](../product/startup-items.md)。
+`startup list --json` 不打开清理存储。`scope` 为 `launchd_definitions`，完整性仅适用于请求的来源；`unavailable_sources` 明确列出该范围之外的登录项、后台注册与应用内辅助程序。来源缺口返回 partial 信封与退出码 `6`。不返回参数和环境变量值，当前配置／运行状态保持 `unknown`。`startup control --path <exact-path> --action enable|disable` 只允许当前用户 `~/Library/LaunchAgents` 中由本次发现返回的路径；执行前重新核验父目录、所有者、普通文件、plist Label 和文件内容，并要求当前 TTY 输入带标签的 `STARTUP ENABLE|DISABLE <label>`。详见[启动项发现](../product/startup-items.md)。
 
 ## 4. 终端操作示例
 

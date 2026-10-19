@@ -1,7 +1,7 @@
 import Foundation
 
 public enum UninstallComponentKind: String, Codable, CaseIterable, Sendable {
-    case application, caches, logs, preferences, applicationSupport, savedState, container, webKit, httpStorage
+    case application, caches, logs, preferences, applicationSupport, savedState, container, groupContainer, webKit, httpStorage
     public var requiresUserDataConsent: Bool { ![.application, .caches, .logs].contains(self) }
     public func associatedPath(bundleIdentifier: String, homeDirectory: URL) -> String? {
         let directory: String
@@ -14,6 +14,7 @@ public enum UninstallComponentKind: String, Codable, CaseIterable, Sendable {
         case .applicationSupport: directory="Application Support"; suffix=""
         case .savedState: directory="Saved Application State"; suffix=".savedState"
         case .container: directory="Containers"; suffix=""
+        case .groupContainer: return nil
         case .webKit: directory="WebKit"; suffix=""
         case .httpStorage: directory="HTTPStorages"; suffix=""
         }
@@ -32,6 +33,12 @@ public struct ApplicationUninstallFacts: Sendable {
 public protocol ApplicationUninstallChecking: Sendable {
     func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts
     func containerIdentifier(at path: String) throws -> String
+    /// Returns only shared containers whose native metadata identifies this exact application.
+    /// The default keeps non-macOS and test adapters conservative.
+    func groupContainerPaths(for bundleIdentifier: String) throws -> [String]
+}
+public extension ApplicationUninstallChecking {
+    func groupContainerPaths(for bundleIdentifier: String) throws -> [String] { [] }
 }
 public struct UnavailableApplicationUninstallEvidence: ApplicationUninstallChecking {
     public init() {}
@@ -114,6 +121,12 @@ enum ReceiptOrigins {
             if origin.kind == .application {
                 guard item.originalPath == origin.applicationPath, item.relativePath.lowercased().hasSuffix(".app"), item.manifest.first?.kind == "directory" else {
                     throw ShouError("store_corrupt", "Application receipt does not identify an application bundle.")
+                }
+            } else if origin.kind == .groupContainer {
+                let groupRoot=homeDirectory.appendingPathComponent("Library/Group Containers", isDirectory: true).path
+                guard origin.parentPath == groupRoot, item.originalPath == origin.parentPath + "/" + item.relativePath,
+                      item.manifest.first?.kind == "directory" else {
+                    throw ShouError("store_corrupt", "Application group container origin is outside its exact association.")
                 }
             } else {
                 guard item.originalPath == origin.kind.associatedPath(bundleIdentifier: origin.bundleIdentifier, homeDirectory: homeDirectory),
@@ -207,8 +220,15 @@ extension ShouEngine {
                 let component=plan.components[index], origin=try requireUninstallOrigin(component)
                 let identity=try component.kind == .application ? filesystem.applicationParentIdentity(origin.parentPath) : filesystem.rootIdentity(origin.parentPath)
                 guard identity.sameObject(as: origin.parentIdentity) else { throw ShouError("access_expired", "Component parent changed; preview again.") }
-                if component.kind == .container, try uninstallEvidence.containerIdentifier(at: component.path) != origin.bundleIdentifier {
-                    throw ShouError("ownership_unverified", "Container ownership could not be verified.")
+                if component.kind == .container {
+                    guard try uninstallEvidence.containerIdentifier(at: component.path) == origin.bundleIdentifier else {
+                        throw ShouError("ownership_unverified", "Container ownership could not be verified.")
+                    }
+                }
+                if component.kind == .groupContainer {
+                    guard try uninstallEvidence.groupContainerPaths(for: origin.bundleIdentifier).contains(component.path) else {
+                        throw ShouError("ownership_unverified", "Group container ownership could not be verified.")
+                    }
                 }
                 if component.kind != .application {
                     let inventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
@@ -245,7 +265,26 @@ extension ShouEngine {
         var remaining=budget.maxEntries, components: [UninstallComponent]=[]
         for kind in UninstallComponentKind.allCases {
             if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
-            let target=kind == .application ? app.path : kind.associatedPath(bundleIdentifier: identifier, homeDirectory: homeDirectory)!
+            let targets: [String]
+            if kind == .application { targets=[app.path] }
+            else if kind == .groupContainer {
+                let root=homeDirectory.appendingPathComponent("Library/Group Containers", isDirectory: true).path
+                do {
+                    targets=try uninstallEvidence.groupContainerPaths(for: identifier).filter { path in
+                        guard path.hasPrefix(root + "/") else { return false }
+                        let relative=String(path.dropFirst(root.count + 1))
+                        return !relative.isEmpty && !relative.contains("/") && !relative.contains("..") &&
+                            URL(fileURLWithPath: path).standardized.path == path
+                    }.sorted()
+                }
+                catch let error as ShouError {
+                    if error.code == "cancelled" { throw error }
+                    warningsForGroupCoverage(&common, error: error)
+                    continue
+                }
+            } else { targets=[kind.associatedPath(bundleIdentifier: identifier, homeDirectory: homeDirectory)!] }
+            for target in targets {
+                if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
             let id=Digest.sha256(Data((kind.rawValue + "\0" + target).utf8))
             var reasons=common, warnings: [String]=[], status="complete", manifest: [FileEntry]=[], origin: UninstallReceiptOrigin?
             switch filesystem.targetAvailability(target) {
@@ -273,6 +312,10 @@ extension ShouEngine {
                         do { if try uninstallEvidence.containerIdentifier(at: target) != identifier { reasons.append("ownership_unverified") } }
                         catch { reasons.append("ownership_unverified") }
                     }
+                    if kind == .groupContainer {
+                        do { if try !uninstallEvidence.groupContainerPaths(for: identifier).contains(target) { reasons.append("ownership_unverified") } }
+                        catch { reasons.append("ownership_unverified") }
+                    }
                     if uninstallExcluded(target: target, manifest: manifest, configuration: config, caseSensitive: tree.caseSensitive) { reasons.append("excluded_descendant") }
                     if store.protectedPaths.contains(where: { Self.uninstallOverlaps(target, $0) }) { reasons.append("protected_content") }
                 } catch let error as ShouError {
@@ -283,10 +326,16 @@ extension ShouEngine {
             var seen=Set<String>(), allocated: Int64=0
             for entry in manifest where entry.kind != "symlink" && seen.insert("\(entry.device):\(entry.inode)").inserted { allocated += max(0, entry.allocatedBytes) }
             components.append(UninstallComponent(id: id, kind: kind, path: target, status: status, origin: origin, manifest: manifest, allocatedBytesEstimate: allocated, reasons: Array(Set(reasons)).sorted(), warnings: warnings))
+            }
         }
         guard try applicationCatalog.application(at: path) == app else { throw ShouError("application_changed", "Application changed while reading its metadata.") }
         return ApplicationUninstallReview(id: Codec.id("appreview"), application: app, checkedAt: now(), configurationDigest: try Digest.of(config), components: components,
-            limitations: ["exact_bundle_identifier_associations_only", "shared_group_containers_not_removed", "package_receipts_not_removed", "embedded_helpers_not_unregistered", "custom_locations_not_searched", "other_accounts_not_searched"], budget: budget)
+            limitations: ["exact_bundle_identifier_associations_only", "unverified_group_containers_not_removed", "package_receipts_not_removed", "embedded_helpers_not_unregistered", "custom_locations_not_searched", "other_accounts_not_searched"], budget: budget)
+    }
+    private func warningsForGroupCoverage(_ common: inout [String], error: ShouError) {
+        if error.code != "resource_limit" && error.code != "permission_denied" && error.code != "io_error" {
+            common.append("group_container_coverage_unavailable")
+        }
     }
     private func validateUninstallSelection(application: ApplicationDefinition, digest: String, selected: [UninstallComponent], current: ApplicationUninstallReview) throws {
         guard current.application == application, current.configurationDigest == digest,
