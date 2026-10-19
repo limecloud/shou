@@ -1,114 +1,103 @@
-# 对现有 AI Agent 友好的操作设计
+# Workflows for existing coding agents
 
-状态：设计草案。目标调用者包括 Codex、Claude Code、WorkBuddy 等；当前尚无任何客户端兼容性实测结论。
+English | [简体中文](../zh-CN/ai/coding-agent-integration.md)
 
-## 1. 产品边界
+Status: design draft. Codex, Claude Code, and WorkBuddy are target callers; no client compatibility has been verified.
 
-**Shou 不接入任何模型，不开发 Agent，也不启动或托管外部 Agent。**
+## 1. Boundary
 
-用户已经在使用的 Agent 可以操作 Shou，正如操作其他具有稳定 CLI 的本地工具。Shou 提供确定性的扫描、规则校验、预览与执行；外部 Agent 负责理解用户意图和起草规则。
+**Shou integrates no models, develops no agents, and does not start or host external agents.**
 
-不在 Shou 中增加 API Key、模型选择、聊天框、推理服务、Agent runner、自动登录或供应商 SDK。
+A user’s existing coding agent operates Shou as a local tool with a stable CLI. Shou owns deterministic validation, scans, plans, and file-operation policy. The external product owns inference, authentication, conversation, and authorization.
 
-## 2. “Agent 友好”的具体含义
+No API-key settings, model selector, chat interface, agent runner, provider SDK, or global configuration installer is part of Shou.
 
-| 要求 | Shou 提供什么 |
+## 2. Agent-friendly behavior
+
+| Need | Contract |
 | --- | --- |
-| 能发现 | `capabilities`、帮助、规则 Schema 和副作用标记 |
-| 能理解 | 稳定字段、字节数、机器错误码、具体匹配证据 |
-| 能添加规则 | 非交互验证、导入禁用草稿、绑定已有工作区、生成预览 |
-| 能查询流程 | 规则状态、扫描完整性、计划有效性、执行记录与可用下一步 |
-| 能继续操作 | 稳定对象 ID、不可变快照、分页与冲突信息 |
-| 能受限操作 | 当前工作区、保护策略、平台能力和确认边界一致 |
-| 不依赖 GUI 模拟 | 持久业务能力不只藏在按钮和弹窗里 |
+| Discovery | Capabilities, help, schemas, side-effect levels |
+| Understanding | Stable fields, bytes, codes, evidence, unknowns |
+| Rule addition | Noninteractive validation/import of disabled drafts and read-only preview |
+| State queries | Rule/scan/plan/history state and permissible next actions |
+| Continuation | Stable IDs, immutable snapshots, pagination, conflict details |
+| Bounded operation | Same workspace, protection, platform, and confirmation policies |
+| GUI independence | Persistent operations do not require simulated clicks |
 
-## 3. Agent 添加规则闭环
+## 3. Rule-addition sequence
 
 ```mermaid
 sequenceDiagram
-    actor User as 用户
-    participant Agent as 现有 Codex / Claude Code 等
-    participant CLI as Shou CLI
-    participant Core as 共享核心
-    participant FS as 授权目录
-    User->>Agent: 为指定项目目录添加清理规则
-    Agent->>CLI: capabilities / rules schema
-    CLI-->>Agent: 真实能力、字段与限制
-    Agent->>CLI: 查询已注册工作区和已知扫描结果
-    CLI-->>Agent: 范围、用途线索和未知项
-    Agent->>Agent: 起草本地 JSON 文件
-    Agent->>CLI: rules validate
-    CLI->>Core: 结构与语义校验
-    Core-->>Agent: 错误或验证结果
-    Agent->>CLI: rules import
-    CLI->>Core: 保存禁用草稿及来源
-    Agent->>CLI: rules preview
-    Core->>FS: 只读扫描
-    FS-->>Core: 路径、身份与统计
-    Core-->>Agent: 命中、排除、风险与不完整信息
-    Agent-->>User: 说明已添加草稿、具体影响和待确认事项
-    Note over User,CLI: 用户决定启用；实际清理另建计划并明确确认
+    actor User
+    participant Agent as Existing coding agent
+    participant CLI
+    participant Core
+    participant FS as Authorized workspace
+    User->>Agent: Add a rule for a specified project
+    Agent->>CLI: Discover capabilities and schema
+    CLI-->>Agent: Actual inputs and limits
+    Agent->>CLI: Query workspace and evidence
+    CLI-->>Agent: Scope, clues, unknowns
+    Agent->>Agent: Draft local JSON
+    Agent->>CLI: Validate
+    CLI->>Core: Structural and semantic checks
+    Core-->>Agent: Result or actionable errors
+    Agent->>CLI: Import disabled draft
+    CLI->>Core: Persist version and provenance
+    Agent->>CLI: Preview
+    Core->>FS: Read-only scan
+    FS-->>Core: Identities and statistics
+    Core-->>Agent: Matches, exclusions, risks, completeness
+    Agent-->>User: Explain draft and unresolved questions
+    Note over User,CLI: Enablement and confirmed execution remain separate
 ```
 
-添加规则必须是真正可调用的 W 级命令，不只是让 Agent 输出一段文字后由用户全部手工重做。默认禁用是清理规则的初始状态，不妨碍 Agent 完成导入与预览。
+Import is a real W-level operation: users should not have to reconstruct a rule manually after receiving generated text.
 
-## 4. 示例委托
+## 4. Example delegation
 
-未来 CLI 实现后，用户可向已有 Agent 提出：
+Once implemented, a user may give an existing agent this task:
 
 ```text
-请通过 Shou 的公开 CLI，为我已经注册的 developer-workspaces 工作区
-添加一条适合闲置 Rust 项目的 target 清理规则。
+Use Shou’s public CLI to add a rule for inactive Rust target directories
+in my already registered developer-workspaces workspace.
 
-先读取 capabilities 和当前规则 Schema，再查询工作区与目录证据。
-要求父目录含 Cargo.toml，目录及后代至少 14 天未修改，排除当前项目。
-不要根据名称猜测其他大目录可以删除；用途不明时先向我确认。
+Discover capabilities and the current rule schema first. Inspect workspace
+and directory evidence. Require parent Cargo.toml, at least 14 days since
+the newest modification, and exclude my current project.
 
-请验证并导入为禁用草稿，运行只读预览，列出具体命中路径、空间估计、
-重建代价和无法确认的事项。不要启用规则，不要执行清理或永久删除，
-不要调用 rm、sudo 或绕过 Shou 的文件操作。
+Do not guess that other large directories are disposable. Ask me when
+purpose is unclear. Validate, import a disabled draft, and preview it.
+Report exact matches, estimates, rebuild costs, and unknowns.
+Do not enable, clean, permanently delete, run rm/sudo, or bypass Shou.
 ```
 
-这是一份用户委托示例，不是可强制执行的系统权限隔离。外部 Agent 的终端与文件权限仍由其产品和用户环境管理。
+A delegation is behavioral guidance, not OS isolation. Tool access remains controlled by the external product and user environment.
 
-## 5. 三类客户端的接入方式
+## 5. Client expectations
 
-| 产品 | 首选方式 | Shou 不做的事情 | 当前证据 |
+| Product | Interface | Excluded behavior | Evidence |
 | --- | --- | --- | --- |
-| Codex | 在用户许可下调用本地 `shou` CLI，读取 JSON | 不修改全局配置，不启动 Codex，不接模型 | 待实际客户端验收 |
-| Claude Code | 使用其获准的终端工具调用同一 CLI | 不写死模型、CLI 私有参数或权限策略 | 待实际客户端验收 |
-| WorkBuddy 等 | 具备本地命令与文件操作能力时使用同一合同 | 不假设所有版本具备相同终端能力 | 待产品版本与权限实测 |
+| Codex | Authorized local CLI and JSON | No launch, model integration, or global configuration changes | Pending actual client validation |
+| Claude Code | Same public CLI under its tool permissions | No hard-coded private flags or model choices | Pending actual client validation |
+| WorkBuddy and others | Same contract when local commands/files are supported | Do not assume equal capabilities across versions | Pending version/permission validation |
 
-使用 CLI 不需要专门的模型适配器。若某客户端无法可靠运行本地命令，应如实标记限制；不能用文档示例作为已兼容证明。
+No provider-specific engine is required. If a client cannot invoke commands reliably, record the limitation instead of claiming compatibility from documentation alone.
 
-## 6. 数据与提示注入
+## 6. Privacy and untrusted content
 
-- 只导出完成任务需要的目录摘要；默认不读取源码正文、密钥或业务文件。
-- 目录名、README、规则说明与日志中的文本全部按数据处理，不能提升为 Agent 指令。
-- JSON 结果清晰区分事实、规则声明、未知值与建议。
-- Shou 不主动向外部 Agent 或模型发送信息；用户调用 Agent 后，该产品如何处理工具输出由其配置与政策决定。
-- 分享时优先相对路径；完整路径可能包含个人和客户信息，由用户审阅。
-- 公开输出不包含 bookmark、令牌或访问凭据。
+Export only necessary inspected metadata, not source bodies, secrets, or business contents by default. Paths, README text, rule descriptions, and logs are data, not authoritative instructions. Separate observed facts, declarations, unknowns, and recommendations.
 
-## 7. 权限边界
+Shou uploads nothing automatically. External agents may process tool results according to their own configuration. Let users review private paths and prefer relative summaries; never expose bookmarks or access credentials.
 
-规则草稿、工作区注册与预览可以在用户授权的非交互任务中完成。规则启用是独立状态变更，仍不等于删除授权。
+## 7. Execution boundary
 
-实际清理需要具体计划与明确确认，首版在原生桌面或交互终端完成。没有交互终端的 Agent 调用返回 `confirmation_required`，并提供如何查看计划的结构化下一步。
+Authorized noninteractive tasks may register roots, import drafts, and preview. Enablement is separate and still grants no deletion permission. Destructive execution requires a concrete plan and confirmation in the desktop or interactive terminal. No TTY returns `confirmation_required` and structured next actions.
 
-同用户有权直接修改文件的进程本身可能绕过 Shou；CLI 校验与提示不是 OS 沙盒。Shou 的保证仅覆盖通过自身受支持接口进行的操作。
+Equally privileged local processes may modify files outside Shou, so the CLI is not a sandbox. Guarantees apply to operations through supported interfaces, not arbitrary external Shell commands.
 
-## 8. 兼容性验收
+## 8. Client acceptance
 
-每个目标客户端分别记录产品版本、操作系统、终端权限与真实命令结果：
+Record product/version, operating system, permission mode, and actual results. Verify discovery; evidence-based drafts; actionable rejection of invalid fields, scripts, and paths; idempotent disabled import; accurate preview; refusal of noninteractive destruction; GUI/CLI consistency; and state queries after interruption.
 
-1. 发现能力和 Schema，不依赖屏幕截图。
-2. 从虚构项目事实起草规则。
-3. 无效字段、路径越界与脚本字段被拒绝，并能修正规则。
-4. 导入后确实出现禁用草稿，重复导入不产生静默冲突。
-5. 预览给出正确路径、排除和不完整状态。
-6. 非交互清理被拒绝，不诱导调用绕过确认的命令。
-7. GUI 与 CLI 对同一规则显示一致的状态和解释。
-8. 出错或取消后先查询状态，不自动重试文件删除。
-
-当前这些项目均待实现与实测。当前范围使用 CLI，不生成各产品的假配置、全局插件或 MCP 服务。
+All client runtime evidence is pending. Current scope uses CLI and local files, not fabricated MCP configurations or global plugins.

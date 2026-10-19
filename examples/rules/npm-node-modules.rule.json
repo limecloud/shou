@@ -3,8 +3,8 @@
   "schema_version": "1.0",
   "id": "dev.npm-node-modules",
   "version": "0.1.0",
-  "name": "闲置 npm 项目的已安装依赖",
-  "description": "高风险审阅示例：只考虑父目录同时有 package.json 和 package-lock.json 的 node_modules，不把它等同于普通缓存。",
+  "name": "Installed npm dependencies for inactive-project review",
+  "description": "High-risk review example for node_modules whose parents contain both package.json and package-lock.json. Installed dependencies are not ordinary caches.",
   "platforms": ["macos"],
   "scope": {
     "root_ref": "developer-workspaces",
@@ -24,12 +24,12 @@
   "exclude": {"relative_patterns": ["active-project/**", "offline-project/**", "**/.git/**"]},
   "risk": {
     "declared_level": "high",
-    "rebuild_note": "仅在项目清单、锁文件、工具链和全部依赖仍可用，且没有需要保留的本地改动时，才可能通过项目约定重新安装。Shou 不自动执行安装。",
+    "rebuild_note": "Reinstallation may be possible using the project's documented procedure only when manifests, lockfiles, the toolchain, and all dependencies remain available and no local changes need preservation. Shou does not run installation commands automatically.",
     "limitations": [
-      "清单和锁文件只证明项目结构，不保证依赖可重新获取。",
-      "私有仓库、离线依赖、安装脚本、手工修改及本地补丁需要用户逐项确认。",
-      "本示例不适用于 pnpm、Yarn 零安装、共享 store 或重装条件未确认的本地工作区依赖；已识别符号链接只作为条目处理，禁止跟随。",
-      "年龄条件不能证明项目闲置；当前项目与需离线工作的项目应显式排除。"
+      "Manifests and lockfiles establish project structure, not continued dependency availability.",
+      "Review private registries, offline dependencies, install scripts, manual edits, and local patches individually.",
+      "Not applicable to pnpm, Yarn zero-installs, shared stores, or local workspace dependencies with unverified reinstallation conditions. Treat recognized symbolic links as opaque entries and never follow them.",
+      "Age conditions do not prove inactivity. Explicitly exclude active projects and projects needed for offline work."
     ]
   },
   "action": {"type": "trash"}

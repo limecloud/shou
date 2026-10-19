@@ -1,173 +1,171 @@
-# 核心流程与时序
+# Workflows and sequence diagrams
 
-状态：设计草案。以下图描述目标行为，不代表已有实现。
+English | [简体中文](../zh-CN/architecture/workflows-and-sequences.md)
 
-## 1. 从占用发现到个人规则
+Status: design draft. Diagrams specify intended behavior, not implemented capabilities.
+
+## 1. Discovery and personal rules
 
 ```mermaid
 flowchart TD
-    Start[选择工作区] --> Access{当前入口有访问权限?}
-    Access -->|否| Grant[引导系统授权或缩小范围]
+    Root[Choose workspace] --> Access{Actual access?}
+    Access -->|No| Grant[Reauthorize or narrow scope]
     Grant --> Access
-    Access -->|是| Scan[只读扫描与空间统计]
-    Scan --> Complete{扫描完整?}
-    Complete -->|否| Partial[展示部分结果与覆盖缺口]
+    Access -->|Yes| Scan[Read-only scan]
+    Scan --> Full{Complete?}
+    Full -->|No| Partial[Show results and coverage gaps]
     Partial --> Grant
-    Complete -->|是| Classify[按项目与目录查看占用]
-    Classify --> Known{已有合适规则?}
-    Known -->|是| Evidence[查看命中依据与风险]
-    Known -->|否| Draft[用户或现有 Agent 起草规则]
-    Draft --> Validate{结构与语义通过?}
-    Validate -->|否| Revise[根据明确错误修订]
+    Full -->|Yes| Inspect[Inspect projects and directories]
+    Inspect --> Known{Suitable rule?}
+    Known -->|Yes| Evidence[Inspect evidence and risk]
+    Known -->|No| Draft[User or existing agent drafts rule]
+    Draft --> Valid{Validation passes?}
+    Valid -->|No| Revise[Revise using explicit errors]
     Revise --> Draft
-    Validate -->|是| Import[导入禁用草稿并只读预览]
-    Import --> Review{用途与范围明确?}
-    Review -->|否| Exclude[保持禁用或排除目录]
-    Review -->|是| Enable[用户审阅后启用]
-    Enable --> Rescan[按启用版本重新扫描]
+    Valid -->|Yes| Import[Import disabled draft and preview]
+    Import --> Review{Purpose and scope established?}
+    Review -->|No| Exclude[Keep disabled or exclude]
+    Review -->|Yes| Enable[Review and enable]
+    Enable --> Rescan[Fresh scan of enabled version]
     Rescan --> Evidence
-    Evidence --> Select[用户显式选择候选项]
-    Select --> Plan[生成固定清理计划]
+    Evidence --> Select[Explicit candidate selection]
+    Select --> Plan[Concrete immutable plan]
 ```
 
-没有规则的大目录不会被隐藏，也不会仅凭体积成为可执行目标。完整扫描是计划前提；权限缺口需修复或通过更窄范围重新扫描。
+Large unknown directories stay visible but are not executable. Repair access or rescan narrower scope rather than planning from incomplete evidence.
 
-## 2. 计划与执行决策
+## 2. Confirmation and execution
 
 ```mermaid
 flowchart TD
-    Plan[固定计划] --> Policy{保护与排除检查通过?}
-    Policy -->|否| Blocked[拒绝并说明原因]
-    Policy -->|是| Entry{执行入口}
-    Entry -->|桌面| Sheet[原生确认 sheet]
-    Entry -->|CLI| TTY{存在交互终端?}
-    TTY -->|否| Required[返回 confirmation_required]
-    TTY -->|是| Prompt[显示计划与风险并等待明确确认]
-    Sheet --> Consent{用户确认当前摘要?}
-    Prompt --> Consent
-    Consent -->|否| Stop[结束且不处理文件]
-    Consent -->|是| Recheck{权限、配置、对象与清单仍有效?}
-    Recheck -->|否| Stale[计划失效，重新预览]
-    Recheck -->|是| Journal{执行意图成功持久化?}
-    Journal -->|否| Failure[停止，显示记录写入错误]
-    Journal -->|是| Trash[逐项移到废纸篓并记账]
-    Trash --> Result[展示成功、跳过、失败与未知项]
+    Plan[Concrete plan] --> Policy{Protection valid?}
+    Policy -->|No| Block[Refuse with reason]
+    Policy -->|Yes| Entry{Entry point}
+    Entry -->|Desktop| Sheet[Native confirmation sheet]
+    Entry -->|CLI| TTY{Interactive terminal?}
+    TTY -->|No| Required[confirmation_required]
+    TTY -->|Yes| Prompt[Display scope and request confirmation]
+    Sheet --> Confirm{Current digest confirmed?}
+    Prompt --> Confirm
+    Confirm -->|No| Stop[Stop without target changes]
+    Confirm -->|Yes| Verify{Access and object state valid?}
+    Verify -->|No| Stale[Require new preview]
+    Verify -->|Yes| Journal{Intent durably recorded?}
+    Journal -->|No| Failure[Stop with journal error]
+    Journal -->|Yes| Trash[Process and record each item]
+    Trash --> Result[Success, skip, failure, unknown]
 ```
 
-任一入口均调用相同策略。计划尚未过期也不能跳过复核；记录与文件操作不是跨系统事务，异常现场需要核对。
+All entry points use the same policy. An unexpired plan still needs revalidation. Journal and filesystem operations are not a cross-system transaction.
 
-## 3. 桌面端清理时序
+## 3. Native desktop sequence
 
 ```mermaid
 sequenceDiagram
-    actor User as 用户
-    participant UI as SwiftUI 界面
-    participant Core as 共享核心
-    participant Store as 本地存储
-    participant Platform as 平台文件适配
-    User->>UI: 选择候选并预览
-    UI->>Core: 创建具体计划
-    Core->>Core: 去重、保护、规则与清单绑定
-    Core->>Store: 保存不可变计划
-    Core-->>UI: 计划摘要、路径和风险
-    User->>UI: 确认移到废纸篓
-    UI->>Core: 当前摘要的一次性确认
-    Core->>Store: 获取执行锁
-    Core->>Platform: 复核根、目标与完整清单
-    alt 状态变化或无法复核
-        Platform-->>Core: 失效原因
-        Core-->>UI: 拒绝执行或跳过变化项
-    else 通过复核
-        Core->>Store: 持久化执行意图
-        loop 每个仍有效的计划项
-            Core->>Platform: 受限移动到系统废纸篓
-            Platform-->>Core: 实际位置、身份或失败
-            Core->>Store: 写入逐项结果
-            Core-->>UI: 更新进度
+    actor User
+    participant UI as SwiftUI
+    participant Core
+    participant Store
+    participant FS as Platform adapter
+    User->>UI: Select candidates and preview
+    UI->>Core: Create concrete plan
+    Core->>Core: Deduplicate and bind evidence
+    Core->>Store: Save immutable plan
+    Core-->>UI: Scope, digest, risks
+    User->>UI: Confirm moving to Trash
+    UI->>Core: One-time current-digest confirmation
+    Core->>Store: Acquire execution lock
+    Core->>FS: Revalidate root and full manifests
+    alt Changed or unverifiable
+        FS-->>Core: Invalid state
+        Core-->>UI: Refuse or skip changed targets
+    else Valid
+        Core->>Store: Persist execution intent
+        loop Each still-valid item
+            Core->>FS: Recheck and move to Trash
+            FS-->>Core: Actual location, identity, or error
+            Core->>Store: Persist item result
+            Core-->>UI: Progress
         end
-        Core->>Store: 保存最终状态并释放锁
-        Core-->>UI: 执行记录与可用下一步
+        Core-->>UI: Receipt and available next actions
     end
+    Core->>Store: Release lock on all exits
 ```
 
-锁在所有出口释放；图省略了统一资源释放块。执行期间每个目标仍需紧邻操作复核，不能把批量开始时的一次检查当作全程有效。
+Recheck near each operation rather than relying only on one batch-start check. Resource release must cover every exception path.
 
-## 4. CLI 独立清理时序
+## 4. Independent CLI sequence
 
 ```mermaid
 sequenceDiagram
-    actor User as 终端用户
-    participant CLI as Shou CLI
-    participant Core as 共享核心
-    participant FS as 平台文件适配
-    User->>CLI: scan，查询结果，plan create
-    CLI->>Core: 生成并保存计划
-    Core-->>CLI: 计划 ID 与摘要
-    User->>CLI: plan show
-    CLI-->>User: 路径、规则、容量估计与风险
-    User->>CLI: plan execute
-    alt 无 TTY
-        CLI-->>User: 退出 7，confirmation_required
-    else 有 TTY
-        CLI-->>User: 展示当前计划，要求明确确认
-        User->>CLI: 确认
-        CLI->>Core: 绑定当前计划摘要执行
-        Core->>FS: 复核并逐项处理
-        FS-->>Core: 实际结果
-        Core-->>CLI: 执行记录
-        CLI-->>User: 文本或 JSON 最终结果
+    actor User as Terminal user
+    participant CLI
+    participant Core
+    participant FS as Platform adapter
+    User->>CLI: Scan, query, create plan
+    CLI->>Core: Save fixed plan
+    Core-->>CLI: ID and digest
+    User->>CLI: Inspect plan
+    CLI-->>User: Paths, evidence, estimates, risks
+    User->>CLI: Execute plan
+    alt No TTY
+        CLI-->>User: Exit 7, confirmation_required
+    else TTY available
+        CLI-->>User: Request current-scope confirmation
+        User->>CLI: Confirm
+        CLI->>Core: Execute bound plan
+        Core->>FS: Revalidate and process
+        FS-->>Core: Outcomes
+        Core-->>CLI: Execution receipt
+        CLI-->>User: Text or JSON result
     end
 ```
 
-此流程不启动桌面端。外部 Agent 的规则导入与预览时序见 [Agent 操作指南](../ai/coding-agent-integration.md)。
+No desktop process starts. Existing-agent drafting/import is described in the [agent workflow](../ai/coding-agent-integration.md).
 
-## 5. 立即释放空间与恢复
+## 5. Recovery and permanent batch removal
 
 ```mermaid
 flowchart TD
-    Receipt[本次清理记录] --> Current{记录对应对象仍在废纸篓?}
-    Current -->|否或无法核验| Unknown[说明不可恢复或需现场核对]
-    Current -->|是| Choice{用户选择}
-    Choice -->|恢复| Destination{原位置可用?}
-    Destination -->|否| ConflictChoice{选择其他位置?}
-    ConflictChoice -->|是| Other[核验新位置与权限]
-    ConflictChoice -->|否| Keep[保留在废纸篓]
-    Destination -->|是| ConfirmRestore[确认具体恢复范围]
-    Other --> ConfirmRestore
-    ConfirmRestore --> Restore[核验后恢复，不覆盖现有文件]
-    Choice -->|永久移除| Permanent[展示具体项目与不可恢复说明]
-    Permanent --> ConfirmPurge{单独明确确认?}
-    ConfirmPurge -->|否| Keep[保留在废纸篓]
-    ConfirmPurge -->|是| Verify[重新核验身份与清单]
-    Verify --> Purge[仅永久移除核验通过的本次项目]
-    Restore --> FollowUp[新增后续操作记录]
+    Receipt[Execution receipt] --> Exists{Recorded Trash object verified?}
+    Exists -->|No or unknown| Missing[Explain unavailable recovery]
+    Exists -->|Yes| Action{User action}
+    Action -->|Restore| Dest{Original destination free?}
+    Dest -->|No| Choice{Choose another location?}
+    Choice -->|No| Keep[Keep in Trash]
+    Choice -->|Yes| Other[Verify new location and access]
+    Dest -->|Yes| RestoreConfirm[Confirm restoration scope]
+    Other --> RestoreConfirm
+    RestoreConfirm --> Restore[Restore without overwriting]
+    Action -->|Permanent removal| Explain[Show exact items and irreversibility]
+    Explain --> Confirm{Separate confirmation?}
+    Confirm -->|No| Keep
+    Confirm -->|Yes| Verify[Revalidate identity and manifests]
+    Verify --> Purge[Remove verified items from this batch only]
+    Restore --> FollowUp[Append follow-up receipt]
     Purge --> FollowUp
-    FollowUp --> Measure[区分处理容量与卷可用容量变化]
+    FollowUp --> Capacity[Separate processed estimates and availability]
 ```
 
-选择其他位置后仍需重新验证目标位置与权限；取消不触发恢复。永久移除不提供恢复承诺，也不清空其他废纸篓内容。
+Cancellation never triggers restoration. Permanent removal is irreversible and never empties unrelated Trash contents.
 
-## 6. 中断与恢复核对
+## 6. Interruption reconciliation
 
 ```mermaid
 sequenceDiagram
-    participant Client as CLI 或桌面端
-    participant Core as 共享核心
-    participant Store as 执行记录
-    participant FS as 文件系统
-    Client->>Core: 查询中断的执行 ID
-    Core->>Store: 读取已落盘意图与逐项结果
-    Core->>FS: 核对原位置、已记录废纸篓位置与身份
-    FS-->>Core: 已完成、未执行或仍未知
-    Core->>Store: 追加核对结果
-    Core-->>Client: 真实状态与建议下一步
-    Note over Client,FS: 不自动重放旧计划；未知项不按旧路径删除
+    participant Client as CLI or desktop
+    participant Core
+    participant Store
+    participant FS as Filesystem
+    Client->>Core: Query interrupted execution
+    Core->>Store: Load durable intent and item results
+    Core->>FS: Verify original and recorded destination identities
+    FS-->>Core: Completed, unprocessed, or unknown
+    Core->>Store: Append reconciliation evidence
+    Core-->>Client: Actual state and next actions
+    Note over Client,FS: Never replay unknown targets by old path
 ```
 
-## 7. 状态一致性要求
+## 7. Invariants
 
-- 用户改变排除、规则或动作后，当前预览与确认不能继续沿用。
-- 取消尽快停止启动新项，已经完成的移动保留在历史中。
-- 批次不是全有或全无事务，部分成功必须直说。
-- 历史是操作事实；当前是否可恢复由现场核验决定。
-- 成功路径与异常路径都必须在 CLI 和 GUI 中有对应表示，不能只在日志里记录。
+Configuration/action/selection changes invalidate confirmation. Cancellation stops new items while preserving completed facts. Partial success is explicit. History records facts; current recovery availability requires inspection. Every exception has a CLI and GUI representation, not only a log entry.

@@ -1,101 +1,80 @@
-# 开发者空间治理场景
+# Developer workspace storage scenarios
 
-状态：设计草案。依据：用户描述与提供的四张目录占用截图；未扫描用户磁盘，也未核实这些目录的实际内容。
+English | [简体中文](../zh-CN/product/developer-space-scenarios.md)
 
-## 1. 截图揭示的问题
+Status: design draft. Capacity ranges illustrate workload scale, not measured benchmarks or guaranteed reclaimable space.
 
-用户不仅需要处理系统缓存，还需要处理开发工作区内分散的构建产物、安装依赖和个人工具数据。
+## 1. Storage characteristics
 
-截图中的典型占用：
+Developer storage spans project artifacts, installed dependencies, tool caches, and persistent data.
 
-| 观察 | 截图量级 | 对 Shou 的要求 |
+| Directory category | Illustrative scale | Requirement |
 | --- | --- | --- |
-| 候选版本目录 | 约 34.64 GB | 提供项目/副本空间视图，深入其内部解释，不能仅凭版本名称删除整目录 |
-| Rust `target` | 约 31.58 GB | 支持嵌套项目识别、保留条件、当前项目排除与规则复用 |
-| `node_modules` | 约 2.39–2.40 GB | 单独分类为已安装依赖，说明重装条件和本地改动风险 |
-| `dist` | 约 1.37–1.66 GB | 区分构建输出和交付物，允许经审阅的个人规则 |
-| `dist-electron` | 约 413 MB | 覆盖多工具链产物，不要求每个目录都等待内置适配 |
-| `.git`、`docs`、`internal` | 数百 MB | 大不等于可清理，展示用途并保护源码与版本元数据 |
-| `.lime`、`.codex` 等隐藏目录 | 用途各异 | 不凭“隐藏”或“工具数据”认定为缓存，先确认内容性质 |
+| Release or candidate checkout | Tens of GB | Inspect internal composition; a version-like name never authorizes removing the project |
+| Rust `target` | Tens of GB | Find nested projects, explain ownership, apply retention/exclusions, reuse rules |
+| `node_modules` | Several GB | Classify installed dependencies separately and explain reinstall/local-change risks |
+| `dist` | Several GB | Distinguish reproducible output from unique deliverables |
+| `dist-electron` | Hundreds of MB to several GB | Cover personal toolchain layouts without waiting for every built-in adapter |
+| `.git`, documentation, internal sources | Hundreds of MB or more | Preserve source and version metadata regardless of size |
+| Hidden tool directories | Variable | Determine purpose; hidden/tool-owned does not imply disposable |
 
-截图来自不同导航层级和时刻，不能直接相加或当作同一次扫描基准。上述数值仅用于说明需求量级。
+Aggregate within one scan snapshot and measurement basis. Nested paths, hard links, shared blocks, or different scan times must not produce unexplained double counting.
 
-## 2. 分类模型
+## 2. Classification
 
-| 类型 | 例子 | 首版处理原则 |
+| Category | Examples | Policy |
 | --- | --- | --- |
-| 可重建构建产物 | Rust `target`，经确认的 `.next`、`dist-electron` | 项目证据、完整预览、保留条件和重建代价 |
-| 可重新获取的依赖 | 经确认的 `node_modules` | 高风险审阅；确认清单、锁文件、网络与本地修改，默认不勾选 |
-| 工具缓存 | 经确认的项目内编译缓存、Node.js 工具缓存 | 先确定生成工具、失效后果与准确范围 |
-| 持久项目数据 | 源码、文档、业务数据库、未发布交付物 | 默认保留；已识别的保护对象不能由规则绕过 |
-| 未分类大目录 | 自研工具数据、候选版本目录、隐藏目录 | 只做分析，支持询问用途、排除或起草规则 |
+| Rebuildable artifacts | Reviewed Rust, frontend, or Electron outputs | Evidence, complete preview, rebuild cost, retention |
+| Reinstallable dependencies | Reviewed ordinary npm installation | High-risk review; verify prerequisites, local changes, and offline needs |
+| Tool caches | Verified compiler or Node.js caches | Identify producer, exact scope, and invalidation consequences |
+| Persistent project data | Source, documents, databases, unique deliverables | Preserve; identified protection cannot be overridden |
+| Unclassified directories | Personal tools or unfamiliar project data | Analysis only until purpose and boundaries are established |
 
-“可重新获取”是有条件的判断：私有依赖失效、离线环境、包仓库下架、手工改动和安装脚本都可能让重装失败。Shou 不能仅凭一个锁文件承诺可恢复。
+A lockfile cannot guarantee reinstallability. Private registries, package removal, network loss, install scripts, and local edits matter.
 
-## 3. 首版重点场景
+## 3. Core scenarios
 
-### D01：跨项目发现 Rust 构建大户
+### D01: Rust artifacts across projects
 
-- 从已授权工作区发现嵌套 Rust 项目，如 `project/rust-part/target`。
-- 以父目录 `Cargo.toml` 等证据解释归属，展示项目路径与产物路径。
-- 排除当前活跃项目，保留近期修改目录，记录自定义 `CARGO_TARGET_DIR` 的支持限制。
-- 用户复用方案时重新扫描，避免旧路径列表误处理新任务。
+Find nested paths such as `project/rust-part/target`; explain ownership through parent `Cargo.toml` and relevant evidence. Support current-project exclusions and user-selected retention. Document custom `CARGO_TARGET_DIR` limitations. Rescan before reusing a preset.
 
-年龄是用户可调整的保留条件，不是统一限制。对确知用途、希望当天腾空间的构建目录，用户可以不设置年龄条件，先停止相关构建并查看具体计划；仍需通过状态复核和确认，并承担后续重建成本。近期修改不能直接等同于“正在使用”，长期未修改也不能证明可删。
+Age is optional and configurable. For a known artifact that must be cleared today, users may omit age conditions, stop relevant builds, and review a current plan. Runtime validation and rebuild costs still apply. Recent modification is not proof of activity, and old modification is not proof of disposability.
 
-### D02：Node.js 依赖与项目缓存分开看
+### D02: Node.js dependencies versus caches
 
-- `node_modules` 归类为安装依赖，不与 `node_modules/.cache` 等工具缓存混为一项。
-- 项目级 `.next`、`.nuxt`、`.turbo`、`.vite` 等只作为待确认线索，逐条验证模板后发布。
-- npm、pnpm、Yarn 全局缓存与共享 store 独立建模，首版不直接通用递归删除。
-- pnpm 链接/硬链接、Yarn 零安装和仓库跟踪的缓存需要专项处理，不能套用普通目录规则。
-- 经用户确认的 npm 项目可使用高风险 `node_modules` 规则草稿；`.bin` 等已识别符号链接只处理链接条目、不跟随目标。遇到保护内容、未知链接类型、缺证据或重装条件不明时阻断整项。
+Treat `node_modules` as installed dependencies, distinct from its internal caches. `.next`, `.nuxt`, `.turbo`, and `.vite` are clues requiring verified context, not universal delete rules.
 
-### D03：多种构建输出和个人规则
+Global npm caches, pnpm stores, shared dependencies, and Yarn zero-install require separate support. Do not recursively delete them generically. Reviewed ordinary npm directories may use a high-risk draft. Known `.bin` symlinks are opaque entries: never follow their targets. Unknown link types, protected data, incomplete evidence, or uncertain reinstall prerequisites block the item.
 
-- 同一项目可能同时有 `dist`、`dist-electron`、Rust 子项目与前端缓存。
-- 根据项目上下文和用户确认建立单独规则；不对所有仓库的同名目录批量启用。
-- 若 `dist` 是唯一发布包、手工资源或正式交付物，应排除，不假定能重新生成。
-- 清理方案组合多个已审阅规则，避免每天重复寻找同一批目录。
+### D03: Multiple build outputs
 
-### D04：闲置项目与版本副本
+One repository may contain frontend output, Electron output, Rust artifacts, and personal caches. Establish separate context-bound rules and combine them in a preset. Preserve unique packages, hand-maintained files, or deliverables; `dist` alone says nothing about reproducibility.
 
-- 按项目汇总，而不是只给出全盘大文件列表。
-- 展示项目下“规则命中、未分类、受保护、排除”的容量构成。
-- 名称带 `release`、`candidate` 或日期不证明它是闲置副本，更不能证明是 Git worktree。
-- Git worktree 的 `.git` 可能是引用文件，必须保护其共享元数据与关联关系。
-- 首版只处理项目内经过规则审阅的产物；整个项目归档、worktree 移除留待专门流程。
+### D04: Inactive projects and checkouts
 
-## 4. 产品交互补充
+Aggregate by project and show matching, excluded, protected, and unclassified storage. Names containing `release`, `candidate`, or dates do not establish inactivity or Git worktree status. Protect shared worktree metadata, including `.git` pointer files. Whole-project archival and worktree removal need dedicated future workflows.
 
-空间视图采用“可排序目录表 + 按需矩形树图 + 详情检查器”：
+## 4. Interaction
 
-- 按项目、类型、占用和最近修改筛选，支持面包屑与返回导航。
-- 矩形树图反映占用，点击仅定位和查看，不隐式勾选清理。
-- 清理资格通过文字与图标单独表达，不能把大矩形都画成可删除项。
-- 显示隐藏目录的开关只影响展示，不改变权限与保护策略。
-- 从未知目录进入“建立个人规则”，也能复制摘要交给已有 Agent 起草。
-- CLI 返回同一分类与树状汇总，不强制用户通过图形才能发现大户。
+Use a sortable directory table, optional treemap, and inspector. Provide project/type/size filters, breadcrumbs, and back navigation. Treemap clicks locate items without implicitly selecting them for cleanup. Showing hidden files changes presentation only.
 
-树图不能替代可访问表格。图形面积以当前明确口径计算，保持与列表一致；未知或部分统计使用明显标记。
+Offer rule creation and an inspectable summary for existing agents. CLI returns equivalent classification and hierarchy. Charts supplement accessible tables; all views use the same measurement basis and indicate partial or unknown values.
 
-## 5. 容量解释
+## 5. Capacity accounting
 
-目录总占用、满足规则的量、用户已选量和预计处理量应分别显示。数值不同需要能解释为未选、保护、排除、统计缺口或计量口径，不能只给一个没有来源的“可清理 GB”。
+Distinguish total directory usage, rule-eligible estimates, selected estimates, and processed estimates. Explain differences through exclusions, protection, unselected items, incomplete measurements, or accounting limits.
 
-父子目录、同一目标的多规则命中不得叠加计量。硬链接与 APFS 克隆可能让项目归因估计重叠；显示限制，不把相加的目录值承诺为可释放容量。
+Deduplicate repeated matches and parent/child targets. Hard links and APFS clones can still complicate attribution; summed estimates are not a reclaimed-space promise.
 
-## 6. 追加用户故事
+## 6. User stories
 
-| 编号 | 故事 | 验收 |
+| ID | Story | Acceptance |
 | --- | --- | --- |
-| US12 | 我想看见多个闲置项目的构建目录大户，不逐层点进去 | 项目汇总与类型筛选能定位嵌套产物 |
-| US13 | 我想分别决定缓存、依赖和发布输出怎么处理 | 三者独立分类、规则、风险与排除 |
-| US14 | 我想把当前项目永远排除，只清理闲置项目 | 显式排除优先，方案复用不取消排除 |
-| US15 | 我想让 Codex 或 Claude Code 为特殊构建目录添加规则 | 通过公开 CLI 导入草稿并给出具体预览，Shou 不调用模型 |
+| US12 | Find artifact-heavy inactive projects without navigating every folder | Project aggregation and nested-artifact filters |
+| US13 | Decide separately about caches, dependencies, and deliverables | Distinct classification, rules, risks, and exclusions |
+| US14 | Exclude a current project while processing others | Explicit exclusions survive preset reuse |
+| US15 | Ask an existing agent to add a personal build rule | CLI imports a disabled draft and returns a concrete preview; no model call inside Shou |
 
-## 7. 场景验收
+## 7. Acceptance fixture
 
-使用虚构 monorepo，同时包含 Rust `target`、npm `node_modules`、`.next`、`dist`、`dist-electron`、`.git`、源码、文档和未知工具目录。
-
-要求：能找出空间大户；能区分用途；父子项不重复；不能因为体积或名字自动删除；经审阅的个人规则可以覆盖特殊输出；GUI 与 CLI 给出一致分类、保护和命中证据。
+Use a fictional monorepo with Rust output, ordinary npm dependencies, frontend caches, `dist`, Electron output, `.git`, source, documents, and unknown tool data. Verify classification, nested discovery, deduplication, protection, personal-rule expressiveness, and consistent GUI/CLI evidence. Neither size nor naming alone grants execution eligibility.

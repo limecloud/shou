@@ -3,8 +3,8 @@
   "schema_version": "1.0",
   "id": "dev.rust-target",
   "version": "0.1.0",
-  "name": "闲置 Rust 项目的 target 目录",
-  "description": "在明确授权的开发工作区中，查找父目录含 Cargo.toml 且满足保留条件的 target 目录。",
+  "name": "Rust target directories for inactive-project review",
+  "description": "Find target directories within an explicitly authorized development workspace whose parents contain Cargo.toml and whose contents meet the retention conditions.",
   "platforms": ["macos"],
   "scope": {
     "root_ref": "developer-workspaces",
@@ -24,11 +24,11 @@
   "exclude": {"relative_patterns": ["active-project/**", "**/.git/**"]},
   "risk": {
     "declared_level": "review",
-    "rebuild_note": "通常可由 cargo build 重新生成，但需要源文件、工具链和可用依赖；重新构建可能耗时。",
+    "rebuild_note": "Usually reproducible with cargo build when source files, the toolchain, and dependencies remain available. Rebuilding may take time.",
     "limitations": [
-      "未使用自定义 CARGO_TARGET_DIR；存在此配置时需单独审阅。",
-      "修改时间不能证明目录未被使用或所有内容可重建。",
-      "如目录内保存了手工文件、交付物或不可重建内容，请排除。"
+      "Assumes no custom CARGO_TARGET_DIR; review separately when that setting is present.",
+      "Modification times do not prove inactivity or that all contents are reproducible.",
+      "Exclude directories containing manually saved files, unique deliverables, or other non-reproducible data."
     ]
   },
   "action": {"type": "trash"}

@@ -1,120 +1,105 @@
-# 声明式清理规则规范
+# Declarative cleanup rule specification
 
-状态：`1.0` 设计草案，未实现引擎。字段结构以[公开 JSON Schema](../../packages/shou-contracts/rule.schema.json) 为准；本文规定语义。
+English | [简体中文](../zh-CN/rules/rule-specification.md)
 
-## 1. 目标与边界
+Status: format `1.0` design draft; engine implementation is pending. Field structure is owned by the [JSON Schema](../../packages/shou-contracts/rule.schema.json); this document owns semantics.
 
-规则描述“在什么范围，找哪些目录，满足哪些保留条件，为什么可以考虑处理”。规则不能执行程序、扩大授权、绕过保护或直接永久删除。
+## 1. Scope
 
-Codex、Claude Code 等现有 Agent 可以生成符合格式的文件，通过 CLI 导入为草稿。Shou 不调用模型，也不把“AI 生成”作为可信来源证明。
+Rules describe where to look, what directories to match, what retention conditions apply, and why processing may be appropriate. They grant no access or execution approval and contain no scripts or direct permanent-delete action.
 
-支持规则独立于应用更新，含义是**现有格式能够表达的新路径与条件无需应用发版**；新的谓词、平台 API 或清理适配器仍需引擎升级。
+Existing coding agents may generate and import drafts through CLI. Generated text is not trusted evidence. New paths/conditions expressible by the current format need no app release; new predicates, adapters, or platform capabilities do.
 
-## 2. 三层校验
+## 2. Validation layers
 
-| 层 | 内容 | 通过后代表什么 |
+| Layer | Checks | Meaning |
 | --- | --- | --- |
-| 结构校验 | 字段、类型、枚举、长度、未知字段、格式版本 | 文件符合 Schema |
-| 语义校验 | 路径模式、根绑定、项目标记、预算、平台能力 | 规则可在给定环境中进行受限匹配 |
-| 运行时校验 | 实际权限、文件类型、保护、身份、状态、用户确认 | 具体对象具备执行前提 |
+| Structural | Types, required/unknown fields, enums, lengths, schema version | Conforms to the schema |
+| Semantic | Relative patterns, markers, bindings, budgets, platform capabilities | Can be evaluated within a bounded environment |
+| Runtime | Actual access, protection, identities, current state, confirmation | Concrete targets meet execution preconditions |
 
-结构校验不检查文件系统；语义校验不授予清理许可。示例通过 Schema 也不能证明实际目录可删除。
+Passing a schema never establishes that a real directory can be deleted.
 
-## 3. 字段说明
+## 3. Fields
 
-| 字段 | 含义与约束 |
+| Field | Semantics |
 | --- | --- |
-| `schema_version` | 本草案固定为 `1.0`，未知版本拒绝 |
-| `id`、`version` | 稳定规则 ID 与三段数字版本；同 ID 同版本不同内容拒绝静默覆盖 |
-| `name`、`description` | 用户可读名称与用途；是不可信文本，显示时转义 |
-| `platforms` | 规则适用平台，不等于引擎已支持该平台 |
-| `scope.root_ref` | 本机工作区逻辑引用，导入后由用户绑定，禁止绝对路径 |
-| `scope.max_depth` | 工作区候选发现深度，1–32；不能借此截断候选目录安全复核 |
-| `scope.follow_symlinks` | 固定 `false`，规则不能开启跟随链接 |
-| `scope.cross_filesystems` | 固定 `false`，不跨卷 |
-| `match.kind` | 首版固定 `directory` |
-| `match.relative_patterns` | 相对工作区根目录的候选目录模式，多个模式为 OR |
-| `match.project_markers` | 可选；要求候选父目录存在列出的全部普通标记文件 |
-| `conditions.min_allocated_bytes` | 最小分配容量估计，字节；缺可靠估计则条件未知 |
-| `conditions.newest_descendant_modified_days_at_least` | 可选；候选及其完整后代的最新修改至少距扫描时刻多少天 |
-| `exclude.relative_patterns` | 相对工作区根目录的排除模式；保护优先于匹配 |
-| `risk.declared_level` | `review` 或 `high`；不能降低系统算出的更高风险 |
-| `risk.rebuild_note`、`limitations` | 重建条件与局限，至少一条局限说明 |
-| `action.type` | 固定 `trash`；永久移除通过独立历史操作，不由规则触发 |
+| `schema_version` | Exactly `1.0`; reject unknown versions |
+| `id`, `version` | Stable identifier and three-number version; no silent same-version mutation |
+| `name`, `description` | Human text, displayed as untrusted content |
+| `platforms` | Applicability, not proof of implemented platform support |
+| `scope.root_ref` | Logical local binding, never a shared absolute path |
+| `scope.max_depth` | Candidate-discovery depth, 1–32; not permission to truncate target verification |
+| `scope.follow_symlinks` | Always `false` |
+| `scope.cross_filesystems` | Always `false` |
+| `match.kind` | Initially `directory` |
+| `match.relative_patterns` | OR across workspace-relative candidate-directory patterns |
+| `match.project_markers` | Optional; all listed ordinary files must exist in candidate parent |
+| `conditions.min_allocated_bytes` | Required minimum allocation estimate in bytes; unknown estimate does not pass |
+| `conditions.newest_descendant_modified_days_at_least` | Optional minimum age of newest modification across target/descendants |
+| `exclude.relative_patterns` | Relative exclusions, combined with stronger user/system protection |
+| `risk.declared_level` | `review` or `high`; cannot lower effective engine risk |
+| `risk.rebuild_note`, `limitations` | Rebuild prerequisites and at least one limitation |
+| `action.type` | Only `trash`; permanent removal is a separate receipt operation |
 
-`$schema` 只提供编辑器提示；应用使用随包固定 Schema，不根据此字段联网获取或执行任何内容。
+`$schema` is an editor hint. The application uses its bundled schema and never fetches executable content or remote definitions based on this value.
 
-## 4. 路径模式语义
+## 4. Pattern semantics
 
-- 使用 `/` 分隔路径。`*` 匹配单个路径段内零个或多个字符，`?` 匹配一个字符。
-- `**` 只能作为完整路径段，匹配零个或多个目录层级；因此 `**/target` 包含根下的 `target`。
-- 不支持正则表达式、Shell 展开、花括号、命令替换、环境变量或 `~` 展开。
-- 禁止绝对路径、空路径段、`.`、`..`、反斜杠、控制字符、Windows 驱动器/UNC/设备路径及冒号语法。
-- 字面量 `*` 和 `?` 文件名首版不可通过模式表达；不自动转义后扩大范围。
-- 模式不能匹配工作区根本身。只用 `**`、`*` 等覆盖整个工作区的模式不能成为清理规则。
-- `project_markers.all_of` 是候选父目录下的精确文件名，不接受路径分隔符和模式字符；不跟随标记文件链接。
-- 大小写匹配遵循目标文件系统报告的语义；文件身份另行判断。
-- 规则排除、用户排除和硬保护取并集；下层规则不能取消上层排除。
+Use `/` as separator. `*` matches zero or more characters within one segment; `?` matches one. `**` must occupy a complete segment and matches zero or more directory levels, so `**/target` includes a root child.
 
-候选本身及解析其祖先时不允许符号链接。普通目录内部已识别的 POSIX 符号链接可以作为不透明条目记录，不遍历其指向，也不把指向目标的内容计入计划；移走父目录只移动链接本身。永久移除只能以不跟随链接的方式处理条目。Windows 的未知 reparse point 不据此自动放行。
+No regex, braces, Shell expansion, command substitution, environment variables, or `~`. Reject absolute paths, empty segments, `.`, `..`, backslashes, control characters, drive/UNC/device paths, and colon syntax. Literal wildcard characters in filenames are initially unsupported. Patterns cannot target the workspace root or broadly select its entire contents.
 
-候选目录只要包含受保护或被排除的后代，整个目录就不能作为一个整体移动或删除。不能先忽略子项再移走父目录。
+Markers are exact ordinary filenames in the candidate parent, with no separators or wildcards and no symlink following. Respect actual filesystem case behavior. Root depth is zero; direct children have depth one.
 
-## 5. 条件与未知值
+Protection and exclusions form a union and cannot be undone by a more specific rule. A directory containing a protected/excluded descendant cannot be moved as a whole.
 
-- 所有 `conditions` 为 AND；多个项目标记同样为 AND。
-- 年龄按扫描基准 UTC 时刻计算，以 24 小时为一天，不按最后访问时间 `atime` 推断使用情况。
-- 最新修改值取候选本身与完整后代的最大值；不跟随链接，链接只计自身元数据。权限缺口、预算中断、无法读取的后代使该条件未知。
-- 发现深度只限制寻找候选，不授权跳过候选后代的完整统计、安全检查和清单记录。
-- 条件未知时不纳入可执行集合，不用 `0`、旧缓存或猜测补值。
-- “14 天未修改”不是“14 天未使用”，也不能证明没有活动进程。
+Root/ancestor symlinks cannot become candidate paths. Known internal POSIX symlinks may be recorded as opaque entries without traversing or counting their targets. Moving/removing the parent processes the link only. Unknown Windows reparse types are not automatically equivalent.
 
-## 6. 受限预算
+## 5. Conditions and unknowns
 
-引擎同时限制规则文件大小、规则数量、模式数量、访问深度、节点数、持续时间、内存与输出分页。Schema 中的上限只是第一层限制。
+Conditions combine with AND. Age uses scan UTC time and 24-hour days, never access time as proof of usage. Take the newest modification across the target and full descendants; symlinks contribute their own metadata only.
 
-建议首版规则文件上限 256 KiB，执行预算以基准测试确定。超过预算返回 `resource_limit`，结果标为不完整；不能静默跳过后声明完整扫描。
+Candidate depth limits discovery, not the full safety manifest. Permission gaps, interrupted budgets, unreadable descendants, or unreliable sizes make relevant conditions unknown. Unknown does not pass; do not substitute zero, guesses, or old cached values. Old modification does not prove inactivity or reproducibility.
 
-## 7. 生命周期
+## 6. Budgets
+
+Bound file size, number of rules/patterns, depth, visited entries, runtime, memory, and output pages. Initial rule-file budget is provisionally 256 KiB; execution budgets require benchmarks. Schema limits are only the first layer.
+
+Return `resource_limit` and incomplete status rather than silently truncating a supposedly complete scan.
+
+## 7. Lifecycle
 
 ```mermaid
 flowchart LR
-    Draft[用户或现有 Agent 起草] --> Validate[结构与语义校验]
-    Validate --> Import[导入为禁用草稿]
-    Import --> Bind[绑定本机工作区]
-    Bind --> Preview[只读预览]
-    Preview --> Enable[审阅并启用]
-    Enable --> Scan[执行前重新扫描]
-    Scan --> Plan[具体清理计划]
-    Plan --> Confirm[用户明确确认]
+    Draft[User or existing agent draft] --> Validate[Structural and semantic validation]
+    Validate --> Import[Import disabled draft]
+    Import --> Bind[Bind local workspace]
+    Bind --> Preview[Read-only preview]
+    Preview --> Enable[Review and enable]
+    Enable --> Scan[Fresh enabled-rule scan]
+    Scan --> Plan[Concrete plan]
+    Plan --> Confirm[Explicit confirmation]
 ```
 
-导入和启用是独立操作；启用规则也不构成文件清理授权。规则版本、绑定或排除变化后，引用旧状态的待执行计划失效。
+Import, enablement, and execution permission are separate. Version/binding/exclusion changes invalidate affected pending plans.
 
-## 8. 可审阅示例
+## 8. Examples
 
-完整文件：[Rust target 规则](../../examples/rules/rust-target.rule.json)和[高风险 npm 依赖规则](../../examples/rules/npm-node-modules.rule.json)。两者均为设计示例，默认导入为禁用草稿，不是已发布或已验证的内置模板。
+[Rust target](../../examples/rules/rust-target.rule.json) and [high-risk npm dependencies](../../examples/rules/npm-node-modules.rule.json) are design examples, imported as disabled drafts, not validated production templates.
 
-它要求父目录含 `Cargo.toml`、目录及后代最新修改至少 14 天、分配大小估计至少 104,857,600 字节，并排除 `active-project`。该阈值约为 104.9 MB，不在 UI 中误写成 100 MB。
+Rust requires parent `Cargo.toml`, a 14-day newest-modification condition, and 104,857,600 allocated bytes, excluding the current project. That threshold is approximately 104.9 decimal MB, not 100 MB. Review custom target locations and hand-saved data.
 
-使用前必须确认：`root_ref` 已绑定正确工作区、没有自定义共享构建目录、目标中没有人工保存文件。规则不能自动证明这些业务事实。
+The npm example requires parent `package.json` and `package-lock.json`, which do not prove reinstallability. It excludes unverified local-workspace prerequisites, pnpm/shared stores, and Yarn zero-install. Known `.bin` symlinks remain opaque. Unknown descendants/link types or protection block execution.
 
-个人规则可更改用途、模式、项目标记、保留条件与说明；不能添加脚本或将动作改为永久删除。
+Shared examples use English base text; personal rule text may use any language. See [internationalization](../product/internationalization.md).
 
-npm 示例要求父目录同时有 `package.json` 与 `package-lock.json`，但这些文件不能证明依赖一定可重装。样例仅覆盖经用户确认的普通 npm 安装目录；不适用 pnpm、Yarn 零安装、共享 store 或重装条件未确认的本地工作区依赖。`.bin` 等目录中的已识别符号链接只作为链接条目处理，禁止跟随。有效保护优先，无法核验后代或链接类型时整项不进入执行集合。
+## 9. Template inclusion
 
-## 9. 模板收录要求
+Require producer/purpose evidence, supported platforms, rebuild prerequisites, offline/activity/custom-layout limitations, positive/negative/protection/permission/change fixtures, version, and digest history.
 
-每条内置模板必须有：
+Prioritize Rust, specific Node.js caches, and personal outputs; ordinary npm dependency removal is explicitly high-risk. DerivedData is a supplementary candidate. Arbitrary dependencies, `dist`, databases, container disks, and VM files are never universal default targets.
 
-- 明确的生成软件、目录用途和适用平台。
-- 目录归属与重建依据，不能只凭名称。
-- 离线、重建耗时、自定义路径和当前活动等局限。
-- 虚构命中、未命中、保护、权限与状态变化夹具。
-- 格式版本、内容摘要和变更记录。
+## 10. Sharing
 
-首版重点验证 Rust 构建目录、特定 Node.js 项目缓存及个人输出；npm 整体依赖作为高风险、显式审阅场景。Xcode DerivedData 为补充候选；任意 `node_modules`、`dist`、数据库、容器磁盘和虚拟机文件不作为通用默认清理项。
-
-## 10. 更新与分享
-
-首版采用本地文件导入和导出，不建立自动远程规则下载服务。分享时剥离根路径、访问凭据、扫描结果与历史；接收者重新绑定、预览和启用。来源和校验摘要只提供可追溯性，不代替用户判断与平台安全策略。
+Initially use local import/export rather than automatic remote catalogs. Strip paths, credentials, scan results, and history. Recipients bind, preview, and enable themselves. Provenance and digests provide traceability, not a safety guarantee.

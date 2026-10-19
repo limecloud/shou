@@ -1,131 +1,106 @@
-# 实施计划与决策记录
+# Implementation plan and decisions
 
-状态：设计草案。当前仅完成本文档集、规则 Schema 与虚构样例，尚无应用工程、CLI 或运行时验证。
+English | [简体中文](../zh-CN/engineering/implementation-plan.md)
 
-## 1. 已确认约束
+Status: design draft. Documentation, draft rule schema, and fictional examples exist; applications, CLI, and runtime evidence are pending.
 
-| 决策 | 内容 | 依据 |
+## 1. Product decisions
+
+| ID | Decision | Purpose |
 | --- | --- | --- |
-| DEC01 | 品牌为 Shou · 收，slogan 为“收好，就好。” | 用户确定的命名方向 |
-| DEC02 | macOS 原生 Swift，SwiftUI 为主、AppKit 补充 | 用户明确要求 |
-| DEC03 | CLI 与桌面端独立完成核心闭环，共享核心 | 用户明确要求两个场景 |
-| DEC04 | 不接入任何模型，不开发 Agent | 用户明确的产品边界 |
-| DEC05 | 对 Codex、Claude Code、WorkBuddy 等现有 Agent 友好，支持通过 CLI 添加规则 | 用户明确要求 |
-| DEC06 | 原生多平台 monorepo，参考 xiaoxue 的结构，未来支持 Windows | 用户指定结构参考与平台方向 |
-| DEC07 | 优先解决个人项目产物、Node.js 依赖/缓存与闲置项目空间问题 | 用户痛点与目录截图 |
+| DEC01 | Shou · 收; “Tidy up. That’s it.” | Consistent identity |
+| DEC02 | Native macOS Swift, SwiftUI, AppKit | Platform conventions and integration |
+| DEC03 | Independent desktop and CLI with shared core | Equivalent workflows and semantics |
+| DEC04 | No model integration or agent development | Local-tool scope and independence |
+| DEC05 | Existing agents add rules through public CLI | Discoverable, verifiable operations |
+| DEC06 | Native multi-platform monorepo, future Windows | Shared contracts and isolated adapters |
+| DEC07 | Prioritize project artifacts, Node.js data, inactive projects | Reduce repeated developer cleanup work |
+| DEC08 | English default docs, multilingual entry points, runtime localization | Global users and contributors |
 
-## 2. 首版设计基线
+## 2. Provisional baselines
 
-以下是当前工程建议，不与用户已确认约束混同：
+Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; Trash by default; separately confirmed permanent batch removal; no unattended destructive CLI. Select one native Windows UI after prototyping.
 
-- 共享核心采用可移植 Swift；平台文件操作独立适配。
-- 最低 macOS 暂定 14，启用 Swift 6 并发检查。
-- 规则使用受限 JSON，不支持任意脚本。
-- 本地版本化文件持久化；是否引入 SQLite 以规模证据决定。
-- 首版倾向签名、公证后直接分发；Sandbox 与 CLI 交付经原型确认。
-- 默认移到废纸篓，立即释放通过独立确认永久移除本次项目。
-- 首版不支持无人值守破坏性操作，CLI 无 TTY 时拒绝执行。
-- Windows 原生 UI 暂不锁定 WinUI 3 或 WPF，不把 SwiftUI 当作跨平台 UI。
-
-## 3. 阶段路线
+## 3. Milestones
 
 ```mermaid
 flowchart LR
-    M0[M0 合同与安全原型] --> M1[M1 共享核心与只读 CLI]
-    M1 --> M2[M2 个人规则与原生预览]
-    M2 --> M3[M3 双入口受控清理]
-    M3 --> M4[M4 macOS MVP 验收]
-    M4 --> M5[M5 Windows 原型与交付]
-    M4 --> Later[后续卸载、启动项与更多模板]
+    M0[Contracts and safety prototypes] --> M1[Portable core and read-only CLI]
+    M1 --> M2[Personal rules and native previews]
+    M2 --> M3[Confirmed execution in both entry points]
+    M3 --> M4[macOS MVP acceptance]
+    M4 --> M5[Windows prototype and delivery]
+    M4 --> Later[Uninstall, startup, more templates]
 ```
 
-不按未经估算的日期承诺交付。M0 的平台风险验证影响后续范围，未满足发布门槛不得跳过。
+Dates depend on estimates and prototype outcomes. Safety gates cannot be skipped for a deadline.
 
-### M0：合同与关键原型
+### M0: Contracts and critical prototypes
 
-- [x] 编写 README、PRD、用户故事、架构、流程、时序与安全草案。
-- [x] 建立 monorepo 目标布局与跨平台边界。
-- [x] 提供规则 JSON Schema 和虚构 Rust、Node.js 规则样例。
-- [ ] 锁定 Swift/Xcode 基线与原生应用工程方式。
-- [ ] 验证 GUI 与 CLI 的目录访问、TCC、书签和签名关系。
-- [ ] 验证同卷移入废纸篓、实际返回位置、身份记录与恢复冲突。
-- [ ] 原型验证目录替换、符号链接、子项变化与永久移除的竞态边界。
-- [ ] 验证跨进程锁、关键记录落盘与磁盘满时行为。
-- [ ] 明确目录身份、完整清单与容量测量的可实现成本。
-- [ ] 在可用 Windows 环境验证纯 Swift 合同/核心最小构建路径，记录限制；不阻塞先写 macOS 业务，但不得把失败隐藏到最后。
+- [x] Product, architecture, workflows, data model, safety, and acceptance drafts.
+- [x] Monorepo/platform boundary design.
+- [x] Rule schema and fictional Rust/npm examples.
+- [x] English/Simplified Chinese technical documentation and multilingual README structure.
+- [ ] Lock Swift/Xcode and native project setup.
+- [ ] Verify GUI/CLI access, TCC, bookmarks, signing, and distribution.
+- [ ] Prototype Trash result identities and restoration conflicts.
+- [ ] Inject target/ancestor replacement, descendant changes, and permanent-removal races.
+- [ ] Verify cross-process locks, durable intent, disk-full behavior, and manifest costs.
+- [ ] Establish an actual Windows minimal core/contract build path when an environment is available; record limitations early.
 
-**退出标准**：支持范围和不可实现边界明确；未通过文件安全原型时后续只提供只读功能。
+**Exit:** explicit supported boundaries; unresolved filesystem safety restricts subsequent functionality to read-only operations.
 
-### M1：可移植核心与只读 CLI
+### M1: Core and read-only CLI
 
-- 建立 `packages/shou-core`、`packages/shou-platform`、`apps/cli`。
-- 完成规则结构与语义校验、工作区、排除、扫描与候选解释。
-- 提供 `capabilities`、Schema、`scan`、结果分页、计划创建与查询。
-- 支持未分类大目录、嵌套项目、取消、部分扫描与资源预算。
-- 建立规则、目录、链接、Unicode 和容量统计的虚构夹具。
+Create core/platform/CLI projects. Implement validation, workspaces, exclusions, bounded scans, project clues, unclassified data, plans, pagination, cancellation, and stable JSON/error contracts. Add fictional path/link/Unicode/size fixtures.
 
-**退出标准**：不依赖 GUI 的只读任务闭环；JSON、退出码和状态可验证；无目标文件变更。
+**Exit:** complete read-only terminal loop without GUI or target modifications.
 
-### M2：个人规则与原生桌面预览
+### M2: Personal rules and native previews
 
-- 建立 `apps/macos` 原生应用、侧边栏、表格、检查器和系统目录授权。
-- 完成规则向导、导入、导出、启停、预览及清理方案。
-- CLI 同步开放对应持久业务操作，尤其是 Agent 导入草稿与预览。
-- 实现开发者分类；先可靠列表与项目汇总，矩形树图在同阶段按性能与可访问性验证后接入。
-- 验证 Rust 构建目录、特定 Node.js 项目缓存、需高风险审阅的 npm 依赖草稿与个人构建输出。
+Create the native macOS application, navigation, tables/inspector, access flow, rule wizard/import/export/enablement, previews, presets, and equivalent CLI operations. Implement classification and tested developer templates. Add treemaps only after shared accounting/performance/accessibility validation.
 
-**退出标准**：用户不写 JSON 也可创建规则；现有 Agent 可通过 CLI 添加规则，无模型接入；两个入口数据一致。
+**Exit:** GUI rule creation requires no JSON; existing agents import and preview drafts through CLI with no internal model integration; both entries agree.
 
-### M3：双入口受控执行
+### M3: Controlled execution
 
-- 实现不可变计划、具体摘要、原生/TTY 确认和过期处理。
-- 执行前验证根、目标、完整清单、规则与排除。
-- 实现逐项移到废纸篓、记录、取消、部分失败与中断核对。
-- 实现明确记录对应项目的恢复与永久移除，分别确认。
-- 验证重复执行拒绝、路径变化阻断及记录写入故障。
+Implement immutable plans, digest-bound UI/TTY confirmation, expiry, near-operation revalidation, Trash moves, durable receipts, partial outcomes, cancellation, interruption reconciliation, restoration, and separately confirmed permanent removal.
 
-**退出标准**：满足安全验收；GUI 与 CLI 独立完成清理；没有跳过确认的执行入口。
+**Exit:** safety cases pass; each entry completes cleanup independently; no confirmation bypass.
 
-### M4：macOS MVP 验收与发布准备
+### M4: macOS MVP acceptance
 
-- 真实客户端验证 Codex、Claude Code，具备条件时验证 WorkBuddy；逐项记录版本和限制。
-- 原生交互、辅助功能、深浅色、中文/英文、性能与低磁盘空间测试。
-- 在用户明确同意且有恢复条件的范围进行真实项目试用；夹具通过不等于真实环境已验收。
-- 签名、公证、运行库与 CLI 交付、卸载、升级及干净系统验证。
-- 更新 README，只宣传有实际证据的能力。
+Validate actual Codex/Claude Code clients and WorkBuddy where available, recording versions and limits. Test native interaction, accessibility, appearance, English/Simplified Chinese, locale aliases, storage pressure, performance, and consenting real-workspace trials with recovery conditions.
 
-**退出标准**：首版 P0 全部满足；风险、已知限制与验证报告齐全。此阶段不包含当前会话中自动提交、推送或发布。
+Verify signed/notarized distribution, CLI delivery, clean installation, upgrades, and uninstall. Update public claims to observed evidence.
 
-### M5：Windows 独立交付
+**Exit:** all P0 requirements, language coverage, limitations, and reports satisfy an independent release review.
 
-- 在 Windows 构建共享 Swift 核心与 `shou.exe`，确认工具链和运行库分发。
-- 适配路径、ACL、文件身份、锁、reparse point、占用文件和回收站。
-- 锁定一种原生 UI 技术，采用结构化进程桥复用业务合同。
-- 定义 GUI 确认跨桥传递合同，避免为桥接引入通用绕过确认参数。
-- 完成真实 Windows UI、文件操作、Agent CLI 与干净环境安装验证。
+### M5: Windows delivery
 
-**退出标准**：Windows 自有证据完整，不能用 macOS 测试或交叉编译替代。
+Build shared Swift core and `shou.exe` on Windows; deliver runtime dependencies. Implement identities, ACLs, paths, locks, links, occupied files, and Recycle Bin. Select one native UI, define its structured confirmation bridge, and test actual filesystem operations, agents, UI, and clean installation.
 
-## 4. 后续候选
+**Exit:** native Windows evidence, not macOS simulations or cross-compilation alone.
 
-更多可信模板、应用卸载与残留归属、启动项展示和系统设置引导、规则分享、项目归档与 Git worktree 管理。只有真实需求证明 CLI 不足时，才评估 MCP 等额外工具协议。
+## 4. Later candidates
 
-不接入模型、不开发 Agent 是长期边界，不列入后续候选。
+Broader templates, uninstall ownership analysis, startup discovery/settings guidance, safe sharing, project archival, and worktree workflows. Evaluate additional protocols only when a demonstrated need exceeds CLI capabilities.
 
-## 5. 未决事项
+Model integration and agent development are not roadmap candidates.
 
-| 问题 | 决定前需要的证据 |
+## 5. Open decisions
+
+| Question | Required evidence |
 | --- | --- |
-| 原生废纸篓 API 与防替换约束如何兼容 | 平台原型、竞态测试、允许支持的目录条件 |
-| 最低 macOS 与 CPU 架构 | 实际 API、可用设备、工具链与安装验证 |
-| App Sandbox 与直接分发权限 | GUI/CLI 工作区、TCC、书签与签名实测 |
-| 大扫描清单与历史存储 | 十万/百万级节点的内存、磁盘和查询成本 |
-| 计划有效期与扫描预算 | 重复清理场景、目录变化与性能基准 |
-| Node.js 重装与工作区依赖的边界 | npm/pnpm/Yarn、链接、私有包和本地修改夹具 |
-| Windows UI 与发布方式 | 原生表格、可访问性、进程桥和干净安装原型 |
+| Trash API and race constraints | Platform prototype and fault injection |
+| Minimum OS and architectures | Actual APIs, devices, toolchains, installation |
+| Sandbox and distribution | GUI/CLI access, signing, bookmarks, TCC |
+| Manifest/history storage | Large-fixture memory, disk, and query measurements |
+| Expiry and budgets | Changing directories and repeat-cleanup benchmarks |
+| Node.js dependency boundaries | npm/pnpm/Yarn, links, private/offline packages, local changes |
+| Windows UI/distribution | Native table/accessibility, process bridge, clean install |
+| Additional runtime languages | Reviewed translations and native interaction evidence |
 
-## 6. 变更完成定义
+## 6. Definition of done
 
-新增持久业务能力时，同步维护核心服务、CLI 发现与输入/结果、GUI、规则/合同版本、错误及下一步、测试与文档。某平台尚未实现时显式报告不可用。
-
-遵循 KISS/DRY：一套业务核心；遵循 SOLID：平台与展示依赖明确；遵循 YAGNI：不预建模型平台、脚本插件或无使用方的服务。
+Persistent features update shared services, CLI discovery/inputs/results/errors/next actions, GUI, tests, contract versions, documentation, and relevant translations together. Unsupported platforms remain explicit. Share behavior, isolate real external dependencies, and avoid unused infrastructure.

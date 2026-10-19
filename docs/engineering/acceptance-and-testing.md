@@ -1,144 +1,110 @@
-# 验收与测试计划
+# Acceptance and testing
 
-状态：待执行。本文不是测试报告，所有运行时验收均尚未完成。
+English | [简体中文](../zh-CN/engineering/acceptance-and-testing.md)
 
-## 1. 验证分层
+Status: runtime verification pending. This document is a plan, not a test report.
 
-| 层级 | 验证内容 | 不能代替的证据 |
+## 1. Evidence layers
+
+| Layer | Verifies | Does not establish |
 | --- | --- | --- |
-| 文档与静态合同 | 本地链接、JSON、Schema 与样例一致 | 规则引擎运行、应用构建 |
-| 核心单元 | 模式、条件、状态机、去重、风险与版本 | 平台权限和真实文件操作 |
-| 文件系统集成 | 临时工作区、链接、身份、废纸篓、记录 | 原生 UI 与 Agent 客户端行为 |
-| CLI 合同 | JSON、错误码、分页、取消与确认 | GUI 的可访问性和系统权限 |
-| GUI 流程 | 授权、扫描、规则、计划、执行与恢复 | CLI 独立闭环 |
-| Agent 操作 | 真实 Codex、Claude Code 等添加规则 | 所有客户端和版本的兼容性 |
-| 平台/分发 | 签名、运行库、干净安装、更新与卸载 | 另一个操作系统的支持 |
+| Documentation/schema | Links, JSON, structural examples, translation consistency | Runtime matching or application builds |
+| Core tests | Patterns, conditions, states, risks, deduplication | Native filesystem/permission behavior |
+| Filesystem integration | Temporary roots, links, identities, Trash, journals | UI or agent compatibility |
+| CLI contracts | JSON, exits, pages, cancellation, confirmation | GUI accessibility |
+| GUI flows | Access, rules, previews, execution, recovery | Independent CLI behavior |
+| Existing-agent tests | Actual client rule-addition workflows | Every client/version compatibility |
+| Native distribution | Signing, runtimes, clean install/update/uninstall | Another OS/platform |
 
-使用虚构夹具和临时目录，不用开发者真实工作区当自动清理测试数据。
+Use fictional fixtures and temporary roots rather than real development workspaces in automated deletion tests.
 
-## 2. 产品验收矩阵
+## 2. Product matrix
 
-| 编号 | 对应需求 | 场景与通过条件 |
+| Acceptance | Requirement | Pass condition |
 | --- | --- | --- |
-| AC01 | F01 | GUI 选择目录、CLI 注册路径均可用；缺系统权限时如实报错 |
-| AC02 | F02 | 同一虚构工作区的嵌套项目与大目录可发现，未知用途不被隐藏 |
-| AC03 | F03 | GUI 与 CLI 创建/导入规则，无需修改应用代码或升级版本 |
-| AC04 | F04 | 路径、项目标记、年龄、最小占用和排除条件语义一致 |
-| AC05 | F05 | 每个目标具有命中版本、原因、风险、大小口径和局限 |
-| AC06 | F06 | 同一目标多规则命中、父子范围冲突被正确处理，不双算 |
-| AC07 | F07 | 两个入口独立确认执行，变化目标被阻断，逐项结果真实 |
-| AC08 | F08 | 移入废纸篓不报已释放；单独确认只永久移除本次核验项 |
-| AC09 | F09 | 全局、工作区、项目排除优先，规则不能撤销保护 |
-| AC10 | F10 | 方案重新扫描；恢复不覆盖冲突位置；历史中断状态可查 |
-| AC11 | F11 | CLI 命令发现、JSON、退出码、分页与独立闭环符合合同 |
-| AC12 | F12 | Rust、Node.js 项目缓存、依赖审阅与个人输出规则有正反用例 |
-| AC13 | F17 | 核心不依赖 Apple/Windows 专属 API，平台能力通过接口注入 |
-| AC14 | F18 | Windows 后续具有本平台构建、文件安全、UI 与安装证据 |
+| AC01 | F01 | GUI selection/CLI registration and honest access failure |
+| AC02 | F02 | Nested projects and unclassified large directories found |
+| AC03 | F03 | Both entries add rules without code changes/releases |
+| AC04 | F04 | Conditions, paths, markers, exclusions agree |
+| AC05 | F05 | Each candidate exposes evidence, versions, risks, size basis |
+| AC06 | F06 | Repeated/parent-child targets resolved without double counting |
+| AC07 | F07 | Independent confirmation and revalidated item outcomes |
+| AC08 | F08 | Trash distinct from freed space; only verified batch purged |
+| AC09 | F09 | Exclusions/protection cannot be overridden |
+| AC10 | F10 | Fresh presets, no restore overwrite, interruption query |
+| AC11 | F11 | Discovery, JSON, exits, pages, independent terminal loop |
+| AC12 | F12 | Positive/negative developer artifact/cache/dependency cases |
+| AC13 | F17 | No platform-specific imports in core |
+| AC14 | F18 | Actual Windows filesystem/UI/distribution evidence |
+| AC15 | F19 | Documentation language switching and runtime text coverage; invariant machine decisions |
 
-F13–F16 为后续能力，实现时添加对应验收，不提前计入首版完成率。
+F13–F16 gain acceptance criteria when implemented, not advance completion credit.
 
-## 3. 规则验证用例
+## 3. Rule cases
 
-- 有效规则通过结构校验；未知字段、脚本、错误类型与未知版本失败。
-- 同版本同内容重复导入幂等；同版本不同内容冲突。
-- 拒绝绝对路径、`..`、`~`、环境变量、反斜杠、设备路径与非法模式。
-- `**/target` 命中零层与多层目录；`*` 不跨路径段。
-- 项目标记要求普通文件且不跟随链接。
-- 年龄检查包含完整后代，新修改文件使目录不满足条件。
-- 读取错误、预算截断和未知容量不能按满足条件处理。
-- 草稿预览不能直接执行；启用后也必须重新扫描并确认计划。
+Validate required fields, unknown/script rejection, versions, identical reimport, and changed-content conflicts. Reject unsafe paths and invalid patterns. Verify `**` zero/multiple levels, non-crossing `*`, exact ordinary marker files, complete descendant ages, and unknown-value rejection.
 
-## 4. 开发者场景夹具
+Draft preview never executes; enablement still requires fresh scans. Resource/permission/cancellation gaps never become complete evidence.
 
-```text
-workspace/
-├── current-project/             # 显式排除，含近期产物
-├── idle-rust/
-│   ├── Cargo.toml
-│   ├── Cargo.lock
-│   ├── src/
-│   └── target/                  # 旧产物、近期子文件、人工文件等变体
-├── web-desktop/
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── src/
-│   ├── node_modules/            # 普通依赖、缓存、链接、保护内容变体
-│   ├── dist/                    # 可重建与唯一交付物两种业务假设
-│   ├── dist-electron/
-│   ├── .next/
-│   ├── .git/
-│   └── unknown-tool-data/       # 只展示，不默认清理
-└── candidate-copy/              # 名称不能推断可删除或 worktree 身份
-```
+## 4. Developer fixture
 
-容量数据使用可控夹具生成，不要求真的填满几十 GB。测试逻辑容量、分配容量时需分别建立普通文件、稀疏文件和支持平台上的克隆/硬链接用例。
+Include an excluded active project, inactive Rust project with source/lockfile/`target` variants, Node.js/Electron project with manifests/dependencies/caches/outputs, version metadata, unique deliverables, and unclassified personal-tool data. Add sparse files, hard links, supported clones, and known/unknown link variations.
 
-## 5. 必须阻断发布的安全用例
+Use controlled sizes rather than filling tens of gigabytes solely for examples. Distinguish logical from allocated measurements.
 
-| 编号 | 场景 | 预期 |
+## 5. Blocking safety cases
+
+| ID | Case | Required outcome |
 | --- | --- | --- |
-| S01 | 目标或祖先路径是指向工作区外的链接 | 不遍历、不执行，边界外对象不变 |
-| S02 | 扫描后将目标替换为其他目录或链接 | 计划失效或跳过，不处理替换对象 |
-| S03 | 顶层目录时间未变但后代发生变化 | 完整清单复核发现变化，不能仅依赖顶层时间 |
-| S04 | 父目录包含保护或排除子项 | 整个父目标阻断，不通过删除父目录绕过 |
-| S05 | 用户更改规则、排除、选择或动作 | 旧确认失效，需要新摘要与确认 |
-| S06 | 非交互 Agent 调用清理 | 返回确认错误，无目标文件变更 |
-| S07 | 两个进程同时执行 | 一个获得执行锁，另一个明确冲突 |
-| S08 | 同一计划重复提交 | 返回已有执行引用，不再次处理 |
-| S09 | 意图日志无法落盘或磁盘满 | 不开始破坏性操作 |
-| S10 | 操作后、结果落盘前崩溃 | 重启核对现场，不自动重放未知项 |
-| S11 | 废纸篓位置被替换或加入新内容 | 恢复/永久移除拒绝变化项，不处理扩展范围 |
-| S12 | 原恢复路径已存在文件 | 不覆盖，需选其他位置或取消 |
-| S13 | 文件名含换行、转义序列或恶意指令文字 | 机器结果正确编码，终端显示安全转义 |
-| S14 | 平台回收站能力不可用 | 返回不可用，不退回永久删除 |
-| S15 | 扫描部分失败或取消 | 不产生可执行计划 |
-| S16 | 依赖树内含 `.bin` 符号链接及指向外部的已识别链接 | 仅记录/移动/解除链接条目，外部对象内容与身份保持不变 |
+| S01 | Target/ancestor link escapes workspace | No traversal or outside changes |
+| S02 | Target replaced after scan | Refuse/skip replacement |
+| S03 | Descendants change while top-level time stays fixed | Manifest detects invalidation |
+| S04 | Protected/excluded descendant | Block entire parent operation |
+| S05 | Rules, selection, exclusions, action change | Invalidate previous confirmation |
+| S06 | Noninteractive destructive call | Confirmation error, no target changes |
+| S07 | Concurrent destructive processes | One lock owner, explicit conflict |
+| S08 | Repeated plan execution | Existing receipt, no second operation |
+| S09 | Full disk/unavailable intent journal | Do not start destruction |
+| S10 | Crash after operation before result | Reconcile, never replay unknowns |
+| S11 | Trash object replaced or expanded | Refuse changed scope |
+| S12 | Restore path occupied | No overwrite |
+| S13 | Control sequences/instruction-like filenames | Correct JSON and safe terminal rendering |
+| S14 | Trash capability unavailable | No permanent-delete fallback |
+| S15 | Partial or cancelled scan | No executable plan |
+| S16 | Known dependency symlinks point outside | Process links only; preserve outside content and identity |
 
-任何越界处理、未确认破坏性操作、错误覆盖或不可解释的自动重试均为阻断项。测试范围内通过不能推导为对任意文件系统无风险。
+Any unconfirmed destruction, outside-scope processing, overwrite, or blind retry blocks release. Passing fixtures is not a universal no-risk guarantee.
 
-## 6. CLI 与 Agent 实测
+## 6. CLI and actual agents
 
-- `--json` stdout 恰好一个合法对象，stderr 进度不污染结果。
-- 非零退出码、错误 `code`、`status` 与逐项明细一致。
-- 每个持久业务入口可被发现，未实现功能不出现在可用列表。
-- 非交互命令可添加禁用草稿、验证和预览，无需 GUI。
-- 用户在交互终端独立完成确认、清理、历史和恢复。
-- Codex、Claude Code 分别完成公开合同发现、草稿生成、校验修正、导入和预览。
-- WorkBuddy 等另行记录其终端工具是否可用；不能从其他客户端测试推断兼容。
-- 全部流程无 Shou 内部模型请求、Agent 启动或全局配置修改。
+Verify one stdout JSON envelope, stderr separation, exit/status/error agreement, real capability discovery, disabled noninteractive import/preview, terminal-only execution/recovery, and state queries after interruptions.
 
-## 7. 原生 macOS 验收
+Separately test actual Codex and Claude Code; record WorkBuddy/version permissions when available. No internal model requests, agent startup, global configuration changes, or simulated-click dependency.
 
-- 浅色/深色、窗口缩放、侧边栏折叠和高分辨率显示正常。
-- 表格排序、多选、右键菜单、路径复制和 Finder 定位符合系统习惯。
-- 键盘、VoiceOver、焦点与按钮辅助说明可完成核心任务。
-- 扫描不会阻塞主线程；关闭、取消、退出不隐藏仍在进行的删除。
-- 权限过期、部分结果、未命中、计划过期和恢复冲突均有可操作状态。
-- 矩形树图与列表的计量和选择一致，点击图形不隐式清理。
-- 中文/英文文案正确区分依赖、缓存、构建输出、废纸篓与永久移除。
+## 7. Native UI and localization
 
-## 8. 性能预算
+Test appearance, resizing, navigation, sorting, multi-selection, context menus, Finder reveal, path copying, focus, keyboard, VoiceOver, and non-blocking main-thread behavior. Closing/quitting must not conceal continuing destructive work.
 
-以下为初始工程目标，尚无实测结果，M0/M1 建立基线后可依据证据调整：
+Cover permission expiration, partial results, empty matches, stale plans, and restoration conflicts. Treemap/list accounting and selection must agree. Validate terminology, long strings, plurals, non-Latin paths, time zones, and locale aliases. Every advertised runtime language needs full risk/confirmation/error/accessibility coverage. Compare IDs, digests, candidates, states, and decisions across locales.
 
-| 指标 | 初始目标 | 记录条件 |
+## 8. Initial performance budgets
+
+Unmeasured targets, adjustable only with recorded evidence:
+
+| Measure | Initial target | Conditions |
 | --- | --- | --- |
-| 普通扫描 | 100,000 节点在 60 秒内完成只读扫描 | Apple Silicon、16 GB 内存、本地 APFS SSD；不含内容哈希 |
-| 内存 | 上述扫描进程峰值 RSS ≤ 300 MiB | 记录结果条目、目录清单保存策略与缓存冷热 |
-| UI 响应 | 常用操作主线程无明显阻塞，输入反馈目标 ≤ 100 ms | 专门性能采样，不靠主观截图判断 |
-| 取消 | 1 秒内停止派发新工作 | 已进入系统调用的单项可能仍需等待 |
-| 大工作区 | 1,000,000 节点可受限完成或明确报预算不足 | 不无限增内存、不把截断当完整 |
+| 100,000-node scan | Within 60 seconds | Apple Silicon, 16 GB, local APFS SSD; no content hashing |
+| Peak RSS | At most 300 MiB | Record manifest/storage strategy and cache state |
+| UI feedback | Target at most 100 ms | Main-thread profiling and interaction measurements |
+| Cancellation | Stop dispatching within 1 second | In-flight system call may take longer |
+| 1,000,000 nodes | Bounded completion or explicit limit | No unbounded memory or silent truncation |
 
-每次报告写明设备、系统、构建、文件数量、存储类型、冷暖状态、耗时和错误。性能目标不是对所有用户磁盘的保证。
+Record hardware, OS, build, storage, entries, cache state, time, memory, and errors. These budgets are not all-device promises.
 
-## 9. Windows 后续门槛
+## 9. Windows gates
 
-真实 Windows 环境验证共享核心与 CLI、原生 UI、ACL、文件占用、长路径、junction/reparse point、回收站和恢复、锁与崩溃、运行库、签名安装及升级卸载。
+Test actual core/CLI/UI, ACLs, occupied files, long paths, junctions/reparse points, Recycle Bin, restore conflicts, durability, cancellation, runtimes, signing, and clean upgrade/uninstall. Without native evidence, support remains unverified.
 
-没有该平台证据时，状态为“待验证”，不记成已支持。macOS 的 Swift 单测与 C# 交叉编译不能替代 Windows 文件删除安全验证。
+## 10. Reporting
 
-## 10. 证据与报告
-
-未来报告至少包括构建版本、合同版本、平台、已执行用例、通过/失败/跳过、日志位置、已知限制及复现步骤。报告不得包含用户真实凭据或未经同意的项目路径。
-
-当前文档交付仅能报告文档/Schema 的静态检查，不执行应用测试，不宣称 MVP、兼容性或清理安全已验收。
+Reports include build/contract versions, platform/client/locale, executed/pass/fail/skip cases, logs, limits, and reproductions without private data. Documentation checks establish only static document/schema validity, never MVP completion or runtime safety.

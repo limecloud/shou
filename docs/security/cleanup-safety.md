@@ -1,119 +1,81 @@
-# 清理安全与数据边界
+# Cleanup safety and data boundaries
 
-状态：设计草案。本文件定义必须验证的产品约束，不代表已实现安全保证。
+English | [简体中文](../zh-CN/security/cleanup-safety.md)
 
-## 1. 保护对象与信任边界
+Status: design draft. These are required constraints, not implemented guarantees.
 
-主要保护对象：用户的源码、未提交修改、凭据、持久业务数据、交付物，以及在磁盘空间有限时继续工作的能力。
+## 1. Assets and trust
 
-不可信输入包括：导入规则、AI 生成内容、文件名、目录结构、项目 README、本地可被改写的计划文件。规则说明写着“可重建”不构成证据。
+Protect source, uncommitted changes, credentials, persistent business data, deliverables, and the ability to continue working under disk pressure.
 
-Shou 不接入任何模型、不开发 Agent。外部 Codex、Claude Code 等调用者与其他本地程序一样，必须通过相同合同和安全策略。
+Imported/generated rules, filenames, directory layouts, project text, and writable local plans are untrusted. A declaration of rebuildability is not proof. Shou calls no models and hosts no agents; external callers use the same policy.
 
-## 2. 首版威胁模型
+## 2. Threat model
 
-| 风险 | 处理策略 | 剩余限制 |
+| Risk | Control | Remaining limitation |
 | --- | --- | --- |
-| 错误或恶意规则覆盖过广 | Schema、静态语义、根绑定、硬保护、具体预览 | 用户可能误判目录业务用途 |
-| 目录链接逃逸 | 不跟随符号链接、junction、reparse point，不跨卷 | 平台特性必须实际验证 |
-| 扫描后目标被替换 | 文件身份、完整目录清单、临近操作复核 | 简单路径检查不能消除竞态 |
-| 活跃项目被清理 | 项目排除、活动线索、修改年龄与状态复核 | 不能可靠发现全部进程或使用情形 |
-| 规则携带代码 | 不执行脚本，不做环境变量或 Shell 展开 | 用户自行在别处运行命令不在产品控制内 |
-| 提示注入或终端注入 | 输出转义，路径与文本按数据处理 | 外部 Agent 仍需遵守其自身授权策略 |
-| 部分成功被误重试 | 执行记录、唯一计划、状态查询、拒绝重复执行 | 崩溃现场可能暂时无法确定 |
-| 空间统计误导 | 口径分离、硬链接去重策略和 APFS 局限说明 | 实际释放受系统及其他进程影响 |
-| 磁盘满或记录损坏 | 先持久化意图、失败即停止、保留现场 | 不能承诺任何情况下都可原子恢复 |
+| Overbroad or incorrect rules | Schema, scope validation, protection, concrete preview | Users can misclassify business purpose |
+| Link/volume escape | No ancestor following, verified entry types, no cross-volume traversal | Platform behavior requires testing |
+| Target replacement after scanning | Identity, full manifests, near-operation checks | Checks alone cannot eliminate all races |
+| Active work | Exclusions, activity evidence, retention, revalidation | Not all processes/use can be detected |
+| Executable rule content | No scripts or Shell expansion | Commands run outside Shou are uncontrolled |
+| Prompt/terminal injection | Treat content as data; escape output | External agent permissions remain external |
+| Destructive retries | Unique plans, receipts, state queries | Crash outcomes may be unknown |
+| Misleading space accounting | Separate estimates, Trash, volume availability | Clones/snapshots/concurrency complicate attribution |
+| Full disk or corrupt journals | Persist intent first; stop on failure | No universal atomic recovery guarantee |
 
-不把同用户恶意进程隔离作为应用自身可提供的保证。拥有同等文件权限的程序可以绕过 CLI；Shou 的校验不是操作系统权限沙盒。
+User-scoped checks are not isolation from an equally privileged malicious local process.
 
-## 3. 授权范围
+## 3. Access
 
-- 默认只访问用户选择或显式注册的工作区，扫描不自动扩展到主目录、其他用户或其他卷。
-- 注册路径不等于系统授权；GUI、终端、TCC 与未来 Windows ACL 的实际效果分入口检查。
-- 缺权限时提供重新授权和缩小范围的路径，不调用 `sudo` 或安装特权 helper。
-- 首版可执行清理范围限定本地、受支持的文件系统；网络卷、云占位和未知类型只作明确受限的分析或拒绝访问。
-- 规则不能取消用户排除、绕过硬保护、启用跟随链接或扩大根目录。
+Scan explicit workspaces rather than expand to home roots, other users, or volumes. Registration is not OS authorization. Check GUI, terminal, TCC, ACL, and actual process access independently. Never auto-elevate through `sudo` or a privileged helper.
 
-## 4. 文件保护策略
+Executable scope initially excludes unsupported/network/cloud-placeholder filesystems. Rules cannot remove exclusions, enable link following, or enlarge roots.
 
-### 必须阻断
+## 4. Protection
 
-- 工作区根、主目录根、卷根、系统目录和其他用户目录。
-- 授权范围外对象，以及作为清理目标或解析祖先的符号链接；无法核验的链接类型同样阻断。
-- 已识别的版本控制元数据、凭据与密钥目录、系统钥匙串和 Shou 自身配置及执行记录。
-- 已识别的用户项目根、源码根，以及属于这些项目的清单与锁文件作为清理目标。
-- 已识别的持久数据库、容器/虚拟机数据盘和用途不明确的共享数据目录。
-- 含受保护或排除后代的父目录整体操作。
-- 身份、目录清单、权限、规则或排除在确认后变化的目标。
+Block workspace/home/volume roots, system locations, other-user data, out-of-scope targets, root/ancestor links, and unknown link types. Protect identified version metadata, keys/credentials, keychains, Shou configuration/receipts, user source/project roots and their manifests/lockfiles, persistent databases, and container/VM disks.
 
-### 必须保持人工判断
+A parent containing protected/excluded descendants is blocked as a whole. Changed access, identity, manifests, rules, or exclusions invalidate eligibility.
 
-Shou 无法普遍识别所有源码、数据库、离线依赖或手工放入构建目录的文件。未识别不代表可删除。
+No classifier can recognize all source, hand-saved artifacts, databases, or offline dependencies. Naming and size are clues, not permission. Clean Git state and old access/modification times do not prove recoverability.
 
-`build`、`target`、`dist`、`node_modules`、`tmp` 等名称只提供线索；候选项需要具体规则、用途说明、边界校验和用户选择。不能用“没有 Git 改动”证明目录内容可以恢复，也不能把 `atime` 作为未使用的可靠依据。
+Distinguish user project manifests from third-party dependency manifests without blindly exempting entire dependency trees. Reviewed ordinary `node_modules` remains high-risk. Unknown ownership or persistent content blocks processing.
 
-用户项目清单与依赖包内部清单的归属必须分别识别，不能因第三方包含 `package.json` 就把它自动视为用户源码根；也不能仅凭父目录名就豁免整个依赖树。经上下文核验的 `node_modules` 仍属高风险、显式审阅场景；存在版本控制元数据、用户排除、无法核验的链接或用途不明的数据时，保护优先。归属无法确认则不提供执行资格。
+Known internal POSIX symlinks such as npm `.bin` are opaque entries. Do not traverse their targets. Moving the containing directory moves links; permanent removal unlinks them only. Outside objects remain untouched. Unknown Windows reparse types require separate support.
 
-目录内部已识别的 POSIX 符号链接（例如 npm `.bin`）作为不透明条目，不遍历指向目标；移动父目录只移动链接本身，永久移除时也只能解除该链接。外部指向对象不进入扫描或执行范围。此行为需要专门测试，不能将未知 Windows reparse point 视作普通 POSIX 链接。
+## 5. Plans and confirmation
 
-## 5. 扫描与计划完整性
+Read-only scans may persist evidence without moving targets. Partial/cancelled/limited scans are not executable. Plans bind exact paths, identity, full manifests, rules, configuration, action, digest, and expiry; resolve duplicates and parent/child conflicts first.
 
-- 只读扫描可以保存结果，但不移动目标。
-- 存在权限缺口、预算截断或取消时，结果明确标记不完整，不生成可执行计划。
-- 计划冻结具体路径、文件身份、完整目录清单、配置与规则版本、动作及有效期。
-- 目录父子目标冲突在计划阶段解决；拒绝重复计算和重复操作。
-- 用户改变选择、规则或排除后生成新摘要，不使用旧确认。
-- 本地计划文件可被改写，执行时需重新验证；持久化的 `approved=true` 不能成为可执行凭据。
+Changing selection or configuration invalidates old confirmation. Local files require verification; persisted `approved=true` is never authority.
 
-## 6. 确认与 Agent 边界
+GUI uses native confirmation; CLI requires a controlling terminal and explicit current-plan confirmation. Disabled import, enabled rules, and presets carry no standing deletion permission. TTY does not authenticate a human; external agents still follow their own policies. A “GUI-only” label is not a security boundary.
 
-- GUI 显示原生确认；CLI 在交互终端展示范围并主动获取确认。
-- 无 TTY 的破坏性 CLI 调用拒绝执行，提供计划与手动确认指引。
-- 规则导入默认禁用，Agent 能添加草稿并预览；这不是清理授权。
-- 已启用规则与已保存方案都不含长期删除许可，每次清理使用当前具体计划。
-- TTY 不能证明调用者是人，外部 Agent 的命令授权由对应产品与用户控制。
-- 不以命名“只供 GUI”或“安全执行器”作为安全边界，跨进程确认需要实际合同与权限设计。
+## 6. Execution and race gate
 
-## 7. 执行与竞态门槛
+Acquire a cross-process lock; verify scope, configuration, root/object identity, manifests, and access. Recheck near each operation and refuse unverifiable changes. Persist intent first, record actual result identities/locations, and stop new work on journal failure. Unknown outcomes require reconciliation, not blind retry.
 
-1. 取得跨进程执行锁，复核计划与当前用户范围。
-2. 对根和目标进行基于文件系统身份的核验，不只做字符串规范化。
-3. 对候选后代形成完整清单，临近操作时检查状态变化；任意无法确认部分阻断该项。
-4. 平台操作不得跟随新替换的链接；不可复核时拒绝或跳过。
-5. 执行意图先持久化，操作后记录真实结果位置和身份。
-6. 记录失败时停止启动新项，将无法确认结果标为 `unknown`，后续现场核对。
+Prototype the interaction between `FileManager.trashItem`, descriptors, identity binding, and directory replacement. If constraints cannot be met, narrow supported scenarios or ship read-only functionality. Permanent removal must stay bounded to verified manifest entries, never an unbounded recursive fallback.
 
-文件系统检查与操作之间的时间竞争不能靠文档消除。macOS 的 `FileManager.trashItem`、目录句柄与防替换策略必须在 M0 进行实际原型与故障注入；如不能满足约束，就缩小支持场景或推迟执行能力。永久移除需逐项约束到计划清单，不能对可变目录退回无界递归删除。
+## 7. Trash, permanent removal, restoration
 
-## 8. 废纸篓、永久移除与恢复
+Default to system Trash, recording actual returned locations rather than guessing names. If Trash fails, do not fall back to deletion. A same-volume move usually does not free storage.
 
-### 移到废纸篓
+Permanent removal of this cleanup batch is separate, explicitly confirmed, and irreversible. Reverify recorded objects/manifests; skip missing/replaced/expanded items. Never empty unrelated Trash contents.
 
-默认方式，记录系统实际返回的位置与身份；不自行猜测废纸篓文件名。失败时不退回直接删除。
+Report estimated processed bytes and observed volume availability separately. APFS clones, hard links, snapshots, open files, and other processes affect outcomes.
 
-同卷移入废纸篓通常不释放占用；结果显示“已移到废纸篓”，不能显示相同数值的“已释放空间”。
+Before restoration verify source identity, destination, and permissions; never overwrite. Offer another verified location or cancellation. External Trash emptying, permanent removal, missing objects, and access changes can make recovery unavailable. Batch cleanup is not transactional rollback.
 
-### 永久移除本次项目
+## 8. Local records and privacy
 
-独立动作、独立确认、不可恢复。仅处理有效记录对应、仍可核验且没有变化的对象；任何缺失、替换或扩展都必须跳过或重新规划。不清空其他废纸篓内容，不由规则直接触发。
+No account is required; initial scope has no default telemetry or upload. Record necessary IDs, phases, errors, and paths, not secret/source/business content. Prefer relative/redacted exports and never expose access credentials.
 
-结果分别显示永久移除项目估计容量与卷可用容量前后观测。APFS 克隆、硬链接、快照、打开文件和系统行为会影响实际释放；变化也可能被其他进程影响。
+Protect temporary and durable data with current-user permissions. Validate locking, atomic writes, durability, crashes, and full-disk behavior rather than assuming a successful write call is enough. Deleting history never removes user files.
 
-### 恢复
+## 9. Windows acceptance
 
-恢复前核验对象与目的位置，不覆盖已存在文件；冲突时用户选择其他位置或取消。永久移除、系统清空废纸篓、权限变化或对象缺失可能导致无法恢复。批量清理不是可事务回滚的操作。
+Independently validate ACLs, long/Unicode paths, case behavior, junctions/reparse points, mounted volumes, occupied files, Recycle Bin identities, restoration conflicts, locks/durability, runtime delivery, and clean installation.
 
-## 9. 日志、隐私与存储
-
-- 本地运行无需账户；首版无默认遥测和自动上传。
-- 日志记录对象 ID、阶段、错误与必要路径，不读取或记录源码正文、密钥和业务内容。
-- 机器输出与导出摘要可能含私人路径，分享前提供相对路径与脱敏选择。
-- 不向 CLI 或分享规则输出 bookmark、凭据、访问令牌。
-- 配置与记录目录按平台使用当前用户访问限制；临时文件同样受限。
-- 保存方式须经断电/崩溃、磁盘满和文件锁测试；不能仅以写入返回成功推定持久安全。
-
-## 10. Windows 特有验收
-
-Windows 后续实现需单独验证：junction/reparse point、卷挂载点、长路径、Unicode 与大小写、ACL、被占用文件、回收站对象身份、恢复冲突、锁与原子提交、运行库及干净环境安装。
-
-平台不支持回收站时返回能力不可用，禁止替换为永久删除。macOS 上的模拟测试、交叉编译或共享规则测试不能替代 Windows 实机证据。
+Unavailable recycling returns a capability error, never permanent-delete fallback. macOS simulations and cross-compilation do not establish Windows safety.

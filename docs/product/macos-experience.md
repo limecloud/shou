@@ -1,131 +1,90 @@
-# macOS 产品体验与信息架构
+# Native macOS experience
 
-状态：设计草案。约束：原生 Swift、SwiftUI 为主，必要时使用 AppKit。
+English | [简体中文](../zh-CN/product/macos-experience.md)
 
-## 1. 设计目标
+Status: design draft. Native Swift, primarily SwiftUI with AppKit where required.
 
-Shou 应像一个熟悉的 Mac 工具：信息密度适中、路径易于检查、键盘操作完整，重要动作有明确对象和结果。
+## 1. Design goals
 
-视觉表达采用系统材质、语义色、SF Symbols、系统字体和标准控件。避免网页式大面积卡片堆叠、全屏营销文案与自绘窗口控制按钮。品牌色只作为强调，风险和状态不能仅依靠颜色区分。
+Use system windows, semantic colors, materials, typography, SF Symbols, and standard controls. Prioritize inspectable paths, appropriate information density, keyboard access, and concrete action labels. Avoid custom window buttons and layouts that obscure desktop conventions. Color alone must not communicate risk.
 
-## 2. 信息架构
+## 2. Information architecture
 
 ```mermaid
 flowchart LR
-    App[Shou 主窗口] --> Overview[空间概览]
-    App --> Workspaces[工作区]
-    App --> Rules[清理规则]
-    App --> Plans[清理方案]
-    App --> History[历史记录]
-    Workspaces --> Projects[项目与目录]
-    Projects --> Inspector[用途与命中详情]
-    Rules --> Editor[规则向导与高级编辑]
-    Plans --> Preview[本次清理预览]
-    Preview --> Confirmation[执行确认]
-    History --> Receipt[逐项结果与恢复]
-    App --> Settings[系统设置窗口]
+    App[Shou window] --> Overview[Space overview]
+    App --> Workspaces[Workspaces]
+    App --> Rules[Rules]
+    App --> Presets[Presets]
+    App --> History[History]
+    Workspaces --> Projects[Projects and directories]
+    Projects --> Inspector[Evidence inspector]
+    Rules --> Editor[Wizard and advanced editor]
+    Presets --> Preview[Current preview]
+    Preview --> Confirm[Confirmation]
+    History --> Receipt[Item results and recovery]
+    App --> Settings[Settings window]
 ```
 
-应用卸载与启动项在对应功能实现后再进入侧边栏，首版不展示可点击但未实现的主入口。
+Add uninstall/startup navigation only when implemented; do not present unavailable primary actions as functional.
 
-## 3. 主窗口结构
+## 3. Window layout
 
-- 标准 macOS 标题栏与工具栏，保留系统窗口控制。
-- 侧边栏采用 `NavigationSplitView`，窗口宽度变化时遵循系统折叠行为。
-- 主区域使用 `Table` 或经验证的 AppKit 表格展示可排序列表。
-- 详情检查器展示当前选中项；需要大量路径信息时支持展开。
-- 窗口建议初始尺寸约 1100 × 760 pt，最小尺寸由可用性测试确定；不要求用户全屏使用。
+Use a standard title bar and toolbar, `NavigationSplitView`, a sortable `Table` or verified AppKit table, and an optional inspector. Suggested initial size is approximately 1100 × 760 pt; determine the minimum through usability tests.
 
-| 区域 | 主要内容 |
+| Region | Content |
 | --- | --- |
-| 工具栏 | 添加工作区、扫描/停止、筛选、显示检查器 |
-| 侧边栏 | 空间概览、工作区、规则、方案、历史 |
-| 主列表 | 名称、占用估计、类型、所属项目、状态、最新修改 |
-| 检查器 | 完整路径、规则证据、风险、重新生成条件、排除操作 |
-| 预览底栏 | 已选项数、估计占用、处理方式、明确的下一步按钮 |
+| Toolbar | Add workspace, scan/stop, filter, inspector |
+| Sidebar | Overview, workspaces, rules, presets, history |
+| Table | Name, estimate, type, project, status, newest modification |
+| Inspector | Full path, evidence, rule/version, risk, rebuild prerequisites, exclusions |
+| Preview footer | Selected count, estimated size, action, explicit next step |
 
-## 4. 关键页面
+## 4. Screens and behavior
 
-### 4.1 空间概览
+### Overview and workspace analysis
 
-- 顶部显示当前卷可用容量、最近一次扫描时间与覆盖范围。
-- 展示占用最大的工作区和目录，不把所有大目录都标为“垃圾”。
-- 将“规则候选”“待判断”“已排除”“无权限”明确区分。
-- 提供“查看大目录”和“使用清理方案”入口，避免只有一个信息不透明的清理按钮。
+Show volume availability, last scan, scope, and largest projects/directories. Distinguish eligible, unclassified, excluded, protected, and inaccessible items. An unreadable directory is not `0 B`.
 
-### 4.2 工作区与项目列表
+Provide expansion, breadcrumbs, sorting, Finder reveal, path copying, exclusion, and rule creation. Optional treemaps share data and location with the table; clicks do not silently toggle cleanup selection. Keep an accessible list alternative.
 
-- 表格支持按大小、名称和最新修改时间排序。
-- 目录可展开，路径面包屑可定位，不默认展开海量节点。
-- 右键菜单提供“在 Finder 中显示”“复制路径”“排除”“建立规则”。
-- 权限错误在相应行及汇总中可见，不能用空白或 `0 B` 代替。
-- 选中当前项目后可设为排除；排除依据展示在详情中。
+### Rule wizard
 
-列表是主操作入口，按需提供矩形树图观察空间分布；图与表同步定位但不隐式同步勾选。树图必须支持向下导航、面包屑、键盘/辅助功能替代路径，并清楚区分占用与可处理量。具体分类见[开发者场景](developer-space-scenarios.md)。
+Scope → purpose and rebuild prerequisites → retention/exclusions → preview → save. Bind existing workspaces rather than request unrestricted paths. Advanced JSON uses the same validation; preserve unsupported editor constructs rather than silently rewriting them.
 
-### 4.3 规则向导
+### Cleanup preview
 
-分为五步：
+No default select-all. Display exact paths and sources; merge repeated matches and resolve parent/child conflicts. Use “Move to Trash · N items” and an original native sheet for final review. Changes to selection, rules, exclusions, or action invalidate the previous digest and confirmation.
 
-1. **选择范围**：绑定已有工作区，选择具体相对目录或受限模式。
-2. **说明用途**：填写产生该目录的软件、用途及重建条件。
-3. **保留条件**：设置年龄、最小占用和排除项。
-4. **查看预览**：列出命中、跳过、保护和未知项。
-5. **保存规则**：显示来源、版本与启用状态，由用户主动启用。
+### History
 
-高级编辑器与向导共用校验器。若高级 JSON 无法无损映射到向导，保留原文并明确提示，不能静默改写规则。
+Separate success, skip, failure, cancellation, and unknown states. Use “Moved to Trash,” not “Space freed.” Permanent removal of this batch is a separate destructive action and confirmation. Enable restoration only after verifying the recorded object.
 
-### 4.4 清理预览
+## 5. Native interactions
 
-- 初始不全选；显示规则来源，允许逐项选择与取消。
-- 显示本次具体路径，重复命中合并，父子范围冲突要在确认前解决。
-- 主要按钮为“移到废纸篓 · N 项”，点击后以原生 sheet 展示最终摘要。
-- 变更规则、排除、选择或处理方式都要生成新的计划摘要；旧确认失效。
-- 用户确认后执行前还需复核；失效项提示重新扫描。
+Use system file panels and native Settings (`⌘,`). Respect window closing and `⌘W`; quitting or closing during operations must explain progress and stop safely rather than hide ongoing deletion. Provide visible cancellable scans, meaningful focus order, native context menus, and inspectable paths.
 
-### 4.5 结果与历史
+Avoid single-key destructive shortcuts. Recovery is a specific operation, not a promise of transactional Undo. Do not read sensitive file contents by default for previews.
 
-- 成功、跳过、失败、已取消分组；支持查看逐项原因。
-- “已移到废纸篓”不写成“已释放”。
-- “永久移除本次项目”是独立危险动作，使用系统破坏性操作样式并再次确认。
-- 恢复入口仅在对象可核验且尚未永久移除时启用。
+## 6. States and wording
 
-## 5. 原生交互
-
-| 交互 | 设计要求 |
-| --- | --- |
-| 授权目录 | `NSOpenPanel` 或系统文件导入面板，明确目录范围 |
-| 设置 | `Settings` scene，遵循 `⌘,` 习惯 |
-| 关闭窗口 | 尊重 `⌘W`，不隐式转入不可见的删除任务 |
-| 退出应用 | 执行中说明已完成与待处理项目，在安全边界停止 |
-| 快速查看 | 路径与用途可快速检查，内容预览不默认读取敏感文件 |
-| 扫描取消 | 始终可见且可通过键盘聚焦，不用无期限阻塞 sheet |
-| 恢复 | 明确用户动作，不把不完整的“撤销”伪装成系统事务 |
-
-快捷键在工程阶段结合系统惯例验证，破坏性操作不配置容易误触的单键快捷键。
-
-## 6. 状态与文案
-
-| 状态 | 示例文案 | 可用操作 |
+| State | Example | Next action |
 | --- | --- | --- |
-| 初次使用 | “选择一个工作区，看看空间用在哪里。” | 添加工作区 |
-| 扫描中 | “正在扫描，已检查 12,400 个项目。” | 停止扫描 |
-| 部分完成 | “部分目录无法读取，结果尚不完整。” | 查看原因、重新授权 |
-| 未找到候选 | “当前条件下没有匹配项。” | 调整条件、查看大目录 |
-| 待判断 | “暂不清楚此目录的用途。” | 查看详情、建立规则 |
-| 计划失效 | “文件或规则已变化，请重新预览。” | 重新扫描 |
-| 已移入废纸篓 | “已移到废纸篓，尚未永久移除。” | 恢复、永久移除本次项目 |
-| 永久移除完成 | “已永久移除，此操作无法恢复。” | 查看记录 |
+| First use | Select a workspace to inspect storage | Add workspace |
+| Scanning | Scanning; 12,400 entries checked | Stop |
+| Partial | Some directories could not be read | Inspect errors or reauthorize |
+| No match | No items match these conditions | Adjust conditions or inspect large directories |
+| Unclassified | Directory purpose is not established | Inspect, exclude, or draft rule |
+| Stale plan | Files or rules changed; preview again | Rescan |
+| Trashed | Moved to Trash; not permanently removed | Restore or separately remove batch |
+| Purged | Permanently removed; cannot be restored | Inspect receipt |
 
-## 7. 辅助功能与国际化
+## 7. Accessibility and localization
 
-- 每个图标按钮具备本地化名称与辅助功能标签。
-- 风险同时使用图标、文字和颜色；图表提供可读列表。
-- 表格勾选状态、扫描进度与错误支持 VoiceOver。
-- 采用 String Catalog，首版覆盖简体中文和英文，不拼接难以翻译的句子。
-- 路径使用适当的文本截断，完整值始终可复制；处理 Unicode、中文和超长文件名。
-- 容量内部统一使用字节；UI 明确采用十进制 GB，必要时详情同时显示原始字节。
+Provide localized labels for icon buttons, VoiceOver descriptions for selection/progress/errors, keyboard completion of core tasks, and text/icon alternatives to color and charts.
 
-## 8. 首版设计验证
+Use String Catalogs, full sentences, placeholders, plural rules, locale-aware formatting, and layout expansion. Preserve exact paths and IDs; support Unicode and long filenames. Bytes are internal integers; UI uses explicitly defined decimal units. See [internationalization](internationalization.md).
 
-使用可交互 SwiftUI 原型验证：侧边栏与表格布局、十万级结果的分页/虚拟化、键盘焦点、权限失败、部分扫描、清理确认与恢复冲突。截图不能替代这些交互验证。
+## 8. Validation
+
+Use an interactive SwiftUI prototype for split navigation, large-table virtualization, focus, permission failure, partial scans, confirmation, and restoration conflicts. Collect actual interaction and accessibility evidence. Static appearance alone does not establish behavior.
