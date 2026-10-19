@@ -6,7 +6,7 @@ Status: design draft · Version: 0.1 · Updated: 2026-10-19.
 
 ## 1. Product definition
 
-**Shou · 收** is a native macOS cleanup tool built with Swift. It helps people discover storage usage, express personal cleanup rules, inspect exact effects, and reuse reviewed decisions.
+**Shou · 收拾一下** is a native macOS cleanup tool built with Swift. It helps people discover storage usage, express personal cleanup rules, inspect exact effects, and reuse reviewed decisions.
 
 **Tidy up. That’s it. / 收好，就好。**
 
@@ -117,8 +117,20 @@ English and Simplified Chinese are initial runtime targets. Additional runtime l
 
 ## 9. Measures, risks, and validation
 
-Evaluate first-task completion, reduced steps on repeat tasks, rule expressiveness for real needs, user understanding of eligibility, safety-case outcomes, and fixed-fixture performance. Use consented studies and local benchmarks rather than default telemetry. No runtime results exist yet.
+Evaluate first-task completion, reduced steps on repeat tasks, rule expressiveness for real needs, user understanding of eligibility, safety-case outcomes, and fixed-fixture performance. Use consented studies and local benchmarks rather than default telemetry. Isolated core, filesystem and CLI checks exist; release and broader usability acceptance remain pending.
 
 Key risks are incorrect directory classification, misleading capacity estimates, active builds, different CLI/GUI permissions, filesystem races, and template maintenance cost. Address them through conservative scope, explicit unknowns, revalidation, platform prototypes, and evidence-based release gates.
 
 See [implementation](../engineering/implementation-plan.md), [acceptance](../engineering/acceptance-and-testing.md), and [safety](../security/cleanup-safety.md).
+
+## First-use delivery requirement
+
+The first scan of a selected workspace must discover common build artifacts and caches through built-in rules. Personal rules extend coverage. Provide separate categorized cleanup and space-analysis entry points, navigable directory lists and area maps, and direct drafting of rules for unknown large folders. Start with no selected candidates, keep installed Node.js dependencies high risk, and preserve protection gates for built-in matches.
+
+The default desktop entry scans explicit application/developer-cache locations and already registered projects in one action, using cleanup scope without implicit home-wide discovery. The catalog contains 74 templates and 35 fixed locations, including project outputs, npm, Cargo, developer tools, Xcode, browsers and specific application caches. Whole application-support roots, chat history, active agent sessions and virtual-machine data are not disposable caches.
+
+Desktop and CLI share root discovery, rule matching, bounded scans, application-activity checks, plans and receipts. Missing locations are skipped; permission failures and incomplete scans remain visible. Review is per location, starts with no selection and requires an exact-path confirmation. Completion shows moved, skipped, failed and unverified items separately. Moving to Trash does not mean disk space has been freed; restoration uses the recorded verified object and never overwrites an existing destination.
+
+Cleanup discovery follows rule prefixes and fully measures matched targets. `complete` in this mode is not a whole-tree usage result; space analysis requires `full`. Partial scans may contribute only independently complete, policy-valid targets, with no eligibility inferred from missing legacy coverage. Execution exposes actual progress and a stop request that takes effect at a safe item boundary, without promising interruption of an in-progress system Trash call.
+
+Broader application-cache coverage, accessibility, performance baselines and release acceptance remain separate deliverables; isolated checks do not replace them.

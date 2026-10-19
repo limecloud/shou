@@ -18,7 +18,7 @@
 
 ## 2. 目标目录
 
-下列为目标布局；当前仓库包含文档、规则 Schema 和示例，应用与核心工程尚未初始化。
+根目录 Swift Package 已组织 macOS、CLI、核心与平台适配 target。以下布局中的 Windows 与品牌资源目录为后续交付项。构建方式见[本地开发](../engineering/development.md)。
 
 ```text
 shou/

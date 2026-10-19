@@ -1,0 +1,1571 @@
+[
+  {
+    "id": "shou.builtin.rust-target",
+    "name": "Rust build outputs",
+    "category": "build",
+    "patterns": [
+      "**/target"
+    ],
+    "marker": "Cargo.toml",
+    "risk": "high",
+    "rebuildNote": "Cargo normally regenerates compiled outputs and build-script generated source on the next build.",
+    "limitation": "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Generated source is allowed only inside verified build-script OUT_DIR after Git and process checks. Preserve manual edits, custom deliverables and files that cannot be rebuilt.",
+    "location": "projects",
+    "applicationBundleIdentifiers": [],
+    "version": "1.1.0"
+  },
+  {
+    "id": "shou.builtin.node-dependencies",
+    "name": "Node.js dependencies",
+    "category": "dependencies",
+    "patterns": [
+      "**/node_modules"
+    ],
+    "marker": "package.json",
+    "risk": "high",
+    "rebuildNote": "Reinstall dependencies with the project's package manager.",
+    "limitation": "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.",
+    "location": "projects",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.node-build-cache",
+    "name": "Node.js build caches",
+    "category": "build",
+    "patterns": [
+      "**/.next",
+      "**/.nuxt",
+      "**/.turbo",
+      "**/.parcel-cache"
+    ],
+    "marker": "package.json",
+    "risk": "review",
+    "rebuildNote": "The framework recreates these outputs during development or the next build.",
+    "limitation": "Stop development servers first. Review deployment outputs and locally generated data.",
+    "location": "projects",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.swift-build",
+    "name": "Swift package build outputs",
+    "category": "build",
+    "patterns": [
+      "**/.build/debug",
+      "**/.build/release",
+      "**/.build/*/debug",
+      "**/.build/*/release"
+    ],
+    "marker": null,
+    "risk": "high",
+    "rebuildNote": "Swift Package Manager normally regenerates compiled products and derived source on the next build.",
+    "limitation": "High risk: review and select explicitly. Stop Swift builds first. Only verified debug or release product directories are targeted; source checkouts, repositories, credentials and package configuration are retained. Preserve custom products and manual edits to generated source.",
+    "location": "projects",
+    "applicationBundleIdentifiers": [],
+    "version": "1.1.0"
+  },
+  {
+    "id": "shou.builtin.python-bytecode",
+    "name": "Python bytecode caches",
+    "category": "cache",
+    "patterns": [
+      "**/__pycache__"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Python regenerates bytecode when modules are imported.",
+    "limitation": "Review the directory contents and stop active Python tasks first.",
+    "location": "projects",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.pytest-cache",
+    "name": "Python test caches",
+    "category": "cache",
+    "patterns": [
+      "**/.pytest_cache"
+    ],
+    "marker": "pyproject.toml",
+    "risk": "review",
+    "rebuildNote": "Pytest recreates test-state caches on the next run.",
+    "limitation": "Previous test-state information will be lost.",
+    "location": "projects",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.npm-cache",
+    "name": "npm download cache",
+    "category": "packages",
+    "patterns": [
+      "_cacache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "npm downloads packages again when required.",
+    "limitation": "Offline installs may fail until packages are downloaded again. Stop package-manager tasks first.",
+    "location": "npm",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.cargo-downloads",
+    "name": "Cargo package archives",
+    "category": "packages",
+    "patterns": [
+      "registry/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Cargo downloads crate archives again when required.",
+    "limitation": "Offline builds may need the cached archives. Source checkouts and toolchains are retained.",
+    "location": "cargo",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.tool-caches",
+    "name": "Developer tool caches",
+    "category": "packages",
+    "patterns": [
+      "Homebrew",
+      "node-gyp",
+      "org.swift.swiftpm"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Developer tools download or rebuild cached data when needed.",
+    "limitation": "Stop the affected tools first. Offline workflows may depend on these caches.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.xcode-derived-data",
+    "name": "Xcode derived data",
+    "category": "build",
+    "patterns": [
+      "DerivedData"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Xcode rebuilds indexes and intermediates on the next build.",
+    "limitation": "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.",
+    "location": "xcode",
+    "applicationBundleIdentifiers": [
+      "com.apple.dt.Xcode"
+    ]
+  },
+  {
+    "id": "shou.builtin.chrome-user-caches",
+    "name": "Google Chrome download caches",
+    "category": "cache",
+    "patterns": [
+      "com.google.Chrome"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Applications recreate downloaded and rendered cache data when needed.",
+    "limitation": "Quit the affected applications first. Offline content may require downloading again. User data and application-support directories are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.google.Chrome",
+      "com.google.Chrome.beta",
+      "com.google.Chrome.dev",
+      "com.google.Chrome.canary"
+    ]
+  },
+  {
+    "id": "shou.builtin.codex-user-caches",
+    "name": "Codex download caches",
+    "category": "cache",
+    "patterns": [
+      "com.openai.codex"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Applications recreate downloaded and rendered cache data when needed.",
+    "limitation": "Quit the affected applications first. Offline content may require downloading again. User data and application-support directories are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.openai.codex"
+    ]
+  },
+  {
+    "id": "shou.builtin.claude-user-caches",
+    "name": "Claude download caches",
+    "category": "cache",
+    "patterns": [
+      "com.anthropic.claudefordesktop"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Applications recreate downloaded and rendered cache data when needed.",
+    "limitation": "Quit the affected applications first. Offline content may require downloading again. User data and application-support directories are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.anthropic.claudefordesktop",
+      "com.anthropic.claudefordesktop.preview",
+      "com.anthropic.claudefordesktop.3p"
+    ]
+  },
+  {
+    "id": "shou.builtin.qq-user-caches",
+    "name": "QQ download caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.qq"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Applications recreate downloaded and rendered cache data when needed.",
+    "limitation": "Quit the affected applications first. Offline content may require downloading again. User data and application-support directories are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.qq"
+    ]
+  },
+  {
+    "id": "shou.builtin.wechat-caches",
+    "name": "WeChat download caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.xinWeChat"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Applications recreate downloaded and rendered cache data when needed.",
+    "limitation": "Quit the affected applications first. Offline content may require downloading again. User data and application-support directories are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.xinWeChat"
+    ]
+  },
+  {
+    "id": "shou.builtin.chrome-caches",
+    "name": "Google Chrome caches",
+    "category": "cache",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Chrome downloads web resources and rebuilds code and graphics caches when needed.",
+    "limitation": "Quit Chrome first. Offline web resources may be unavailable until downloaded again. Profiles, cookies, passwords, history and extensions are retained.",
+    "location": "chrome",
+    "applicationBundleIdentifiers": [
+      "com.google.Chrome",
+      "com.google.Chrome.beta",
+      "com.google.Chrome.dev",
+      "com.google.Chrome.canary"
+    ]
+  },
+  {
+    "id": "shou.builtin.codex-caches",
+    "name": "Codex application caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Codex recreates web-resource, code and graphics caches when needed.",
+    "limitation": "Quit Codex first. Conversation storage, settings, credentials, local workspaces and agent sessions are not targeted.",
+    "location": "codex",
+    "applicationBundleIdentifiers": [
+      "com.openai.codex"
+    ]
+  },
+  {
+    "id": "shou.builtin.claude-caches",
+    "name": "Claude application caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Claude recreates web-resource, code and graphics caches when needed.",
+    "limitation": "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted.",
+    "location": "claude",
+    "applicationBundleIdentifiers": [
+      "com.anthropic.claudefordesktop",
+      "com.anthropic.claudefordesktop.preview",
+      "com.anthropic.claudefordesktop.3p"
+    ]
+  },
+  {
+    "id": "shou.builtin.claude-preview-caches",
+    "name": "Claude preview application caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "Claude recreates web-resource, code and graphics caches when needed.",
+    "limitation": "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted.",
+    "location": "claude-3p",
+    "applicationBundleIdentifiers": [
+      "com.anthropic.claudefordesktop",
+      "com.anthropic.claudefordesktop.preview",
+      "com.anthropic.claudefordesktop.3p"
+    ]
+  },
+  {
+    "id": "shou.builtin.qq-caches",
+    "name": "QQ application caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.qq"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "QQ recreates application cache data when needed.",
+    "limitation": "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted.",
+    "location": "qq",
+    "applicationBundleIdentifiers": [
+      "com.tencent.qq"
+    ]
+  },
+  {
+    "id": "shou.builtin.edge-caches",
+    "name": "Microsoft Edge caches",
+    "category": "cache",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Default/DawnCache",
+      "Default/GrShaderCache",
+      "Guest Profile/Cache",
+      "Guest Profile/Code Cache",
+      "Guest Profile/GPUCache",
+      "Guest Profile/DawnCache",
+      "Guest Profile/GrShaderCache",
+      "System Profile/Cache",
+      "System Profile/Code Cache",
+      "System Profile/GPUCache",
+      "System Profile/DawnCache",
+      "System Profile/GrShaderCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache",
+      "Profile */DawnCache",
+      "Profile */GrShaderCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "edge",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.edgemac",
+      "com.microsoft.edgemac.Beta",
+      "com.microsoft.edgemac.Dev",
+      "com.microsoft.edgemac.Canary"
+    ]
+  },
+  {
+    "id": "shou.builtin.edge-user-caches",
+    "name": "Microsoft Edge download caches",
+    "category": "cache",
+    "patterns": [
+      "Microsoft Edge"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.edgemac",
+      "com.microsoft.edgemac.Beta",
+      "com.microsoft.edgemac.Dev",
+      "com.microsoft.edgemac.Canary"
+    ]
+  },
+  {
+    "id": "shou.builtin.brave-caches",
+    "name": "Brave caches",
+    "category": "cache",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Default/DawnCache",
+      "Default/GrShaderCache",
+      "Guest Profile/Cache",
+      "Guest Profile/Code Cache",
+      "Guest Profile/GPUCache",
+      "Guest Profile/DawnCache",
+      "Guest Profile/GrShaderCache",
+      "System Profile/Cache",
+      "System Profile/Code Cache",
+      "System Profile/GPUCache",
+      "System Profile/DawnCache",
+      "System Profile/GrShaderCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache",
+      "Profile */DawnCache",
+      "Profile */GrShaderCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "brave",
+    "applicationBundleIdentifiers": [
+      "com.brave.Browser",
+      "com.brave.Browser.beta",
+      "com.brave.Browser.nightly"
+    ]
+  },
+  {
+    "id": "shou.builtin.brave-user-caches",
+    "name": "Brave download caches",
+    "category": "cache",
+    "patterns": [
+      "BraveSoftware/Brave-Browser"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.brave.Browser",
+      "com.brave.Browser.beta",
+      "com.brave.Browser.nightly"
+    ]
+  },
+  {
+    "id": "shou.builtin.arc-caches",
+    "name": "Arc caches",
+    "category": "cache",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Default/DawnCache",
+      "Default/GrShaderCache",
+      "Guest Profile/Cache",
+      "Guest Profile/Code Cache",
+      "Guest Profile/GPUCache",
+      "Guest Profile/DawnCache",
+      "Guest Profile/GrShaderCache",
+      "System Profile/Cache",
+      "System Profile/Code Cache",
+      "System Profile/GPUCache",
+      "System Profile/DawnCache",
+      "System Profile/GrShaderCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache",
+      "Profile */DawnCache",
+      "Profile */GrShaderCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "arc",
+    "applicationBundleIdentifiers": [
+      "company.thebrowser.Browser"
+    ]
+  },
+  {
+    "id": "shou.builtin.arc-user-caches",
+    "name": "Arc download caches",
+    "category": "cache",
+    "patterns": [
+      "company.thebrowser.Browser"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "company.thebrowser.Browser"
+    ]
+  },
+  {
+    "id": "shou.builtin.vivaldi-caches",
+    "name": "Vivaldi caches",
+    "category": "cache",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Default/DawnCache",
+      "Default/GrShaderCache",
+      "Guest Profile/Cache",
+      "Guest Profile/Code Cache",
+      "Guest Profile/GPUCache",
+      "Guest Profile/DawnCache",
+      "Guest Profile/GrShaderCache",
+      "System Profile/Cache",
+      "System Profile/Code Cache",
+      "System Profile/GPUCache",
+      "System Profile/DawnCache",
+      "System Profile/GrShaderCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache",
+      "Profile */DawnCache",
+      "Profile */GrShaderCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "vivaldi",
+    "applicationBundleIdentifiers": [
+      "com.vivaldi.Vivaldi"
+    ]
+  },
+  {
+    "id": "shou.builtin.vivaldi-user-caches",
+    "name": "Vivaldi download caches",
+    "category": "cache",
+    "patterns": [
+      "com.vivaldi.Vivaldi"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.vivaldi.Vivaldi"
+    ]
+  },
+  {
+    "id": "shou.builtin.chromium-caches",
+    "name": "Chromium caches",
+    "category": "cache",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Default/DawnCache",
+      "Default/GrShaderCache",
+      "Guest Profile/Cache",
+      "Guest Profile/Code Cache",
+      "Guest Profile/GPUCache",
+      "Guest Profile/DawnCache",
+      "Guest Profile/GrShaderCache",
+      "System Profile/Cache",
+      "System Profile/Code Cache",
+      "System Profile/GPUCache",
+      "System Profile/DawnCache",
+      "System Profile/GrShaderCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache",
+      "Profile */DawnCache",
+      "Profile */GrShaderCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "chromium",
+    "applicationBundleIdentifiers": [
+      "org.chromium.Chromium"
+    ]
+  },
+  {
+    "id": "shou.builtin.chromium-user-caches",
+    "name": "Chromium download caches",
+    "category": "cache",
+    "patterns": [
+      "Chromium"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "org.chromium.Chromium"
+    ]
+  },
+  {
+    "id": "shou.builtin.firefox-caches",
+    "name": "Firefox caches",
+    "category": "cache",
+    "patterns": [
+      "*/cache2",
+      "*/startupCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "firefox",
+    "applicationBundleIdentifiers": [
+      "org.mozilla.firefox",
+      "org.mozilla.firefoxdeveloperedition",
+      "org.mozilla.nightly"
+    ]
+  },
+  {
+    "id": "shou.builtin.chrome-profile-downloads",
+    "name": "Google Chrome profile download caches",
+    "category": "cache",
+    "patterns": [
+      "Google/Chrome/Default/Cache",
+      "Google/Chrome/Guest Profile/Cache",
+      "Google/Chrome/System Profile/Cache",
+      "Google/Chrome/Profile */Cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The browser downloads web resources and rebuilds rendering caches when needed.",
+    "limitation": "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.google.Chrome",
+      "com.google.Chrome.beta",
+      "com.google.Chrome.dev",
+      "com.google.Chrome.canary"
+    ]
+  },
+  {
+    "id": "shou.builtin.slack-caches",
+    "name": "Slack caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache",
+      "Service Worker/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "slack",
+    "applicationBundleIdentifiers": [
+      "com.tinyspeck.slackmacgap"
+    ]
+  },
+  {
+    "id": "shou.builtin.slack-user-caches",
+    "name": "Slack download caches",
+    "category": "cache",
+    "patterns": [
+      "com.tinyspeck.slackmacgap"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tinyspeck.slackmacgap"
+    ]
+  },
+  {
+    "id": "shou.builtin.discord-caches",
+    "name": "Discord caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "discord",
+    "applicationBundleIdentifiers": [
+      "com.hnc.Discord"
+    ]
+  },
+  {
+    "id": "shou.builtin.discord-user-caches",
+    "name": "Discord download caches",
+    "category": "cache",
+    "patterns": [
+      "com.hnc.Discord"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.hnc.Discord"
+    ]
+  },
+  {
+    "id": "shou.builtin.figma-caches",
+    "name": "Figma caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "figma",
+    "applicationBundleIdentifiers": [
+      "com.figma.Desktop"
+    ]
+  },
+  {
+    "id": "shou.builtin.figma-user-caches",
+    "name": "Figma download caches",
+    "category": "cache",
+    "patterns": [
+      "com.figma.Desktop"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.figma.Desktop"
+    ]
+  },
+  {
+    "id": "shou.builtin.notion-caches",
+    "name": "Notion caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "notion",
+    "applicationBundleIdentifiers": [
+      "notion.id"
+    ]
+  },
+  {
+    "id": "shou.builtin.notion-user-caches",
+    "name": "Notion download caches",
+    "category": "cache",
+    "patterns": [
+      "notion.id"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "notion.id"
+    ]
+  },
+  {
+    "id": "shou.builtin.obsidian-caches",
+    "name": "Obsidian caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "obsidian",
+    "applicationBundleIdentifiers": [
+      "md.obsidian"
+    ]
+  },
+  {
+    "id": "shou.builtin.obsidian-user-caches",
+    "name": "Obsidian download caches",
+    "category": "cache",
+    "patterns": [
+      "md.obsidian"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "md.obsidian"
+    ]
+  },
+  {
+    "id": "shou.builtin.github-desktop-caches",
+    "name": "GitHub Desktop caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "github-desktop",
+    "applicationBundleIdentifiers": [
+      "com.github.GitHubClient"
+    ]
+  },
+  {
+    "id": "shou.builtin.github-desktop-user-caches",
+    "name": "GitHub Desktop download caches",
+    "category": "cache",
+    "patterns": [
+      "com.github.GitHubClient"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.github.GitHubClient"
+    ]
+  },
+  {
+    "id": "shou.builtin.insomnia-caches",
+    "name": "Insomnia caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "insomnia",
+    "applicationBundleIdentifiers": [
+      "com.insomnia.app",
+      "rest.insomnia.Insomnia"
+    ]
+  },
+  {
+    "id": "shou.builtin.insomnia-user-caches",
+    "name": "Insomnia download caches",
+    "category": "cache",
+    "patterns": [
+      "com.insomnia.app",
+      "rest.insomnia.Insomnia"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.insomnia.app",
+      "rest.insomnia.Insomnia"
+    ]
+  },
+  {
+    "id": "shou.builtin.postman-caches",
+    "name": "Postman caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache",
+      "Partitions/*/Cache",
+      "Partitions/*/Code Cache",
+      "Partitions/*/GPUCache",
+      "Partitions/*/DawnCache",
+      "Partitions/*/DawnGraphiteCache",
+      "Partitions/*/DawnWebGPUCache",
+      "Partitions/*/GrShaderCache",
+      "Partitions/*/GraphiteDawnCache",
+      "Partitions/*/Shared Dictionary/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "postman",
+    "applicationBundleIdentifiers": [
+      "com.postmanlabs.mac"
+    ]
+  },
+  {
+    "id": "shou.builtin.teams-caches",
+    "name": "Microsoft Teams caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "teams",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.teams",
+      "com.microsoft.teams2"
+    ]
+  },
+  {
+    "id": "shou.builtin.teams-user-caches",
+    "name": "Microsoft Teams download caches",
+    "category": "cache",
+    "patterns": [
+      "com.microsoft.teams2"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.teams",
+      "com.microsoft.teams2"
+    ]
+  },
+  {
+    "id": "shou.builtin.vscode-caches",
+    "name": "Visual Studio Code caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "CachedData",
+      "CachedExtensionVSIXs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "vscode",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.VSCode",
+      "com.microsoft.VSCodeInsiders"
+    ]
+  },
+  {
+    "id": "shou.builtin.cursor-caches",
+    "name": "Cursor caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "CachedData",
+      "CachedExtensionVSIXs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "cursor",
+    "applicationBundleIdentifiers": [
+      "com.todesktop.230313mzl4w4u92"
+    ]
+  },
+  {
+    "id": "shou.builtin.workbuddy-caches",
+    "name": "WorkBuddy caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "Shared Dictionary/cache",
+      "Service Worker/CacheStorage",
+      "Partitions/*/Cache",
+      "Partitions/*/Code Cache",
+      "Partitions/*/GPUCache",
+      "Partitions/*/DawnCache",
+      "Partitions/*/DawnGraphiteCache",
+      "Partitions/*/DawnWebGPUCache",
+      "Partitions/*/GrShaderCache",
+      "Partitions/*/GraphiteDawnCache",
+      "Partitions/*/Shared Dictionary/cache",
+      "Partitions/*/Service Worker/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "workbuddy",
+    "applicationBundleIdentifiers": [
+      "com.workbuddy.workbuddy"
+    ]
+  },
+  {
+    "id": "shou.builtin.lark-aha-caches",
+    "name": "Lark and Feishu rendering caches",
+    "category": "cache",
+    "patterns": [
+      "aha/users/*/profile_explorer/Cache",
+      "aha/users/*/profile_explorer/Code Cache",
+      "aha/users/*/profile_explorer/GPUCache",
+      "aha/users/*/profile_explorer/DawnCache",
+      "aha/users/*/profile_explorer/DawnGraphiteCache",
+      "aha/users/*/profile_explorer/DawnWebGPUCache",
+      "aha/users/*/profile_explorer/GrShaderCache",
+      "aha/users/*/profile_explorer/GraphiteDawnCache",
+      "aha/users/*/profile_explorer/Shared Dictionary/cache",
+      "aha/users/*/profile_explorer/Service Worker/CacheStorage",
+      "aha/users/*/profile_main/Cache",
+      "aha/users/*/profile_main/Code Cache",
+      "aha/users/*/profile_main/GPUCache",
+      "aha/users/*/profile_main/DawnCache",
+      "aha/users/*/profile_main/DawnGraphiteCache",
+      "aha/users/*/profile_main/DawnWebGPUCache",
+      "aha/users/*/profile_main/GrShaderCache",
+      "aha/users/*/profile_main/GraphiteDawnCache",
+      "aha/users/*/profile_main/Shared Dictionary/cache",
+      "aha/users/*/profile_main/Service Worker/CacheStorage",
+      "aha/users/*/profile_global/Cache",
+      "aha/users/*/profile_global/Code Cache",
+      "aha/users/*/profile_global/GPUCache",
+      "aha/users/*/profile_global/DawnCache",
+      "aha/users/*/profile_global/DawnGraphiteCache",
+      "aha/users/*/profile_global/DawnWebGPUCache",
+      "aha/users/*/profile_global/GrShaderCache",
+      "aha/users/*/profile_global/GraphiteDawnCache",
+      "aha/users/*/profile_global/Shared Dictionary/cache",
+      "aha/users/*/profile_global/Service Worker/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "lark",
+    "applicationBundleIdentifiers": [
+      "com.electron.lark",
+      "com.bytedance.lark"
+    ]
+  },
+  {
+    "id": "shou.builtin.lark-iron-caches",
+    "name": "Lark and Feishu rendering caches",
+    "category": "cache",
+    "patterns": [
+      "iron/users/*/profile_explorer/Cache",
+      "iron/users/*/profile_explorer/Code Cache",
+      "iron/users/*/profile_explorer/GPUCache",
+      "iron/users/*/profile_explorer/DawnCache",
+      "iron/users/*/profile_explorer/DawnGraphiteCache",
+      "iron/users/*/profile_explorer/DawnWebGPUCache",
+      "iron/users/*/profile_explorer/GrShaderCache",
+      "iron/users/*/profile_explorer/GraphiteDawnCache",
+      "iron/users/*/profile_explorer/Shared Dictionary/cache",
+      "iron/users/*/profile_explorer/Service Worker/CacheStorage",
+      "iron/users/*/profile_main/Cache",
+      "iron/users/*/profile_main/Code Cache",
+      "iron/users/*/profile_main/GPUCache",
+      "iron/users/*/profile_main/DawnCache",
+      "iron/users/*/profile_main/DawnGraphiteCache",
+      "iron/users/*/profile_main/DawnWebGPUCache",
+      "iron/users/*/profile_main/GrShaderCache",
+      "iron/users/*/profile_main/GraphiteDawnCache",
+      "iron/users/*/profile_main/Shared Dictionary/cache",
+      "iron/users/*/profile_main/Service Worker/CacheStorage",
+      "iron/users/*/profile_global/Cache",
+      "iron/users/*/profile_global/Code Cache",
+      "iron/users/*/profile_global/GPUCache",
+      "iron/users/*/profile_global/DawnCache",
+      "iron/users/*/profile_global/DawnGraphiteCache",
+      "iron/users/*/profile_global/DawnWebGPUCache",
+      "iron/users/*/profile_global/GrShaderCache",
+      "iron/users/*/profile_global/GraphiteDawnCache",
+      "iron/users/*/profile_global/Shared Dictionary/cache",
+      "iron/users/*/profile_global/Service Worker/CacheStorage",
+      "iron/Cache",
+      "iron/Code Cache",
+      "iron/GPUCache",
+      "iron/DawnCache",
+      "iron/DawnGraphiteCache",
+      "iron/DawnWebGPUCache",
+      "iron/GrShaderCache",
+      "iron/GraphiteDawnCache",
+      "iron/Shared Dictionary/cache",
+      "iron/Service Worker/CacheStorage",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "CodeCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "lark",
+    "applicationBundleIdentifiers": [
+      "com.electron.lark",
+      "com.bytedance.lark"
+    ]
+  },
+  {
+    "id": "shou.builtin.wechat-profiles-caches",
+    "name": "WeChat web caches",
+    "category": "cache",
+    "patterns": [
+      "*/Cache",
+      "*/Code Cache",
+      "*/GPUCache",
+      "*/DawnCache",
+      "*/DawnGraphiteCache",
+      "*/DawnWebGPUCache",
+      "*/GrShaderCache",
+      "*/GraphiteDawnCache",
+      "*/Shared Dictionary/cache",
+      "*/Service Worker/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "wechat-profiles",
+    "applicationBundleIdentifiers": [
+      "com.tencent.xinWeChat"
+    ]
+  },
+  {
+    "id": "shou.builtin.wechat-cache-profiles-caches",
+    "name": "WeChat code caches",
+    "category": "cache",
+    "patterns": [
+      "*/Cache",
+      "*/Code Cache",
+      "*/GPUCache",
+      "*/DawnCache",
+      "*/DawnGraphiteCache",
+      "*/DawnWebGPUCache",
+      "*/GrShaderCache",
+      "*/GraphiteDawnCache",
+      "*/Shared Dictionary/cache",
+      "*/Service Worker/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "wechat-cache-profiles",
+    "applicationBundleIdentifiers": [
+      "com.tencent.xinWeChat"
+    ]
+  },
+  {
+    "id": "shou.builtin.tencent-meeting-caches",
+    "name": "Tencent Meeting network caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.meeting/WebKit/NetworkCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.meeting"
+    ]
+  },
+  {
+    "id": "shou.builtin.dingtalk-web-caches",
+    "name": "DingTalk web caches",
+    "category": "cache",
+    "patterns": [
+      "com.alibaba.DingTalkMac/WebKit/NetworkCache",
+      "com.alibaba.DingTalkMac/WebKit/CacheStorage",
+      "com.alibaba.DingTalkMac/thumbnails",
+      "com.alibaba.DingTalkMac/fsCachedData"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates rendering and downloaded resource caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Accounts, messages, sessions, settings, credentials and downloaded files are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.alibaba.DingTalkMac"
+    ]
+  },
+  {
+    "id": "shou.builtin.jetbrains-caches",
+    "name": "JetBrains IDE caches",
+    "category": "cache",
+    "patterns": [
+      "*/caches",
+      "*/index",
+      "*/tmp",
+      "*/jcef_cache",
+      "*/semantic-search",
+      "*/full-line",
+      "*/intellij-rust",
+      "*/vcs-log",
+      "*/python_stubs",
+      "*/cpython-cache",
+      "*/python_packages",
+      "*/icon-cache",
+      "*/composer_packages",
+      "*/web-types"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The IDE rebuilds indexes and generated caches when needed.",
+    "limitation": "Quit the affected IDEs first. Reindexing can take time. Local History, plugins, settings, projects and installed tools are not targeted.",
+    "location": "jetbrains",
+    "applicationBundleIdentifiers": [
+      "com.jetbrains.intellij",
+      "com.jetbrains.intellij.ce",
+      "com.jetbrains.pycharm",
+      "com.jetbrains.pycharm.ce",
+      "com.jetbrains.WebStorm",
+      "com.jetbrains.goland",
+      "com.jetbrains.rustrover",
+      "com.jetbrains.PhpStorm",
+      "com.jetbrains.CLion",
+      "com.jetbrains.datagrip",
+      "com.jetbrains.rider"
+    ]
+  },
+  {
+    "id": "shou.builtin.python-downloads",
+    "name": "Python package download caches",
+    "category": "packages",
+    "patterns": [
+      "pip",
+      "pypoetry/artifacts",
+      "pypoetry/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.yarn-downloads",
+    "name": "Yarn package download caches",
+    "category": "packages",
+    "patterns": [
+      "Yarn"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.cocoapods-downloads",
+    "name": "CocoaPods download cache",
+    "category": "packages",
+    "patterns": [
+      "CocoaPods"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.go-build",
+    "name": "Go build cache",
+    "category": "packages",
+    "patterns": [
+      "go-build"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.uv-downloads",
+    "name": "uv package cache",
+    "category": "packages",
+    "patterns": [
+      "uv"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.deno-downloads",
+    "name": "Deno dependency cache",
+    "category": "packages",
+    "patterns": [
+      "deno"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.composer-downloads",
+    "name": "Composer download cache",
+    "category": "packages",
+    "patterns": [
+      "composer"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.electron-downloads",
+    "name": "Electron runtime download cache",
+    "category": "packages",
+    "patterns": [
+      "electron"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.developer-user-cache",
+    "name": "Developer download and analysis caches",
+    "category": "packages",
+    "patterns": [
+      "uv",
+      "pip",
+      "ruff",
+      "mypy",
+      "node/corepack",
+      "electron"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "developer-cache",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.yarn-berry-cache",
+    "name": "Yarn Berry package cache",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "yarn-berry",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.go-module-downloads",
+    "name": "Go module download cache",
+    "category": "packages",
+    "patterns": [
+      "download"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "go-module-downloads",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.composer-legacy-cache",
+    "name": "Composer legacy download cache",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages again or regenerates build caches when needed.",
+    "limitation": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
+    "location": "composer-legacy",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.quicklook-cache",
+    "name": "Quick Look thumbnail caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.QuickLook.thumbnailcache",
+      "Quick Look"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "macOS regenerates thumbnails and help indexes when needed.",
+    "limitation": "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.help-cache",
+    "name": "macOS Help caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.helpd"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "macOS regenerates thumbnails and help indexes when needed.",
+    "limitation": "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.cargo-extracted-sources",
+    "version": "1.0.0",
+    "name": "Cargo extracted registry sources",
+    "category": "packages",
+    "patterns": [
+      "registry/src/*/*"
+    ],
+    "marker": null,
+    "risk": "high",
+    "rebuildNote": "Cargo can extract an unchanged crate again from its retained matching archive.",
+    "limitation": "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Every source file must match its retained crate archive and Cargo checksum evidence. Modified, unverified or credential-bearing crates are blocked. Archives, registry indexes, installed tools and configuration are retained.",
+    "location": "cargo",
+    "applicationBundleIdentifiers": []
+  }
+]

@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/ai/agent-and-cli-contract.md)
 
-Status: API `1.0` design draft. Commands are not implemented and cannot currently be run.
+Status: API `1.0` development contract. Commands have a source implementation. Discover the current binary's actual capabilities and follow the [development guide](../engineering/development.md); release acceptance is pending.
 
 ## 1. Independent entry points
 
@@ -28,8 +28,11 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | Command | Level | Purpose |
 | --- | --- | --- |
 | `capabilities` | R | Actual support, contract version, limitations, inputs |
+| `locations list` | R | Explicit built-in roots, availability, rule IDs and inspection issues |
+| `system scan` | W | Cleanup-scope scan of available built-in roots; optionally include registered projects |
 | `workspaces list / show` | R | Bindings and current-entry-point access |
 | `workspaces add` | W | Register explicit path/root reference; not OS authorization |
+| `workspaces remove` | W | Unregister root, bindings, and presets; preserve target files and receipts |
 | `workspaces exclude add / remove` | W | Exclusions; invalidate old plans |
 | `rules schema` | R | Bundled schema, no network retrieval |
 | `rules validate` | R | Structure/static semantics and unverified bindings |
@@ -37,7 +40,7 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | `rules list / show / export` | R | Query/share without access credentials |
 | `rules enable / disable` | W | Explicit binding state, no cleanup |
 | `rules preview` | W | Read-only draft scan, saved as preview-only |
-| `scan` | W | Enabled-rule scan and completeness |
+| `scan` | W | Exactly one of `--workspace` or `--location`; `--scope full\|cleanup`, default `full` |
 | `scan results` | R | Stable paginated evidence |
 | `plan create` | W | Concrete explicitly selected candidates |
 | `plan show` | R | Paths, action, risk, digest, expiry, next actions |
@@ -52,6 +55,19 @@ Discover actual availability rather than assuming every documented command exist
 ## 4. Example workflow
 
 Paths/IDs below are fictional. Use actual returned IDs at each step.
+
+Common application discovery requires no directory selection:
+
+```sh
+shou locations list --json
+shou system scan --max-entries 100000 --max-seconds 60 --json
+shou scan --location "chrome" --scope cleanup --json
+shou system scan --include-projects true --json
+```
+
+`locations list` does not register roots. `system scan` registers existing explicit roots before scanning, preserves existing exclusions and disabled bindings, and returns `locations`, `scans`, `issues` and `skipped_location_ids`. It uses cleanup scope. `--include-projects true|false` defaults to `false`; `true` also scans already registered project workspaces. The desktop standard scan uses `true`. Neither entry implicitly scans home to discover projects. Each scan has its own workspace and evidence. Missing roots are skipped; inaccessible and incomplete roots produce a partial envelope and exit `6`. Cancellation stops the operation. There is no combined home-root plan or implicit cleanup. Known running applications are blocked in results and rechecked before mutation; `application_running` and `application_activity_unavailable` identify those decisions.
+
+`scan --scope full|cleanup` defaults to `full` for compatibility. Full mode measures the workspace tree; cleanup mode follows enabled-rule prefixes, prunes `.git` during discovery and fully measures matched targets. A cleanup result can have completed discovery while remaining sparse. It is unsuitable for complete directory-space accounting.
 
 ```sh
 shou capabilities --json
@@ -110,7 +126,7 @@ Errors include `code`, `message`, `details`, and `retryable`. Field locations an
 
 Include candidate/workspace IDs, relative/display paths, identity summary, size basis, completeness, matching rule versions, condition evidence, effective risk, and protection outcomes. Unclassified directories remain analysis-only.
 
-Partial scans cannot produce executable plans. Immutable snapshots provide stable pagination; agents query by ID rather than rely on truncated tables.
+Scan metadata identifies `scope` and `tree_complete`; snapshots retain independently complete subtree coverage. A partial scan can produce plan items only for fully covered, eligible candidates whose complete manifests reproduce under current policy. Missing legacy coverage never grants partial targets eligibility. `complete` in cleanup mode does not mean the entire workspace was measured. Immutable snapshots provide stable pagination; agents query by ID rather than rely on truncated tables.
 
 ## 7. Exit codes
 
@@ -136,6 +152,29 @@ TTY interaction does not prove a human identity. External agents remain subject 
 
 Repeated execution returns `already_executed` and existing receipt references. After timeout/interruption, query state before any retry. Reimporting identical same-version content is idempotent; changed content conflicts. Recovery/purge accepts verified receipt/item IDs, not arbitrary Trash paths.
 
+The desktop displays actual execution stage, current path and processed/total items, with a visible stop-request state. Core stops starting new items at a safe boundary. A system Trash call already in progress may finish; its verified result is recorded before stopping. Progress is not a completion receipt or freed-space claim, and does not change the CLI's single-result JSON envelope.
+
 ## 9. Compatibility
 
 Maintain separate application, rule-format, and CLI API versions. Additive optional data may remain compatible; required-field or semantic changes need a contract version. Capability discovery describes actual support, including runtime locales.
+
+## Built-in discovery and space browsing
+
+A registered workspace can be scanned immediately without importing personal rules. Built-in matches still pass protection, plan-digest, and execution-revalidation gates; enabling them never authorizes cleanup. The `shou.builtin.` namespace is reserved and cannot be overridden by imported personal rules.
+
+| Command | Behavior |
+| --- | --- |
+| `rules catalog [--workspace <id>]` | Built-in templates, or scoped definitions for a registered workspace |
+| `analysis summary --scan-id <id>` | Measured root, non-overlapping cleanup categories, completeness, metric |
+| `analysis children --scan-id <id> [--path <relative>] [--limit <n>] [--cursor <cursor>]` | Direct children ordered by allocated space, with stable pagination; root defaults to `.` |
+
+`rules list` also returns `builtin_templates`. Existing `rules disable / enable` commands control built-in rules. Enabled by default means available for scan matching only. Directory cursors are bound to both the snapshot and exact directory. Analysis includes files and directories without cleanup rules; browsing never grants deletion authority.
+
+`analysis summary` and `analysis children` require a full-scope snapshot. They reject cleanup-scope snapshots with `partial_result`; run `scan --scope full` first. A partial full scan still reports its gaps rather than treating missing data as zero.
+
+```sh
+shou rules catalog --workspace "ws_example" --json
+shou scan --workspace "ws_example" --scope full --json
+shou analysis summary --scan-id "scan_example" --json
+shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
+```

@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/rules/rule-specification.md)
 
-Status: format `1.0` design draft; engine implementation is pending. Field structure is owned by the [JSON Schema](../../packages/shou-contracts/rule.schema.json); this document owns semantics.
+Status: format `1.0` development contract with a Swift engine implementation. Field structure is owned by the [JSON Schema](../../packages/shou-contracts/rule.schema.json); this document owns semantics. Complete release validation is pending.
 
 ## 1. Scope
 
@@ -95,6 +95,16 @@ The npm example requires parent `package.json` and `package-lock.json`, which do
 Shared examples use English base text; personal rule text may use any language. See [internationalization](../product/internationalization.md).
 
 ## 9. Template inclusion
+
+### Bundled artifact evidence
+
+The catalog contains 74 templates and 35 fixed locations. The bundled Rust target and Swift build-product definitions are version `1.1.0`; this is a template version, not a change to rule-format `1.0`.
+
+Generated-source exceptions require an exact bundled definition and read-only native facts. An imported rule, familiar ID or directory name cannot enable them. Rust requires the recognized `target` layout and limits generated source to build-script `OUT_DIR` under verified debug/release products with fingerprints. Swift targets generated products under `.build` debug/release paths with package/workspace/product evidence; source checkouts and the entire `.build` tree are not exempted.
+
+Cargo extracted registry sources are separate from downloaded package archives. The trusted rule is restricted to the expected user Cargo root and registry/crate layout. Native verification checks the source file inventory, per-file checksums and exact retained archive contents; a matching local archive must be available at verification. Missing evidence, active relevant build processes, tracked content or modified sources block the candidate. None of these exceptions remove credential, repository, exclusion, identity or full-manifest protection. Personal rules retain conservative source protection.
+
+Cleanup discovery follows enabled rule prefixes and may prune branches such as `.git`; every matched target is still measured in full. Candidate-discovery depth and scan mode cannot truncate target safety checks. A partial outer scan may retain a complete target, but missing legacy coverage cannot establish completeness. See [snapshot coverage](../architecture/data-model.md).
 
 Require producer/purpose evidence, supported platforms, rebuild prerequisites, offline/activity/custom-layout limitations, positive/negative/protection/permission/change fixtures, version, and digest history.
 

@@ -1,46 +1,68 @@
-# Shou · 收
+<h1 align="center"><img src="assets/brand/shou-icon-1024.png" width="48" alt="Shou" /> Shou · 收拾一下</h1>
 
-**Tidy up. That’s it.**
+<p align="center"><strong>Un peu plus de place sur votre Mac.</strong><br />Tidy up. That's it.</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · Français · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
 
-Un outil de nettoyage natif pour macOS, avec des règles vérifiables et réutilisables pour les projets de développement et les applications.
+<p align="center">
+  <a href="https://github.com/limecloud/shou/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/limecloud/shou?display_name=tag&amp;sort=semver" /></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&amp;logoColor=white" />
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%26_Intel-universal-555" />
+  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
+</p>
 
-> **État : phase de conception.** L’application et la CLI ne sont pas encore disponibles. Les fonctionnalités ci-dessous sont prévues. La traduction du README ne signifie pas que l’application prend déjà en charge cette langue.
+Un nettoyeur macOS natif pour les caches, les projets de développement et les dossiers qui grossissent. Visualisez l’espace utilisé, vérifiez votre sélection et réutilisez vos règles.
 
-## Pourquoi Shou ?
+## Téléchargement et installation
 
-Les répertoires Rust `target`, les dépendances Node.js, les caches de projets et les fichiers générés peuvent saturer régulièrement un Mac de 500 Go. Le rôle d’un répertoire varie selon le projet : son nom ou sa taille ne suffit pas à déterminer s’il peut être supprimé.
+Shou v0.1.0 nécessite **macOS 14 ou ultérieur**. L’app universelle fonctionne sur Apple Silicon et Intel. Glissez **Shou.app** de l’image disque vers **Applications**. L’interface est en anglais et chinois simplifié.
 
-Shou transforme une décision de nettoyage vérifiée en règle personnelle : **Repérer → Comprendre → Définir une règle → Prévisualiser → Confirmer → Réutiliser.** Les changements exprimables dans le format de règles existant ne nécessitent pas de mise à jour de l’application. De nouvelles capacités du moteur exigent toujours une mise à niveau.
+[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-## Fonctionnalités prévues
+Cette version est signée ad-hoc et non notariée par Apple. Si le premier lancement est bloqué, vérifiez la source puis consultez **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**.
 
-- **Analyse par projet** : distinguer les fichiers générés, les dépendances installées, le code source et les données non classées dans les espaces de travail explicitement sélectionnés.
-- **Règles personnelles** : définir chemins, marqueurs de projet, conditions de conservation et exclusions, puis examiner les éléments concernés et les risques.
-- **Interface de bureau et CLI indépendantes** : un même cœur pour gérer les règles, analyser, préparer les plans et consulter l’historique, avec deux points d’entrée autonomes.
-- **Interfaces pour les agents existants** : Codex, Claude Code, WorkBuddy et des outils similaires peuvent ajouter des brouillons de règles désactivés via une CLI stable et du JSON. Shou n’intègre aucun modèle et ne développe ni n’héberge d’agent.
-- **Architecture native** : Swift, SwiftUI et AppKit. Un cœur portable partagé dans un monorepo ; Windows nécessitera une implémentation et une validation distinctes.
+## Les fonctions de Shou
 
-## Vérifier avant de nettoyer
+| | |
+| --- | --- |
+| **Caches des applications** | Examinez ensemble les caches de Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat et autres apps. |
+| **Développement et projets** | Repérez les caches npm, Cargo, Xcode, Python et Go, Rust target, les dépendances Node.js et les produits Swift. |
+| **Analyse de l’espace** | Explorez les dossiers avec une carte arborescente et une liste. |
+| **Règles personnelles** | Créez des règles pour les dossiers régénérables, prévisualisez-les et réutilisez-les. |
+| **Historique et restauration** | Consultez les résultats, restaurez des éléments ou confirmez leur suppression définitive séparément. |
+| **Mises à jour en ligne** | Vérifiez les mises à jour dans les réglages ou le menu Shou. Leur signature est contrôlée avant installation. |
 
-Les règles ne peuvent pas étendre les autorisations du système. Les brouillons doivent être validés et prévisualisés ; activer une règle n’autorise aucune suppression. Chaque exécution exige la confirmation d’un plan précis. La CLI ne propose pas d’option pour ignorer cette confirmation.
+## Nettoyer en trois étapes
 
-Par défaut, les éléments vont dans la Corbeille. Supprimer définitivement les éléments de cette opération exige une confirmation séparée, sans vider les autres éléments de la Corbeille. Le volume déplacé et l’espace réellement disponible sont affichés séparément. `node_modules` contient des dépendances qui exigent un examen attentif, pas de simples caches. Noms, fichiers de verrouillage et ancienneté ne garantissent pas une reconstruction possible.
+1. **Analyser.** Choisissez les apps ou ajoutez un espace de travail. L’analyse ne supprime rien.
+2. **Vérifier.** Examinez les chemins, tailles, risques et conditions de régénération.
+3. **Confirmer.** Déplacez la sélection vers la corbeille. Restaurez-la depuis l’historique au besoin.
+
+La corbeille ne libère pas immédiatement d’espace. La suppression définitive est distincte et irréversible. Les contenus protégés, exclusions, apps et compilations actives peuvent bloquer le nettoyage.
+
+## Vos fichiers, votre choix
+
+Les règles sont locales et n’exécutent pas de commandes Shell. Aucun compte, connexion à un modèle ou scan cloud requis. Règles et historique restent sur votre Mac.
+
+## Depuis le terminal
+
+La CLI indépendante gère règles, analyses, plans et historique. Nettoyage et restauration nécessitent une confirmation interactive.
+
+```sh
+/Applications/Shou.app/Contents/Helpers/shou --help
+/Applications/Shou.app/Contents/Helpers/shou capabilities --json
+/Applications/Shou.app/Contents/Helpers/shou system scan --json
+```
 
 ## Documentation et contributions
 
-[English documentation](docs/README.md) · [简体中文技术文档](docs/zh-CN/README.md) · [Internationalisation (anglais)](docs/product/internationalization.md)
+Consultez la documentation pour compiler, tester et utiliser les règles ou la CLI. Signalez problèmes et suggestions dans Issues.
 
-Le dépôt contient actuellement des documents de conception, un contrat de règles provisoire et des exemples. Aucun téléchargement de l’application n’est disponible. Les [Issues](https://github.com/limecloud/shou/issues) accueillent les cas concrets sans informations confidentielles et les améliorations de traduction.
+[Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
 ## Remerciements
 
-- [Mole](https://github.com/tw93/mole) : flux de travail en terminal pour les développeurs et présentation multilingue du projet.
-- [Pulse](https://pulse.egoist.dev/) : organisation native des informations sur macOS et synthèses de l’espace disque.
-- [BuhoCleaner](https://www.drbuho.com/buhocleaner) : exploration du disque et regroupement des résultats de nettoyage.
-
-Merci à ces projets pour leurs inspirations produit et design. Ces remerciements n’impliquent ni affiliation ni dépendance de code.
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## Licence
 

@@ -36,7 +36,7 @@ US12–US15 are defined with [developer workspace scenarios](developer-space-sce
 5. Read path, size basis, project markers, and evidence.
 6. Exclude an unfamiliar directory or start a personal-rule draft.
 
-**Exceptions:** show unreadable ranges as partial, disappearance as a skip/error rather than zero bytes, and links without following them. Cancelled/partial scans are not executable plans.
+**Exceptions:** show unreadable ranges as partial, disappearance as a skip/error rather than zero bytes, and links without following them. Space exploration uses full scope; cleanup snapshots explain their sparse coverage. An incomplete candidate cannot enter a plan, while an independently complete, policy-valid sibling may. Missing legacy coverage never grants eligibility.
 
 **Outcome:** a read-only storage view; no target moved or removed.
 

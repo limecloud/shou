@@ -6,15 +6,37 @@ Status: design draft. Diagrams specify intended behavior, not implemented capabi
 
 ## 1. Discovery and personal rules
 
+The default desktop action scans known application/developer-cache locations and already registered projects without a directory picker. CLI `system scan` defaults to fixed locations; `--include-projects true` adds registered projects. Both default to cleanup scope and never implicitly search the home directory for projects. Explicit project scanning remains available; space exploration uses full scope.
+
+```mermaid
+flowchart TD
+    Start[Scan common apps] --> Inventory[Inventory explicit known roots]
+    Inventory --> Register[Register available roots before capturing evidence]
+    Register --> Scan[Bounded scan per root]
+    Scan --> State{Target subtree complete?}
+    State -->|No| Issue[Keep affected targets blocked and retain complete siblings]
+    Issue --> Results
+    State -->|Yes| Activity[Check application activity and protection]
+    Activity --> Results[Per-root reviewable and blocked results]
+    Results --> Select[Select candidates in one root]
+    Select --> Preview[Prepare concrete plan and confirm]
+    Preview --> Recheck[Recheck files and application before each move]
+    Recheck --> Receipt[Record moved, skipped, failed or unknown]
+    Receipt --> Restore[Separately confirm verified restoration]
+```
+
+Moving to Trash is reported as a processed estimate, not freed disk space. Only independently complete targets may enter plans, even if the enclosing scan is partial. Missing legacy coverage does not authorize partial targets; cleanup-mode completion does not imply full-tree measurement.
+
 ```mermaid
 flowchart TD
     Root[Choose workspace] --> Access{Actual access?}
     Access -->|No| Grant[Reauthorize or narrow scope]
     Grant --> Access
-    Access -->|Yes| Scan[Read-only scan]
+    Access -->|Yes| Scan[Full-scope read-only space scan]
     Scan --> Full{Complete?}
     Full -->|No| Partial[Show results and coverage gaps]
     Partial --> Grant
+    Partial --> Inspect
     Full -->|Yes| Inspect[Inspect projects and directories]
     Inspect --> Known{Suitable rule?}
     Known -->|Yes| Evidence[Inspect evidence and risk]
@@ -28,11 +50,13 @@ flowchart TD
     Review -->|Yes| Enable[Review and enable]
     Enable --> Rescan[Fresh scan of enabled version]
     Rescan --> Evidence
-    Evidence --> Select[Explicit candidate selection]
+    Evidence --> Target{Target subtree complete?}
+    Target -->|No| Grant
+    Target -->|Yes| Select[Explicit candidate selection]
     Select --> Plan[Concrete immutable plan]
 ```
 
-Large unknown directories stay visible but are not executable. Repair access or rescan narrower scope rather than planning from incomplete evidence.
+Large unknown directories stay visible in full scans but are not executable. Cleanup snapshots contain only rule-directed evidence. Repair access or rescan affected targets rather than planning from incomplete target evidence; an unrelated gap does not invalidate a complete sibling.
 
 ## 2. Confirmation and execution
 
@@ -168,4 +192,4 @@ sequenceDiagram
 
 ## 7. Invariants
 
-Configuration/action/selection changes invalidate confirmation. Cancellation stops new items while preserving completed facts. Partial success is explicit. History records facts; current recovery availability requires inspection. Every exception has a CLI and GUI representation, not only a log entry.
+Configuration/action/selection changes invalidate confirmation. Cancellation stops new items at safe boundaries while preserving completed facts; a single in-progress system Trash call may finish before stopping. Partial success is explicit. History records facts; current recovery availability requires inspection. Every exception has a CLI and GUI representation, not only a log entry.

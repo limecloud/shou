@@ -1,0 +1,9 @@
+.build/
+.swiftpm/
+.DS_Store
+dist/
+*.xcuserstate
+xcuserdata/
+.shou-local/
+__pycache__/
+*.pyc

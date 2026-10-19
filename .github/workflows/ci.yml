@@ -1,0 +1,30 @@
+name: Native macOS checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: Core, filesystem, CLI, localization, and documentation
+        run: sh scripts/test.sh
+      - name: Build and verify the local application bundle
+        run: sh scripts/build-macos.sh debug
+      - name: Verify the bundled CLI
+        run: |
+          python3 scripts/verify-cli.py dist/Shou.app/Contents/Helpers/shou
+          python3 apps/cli/Tests/verify-confirmation.py dist/Shou.app/Contents/Helpers/shou
+          python3 scripts/verify-native-cli.py dist/Shou.app/Contents/Helpers/shou

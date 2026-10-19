@@ -1,0 +1,262 @@
+import Foundation
+
+public struct FileEntry: Codable, Sendable, Equatable {
+    public var path: String
+    public var kind: String
+    public var device: UInt64
+    public var inode: UInt64
+    public var logicalBytes: Int64
+    public var allocatedBytes: Int64
+    public var modifiedNanoseconds: Int64
+    public var changedNanoseconds: Int64
+    public var mode: UInt32
+    public var owner: UInt32
+    public var links: UInt64
+    public init(path: String, kind: String, device: UInt64, inode: UInt64, logicalBytes: Int64, allocatedBytes: Int64, modifiedNanoseconds: Int64, changedNanoseconds: Int64, mode: UInt32, owner: UInt32, links: UInt64) {
+        self.path=path; self.kind=kind; self.device=device; self.inode=inode; self.logicalBytes=logicalBytes; self.allocatedBytes=allocatedBytes
+        self.modifiedNanoseconds=modifiedNanoseconds; self.changedNanoseconds=changedNanoseconds; self.mode=mode; self.owner=owner; self.links=links
+    }
+    public func sameObject(as other: FileEntry) -> Bool { device == other.device && inode == other.inode && kind == other.kind }
+    public func matchesTrashRoot(as other: FileEntry) -> Bool {
+        guard path == ".", other.path == ".", kind == "directory", other.kind == "directory" else { return false }
+        // Finder may update a verified Trash directory's ctime after the move.
+        var normalized=other
+        normalized.changedNanoseconds=changedNanoseconds
+        return self == normalized
+    }
+}
+
+public struct ScanBudget: Codable, Sendable {
+    public var maxEntries: Int
+    public var maxSeconds: TimeInterval
+    public var maxDepth: Int
+    public init(maxEntries: Int = 100_000, maxSeconds: TimeInterval = 60, maxDepth: Int = 128) {
+        self.maxEntries=maxEntries; self.maxSeconds=maxSeconds; self.maxDepth=maxDepth
+    }
+    func validate() throws {
+        guard (1...1_000_000).contains(maxEntries), maxSeconds.isFinite,
+              (1...600).contains(maxSeconds), (1...128).contains(maxDepth) else {
+            throw ShouError("invalid_argument", "Scan budget is outside supported limits.")
+        }
+    }
+}
+
+public struct ScanProgress: Sendable {
+    public let stage: String
+    public let entryCount: Int
+    public let currentPath: String
+    public init(stage: String, entryCount: Int, currentPath: String = "") {
+        self.stage=stage; self.entryCount=entryCount; self.currentPath=currentPath
+    }
+}
+
+public enum ScanScope: String, Codable, Sendable {
+    case full
+    case cleanup
+}
+
+public struct ExecutionProgress: Sendable {
+    public let stage: String
+    public let processedCount: Int
+    public let itemCount: Int
+    public let path: String
+    public init(stage: String, processedCount: Int, itemCount: Int, path: String = "") {
+        self.stage=stage; self.processedCount=processedCount; self.itemCount=itemCount; self.path=path
+    }
+}
+
+public struct TreeSnapshot: Codable, Sendable {
+    public var entries: [FileEntry]
+    public var complete: Bool
+    public var issues: [String]
+    public var caseSensitive: Bool
+    public var completedPaths: [String]?
+    public var discoveryComplete: Bool?
+    public init(entries: [FileEntry], complete: Bool, issues: [String], caseSensitive: Bool, completedPaths: [String]? = nil, discoveryComplete: Bool? = nil) {
+        self.entries=entries; self.complete=complete; self.issues=issues; self.caseSensitive=caseSensitive
+        self.completedPaths=completedPaths
+        self.discoveryComplete=discoveryComplete
+    }
+    public func isComplete(at path: String) -> Bool {
+        complete || (completedPaths ?? []).contains { completed in
+            completed == "." || path == completed || path.hasPrefix(completed + "/")
+        }
+    }
+}
+
+public struct Workspace: Codable, Sendable, Identifiable {
+    public var id: String
+    public var rootRef: String
+    public var path: String
+    public var identity: FileEntry
+    public var exclusions: [String]
+    public var protectedRelativePaths: [String]? = nil
+    public var addedAt: Date
+}
+public struct RuleRecord: Codable, Sendable, Identifiable {
+    public var id: String { rule.id + "@" + rule.version }
+    public var rule: CleanupRule
+    public var digest: String
+    public var importedAt: Date
+    public var provenance: String
+}
+public struct RuleBinding: Codable, Sendable {
+    public var workspaceId: String
+    public var ruleId: String
+    public var version: String
+    public var enabled: Bool
+}
+public struct Preset: Codable, Sendable, Identifiable {
+    public var id: String
+    public var name: String
+    public var workspaceId: String
+    public var ruleIds: [String]
+}
+public struct Configuration: Codable, Sendable {
+    public var version = 1
+    public var revision = Codec.id("config")
+    public var workspaces: [Workspace] = []
+    public var rules: [RuleRecord] = []
+    public var bindings: [RuleBinding] = []
+    public var presets: [Preset] = []
+    public var locale: String? = nil
+    public init() {}
+}
+public struct Candidate: Codable, Sendable, Identifiable {
+    public var id: String
+    public var relativePath: String
+    public var logicalBytes: Int64
+    public var allocatedBytesEstimate: Int64
+    public var newestModifiedAt: Date
+    public var manifestDigest: String
+    public var ruleIds: [String]
+    public var ruleVersions: [String: String]
+    public var risk: String
+    public var reasons: [String]
+    public var rebuildNotes: [String]
+    public var limitations: [String]
+    public var eligible: Bool
+}
+public struct ScanSnapshot: Codable, Sendable, Identifiable {
+    public var id: String
+    public var workspace: Workspace
+    public var configurationDigest: String
+    public var createdAt: Date
+    public var status: String
+    public var previewOnly: Bool
+    public var caseSensitive: Bool
+    public var entries: [FileEntry]
+    public var candidates: [Candidate]
+    public var issues: [String]
+    public var budget: ScanBudget? = nil
+    public var completedPaths: [String]? = nil
+    public var treeComplete: Bool? = nil
+    public var scope: ScanScope? = nil
+}
+public struct PlanItem: Codable, Sendable, Identifiable {
+    public var id: String
+    public var candidate: Candidate
+    public var manifest: [FileEntry]
+}
+public struct CleanupPlan: Codable, Sendable, Identifiable {
+    public var id: String
+    public var scanId: String
+    public var workspace: Workspace
+    public var configurationDigest: String
+    public var createdAt: Date
+    public var expiresAt: Date
+    public var items: [PlanItem]
+    public var action = "trash"
+    public var digest = ""
+    public var state = "ready"
+    public var executionId: String? = nil
+    public var scanBudget: ScanBudget? = nil
+    public var scanScope: ScanScope? = nil
+    public var allocatedBytesEstimate: Int64 { items.reduce(0) { $0 + $1.candidate.allocatedBytesEstimate } }
+    public func calculatedDigest() throws -> String {
+        var copy = self; copy.digest=""; copy.state="ready"; copy.executionId=nil
+        return try Digest.of(copy)
+    }
+}
+public struct ItemReceipt: Codable, Sendable, Identifiable {
+    public var id: String
+    public var originalPath: String
+    public var relativePath: String
+    public var trashPath: String?
+    public var manifest: [FileEntry]
+    public var state: String
+    public var allocatedBytesEstimate: Int64
+    public var error: String?
+}
+public struct ExecutionReceipt: Codable, Sendable, Identifiable {
+    public var id: String
+    public var planId: String
+    public var workspace: Workspace
+    public var createdAt: Date
+    public var entryPoint: String
+    public var state: String
+    public var items: [ItemReceipt]
+    public var volumeAvailableBefore: Int64?
+    public var volumeAvailableAfter: Int64?
+    public var trashedBytesEstimate: Int64 { items.filter { $0.state == "trashed" }.reduce(0) { $0 + $1.allocatedBytesEstimate } }
+}
+public struct FollowUpReceipt: Codable, Sendable, Identifiable {
+    public var id: String
+    public var executionId: String
+    public var itemId: String
+    public var action: String
+    public var createdAt: Date
+    public var state: String
+    public var resultingPath: String?
+    public var error: String?
+}
+public struct TrashResult: Sendable {
+    public var path: String
+    public var manifest: [FileEntry]
+    public var verified: Bool
+    public init(path: String, manifest: [FileEntry], verified: Bool) { self.path=path; self.manifest=manifest; self.verified=verified }
+}
+
+public protocol StoreLease: Sendable { func release() }
+public protocol RecordStore: Sendable {
+    var protectedPaths: [String] { get }
+    func read(_ collection: String, id: String) throws -> Data?
+    func write(_ collection: String, id: String, data: Data) throws
+    func ids(_ collection: String) throws -> [String]
+    func lock() throws -> any StoreLease
+}
+extension RecordStore { public var protectedPaths: [String] { [] } }
+public enum LocationAvailability: Sendable {
+    case available
+    case missing
+    case unavailable(String)
+}
+
+public protocol PlatformFileSystem: Sendable {
+    var platform: String { get }
+    var supportsTrash: Bool { get }
+    var trashUnavailableReason: String? { get }
+    func locationAvailability(_ path: String) -> LocationAvailability
+    func rootIdentity(_ path: String) throws -> FileEntry
+    func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
+    func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
+    func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
+    func availableBytes(_ path: String) -> Int64?
+    func isTrashLocation(_ path: String) -> Bool
+    func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult
+    func restore(_ path: String, to destination: String, expected: [FileEntry]) throws
+    func purge(_ path: String, expected: [FileEntry]) throws
+}
+extension PlatformFileSystem {
+    public var trashUnavailableReason: String? { nil }
+    public func locationAvailability(_ path: String) -> LocationAvailability {
+        do { _ = try rootIdentity(path); return .available }
+        catch { return .unavailable(error.localizedDescription) }
+    }
+    public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try inspect(path, budget: budget, cancelled: cancelled)
+    }
+    public func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try inspect(path, budget: budget, cancelled: cancelled, progress: progress)
+    }
+}

@@ -6,7 +6,7 @@ Shou turns personal cleanup decisions into inspectable, reusable rules for local
 
 ## Status and conventions
 
-- Updated: 2026-10-19. Status: design draft; application, engine, and CLI implementation are pending.
+- Updated: 2026-10-19. Status: active development; the native application, core, and CLI have source implementations. Complete release acceptance remains pending.
 - Confirmed constraints: native Swift macOS UI, independent desktop and CLI workflows, a monorepo, future Windows support, and no model integration or agent development.
 - macOS 14+, module boundaries, rule fields, command names, and budgets are design baselines subject to recorded decisions.
 - Performance, safety, language, and compatibility statements below are acceptance targets, not verified runtime capabilities.
@@ -18,12 +18,13 @@ Shou turns personal cleanup decisions into inspectable, reusable rules for local
 | --- | --- |
 | Understand the product | [PRD](product/prd.md) → [Stories and use cases](product/user-stories-and-use-cases.md) |
 | Understand developer storage | [Developer scenarios](product/developer-space-scenarios.md) → [Rules](rules/rule-specification.md) |
-| Design the interface | [macOS experience](product/macos-experience.md) → [Workflows](architecture/workflows-and-sequences.md) |
+| Design the interface | [macOS experience](product/macos-experience.md) → [Reference design](engineering/reference-design.md) → [Workflows](architecture/workflows-and-sequences.md) |
 | Plan localization | [Internationalization](product/internationalization.md) → [Acceptance](engineering/acceptance-and-testing.md) |
 | Implement shared behavior | [Architecture](architecture/system-design.md) → [Data model](architecture/data-model.md) → [Rules](rules/rule-specification.md) |
 | Understand platform boundaries | [Monorepo](architecture/monorepo-and-platforms.md) → [Architecture](architecture/system-design.md) |
 | Support existing agents | [Agent workflow](ai/coding-agent-integration.md) → [CLI contract](ai/agent-and-cli-contract.md) → [Safety](security/cleanup-safety.md) |
 | Plan implementation | [Milestones](engineering/implementation-plan.md) → [Testing](engineering/acceptance-and-testing.md) |
+| Build and verify locally | [Development guide](engineering/development.md) |
 
 ## Product principles
 

@@ -2,7 +2,7 @@
 
 [English](../../engineering/acceptance-and-testing.md) | 简体中文
 
-状态：待执行。本文不是测试报告，所有运行时验收均尚未完成。
+状态：验收计划持续执行中。第 11 节记录已完成的本机验证范围，完整产品与发布验收仍未完成。
 
 ## 1. 验证分层
 
@@ -94,8 +94,13 @@ workspace/
 | S12 | 原恢复路径已存在文件 | 不覆盖，需选其他位置或取消 |
 | S13 | 文件名含换行、转义序列或恶意指令文字 | 机器结果正确编码，终端显示安全转义 |
 | S14 | 平台回收站能力不可用 | 返回不可用，不退回永久删除 |
-| S15 | 扫描部分失败或取消 | 不产生可执行计划 |
+| S15 | 覆盖部分失败或取消 | 不完整目标受阻；独立完整兄弟目标须有正向覆盖证据及完整清单 |
 | S16 | 依赖树内含 `.bin` 符号链接及指向外部的已识别链接 | 仅记录/移动/解除链接条目，外部对象内容与身份保持不变 |
+| S17 | 旧 partial 记录没有覆盖字段 | 缺少 `completedPaths` 不能获得执行资格 |
+| S18 | 清理发现完成但目录树稀疏 | `scope=cleanup`、`treeComplete=false`；空间分析需要 `full`，界面说明未测范围 |
+| S19 | Rust／Swift 生成源码或 Cargo 解包源码 | 精确受信规则及原生布局／活动／归属／完整性证据；受版本控制、修改或未知内容受阻 |
+| S20 | 单次系统废纸篓调用中请求停止 | 到安全边界后不启动新项；核对当前调用并保留真实结果 |
+| S21 | CLI 与桌面标准扫描 | CLI `scan` 默认 full，`system scan` 默认 cleanup 且 projects=false；桌面仅纳入已登记项目，不隐式遍历主目录 |
 
 任何越界处理、未确认破坏性操作、错误覆盖或不可解释的自动重试均为阻断项。测试范围内通过不能推导为对任意文件系统无风险。
 
@@ -144,4 +149,25 @@ workspace/
 
 未来报告至少包括构建版本、合同版本、平台、已执行用例、通过/失败/跳过、日志位置、已知限制及复现步骤。报告不得包含用户真实凭据或未经同意的项目路径。
 
-当前文档交付仅能报告文档/Schema 的静态检查，不执行应用测试，不宣称 MVP、兼容性或清理安全已验收。
+文档/Schema 静态检查不能代替运行验证。已执行结果按下面的范围记录，不据此宣称 MVP、全面兼容性或任意目录的清理安全已验收。
+
+## 11. 本机验证记录 — 2026-10-19
+
+本记录补充验收计划，不代表完整产品或发布验收。环境：macOS 15.7.3（24G419）、Apple Silicon MacBookPro17,1、16 GiB 内存；本地 debug 应用安装于 `/Applications/Shou.app`，使用 ad-hoc 签名，未公证。
+
+| 范围 | 实测结果 | 本地 `.build/` 下的证据 |
+| --- | --- | --- |
+| 核心与隔离只读 worker | 94/94 通过，包括协议拒绝、证据一致、取消与超时 | `read-worker-core-final.log` |
+| 独立 CLI 合同 | 58 项通过，没有变更清理目标 | `read-worker-cli-contract.log` |
+| 内置规则原生清理 | 80/80 用例中覆盖 74 条规则、460 个模式；真实 Trash → restore，保留文件和哈希一致，禁用 purge | `complete-cleanup-native-final.log` |
+| 大目标原生操作 | 100,103 个文件、100,204 项清单；Trash → restore，核对后代元数据与哨兵哈希 | `large-target-trash-restore.log` |
+| 安装版桌面清理 | 项目扫描 → 预览取消 → 明确确认 Trash → 历史 → 单独确认恢复，全部 1,035 个夹具文件 SHA-256 一致 | `ui-cleanup-acceptance/gui-restore-verification.json` |
+| 个人规则 | 禁用草稿、只读预览、导出、启用与新扫描 → 明确确认清理 → GUI 恢复，同样 1,035 个哈希一致；重复导入幂等，无效 JSON 被拒绝 | `ui-cleanup-acceptance/gui-personal-rule-verification.json` 及 Computer Use 观察 |
+| 桌面批量操作与执行停止 | 24 个生成目标完成 Trash → GUI 恢复；再次执行时在首项完成后停止，最终移入 2 项、22 项未处理、0 失败，再经 GUI 恢复已移入的 2 项；两次恢复后全部 12,336 个文件 SHA-256 一致 | `ui-cleanup-acceptance/gui-batch-restore-verification.json`、`gui-execution-stop-verification.json`、`gui-execution-stop-restore-verification.json` |
+| 标准扫描 | 到达聚合结果页，默认选择为零；QQ、两处微信位置与一个已登记项目明确显示超时提示；本机发现占用估算 10.45 GB | Computer Use 观察；`desktop-responsive-install.json` |
+| 标准扫描取消 | 在原先阻塞的 QQ 根停止后返回首屏，无错误弹窗，可立即再次扫描 | Computer Use 观察 |
+| 国际化 | 安装版中文 → 英文 → 中文即时切换；两种运行时语言共 543 个资源键通过检查 | Computer Use 观察及本地化检查器 |
+
+这里的标准扫描跑完指流程到达结果页，实际状态为 **partial**：无法访问或超时的位置被明确列出，没有冒充完整扫描。本轮没有清理用户真实缓存或项目；测试目标移入废纸篓不记作已释放磁盘空间。
+
+将原分组辅助结构改为普通原生布局容器后，规则／历史的独立按钮与历史查看结果操作已通过实测。此前 Computer Use 原生服务崩溃时 Shou 采样主线程空闲，不能将其视为 Shou 崩溃证据。最终恢复按钮状态与过滤后的便捷选择回归、VoiceOver、系统减少动态效果、第三方 Agent 实际客户端、永久移除及生产分发仍分别验收。

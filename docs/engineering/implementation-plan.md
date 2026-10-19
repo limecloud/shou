@@ -2,13 +2,13 @@
 
 English | [简体中文](../zh-CN/engineering/implementation-plan.md)
 
-Status: design draft. Documentation, draft rule schema, and fictional examples exist; applications, CLI, and runtime evidence are pending.
+Status: active development. Native macOS, independent CLI, shared core, platform adapter, and isolated verification sources exist. Complete platform-safety and release acceptance remain pending. See [local development](development.md).
 
 ## 1. Product decisions
 
 | ID | Decision | Purpose |
 | --- | --- | --- |
-| DEC01 | Shou · 收; “Tidy up. That’s it.” | Consistent identity |
+| DEC01 | Shou · 收拾一下; “Tidy up. That’s it.” | Consistent identity |
 | DEC02 | Native macOS Swift, SwiftUI, AppKit | Platform conventions and integration |
 | DEC03 | Independent desktop and CLI with shared core | Equivalent workflows and semantics |
 | DEC04 | No model integration or agent development | Local-tool scope and independence |

@@ -1,46 +1,68 @@
-# Shou · 收
+<h1 align="center"><img src="assets/brand/shou-icon-1024.png" width="48" alt="Shou" /> Shou · 收拾一下</h1>
 
-**Tidy up. That’s it.**
+<p align="center"><strong>Mac에 여유 공간을 더하세요.</strong><br />Tidy up. That's it.</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · 한국어 · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
 
-개발 프로젝트와 앱 데이터를 검토하고 재사용할 수 있는 규칙으로 정리하는 네이티브 macOS 정리 도구입니다.
+<p align="center">
+  <a href="https://github.com/limecloud/shou/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/limecloud/shou?display_name=tag&amp;sort=semver" /></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&amp;logoColor=white" />
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%26_Intel-universal-555" />
+  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
+</p>
 
-> **현재 설계 단계입니다.** 앱과 CLI는 아직 제공되지 않습니다. 아래 내용은 계획된 기능이며, README 번역이 해당 언어의 앱 지원을 뜻하지는 않습니다.
+앱 캐시, 개발 프로젝트, 계속 커지는 폴더를 정리하는 네이티브 macOS 클리너입니다. 공간 사용량을 확인하고 정리 대상을 검토한 뒤 나만의 규칙을 재사용하세요.
 
-## Shou가 해결하려는 문제
+## 다운로드 및 설치
 
-Rust `target`, Node.js 의존성, 프로젝트 캐시와 개인 빌드 결과물이 쌓이면 500 GB Mac의 저장 공간이 자주 부족해집니다. 같은 이름의 디렉터리라도 용도가 다르므로 이름이나 크기만으로 삭제 여부를 판단할 수 없습니다.
+Shou v0.1.0은 **macOS 14 이상**을 지원합니다. 유니버설 앱은 Apple Silicon 및 Intel Mac에서 실행됩니다. 디스크 이미지에서 **Shou.app**을 **Applications**로 옮기세요. UI는 영어와 중국어 간체를 제공합니다.
 
-Shou는 검토한 정리 방법을 개인 규칙으로 저장합니다. **용량 확인 → 용도 이해 → 규칙 작성 → 미리 보기 → 확인 → 재사용.** 기존 규칙 형식으로 표현할 수 있는 변경에는 앱 업데이트가 필요하지 않습니다. 엔진의 새로운 기능에는 업데이트가 필요합니다.
+[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-## 계획된 기능
+이 버전은 ad-hoc 서명을 사용하며 Apple 공증을 받지 않았습니다. 첫 실행이 차단되면 출처를 확인한 뒤 **시스템 설정 → 개인정보 보호 및 보안**에서 실행을 허용하세요.
 
-- **프로젝트별 공간 분석**: 명시적으로 선택한 작업 공간에서 빌드 결과물, 설치된 의존성, 소스와 미분류 데이터를 구분합니다.
-- **개인 규칙**: 경로, 프로젝트 식별 파일, 보존 조건, 제외 항목을 설정하고 실제 대상과 위험을 미리 확인합니다.
-- **독립적인 데스크톱과 CLI**: 공통 코어를 사용하며 각각 규칙 관리, 스캔, 계획 및 기록 조회를 수행합니다.
-- **기존 Agent를 위한 인터페이스**: Codex, Claude Code, WorkBuddy 등이 안정적인 CLI와 JSON을 통해 비활성 규칙 초안을 추가할 수 있습니다. Shou는 모델을 통합하거나 Agent를 개발·호스팅하지 않습니다.
-- **네이티브 구조**: Swift, SwiftUI, AppKit을 사용합니다. monorepo에서 이식 가능한 코어를 공유하며 향후 Windows 지원은 별도로 구현하고 검증합니다.
+## Shou의 기능
 
-## 정리 전 검토
+| | |
+| --- | --- |
+| **앱 캐시** | Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat 등의 캐시를 함께 확인합니다. |
+| **개발 도구 및 프로젝트** | npm, Cargo, Xcode, Python, Go 캐시와 Rust target, Node.js 의존성, Swift 결과물을 찾습니다. |
+| **공간 분석** | 트리맵과 폴더 목록으로 저장 공간을 살펴봅니다. |
+| **개인 규칙** | 재생성 가능한 폴더의 규칙을 만들고 미리 본 뒤 재사용합니다. |
+| **기록 및 복원** | 결과 확인, 항목 복원 또는 별도 확인 후 영구 삭제가 가능합니다. |
+| **온라인 업데이트** | 설정 또는 Shou 메뉴에서 업데이트를 확인하고 설치 전 서명을 검증합니다. |
 
-규칙은 운영 체제 권한을 확대할 수 없습니다. 초안은 검증과 미리 보기를 거쳐 검토해야 하며, 활성화는 삭제 승인이 아닙니다. 실행할 때마다 구체적인 계획에 대한 확인이 필요하고 CLI에는 확인을 건너뛰는 옵션을 제공하지 않습니다.
+## 세 단계로 정리
 
-기본 동작은 휴지통으로 이동하는 것입니다. 이번 정리 항목을 영구 삭제하려면 별도 확인이 필요하며 관련 없는 휴지통 항목은 비우지 않습니다. 이동한 용량과 실제 사용 가능한 디스크 공간을 구분해 표시합니다. `node_modules`는 신중한 검토가 필요한 의존성이며 일반 캐시로 취급하지 않습니다. 이름, 잠금 파일, 경과 시간만으로 재생성을 보장할 수 없습니다.
+1. **스캔.** 앱 정리를 선택하거나 작업 공간을 추가합니다. 스캔은 파일을 삭제하지 않습니다.
+2. **검토.** 경로, 크기, 위험, 재생성 조건을 확인합니다.
+3. **확인.** 선택한 항목을 휴지통으로 이동하고 필요하면 기록에서 복원합니다.
 
-## 문서와 참여
+휴지통 이동은 공간을 즉시 확보하지 않습니다. 영구 삭제는 별도 확인이 필요하며 취소할 수 없습니다. 보호 항목, 제외 규칙, 실행 중인 앱이나 빌드가 정리를 차단할 수 있습니다.
 
-[English documentation](docs/README.md) · [简体中文技术文档](docs/zh-CN/README.md) · [국제화 명세(영문)](docs/product/internationalization.md)
+## 파일은 사용자가 결정합니다
 
-현재 저장소에는 설계 문서, 규칙 계약 초안과 예제가 있습니다. 다운로드 가능한 앱은 없습니다. [Issues](https://github.com/limecloud/shou/issues)를 통해 민감한 정보를 제거한 사용 사례와 번역 개선을 제안할 수 있습니다.
+규칙은 로컬에서 동작하며 Shell 명령을 실행하지 않습니다. 계정, 모델 연결, 클라우드 스캔이 필요 없습니다. 규칙과 기록은 Mac에 저장됩니다.
+
+## 터미널에서 사용
+
+독립 CLI로 규칙, 스캔, 계획과 기록을 관리합니다. 정리와 복원에는 대화형 확인이 필요합니다.
+
+```sh
+/Applications/Shou.app/Contents/Helpers/shou --help
+/Applications/Shou.app/Contents/Helpers/shou capabilities --json
+/Applications/Shou.app/Contents/Helpers/shou system scan --json
+```
+
+## 문서 및 참여
+
+빌드, 테스트, 규칙 예제 및 CLI는 문서를 확인하세요. 문제와 제안은 Issues로 보내주세요.
+
+[Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
 ## 감사의 말
 
-- [Mole](https://github.com/tw93/mole): 개발자용 터미널 작업 흐름과 다국어 프로젝트 소개.
-- [Pulse](https://pulse.egoist.dev/): 네이티브 macOS 정보 설계와 공간 요약.
-- [BuhoCleaner](https://www.drbuho.com/buhocleaner): 디스크 탐색과 정리 결과의 그룹화.
-
-제품과 디자인에 영감을 준 프로젝트에 감사드립니다. 이는 제휴 관계나 코드 의존성을 의미하지 않습니다.
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## 라이선스
 

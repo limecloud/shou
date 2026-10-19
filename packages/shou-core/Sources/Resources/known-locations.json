@@ -1,0 +1,247 @@
+[
+  {
+    "id": "caches",
+    "title": "Application caches",
+    "category": "system",
+    "relativePath": "Library/Caches",
+    "platform": "macos"
+  },
+  {
+    "id": "npm",
+    "title": "npm download cache",
+    "category": "developer",
+    "relativePath": ".npm",
+    "platform": "macos"
+  },
+  {
+    "id": "cargo",
+    "title": "Cargo package archives",
+    "category": "developer",
+    "relativePath": ".cargo",
+    "platform": "macos"
+  },
+  {
+    "id": "xcode",
+    "title": "Xcode derived data",
+    "category": "developer",
+    "relativePath": "Library/Developer/Xcode",
+    "platform": "macos"
+  },
+  {
+    "id": "chrome",
+    "title": "Google Chrome caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Google/Chrome",
+    "platform": "macos"
+  },
+  {
+    "id": "codex",
+    "title": "Codex application caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Codex",
+    "platform": "macos"
+  },
+  {
+    "id": "claude",
+    "title": "Claude application caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Claude",
+    "platform": "macos"
+  },
+  {
+    "id": "claude-3p",
+    "title": "Claude preview application caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Claude-3p",
+    "platform": "macos"
+  },
+  {
+    "id": "qq",
+    "title": "QQ application caches",
+    "category": "application",
+    "relativePath": "Library/Containers/com.tencent.qq/Data/Library/Caches",
+    "platform": "macos"
+  },
+  {
+    "id": "edge",
+    "title": "Microsoft Edge caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Microsoft Edge",
+    "platform": "macos"
+  },
+  {
+    "id": "brave",
+    "title": "Brave caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/BraveSoftware/Brave-Browser",
+    "platform": "macos"
+  },
+  {
+    "id": "arc",
+    "title": "Arc caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Arc/User Data",
+    "platform": "macos"
+  },
+  {
+    "id": "vivaldi",
+    "title": "Vivaldi caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Vivaldi",
+    "platform": "macos"
+  },
+  {
+    "id": "chromium",
+    "title": "Chromium caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Chromium",
+    "platform": "macos"
+  },
+  {
+    "id": "firefox",
+    "title": "Firefox caches",
+    "category": "browser",
+    "relativePath": "Library/Caches/Firefox/Profiles",
+    "platform": "macos"
+  },
+  {
+    "id": "slack",
+    "title": "Slack caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Slack",
+    "platform": "macos"
+  },
+  {
+    "id": "discord",
+    "title": "Discord caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/discord",
+    "platform": "macos"
+  },
+  {
+    "id": "figma",
+    "title": "Figma caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Figma",
+    "platform": "macos"
+  },
+  {
+    "id": "notion",
+    "title": "Notion caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Notion",
+    "platform": "macos"
+  },
+  {
+    "id": "obsidian",
+    "title": "Obsidian caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/obsidian",
+    "platform": "macos"
+  },
+  {
+    "id": "github-desktop",
+    "title": "GitHub Desktop caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/GitHub Desktop",
+    "platform": "macos"
+  },
+  {
+    "id": "insomnia",
+    "title": "Insomnia caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Insomnia",
+    "platform": "macos"
+  },
+  {
+    "id": "postman",
+    "title": "Postman caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Postman",
+    "platform": "macos"
+  },
+  {
+    "id": "teams",
+    "title": "Microsoft Teams caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Microsoft/Teams",
+    "platform": "macos"
+  },
+  {
+    "id": "vscode",
+    "title": "Visual Studio Code caches",
+    "category": "developer",
+    "relativePath": "Library/Application Support/Code",
+    "platform": "macos"
+  },
+  {
+    "id": "cursor",
+    "title": "Cursor caches",
+    "category": "developer",
+    "relativePath": "Library/Application Support/Cursor",
+    "platform": "macos"
+  },
+  {
+    "id": "workbuddy",
+    "title": "WorkBuddy caches",
+    "category": "application",
+    "relativePath": ".workbuddy/app/session",
+    "platform": "macos"
+  },
+  {
+    "id": "lark",
+    "title": "Lark and Feishu caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/LarkShell",
+    "platform": "macos"
+  },
+  {
+    "id": "wechat-profiles",
+    "title": "WeChat web caches",
+    "category": "application",
+    "relativePath": "Library/Containers/com.tencent.xinWeChat/Data/Documents/app_data/radium/web/profiles",
+    "platform": "macos"
+  },
+  {
+    "id": "wechat-cache-profiles",
+    "title": "WeChat code caches",
+    "category": "application",
+    "relativePath": "Library/Containers/com.tencent.xinWeChat/Data/Library/Caches/profiles",
+    "platform": "macos"
+  },
+  {
+    "id": "jetbrains",
+    "title": "JetBrains IDE caches",
+    "category": "developer",
+    "relativePath": "Library/Caches/JetBrains",
+    "platform": "macos"
+  },
+  {
+    "id": "developer-cache",
+    "title": "Developer download and analysis caches",
+    "category": "developer",
+    "relativePath": ".cache",
+    "platform": "macos"
+  },
+  {
+    "id": "yarn-berry",
+    "title": "Yarn Berry package cache",
+    "category": "developer",
+    "relativePath": ".yarn/berry",
+    "platform": "macos"
+  },
+  {
+    "id": "go-module-downloads",
+    "title": "Go module download cache",
+    "category": "developer",
+    "relativePath": "go/pkg/mod/cache",
+    "platform": "macos"
+  },
+  {
+    "id": "composer-legacy",
+    "title": "Composer legacy download cache",
+    "category": "developer",
+    "relativePath": ".composer",
+    "platform": "macos"
+  }
+]

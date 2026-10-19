@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/architecture/data-model.md)
 
-Status: design draft. Entities describe constraints, not implemented Swift types or database tables.
+Status: development contract. [Swift models](../../packages/shou-core/Sources/Models.swift) implement the current entities; complete state and interruption acceptance remain pending.
 
 ## 1. Relationships
 
@@ -30,7 +30,7 @@ Relationships are conceptual; bindings may be shared across presets. Plan items 
 | RuleDefinition | ID, version, schema version, provenance, content digest, body | No silent same-version changes; draft is not enabled |
 | RuleBinding | Workspace, rule version, enablement, exclusion/override digest | Local explicit binding; changes invalidate plans |
 | CleanupPreset | Name, binding references, selection preferences | Stores logic, not execution permission |
-| ScanSnapshot | ID, scope, rule/configuration digests, times, status, statistics | Only complete snapshots produce executable plans |
+| ScanSnapshot | ID, `scope`, `treeComplete`, `completedPaths`, configuration digest, status, statistics | Only independently complete, policy-valid candidates produce executable plan items |
 | Candidate | ID, relative path, project clues, identity, estimates, risk, evidence | Unclassified directories remain visible but not executable |
 | CleanupPlan | ID, API version, digest, creation/expiry, configuration, state | Concrete targets/action; no dynamic expansion |
 | PlanItem | Candidate, original path, identity, full manifest digest, action | No duplicate or unresolved parent/child targets |
@@ -57,7 +57,19 @@ A new version does not overwrite historical definitions. Enabling its binding in
 
 ## 4. Scan and plan states
 
-Scan states are `running`, `complete`, `partial`, `cancelled`, and `failed`. Permission gaps, budget interruption, or unknown evidence prevent complete status. Narrow scope or repair access and rescan before planning execution.
+Scan states are `running`, `complete`, `partial`, `cancelled`, and `failed`. Status describes completion of the requested scan mode; it does not alone authorize a candidate. Permission gaps, budget interruption and cancellation remain visible. A fully measured candidate may remain eligible when an unrelated subtree is incomplete; incomplete targets cannot enter a plan.
+
+| Snapshot field | Meaning |
+| --- | --- |
+| `scope` | `full` inspects the workspace tree; `cleanup` discovers only paths that can match enabled rule prefixes and fully measures matched targets |
+| `treeComplete` | Whether the entire workspace tree was inspected; `complete` status in cleanup mode does not imply this is true |
+| `completedPaths` | Relative roots of independently complete subtrees; a candidate requires full-tree completeness or positive coverage of its own subtree |
+
+These fields are additive and optional for existing records. For legacy records without `treeComplete`, use the previous whole-tree status interpretation. Missing `completedPaths` supplies no independent coverage: an old partial snapshot does not gain execution eligibility. Plans retain the scan scope and budget for fresh policy reproduction, and every selected target still requires an unchanged complete manifest.
+
+The validated time budget also bounds candidate analysis during scanning, planning, and execution. Candidate analysis uses a monotonic deadline in each phase; persisted budgets outside the supported limits are rejected before policy reproduction.
+
+Space analysis requires a `full` scan. A cleanup snapshot is sparse evidence: absent directories and unvisited bytes are unknown, not zero. UI and machine consumers must show this limitation rather than present its root aggregate or treemap as complete disk usage.
 
 ```mermaid
 stateDiagram-v2
@@ -81,6 +93,8 @@ A provisional plan lifetime is 10 minutes, subject to prototype evidence. Unexpi
 ## 5. Item states
 
 `pending`: not started. `trashed`: verified move with actual location. `skipped`: intentionally unprocessed. `failed`: known operation error. `unknown`: interruption prevents determining outcome. `restored` and `purged`: current status derived from follow-up receipts.
+
+Execution progress is transient: `stage`, `processedCount`, `itemCount` and `path` describe actual work, not a new authorization or durable outcome. A stop request prevents new item operations at a safe boundary; an in-progress system Trash operation may finish and must be reconciled before the final receipt.
 
 Do not rewrite initial facts or retry unknown items by old path. Permanent removal and external Trash actions can eliminate recovery.
 

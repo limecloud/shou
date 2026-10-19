@@ -1,97 +1,68 @@
-# Shou · 收
+<h1 align="center"><img src="assets/brand/shou-icon-1024.png" width="48" alt="Shou" /> Shou · 收拾一下</h1>
 
-**Tidy up. That’s it.**
+<p align="center"><strong>A little more room on your Mac.</strong><br />Tidy up. That's it.</p>
 
-A native macOS cleaner with inspectable, reusable rules for development projects and applications.
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
 
-English · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
+<p align="center">
+  <a href="https://github.com/limecloud/shou/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/limecloud/shou?display_name=tag&amp;sort=semver" /></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&amp;logoColor=white" />
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%26_Intel-universal-555" />
+  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
+</p>
 
-> **Status: design stage.** The application and CLI are not available yet. Features and commands below describe the planned product. See the [implementation plan](docs/engineering/implementation-plan.md).
+A native macOS cleaner for application caches, development projects, and the folders that keep growing. See what takes space, review what can go, and keep your cleanup rules for next time.
 
-## Why Shou
+## Download and install
 
-Build outputs, installed dependencies, and temporary directories accumulate across projects. On a 500 GB Mac, finding and evaluating the same directories repeatedly can become a daily task.
+Download Shou v0.1.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-Personal tools and project layouts rarely fit a fixed cleanup catalog. Shou turns a reviewed cleanup decision into a reusable rule:
+[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-**Discover → Understand → Define a rule → Preview → Confirm → Reuse.**
+This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 
-Rules can change without an application release when the current rule format can express them. New engine capabilities still require an upgrade.
+## What Shou can do
 
-## Planned capabilities
-
-| Capability | Purpose |
+| | |
 | --- | --- |
-| Project space analysis | Find large directories and distinguish artifacts, dependencies, source, and unclassified data |
-| Personal rules | Describe custom tools, project layouts, retention conditions, and exclusions |
-| Explainable previews | Inspect exact paths, matching evidence, size estimates, risks, and rebuild costs |
-| Independent CLI | Manage rules, scan, review plans, confirm cleanup, and inspect history without the desktop app |
-| Agent-friendly interfaces | Let existing Codex, Claude Code, WorkBuddy, and similar tools add rule drafts through CLI and JSON |
-| Reusable presets | Save reviewed selection logic and rescan before each cleanup |
-| Native desktop experience | Swift and SwiftUI with AppKit integration; Windows is a future platform target |
+| **Application caches** | Review caches from browsers, chat apps, editors, and tools, including Chrome, Edge, Firefox, Codex, Claude, QQ, and WeChat. |
+| **Developer tools and projects** | Find npm, Cargo, Xcode, Python, and Go caches, Rust target directories, Node.js dependencies, and Swift build products. |
+| **Space analysis** | Explore folder sizes with a treemap and directory list. |
+| **Personal rules** | Describe your own rebuildable folders, preview matches, and reuse reviewed rules. |
+| **History and recovery** | Check results, restore selected items, or separately confirm permanent removal of this cleanup batch. |
+| **Online updates** | Check for updates from Settings or the Shou menu. Updates are signature-verified before installation. |
 
-The initial focus is developer workspaces: Rust `target`, Node.js project caches, reviewed `node_modules`, and personally verified `dist` or Electron outputs. Uninstalling applications, broader cache templates, and startup management follow later.
+## Clean up in three steps
 
-## Review before cleanup
+1. **Scan** application caches or add a project workspace. Scanning does not remove files.
+2. **Review** paths, sizes, risks, and rebuild requirements, then choose the items to clean.
+3. **Confirm** moving the selection to Trash. Restore from History if needed.
 
-- Scan explicitly selected workspaces; rules cannot expand operating-system permissions.
-- Import generated rules as disabled drafts, then validate and preview them.
-- Separate scanning, immutable plans, confirmation, and execution.
-- Move items to Trash by default. Permanently removing this cleanup batch requires a separate confirmation.
-- Report moved bytes separately from observed available disk space.
-- Preserve protected data and exclusions; directory names or sizes alone never establish cleanup eligibility.
+Moving items to Trash does not immediately free disk space. Permanent removal requires a separate confirmation and cannot be undone. Protected content and exclusions block cleanup. Running apps and builds can prevent affected caches from being cleaned.
 
-See [cleanup safety](docs/security/cleanup-safety.md) for constraints and limitations.
+## Your files, your choice
 
-## Architecture
+Rules run locally and cannot execute shell commands. No account, model connection, or cloud scan is required. Rules and cleanup history stay on your Mac.
 
-- **Native macOS:** Swift, Swift 6 concurrency checking, SwiftUI, and AppKit.
-- **Shared core:** portable Swift business logic with separate platform filesystem adapters.
-- **Two independent entry points:** desktop and CLI share rules, plans, policies, and history.
-- **Open rules:** versioned declarative JSON; no embedded Shell or executable scripts.
-- **Local data:** no required account, cloud scanning, or default telemetry in the initial scope.
-- **Agent boundary:** Shou integrates no models and develops or hosts no agents. Existing tools operate its public CLI.
-- **Monorepo:** applications in `apps/`, shared components and contracts in `packages/`.
-- **Platforms:** macOS first, with macOS 14+ as the provisional baseline; native Windows support requires separate implementation and validation.
-- **Internationalization:** English documentation by default, localized READMEs, and Simplified Chinese technical documentation. Runtime languages have separate release criteria.
+## Terminal
 
-## Documentation
+The app includes an independent CLI for rules, scans, plans, and history. Cleanup and recovery require interactive confirmation.
 
-[English documentation](docs/README.md) · [简体中文技术文档](docs/zh-CN/README.md)
+```sh
+/Applications/Shou.app/Contents/Helpers/shou --help
+/Applications/Shou.app/Contents/Helpers/shou capabilities --json
+/Applications/Shou.app/Contents/Helpers/shou system scan --json
+```
 
-| Document | Scope |
-| --- | --- |
-| [Product requirements](docs/product/prd.md) | Background, objectives, benefits, requirements, and scope |
-| [User stories and use cases](docs/product/user-stories-and-use-cases.md) | Desktop, terminal, personal rules, and failure scenarios |
-| [Developer space scenarios](docs/product/developer-space-scenarios.md) | Rust, Node.js, build outputs, and inactive projects |
-| [macOS experience](docs/product/macos-experience.md) | Native navigation, tables, inspectors, and accessibility |
-| [Internationalization](docs/product/internationalization.md) | Language coverage, localization, terminology, and locale contracts |
-| [System architecture](docs/architecture/system-design.md) | Shared services and platform boundaries |
-| [Monorepo and platforms](docs/architecture/monorepo-and-platforms.md) | Repository layout and the Windows roadmap |
-| [Workflows and sequences](docs/architecture/workflows-and-sequences.md) | Discovery, rules, confirmation, execution, and recovery |
-| [Data model](docs/architecture/data-model.md) | Rules, snapshots, plans, and execution receipts |
-| [Rule specification](docs/rules/rule-specification.md) | Declarative matching semantics and examples |
-| [CLI contract](docs/ai/agent-and-cli-contract.md) | Discovery, commands, JSON, and errors |
-| [Existing-agent workflow](docs/ai/coding-agent-integration.md) | Adding rules through existing coding agents |
-| [Cleanup safety](docs/security/cleanup-safety.md) | Permissions, protection, races, Trash, and recovery |
-| [Implementation plan](docs/engineering/implementation-plan.md) | Milestones, decisions, and unresolved questions |
-| [Acceptance and testing](docs/engineering/acceptance-and-testing.md) | Required evidence and release gates |
+## Documentation and contributions
 
-## Development and contributions
+Source builds, tests, rule examples, and CLI usage are covered in the documentation. Report problems and ideas through Issues.
 
-The repository currently contains documentation, draft contracts, and rule examples. Application projects and build commands will be added during implementation.
-
-Report concrete cleanup scenarios through [Issues](https://github.com/limecloud/shou/issues). Describe the toolchain, directory purpose, rebuild requirements, and retention needs. Remove personal and customer information from shared paths.
-
-Translations are welcome. Keep commands, identifiers, safety constraints, and product status consistent across languages. See the [internationalization specification](docs/product/internationalization.md).
+[Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
 ## Acknowledgements
 
-- [Mole](https://github.com/tw93/mole) — developer-oriented terminal workflows and multilingual project presentation.
-- [Pulse](https://pulse.egoist.dev/) — clear native macOS information design and space summaries.
-- [BuhoCleaner](https://www.drbuho.com/buhocleaner) — disk exploration and grouped cleanup presentation.
-
-These acknowledgements recognize product and design inspiration; they do not imply affiliation or code dependencies.
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## License
 

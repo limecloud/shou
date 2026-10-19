@@ -2,7 +2,7 @@
 
 [English](../../architecture/system-design.md) | 简体中文
 
-状态：设计草案。Swift 原生开发与 CLI、桌面端双入口为确定约束；平台能力需经原型验证。
+状态：开发中架构。共享扫描、计划、记录与 macOS 适配已有源代码；Windows、分发与文件竞态验收尚未完成。
 
 ## 1. 设计约束
 
@@ -53,20 +53,20 @@ flowchart LR
     Safety --> Platform
     Executor --> Platform
     Persistence --> Platform
-    Platform --> Mac[macOS / Foundation + Darwin]
-    Platform -.后续适配.-> Win[Windows / Win32]
+    Mac[macOS / Foundation + Darwin] --> Platform
+    Win[未来 Windows / Win32] -.实现.-> Platform
 ```
 
 首版建立共享核心、平台适配和两个产品入口。图中规则、扫描、计划等先作为核心包内的职责边界，不为每项能力拆一个包。
 
-建议工程布局，**尚未创建**：
+工程布局；Windows 与品牌源资源仍为后续交付：
 
 ```text
 apps/macos/                 # SwiftUI / AppKit 原生应用与应用工程
 apps/cli/                   # Swift CLI；产品命令 shou / shou.exe
 apps/windows/               # 后续 Windows 原生 UI，不代表已经实现
 packages/shou-core/         # 可移植 Swift 领域模型、规则、扫描编排与计划
-packages/shou-platform/     # 能力接口及 macOS / Windows 平台适配
+packages/shou-platform/     # 平台接口的具体实现，当前为 macOS
 packages/shou-contracts/    # 语言无关 JSON Schema 与公开合同
 tests/fixtures/            # 虚构项目、规则与跨入口合同用例
 scripts/                   # 构建、校验、打包与基准工具
@@ -75,7 +75,51 @@ examples/rules/            # 可审阅规则样例
 docs/                      # 产品、架构、接口与验收文档
 ```
 
-参考与完整依赖规则见 [Monorepo 与平台边界](monorepo-and-platforms.md)。以上是目标代码布局，当前只落地文档与合同样例。
+完整依赖规则见 [Monorepo 与平台边界](monorepo-and-platforms.md)。平台能力接口由核心声明，具体实现由入口注入，核心不依赖平台适配包。
+
+### 隔离只读操作
+
+桌面端向 `NativeFileSystem(readWorkerExecutable:)` 注入包内 `Contents/Helpers/shou`。根身份查询及完整／清理遍历由短生命周期只读子进程执行，避免停滞的文件系统调用持续占住桌面端的等待链。CLI 的隐藏 worker 入口只接受身份查询和遍历请求，在打开记录存储前分流；它属于平台实现细节，不是公开 Agent 协议、第二套清理引擎或常驻服务。独立 CLI 继续使用常规直接适配。
+
+```mermaid
+flowchart LR
+    Core[共享核心] --> Adapter[原生文件系统适配]
+    Adapter -->|身份查询与遍历| Worker[临时包内 CLI 只读子进程]
+    Worker -->|只读| Files[明确文件系统范围]
+    Worker -->|核验后的证据与进度| Adapter
+    Adapter -->|已确认变更与即时复核| Parent[父进程原生废纸篓与恢复操作]
+    Parent --> Files
+```
+
+每个请求使用当前用户的临时通道：目录权限为 `0700`，文件为 `0600`。证据交给 Core 前，核验请求／结果版本、请求身份、父进程身份、输出大小、进度及快照结构。格式错误、缺失、超时或取消均不能转为完整快照。范围、匹配、候选资格、计划和回执仍由共享核心负责。
+
+取消或墙钟期限到达时，只请求终止本次自有只读子进程，不等待进程退出便返回。最多保留两个存活只读子进程，包含仍等待内核退出的子进程；超过限制返回资源受限。子进程另有父进程退出／期限 watchdog。该设计限制桌面端等待和子进程累积，不承诺内核请求立即结束。移入废纸篓、恢复和永久移除仍由父进程执行，保留原生身份／清单复核及既有确认、回执门槛；不引入模型或 Agent。worker 源码已实现，打包后运行与扫描停止仍待实测。
+
+### 常用软件扫描
+
+`KnownLocations` 只定义固定根及规则关联，不访问磁盘；`PlatformFileSystem.locationAvailability` 提供位置状态，`ShouEngine` 编排注册与有界扫描。`BuiltinCatalog` 只在精确固定根启用对应应用规则，项目规则用于所选项目工作区；其他位置的同名目录不会自动获得应用清理规则。
+
+`scanKnownLocations` 先盘点并注册全部可用根，再分别生成 `ScanSnapshot`，避免后续注册使前序快照的配置摘要失效。确定缺失的位置跳过，访问失败与不完整扫描单独记录。桌面标准扫描纳入已登记的项目工作区；CLI 的 `system scan` 仅在 `--include-projects true` 时纳入，默认 `false`。两者默认使用清理扫描模式，均不隐式遍历整个主目录寻找项目、不改变系统权限、不删除目标。每个计划绑定单一根及明确选择的候选项。
+
+### 扫描覆盖与产物证据
+
+`full` 检查工作区目录树，用于空间分析。`cleanup` 根据已启用规则的路径前缀决定发现分支，发现阶段剪枝 `.git`，命中目标后完整测量，才能判断其执行资格。发现剪枝不豁免命中目标内部的受保护内容检查。清理扫描完成不表示整棵目录树已经测量；快照通过 `scope`、`treeComplete` 和 `completedPaths` 记录模式、全树完整性及候选覆盖。部分扫描可以计划独立完整的目标；旧记录缺少覆盖证据时不能放宽不完整目标。界面须说明清理结果的稀疏性，目录空间浏览需要完整扫描。
+
+`ArtifactEvidenceChecking` 是只读 Core 接口，由 `NativeArtifactEvidence` 提供事实。生成源码例外仅授予与包内定义完全一致的规则，不能凭规则 ID 前缀或用户声明获取。Rust 构建脚本 `OUT_DIR`、Swift 生成构建产品与 Cargo 解包注册表源码，均须满足已识别布局和原生归属／活动证据；Cargo 源码还须通过归档及校验和完整性检查，并具有可用的本地恢复来源。受版本控制、已修改、未知或无法核验的数据仍受阻。详见[规则语义](../rules/rule-specification.md)。
+
+`ApplicationActivityChecking` 是独立于文件系统的核心接口，macOS 的 `NativeApplicationActivity` 通过运行应用元数据实现。已知应用运行中或无法检查状态时，关联规则禁止清理。扫描、创建计划及逐项移入废纸篓前均检查；应用在计划创建后启动时，对应项记录为跳过，其余项目继续。不会自动退出应用。此保护覆盖已关联的桌面应用，任意编译器或包管理器任务仍需用户先停止；状态检查不能原子阻止应用随后启动。
+
+| 层次 | 具体职责 |
+| --- | --- |
+| `SmartScanView` / CLI | 启动扫描，呈现进度与各根证据 |
+| `KnownLocations` / `BuiltinCatalog` | 固定根与声明式匹配元数据 |
+| `ShouEngine` | 配置、快照、策略、计划、复核和执行记录 |
+| `PlatformFileSystem` | 位置状态、有界遍历、身份与文件操作 |
+| `ApplicationActivityChecking` | 只读检查应用活动，不控制进程 |
+| `ArtifactEvidenceChecking` | 只读提供受版本控制内容、构建进程和 Cargo 完整性事实；规则文档不能提供这些能力 |
+| `RecordStore` | 原子记录与跨进程修改锁 |
+
+采用包内职责与小接口，不引入插件系统或按规则拆服务。CLI 独立运行。未来 Windows 必须独立实现并验证位置、应用活动与回收站行为后再启用。
 
 ## 4. 职责边界
 
@@ -143,6 +187,8 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 5. 无法满足计划绑定时跳过或拒绝，不退回通用递归删除。
 
 系统废纸篓 API、文件描述符相对操作与目录竞态之间的组合需要原型确认。预览无法消除所有运行时竞争；不把简单的“检查后按路径操作”宣传为原子安全。此项是发布前置门槛。
+
+废纸篓后续操作核验仅容许已记录顶层目录的 `ctime` 变化，因为 macOS 可能在移动后继续更新它。对象身份与其他根字段、全部后代条目仍须与记录一致。该例外只用于已记录的废纸篓后续操作，不放宽普通扫描或移入前复核。
 
 ## 9. AI Agent 接入方式
 

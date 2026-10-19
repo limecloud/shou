@@ -1,47 +1,69 @@
-# Shou · 收
+<h1 align="center"><img src="assets/brand/shou-icon-1024.png" width="48" alt="Shou" /> Shou · 收拾一下</h1>
 
-**Tidy up. That’s it.**
+<p align="center"><strong>給 Mac，多留一點空間。</strong><br />Tidy up. That's it.</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · 繁體中文 · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
 
-原生 macOS 清理工具，透過可檢視、可重複使用的規則，整理應用程式與開發專案。
+<p align="center">
+  <a href="https://github.com/limecloud/shou/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/limecloud/shou?display_name=tag&amp;sort=semver" /></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&amp;logoColor=white" />
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%26_Intel-universal-555" />
+  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
+</p>
 
-> **狀態：設計階段。** 應用程式與 CLI 尚未推出；以下描述規劃中的功能。README 譯文不代表應用程式已支援該語言。
+原生 macOS 清理工具，整理應用程式快取、開發專案與不斷增大的資料夾。看清空間去向，確認清理範圍，將個人規則留到下次。
 
-## 為什麼選擇 Shou
+## 下載與安裝
 
-Rust `target`、Node.js 相依套件、專案快取及個人建置輸出，可能讓一台 500 GB 的 Mac 頻繁面臨空間不足。不同專案的目錄用途各異，光憑名稱或大小無法判斷能否清理。
+Shou v0.1.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Silicon 與 Intel Mac。開啟磁碟映像，將 **Shou.app** 拖入 **Applications**。介面提供英文與簡體中文。
 
-Shou 將經過檢視的清理方式保存為個人規則：**找出占用 → 了解用途 → 定義規則 → 預覽 → 確認 → 再次使用。** 現有規則格式能表達的調整不需等待應用程式更新；引擎新增能力仍需升級。
+[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-## 規劃中的能力
+此版本使用 ad-hoc 簽章，未經 Apple 公證。如首次啟動遭阻擋，確認下載來源後，前往**系統設定 → 隱私權與安全性 → 強制打開**。
 
-- **專案空間分析**：在明確選取的工作區中，區分建置產物、已安裝相依套件、原始碼與未分類資料。
-- **個人規則**：設定路徑、專案標記、保留條件與排除項目，預覽實際影響。
-- **獨立雙入口**：原生桌面介面與 CLI 共用核心，各自完成規則管理、掃描、計畫與清理紀錄查詢。
-- **方便現有 Agent 操作**：Codex、Claude Code、WorkBuddy 等可透過穩定 CLI 與 JSON 加入停用的規則草稿。Shou 不接入模型，也不開發或託管 Agent。
-- **原生架構**：Swift、SwiftUI 與 AppKit；monorepo 共享可移植核心，未來 Windows 需獨立實作與驗證。
+## Shou 的功能
 
-## 清理前先檢視
+| | |
+| --- | --- |
+| **應用程式快取** | 集中檢視 Chrome、Edge、Firefox、Codex、Claude、QQ、微信等快取。 |
+| **開發工具與專案** | 尋找 npm、Cargo、Xcode、Python、Go 快取，以及 Rust target、Node.js 相依套件與 Swift 建置產物。 |
+| **空間分析** | 透過矩形樹圖與目錄清單逐層檢視資料夾大小。 |
+| **個人規則** | 為可重新產生的資料夾建立規則，預覽後重複使用。 |
+| **歷史與還原** | 檢視結果、還原選取項目，或另行確認永久移除本次清理項目。 |
+| **線上更新** | 從設定或 Shou 選單檢查更新，安裝前驗證套件簽章。 |
 
-規則不能擴大作業系統權限。草稿必須經過驗證與預覽；啟用規則不等於授權刪除。每次執行都需要針對具體計畫確認，CLI 不提供略過確認的參數。
+## 三步整理空間
 
-預設移到垃圾桶；永久移除本次清理項目需要另外確認，不清空其他垃圾桶內容。移入垃圾桶的容量與磁碟實際可用空間分開呈現。`node_modules` 屬於需要高度審閱的相依套件，不視為一般快取；名稱、鎖定檔與時間條件都不能保證可重建。
+1. **掃描。** 選擇應用程式清理或加入工作區；掃描不會刪除檔案。
+2. **檢視。** 確認路徑、大小、風險與重新產生的條件。
+3. **確認。** 將選取項目移至垃圾桶，需要時從歷史記錄還原。
+
+移至垃圾桶不會立即釋放空間。永久移除須另外確認且無法復原。受保護內容、排除規則及執行中的應用程式或建置可能阻止清理。
+
+## 檔案由你決定
+
+規則在本機執行，不執行 Shell 命令。無需帳號、模型連線或雲端掃描；規則與歷史記錄保存在 Mac 上。
+
+## 終端機使用
+
+獨立 CLI 可管理規則、掃描、計畫與歷史記錄；清理及還原須互動確認。
+
+```sh
+/Applications/Shou.app/Contents/Helpers/shou --help
+/Applications/Shou.app/Contents/Helpers/shou capabilities --json
+/Applications/Shou.app/Contents/Helpers/shou system scan --json
+```
 
 ## 文件與參與
 
-[English documentation](docs/README.md) · [简体中文技术文档](docs/zh-CN/README.md) · [國際化規範（英文）](docs/product/internationalization.md)
+建置、測試、規則與 CLI 用法請見文件。歡迎透過 Issues 提供問題與建議。
 
-目前倉庫包含設計文件、規則合同草案與範例，尚無可下載程式。歡迎透過 [Issues](https://github.com/limecloud/shou/issues) 提供已去除敏感資訊的使用情境，或協助校對翻譯。
+[Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
-## 鳴謝
+## 致謝
 
-- [Mole](https://github.com/tw93/mole)：開發者終端工作流程與多語言專案呈現。
-- [Pulse](https://pulse.egoist.dev/)：原生 macOS 資訊組織與空間概覽。
-- [BuhoCleaner](https://www.drbuho.com/buhocleaner)：磁碟瀏覽與清理結果分組。
-
-感謝以上專案帶來的產品與設計啟發；鳴謝不代表專案關聯或程式碼相依關係。
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## 授權條款
 
-[Apache License 2.0](LICENSE)。
+[Apache License 2.0](LICENSE).

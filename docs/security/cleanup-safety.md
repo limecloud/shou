@@ -32,6 +32,14 @@ Scan explicit workspaces rather than expand to home roots, other users, or volum
 
 Executable scope initially excludes unsupported/network/cloud-placeholder filesystems. Rules cannot remove exclusions, enable link following, or enlarge roots.
 
+### Read-worker boundary
+
+The desktop delegates root identity and bounded traversal to short-lived instances of its packaged CLI. This internal entry performs reads only, opens no record store and cannot plan, confirm, move, restore or purge. It has the current user's privileges; it grants no extra filesystem access and does not bypass TCC. Platform access must still be verified for the packaged processes.
+
+Temporary IPC uses a `0700` directory and `0600` files. Readers require current-user regular files with one link, reject symlink following and enforce size limits. Request/result version and request identity, the requesting parent, progress bounds and snapshot paths/coverage are validated. Invalid, foreign, incomplete or unavailable results fail closed; progress is never authorization.
+
+Cancellation/timeout terminates only the owned read child, without waiting for kernel exit. A two-live-child cap and parent/deadline watchdog prevent unbounded accumulation; they cannot force an outstanding kernel call to finish immediately. This is a responsiveness boundary, not protection from an equally privileged malicious process. Confirmed mutations remain in the parent with live native verification. Read-worker source exists, but packaged cancellation/timeout acceptance remains pending.
+
 ## 4. Protection
 
 Block workspace/home/volume roots, system locations, other-user data, out-of-scope targets, root/ancestor links, and unknown link types. Protect identified version metadata, keys/credentials, keychains, Shou configuration/receipts, user source/project roots and their manifests/lockfiles, persistent databases, and container/VM disks.
@@ -46,7 +54,7 @@ Known internal POSIX symlinks such as npm `.bin` are opaque entries. Do not trav
 
 ## 5. Plans and confirmation
 
-Read-only scans may persist evidence without moving targets. Partial/cancelled/limited scans are not executable. Plans bind exact paths, identity, full manifests, rules, configuration, action, digest, and expiry; resolve duplicates and parent/child conflicts first.
+Read-only scans may persist evidence without moving targets. An incomplete target is never executable. A partial scan may retain independently complete, policy-valid siblings; plans require positive subtree coverage and unchanged full manifests for every selected target. Legacy partial records without coverage do not gain eligibility. Cleanup-mode discovery completion is not proof of whole-tree measurement. Plans bind exact paths, identity, full manifests, rules, configuration, action, digest, and expiry; resolve duplicates and parent/child conflicts first.
 
 Changing selection or configuration invalidates old confirmation. Local files require verification; persisted `approved=true` is never authority.
 
@@ -58,6 +66,10 @@ Acquire a cross-process lock; verify scope, configuration, root/object identity,
 
 Prototype the interaction between `FileManager.trashItem`, descriptors, identity binding, and directory replacement. If constraints cannot be met, narrow supported scenarios or ship read-only functionality. Permanent removal must stay bounded to verified manifest entries, never an unbounded recursive fallback.
 
+Generated-source exceptions require an exact trusted bundled rule and native ownership/activity facts; imported rules cannot request them. Recognized Rust `OUT_DIR` and Swift generated products do not exempt nearby source checkouts, manifests, credentials or repositories. Cargo extracted sources additionally require an unchanged source inventory, verified checksums and matching retained local archive. Missing tools, active build processes, tracked content, modifications or unavailable evidence fail closed.
+
+Execution stop is cooperative at safe item boundaries. Do not promise to interrupt a single in-progress system Trash call. Reconcile that call, retain completed results and mark remaining items accurately; a stop request is not a rollback.
+
 ## 7. Trash, permanent removal, restoration
 
 Default to system Trash, recording actual returned locations rather than guessing names. If Trash fails, do not fall back to deletion. A same-volume move usually does not free storage.
@@ -67,6 +79,8 @@ Permanent removal of this cleanup batch is separate, explicitly confirmed, and i
 Report estimated processed bytes and observed volume availability separately. APFS clones, hard links, snapshots, open files, and other processes affect outcomes.
 
 Before restoration verify source identity, destination, and permissions; never overwrite. Offer another verified location or cancellation. External Trash emptying, permanent removal, missing objects, and access changes can make recovery unavailable. Batch cleanup is not transactional rollback.
+
+For a recorded Trash directory only, follow-up verification may ignore its top-level `ctime` change caused by asynchronous macOS metadata updates. The root identity and every other recorded root field must match, and the full descendant manifest must remain identical. Changed contents, new descendants, replacement objects and other metadata changes still block restoration or permanent removal. Ordinary scan and pre-Trash checks keep their original comparison.
 
 ## 8. Local records and privacy
 

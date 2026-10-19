@@ -6,15 +6,37 @@
 
 ## 1. 从占用发现到个人规则
 
+桌面默认入口扫描常用应用／开发工具固定缓存位置及已登记项目，无需选择目录。CLI 的 `system scan` 默认只扫描固定位置，`--include-projects true` 纳入已登记项目。两者默认使用清理模式，均不隐式遍历主目录发现项目；仍可显式扫描项目，空间浏览使用完整模式。
+
+```mermaid
+flowchart TD
+    Start[扫描常用软件] --> Inventory[盘点明确的固定根]
+    Inventory --> Register[生成证据前注册全部可用根]
+    Register --> Scan[按根有界扫描]
+    Scan --> State{目标子树完整?}
+    State -->|否| Issue[阻止受影响目标并保留完整兄弟目标]
+    Issue --> Results
+    State -->|是| Activity[应用活动与保护检查]
+    Activity --> Results[分别展示可审阅与被阻止结果]
+    Results --> Select[在单一根中选择候选项]
+    Select --> Preview[生成具体计划并确认]
+    Preview --> Recheck[逐项复核文件与应用状态]
+    Recheck --> Receipt[记录移入、跳过、失败或未知]
+    Receipt --> Restore[单独确认并恢复可核验项目]
+```
+
+移入废纸篓仅报告处理量估计，不作为已释放空间。即使整体扫描为 partial，也只有独立完整目标可以进入计划；旧记录缺少覆盖证据不能授权不完整目标，清理模式完成不代表全树已测量。
+
 ```mermaid
 flowchart TD
     Start[选择工作区] --> Access{当前入口有访问权限?}
     Access -->|否| Grant[引导系统授权或缩小范围]
     Grant --> Access
-    Access -->|是| Scan[只读扫描与空间统计]
+    Access -->|是| Scan[完整模式只读空间扫描]
     Scan --> Complete{扫描完整?}
     Complete -->|否| Partial[展示部分结果与覆盖缺口]
     Partial --> Grant
+    Partial --> Classify
     Complete -->|是| Classify[按项目与目录查看占用]
     Classify --> Known{已有合适规则?}
     Known -->|是| Evidence[查看命中依据与风险]
@@ -28,11 +50,13 @@ flowchart TD
     Review -->|是| Enable[用户审阅后启用]
     Enable --> Rescan[按启用版本重新扫描]
     Rescan --> Evidence
-    Evidence --> Select[用户显式选择候选项]
+    Evidence --> Target{目标子树完整?}
+    Target -->|否| Grant
+    Target -->|是| Select[用户显式选择候选项]
     Select --> Plan[生成固定清理计划]
 ```
 
-没有规则的大目录不会被隐藏，也不会仅凭体积成为可执行目标。完整扫描是计划前提；权限缺口需修复或通过更窄范围重新扫描。
+完整扫描展示没有规则的大目录，但不会仅凭体积赋予执行资格；清理快照只包含规则指向的证据。目标证据不完整时须修复权限或重扫受影响范围；无关范围的缺口不使完整兄弟目标失效。
 
 ## 2. 计划与执行决策
 
@@ -169,7 +193,7 @@ sequenceDiagram
 ## 7. 状态一致性要求
 
 - 用户改变排除、规则或动作后，当前预览与确认不能继续沿用。
-- 取消尽快停止启动新项，已经完成的移动保留在历史中。
+- 取消在安全项目边界停止启动新项；单次系统废纸篓调用可能先完成，已经发生的移动须核验并保留在历史中。
 - 批次不是全有或全无事务，部分成功必须直说。
 - 历史是操作事实；当前是否可恢复由现场核验决定。
 - 成功路径与异常路径都必须在 CLI 和 GUI 中有对应表示，不能只在日志里记录。

@@ -70,8 +70,13 @@ Use controlled sizes rather than filling tens of gigabytes solely for examples. 
 | S12 | Restore path occupied | No overwrite |
 | S13 | Control sequences/instruction-like filenames | Correct JSON and safe terminal rendering |
 | S14 | Trash capability unavailable | No permanent-delete fallback |
-| S15 | Partial or cancelled scan | No executable plan |
+| S15 | Partial or cancelled coverage | Incomplete targets blocked; independent complete siblings require positive coverage and full manifests |
 | S16 | Known dependency symlinks point outside | Process links only; preserve outside content and identity |
+| S17 | Legacy partial record without coverage | Missing `completedPaths` never grants eligibility |
+| S18 | Cleanup discovery complete with a sparse tree | `scope=cleanup`, `treeComplete=false`; space analysis requires `full` and UI explains missing coverage |
+| S19 | Generated Rust/Swift sources or Cargo extracted sources | Exact trusted rule plus native layout/activity/ownership/integrity evidence; tracked/modified/unknown content blocked |
+| S20 | Execution stopped during a system Trash call | No new item starts after the safe boundary; reconcile the active call and preserve actual outcomes |
+| S21 | CLI and desktop standard scans | CLI `scan` defaults full, `system scan` cleanup with projects default false; desktop includes only registered projects, never implicit home discovery |
 
 Any unconfirmed destruction, outside-scope processing, overwrite, or blind retry blocks release. Passing fixtures is not a universal no-risk guarantee.
 
@@ -108,3 +113,24 @@ Test actual core/CLI/UI, ACLs, occupied files, long paths, junctions/reparse poi
 ## 10. Reporting
 
 Reports include build/contract versions, platform/client/locale, executed/pass/fail/skip cases, logs, limits, and reproductions without private data. Documentation checks establish only static document/schema validity, never MVP completion or runtime safety.
+
+## 11. Local verification record — 2026-10-19
+
+This scoped record supplements the acceptance plan. It does not establish full product or release acceptance. Environment: macOS 15.7.3 (24G419), Apple Silicon MacBookPro17,1, 16 GiB RAM; local debug application installed at `/Applications/Shou.app`, ad-hoc signed and not notarized.
+
+| Scope | Observed result | Evidence under local `.build/` |
+| --- | --- | --- |
+| Core and isolated read worker | 94/94 checks passed, including protocol rejection, evidence equivalence, cancellation and timeout | `read-worker-core-final.log` |
+| Independent CLI contract | 58 checks passed without modifying cleanup targets | `read-worker-cli-contract.log` |
+| Built-in native cleanup | 74 rules and 460 patterns exercised within an 80/80 suite; real Trash → restore, retained files and hashes preserved, purge disabled | `complete-cleanup-native-final.log` |
+| Large native target | 100,103 files and 100,204 manifest entries; Trash → restore with descendant metadata and sentinel hashes verified | `large-target-trash-restore.log` |
+| Installed desktop cleanup | Project scan → preview/cancel → confirmed Trash → history → confirmed restore; all 1,035 fixture file SHA-256 hashes matched | `ui-cleanup-acceptance/gui-restore-verification.json` |
+| Personal rule | Disabled draft, read-only preview, export, enable and fresh scan → confirmed cleanup → GUI restore; same 1,035 hashes matched; duplicate import remained idempotent and invalid JSON was rejected | `ui-cleanup-acceptance/gui-personal-rule-verification.json` and Computer Use observations |
+| Desktop batch and execution stop | 24 generated targets completed Trash → GUI restore. A second run stopped after the first completed item: two moved, 22 left unprocessed and zero failures; the two moved items were then restored through the GUI. All 12,336 file SHA-256 hashes matched after each restoration | `ui-cleanup-acceptance/gui-batch-restore-verification.json`, `gui-execution-stop-verification.json` and `gui-execution-stop-restore-verification.json` |
+| Standard scan | Reached the aggregate result page with zero selected items; timeout warnings identified QQ, both WeChat locations and one registered project. Estimated discovered occupancy was 10.45 GB on this machine | Computer Use observations; `desktop-responsive-install.json` |
+| Standard-scan cancellation | Stop at the previously stalled QQ root returned to the start page without an error alert; another scan could start immediately | Computer Use observations |
+| Localization | Installed application switched Chinese → English → Chinese immediately; 543 resource keys checked in two runtime languages | Computer Use observations and localization checker |
+
+Standard scan completion here means the workflow reached its result page. Its status was **partial**: inaccessible or time-limited roots were reported rather than treated as fully scanned. No real user caches or projects were cleaned. Moving test targets to Trash did not count as released disk space.
+
+Independent rule/history buttons and the history result action were verified after replacing the previous grouped accessibility structure with plain native layout containers. The earlier Computer Use native-service crash is not evidence of a Shou crash; Shou's sampled main thread was idle. Remaining gates include final follow-up button-state and filtered bulk-selection regressions, VoiceOver, system Reduce Motion, actual third-party agent clients, permanent removal and production distribution.

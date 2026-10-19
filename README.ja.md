@@ -1,47 +1,69 @@
-# Shou · 收
+<h1 align="center"><img src="assets/brand/shou-icon-1024.png" width="48" alt="Shou" /> Shou · 收拾一下</h1>
 
-**Tidy up. That’s it.**
+<p align="center"><strong>Mac に、もう少しゆとりを。</strong><br />Tidy up. That's it.</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · 日本語 · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
 
-開発プロジェクトやアプリのデータを、内容を確認できる再利用可能なルールで整理する、ネイティブ macOS クリーナー。
+<p align="center">
+  <a href="https://github.com/limecloud/shou/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/limecloud/shou?display_name=tag&amp;sort=semver" /></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&amp;logoColor=white" />
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%26_Intel-universal-555" />
+  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
+</p>
 
-> **現在は設計段階です。** アプリと CLI はまだ公開されていません。以下は計画中の機能です。README の翻訳は、その言語でアプリが利用できることを意味しません。
+アプリのキャッシュ、開発プロジェクト、増え続けるフォルダを整理するネイティブ macOS クリーナー。容量を調べ、対象を確認し、自分用のルールを再利用できます。
 
-## Shou が目指すこと
+## ダウンロードとインストール
 
-Rust の `target`、Node.js の依存関係、プロジェクトのキャッシュや独自のビルド出力は、500 GB の Mac の容量を繰り返し圧迫します。同じ名前のフォルダでも役割は異なり、名前やサイズだけでは削除してよいか判断できません。
+Shou v0.1.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
 
-Shou は確認済みの整理方法を個人用ルールにします。**容量を調べる → 用途を理解する → ルールを作る → プレビュー → 確認 → 再利用。** 既存のルール形式で表現できる変更には、アプリの更新は不要です。エンジンの新機能には更新が必要です。
+[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-## 計画中の機能
+この版は ad-hoc 署名で、Apple の公証は受けていません。初回起動がブロックされた場合は、配布元を確認してから**システム設定 → プライバシーとセキュリティ**で開く許可を確認してください。
 
-- **プロジェクト別の容量分析**：明示的に選択したワークスペースで、ビルド成果物、依存関係、ソース、未分類データを区別します。
-- **個人用ルール**：パス、プロジェクトの識別ファイル、保持条件、除外対象を設定し、対象とリスクを確認します。
-- **独立したデスクトップと CLI**：共通コアを使い、それぞれでルール管理、スキャン、計画、履歴確認を行えます。
-- **既存 Agent 向けのインターフェース**：Codex、Claude Code、WorkBuddy などが安定した CLI と JSON を通じて、無効状態のルール案を追加できます。Shou はモデルを組み込まず、Agent の開発やホスティングも行いません。
-- **ネイティブな設計**：Swift、SwiftUI、AppKit を使用します。monorepo で移植可能なコアを共有し、将来の Windows 対応は個別に実装・検証します。
+## Shou の機能
 
-## 実行前に確認
+| | |
+| --- | --- |
+| **アプリのキャッシュ** | Chrome、Edge、Firefox、Codex、Claude、QQ、WeChat などをまとめて確認。 |
+| **開発ツールとプロジェクト** | npm、Cargo、Xcode、Python、Go のキャッシュ、Rust target、Node.js の依存関係、Swift 成果物を検出。 |
+| **容量の分析** | ツリーマップとフォルダ一覧で容量を階層ごとに確認。 |
+| **個人ルール** | 再生成可能なフォルダのルールを作成し、プレビューして再利用。 |
+| **履歴と復元** | 結果を確認して選択項目を復元。完全削除は別途確認。 |
+| **オンライン更新** | 設定や Shou メニューから更新を確認。インストール前に署名を検証。 |
 
-ルールで OS の権限を拡張することはできません。ルール案は検証とプレビューを経て確認します。有効化は削除の許可ではありません。実行ごとに具体的な計画への確認が必要で、CLI に確認を省略するオプションは設けません。
+## 3 ステップで整理
 
-既定の操作はゴミ箱への移動です。今回の処理対象を完全に削除するには別途確認が必要で、無関係なゴミ箱の項目は削除しません。移動した容量と実際の空き容量は分けて表示します。`node_modules` は慎重な確認が必要な依存関係であり、一般的なキャッシュとは扱いません。名前、ロックファイル、経過時間だけでは再生成を保証できません。
+1. **スキャン。** アプリの整理を選ぶか、ワークスペースを追加。スキャンは削除しません。
+2. **確認。** パス、容量、リスク、再生成条件を確認して対象を選択。
+3. **実行。** 選択項目をゴミ箱へ移動。必要なら履歴から復元。
+
+ゴミ箱への移動では空き容量はすぐに増えません。完全削除には別の確認が必要で、取り消せません。保護対象、除外設定、実行中のアプリやビルドは整理をブロックすることがあります。
+
+## ファイルの扱いは自分で決める
+
+ルールはローカルで動作し、Shell コマンドは実行しません。アカウント、モデル接続、クラウドスキャンは不要。ルールと履歴は Mac に保存されます。
+
+## ターミナルで使う
+
+独立 CLI でルール、スキャン、計画、履歴を管理。整理と復元には対話的な確認が必要です。
+
+```sh
+/Applications/Shou.app/Contents/Helpers/shou --help
+/Applications/Shou.app/Contents/Helpers/shou capabilities --json
+/Applications/Shou.app/Contents/Helpers/shou system scan --json
+```
 
 ## ドキュメントと参加
 
-[English documentation](docs/README.md) · [简体中文技术文档](docs/zh-CN/README.md) · [国際化の仕様（英語）](docs/product/internationalization.md)
+ビルド、テスト、ルール例、CLI はドキュメントを参照してください。不具合や提案は Issues へ。
 
-現在のリポジトリには設計文書、ルール仕様の草案、サンプルが含まれます。ダウンロード可能なアプリはありません。[Issues](https://github.com/limecloud/shou/issues) で機密情報を除いた利用例や翻訳の改善を歓迎します。
+[Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
 ## 謝辞
 
-- [Mole](https://github.com/tw93/mole)：開発者向けのターミナル操作と多言語のプロジェクト紹介。
-- [Pulse](https://pulse.egoist.dev/)：ネイティブ macOS の情報設計と容量の概要表示。
-- [BuhoCleaner](https://www.drbuho.com/buhocleaner)：ディスクの閲覧と整理結果のグループ表示。
-
-製品とデザインの着想に感謝します。謝辞は提携関係やコードへの依存を意味しません。
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## ライセンス
 
-[Apache License 2.0](LICENSE)。
+[Apache License 2.0](LICENSE).

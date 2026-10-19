@@ -7,7 +7,7 @@
 ## 状态与约定
 
 - 更新日期：2026-10-19。
-- 当前状态：设计草案，尚未实现应用、规则引擎或 CLI。
+- 当前状态：开发阶段，已提供原生应用、规则引擎与 CLI 源码，尚未完成完整发布验收。
 - Swift 原生开发、macOS 原生设计、CLI 与桌面双入口、monorepo 与未来 Windows 支持，以及不接入模型、不开发 Agent 是已确认约束。
 - macOS 14+、模块拆分、规则字段、命令名和里程碑是首版设计基线，允许通过记录决策调整。
 - 所有性能、兼容性与安全指标均为验收目标，不能作为已完成能力对外宣传。
@@ -19,12 +19,13 @@
 | --- | --- |
 | 了解为什么做 | [PRD](product/prd.md) → [用户故事](product/user-stories-and-use-cases.md) |
 | 对照实际占用问题 | [开发者空间场景](product/developer-space-scenarios.md) → [规则规范](rules/rule-specification.md) |
-| 开始界面设计 | [macOS 产品体验](product/macos-experience.md) → [流程与时序](architecture/workflows-and-sequences.md) |
+| 开始界面设计 | [macOS 产品体验](product/macos-experience.md) → [参考设计](engineering/reference-design.md) → [流程与时序](architecture/workflows-and-sequences.md) |
 | 规划多语言支持 | [国际化规范](product/internationalization.md) → [验收与测试](engineering/acceptance-and-testing.md) |
 | 实现核心能力 | [系统架构](architecture/system-design.md) → [数据模型](architecture/data-model.md) → [规则规范](rules/rule-specification.md) |
 | 理解工程与平台 | [Monorepo 与平台边界](architecture/monorepo-and-platforms.md) → [系统架构](architecture/system-design.md) |
 | 让已有 Agent 操作 | [Agent 操作指南](ai/coding-agent-integration.md) → [CLI 合同](ai/agent-and-cli-contract.md) → [清理安全设计](security/cleanup-safety.md) |
 | 规划研发与验收 | [实施计划](engineering/implementation-plan.md) → [验收与测试](engineering/acceptance-and-testing.md) |
+| 本地构建与验证 | [开发指南](engineering/development.md) |
 
 ## 核心共识
 

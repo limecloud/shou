@@ -1,46 +1,68 @@
-# Shou · 收
+<h1 align="center"><img src="assets/brand/shou-icon-1024.png" width="48" alt="Shou" /> Shou · 收拾一下</h1>
 
-**Tidy up. That’s it.**
+<p align="center"><strong>Un poco más de espacio en tu Mac.</strong><br />Tidy up. That's it.</p>
 
-[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · Español · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
+[English](README.md) · [简体中文](README.zh-CN.md) · [繁體中文](README.zh-TW.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [Español](README.es.md) · [Português (Brasil)](README.pt-BR.md) · [Русский](README.ru.md) · [Українська](README.uk.md)
 
-Una herramienta de limpieza nativa para macOS con reglas que se pueden revisar y reutilizar en proyectos de desarrollo y aplicaciones.
+<p align="center">
+  <a href="https://github.com/limecloud/shou/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/limecloud/shou?display_name=tag&amp;sort=semver" /></a>
+  <img alt="macOS 14+" src="https://img.shields.io/badge/macOS-14%2B-111827?logo=apple&amp;logoColor=white" />
+  <img alt="Apple Silicon and Intel" src="https://img.shields.io/badge/Apple_Silicon_%26_Intel-universal-555" />
+  <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
+</p>
 
-> **Estado: fase de diseño.** La aplicación y la CLI todavía no están disponibles. Las funciones siguientes están previstas. Un README traducido no significa que la aplicación ya admita ese idioma.
+Un limpiador nativo de macOS para cachés, proyectos de desarrollo y carpetas que crecen. Consulta el espacio, revisa la selección y reutiliza tus reglas.
 
-## ¿Por qué Shou?
+## Descarga e instalación
 
-Los directorios Rust `target`, las dependencias de Node.js, las cachés de proyectos y los archivos de compilación pueden llenar repetidamente un Mac de 500 GB. La función de cada directorio depende del proyecto: su nombre o tamaño no bastan para saber si se puede eliminar.
+Shou v0.1.0 requiere **macOS 14 o posterior**. La app universal funciona en Apple Silicon e Intel. Arrastra **Shou.app** de la imagen de disco a **Applications**. La interfaz está en inglés y chino simplificado.
 
-Shou convierte una decisión de limpieza revisada en una regla personal: **Encontrar → Comprender → Definir una regla → Previsualizar → Confirmar → Reutilizar.** Los cambios que permite el formato de reglas existente no requieren actualizar la aplicación. Las nuevas capacidades del motor sí requieren una actualización.
+[**Shou v0.1.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.1.0/Shou-0.1.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.1.0/shou-0.1.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-## Funciones previstas
+Esta versión tiene firma ad-hoc y no está notarizada por Apple. Si macOS bloquea el inicio, comprueba la fuente y consulta **Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente**.
 
-- **Análisis por proyecto:** distinguir archivos de compilación, dependencias instaladas, código fuente y datos sin clasificar en espacios de trabajo seleccionados explícitamente.
-- **Reglas personales:** definir rutas, marcadores de proyecto, condiciones de conservación y exclusiones; revisar los elementos afectados y los riesgos.
-- **Escritorio y CLI independientes:** un núcleo compartido para gestionar reglas, analizar, preparar planes y consultar el historial desde cualquiera de las dos interfaces.
-- **Interfaces para agentes existentes:** Codex, Claude Code, WorkBuddy y herramientas similares pueden añadir borradores de reglas desactivados mediante una CLI estable y JSON. Shou no integra modelos ni desarrolla o aloja agentes.
-- **Arquitectura nativa:** Swift, SwiftUI y AppKit. Núcleo portable en un monorepo; Windows requerirá una implementación y validación propias más adelante.
+## Qué puede hacer Shou
 
-## Revisar antes de limpiar
+| | |
+| --- | --- |
+| **Cachés de aplicaciones** | Revisa juntas las cachés de Chrome, Edge, Firefox, Codex, Claude, QQ, WeChat y otras apps. |
+| **Desarrollo y proyectos** | Detecta cachés npm, Cargo, Xcode, Python y Go, Rust target, dependencias Node.js y productos Swift. |
+| **Análisis de espacio** | Explora carpetas con un mapa de árbol y una lista de directorios. |
+| **Reglas personales** | Crea reglas para carpetas regenerables, comprueba resultados y reutilízalas. |
+| **Historial y recuperación** | Consulta resultados, restaura elementos o confirma por separado su eliminación permanente. |
+| **Actualizaciones en línea** | Busca desde Ajustes o el menú Shou. La firma se verifica antes de instalar. |
 
-Las reglas no amplían los permisos del sistema operativo. Los borradores se validan y previsualizan; activar una regla no autoriza ninguna eliminación. Cada ejecución requiere confirmar un plan concreto. La CLI no ofrece opciones para omitir esa confirmación.
+## Limpia en tres pasos
 
-Por defecto, los elementos se trasladan a la Papelera. Eliminar permanentemente los elementos de esta operación exige otra confirmación y no vacía otros contenidos de la Papelera. El volumen trasladado y el espacio realmente disponible se muestran por separado. `node_modules` contiene dependencias que requieren una revisión cuidadosa, no simples cachés. Los nombres, archivos de bloqueo y condiciones de antigüedad no garantizan que los datos puedan regenerarse.
+1. **Analiza.** Elige apps o añade un espacio de trabajo. El análisis no elimina archivos.
+2. **Revisa.** Comprueba rutas, tamaños, riesgos y requisitos de regeneración.
+3. **Confirma.** Mueve la selección a la Papelera; restáurala desde el historial si hace falta.
+
+La Papelera no libera espacio inmediatamente. La eliminación permanente se confirma aparte y no se puede deshacer. Contenido protegido, exclusiones, apps y compilaciones activas pueden bloquear la limpieza.
+
+## Tus archivos, tu decisión
+
+Las reglas son locales y no ejecutan comandos Shell. No necesitas cuenta, modelos ni análisis en la nube. Reglas e historial permanecen en tu Mac.
+
+## Uso desde el terminal
+
+La CLI independiente gestiona reglas, análisis, planes e historial. Limpieza y recuperación requieren confirmación interactiva.
+
+```sh
+/Applications/Shou.app/Contents/Helpers/shou --help
+/Applications/Shou.app/Contents/Helpers/shou capabilities --json
+/Applications/Shou.app/Contents/Helpers/shou system scan --json
+```
 
 ## Documentación y contribuciones
 
-[English documentation](docs/README.md) · [简体中文技术文档](docs/zh-CN/README.md) · [Internacionalización (inglés)](docs/product/internationalization.md)
+Consulta la documentación para compilar, probar y usar reglas o la CLI. Envía problemas y sugerencias mediante Issues.
 
-El repositorio contiene documentos de diseño, un contrato provisional de reglas y ejemplos. Todavía no hay una aplicación descargable. Las [Issues](https://github.com/limecloud/shou/issues) reciben casos concretos sin datos confidenciales y mejoras de traducción.
+[Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
 ## Agradecimientos
 
-- [Mole](https://github.com/tw93/mole): flujos de trabajo de terminal para desarrolladores y presentación multilingüe del proyecto.
-- [Pulse](https://pulse.egoist.dev/): organización nativa de información en macOS y resúmenes del espacio disponible.
-- [BuhoCleaner](https://www.drbuho.com/buhocleaner): exploración del disco y agrupación de los resultados de limpieza.
-
-Gracias por la inspiración en producto y diseño. Estos agradecimientos no implican afiliación ni dependencia de código.
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## Licencia
 

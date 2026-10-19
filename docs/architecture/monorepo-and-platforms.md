@@ -12,7 +12,7 @@ Mobile projects, model integrations, and agent hosting are outside scope. Build 
 
 ## 2. Target layout
 
-The repository currently contains documentation, schemas, and examples. This layout describes future code organization.
+The root Swift package builds current macOS/CLI/core/platform targets. Windows and brand-source directories below remain future deliverables. See [local development](../engineering/development.md).
 
 ```text
 shou/

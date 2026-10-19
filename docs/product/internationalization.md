@@ -6,14 +6,14 @@ Status: design draft. Documentation translations and runtime language support ha
 
 ## 1. Objectives
 
-Provide global developers with consistent product information, rule explanations, and cleanup confirmation. English is the default public documentation language. Machine contracts remain language-independent; native interfaces follow system language and formatting conventions.
+Provide global developers with consistent product information, rule explanations, and cleanup confirmation. English is the default public documentation language. The desktop application starts in Simplified Chinese and remembers an explicit language selection. Machine contracts remain language-independent.
 
 ## 2. Language matrix
 
 | Language | Documentation tag | Platform language | README | Technical docs | Application and CLI |
 | --- | --- | --- | --- | --- | --- |
-| English | `en` | `en` | Default | Default | Initial target; unimplemented |
-| 简体中文 | `zh-CN` | `zh-Hans` | Localized | Complete edition | Initial target; unimplemented |
+| English | `en` | `en` | Default | Default | Initial target; implementation and acceptance in progress |
+| 简体中文 | `zh-CN` | `zh-Hans` | Localized | Complete edition | Initial target; implementation and acceptance in progress |
 | 繁體中文 | `zh-TW` | `zh-Hant` | Localized | As needed | Enable after reviewed resources and tests |
 | 日本語 | `ja` | `ja` | Localized | As needed | Enable after reviewed resources and tests |
 | 한국어 | `ko` | `ko` | Localized | As needed | Enable after reviewed resources and tests |
@@ -38,7 +38,9 @@ Advertise only existing documentation links. Actual runtime languages are declar
 
 ## 4. Desktop localization
 
-Use macOS String Catalogs (`.xcstrings`), English as development language, and system/app-specific language preferences. Use full strings, placeholders, and plural rules rather than concatenated sentences.
+Use macOS String Catalogs (`.xcstrings`) with English as the development language. On first launch, or if a saved language is unsupported, use Simplified Chinese (`zh-CN`). Preserve an existing supported selection (`zh-CN` or `en`). The toolbar language menu and Settings share one preference; switching updates navigation, summaries, status messages, native table headers and rows, and date formatting immediately, with no restart or rescan. Preserve the scan, expanded rows, and cleanup selection. Persist the selection across launches.
+
+Resolve localization bundle tags case-insensitively: SwiftPM emits `zh-hans.lproj`, while the catalog uses `zh-Hans`. Check resource lookup in both directions within one process and verify packaged resources. Use full strings, placeholders, and plural rules rather than concatenated sentences.
 
 Localize numbers, dates, times, and capacity formatting without changing the defined decimal measurement basis. Preserve paths, filenames, rule IDs, and object IDs. Test longer translations, pseudo-localization, accessibility text, and narrow layouts. Review Simplified and Traditional Chinese independently.
 
