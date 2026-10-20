@@ -127,7 +127,7 @@ enum DesktopBridge {
             return try .from(await engine.setGlobalExclusion(pattern: string("pattern"), remove: remove))
         case "storage.scan":
             let scan=try await engine.scanStorage(path: string("path"), budget: ScanBudget(), progress: scanProgress)
-            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
+            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
         case "storage.directory": return try directoryValue(await engine.storageDirectory(scanId: string("scan_id"), path: input["path"]?.string ?? "."))
         default: throw ShouError("capability_unavailable", "This desktop operation is not available.")
         }
@@ -147,8 +147,13 @@ enum DesktopBridge {
     private static func receiptSummary(_ receipt: ExecutionReceipt, followUps: [FollowUpReceipt]) throws -> JSONValue {
         .object(["id": .string(receipt.id), "created_at": try .from(receipt.createdAt), "state": .string(receipt.state), "root_path": .string(receipt.workspace.path),
             "items": .array(receipt.items.map { item in
+                let followUp=followUps.filter { $0.executionId == receipt.id && $0.itemId == item.id }.max { $0.createdAt < $1.createdAt }
                 let followed=followUps.contains { $0.executionId == receipt.id && $0.itemId == item.id && ($0.state == "completed" || $0.state == "pending") }
-                return .object(["id": .string(item.id), "path": .string(item.originalPath), "state": .string(followed ? "followed_up" : item.state), "bytes": .integer(item.allocatedBytesEstimate), "error": item.error.map(JSONValue.string) ?? .null, "can_restore": .bool(item.state == "trashed" && !followed)])
+                let state: String
+                if let followUp, followUp.state == "pending" { state="needs_verification" }
+                else if let followUp, followUp.state == "completed" { state=followUp.action == "restore" ? "restored" : "purged" }
+                else { state=item.state }
+                return .object(["id": .string(item.id), "path": .string(item.originalPath), "state": .string(state), "bytes": .integer(item.allocatedBytesEstimate), "error": (followUp?.error ?? item.error).map(JSONValue.string) ?? .null, "resulting_path": (followUp?.resultingPath ?? item.trashPath).map(JSONValue.string) ?? .null, "can_restore": .bool(item.state == "trashed" && !followed)])
             })])
     }
     private final class LineReader: @unchecked Sendable {

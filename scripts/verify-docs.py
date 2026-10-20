@@ -16,7 +16,7 @@ documents.sort()
 errors = []
 links = 0
 for path in documents:
-    content = path.read_text()
+    content = path.read_text(encoding='utf-8')
     fence = None
     buffer = []
     for number, line in enumerate(content.splitlines(), 1):
@@ -51,11 +51,11 @@ for path in documents:
 
 readmes = [root / 'README.md'] + [root / f'README.{locale}.md' for locale in ['zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'fr', 'es', 'pt-BR', 'ru', 'uk']]
 for current in readmes:
-    navigation = re.findall(r'\[([^\]]+)\]\((README(?:\.[A-Za-z-]+)?\.md)\)', current.read_text())
+    navigation = re.findall(r'\[([^\]]+)\]\((README(?:\.[A-Za-z-]+)?\.md)\)', current.read_text(encoding='utf-8'))
     if not navigation or navigation[0] != ('English', 'README.md'):
         errors.append(f'{current.name}: language navigation must start with English')
     for target in readmes:
-        if current != target and f']({target.name})' not in current.read_text():
+        if current != target and f']({target.name})' not in current.read_text(encoding='utf-8'):
             errors.append(f'{current.name}: missing language link to {target.name}')
 
 for english in (root / 'docs').rglob('*.md'):
@@ -68,7 +68,7 @@ for english in (root / 'docs').rglob('*.md'):
         continue
     for prefix in ('F', 'US', 'UC', 'AC', 'DEC'):
         pattern = rf'\b{prefix}\d{{2}}\b'
-        if set(re.findall(pattern, english.read_text())) != set(re.findall(pattern, chinese.read_text())):
+        if set(re.findall(pattern, english.read_text(encoding='utf-8'))) != set(re.findall(pattern, chinese.read_text(encoding='utf-8'))):
             errors.append(f'{relative}: inconsistent {prefix} identifiers')
 
 if errors:

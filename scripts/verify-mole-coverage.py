@@ -140,9 +140,9 @@ def main():
     parser.add_argument("--tested-apps-html", type=Path)
     parser.add_argument("--self-test", action="store_true")
     arguments = parser.parse_args()
-    manifest = json.loads(MANIFEST.read_text())
-    rules = json.loads((RESOURCES / "builtin-rules.json").read_text())
-    locations = json.loads((RESOURCES / "known-locations.json").read_text())
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    rules = json.loads((RESOURCES / "builtin-rules.json").read_text(encoding="utf-8"))
+    locations = json.loads((RESOURCES / "known-locations.json").read_text(encoding="utf-8"))
     validate(manifest, rules, locations)
     if arguments.source_checkout:
         validate_source(manifest, arguments.source_checkout)

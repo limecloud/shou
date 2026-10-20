@@ -9,7 +9,8 @@ namespace Shou.Windows;
 
 public sealed record WorkspaceRow(string Id, string Path, string RootRef);
 public sealed record RuleRow(string Id, string Version, string Title);
-public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds);
+public sealed record HistoryItemRow(string Path, string State, string? Error, string? ResultingPath);
+public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, HistoryItemRow[] Items);
 public sealed record StorageRow(string Path, string Size, string Kind);
 public sealed class CandidateRow(string id, string path, long bytes, bool eligible, string description) : ObservableObject
 {
@@ -64,6 +65,7 @@ public sealed class MainViewModel : ObservableObject
     public ObservableCollection<CandidateRow> Candidates { get; } = [];
     public ObservableCollection<RuleRow> Rules { get; } = [];
     public ObservableCollection<HistoryRow> History { get; } = [];
+    public ObservableCollection<HistoryItemRow> HistoryItems { get; } = [];
     public ObservableCollection<StorageRow> StorageNodes { get; } = [];
     public ObservableCollection<string> Exclusions { get; } = [];
     public IAsyncRelayCommand ChooseFolderCommand { get; }
@@ -91,7 +93,11 @@ public sealed class MainViewModel : ObservableObject
         set { if (SetProperty(ref selectedWorkspace, value)) { Candidates.Clear(); scanId = null; nextOffset = null; LoadRules(); RefreshCommands(); } }
     }
     public RuleRow? SelectedRule { get => selectedRule; set => SetProperty(ref selectedRule, value); }
-    public HistoryRow? SelectedHistory { get => selectedHistory; set => SetProperty(ref selectedHistory, value); }
+    public HistoryRow? SelectedHistory
+    {
+        get => selectedHistory;
+        set { if (SetProperty(ref selectedHistory, value)) { HistoryItems.Clear(); foreach (var item in value?.Items ?? []) HistoryItems.Add(item); } }
+    }
     public StorageRow? SelectedStorageNode { get => selectedStorageNode; set => SetProperty(ref selectedStorageNode, value); }
     private CancellationToken Token => active?.Token ?? CancellationToken.None;
     private void RefreshCommands() { foreach (var command in commands) command.NotifyCanExecuteChanged(); }
@@ -183,22 +189,25 @@ public sealed class MainViewModel : ObservableObject
         var selected = Candidates.Where(item => item.IsSelected && item.Eligible).Select(item => item.Id).ToArray();
         var plan = await client.RequestAsync("plan", new() { ["scan_id"] = scanId, ["candidate_ids"] = Strings(selected) }, cancellation: Token);
         var receipt = await client.RequestAsync("plan.execute", new() { ["plan_id"] = Text(plan, "id") }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
-        Candidates.Clear(); scanId = null; nextOffset = null; await LoadHistoryAsync();
+        Candidates.Clear(); scanId = null; nextOffset = null;
         Status = "清理结果：" + Text(receipt, "state") + "。可在历史中查看或恢复。";
+        if (!Token.IsCancellationRequested) await LoadHistoryAsync();
     });
     private async Task LoadHistoryAsync()
     {
         var result = await client.RequestAsync("history", cancellation: Token);
         History.Clear();
-        foreach (var item in Array(result)) History.Add(new(Text(item, "id"), Text(item, "created_at"), Text(item, "root_path"), Text(item, "state"), Array(item?["items"]).Where(value => value?["can_restore"]?.GetValue<bool>() == true).Select(value => Text(value, "id")).ToArray()));
+        foreach (var item in Array(result)) History.Add(new(Text(item, "id"), Text(item, "created_at"), Text(item, "root_path"), Text(item, "state"),
+            Array(item?["items"]).Where(value => value?["can_restore"]?.GetValue<bool>() == true).Select(value => Text(value, "id")).ToArray(),
+            Array(item?["items"]).Select(value => new HistoryItemRow(Text(value, "path"), Text(value, "state"), value?["error"]?.GetValue<string>(), value?["resulting_path"]?.GetValue<string>())).ToArray()));
         SelectedHistory = History.FirstOrDefault();
     }
     private Task RestoreAsync() => RunAsync(async () =>
     {
         var receipt = SelectedHistory!;
         var result = await client.RequestAsync("history.restore", new() { ["execution_id"] = receipt.Id, ["item_ids"] = Strings(receipt.RestorableIds) }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
-        await LoadHistoryAsync();
         Status = "恢复结果：" + string.Join("、", Array(result).Select(value => Text(value, "state"))) + "。已有同名目标不会被覆盖。";
+        if (!Token.IsCancellationRequested) await LoadHistoryAsync();
     });
     private async Task ImportRuleAsync()
     {
@@ -231,7 +240,8 @@ public sealed class MainViewModel : ObservableObject
         await RunAsync(async () =>
         {
             var scan = await client.RequestAsync("storage.scan", new() { ["path"] = path }, Progress(), cancellation: Token);
-            storageScanId = Text(scan, "scan_id"); ShowDirectory(scan["directory"]!); Status = "空间统计按实际分配大小估算；双击目录继续查看。";
+            storageScanId = Text(scan, "scan_id"); ShowDirectory(scan["directory"]!);
+            Status = (Text(scan, "status") == "partial" ? "仅完成部分范围，统计不代表全部占用。" : "空间统计按实际分配大小估算。") + "双击目录继续查看。";
         });
     }
     public Task OpenStorageNodeAsync() => SelectedStorageNode is { Kind: "directory" } item ? RunAsync(async () => ShowDirectory(await client.RequestAsync("storage.directory", new() { ["scan_id"] = storageScanId, ["path"] = item.Path }, cancellation: Token))) : Task.CompletedTask;

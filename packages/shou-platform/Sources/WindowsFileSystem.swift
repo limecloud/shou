@@ -117,7 +117,9 @@ public struct NativeFileSystem: PlatformFileSystem {
                 catch { complete=false; issues.append((relative == "." ? name : relative + "/" + name) + ": " + error.localizedDescription) }
                 if entries.count >= budget.maxEntries || Date() >= deadline { complete=false; break }
             }
-            if try !WindowsNative.entry(WindowsNative.metadata(absolute), path: relative).sameObject(as: WindowsNative.entry(raw, path: relative)) { complete=false }
+            if try WindowsNative.entry(WindowsNative.metadata(absolute), path: relative) != WindowsNative.entry(raw, path: relative) {
+                complete=false; issues.append(relative + ": directory changed during traversal")
+            }
             if complete { completePaths.append(relative) }; return complete
         }
         let complete: Bool

@@ -21,6 +21,11 @@ env:
   SHOU_RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
+  verify-windows:
+    uses: ./.github/workflows/windows.yml
+    with:
+      ref: ${{ github.event.inputs.tag || github.ref_name }}
+
   verify:
     name: All tests (${{ matrix.runner }})
     strategy:
@@ -54,7 +59,7 @@ jobs:
         run: python3 scripts/verify-read-worker-lifecycle.py --bin dist/Shou.app/Contents/Helpers/shou --evidence "$RUNNER_TEMP/shou-read-worker-lifecycle"
 
   package:
-    needs: verify
+    needs: [verify, verify-windows]
     runs-on: macos-15
     timeout-minutes: 60
     steps:

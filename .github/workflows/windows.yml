@@ -1,14 +1,21 @@
 name: Windows native build
 on:
   push:
+    branches: [main]
     paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml"]
   pull_request:
     paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml"]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      ref:
+        description: Commit or version tag to verify
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
-  group: windows-${{ github.ref }}
+  group: ${{ github.workflow }}-windows-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 jobs:
   windows:
@@ -19,6 +26,8 @@ jobs:
         shell: pwsh
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
       - uses: compnerd/gha-setup-swift@bbae8ce86bac5a3449f3992b3d88bc4ca25f2057
         with:
           swift-version: swift-6.2.3-release

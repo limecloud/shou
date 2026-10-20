@@ -39,10 +39,13 @@
         </Grid>
       </TabItem>
       <TabItem Header="历史与恢复">
-        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="180" /></Grid.RowDefinitions>
           <StackPanel Orientation="Horizontal"><Button Content="刷新历史" Command="{Binding HistoryCommand}" /><Button Content="恢复所选记录的可恢复项目…" Command="{Binding RestoreCommand}" /></StackPanel>
           <DataGrid Grid.Row="1" ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,14,0,0">
             <DataGrid.Columns><DataGridTextColumn Header="时间" Binding="{Binding CreatedAt}" Width="190" /><DataGridTextColumn Header="目录" Binding="{Binding RootPath}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="140" /></DataGrid.Columns>
+          </DataGrid>
+          <DataGrid Grid.Row="2" ItemsSource="{Binding HistoryItems}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,12,0,0" AutomationProperties.Name="所选历史记录的逐项结果">
+            <DataGrid.Columns><DataGridTextColumn Header="原始路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="130" /><DataGridTextColumn Header="实际结果路径" Binding="{Binding ResultingPath}" Width="220" /><DataGridTextColumn Header="原因" Binding="{Binding Error}" Width="220" /></DataGrid.Columns>
           </DataGrid>
         </Grid>
       </TabItem>

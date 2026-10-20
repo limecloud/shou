@@ -94,6 +94,7 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine", type=Path, required=True)
+    parser.add_argument("--native-trash", action="store_true", help="Recycle and restore one newly generated fixture")
     args = parser.parse_args()
     engine = args.engine.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="shou-desktop-") as temporary:
@@ -150,7 +151,25 @@ def main():
         else:
             print("SKIP native mutation consent: capability disabled", flush=True)
         assert success("history") == []
+        if args.native_trash:
+            assert capabilities["features"]["trash"], "Native Recycle Bin capability must be explicitly available"
+            plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]]))
+            result, reviewed = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
+            assert reviewed and result["ok"], result
+            receipt = result["data"]
+            assert receipt["state"] == "completed" and all(item["state"] == "trashed" for item in receipt["items"]), receipt
+            assert not (workspace / candidate["relative_path"]).exists()
+            history = success("history")
+            assert len(history) == 1 and history[0]["items"][0]["can_restore"]
+            result, reviewed = request(engine, environment, "history.restore",
+                                       dict(execution_id=receipt["id"], item_ids=[item["id"] for item in receipt["items"]]), "accept")
+            assert reviewed and result["ok"] and all(item["state"] == "completed" for item in result["data"]), result
+            restored = success("history")[0]["items"][0]
+            assert restored["state"] == "restored" and not restored["can_restore"], restored
+            assert (workspace / candidate["relative_path"] / "fixture.bin").read_bytes() == b"isolated desktop fixture" * 32
+            print("PASS confirmed native Trash, history, restoration and replay eligibility", flush=True)
         storage = success("storage.scan", dict(path=str(workspace)))
+        assert storage["status"] == "complete" and storage["entry_count"] == 211 and storage["issues"] == [], storage
         directory = success("storage.directory", dict(scan_id=storage["scan_id"], path="generated-000"))
         assert directory["path"] == "generated-000" and len(directory["children"]) == 1
         print("PASS isolated history and space navigation", flush=True)
