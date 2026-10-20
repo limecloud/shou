@@ -2,14 +2,17 @@ import SwiftUI
 import ShouCore
 import Accessibility
 
+/// A completion page keeps the successful path calm. Detailed rows are an
+/// exception path behind one disclosure, while incomplete results keep a
+/// direct route to History and a fresh scan.
 struct CleanupResultView: View {
     @Bindable var model: AppModel
     let result: CleanupCompletion
     @Environment(\.dismiss) private var dismiss
     @ReduceMotion private var reduceMotion
     @State private var appeared=false
+    @State private var showDetails=false
 
-    private var items: [ItemReceipt] { result.receipts.flatMap(\.items) }
     private struct ItemOutcome: Identifiable {
         let id: String
         let item: ItemReceipt
@@ -20,89 +23,76 @@ struct CleanupResultView: View {
             receipt.items.map { ItemOutcome(id: receipt.id + "/" + $0.id, item: $0, state: ResultState($0.state, executionState: receipt.state)) }
         }
     }
+    private var items: [ItemReceipt] { outcomes.map(\.item) }
     private var moved: Int { outcomes.filter { $0.state == .moved }.count }
     private var purged: Int { outcomes.filter { $0.state == .purged }.count }
     private var skipped: Int { outcomes.filter { $0.state == .skipped }.count }
     private var failed: Int { outcomes.filter { $0.state == .failed }.count }
-    private var unverified: Int { items.count - moved - purged - skipped - failed }
-    private var permanent: Bool { result.receipts.contains { ["permanent_cleanup", "storage_permanent_removal"].contains($0.operation ?? "") } }
+    private var unverified: Int { outcomes.filter { $0.state == .unverified }.count }
+    private var permanent: Bool { result.receipts.contains { ["permanent_cleanup", "storage_permanent_removal", "application_permanent_uninstall", "application_batch_permanent_uninstall"].contains($0.operation ?? "") } }
     private var complete: Bool { result.failures.isEmpty && !items.isEmpty && result.receipts.allSatisfy { $0.state == "completed" } && moved + purged == items.count }
+    private var hasIssues: Bool { !complete }
     private var title: String {
         model.t(complete ? "Cleanup complete" : result.receipts.contains { $0.state == "executing" } ? "Unfinished cleanup" : result.receipts.contains { $0.state == "cancelled" } ? "Cleanup stopped" : "Cleanup finished with issues")
     }
+    private var totalBytes: Int64 {
+        result.receipts.reduce(0) { $0 + (permanent ? $1.permanentlyRemovedBytesEstimate : $1.trashedBytesEstimate) }
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: complete ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                    .font(.system(size: 30, weight: .regular))
-                    .foregroundStyle(complete ? Color.green : Color.orange)
-                    .scaleEffect(reduceMotion || appeared ? 1 : 0.85)
-                    .opacity(reduceMotion || appeared ? 1 : 0)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.title2.bold()).accessibilityAddTraits(.isHeader)
-                    if let date=result.receipts.first?.createdAt { Text(model.date(date)).font(.caption).foregroundStyle(.secondary) }
-                }
-                Spacer(minLength: 0)
+        VStack(spacing: 0) {
+            Spacer(minLength: 12)
+            Image(systemName: complete ? "checkmark.circle" : "exclamationmark.triangle")
+                .font(.system(size: 78, weight: .light))
+                .foregroundStyle(complete ? Color.green : Color.orange)
+                .scaleEffect(reduceMotion || appeared ? 1 : 0.84)
+                .opacity(reduceMotion || appeared ? 1 : 0)
+                .accessibilityHidden(true)
+            Text(title).font(.title.bold()).padding(.top, 18).accessibilityAddTraits(.isHeader)
+            if let date=result.receipts.first?.createdAt {
+                Text(model.date(date)).font(.caption).foregroundStyle(.secondary).padding(.top, 5)
             }
 
+            Text(model.bytes(totalBytes))
+                .font(.system(size: 42, weight: .semibold, design: .rounded))
+                .monospacedDigit().padding(.top, 28)
+            Text(model.t(complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
+                .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
+
+            if hasIssues {
+                issueSummary.padding(.top, 22)
+                if showDetails {
+                    details.padding(.top, 12)
+                } else {
+                    Button(model.t("Details")) { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { showDetails=true } }
+                        .buttonStyle(.link).padding(.top, 8)
+                }
+            }
+
+            Spacer(minLength: hasIssues && showDetails ? 14 : 28)
             HStack(spacing: 10) {
-                metric(model.t(permanent ? "Permanently removed (estimate)" : "Moved to Trash (estimate)"), value: model.bytes(permanent ? result.receipts.reduce(0) { $0 + $1.permanentlyRemovedBytesEstimate } : result.receipts.reduce(0) { $0 + $1.trashedBytesEstimate }))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                metric(model.t(permanent ? "Permanently removed" : "Moved"), value: (permanent ? purged : moved).formatted(.number.locale(model.language.locale)))
-                metric(model.t("Skipped"), value: skipped.formatted(.number.locale(model.language.locale)))
-                metric(model.t("Failed items"), value: failed.formatted(.number.locale(model.language.locale)))
-            }
-
-            Text(model.t(permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space."))
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-
-            if unverified > 0 {
-                Label(String(format: model.t("%lld items need verification."), locale: model.language.locale, unverified), systemImage: "exclamationmark.triangle")
-                    .font(.callout).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
-            }
-
-            if !result.failures.isEmpty {
-                HStack(spacing: 7) {
-                    Label(model.t("Locations with issues"), systemImage: "exclamationmark.triangle")
-                    Text(result.failures.count.formatted(.number.locale(model.language.locale))).monospacedDigit()
+                if hasIssues {
+                    Button(model.t("Scan Again")) { model.retryAfterCleanup(result) }
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut("r", modifiers: [.command])
+                        .accessibilityIdentifier("cleanup.result.scan-again")
                 }
-                .font(.callout).foregroundStyle(.orange)
-                .accessibilityElement(children: .combine)
-            }
-
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(Array(result.failures.enumerated()), id: \.offset) { _, failure in
-                        Label(model.diagnostic(failure), systemImage: "exclamationmark.triangle").font(.callout).foregroundStyle(.orange)
-                            .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).padding(12)
-                    }
-                    if !result.failures.isEmpty && !items.isEmpty { Divider() }
-                    ForEach(outcomes) { outcome in
-                        resultRow(outcome.item, state: outcome.state)
-                        if outcome.id != outcomes.last?.id { Divider().padding(.leading, 44) }
-                    }
+                if hasIssues {
+                    Button(model.t("View History")) { model.section="history"; dismiss() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("cleanup.result.history")
                 }
-            }
-            .frame(minHeight: 180, idealHeight: 300, maxHeight: 390)
-            .background(.background, in: RoundedRectangle(cornerRadius: 9))
-            .overlay { RoundedRectangle(cornerRadius: 9).strokeBorder(.quaternary, lineWidth: 1) }
-            .overlay {
-                if items.isEmpty && result.failures.isEmpty {
-                    ContentUnavailableView(model.t("No items were processed"), systemImage: "tray")
-                }
-            }
-
-            HStack {
-                Button(model.t("View History")) { model.section="history"; dismiss() }
-                Spacer()
-                Button(model.t("Close")) { dismiss() }
+                Spacer(minLength: 8)
+                Button(model.t(complete ? "Done" : "Close")) { dismiss() }
+                    .buttonStyle(.bordered)
                     .keyboardShortcut(.defaultAction)
+                    .accessibilityIdentifier("cleanup.result.close")
             }
         }
-        .padding(24)
-        .frame(width: 680)
+        .padding(30)
+        .frame(width: 720)
+        .frame(minHeight: hasIssues && showDetails ? 610 : hasIssues ? 500 : 450)
         .onExitCommand { dismiss() }
         .onAppear {
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) { appeared=true }
@@ -110,51 +100,63 @@ struct CleanupResultView: View {
         }
     }
 
-    private func metric(_ label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(label).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Text(value).font(.system(size: 21, weight: .semibold, design: .rounded)).monospacedDigit()
+    private var issueSummary: some View {
+        HStack(spacing: 10) {
+            resultMetric(model.t("Moved"), value: moved, color: .green)
+            resultMetric(model.t("Skipped"), value: skipped, color: .secondary)
+            resultMetric(model.t("Failed items"), value: failed, color: failed > 0 ? .red : .secondary)
+            resultMetric(model.t("Needs verification"), value: unverified, color: unverified > 0 ? .orange : .secondary)
+        }.frame(maxWidth: 560)
+    }
+
+    private var details: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(Array(result.failures.enumerated()), id: \.offset) { _, failure in
+                    Label(model.diagnostic(failure), systemImage: "exclamationmark.triangle")
+                        .font(.caption).foregroundStyle(.orange).textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(10)
+                }
+                ForEach(outcomes) { outcome in
+                    resultRow(outcome.item, state: outcome.state)
+                    if outcome.id != outcomes.last?.id { Divider().padding(.leading, 34) }
+                }
+            }
         }
-        .frame(minWidth: 88, maxWidth: .infinity, minHeight: 58, alignment: .topLeading)
-        .padding(12)
-        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 9))
+        .frame(maxHeight: 240)
+        .background(.quaternary.opacity(0.26), in: RoundedRectangle(cornerRadius: 10))
+        .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(.quaternary, lineWidth: 1) }
+    }
+
+    private func resultMetric(_ label: String, value: Int, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(value.formatted(.number.locale(model.language.locale)))
+                .font(.title3.weight(.semibold)).monospacedDigit().foregroundStyle(color)
+            Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, minHeight: 52).padding(.vertical, 6)
+        .background(.quaternary.opacity(0.32), in: RoundedRectangle(cornerRadius: 9))
         .accessibilityElement(children: .combine)
     }
 
     private func resultRow(_ item: ItemReceipt, state: ResultState) -> some View {
-        return HStack(alignment: .top, spacing: 11) {
-            Image(systemName: state.symbol).font(.system(size: 16))
-                .foregroundStyle(state.color).frame(width: 20).padding(.top, 2)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text(URL(fileURLWithPath: item.originalPath).lastPathComponent)
-                        .font(.callout.weight(.medium)).lineLimit(2)
-                    Spacer(minLength: 0)
-                    Text(["trashed", "purged"].contains(item.state) ? model.bytes(item.allocatedBytesEstimate) : "—")
-                        .font(.callout.weight(.medium)).monospacedDigit().fixedSize()
+        HStack(alignment: .top, spacing: 9) {
+            Image(systemName: state.symbol).foregroundStyle(state.color).frame(width: 18).padding(.top, 2)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(URL(fileURLWithPath: item.originalPath).lastPathComponent).font(.callout.weight(.medium)).lineLimit(1)
+                    Spacer(minLength: 6)
+                    if ["trashed", "purged"].contains(item.state) { Text(model.bytes(item.allocatedBytesEstimate)).font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
                 }
                 Text(model.t(state.label)).font(.caption).foregroundStyle(state.color)
-                Text(item.originalPath).font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    .textSelection(.enabled)
-                if let error=item.error, !error.isEmpty {
-                    Text(model.diagnostic(error)).font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
-                } else if state == .skipped {
-                    Text(model.t("Not processed after cleanup stopped."))
-                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                } else if state == .unverified {
-                    Text(model.t("Check History before taking another action."))
-                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                }
+                Text(item.originalPath).font(.system(size: 10, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                if let error=item.error, !error.isEmpty { Text(model.diagnostic(error)).font(.caption2).foregroundStyle(.secondary).lineLimit(2) }
             }
-        }.padding(12)
+        }.padding(10)
     }
 
     private enum ResultState: Equatable {
         case moved, purged, skipped, failed, unverified
-
         init(_ state: String, executionState: String) {
             switch state {
             case "trashed": self = .moved
@@ -166,31 +168,13 @@ struct CleanupResultView: View {
             }
         }
         var label: String {
-            switch self {
-            case .moved: "Moved to Trash"
-            case .purged: "Permanently removed"
-            case .skipped: "Skipped"
-            case .failed: "Failed"
-            case .unverified: "Needs verification"
-            }
+            switch self { case .moved: "Moved to Trash"; case .purged: "Permanently removed"; case .skipped: "Skipped"; case .failed: "Failed"; case .unverified: "Needs verification" }
         }
         var symbol: String {
-            switch self {
-            case .moved: "checkmark.circle.fill"
-            case .purged: "checkmark.circle.fill"
-            case .skipped: "minus.circle"
-            case .failed: "xmark.circle.fill"
-            case .unverified: "questionmark.circle.fill"
-            }
+            switch self { case .moved, .purged: "checkmark.circle.fill"; case .skipped: "minus.circle"; case .failed: "xmark.circle.fill"; case .unverified: "questionmark.circle.fill" }
         }
         var color: Color {
-            switch self {
-            case .moved: .green
-            case .purged: .red
-            case .skipped: .secondary
-            case .failed: .red
-            case .unverified: .orange
-            }
+            switch self { case .moved: .green; case .purged, .failed: .red; case .skipped: .secondary; case .unverified: .orange }
         }
     }
 }

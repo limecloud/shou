@@ -57,6 +57,9 @@ struct CleanupCompletion: Identifiable {
     let id=UUID()
     let receipts: [ExecutionReceipt]
     var failures: [String]=[]
+    /// The page that created this result. A retry returns the user directly
+    /// to the relevant scan instead of making them navigate through history.
+    var sourceSection: String = "smart"
 }
 
 @MainActor @Observable final class AppModel {
@@ -577,6 +580,13 @@ struct CleanupCompletion: Identifiable {
             } catch { self.error=error.localizedDescription }
         }
     }
+    func retryAfterCleanup(_ result: CleanupCompletion) {
+        guard !busy else { return }
+        completion=nil
+        section=result.sourceSection
+        statusKey="Scan again to refresh changed items."
+        scanCurrentSection()
+    }
     func confirm(_ review: ReviewPrompt) {
         guard let engine, !busy else { return }
         prompt=nil; busy=true; scanProgress=nil
@@ -608,7 +618,7 @@ struct CleanupCompletion: Identifiable {
                         }
                     }
                     if receipts.contains(where: { $0.items.contains { ["failed", "unknown", "moving"].contains($0.state) } }) { operationHadError=true }
-                    completion=CleanupCompletion(receipts: receipts, failures: failures)
+                    completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: section)
                     commonSelection=[]
                     if receipts.contains(where: { $0.items.contains { $0.state == "trashed" || $0.state == "unknown" } }) { systemResult=nil; commonReview=CleanupReview() }
                     statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }

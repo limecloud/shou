@@ -72,8 +72,8 @@ public struct NativeFileSystem: PlatformFileSystem {
     public init() {}
     public var platform: String { "windows" }
     public var caseSensitivePaths: Bool { false }
-    public var supportsTrash: Bool { true }
-    public var trashUnavailableReason: String? { nil }
+    public var supportsTrash: Bool { ProcessInfo.processInfo.environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] == "1" }
+    public var trashUnavailableReason: String? { supportsTrash ? nil : "Windows Recycle Bin operations are disabled by default; enable explicitly for isolated native validation." }
     public func normalizedPath(_ path: String) throws -> String {
         guard !path.contains("\0") else { throw ShouError("invalid_argument", "Paths cannot contain NUL bytes.") }
         return try WindowsNative.string({ shou_win_normalize(path, $0) }, path: path)
@@ -161,6 +161,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try WindowsNative.metadata(path)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
+        guard supportsTrash else { throw ShouError("capability_unavailable", trashUnavailableReason!) }
         _=try rootIdentity(URL(fileURLWithPath: path).deletingLastPathComponent().path)
         var raw=try verify(path, expected: expected)
         var resultingPath: String?
@@ -184,6 +185,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         return parts.count == 4 && parts[1].lowercased() == "$recycle.bin" && parts[2] == identity.ownerSid && parts[3].hasPrefix("$R")
     }
     public func restore(_ path: String, to destination: String, expected: [FileEntry]) throws {
+        guard supportsTrash else { throw ShouError("capability_unavailable", trashUnavailableReason!) }
         guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only the exact recorded Recycle Bin item may be restored.") }
         guard case .missing=targetAvailability(destination) else { throw ShouError("restore_conflict", "The restore destination already exists or is inaccessible.") }
         _=try rootIdentity(URL(fileURLWithPath: destination).deletingLastPathComponent().path)
@@ -221,14 +223,20 @@ public struct NativeFileSystem: PlatformFileSystem {
         let saved=expected[rootIndex]
         guard current == saved || current.matchesTrashRoot(as: saved) else { throw ShouError("plan_stale", "The target root changed before removal.") }
         manifest[rootIndex]=root
-        var names=[CChar](), offsets=[Int]()
-        for entry in expected { offsets.append(names.count); names.append(contentsOf: entry.path.utf8CString) }
+        var names=[CChar](), offsets=[Int](), digests=[CChar](), digestOffsets=[Int]()
+        for entry in expected {
+            offsets.append(names.count); names.append(contentsOf: entry.path.utf8CString)
+            digestOffsets.append(digests.count); digests.append(contentsOf: (entry.contentDigest ?? "").utf8CString)
+        }
         var removed=0
         // Keep contiguous UTF-8 storage alive without recursion or per-entry allocations.
         let code=names.withUnsafeBufferPointer { buffer in
             let pointers=offsets.map { buffer.baseAddress?.advanced(by: $0) }
-            return manifest.withUnsafeBufferPointer { metadata in
-                shou_win_purge(path, pointers, metadata.baseAddress, metadata.count, { Task.isCancelled ? 1 : 0 }, &removed)
+            return digests.withUnsafeBufferPointer { digestBuffer in
+                let digestPointers=digestOffsets.map { digestBuffer.baseAddress?.advanced(by: $0) }
+                return manifest.withUnsafeBufferPointer { metadata in
+                    shou_win_purge(path, pointers, digestPointers, metadata.baseAddress, metadata.count, { Task.isCancelled ? 1 : 0 }, &removed)
+                }
             }
         }
         if code != 0, removed > 0 {

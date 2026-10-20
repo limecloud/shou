@@ -32,7 +32,7 @@ Mole 将这 844 项描述为作者亲手测试和核查过的 Mac 软件。这�
 | 应用缓存 | `~/Library/Caches` 下的明确应用路径；部分厂商通配符仅收敛到有限标识 | 宽泛厂商根目录、未确认的通配标识、安全组件与共享归属 |
 | 浏览器 profile | Dia、Helium、Yandex、QQ 浏览器和 Firefox 的缓存叶子；既有 Chromium 范围仍明确列出 | 整个 profile、Cookie、密码、历史、会话、扩展状态、IndexedDB、Local Storage |
 | 编辑器与桌面支持目录 | Zed、CodeBuddy CN、Qoder、Sketch、Spacedrive、Filo、Antigravity 的具名生成缓存 | 工作区、设置、插件安装、数据库、对话状态与备份 |
-| 游戏与媒体 | Steam 缓存叶子、Minecraft 网页缓存、PCSX2 着色缓存、Battle.net 和 Stremio 缓存叶子 | 游戏安装、存档、记忆卡、模组、截图与账号状态 |
+| 游戏与媒体 | Steam 缓存叶子、Minecraft 网页缓存、PCSX2 着色缓存、Battle.net 和 Stremio 缓存叶子 | 游戏安装、存档、记忆卡、模组、图片文件与账号状态 |
 | 诊断日志 | 具名应用支持日志目录，以及 `~/Library/Logs` 下明确的 Zed、Claude、JetBrains 子目录 | 未确认归属的日志、个人文档与应用保存状态 |
 | 开发缓存 | pyenv、rbenv、Bundler、Hex、Opam、Expo、Android、BuildX 和前端工具的具名下载或分析缓存 | 已安装工具链、环境、虚拟设备、签名密钥、配置与源码树 |
 

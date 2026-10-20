@@ -23,7 +23,7 @@ void shou_win_lock_release(shou_win_lock *lock);
 int shou_win_recycle(const char *path, const shou_win_info *expected, char **result);
 int shou_win_restore(const char *path, const char *destination, const shou_win_info *expected, char **result);
 typedef int (*shou_win_cancelled)(void);
-int shou_win_purge(const char *path, const char *const *relative_paths, const shou_win_info *expected, size_t count, shou_win_cancelled cancelled, size_t *removed);
+int shou_win_purge(const char *path, const char *const *relative_paths, const char *const *content_digests, const shou_win_info *expected, size_t count, shou_win_cancelled cancelled, size_t *removed);
 int shou_win_available(const char *path, uint64_t *result);
 int shou_win_console_confirm(const char *review, const char *prompt, const char *phrase);
 int shou_win_stdin(void *buffer, uint32_t capacity, uint32_t *count);

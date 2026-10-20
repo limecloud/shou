@@ -9,8 +9,10 @@
 #include <shlobj.h>
 #include <shobjidl.h>
 #include <wrl/client.h>
+#include <bcrypt.h>
 #include <algorithm>
 #include <cstdlib>
+#include <cctype>
 #include <cstring>
 #include <cwctype>
 #include <limits>
@@ -119,13 +121,30 @@ DWORD info(HANDLE h, shou_win_info *out) {
 }
 bool same(const shou_win_info &a,const shou_win_info &b,bool directoryMutation=false) {
     return a.volume==b.volume && !memcmp(a.file_id,b.file_id,16) && !strcmp(a.owner_sid,b.owner_sid) &&
-        a.kind==b.kind && a.links==b.links && a.attributes==b.attributes && (directoryMutation ||
+        a.kind==b.kind && (directoryMutation && a.kind==2 || a.links==b.links) && a.attributes==b.attributes && (directoryMutation ||
         (a.logical_bytes==b.logical_bytes && a.allocated_bytes==b.allocated_bytes && a.modified_ns==b.modified_ns && a.changed_ns==b.changed_ns));
 }
 DWORD expected(const std::wstring &path,const shou_win_info *saved) {
     Handles handles;HANDLE h;DWORD code=open(path,handles,h);if(code)return code;
     shou_win_info current{};if((code=info(h,&current)))return code;
     return same(current,*saved)?0:ERROR_FILE_INVALID;
+}
+bool digest(HANDLE h,const char *expectedDigest) {
+    if(!expectedDigest || !*expectedDigest)return true;
+    if(strlen(expectedDigest)!=64)return false;
+    for(size_t i=0;i<64;++i)if(!isxdigit(static_cast<unsigned char>(expectedDigest[i])))return false;
+    BCRYPT_ALG_HANDLE algorithm=nullptr;BCRYPT_HASH_HANDLE hash=nullptr;PUCHAR object=nullptr;DWORD objectSize=0,bytes=0,read=0;bool ok=false;BYTE result[32]{};char buffer[65536];
+    if(BCryptOpenAlgorithmProvider(&algorithm,BCRYPT_SHA256_ALGORITHM,nullptr,0)!=0)goto done;
+    if(BCryptGetProperty(algorithm,BCRYPT_OBJECT_LENGTH,reinterpret_cast<PUCHAR>(&objectSize),sizeof(objectSize),&bytes,0)!=0 || !objectSize)goto done;
+    object=static_cast<PUCHAR>(malloc(objectSize));if(!object)goto done;
+    if(BCryptCreateHash(algorithm,&hash,object,objectSize,nullptr,0,0)!=0)goto done;
+    LARGE_INTEGER origin{};if(!SetFilePointerEx(h,origin,nullptr,FILE_BEGIN))goto done;
+    while(ReadFile(h,buffer,sizeof(buffer),&read,nullptr) && read){if(BCryptHashData(hash,reinterpret_cast<PUCHAR>(buffer),read,0)!=0)goto done;}
+    if(BCryptFinishHash(hash,result,sizeof(result),0)!=0)goto done;
+    for(size_t i=0;i<32;++i){char pair[3];sprintf_s(pair,"%02x",result[i]);if(tolower(expectedDigest[i*2])!=pair[0] || tolower(expectedDigest[i*2+1])!=pair[1])goto done;}
+    ok=expectedDigest[64]=='\0';
+done:
+    if(hash)BCryptDestroyHash(hash);if(algorithm)BCryptCloseAlgorithmProvider(algorithm,0);free(object);return ok;
 }
 DWORD private_descriptor(const std::vector<BYTE> &user,PSECURITY_DESCRIPTOR &descriptor) {
     if(user.empty())return ERROR_INVALID_SID;
@@ -282,9 +301,9 @@ int shou_win_write(const char *input,const void *bytes,size_t count){
 }
 int shou_win_recycle(const char *path,const shou_win_info *saved,char **result){return shell_move(path,nullptr,saved,result);}
 int shou_win_restore(const char *path,const char *target,const shou_win_info *saved,char **result){return shell_move(path,target,saved,result);}
-int shou_win_purge(const char *input,const char *const *relative,const shou_win_info *saved,size_t count,shou_win_cancelled cancelled,size_t *removed){
+int shou_win_purge(const char *input,const char *const *relative,const char *const *digests,const shou_win_info *saved,size_t count,shou_win_cancelled cancelled,size_t *removed){
     *removed=0;
-    if(!count || count>1000000 || !relative || !saved)return ERROR_INVALID_PARAMETER;
+    if(!count || count>1000000 || !relative || !digests || !saved)return ERROR_INVALID_PARAMETER;
     std::wstring root;DWORD code=normalized(input,root);if(code)return code;
     if(root.size()<=3)return ERROR_ACCESS_DENIED;
     Handles ancestors,objects;HANDLE parent;
@@ -326,9 +345,9 @@ int shou_win_purge(const char *input,const char *const *relative,const shou_win_
         auto key=path;for(auto &c:key)c=towlower(c);
         if(!indices.emplace(key,i).second)return ERROR_INVALID_PARAMETER;
         Handles pins;HANDLE h;
-        if((code=open(path,pins,h,DELETE|FILE_READ_ATTRIBUTES|READ_CONTROL,FILE_SHARE_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE)))return code;
+        if((code=open(path,pins,h,GENERIC_READ|DELETE|FILE_READ_ATTRIBUTES|READ_CONTROL,FILE_SHARE_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE)))return code;
         shou_win_info current{};if((code=info(h,&current)))return code;
-        if(!current.current_user || current.volume!=saved[0].volume || (current.kind==1 && current.links!=1) || !same(current,saved[i]))return ERROR_FILE_INVALID;
+        if(!current.current_user || current.volume!=saved[0].volume || (current.kind==1 && current.links!=1) || !same(current,saved[i]) || !digest(h,digests[i]))return ERROR_FILE_INVALID;
         pins.values.pop_back();objects.values.push_back(h);paths.push_back(path);
     }
     auto rootKey=root;for(auto &c:rootKey)c=towlower(c);
@@ -344,13 +363,13 @@ int shou_win_purge(const char *input,const char *const *relative,const shou_win_
     // Check the entire pinned manifest again before deleting any member.
     for(size_t i=0;i<count;++i){
         shou_win_info current{};if((code=info(objects.values[i],&current)))return code;
-        if(!same(current,baseline[i]))return ERROR_FILE_INVALID;
+        if(!same(current,baseline[i]) || !digest(objects.values[i],digests[i]))return ERROR_FILE_INVALID;
     }
     std::sort(order.begin(),order.end(),[&](size_t a,size_t b){return paths[a].size()>paths[b].size();});
     for(auto i:order){
         if(cancelled && cancelled())return ERROR_CANCELLED;
         shou_win_info current{};if((code=info(objects.values[i],&current)))return code;
-        if(!same(current,baseline[i]))return ERROR_FILE_INVALID;
+        if(!same(current,baseline[i]) || !digest(objects.values[i],digests[i]))return ERROR_FILE_INVALID;
         auto p=parents[i];
         if(p<count){
             if((code=info(objects.values[p],&current)))return code;

@@ -18,11 +18,14 @@ func savedManifest(_ path: String, _ tree: TreeSnapshot) throws -> [shou_win_inf
     }
 }
 func rawPurge(_ path: String, _ tree: TreeSnapshot, _ saved: [shou_win_info], cancelled: shou_win_cancelled? = nil) -> (code: Int32, removed: Int) {
-    var names=[CChar](), offsets=[Int](), removed=0
-    for entry in tree.entries { offsets.append(names.count); names.append(contentsOf: entry.path.utf8CString) }
+    var names=[CChar](), offsets=[Int](), digests=[CChar](), digestOffsets=[Int](), removed=0
+    for entry in tree.entries { offsets.append(names.count); names.append(contentsOf: entry.path.utf8CString); digestOffsets.append(digests.count); digests.append(contentsOf: (entry.contentDigest ?? "").utf8CString) }
     let code=names.withUnsafeBufferPointer { bytes in
         let pointers=offsets.map { bytes.baseAddress?.advanced(by: $0) }
-        return saved.withUnsafeBufferPointer { shou_win_purge(path, pointers, $0.baseAddress, $0.count, cancelled, &removed) }
+        return digests.withUnsafeBufferPointer { digestBytes in
+            let digestPointers=digestOffsets.map { digestBytes.baseAddress?.advanced(by: $0) }
+            return saved.withUnsafeBufferPointer { shou_win_purge(path, pointers, digestPointers, $0.baseAddress, $0.count, cancelled, &removed) }
+        }
     }
     return (code,removed)
 }
@@ -38,7 +41,7 @@ func rawPurge(_ path: String, _ tree: TreeSnapshot, _ saved: [shou_win_info], ca
             return
         }
         let fs=NativeFileSystem()
-        try require(fs.supportsTrash && fs.trashUnavailableReason == nil, "Recycle Bin must be available without an experimental switch")
+        try require(args.contains("--recycle") ? fs.supportsTrash : (!fs.supportsTrash && fs.trashUnavailableReason?.contains("disabled by default") == true), "Recycle Bin default policy or validation switch is incorrect")
         let root=try fs.normalizedPath(FileManager.default.temporaryDirectory.appendingPathComponent("shou-windows-" + UUID().uuidString).path)
         try privateDirectory(root)
         // Remove only a newly generated, isolated fixture. Never enumerate or

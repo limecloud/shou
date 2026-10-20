@@ -6,7 +6,7 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 
 ## Status and conventions
 
-- Updated: 2026-10-20. Status: active development; the native application, core, and CLI have source implementations. Complete release acceptance remains pending.
+- Updated: 2026-10-21. Status: active development; the native application, core, and CLI have source implementations. Complete release acceptance remains pending.
 - Confirmed constraints: native Swift macOS and C#/WPF Windows UI, independent desktop and CLI workflows, a monorepo, and no model integration or agent development. Windows remains a development implementation pending native acceptance.
 - macOS 14+, module boundaries, rule fields, command names, and budgets are design baselines subject to recorded decisions.
 - Performance, safety, language, and compatibility statements below are acceptance targets, not verified runtime capabilities.

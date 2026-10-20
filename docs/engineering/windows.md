@@ -34,7 +34,7 @@ The first adapter rejects case-sensitive directories rather than pretending thei
 
 A failed Recycle Bin operation must not fall back to permanent deletion. Restoration must not overwrite an existing destination. Revalidate tree and identity evidence before mutation, journal intent first, and persist the observed outcome. Unknown outcomes remain unknown and are not automatically retried. Windows race boundaries, recycle receipts and system behavior require native validation.
 
-Recycle Bin, restoration and permanent removal are enabled without an environment switch. The cleanup page offers separate Recycle Bin and permanent-delete buttons; history offers restoration and separately confirmed permanent removal of recorded Recycle Bin items. Every mutation still requires a current scope review. Permanent removal is irreversible.
+Recycle Bin and restoration stay disabled by default. An explicit `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1` process setting is accepted only for isolated native validation; it is not a user-facing production toggle. Permanent removal is enabled by default. The cleanup page offers separate Recycle Bin and permanent-delete buttons, and history offers restoration plus separately confirmed permanent removal of recorded Recycle Bin items when a validated Recycle Bin session is enabled. Every mutation still requires a current scope review. Permanent removal is irreversible.
 
 Permanent removal verifies the complete manifest, pins all reviewed objects with native handles, and checks the original volume, full File ID, SID and metadata before any deletion. It removes known members from children to parents with `SetFileInformationByHandle`, without recursive wildcard deletion. Only a direct parent's timestamps/size are refreshed after removing its own reviewed child; other metadata remains checked. New children stop directory removal. Recycle Bin purge also pins and removes only that item's paired `$I` metadata record. Partial removal retains an unknown/pending journal state and blocks replay.
 
@@ -55,13 +55,13 @@ Connected operations: `capabilities`, `configuration`, `workspace.add`, `scan`, 
 | Native directory selection, paged scans and review | WPF source and shared-core bridge connected |
 | Rule drafts, enable/disable, global exclusion add/remove | Connected; imported rules stay disabled |
 | Directory space analysis | Bounded in-memory traversal and navigation; streaming SQLite catalogs are unavailable |
-| History and conflict-safe restoration | Connected and enabled |
-| Recycle Bin | Native implementation enabled by default; Windows runtime acceptance remains outstanding |
+| History and conflict-safe restoration | Connected; Recycle Bin and restoration are disabled by default |
+| Recycle Bin | Native implementation; explicit isolated validation switch only |
 | Permanent removal | Native manifest-bound removal, CLI, desktop review and recorded Recycle Bin purge connected and enabled |
 | Applications, startup, privacy, large-file UI, full localization | Not connected; initial interface is Simplified Chinese |
 | Rust/Swift generated-source ownership/activity evidence | Unavailable on Windows; affected built-in candidates remain blocked |
 
-Capability availability and release acceptance are separate. The operations above are open in the development build; Windows runtime and distribution evidence remains required for a release.
+Capability availability and release acceptance are separate. Permanent removal is open in the development build; Recycle Bin and restoration require the explicit validation switch, and Windows runtime and distribution evidence remains required for a release.
 
 ## Implementation and acceptance
 

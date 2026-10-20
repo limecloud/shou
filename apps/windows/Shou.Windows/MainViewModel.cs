@@ -12,6 +12,8 @@ public sealed record RuleRow(string Id, string Version, string Title);
 public sealed record HistoryItemRow(string Path, string State, string? Error, string? ResultingPath);
 public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, string[] PurgeableIds, HistoryItemRow[] Items);
 public sealed record StorageRow(string Path, string Size, string Kind);
+public sealed record CleanupItemResultRow(string Path, string State, string? Error);
+public sealed record CleanupCompletionRow(string Icon, string Title, string SuccessText, string Message, string Processed, string Skipped, string Failed, string NeedsVerification, bool HasIssues, CleanupItemResultRow[] Items);
 public sealed class CandidateRow(string id, string path, long bytes, bool eligible, string description) : ObservableObject
 {
     public string Id { get; } = id;
@@ -40,6 +42,8 @@ public sealed class MainViewModel : ObservableObject
     private HistoryRow? selectedHistory;
     private StorageRow? selectedStorageNode;
     private string? selectedExclusion;
+    private CleanupCompletionRow? completion;
+    private int selectedSection;
 
     public MainViewModel(BridgeProcessClient client, WindowsDialogs dialogs)
     {
@@ -54,13 +58,16 @@ public sealed class MainViewModel : ObservableObject
         HistoryCommand = new AsyncRelayCommand(() => RunAsync(LoadHistoryAsync), () => !IsBusy);
         RestoreCommand = new AsyncRelayCommand(() => FollowUpAsync("restore"), () => !IsBusy && trashAvailable && SelectedHistory?.RestorableIds.Length > 0);
         PurgeCommand = new AsyncRelayCommand(() => FollowUpAsync("purge"), () => !IsBusy && permanentAvailable && SelectedHistory?.PurgeableIds.Length > 0);
+        DismissCompletionCommand = new RelayCommand(() => Completion = null, () => Completion is not null);
+        ViewHistoryFromCompletionCommand = new RelayCommand(() => { Completion = null; SelectedSection = 3; _ = LoadHistoryAsync(); }, () => Completion is not null && !IsBusy);
+        RetryCleanupCommand = new AsyncRelayCommand(RetryCleanupAsync, () => !IsBusy && CompletionHasIssues && SelectedWorkspace is not null);
         ImportRuleCommand = new AsyncRelayCommand(ImportRuleAsync, () => !IsBusy);
         EnableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(true), () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null);
         DisableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(false), () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null);
         AddExclusionCommand = new AsyncRelayCommand(AddExclusionAsync, () => !IsBusy && !string.IsNullOrWhiteSpace(ExclusionPattern));
         RemoveExclusionCommand = new AsyncRelayCommand(RemoveExclusionAsync, () => !IsBusy && SelectedExclusion is not null);
         CancelCommand = new RelayCommand(() => { active?.Cancel(); Status = "正在停止；请等待当前项目写回回执。"; }, () => IsBusy);
-        commands = [ChooseFolderCommand, ScanCommand, MoreCommand, CleanCommand, PermanentDeleteCommand, AnalyzeCommand, StorageUpCommand, HistoryCommand, RestoreCommand, PurgeCommand, ImportRuleCommand, EnableRuleCommand, DisableRuleCommand, AddExclusionCommand, RemoveExclusionCommand, CancelCommand];
+        commands = [ChooseFolderCommand, ScanCommand, MoreCommand, CleanCommand, PermanentDeleteCommand, AnalyzeCommand, StorageUpCommand, HistoryCommand, RestoreCommand, PurgeCommand, ImportRuleCommand, EnableRuleCommand, DisableRuleCommand, AddExclusionCommand, RemoveExclusionCommand, CancelCommand, DismissCompletionCommand, ViewHistoryFromCompletionCommand, RetryCleanupCommand];
         PropertyChanged += (_, _) => RefreshCommands();
     }
     public ObservableCollection<WorkspaceRow> Workspaces { get; } = [];
@@ -80,6 +87,9 @@ public sealed class MainViewModel : ObservableObject
     public IAsyncRelayCommand HistoryCommand { get; }
     public IAsyncRelayCommand RestoreCommand { get; }
     public IAsyncRelayCommand PurgeCommand { get; }
+    public IRelayCommand DismissCompletionCommand { get; }
+    public IRelayCommand ViewHistoryFromCompletionCommand { get; }
+    public IAsyncRelayCommand RetryCleanupCommand { get; }
     public IAsyncRelayCommand ImportRuleCommand { get; }
     public IAsyncRelayCommand EnableRuleCommand { get; }
     public IAsyncRelayCommand DisableRuleCommand { get; }
@@ -87,6 +97,10 @@ public sealed class MainViewModel : ObservableObject
     public IAsyncRelayCommand RemoveExclusionCommand { get; }
     public IRelayCommand CancelCommand { get; }
     public bool IsBusy { get => busy; private set => SetProperty(ref busy, value); }
+    public int SelectedSection { get => selectedSection; set => SetProperty(ref selectedSection, value); }
+    public CleanupCompletionRow? Completion { get => completion; private set { if (SetProperty(ref completion, value)) { OnPropertyChanged(nameof(CompletionVisible)); OnPropertyChanged(nameof(CompletionHasIssues)); RefreshCommands(); } } }
+    public bool CompletionVisible => Completion is not null;
+    public bool CompletionHasIssues => Completion?.HasIssues == true;
     public string Status { get => status; private set => SetProperty(ref status, value); }
     public string StoragePath { get => storagePath; private set => SetProperty(ref storagePath, value); }
     public string ExclusionPattern { get => exclusionPattern; set => SetProperty(ref exclusionPattern, value); }
@@ -197,6 +211,7 @@ public sealed class MainViewModel : ObservableObject
         var plan = await client.RequestAsync("plan", new() { ["scan_id"] = scanId, ["candidate_ids"] = Strings(selected), ["action"] = action }, cancellation: Token);
         var receipt = await client.RequestAsync("plan.execute", new() { ["plan_id"] = Text(plan, "id") }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
         Candidates.Clear(); scanId = null; nextOffset = null;
+        Completion = BuildCompletion(receipt, action);
         Status = "清理结果：" + Text(receipt, "state") + (action == "permanent" ? "。永久删除无法恢复，可在历史中查看逐项结果。" : "。可在历史中查看或恢复。移入回收站不会立即释放磁盘空间。");
         if (!Token.IsCancellationRequested) await LoadHistoryAsync();
     });
@@ -214,6 +229,7 @@ public sealed class MainViewModel : ObservableObject
     {
         var receipt = SelectedHistory!;
         var result = await client.RequestAsync("history." + action, new() { ["execution_id"] = receipt.Id, ["item_ids"] = Strings(action == "restore" ? receipt.RestorableIds : receipt.PurgeableIds) }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
+        Completion = BuildCompletion(result, action);
         Status = (action == "restore" ? "恢复结果：" : "永久删除结果：") + string.Join("、", Array(result).Select(value => Text(value, "state"))) + (action == "restore" ? "。已有同名目标不会被覆盖。" : "。已永久删除的项目无法恢复。");
         if (!Token.IsCancellationRequested) await LoadHistoryAsync();
     });
@@ -242,6 +258,32 @@ public sealed class MainViewModel : ObservableObject
         await client.RequestAsync("exclusions.set", new() { ["pattern"] = SelectedExclusion, ["remove"] = true }, cancellation: Token);
         Candidates.Clear(); scanId = null; nextOffset = null; await LoadConfigurationAsync(); Status = "全局排除已移除，请重新扫描。";
     });
+    private Task RetryCleanupAsync()
+    {
+        Completion = null;
+        Candidates.Clear(); scanId = null; nextOffset = null;
+        return ScanAsync();
+    }
+
+    private static CleanupCompletionRow BuildCompletion(JsonNode value, string action)
+    {
+        var source = value is JsonArray ? Array(value) : Array(value?["items"]);
+        var rows = source.Select(item => new CleanupItemResultRow(Text(item, "path"), Text(item, "state"), item?["error"]?.GetValue<string>())).ToArray();
+        var processed = rows.Count(item => ["trashed", "purged", "restored"].Contains(item.State));
+        var skipped = rows.Count(item => item.State is "skipped" or "cancelled");
+        var failed = rows.Count(item => item.State == "failed");
+        var needs = rows.Count(item => ["unknown", "pending", "moving", "purging", "needs_verification"].Contains(item.State));
+        var resultState = value is JsonObject ? Text(value, "state") : (failed + needs > 0 ? "partial" : "completed");
+        var issues = failed + needs > 0 || resultState is "partial" or "cancelled";
+        var title = !issues ? action switch { "restore" => "恢复完成", "purge" => "永久删除完成", _ => "清理完成" } : resultState == "cancelled" ? "清理已停止" : "清理已结束，部分项目需处理";
+        var message = action switch
+        {
+            "restore" => issues ? "部分项目未能恢复，请查看操作记录。" : "所选项目已恢复。",
+            "purge" or "permanent" => issues ? "部分项目未能永久删除，请查看操作记录。" : "已永久删除，无法恢复。",
+            _ => issues ? "部分项目未能移入回收站，请查看操作记录。" : "已移入回收站，可在操作记录中恢复。"
+        };
+        return new(action == "restore" ? "✓" : issues ? "!" : "✓", title, $"{processed} 项", message, processed.ToString(), skipped.ToString(), failed.ToString(), needs.ToString(), issues, rows);
+    }
     private async Task AnalyzeAsync()
     {
         var path = dialogs.ChooseFolder(); if (path is null) return;

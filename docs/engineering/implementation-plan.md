@@ -19,7 +19,7 @@ Status: active development. Native macOS, independent CLI, shared core, platform
 
 ## 2. Provisional baselines
 
-Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; macOS desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Windows uses C#/.NET 10 LTS/WPF Fluent/MVVM and a structured Swift process bridge; Windows Recycle Bin, restoration and manifest-bound permanent removal are enabled with explicit confirmation while native release acceptance remains separate. See [Windows implementation](windows.md).
+Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; macOS desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Windows uses C#/.NET 10 LTS/WPF Fluent/MVVM and a structured Swift process bridge; Windows Recycle Bin and restoration remain disabled by default, while manifest-bound permanent removal is enabled with explicit confirmation. See [Windows implementation](windows.md).
 
 ## 3. Milestones
 

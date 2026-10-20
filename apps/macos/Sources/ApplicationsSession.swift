@@ -172,7 +172,7 @@ import ShouCore
                     }
                 })
                 app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
-                app.completion=CleanupCompletion(receipts: [receipt])
+                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: "applications")
                 let removed=Set(receipt.items.filter { $0.uninstallOrigin?.kind == .application && ["trashed", "purged"].contains($0.state) }.map(\.originalPath))
                 for summary in items where removed.contains(summary.application.path) { summaries[summary.application.id]=nil }
                 selection=[:]; reviews=[:]; personalDataConsent=[]; expandedID=nil; hasChanges=true

@@ -97,7 +97,7 @@ flowchart TB
 - Windows UI 确定为 C# / .NET 10 LTS / WPF Fluent / MVVM，复用知伴的进程桥实践。
 - 初始验证目标为 Windows 11 x64、Swift 6.2.3；运行库分发仍须实测。
 - 已实现完整 File ID/SID、ACL、LockFileEx、IFileOperation 适配，原生行为仍须 Windows 证据。
-- 一次性挑战与摘要绑定本次确认；变更协作取消并保留回执。回收站变更在开发版默认不可用，细节见 [Windows 实现](../engineering/windows.md)。
+- 一次性挑战与摘要绑定本次确认；变更协作取消并保留回执。Windows 回收站与恢复默认关闭，清单绑定的永久删除默认开放，细节见 [Windows 实现](../engineering/windows.md)。
 
 Swift 支持 Windows 不代表 Apple 框架可用；在 macOS 上编译部分合同也不代表 Windows 原生操作已通过。
 

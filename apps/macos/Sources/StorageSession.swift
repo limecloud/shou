@@ -259,7 +259,7 @@ struct StorageLocation: Identifiable {
                     while path != "." && index.nodes[path] == nil { path=StorageIndex.parent(path) }
                 }
                 selected=[]; focus=nil
-                app.completion=CleanupCompletion(receipts: [receipt])
+                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: "storage")
                 app.statusKey=receipt.state == "completed" ? "Selected items processed. Refresh to measure current disk usage." : "Some items could not be removed. Review the result."
                 await app.refresh()
             } catch { app.operationHadError=true; app.error=error.localizedDescription }

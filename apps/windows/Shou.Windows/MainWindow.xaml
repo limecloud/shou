@@ -1,12 +1,16 @@
 <Window x:Class="Shou.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Shou · 收拾一下" Width="1120" Height="760" MinWidth="840" MinHeight="580" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="14">
+  <Window.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+  </Window.Resources>
+  <Grid>
   <Grid Margin="24">
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
     <Grid Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
       <StackPanel><TextBlock Text="收拾一下" FontSize="30" FontWeight="SemiBold" /><TextBlock Text="收好，就好。" Opacity="0.65" Margin="0,5,0,0" /></StackPanel>
       <Button Grid.Column="1" Content="停止当前操作" Command="{Binding CancelCommand}" VerticalAlignment="Center" />
     </Grid>
-    <TabControl Grid.Row="1">
+    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedSection, Mode=TwoWay}">
       <TabItem Header="清理">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <DockPanel><Button DockPanel.Dock="Right" Content="选择目录…" Command="{Binding ChooseFolderCommand}" /><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" MinWidth="300" AutomationProperties.Name="扫描目录" /></DockPanel>
@@ -51,5 +55,41 @@
       </TabItem>
     </TabControl>
     <StackPanel Grid.Row="2" Margin="0,16,0,0"><ProgressBar Height="3" IsIndeterminate="{Binding IsBusy}" /><TextBlock Text="{Binding Status}" Margin="0,9,0,0" AutomationProperties.LiveSetting="Polite" /></StackPanel>
+  </Grid>
+  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="#AA0B172A" Padding="28">
+    <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CornerRadius="16" Padding="34" MaxWidth="720" MaxHeight="680" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="{Binding Completion.Icon}" FontSize="56" HorizontalAlignment="Center" Foreground="#2E7D32" />
+        <TextBlock Grid.Row="1" Text="{Binding Completion.Title}" FontSize="26" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,14,0,0" />
+        <TextBlock Grid.Row="2" Text="{Binding Completion.SuccessText}" FontSize="38" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,24,0,0" />
+        <TextBlock Grid.Row="3" Text="{Binding Completion.Message}" Opacity="0.7" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,18" />
+        <StackPanel Grid.Row="4">
+          <UniformGrid Columns="4" Margin="0,0,0,12">
+            <StackPanel Margin="5"><TextBlock Text="{Binding Completion.Processed}" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" /><TextBlock Text="已处理" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Margin="5"><TextBlock Text="{Binding Completion.Skipped}" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" /><TextBlock Text="已跳过" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Margin="5"><TextBlock Text="{Binding Completion.Failed}" FontSize="20" FontWeight="SemiBold" Foreground="#C62828" HorizontalAlignment="Center" /><TextBlock Text="失败项" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
+            <StackPanel Margin="5"><TextBlock Text="{Binding Completion.NeedsVerification}" FontSize="20" FontWeight="SemiBold" Foreground="#EF6C00" HorizontalAlignment="Center" /><TextBlock Text="需核实" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
+          </UniformGrid>
+          <Expander Header="查看详情" IsExpanded="False" Visibility="{Binding CompletionHasIssues, Converter={StaticResource BoolToVisibility}}">
+            <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+              <ItemsControl ItemsSource="{Binding Completion.Items}"><ItemsControl.ItemTemplate><DataTemplate>
+                <Border BorderBrush="#22000000" BorderThickness="0,0,0,1" Padding="0,8"><StackPanel>
+                  <TextBlock Text="{Binding Path}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Text="{Binding State}" Opacity="0.75" />
+                  <TextBlock Text="{Binding Error}" Foreground="#C62828" TextWrapping="Wrap" />
+                </StackPanel></Border>
+              </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+            </ScrollViewer>
+          </Expander>
+        </StackPanel>
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
+          <Button Content="重新扫描" Command="{Binding RetryCleanupCommand}" Visibility="{Binding CompletionHasIssues, Converter={StaticResource BoolToVisibility}}" Margin="0,0,8,0" />
+          <Button Content="查看操作记录" Command="{Binding ViewHistoryFromCompletionCommand}" Visibility="{Binding CompletionHasIssues, Converter={StaticResource BoolToVisibility}}" Margin="0,0,8,0" />
+          <Button Content="完成" Command="{Binding DismissCompletionCommand}" IsDefault="True" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Border>
   </Grid>
 </Window>

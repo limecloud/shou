@@ -4,7 +4,7 @@ C# / .NET 10 LTS / WPF Fluent / MVVM。规则、计划、排除与回执复用 S
 
 首版包括目录选择、分页扫描、候选审阅、回收站与永久删除、规则导入与启停、全局排除增删、目录空间分析、历史恢复和记录中回收站项目的永久删除。界面目前为简体中文；大文件专用页面、应用卸载、启动项、隐私清理、Windows 生成源码安全证据与完整语言切换尚未接入。Rust/Swift 产物缺少原生 Git/构建活动证据时保持阻断。
 
-回收站、恢复和永久删除已默认开放。永久删除与回收站项目 purge 均需单独范围确认，无法恢复；Windows 原生运行与正式发布仍需实机验收。
+回收站和恢复默认关闭；仅隔离原生验收可显式设置 `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1`。永久删除默认开放，且与回收站项目 purge 均需单独范围确认，无法恢复；Windows 原生运行与正式发布仍需实机验收。
 
 ## 构建
 
@@ -19,6 +19,7 @@ C# / .NET 10 LTS / WPF Fluent / MVVM。规则、计划、排除与回执复用 S
 在 `apps/windows` 运行界面：
 
 ```powershell
+$env:SHOU_WINDOWS_EXPERIMENTAL_RECYCLE = "1"
 $bin = (swift build --package-path "../.." -c release --show-bin-path).Trim()
 dotnet run --project "Shou.Windows" -- --engine (Join-Path $bin "shou.exe")
 ```
