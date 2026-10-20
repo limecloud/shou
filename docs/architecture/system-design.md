@@ -44,6 +44,9 @@ External agents, model-generated drafts, imported files, and project content rem
 ```mermaid
 flowchart LR
     App[macOS SwiftUI and AppKit] --> Core[Portable ShouCore]
+    App --> Setup[First-use and scan access guidance]
+    Setup --> Access[ShouPlatform / native access evidence]
+    Access --> Privacy[macOS privacy settings, user controlled]
     App --> AgentSupport[ShouAgentSupport / Skill resources]
     CLI --> AgentSupport
     App --> SkillInstall[ShouPlatform / Skill installation and ZIP export]
@@ -52,6 +55,13 @@ flowchart LR
     CLI[Swift executable] --> Core
     App --> Quick[Desktop quick-clean routing]
     Quick --> Core
+    App --> LargeFiles[Large-file browser and selection]
+    LargeFiles --> Core
+    Core --> CatalogQuery[Saved catalog directory and large-file queries]
+    Core --> Uninstall[Application summaries and batch uninstall]
+    Core --> PrivacyService[Source-specific privacy service]
+    PrivacyService --> SQLite[Time-bounded schema-aware SQLite transactions]
+    PrivacyService --> PrivacyReceipts[Irreversible aggregate privacy receipts]
     Core --> Rules[Rule validation and matching]
     Core --> Scanner[Scan orchestration]
     Core --> Planner[Evidence and planning]
@@ -207,7 +217,7 @@ KISS: one core with limited declarative semantics. DRY: reuse validation, protec
 
 ## Application uninstall boundary
 
-Application discovery and uninstall are a separate domain from rebuildable-cache rules. `ShouEngine` owns exact component associations, consent, current exclusions and digest-bound plans; `ApplicationCatalogReading` and `ApplicationUninstallChecking` supply platform evidence. The existing `TrashExecution` journal is shared with cleanup. Each uninstall item records an exact original parent and component kind, allowing one receipt to cover several Library families and an installation directory. `ReceiptOrigins` validates those associations before history inspection or restoration. A separate restricted application-parent identity capability preserves ordinary workspace-root restrictions. See [application uninstall](../product/application-uninstall.md) for architecture, flow and sequence diagrams.
+Application discovery and uninstall are a separate domain from rebuildable-cache rules. `ShouEngine` owns exact component associations, consent, current exclusions and digest-bound plans; `ApplicationCatalogReading` and `ApplicationUninstallChecking` supply platform evidence. The existing `TrashExecution` and `PermanentExecution` journals are shared with cleanup. Incremental `ApplicationSummary` results are separate from complete removal manifests; `ApplicationUninstallBatchPlan` binds explicit per-application selections and rejects overlapping paths before one confirmation. Each uninstall item records an exact original parent and component kind, allowing one receipt to cover several Library families and an installation directory. `ReceiptOrigins` validates those associations before history inspection or restoration. A separate restricted application-parent identity capability preserves ordinary workspace-root restrictions. See [application uninstall](../product/application-uninstall.md) for architecture, flow and sequence diagrams.
 
 ## 11. Current execution paths
 
@@ -256,3 +266,9 @@ The permanent path is deliberately a first-class action rather than a hidden fal
 ## Explicit space-analysis removal
 
 Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
+
+Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
+
+### Privacy domain
+
+Privacy records have a separate source model from cache files. GUI and CLI share `PrivacyService`; the platform discovers standard profiles and no-follow identities. Core checks time bounds, schema, activity, exclusions and fingerprints before per-source transactions. Receipts retain aggregates only; irreversible logical deletion has no restoration or disk-space promise. See [privacy architecture, flow, sequence and support matrix](../engineering/privacy-cleaning.md).

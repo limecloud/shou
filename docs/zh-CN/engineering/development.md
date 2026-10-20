@@ -113,3 +113,13 @@ flowchart LR
     Native --> Core[共享清理核心]
     Update[后续应用更新] --> Install
 ```
+
+空间索引通过 `CSQLite` 系统库适配链接 SQLite 3，macOS SDK 自带该库；Linux 构建需要 SQLite 3 开发头文件。Swift 核心不依赖 AppKit 或 Darwin，平台层负责本地元数据与只读 Worker。
+
+## 安装经核验的本地版本
+
+构建后运行 `python3 "scripts/install-macos.py" --check`，检查应用签名、桌面端与 CLI 版本、相邻 Skill 资源。正常退出 Shou，再运行 `python3 "scripts/install-macos.py"`。安装器先暂存并核验应用，将旧版本保留在 `.build/local-install/`，校验安装后的文件，保留现有 Shou 记录；安装核验失败时恢复旧应用。源与目标应在同一文件系统，以支持原子重命名。安装器不更改 macOS 隐私权限。
+
+需要稳定的本地签名身份时，运行 `sh "scripts/build-macos.sh" release native` 前，通过 `SHOU_SIGNING_IDENTITY` 显式指定自己的 Developer ID Application 证书哈希。脚本不会自动选择钥匙串中的身份；未指定时使用临时签名，更新后隐私授权可能失效。需要网络时间戳时设置 `SHOU_SIGNING_TIMESTAMP=required`，Apple 公证仍是单独的发布要求。参见[安装与磁盘访问权限](../product/installation-and-access.md)。
+
+针对性回归入口：`shou-tests --scan-access-only` 与 `shou-tests --storage-performance-only`。后者逐字段比较批量元数据与原 stat 路径的证据，包含稀疏文件、硬链接和 Unicode 名称。macOS 在字段完整时批量读取元数据，必要时回退逐文件 stat，并直接将已知父目录 ID 传入 SQLite。优化影响空间计量吞吐，不改变清理授权。

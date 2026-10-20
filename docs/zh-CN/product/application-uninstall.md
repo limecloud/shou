@@ -2,146 +2,137 @@
 
 [English](../../product/application-uninstall.md)
 
-状态：macOS 已实现，并通过生成夹具的本机验证，验收构建已安装本机；确切运行证据与边界见[验收记录](../engineering/acceptance-and-testing.md)。本能力独立于可重建缓存规则，不能据此推导已发布版本具备相同功能。
+应用卸载独立于可重建缓存规则。桌面与 CLI 共用应用摘要、组件审阅、批量计划、原生执行和历史；Shou 不接模型、不托管 Agent。当前实现和实际验收分别记录，测试范围见[验收记录](../engineering/acceptance-and-testing.md)。
 
 ## 背景、目的与收益
 
-移除应用后，缓存、偏好设置和数据库可能继续占用空间。用户需要同时看清这些组件的路径与归属，并单独决定是否保留个人数据。桌面“应用管理”和独立 CLI 共用审阅、计划与执行流程；已有 Codex、Claude Code 等可以读取结构化结果并准备计划，Shou 不接入模型、不开发 Agent。
+用户需要一次选中多个不再使用的应用，直接看清程序包、缓存与个人数据，统一确认和卸载。反复进入单应用详情页会增加操作成本，也不便比较大小。列表以应用为单位展示图标、版本、确切标识、状态、应用本体分配容量估算和系统最近使用记录；展开或选择时再测量关联文件，不为整个应用目录预先保存所有删除清单。
 
-用户可以按名称、完整标识或路径搜索应用，逐项审阅程序包与关联数据，在明确范围后移入原生废纸篓，再从历史记录按原位置恢复。收益是减少查找残留的重复工作，并让每一步都有具体路径和回执。
+## 用户故事与交互
 
-## 用户故事与用例
-
-| 用户故事 | 行为与结果 |
+| 场景 | 交互与结果 |
 | --- | --- |
-| 卸载不再使用的工具 | 选定确切安装路径，审阅程序包、缓存和日志，预览后确认 |
-| 保留软件中的工作内容 | 个人数据默认不选；偏好设置、数据库、会话和容器需要单独允许再逐项选择 |
-| 同一个软件安装多个版本 | 不同路径作为独立应用；发现同标识安装时，保护可能共享的关联数据 |
-| 让现有 Agent 准备操作 | CLI 输出标识、路径、风险、覆盖提示及计划；执行保留用户交互确认 |
-| 误选后恢复 | 从历史记录选择已验证的移动项，独立确认恢复；原位置已有文件时拒绝覆盖 |
-| 清理中途停止 | 当前已开始项完成原生核验，下一个项目不再开始；部分结果保留回执 |
+| 找出占用大的应用 | 默认按大小降序；可按名称、状态、大小、最近使用排序，搜索名称、完整标识、版本或路径 |
+| 一次卸载多个应用 | 初始无选择；勾选应用时审阅并默认选择合格的程序包、缓存与日志；底栏持续显示应用数及实际所选组件容量 |
+| 检查关联文件 | 在同一列表展开应用，查看每项的路径、大小、风险和不可用原因，不进入另一页 |
+| 保留工作内容与登录状态 | 偏好、数据库、保存状态及容器默认保留；必须允许个人应用数据后逐项勾选 |
+| 调整批量范围 | 表头全选仅作用于当前筛选内可卸载的应用；筛选外及自定义组件选择保留；取消必选程序包即取消该应用 |
+| 运行中的应用 | 显示“需关闭应用”，可请求正常退出，关闭后重新扫描；不强制结束进程，不自动勾选 |
+| 管理员或受保护应用 | 明确显示状态；当前版本不支持提权卸载，不能标作可直接执行 |
+| 确认卸载 | 默认永久卸载，一次确认精确应用与组件路径及不可恢复影响；菜单可主动选择废纸篓 |
+| 查看结果或恢复 | 每项结果进入共享历史；只有已核验的废纸篓项可以恢复，永久删除无法恢复 |
 
-这是一组逐项记录的文件操作，不是跨多个目录的原子事务。失败或取消可能形成部分结果，应按回执恢复已验证移动的项目。移入废纸篓不代表立即释放磁盘空间。此阶段卸载回执仅支持恢复，不提供应用内永久移除。
+大小是分配容量估算，不保证等量释放；列表摘要只统计应用本体，底栏统计所选程序包及关联组件。系统最近使用记录缺失显示“暂无使用记录”，不以修改时间替代。应用目录发现缺口、未知大小、运行检查失败均明确显示。修改选择、重新扫描或完成变更后不能沿用旧确认；变更后应重新扫描更新状态和计量。
 
-## 范围与归属证据
+## 组件与归属
 
 | 组件 | 关联方式 | 个人数据同意 |
 | --- | --- | --- |
-| 应用程序包 | 确切安装路径、元数据及设备／inode 标识 | 选择应用本身 |
-| 缓存、日志 | `~/Library/Caches/<id>`、`~/Library/Logs/<id>` | 无额外数据同意；仍需审阅 |
-| 偏好设置 | `~/Library/Preferences/<id>.plist` | 必须 |
-| 应用支持数据 | `~/Library/Application Support/<id>` | 必须 |
-| 保存的状态 | `~/Library/Saved Application State/<id>.savedState` | 必须 |
-| 应用容器 | `~/Library/Containers/<id>`，且 `MCMMetadataIdentifier` 完全匹配 | 必须 |
-| 共享组容器 | `~/Library/Group Containers/<name>`，且系统容器元数据匹配 `<id>` 或 `group.<id>` | 必须 |
-| WebKit、HTTP 存储 | 对应 Library 类别下完整标识目录 | 必须 |
+| 程序包 | 确切安装路径、元数据、device/inode | 选择应用本身，卸载必选 |
+| 缓存、日志 | `~/Library/Caches/<id>`、`~/Library/Logs/<id>` | 默认仅推荐合格且无覆盖警告的项 |
+| 偏好 | `~/Library/Preferences/<id>.plist` | 必须 |
+| 应用支持、保存状态 | 对应 Library 类别下完整标识路径 | 必须 |
+| 应用容器 | 完整标识路径及原生容器元数据匹配 | 必须 |
+| 共享组容器 | 原生容器元数据明确关联当前应用 | 必须 |
+| WebKit、HTTP 存储 | 对应 Library 类别下完整标识路径 | 必须 |
 
-完整标识只能证明关联线索，不能证明独占归属。发现重复标识时阻止处理关联组件。共享组容器只有在系统容器元数据确认属于当前应用时才会进入审阅，无法确认或可能共享的容器仍受保护。发现范围不完整时显示提示，并取消关联组件的自动选择，用户需逐项决定。安装包收据、外部辅助程序注册、自定义数据路径、其他账户及仅剩残留而原应用已不存在的发现流程，不在此阶段范围内。名称相似、子串或推测的厂商前缀均不授权删除。元数据无效的应用保留在列表中，但不能生成卸载审阅。
+完整标识是关联线索，不能单独证明独占归属。重复安装可能共享组件；共享或无法验证的组件受保护。跨应用选择的相同或父子重叠路径在批量计划阶段整体拒绝。名称相似、厂商前缀和仅存在孤儿残留均不授权删除。安装包收据、外部辅助程序注册、自定义数据路径和其他账户不在本阶段范围内。
 
-默认检查 `~/Applications`、`/Applications` 及其下两层容器文件夹。主动包含的 `/System/Applications` 受保护。遇到应用包后不继续发现其内嵌辅助应用。发现默认预算为 4,000 项、10 秒；不能读取、深度和预算缺口均明确记录。`Contents/Info.plist` 支持 XML／binary，上限 256 KiB，仅输出白名单展示字段。
+默认发现 `~/Applications`、`/Applications` 及其下两层容器目录；主动包含的系统应用保留保护。遇到应用包后不发现内嵌应用。发现预算为 4,000 项、10 秒；每个应用独立进行有界大小测量，关联组件在选择时接受完整清单核验。Windows 尚未验收。
 
 ## 架构
 
 ```mermaid
 flowchart LR
-    Desktop[原生 SwiftUI 应用管理] --> Engine[共享卸载编排]
-    CLI[独立结构化 CLI] --> Engine
-    Engine --> Catalog[ApplicationCatalogReading]
-    Engine --> Evidence[ApplicationUninstallChecking]
-    Engine --> FS[PlatformFileSystem]
-    Engine --> Journal[共用 TrashExecution 日志边界]
-    Journal --> FS
-    Catalog --> Native[macOS 平台适配]
-    Evidence --> Native
-    FS --> Native
-    Engine --> Store[审阅 计划 与既有历史]
-    History[既有历史和恢复] --> Store
-    History --> Origins[逐组件原位置校验]
-    Origins --> FS
+  Desktop[原生应用卸载列表] --> Summary[共享应用摘要]
+  CLI[结构化 CLI] --> Summary
+  Summary --> Catalog[单次应用目录发现]
+  Summary --> Platform[平台计量 活动 最近使用]
+  Desktop --> Review[按需组件审阅]
+  CLI --> Review
+  Review --> Batch[批量计划与路径冲突检查]
+  Batch --> Confirm[一次精确范围确认]
+  Confirm --> Execute[共享永久或废纸篓执行]
+  Execute --> Journal[逐组件日志与回执]
+  Journal --> History[历史与受限恢复]
 ```
 
-核心层负责关联、同意、排除、计划验证和回执状态；平台层负责有界不跟随读取、当前账户进程证据、容器元数据和原生文件操作；UI／CLI 负责明确选择与确认。`TrashExecution` 与普通清理共用，不增加第二套删除循环或 Shell 规则。
+`ApplicationsSession` 仅管理界面状态、筛选外选择、组件缓存及操作生命周期。`ShouEngine` 负责归属、同意、排除、摘要绑定与变更前核验。`ApplicationCatalogReading`、`ApplicationUninstallChecking` 和文件系统适配器提供平台事实。批量卸载复用 `TrashExecution` 或 `PermanentExecution`，一个回执保存每个组件的精确原位置；不增加第二套删除循环。
 
-普通工作区的受保护根目录限制保持有效。应用恢复使用独立且受限的安装父目录能力；关联数据保存其自己的用户目录身份。历史核验与恢复必须先重现组件类型对应的确切原路径。
-
-## 流程图
+## 流程
 
 ```mermaid
 flowchart TD
-    Discover[发现应用并记录范围缺口] --> Review[读取应用身份与完整标识关联]
-    Review --> Policy[核验活动 归属 与排除策略]
-    Policy --> Choose[选择应用和组件]
-    Choose --> Consent{包含个人数据?}
-    Consent -->|是| Explicit[要求单独同意]
-    Consent -->|否| Preview[重现策略并生成15分钟计划]
-    Explicit --> Preview
-    Preview --> Confirm[确认确切路径与摘要]
-    Confirm --> Recheck[重查元数据 清单 进程 与配置]
-    Recheck --> Intent[先持久化当前项移动意图]
-    Intent --> Trash[原生废纸篓并核验返回路径]
-    Trash --> Record[记录已验证 失败 或未知结果]
-    Record --> Next{继续?}
-    Next -->|还有项目且未取消| Recheck
-    Next -->|完成 取消 或失败| History[历史记录与独立恢复]
+  Scan[发现应用并逐项计量] --> List[大小排序 状态筛选 最近使用]
+  List --> Select[多选应用或展开组件]
+  Select --> Review[核验关联并推荐程序包 缓存 日志]
+  Review --> Data{选择个人数据?}
+  Data -->|是| Consent[单独允许并逐项选择]
+  Data -->|否| Plan[批量计划 拒绝重叠路径]
+  Consent --> Plan
+  Plan --> Confirm{确认精确路径与删除方式}
+  Confirm -->|取消| Select
+  Confirm -->|确认| Recheck[全批预检并逐组件再次核验]
+  Recheck --> Run[记录意图后执行 程序包最后]
+  Run --> Result[逐项完成 失败 取消 或未知]
+  Result --> Refresh[重新扫描更新大小及状态]
 ```
 
-程序包最后处理。计划绑定应用元数据、组件完整清单、配置摘要、个人数据同意及到期时间；存储记录本身不构成执行权限。每项移动前重新检查当前应用、进程、相关重复标识、组件父目录与文件清单。当前账户进程证据覆盖 GUI 标识及应用包内可执行路径，不能证明其他账户或所有外部辅助程序均已停止；不会主动结束进程。
-
-## 时序图
+## 时序
 
 ```mermaid
 sequenceDiagram
-    actor User as 用户
-    participant Entry as 桌面或CLI
-    participant Core as ShouEngine
-    participant Store as 本地记录
-    participant Mac as 原生平台
-    User->>Entry: 选择应用与组件
-    Entry->>Core: 审阅并附带个人数据同意生成计划
-    Core->>Mac: 重读元数据 活动状态 与完整目标
-    Core->>Store: 保存绑定摘要的限时计划
-    Core-->>Entry: 确切路径 风险 与覆盖提示
-    User->>Entry: 确认当前范围
-    Entry->>Core: 执行计划与确认摘要
-    Core->>Store: 获取互斥锁并记录执行身份
-    loop 每个选中组件 程序包最后
-        Core->>Mac: 重查组件与应用活动
-        Core->>Store: 持久化移动意图
-        Core->>Mac: 移入原生废纸篓
-        Mac-->>Core: 确切返回路径与核验清单
-        Core->>Store: 保存逐项结果
-    end
-    Core-->>Entry: 完成或部分回执
-    User->>Entry: 选择回执项并独立确认恢复
-    Entry->>Core: 恢复
-    Core->>Mac: 核验确切废纸篓对象和原父目录
-    Core->>Store: 记录后续操作意图
-    Core->>Mac: 原子且不覆盖的恢复
-    Core->>Store: 保存后续结果
+  actor User as 用户
+  participant UI as 桌面或CLI
+  participant Core as ShouEngine
+  participant Mac as 平台适配器
+  participant Store as 本地记录
+  UI->>Core: applicationSummaries
+  Core->>Mac: 一次目录发现 活动快照 与最近使用
+  loop 每个应用
+    Core->>Mac: 有界只读计量
+    Core-->>UI: 增量摘要与进度
+  end
+  User->>UI: 选择多个应用及组件
+  UI->>Core: reviewApplication
+  Core->>Mac: 核验身份 归属 活动与完整清单
+  UI->>Core: createUninstallBatchPlan
+  Core->>Core: 检查个人数据同意及跨应用路径重叠
+  Core->>Store: 保存限时计划与摘要
+  UI-->>User: 一次精确范围及影响确认
+  User->>UI: 确认
+  UI->>Core: executeUninstallBatch
+  Core->>Store: 获取变更锁
+  Core->>Mac: 全批预检
+  loop 每项关联组件及最后的程序包
+    Core->>Mac: 再次核验当前项目与应用活动
+    Core->>Store: 持久化操作意图
+    Core->>Mac: 按计划永久删除或移入废纸篓
+    Core->>Store: 保存实际结果
+  end
+  Core-->>UI: 一份批量回执
 ```
 
-## 安全与边界
+## 执行与恢复边界
 
-- 系统／Apple 应用、当前执行应用、运行中的应用及辅助程序、未知活动、其他所有者条目、特殊文件、多重硬链接文件、Shou 存储和匹配的排除项受保护。
-- 父路径及目标根不跟随符号链接。包内链接只记录、不解引用；仍需本机文件系统与完整清单。
-- 单独偏好设置文件计算内容摘要，上限 16 MiB。经验证的移动／恢复仅允许根 ctime 差异；内容、身份、mtime、权限、链接数仍需匹配。旧目录清单编码不变。
-- 目录继续使用完整元数据清单，不承诺对整个应用的每个文件内容计算哈希。
-- 取消在项目边界生效。已有持久化意图的原生操作完成核验并记录结果；未知结果不会自动重试。
-- 恢复校验每个组件的原父目录，不重建缺失父目录、不覆盖已有文件。历史核验只读确切记录位置，不枚举废纸篓、不修补回执。
-- 不增加管理员提权、特权辅助进程、launchctl 修改、权限变更、模型接入或 Windows 支持。
+计划有效期为 15 分钟，绑定应用身份、组件完整清单、配置、个人数据同意和删除方式。全批预检失败时不开始删除；开始后的失败或取消可能形成部分结果，这不是跨应用原子事务。停止在项目安全边界生效，已处理项不会自动回滚，未知结果不自动重试。
 
-## CLI 合同
+系统与当前应用、运行中的所属进程、未知活动、其他所有者内容、特殊文件、多重硬链接、凭据、Shou 记录及排除项受保护。包内符号链接只处理链接自身。个人偏好文件保存有界内容摘要，目录核验使用完整元数据清单。恢复重现每个组件的精确原父目录，不重建缺失父目录、不覆盖文件。永久删除结果不能进入恢复操作。
+
+## CLI
 
 ```sh
-shou applications list --json
+shou applications summary --json
 shou applications inspect --path "/Applications/Example.app" --json
-shou applications plan --review-id <review-id> --component <app-id> --component <cache-id> --json
-shou applications plan show --plan-id <plan-id> --json
-shou applications uninstall --plan-id <plan-id> --json
+shou applications plan --review-id <review-id> --component <app-id> --mode trash --json
+shou applications batch plan --file selections.json --mode permanent --json
+shou applications batch plan show --plan-id <plan-id> --json
+shou applications batch uninstall --plan-id <plan-id> --json
 shou history inspect --execution-id <execution-id> --json
-shou history restore --execution-id <execution-id> --item <item-id> --json
 ```
 
-计划创建时的 `--include-user-data true` 仅允许明确选择的个人数据，不会自动勾选。卸载需要控制终端及完整短语 `UNINSTALL <plan-id>`；管道或 `--yes` 不能绕过。恢复另行确认 `RESTORE <execution-id>`。读取与计划操作可由现有编码 Agent 协助完成。
+批量输入为显式选择数组，每项包含 `review_id`、`component_ids` 和可选 `include_user_data`。旧单应用计划默认废纸篓，批量默认永久卸载；机器调用必须读取计划的实际模式。执行需要当前控制终端的一次精确范围确认，非交互 Agent 可以准备和检查计划。废纸篓恢复另行确认。
 
-验证仅使用生成的独立应用与数据，自动化、CLI、桌面和安装的实际范围见[验收](../engineering/acceptance-and-testing.md)。第三方产品参考统一见[鸣谢](../../../README.zh-CN.md#鸣谢)。
+## 鸣谢
+
+MangoDisk 的应用列表、行内组件、状态筛选、排序和批量操作体验为本轮设计提供参考。Shou 保持原生实现和独立的执行、个人数据及历史合同；参考产品可见页面不证明 Shou 已通过全部同类能力验收。

@@ -15,48 +15,41 @@ Space analysis is a primary Shou workflow. It answers “what occupies this disk
 
 ```mermaid
 flowchart LR
-  UI[Native macOS space browser] --> Core[ShouEngine storage operations]
+  UI[Native macOS browser] --> Core[ShouEngine]
   CLI[analysis commands] --> Core
-  Core --> Scan[StorageScan: immutable tree and root identity]
-  Core --> Worker[Read-only worker: bounded result pages]
-  Scan --> Pages[Entry pages and digest-checked metadata]
-  Scan --> Index[StorageIndex and StorageSelection]
-  Index --> UI
-  Core --> Plan[StorageRemovalPlan: literal paths and manifests]
-  Plan --> Journal[Shared TrashExecution / PermanentExecution]
-  Journal --> Native[NativeFileSystem: no-follow verification]
-  Journal --> Records[Shared history and follow-up records]
-  Native --> OS[macOS Trash / unlinkat]
+  Core --> Worker[Read-only streaming measurement]
+  Worker --> Catalog[SQLite: entries, subtree totals and coverage]
+  Core --> Scan[StorageScan: identity and catalog reference]
+  Scan --> Catalog
+  Catalog --> Query[Query current directory]
+  Query --> Cache[Visited-directory cache and selection]
+  Cache --> UI
+  Core --> Plan[Removal plan: selected paths and fresh complete manifests]
+  Plan --> Journal[Shared execution journal]
+  Journal --> FS[No-follow verification and native removal]
+  Journal --> History[Shared history]
 ```
 
-`StorageSession` owns desktop navigation, selection, progress and cancellation. It does not decide execution eligibility. `ShouEngine` stores snapshots, validates explicit targets and current exclusions, issues a 15-minute confirmation digest, and holds the existing cross-process mutation lease. The platform adapter owns local metadata, bounded traversal, streaming SHA-256 for selected large files, native Trash, no-overwrite restore, and manifest-based permanent removal. No model, Agent runtime, daemon or privileged helper is introduced.
+`StorageSession` caches visited directories and loads file lists on demand, without a full-volume UI dictionary. `ShouEngine` owns immutable analysis records, directory queries and explicit removal validation. The platform streams local metadata and subtree totals to a shared SQLite index. Removal independently obtains complete target manifests and reuses native mutation, locking, journals and history. No model, Agent runtime, daemon or privileged helper is introduced.
 
 ## Flow
 
 ```mermaid
 flowchart TD
-  A[Choose volume or folder] --> B[Read-only analysis]
-  B --> Limit{Scan limit reached?}
-  Limit -->|Yes| Partial[Mark incomplete coverage]
-  Limit -->|No| Prepare[Organize and load measured entries]
-  Partial --> Prepare
-  Prepare --> Save[Persist bounded pages; publish scan metadata last]
-  Save --> Index[Build map and lookup in background; cancellable]
-  Index --> C{Result}
-  C -->|Complete or partial| D[Browse list and treemap]
-  C -->|Stopped| A
-  D --> E[Select explicit files and directories]
-  E --> F[Delete: review current targets]
-  F --> G{Confirm mode and paths}
-  G -->|Cancel| D
-  G -->|Trash| H[Reverify and move selected items]
-  G -->|Permanent| I[Reverify and permanently remove]
-  H --> J[Per-item result and shared history]
-  I --> J
-  J --> K[Remove completed items from displayed tree]
-  K --> L[Refresh measurement]
-  L --> D
-  J -->|Verified Trash only| M[Restore without overwrite]
+  A[Choose disk or folder] --> B[Stream every accessible entry to disk index]
+  B --> C[Accumulate directory totals and completeness]
+  C --> D[Seal index; publish metadata last]
+  D --> E[Load current directory and draw map]
+  E --> F[Open directory: query saved direct children]
+  F --> E
+  E --> G[Select explicit files or directories]
+  G --> H[Fresh complete target verification]
+  H --> I{Confirm paths and deletion mode}
+  I -->|Cancel| E
+  I -->|Confirm| J[Reverify; journal; remove]
+  J --> K[Per-item result; prune visible cache]
+  K --> L[Refresh for new measurement]
+  L --> B
 ```
 
 ## Sequence
@@ -64,52 +57,44 @@ flowchart TD
 ```mermaid
 sequenceDiagram
   actor User
-  participant Desktop
+  participant UI as Desktop / CLI
   participant Engine as ShouEngine
-  participant Worker as Read-only scan worker
-  participant FS as NativeFileSystem
-  participant Store as LocalRecordStore
-  User->>Desktop: Choose location; Start Scan
-  Desktop->>Engine: scanStorage(path, budget, progress)
-  Engine->>FS: analysisRootIdentity(path)
-  Engine->>Worker: inspect(path)
-  Worker-->>Desktop: Current path and entry count
-  Worker-->>Desktop: Organizing / loading; exact count and limit state
-  Worker-->>Engine: Bounded result pages; TreeSnapshot with coverage gaps
-  Engine-->>Desktop: Saving measured analysis
-  loop Each entry page of a large analysis
-    Engine->>Store: Save bounded page and SHA-256 reference
+  participant Worker as Read-only worker
+  participant FS as Native filesystem
+  participant Store as Catalog / record store
+  User->>UI: Choose location; scan
+  UI->>Engine: scanStorage(path)
+  Engine->>Worker: measureStorage(path, catalog)
+  loop Every accessible directory and file
+    Worker->>FS: Read no-follow metadata
+    Worker->>Store: Append row; accumulate subtree totals and coverage
+    Worker-->>UI: Current path and measured entry count
   end
-  Engine->>Store: Publish StorageScan metadata after all pages
-  Engine-->>Desktop: Stored evidence
-  Desktop->>Desktop: Build map and lookup off the main thread
-  Desktop-->>User: List and treemap, or explicit partial coverage
-  User->>Desktop: Select items; Delete
-  Desktop->>Engine: createStorageRemovalPlan(scanId, paths, mode)
-  Engine->>FS: Reinspect only explicit selected targets
-  Engine->>Store: Save expiring removal plan
-  Engine-->>Desktop: Exact paths, manifests, estimates, digest
-  User->>Desktop: Confirm once
-  Desktop->>Engine: executeStorageRemoval(planId, digest)
-  Engine->>Store: Acquire lease; save execution intent
-  loop Each selected item
-    Engine->>FS: Recheck root, policy and complete manifest
-    Engine->>Store: Save item intent
-    Engine->>FS: Trash or permanent removal
-    FS-->>Engine: Verified result or explicit failure
-    Engine->>Store: Save item outcome
-  end
-  Engine-->>Desktop: ExecutionReceipt
-  Desktop-->>User: Results and updated displayed tree
+  Worker->>Store: Seal catalog and child index
+  Worker-->>Engine: Root identity, measured count and issues
+  Engine->>Store: Publish StorageScan metadata last
+  UI->>Engine: storageDirectory(scanId, path)
+  Engine->>Store: Query saved totals and direct children
+  Engine-->>UI: Directory list and completeness
+  UI-->>User: List and map; partial sizes use ≥
+  User->>UI: Select items; delete
+  UI->>Engine: createStorageRemovalPlan(paths, mode)
+  Engine->>FS: Fresh complete manifests for selected targets
+  Engine-->>User: Exact scope, estimates and confirmation
+  User->>Engine: Confirm plan digest
+  Engine->>Store: Acquire mutation lease; record intent
+  Engine->>FS: Reverify current targets; remove
+  Engine->>Store: Save each outcome
+  Engine-->>UI: Shared history and per-item results
 ```
 
 ## Data and safety boundaries
 
-`StorageScan` contains its ID, absolute read root, identity, timestamp and `TreeSnapshot`. It is independent of registered rule workspaces. `StorageRemovalPlan` contains the scan ID, root identity, exact disjoint paths, current target manifests, action, expiry, state and digest. It is stored in `storage-plans`; scans are stored in `storage-scans`. Removal receipts use shared history with operation `storage_removal` or `storage_permanent_removal`.
+`StorageScan` stores the ID, absolute root, identity, timestamp, coverage, measured entry count and optional `catalog_id`. Private `storage-catalogs` hold SQLite indexes; `storage-scans` hold small JSON records published only after the index is sealed. Every measured file is retained. File rows store a name and parent ID; full directory paths are stored once. Subtree totals accumulate during traversal, and the hard-link set stays on disk. Each node exposes `is_complete`; partial directory sizes use `≥` without invalidating fully measured siblings. Legacy inline and digest-paged records remain readable, with directory coverage derived from `completedPaths`; old records are not rewritten. `StorageRemovalPlan` still binds exact paths, fresh complete manifests, mode, expiry and confirmation digest. The space index is never deletion authorization.
 
 Read access to a disk never grants permission to remove its root. System locations, container roots, credentials, cloud-synchronized trees, Shou records, symbolic-link targets and special files remain protected. User ownership is required for each selected root. Current exclusions in registered workspaces apply to matching selected paths and their measured descendants. Changing a selected target after review prevents that target from being removed. Errors are recorded rather than described as success. Cancellation stops scanning workers or stops execution between journaled items.
 
-Limits are explicit: analysis defaults to 1,000,000 entries, 600 seconds and 128 levels; a removal request accepts up to 5,000 explicit paths. Each target must be completely remeasured before confirmation. Local JSON records are limited to 256 MiB. Analyses above 10,000 entries use bounded entry pages with SHA-256 digests; the scan metadata is published only after every page is durable, and existing single-record scans remain readable. Oversized plans are rejected before persistence. Progress distinguishes measurement, result loading, saving, and map indexing; Stop also cancels indexing at bounded checkpoints. File verification streams content with bounded memory; very large files may take time or exceed the read deadline. Symlinks are measured as opaque entries and cannot be selected as standalone removal targets. Traversal stays on one filesystem and never hydrates cloud placeholders. Hard-link accounting is an estimate; APFS clones, snapshots and Trash mean attributed bytes are not guaranteed reclaimed bytes. Treemap entries beyond the first 160 are grouped as Other Entries; every measured entry remains in the directory list.
+Default analysis has no file-count cutoff. Operational bounds are one hour, 512 directory levels and a 4 GiB disk index. Unreadable, changed, cross-volume and cloud boundaries are explicit coverage gaps. An index write failure terminates the unpublished analysis; cancellation also publishes no new record. Directory completeness is independent; unmeasured bytes are unknown, not zero. Removal still accepts at most 5,000 literal paths, and every target must pass the existing bounded, complete manifest and content checks. Local JSON records retain their 256 MiB limit. Explicit CLI scan budgets retain bounded legacy snapshots and digest-paged records. Symlinks are not followed; cloud placeholders and mount boundaries are visible, non-removable opaque rows and do not hydrate content. Sizes use `st_blocks × 512`, counting hard links once in traversal order. APFS clones, snapshots and Trash mean attributed bytes are not guaranteed reclaimed bytes. The treemap groups entries beyond 160 tiles, while all measured entries remain accessible in their directory lists. Successful removal prunes the display cache; Refresh obtains a new authoritative measurement.
 
 ## CLI
 
@@ -127,3 +112,63 @@ Paths in `analysis plan` are literal, scan-relative values, not globs. `--mode p
 ## Verification
 
 `shou-tests --storage-only` checks selection expansion, root protection, stale-target refusal, partial analysis, current exclusions and newly added descendants, 20 MiB file and directory Trash/restore, permanent removal and history inspection of generated fixtures. `scripts/verify-storage-cli.py` checks discovery, paging, parent/child normalization, file selections, invalid input, explicit partial results and non-TTY refusal without authorizing deletion. Desktop acceptance uses a separate bundle identifier and record store, with generated files only. See [acceptance evidence](../engineering/acceptance-and-testing.md) and [reference acknowledgments](../engineering/reference-design.md).
+
+Default `analysis scan` uses the full disk-backed index. Explicit `--max-entries` or `--max-seconds` selects the compatible bounded snapshot path. `analysis summary` includes the measured entry count; each node from `analysis children` includes `is_complete`.
+
+On macOS, measurement batches regular-file metadata with `getattrlistbulk` only when all identity fields are present, retains `fstatat` for directories and links, and falls back to stat-based enumeration on unsupported or incomplete bulk data. Traversal passes known parent row IDs to SQLite to avoid repeated path parsing and parent queries. A 65,536-row per-directory bulk-buffer threshold chooses the fallback; it does not truncate the scan. These optimizations preserve exact metadata and allocated-size accounting. [Access guidance](installation-and-access.md) runs before broad scans and records protected boundaries honestly.
+
+
+## Large files across folders
+
+The native **Large Files** page queries ordinary files across an entire saved analysis, without requiring a cleanup rule. Start a new read-only scan or explicitly reuse the latest unchanged Space Analysis result. The two pages keep separate selections.
+
+- Default minimum allocation: 50 MiB. Native filters offer 50/100/500 MiB and 1 GiB; the CLI accepts an integer byte threshold.
+- Types: all, video, audio, image, archive, document, AI model, and other. Types use filename extensions only; they do not inspect contents. Disk images, installers and ambiguous raw binaries remain Other.
+- Order: charged allocation descending, then full relative path in binary UTF-8 order. Hard links follow the saved scan's accounting.
+- Type and threshold changes query saved evidence. Pages contain at most 500 rows and a cursor bound to the scan and filters. No whole-volume UI dictionary is required.
+- Row selection, loaded-row selection, **Select All Matching Files**, Clear Selection, Quick Look, Finder and path copying are available. Selecting all walks every query page and selects only eligible files; it is cancellable and publishes the selection only after finishing.
+- The bottom action shows the authoritative selected count and allocation. Permanent removal opens the shared exact-path confirmation; Trash remains optional. Both use the existing fresh-manifest validation, execution journal and history.
+- Leaving and returning to the page loads a completed scan if needed, while preserving already loaded filters and selection. Cancelled result reads remain visibly unfinished and can be resumed; reusing an analysis exposes progress and Stop.
+- After removal, completed rows disappear. The page requests a new scan before showing updated totals. The original catalog remains immutable. An inaccessible location stays a coverage gap rather than zero bytes.
+
+```mermaid
+flowchart TD
+  Entry[Large Files] --> Source{Measurement available?}
+  Source -->|Reuse latest analysis| Query[Query saved catalog]
+  Source -->|New scope| Scan[Read-only streaming scan]
+  Scan --> Query
+  Query --> Filter[Allocation threshold and filename type]
+  Filter --> Page[Stable bounded pages]
+  Page --> Select[Explicit files or all matching eligible files]
+  Select --> Plan[Existing removal plan and fresh target manifests]
+  Plan --> Confirm{Confirm exact paths and mode}
+  Confirm -->|Cancel| Page
+  Confirm -->|Confirm| Execute[Shared execution and per-item history]
+  Execute --> Refresh[Rescan for current totals]
+```
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant UI as Native Large Files / CLI
+  participant Engine as ShouEngine
+  participant Catalog as Immutable scan catalog
+  User->>UI: Set minimum size and file type
+  UI->>Engine: storageLargeFiles(scanId, filters, cursor)
+  Engine->>Catalog: Count, allocated sum and ordered page
+  Catalog-->>Engine: Bounded matching rows
+  Engine-->>UI: Items, totals and next cursor
+  Note over UI,Catalog: No filesystem traversal or content read
+  User->>UI: Select files and clean
+  UI->>Engine: createStorageRemovalPlan(scanId, paths, action)
+  Note over Engine: Fresh target verification before shared confirmation/execution
+```
+
+CLI example:
+
+```sh
+shou analysis scan --path "$HOME" --json
+shou analysis large-files --scan-id "storage_example" --minimum-bytes 52428800 --type ai-model --limit 100 --json
+```
+
+Pass returned relative paths to `analysis plan`. Query results do not authorize execution; existing CLI confirmation rules still apply. A partial scan returns its measured matches and original coverage issues.

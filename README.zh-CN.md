@@ -15,22 +15,25 @@
 
 ## 下载与安装
 
-下载 Shou v0.4.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
+下载 Shou v0.5.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
 
-[**Shou v0.4.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.4.0/Shou-0.4.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.4.0/Shou-0.4.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.4.0/shou-0.4.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.5.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.5.0/shou-0.5.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 此版本使用 ad-hoc 签名，尚未经过 Apple 公证。如 macOS 阻止首次打开，请先确认下载来源，再查看**系统设置 → 隐私与安全性 → 仍要打开**。
+
+首次启动会引导完成磁盘访问设置，并可直接安装 CLI 命令。也可以先使用可访问范围，之后随时在**设置 → 设置引导**继续配置。参见[安装与权限说明](docs/zh-CN/product/installation-and-access.md)。
 
 ## Shou 能做什么
 
 | | |
 | --- | --- |
 | **AI Agent 定制清理** | 使用随包 Skill 分析个人缓存和构建产物，回答必要问题即可预览规则，无需手写 JSON。 |
-| **应用卸载** | 审阅应用与明确关联的文件，再确认卸载。个人数据需单独同意，移入废纸篓的组件可恢复。 |
+| **应用卸载** | 按大小与状态比较应用，行内展开组件，多选后统一确认。个人数据需单独同意，废纸篓项可恢复。 |
 | **启动项** | 查看启动项定义；对当前用户 LaunchAgents 在二次确认后启用或停用，其余来源在 macOS 登录项设置中管理。 |
 | **排除规则** | 在全局或单个项目中保护目录，个人规则修改后保存为禁用的新版本。 |
 | **应用缓存清理** | 集中查看浏览器、聊天工具、编辑器等应用的缓存，覆盖 Chrome、Edge、Firefox、Codex、Claude、QQ、微信等。 |
 | **开发工具与项目清理** | 查找 npm、Cargo、Xcode、Python、Go 缓存，以及 Rust target、Node.js 依赖、Swift 构建产物。 |
+| **大文件清理** | 按容量与文件类型筛选已有扫描，快速查看、跨分页全选，并清理具体选择。 |
 | **空间分析** | 分析磁盘或目录，通过列表与树图勾选文件和文件夹，直接删除并支持废纸篓恢复。 |
 | **个人规则** | 让现有 Agent 为可重建目录制定规则，预览命中范围后复用；“高级”中保留手工导入与编辑入口。 |
 | **历史与恢复** | 查看清理结果，恢复选中项目，或另行确认永久移除本次清理项。 |
@@ -79,6 +82,8 @@ Codex 中使用 `$shou-rule-authoring`，Claude Code 本机会话中使用 `/sho
 
 [Documentation](docs/zh-CN/README.md) · [Development](docs/zh-CN/engineering/development.md) · [Rules](docs/zh-CN/rules/rule-specification.md) · [CLI](docs/zh-CN/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
+隐私清理提供独立的来源／时间范围流程，支持已适配的浏览历史与 Cookie 结构，单独确认退出登录影响并保存汇总回执。详见[支持范围](docs/zh-CN/engineering/privacy-cleaning.md)。
+
 ## 鸣谢
 
 [MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
@@ -90,3 +95,5 @@ Codex 中使用 `$shou-rule-authoring`，Claude Code 本机会话中使用 `/sho
 [Apache License 2.0](LICENSE).
 
 空间分析支持本地卷与目录、列表和树图联动、文件及文件夹多选、废纸篓与恢复，以及明确确认后的永久删除。详见[空间分析](docs/zh-CN/product/space-analysis.md)。
+
+Mole 路径研究、署名与覆盖边界见[规则覆盖说明](docs/zh-CN/engineering/mole-rule-coverage.md)。

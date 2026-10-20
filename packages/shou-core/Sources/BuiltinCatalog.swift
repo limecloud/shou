@@ -12,10 +12,15 @@ public struct BuiltinTemplate: Codable, Sendable, Identifiable {
     public let limitation: String
     public let location: String
     public let applicationBundleIdentifiers: [String]?
+    public let platforms: [String]?
+
+    public var supportedPlatforms: [String] {
+        platforms ?? (location == "projects" ? ["macos", "windows"] : ["macos"])
+    }
 
     public func rule(rootRef: String) throws -> CleanupRule {
         let rule=CleanupRule(schemaVersion: "1.0", id: id, version: version ?? "1.0.0", name: name, description: rebuildNote,
-            platforms: ["macos", "windows"], scope: .init(rootRef: rootRef, maxDepth: 24, followSymlinks: false, crossFilesystems: false),
+            platforms: supportedPlatforms, scope: .init(rootRef: rootRef, maxDepth: 24, followSymlinks: false, crossFilesystems: false),
             match: .init(kind: "directory", relativePatterns: patterns, projectMarkers: marker.map { .init(location: "parent", allOf: [$0]) }),
             conditions: .init(minAllocatedBytes: 0, newestDescendantModifiedDaysAtLeast: nil), exclude: .init(relativePatterns: []),
             risk: .init(declaredLevel: risk, rebuildNote: rebuildNote, limitations: [limitation]), action: .init(type: "trash"))
@@ -30,7 +35,10 @@ public enum BuiltinCatalog {
         let templates=try JSONDecoder().decode([BuiltinTemplate].self, from: Data(contentsOf: url))
         guard Set(templates.map(\.id)).count == templates.count else { throw ShouError("invalid_rule", "Built-in rule identifiers must be unique.") }
         for template in templates {
-            guard template.id.hasPrefix(prefix), (template.applicationBundleIdentifiers ?? []).allSatisfy({ $0.range(of: "^[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z0-9.-]+$", options: .regularExpression) != nil }) else {
+            guard template.id.hasPrefix(prefix),
+                  template.location.range(of: "^[a-z][a-z0-9-]{0,63}$", options: .regularExpression) != nil,
+                  Set(template.applicationBundleIdentifiers ?? []).count == (template.applicationBundleIdentifiers ?? []).count,
+                  (template.applicationBundleIdentifiers ?? []).allSatisfy({ $0.range(of: "^[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z0-9.-]+$", options: .regularExpression) != nil }) else {
                 throw ShouError("invalid_rule", "Built-in rule metadata is invalid.")
             }
             _ = try template.rule(rootRef: "catalog-validation")
@@ -44,7 +52,7 @@ public enum BuiltinCatalog {
         let locations=try KnownLocations.catalog(homeDirectory: homeDirectory, platform: platform)
         let scopedLocations=Set(locations.filter { $0.path == workspace.path }.map(\.id))
         return try templates().filter { template in
-            template.location == "projects" ? scopedLocations.isEmpty : scopedLocations.contains(template.location)
+            template.supportedPlatforms.contains(platform) && (template.location == "projects" ? scopedLocations.isEmpty : scopedLocations.contains(template.location))
         }.map { try $0.rule(rootRef: workspace.rootRef) }
     }
     public static func category(ruleIds: [String]) -> String {

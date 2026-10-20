@@ -32,6 +32,7 @@ public struct ApplicationUninstallFacts: Sendable {
 }
 public protocol ApplicationUninstallChecking: Sendable {
     func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts
+    func facts(for applications: [ApplicationDefinition]) throws -> [String: ApplicationUninstallFacts]
     func containerIdentifier(at path: String) throws -> String
     /// Returns only shared containers whose native metadata identifies this exact application.
     /// The default keeps non-macOS and test adapters conservative.
@@ -39,6 +40,14 @@ public protocol ApplicationUninstallChecking: Sendable {
 }
 public extension ApplicationUninstallChecking {
     func groupContainerPaths(for bundleIdentifier: String) throws -> [String] { [] }
+    func facts(for applications: [ApplicationDefinition]) throws -> [String: ApplicationUninstallFacts] {
+        var result=[String: ApplicationUninstallFacts]()
+        for application in applications {
+            if Task.isCancelled { throw ShouError("cancelled", "Application summary stopped.") }
+            result[application.id]=try facts(for: application)
+        }
+        return result
+    }
 }
 public struct UnavailableApplicationUninstallEvidence: ApplicationUninstallChecking {
     public init() {}
@@ -97,6 +106,8 @@ public struct ApplicationUninstallPlan: Codable, Sendable, Identifiable {
     public var state: String
     public var executionId: String?
     public var digest: String
+    public var action: String? = nil
+    public var effectiveAction: String { action ?? "trash" }
     public var allocatedBytesEstimate: Int64 { components.reduce(0) { $0 + $1.allocatedBytesEstimate } }
     public func calculatedDigest() throws -> String {
         var copy=self; copy.digest=""; copy.state="ready"; copy.executionId=nil
@@ -119,7 +130,7 @@ enum ReceiptOrigins {
             return Origin(path: receipt.workspace.path, identity: receipt.workspace.identity, applicationParent: false, analysisRoot: true)
         }
         try PathPattern.validate(item.relativePath)
-        if receipt.operation == "application_uninstall" {
+        if ["application_uninstall", "application_permanent_uninstall", "application_batch_uninstall", "application_batch_permanent_uninstall"].contains(receipt.operation ?? "") {
             guard let origin=item.uninstallOrigin,
                   validIdentifier(origin.bundleIdentifier),
                   !item.relativePath.contains("/"), !item.relativePath.contains("*"), !item.relativePath.contains("?"),
@@ -176,22 +187,30 @@ extension ShouEngine {
         guard try plan.digest == plan.calculatedDigest() else { throw ShouError("store_corrupt", "Application plan digest is invalid.") }
         return plan
     }
-    public func createUninstallPlan(reviewId: String, componentIds: [String], includeUserData: Bool = false) throws -> ApplicationUninstallPlan {
+    public func createUninstallPlan(reviewId: String, componentIds: [String], includeUserData: Bool = false, action: String = "trash") throws -> ApplicationUninstallPlan {
         let lease=try store.lock(); defer { lease.release() }
+        let plan=try prepareUninstallPlan(reviewId: reviewId, componentIds: componentIds, includeUserData: includeUserData, action: action)
+        try store.write("uninstall-plans", id: plan.id, data: Codec.encode(plan))
+        return plan
+    }
+    func prepareUninstallPlan(reviewId: String, componentIds: [String], includeUserData: Bool, action: String,
+                              inventory: ApplicationCatalog? = nil) throws -> ApplicationUninstallPlan {
+        guard ["trash", "permanent"].contains(action) else { throw ShouError("invalid_argument", "Choose trash or permanent application removal.") }
         let review=try uninstallRecord(ApplicationUninstallReview.self, collection: "application-reviews", id: reviewId)
         guard !componentIds.isEmpty, Set(componentIds).count == componentIds.count else { throw ShouError("invalid_argument", "Select explicit application components.") }
         let selected=review.components.filter { componentIds.contains($0.id) }
-        guard selected.count == componentIds.count, selected.contains(where: { $0.kind == .application }),
+        guard selected.count == componentIds.count, selected.filter({ $0.kind == .application }).count == 1,
               selected.allSatisfy({ $0.eligible && (!$0.kind.requiresUserDataConsent || includeUserData) }) else {
             throw ShouError("confirmation_required", "Select the application and eligible components; personal data requires separate consent.")
         }
-        let current=try analyzeApplication(path: review.application.path, budget: review.budget)
+        let current=try analyzeApplication(path: review.application.path, budget: review.budget, inventory: inventory)
         try validateUninstallSelection(application: review.application, digest: review.configurationDigest, selected: selected, current: current)
         var plan=ApplicationUninstallPlan(id: Codec.id("uninstall"), application: current.application, createdAt: now(), expiresAt: now().addingTimeInterval(900),
             configurationDigest: current.configurationDigest, components: selected.sorted { ($0.kind == .application ? 1 : 0, $0.path) < ($1.kind == .application ? 1 : 0, $1.path) },
             includesUserData: includeUserData, budget: review.budget, state: "ready", executionId: nil, digest: "")
+        // Omit the legacy default so older persisted Trash-plan digests remain valid.
+        if action != "trash" { plan.action=action }
         plan.digest=try plan.calculatedDigest()
-        try store.write("uninstall-plans", id: plan.id, data: Codec.encode(plan))
         return plan
     }
     public func executeUninstall(planId: String, confirmedDigest: String, entryPoint: String, progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> ExecutionReceipt {
@@ -199,68 +218,99 @@ extension ShouEngine {
         var plan=try uninstallPlan(planId)
         guard plan.executionId == nil else { throw ShouError("already_executed", "This plan already has an execution record.") }
         guard plan.digest == confirmedDigest else { throw ShouError("confirmation_required", "Confirmation does not match the current plan.") }
-        guard plan.expiresAt > now(), !plan.components.isEmpty, Set(plan.components.map(\.id)).count == plan.components.count,
-              plan.components.last?.kind == .application, plan.components.allSatisfy({ !$0.kind.requiresUserDataConsent || plan.includesUserData }) else {
-            throw ShouError("plan_stale", "Application plan expired or has an invalid selection; preview again.")
-        }
-        guard filesystem.supportsTrash else { throw ShouError("capability_unavailable", "Native Trash is required for application removal.") }
-        progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.components.count, path: plan.application.path))
-        let current=try analyzeApplication(path: plan.application.path, budget: plan.budget)
-        try validateUninstallSelection(application: plan.application, digest: plan.configurationDigest, selected: plan.components, current: current)
-        let appOrigin=try requireUninstallOrigin(plan.components.first { $0.kind == .application })
-        let workspace=Workspace(id: plan.application.id, rootRef: "application-uninstall", path: appOrigin.parentPath, identity: appOrigin.parentIdentity, exclusions: [], addedAt: plan.createdAt)
-        let items=plan.components.map { component in
-            var item=ItemReceipt(id: component.id, originalPath: component.path, relativePath: URL(fileURLWithPath: component.path).lastPathComponent, trashPath: nil,
-                manifest: component.manifest, state: "pending", allocatedBytesEstimate: component.allocatedBytesEstimate, error: nil)
-            item.uninstallOrigin=component.origin
-            return item
-        }
-        let receipt=try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint,
-            store: store, filesystem: filesystem, now: now(), operation: "application_uninstall", progress: progress,
+        let receipt=try runUninstallPlans([plan], planId: plan.id, action: plan.effectiveAction, entryPoint: entryPoint,
+            operation: plan.effectiveAction == "permanent" ? "application_permanent_uninstall" : "application_uninstall", progress: progress,
             didBegin: { receipt in
                 plan.executionId=receipt.id; plan.state="executing"
                 try store.write("uninstall-plans", id: plan.id, data: Codec.encode(plan))
-            }, validateItem: { index in
-                guard try Digest.of(configuration()) == plan.configurationDigest,
-                      try applicationCatalog.application(at: plan.application.path) == plan.application else {
-                    throw ShouError("plan_stale", "Application or configuration changed; preview again.")
-                }
-                let facts=try uninstallEvidence.facts(for: plan.application)
-                guard !facts.running, !facts.currentApplication else { throw ShouError("application_running", "Quit the application and its helpers before uninstalling.") }
-                let component=plan.components[index], origin=try requireUninstallOrigin(component)
-                let identity=try component.kind == .application ? filesystem.applicationParentIdentity(origin.parentPath) : filesystem.rootIdentity(origin.parentPath)
-                guard identity.sameObject(as: origin.parentIdentity) else { throw ShouError("access_expired", "Component parent changed; preview again.") }
-                if component.kind == .container {
-                    guard try uninstallEvidence.containerIdentifier(at: component.path) == origin.bundleIdentifier else {
-                        throw ShouError("ownership_unverified", "Container ownership could not be verified.")
-                    }
-                }
-                if component.kind == .groupContainer {
-                    guard try uninstallEvidence.groupContainerPaths(for: origin.bundleIdentifier).contains(component.path) else {
-                        throw ShouError("ownership_unverified", "Group container ownership could not be verified.")
-                    }
-                }
-                if component.kind != .application {
-                    let inventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
-                    guard !inventory.items.contains(where: { $0.path != plan.application.path && $0.bundleIdentifier == origin.bundleIdentifier }) else {
-                        throw ShouError("ownership_unverified", "Another application may share this component.")
-                    }
-                }
-                let tree=try filesystem.inspectTarget(component.path, budget: plan.budget, cancelled: { Task.isCancelled })
-                guard tree.complete, tree.entries == component.manifest else { throw ShouError("plan_stale", "Application component changed; preview again.") }
-                return nil
             })
         plan.state=receipt.state
         try store.write("uninstall-plans", id: plan.id, data: Codec.encode(plan))
         return receipt
     }
 
-    private func analyzeApplication(path: String, budget: ScanBudget) throws -> ApplicationUninstallReview {
+    /// Single and batch use the same complete preflight and per-item journal gate.
+    func runUninstallPlans(_ plans: [ApplicationUninstallPlan], planId: String, action: String, entryPoint: String, operation: String,
+                           progress: @Sendable (ExecutionProgress) -> Void,
+                           didBegin: (ExecutionReceipt) throws -> Void) throws -> ExecutionReceipt {
+        guard ["trash", "permanent"].contains(action), !plans.isEmpty else { throw ShouError("plan_stale", "Application removal mode or selection is invalid.") }
+        try validateUninstallPlanOverlaps(plans)
+        let inventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
+        var components=[(plan: ApplicationUninstallPlan, component: UninstallComponent)]()
+        for plan in plans {
+            try plan.budget.validate()
+            guard plan.executionId == nil, plan.effectiveAction == action, plan.expiresAt > now(),
+                  try plan.digest == plan.calculatedDigest(), !plan.components.isEmpty,
+                  Set(plan.components.map(\.id)).count == plan.components.count,
+                  plan.components.filter({ $0.kind == .application }).count == 1,
+                  plan.components.last?.kind == .application,
+                  plan.components.allSatisfy({ !$0.kind.requiresUserDataConsent || plan.includesUserData }) else {
+                throw ShouError("plan_stale", "Application plan expired or has an invalid selection; preview again.")
+            }
+            progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plans.reduce(0) { $0 + $1.components.count }, path: plan.application.path))
+            let current=try analyzeApplication(path: plan.application.path, budget: plan.budget, inventory: inventory)
+            try validateUninstallSelection(application: plan.application, digest: plan.configurationDigest, selected: plan.components, current: current)
+            components.append(contentsOf: plan.components.map { (plan, $0) })
+        }
+        guard action != "trash" || filesystem.supportsTrash else { throw ShouError("capability_unavailable", "Native Trash is required for application removal.") }
+        let first=plans[0], appOrigin=try requireUninstallOrigin(first.components.first { $0.kind == .application })
+        let workspace=Workspace(id: first.application.id, rootRef: "application-uninstall", path: appOrigin.parentPath,
+            identity: appOrigin.parentIdentity, exclusions: [], addedAt: first.createdAt)
+        let items=components.map { value in
+            let component=value.component
+            var item=ItemReceipt(id: component.id, originalPath: component.path, relativePath: URL(fileURLWithPath: component.path).lastPathComponent, trashPath: nil,
+                manifest: component.manifest, state: "pending", allocatedBytesEstimate: component.allocatedBytesEstimate, error: nil)
+            item.uninstallOrigin=component.origin
+            return item
+        }
+        let validateItem: (Int) throws -> String? = { [self] index in
+            let (plan, component)=components[index]
+            guard try Digest.of(configuration()) == plan.configurationDigest,
+                  try applicationCatalog.application(at: plan.application.path) == plan.application else {
+                throw ShouError("plan_stale", "Application or configuration changed; preview again.")
+            }
+            let facts=try uninstallEvidence.facts(for: plan.application)
+            guard !facts.running, !facts.currentApplication else { throw ShouError("application_running", "Quit the application and its helpers before uninstalling.") }
+            let origin=try requireUninstallOrigin(component)
+            let identity=try component.kind == .application ? filesystem.applicationParentIdentity(origin.parentPath) : filesystem.rootIdentity(origin.parentPath)
+            guard identity.sameObject(as: origin.parentIdentity) else { throw ShouError("access_expired", "Component parent changed; preview again.") }
+            if component.kind == .container {
+                guard try uninstallEvidence.containerIdentifier(at: component.path) == origin.bundleIdentifier else {
+                    throw ShouError("ownership_unverified", "Container ownership could not be verified.")
+                }
+            }
+            if component.kind == .groupContainer {
+                guard try uninstallEvidence.groupContainerPaths(for: origin.bundleIdentifier).contains(component.path) else {
+                    throw ShouError("ownership_unverified", "Group container ownership could not be verified.")
+                }
+            }
+            if component.kind != .application {
+                let currentInventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
+                guard !currentInventory.items.contains(where: { $0.path != plan.application.path && $0.bundleIdentifier == origin.bundleIdentifier }) else {
+                    throw ShouError("ownership_unverified", "Another application may share this component.")
+                }
+            }
+            let tree=try filesystem.inspectTarget(component.path, budget: plan.budget, cancelled: { Task.isCancelled })
+            guard tree.complete, tree.entries == component.manifest,
+                  !tree.entries.contains(where: { $0.owner != facts.currentUser || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) else {
+                throw ShouError("plan_stale", "Application component changed; preview again.")
+            }
+            return nil
+        }
+        if action == "permanent" {
+            return try PermanentExecution.run(planId: planId, workspace: workspace, items: items, entryPoint: entryPoint,
+                store: store, filesystem: filesystem, now: now(), operation: operation, progress: progress, didBegin: didBegin, validateItem: validateItem)
+        }
+        return try TrashExecution.run(planId: planId, workspace: workspace, items: items, entryPoint: entryPoint,
+            store: store, filesystem: filesystem, now: now(), operation: operation, progress: progress, didBegin: didBegin, validateItem: validateItem)
+    }
+
+    private func analyzeApplication(path: String, budget: ScanBudget, inventory savedInventory: ApplicationCatalog? = nil) throws -> ApplicationUninstallReview {
         try budget.validate()
         if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
         let app=try applicationCatalog.application(at: path), config=try configuration()
-        let inventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
+        let inventory=try savedInventory ?? applicationCatalog.read(options: ApplicationCatalogOptions())
         var common: [String]=[]
         if app.source.systemOwned || app.bundleIdentifier?.hasPrefix("com.apple.") == true { common.append("protected_application") }
         guard let identifier=app.bundleIdentifier, ReceiptOrigins.validIdentifier(identifier), app.infoDigest != nil else {
@@ -359,7 +409,7 @@ extension ShouEngine {
         guard let origin=component?.origin else { throw ShouError("store_corrupt", "Application component origin is missing.") }
         return origin
     }
-    private func uninstallRecord<T: Decodable>(_ type: T.Type, collection: String, id: String) throws -> T {
+    func uninstallRecord<T: Decodable>(_ type: T.Type, collection: String, id: String) throws -> T {
         guard let bytes=try store.read(collection, id: id) else { throw ShouError("invalid_argument", "Record does not exist.") }
         do { return try Codec.decode(type, from: bytes) }
         catch { throw ShouError("store_corrupt", "Stored application record is invalid.") }

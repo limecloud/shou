@@ -17,6 +17,22 @@
         }
       }
     },
+    "%@ available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 可用"
+          }
+        }
+      }
+    },
     "%lld applications found": {
       "localizations": {
         "en": {
@@ -29,6 +45,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "发现 %lld 个应用"
+          }
+        }
+      }
+    },
+    "%lld cleanup locations found": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld cleanup locations found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发现 %lld 处可清理内容"
           }
         }
       }
@@ -125,6 +157,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已选择 %lld 项"
+          }
+        }
+      }
+    },
+    "%lld large files found": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld large files found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发现 %lld 个大文件"
           }
         }
       }
@@ -289,6 +337,22 @@
         }
       }
     },
+    "A little setup. More room to breathe.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A little setup. More room to breathe."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备就绪，收拾一下。"
+          }
+        }
+      }
+    },
     "A little space to breathe.": {
       "localizations": {
         "en": {
@@ -401,6 +465,22 @@
         }
       }
     },
+    "AI Models": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Models"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 模型"
+          }
+        }
+      }
+    },
     "Add Exclusion": {
       "localizations": {
         "en": {
@@ -465,6 +545,22 @@
         }
       }
     },
+    "Additional scan notes are summarized here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Additional scan notes are summarized here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "另有扫描说明未逐项列出。"
+          }
+        }
+      }
+    },
     "Advanced": {
       "localizations": {
         "en": {
@@ -477,6 +573,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "高级"
+          }
+        }
+      }
+    },
+    "After an update": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After an update"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新后的权限说明"
           }
         }
       }
@@ -573,6 +685,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "全部规则"
+          }
+        }
+      }
+    },
+    "All Types": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Types"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部类型"
           }
         }
       }
@@ -689,6 +817,38 @@
         }
       }
     },
+    "An existing CLI entry or parent is a symbolic link. It has been preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An existing CLI entry or parent is a symbolic link. It has been preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现有 CLI 入口或其上级目录为符号链接，已保留原内容。"
+          }
+        }
+      }
+    },
+    "An existing shou command differs. It has been preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An existing shou command differs. It has been preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有不同的 shou 命令，已保留原内容。"
+          }
+        }
+      }
+    },
     "Analyzing %lld entries…": {
       "localizations": {
         "en": {
@@ -781,6 +941,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用缓存"
+          }
+        }
+      }
+    },
+    "App caches and developer projects are discovered automatically. Extra folders are remembered.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App caches and developer projects are discovered automatically. Extra folders are remembered."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动发现应用缓存和开发项目，额外目录只需选择一次。"
+          }
+        }
+      }
+    },
+    "App caches, project build outputs, and your enabled rules — together in one cleanup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App caches, project build outputs, and your enabled rules — together in one cleanup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用缓存、项目构建产物和已启用的个人规则，一次扫描，一起清理。"
           }
         }
       }
@@ -1249,6 +1441,22 @@
         }
       }
     },
+    "Archives": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archives"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压缩文件"
+          }
+        }
+      }
+    },
     "Area represents allocated space. Click a folder to look inside; use the list to inspect an item.": {
       "localizations": {
         "en": {
@@ -1485,6 +1693,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "此平台暂不支持不会覆盖现有内容的原子还原。"
+          }
+        }
+      }
+    },
+    "Audio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音频"
           }
         }
       }
@@ -1745,6 +1969,22 @@
         }
       }
     },
+    "Building the space map…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Building the space map…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成空间分布…"
+          }
+        }
+      }
+    },
     "Built-in Rules": {
       "localizations": {
         "en": {
@@ -1757,6 +1997,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "内置规则"
+          }
+        }
+      }
+    },
+    "Built-in and enabled personal rules are ready to clean.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Built-in and enabled personal rules are ready to clean."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内置规则和已启用的个人规则已自动选中。"
           }
         }
       }
@@ -1933,6 +2189,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "命令行"
+          }
+        }
+      }
+    },
+    "CLI installed. If shou is not on PATH, use the full path shown below.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CLI installed. If shou is not on PATH, use the full path shown below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CLI 已安装。如果终端找不到 shou，请使用以下完整路径。"
           }
         }
       }
@@ -2348,7 +2620,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新核验"
+            "value": "重新检查"
           }
         }
       }
@@ -2445,6 +2717,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请核对相对路径、项目标记和发现深度；条件与保护仍然生效。"
+          }
+        }
+      }
+    },
+    "Checking disk access…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking disk access…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查磁盘访问权限…"
           }
         }
       }
@@ -2685,6 +2973,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请使用尚未存在的版本号，已有版本不能覆盖。"
+          }
+        }
+      }
+    },
+    "Choose extra folders to remember for future cleanup scans.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose extra folders to remember for future cleanup scans."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择额外文件夹，今后的清理扫描会自动包含这些位置。"
           }
         }
       }
@@ -3100,7 +3404,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "取消选择"
+            "value": "清空选择"
           }
         }
       }
@@ -3133,6 +3437,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "关闭"
+          }
+        }
+      }
+    },
+    "Cloud-only content was not downloaded.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud-only content was not downloaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "云端占位内容未下载、未计入统计。"
           }
         }
       }
@@ -3229,6 +3549,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "软件与已登记项目扫描完成"
+          }
+        }
+      }
+    },
+    "Common locations are found automatically. Extra folders only need to be included once.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Common locations are found automatically. Extra folders only need to be included once."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常用位置自动发现，其他文件夹只需包含一次，以后会一起扫描。"
+          }
+        }
+      }
+    },
+    "Common locations are found automatically. No project setup needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Common locations are found automatically. No project setup needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动发现常用位置，无需逐个添加项目。"
           }
         }
       }
@@ -3517,6 +3869,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续"
+          }
+        }
+      }
+    },
+    "Continue with Accessible Folders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Accessible Folders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "先使用可访问范围"
           }
         }
       }
@@ -3985,6 +4353,22 @@
         }
       }
     },
+    "Developer Projects": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Developer Projects"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开发项目"
+          }
+        }
+      }
+    },
     "Developer Tool Caches": {
       "localizations": {
         "en": {
@@ -4273,6 +4657,70 @@
         }
       }
     },
+    "Disk access is ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected directory access verified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护目录可访问"
+          }
+        }
+      }
+    },
+    "Disk access is required for this location.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk access is required for this location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位置需要磁盘访问权限。"
+          }
+        }
+      }
+    },
+    "Disk access needs verification": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk access needs verification"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘访问权限待确认"
+          }
+        }
+      }
+    },
+    "Documents": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文档"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "en": {
@@ -4333,6 +4781,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "草稿预览不能生成可执行的清理计划。"
+          }
+        }
+      }
+    },
+    "Drag Shou.app into Applications, then open that copy before granting disk access.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag Shou.app into Applications, then open that copy before granting disk access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 Shou.app 拖入“应用程序”，打开安装后的应用，再设置磁盘访问权限。"
           }
         }
       }
@@ -4413,6 +4877,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "启用"
+          }
+        }
+      }
+    },
+    "Enable complete scanning": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable complete scanning"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启完整扫描"
           }
         }
       }
@@ -4769,6 +5249,22 @@
         }
       }
     },
+    "File Type": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File Type"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件类型"
+          }
+        }
+      }
+    },
     "Files": {
       "localizations": {
         "en": {
@@ -4781,6 +5277,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "文件"
+          }
+        }
+      }
+    },
+    "Files changed. Scan again to update totals.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Files changed. Scan again to update totals."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件已变化，重新扫描可更新统计。"
           }
         }
       }
@@ -4833,6 +5345,38 @@
         }
       }
     },
+    "Find the files taking up the most space": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find the files taking up the most space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找出占空间的大文件"
+          }
+        }
+      }
+    },
+    "Find what is ready to tidy up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find what is ready to tidy up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找可清理内容"
+          }
+        }
+      }
+    },
     "Find what is taking up space.": {
       "localizations": {
         "en": {
@@ -4861,6 +5405,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "找出空间去向，留住重要内容。"
+          }
+        }
+      }
+    },
+    "Finish Setup…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish Setup…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完善设置…"
           }
         }
       }
@@ -5021,6 +5581,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "完全磁盘访问权限"
+          }
+        }
+      }
+    },
+    "Full Disk Access is needed for this protected location. Open Shou Settings to finish setup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Disk Access is needed for this protected location. Open Shou Settings to finish setup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此受保护位置需要完全磁盘访问权限。请在 Shou 设置中完成引导。"
+          }
+        }
+      }
+    },
+    "Full Disk Access is not enabled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected directory access is limited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护目录访问受限"
+          }
+        }
+      }
+    },
+    "Full Disk Access lets Shou measure protected app data and caches, and avoids repeated macOS app-data prompts. It does not start cleanup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Disk Access lets Shou measure protected app data and caches, and avoids repeated macOS app-data prompts. It does not start cleanup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全磁盘访问权限用于统计受保护的应用数据与缓存，减少 macOS 反复询问应用数据访问。授权不会开始清理。"
           }
         }
       }
@@ -5409,6 +6017,22 @@
         }
       }
     },
+    "Images": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片"
+          }
+        }
+      }
+    },
     "Import → review → enable. Enablement never authorizes deletion.": {
       "localizations": {
         "en": {
@@ -5473,6 +6097,22 @@
         }
       }
     },
+    "Include Folder…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include Folder…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含其他文件夹…"
+          }
+        }
+      }
+    },
     "Include protected system apps": {
       "localizations": {
         "en": {
@@ -5485,6 +6125,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "显示受保护的系统应用"
+          }
+        }
+      }
+    },
+    "Incomplete measurement. The displayed size is a lower bound.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete measurement. The displayed size is a lower bound."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未完整统计，显示的容量为已统计下限。"
           }
         }
       }
@@ -5649,6 +6305,22 @@
         }
       }
     },
+    "Install CLI Command": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install CLI Command"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装 CLI 命令"
+          }
+        }
+      }
+    },
     "Install Skill": {
       "localizations": {
         "en": {
@@ -5661,6 +6333,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "安装 Skill"
+          }
+        }
+      }
+    },
+    "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装 shou 命令，供终端、Codex、Claude Code 或 WorkBuddy 操作，无需接入模型。"
+          }
+        }
+      }
+    },
+    "Installation and CLI": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation and CLI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装与 CLI"
           }
         }
       }
@@ -5745,6 +6449,22 @@
         }
       }
     },
+    "Its saved rules and exclusions will be detached. Files in the folder stay untouched.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Its saved rules and exclusions will be detached. Files in the folder stay untouched."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将移除该位置的规则绑定和排除设置，文件夹内的文件保持原样。"
+          }
+        }
+      }
+    },
     "JetBrains IDE caches": {
       "localizations": {
         "en": {
@@ -5773,6 +6493,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "保持打开"
+          }
+        }
+      }
+    },
+    "Keep Shou in Applications": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Shou in Applications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 Shou 安装到应用程序"
           }
         }
       }
@@ -5869,6 +6605,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "语言"
+          }
+        }
+      }
+    },
+    "Large Files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Large Files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大文件清理"
           }
         }
       }
@@ -5985,6 +6737,22 @@
         }
       }
     },
+    "Load More": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "载入更多"
+          }
+        }
+      }
+    },
     "Loaded": {
       "localizations": {
         "en": {
@@ -5997,6 +6765,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已加载"
+          }
+        }
+      }
+    },
+    "Loading measured results…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading measured results…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载统计结果…"
           }
         }
       }
@@ -6301,6 +7085,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microsoft Teams 下载缓存"
+          }
+        }
+      }
+    },
+    "Minimum Size": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimum Size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小占用"
           }
         }
       }
@@ -6753,6 +7553,22 @@
         }
       }
     },
+    "No conventional project folders found. Include another folder or ask your AI agent.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No conventional project folders found. Include another folder or ask your AI agent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发现常见项目目录，可包含其他文件夹，或让 AI 帮你定位。"
+          }
+        }
+      }
+    },
     "No definitions found in the inspected sources": {
       "localizations": {
         "en": {
@@ -6893,6 +7709,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有匹配的项目。"
+          }
+        }
+      }
+    },
+    "No matching large files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching large files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有符合条件的大文件"
           }
         }
       }
@@ -7057,6 +7889,22 @@
         }
       }
     },
+    "Not measured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not measured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未统计"
+          }
+        }
+      }
+    },
     "Not present": {
       "localizations": {
         "en": {
@@ -7149,6 +7997,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "未指定"
+          }
+        }
+      }
+    },
+    "Nothing eligible was found. Use AI to cover your own tools and folders.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing eligible was found. Use AI to cover your own tools and folders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到符合条件的项目。可通过 AI 为自己的工具和目录补充规则。"
           }
         }
       }
@@ -7329,6 +8193,38 @@
         }
       }
     },
+    "One scan. A tidier Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One scan. A tidier Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描一次，一起收好。"
+          }
+        }
+      }
+    },
+    "Only measured space is included. Complete folders remain available even when another location cannot be read.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only measured space is included. Complete folders remain available even when another location cannot be read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果仅包含已统计的空间。部分位置无法读取，不影响其他完整目录的浏览与审阅。"
+          }
+        }
+      }
+    },
     "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained.": {
       "localizations": {
         "en": {
@@ -7457,6 +8353,22 @@
         }
       }
     },
+    "Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开“隐私与安全性 → 完全磁盘访问权限”，开启 Shou。列表中没有时，点击 +，选择应用程序中的 Shou.app。如果 macOS 要求，请退出并重新打开 Shou。"
+          }
+        }
+      }
+    },
     "Open Source": {
       "localizations": {
         "en": {
@@ -7469,6 +8381,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "开放源代码"
+          }
+        }
+      }
+    },
+    "Open System Settings…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Settings…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统设置…"
           }
         }
       }
@@ -7517,6 +8445,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "或检查常用位置"
+          }
+        }
+      }
+    },
+    "Organizing measured entries…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizing measured entries…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在整理统计结果…"
           }
         }
       }
@@ -7757,6 +8701,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "部分分析结果：某些位置无法访问或超出了扫描限额。"
+          }
+        }
+      }
+    },
+    "Partial analysis: some locations could not be fully measured.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partial analysis: some locations could not be fully measured."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分分析结果：某些位置未能完整统计。"
           }
         }
       }
@@ -8385,6 +9345,22 @@
         }
       }
     },
+    "Project Folders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project Folders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "项目目录"
+          }
+        }
+      }
+    },
     "Project directory must be a literal relative path without wildcards.": {
       "localizations": {
         "en": {
@@ -8449,6 +9425,22 @@
         }
       }
     },
+    "Protected app data needs Full Disk Access for complete scanning.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected app data needs Full Disk Access for complete scanning."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整扫描受保护的应用数据，需要完全磁盘访问权限。"
+          }
+        }
+      }
+    },
     "Protected content or exclusions prevent cleanup": {
       "localizations": {
         "en": {
@@ -8461,6 +9453,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "包含受保护或排除的内容，无法清理"
+          }
+        }
+      }
+    },
+    "Protected locations have limited access": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected locations have limited access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护目录访问受限"
           }
         }
       }
@@ -9036,7 +10044,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可以审阅"
+            "value": "可审阅"
           }
         }
       }
@@ -9569,6 +10577,38 @@
         }
       }
     },
+    "Results appear here when analysis finishes. Review the selection before cleanup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Results appear here when analysis finishes. Review the selection before cleanup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析完成后在此显示结果，清理前可审阅和调整选择。"
+          }
+        }
+      }
+    },
+    "Results are not ready": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Results are not ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未就绪"
+          }
+        }
+      }
+    },
     "Retained": {
       "localizations": {
         "en": {
@@ -9761,6 +10801,22 @@
         }
       }
     },
+    "Review app installation, disk permissions, and the optional terminal command.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review app installation, disk permissions, and the optional terminal command."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查应用安装、磁盘权限，并按需安装终端命令。"
+          }
+        }
+      }
+    },
     "Review application components again.": {
       "localizations": {
         "en": {
@@ -9805,6 +10861,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要审阅"
+          }
+        }
+      }
+    },
+    "Review the categories below, or use the recommended selection.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the categories below, or use the recommended selection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按分类查看，或直接使用推荐选择。"
           }
         }
       }
@@ -10353,6 +11425,22 @@
         }
       }
     },
+    "Saving space analysis…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving space analysis…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在保存空间分析…"
+          }
+        }
+      }
+    },
     "Scan": {
       "localizations": {
         "en": {
@@ -10449,6 +11537,38 @@
         }
       }
     },
+    "Scan Common Locations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Common Locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描常用位置"
+          }
+        }
+      }
+    },
+    "Scan Coverage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Coverage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描范围说明"
+          }
+        }
+      }
+    },
     "Scan Location": {
       "localizations": {
         "en": {
@@ -10461,6 +11581,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描位置"
+          }
+        }
+      }
+    },
+    "Scan Locations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描位置"
+          }
+        }
+      }
+    },
+    "Scan Locations…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Locations…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描位置…"
           }
         }
       }
@@ -10493,6 +11645,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描工作区"
+          }
+        }
+      }
+    },
+    "Scan app caches, developer build outputs, and your personal cleanup rules together.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan app caches, developer build outputs, and your personal cleanup rules together."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用缓存、开发构建产物与个人规则，一次扫描，一起收好。"
           }
         }
       }
@@ -10573,6 +11741,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描只读；清理推荐项目只需一次确认。"
+          }
+        }
+      }
+    },
+    "Scan limit reached. Preparing the measured results; coverage is incomplete.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan limit reached. Preparing the measured results; coverage is incomplete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到本次扫描上限，正在整理已统计的部分结果。"
           }
         }
       }
@@ -10865,6 +12049,22 @@
         }
       }
     },
+    "See large files across folders, then choose what to remove.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See large files across folders, then choose what to remove."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跨目录汇总大文件，查看后选择要清理的内容。"
+          }
+        }
+      }
+    },
     "Select": {
       "localizations": {
         "en": {
@@ -10909,6 +12109,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择全部可清理项目（包含高风险）"
+          }
+        }
+      }
+    },
+    "Select All Matching Files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select All Matching Files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择全部符合条件的文件"
           }
         }
       }
@@ -10973,6 +12189,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择项目"
+          }
+        }
+      }
+    },
+    "Select Loaded Files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Loaded Files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择已载入的文件"
           }
         }
       }
@@ -11217,6 +12449,22 @@
         }
       }
     },
+    "Set up Shou once, then get straight to cleaning.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up Shou once, then get straight to cleaning."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成初始设置，之后直接开始清理。"
+          }
+        }
+      }
+    },
     "Settings": {
       "localizations": {
         "en": {
@@ -11245,6 +12493,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "设置…"
+          }
+        }
+      }
+    },
+    "Setup Guide…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup Guide…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置引导…"
           }
         }
       }
@@ -11393,6 +12657,38 @@
         }
       }
     },
+    "Shou is installed in Applications. Updates keep the same location.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou is installed in Applications. Updates keep the same location."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou 已安装到应用程序，后续更新沿用此位置。"
+          }
+        }
+      }
+    },
+    "Show Shou in Finder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Shou in Finder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在访达中显示 Shou"
+          }
+        }
+      }
+    },
     "Show Skill in Finder…": {
       "localizations": {
         "en": {
@@ -11457,6 +12753,22 @@
         }
       }
     },
+    "Showing the first 50 scan notes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing the first 50 scan notes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前显示前 50 条扫描说明。"
+          }
+        }
+      }
+    },
     "Size": {
       "localizations": {
         "en": {
@@ -11469,6 +12781,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "大小"
+          }
+        }
+      }
+    },
+    "Size on Disk": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Size on Disk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "占用空间"
           }
         }
       }
@@ -11581,6 +12909,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Slack 下载缓存"
+          }
+        }
+      }
+    },
+    "Smart Cleanup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smart Cleanup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能清理"
           }
         }
       }
@@ -11889,6 +13233,22 @@
         }
       }
     },
+    "Space analysis entry pages are missing or inconsistent.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space analysis entry pages are missing or inconsistent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间分析记录缺失或不一致，请重新扫描。"
+          }
+        }
+      }
+    },
     "Space by Directory": {
       "localizations": {
         "en": {
@@ -11949,6 +13309,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "开始扫描"
+          }
+        }
+      }
+    },
+    "Start Using Shou": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Using Shou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始使用"
           }
         }
       }
@@ -12145,6 +13521,22 @@
         }
       }
     },
+    "Stop Including Folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Including Folder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不再包含此文件夹"
+          }
+        }
+      }
+    },
     "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.": {
       "localizations": {
         "en": {
@@ -12225,6 +13617,22 @@
         }
       }
     },
+    "Stop including this folder?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop including this folder?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不再包含此文件夹？"
+          }
+        }
+      }
+    },
     "Stop the affected tools first. Offline workflows may depend on these caches.": {
       "localizations": {
         "en": {
@@ -12301,6 +13709,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在安全停止…"
+          }
+        }
+      }
+    },
+    "Stopping scan…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping scan…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止扫描…"
+          }
+        }
+      }
+    },
+    "Stopping…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在停止…"
+          }
+        }
+      }
+    },
+    "Storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存储空间"
           }
         }
       }
@@ -12417,6 +13873,22 @@
         }
       }
     },
+    "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法打开系统设置，请手动前往“隐私与安全性 → 完全磁盘访问权限”。"
+          }
+        }
+      }
+    },
     "System Settings…": {
       "localizations": {
         "en": {
@@ -12525,6 +13997,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "腾讯会议网络缓存"
+          }
+        }
+      }
+    },
+    "Terminal and AI agents · optional": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminal and AI agents · optional"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终端与 AI Agent · 可选"
           }
         }
       }
@@ -12801,6 +14289,22 @@
         }
       }
     },
+    "The packaged CLI is unavailable. Install Shou in Applications first.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The packaged CLI is unavailable. Install Shou in Applications first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到应用内的 CLI，请先将 Shou 安装到应用程序。"
+          }
+        }
+      }
+    },
     "The read worker could not be started.": {
       "localizations": {
         "en": {
@@ -12993,6 +14497,22 @@
         }
       }
     },
+    "This folder could not be fully measured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This folder could not be fully measured"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此目录未能完整统计"
+          }
+        }
+      }
+    },
     "This folder is empty.": {
       "localizations": {
         "en": {
@@ -13073,6 +14593,38 @@
         }
       }
     },
+    "This location belongs to another volume.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location belongs to another volume."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位置属于其他磁盘。"
+          }
+        }
+      }
+    },
+    "This location changed during scanning.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location changed during scanning."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位置在扫描期间发生变化。"
+          }
+        }
+      }
+    },
     "This location contains protected data.": {
       "localizations": {
         "en": {
@@ -13085,6 +14637,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "此位置包含受保护的数据。"
+          }
+        }
+      }
+    },
+    "This location could not be fully measured.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location could not be fully measured."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能完整统计此位置。"
+          }
+        }
+      }
+    },
+    "This location could not be read.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location could not be read."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能读取此位置。"
+          }
+        }
+      }
+    },
+    "This location exceeded a scan resource boundary.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location exceeded a scan resource boundary."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位置达到扫描资源边界，未完整统计。"
           }
         }
       }
@@ -13201,6 +14801,22 @@
         }
       }
     },
+    "Tools": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统工具"
+          }
+        }
+      }
+    },
     "Tools recreate caches when needed": {
       "localizations": {
         "en": {
@@ -13261,6 +14877,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "触发线索"
+          }
+        }
+      }
+    },
+    "Try a smaller size or another file type.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a smaller size or another file type."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "试试更小的占用阈值或其他文件类型。"
           }
         }
       }
@@ -13489,6 +15121,22 @@
         }
       }
     },
+    "Use Latest Space Analysis": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Latest Space Analysis"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用已有空间分析结果"
+          }
+        }
+      }
+    },
     "Use Recommended Selection": {
       "localizations": {
         "en": {
@@ -13713,6 +15361,22 @@
         }
       }
     },
+    "Videos": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Videos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "视频"
+          }
+        }
+      }
+    },
     "View Coverage…": {
       "localizations": {
         "en": {
@@ -13757,6 +15421,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看结果"
+          }
+        }
+      }
+    },
+    "View…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看…"
           }
         }
       }
@@ -14065,6 +15745,22 @@
         }
       }
     },
+    "You can continue with accessible folders. Protected app containers stay unmeasured until access is enabled; scan again afterward.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can continue with accessible folders. Protected app containers stay unmeasured until access is enabled; scan again afterward."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "也可以先扫描可访问的文件夹。未授权的应用容器将标为未统计；完成授权后，请重新扫描。"
+          }
+        }
+      }
+    },
     "You can restore these items from History. Moving to Trash does not free disk space.": {
       "localizations": {
         "en": {
@@ -14077,6 +15773,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "可从历史记录恢复这些项目。移入废纸篓不会释放磁盘空间。"
+          }
+        }
+      }
+    },
+    "You can revisit this guide in Settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can revisit this guide in Settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可随时在设置中重新打开引导。"
           }
         }
       }
@@ -14593,6 +16305,22 @@
         }
       }
     },
+    "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS 将隐私授权与应用签名关联。使用临时签名的开发版本更新后，可能需要重新授权。如果开关已开启但仍无法访问，请用 − 移除旧 Shou，再用 + 添加当前安装版本，并重新打开 Shou。"
+          }
+        }
+      }
+    },
     "macOS regenerates thumbnails and help indexes when needed.": {
       "localizations": {
         "en": {
@@ -15105,434 +16833,3234 @@
         }
       }
     },
-    "Smart Cleanup": {
+    "%lld applications selected": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Smart Cleanup"
+            "value": "%lld applications selected"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "智能清理"
+            "value": "已选择 %lld 个应用"
           }
         }
       }
     },
-    "Scan Locations": {
+    "%lld of %lld applications checked": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan Locations"
+            "value": "%lld of %lld applications checked"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "扫描位置"
+            "value": "已检查 %lld / %lld 个应用"
           }
         }
       }
     },
-    "Scan Locations…": {
+    "Administrator Required": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan Locations…"
+            "value": "Administrator Required"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "扫描位置…"
+            "value": "需管理员权限"
           }
         }
       }
     },
-    "Include Folder…": {
+    "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Include Folder…"
+            "value": "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "包含其他文件夹…"
+            "value": "不会自动请求管理员权限，当前无法卸载需要提权的应用。"
           }
         }
       }
     },
-    "Choose extra folders to remember for future cleanup scans.": {
+    "All Applications": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose extra folders to remember for future cleanup scans."
+            "value": "All Applications"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选择额外文件夹，今后的清理扫描会自动包含这些位置。"
+            "value": "全部"
           }
         }
       }
     },
-    "One scan. A tidier Mac.": {
+    "Application Name": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One scan. A tidier Mac."
+            "value": "Application Name"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "扫描一次，一起收好。"
+            "value": "应用名称"
           }
         }
       }
     },
-    "App caches, project build outputs, and your enabled rules — together in one cleanup.": {
+    "Application Options": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "App caches, project build outputs, and your enabled rules — together in one cleanup."
+            "value": "Application Options"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用缓存、项目构建产物和已启用的个人规则，一次扫描，一起清理。"
+            "value": "应用选项"
           }
         }
       }
     },
-    "Common locations are found automatically. No project setup needed.": {
+    "Application Uninstall": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Common locations are found automatically. No project setup needed."
+            "value": "Application Uninstall"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自动发现常用位置，无需逐个添加项目。"
+            "value": "应用卸载"
           }
         }
       }
     },
-    "Built-in and enabled personal rules are ready to clean.": {
+    "Application sizes describe the app bundle. Associated files are measured when you expand or select an application. System usage records can be unavailable.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Built-in and enabled personal rules are ready to clean."
+            "value": "Application sizes describe the app bundle. Associated files are measured when you expand or select an application. System usage records can be unavailable."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "内置规则和已启用的个人规则已自动选中。"
+            "value": "应用大小仅统计应用本体；展开或选择应用时统计关联文件。系统使用记录可能不可用。"
           }
         }
       }
     },
-    "Nothing eligible was found. Use AI to cover your own tools and folders.": {
+    "Estimated Removal": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing eligible was found. Use AI to cover your own tools and folders."
+            "value": "Estimated Removal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有找到符合条件的项目。可通过 AI 为自己的工具和目录补充规则。"
+            "value": "预计移除数据"
           }
         }
       }
     },
-    "Developer Projects": {
+    "Estimated Size": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Developer Projects"
+            "value": "Estimated Size"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开发项目"
+            "value": "估算大小"
           }
         }
       }
     },
-    "App caches and developer projects are discovered automatically. Extra folders are remembered.": {
+    "Hide components": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "App caches and developer projects are discovered automatically. Extra folders are remembered."
+            "value": "Hide components"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自动发现应用缓存和开发项目，额外目录只需选择一次。"
+            "value": "收起组件"
           }
         }
       }
     },
-    "Common locations are found automatically. Extra folders only need to be included once.": {
+    "Last Used": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Common locations are found automatically. Extra folders only need to be included once."
+            "value": "Last Used"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "常用位置自动发现，其他文件夹只需包含一次，以后会一起扫描。"
+            "value": "上次使用"
           }
         }
       }
     },
-    "No conventional project folders found. Include another folder or ask your AI agent.": {
+    "Measuring application sizes…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No conventional project folders found. Include another folder or ask your AI agent."
+            "value": "Measuring application sizes…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未发现常见项目目录，可包含其他文件夹，或让 AI 帮你定位。"
+            "value": "正在统计应用大小…"
           }
         }
       }
     },
-    "Stop Including Folder": {
+    "Move these applications to Trash?": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop Including Folder"
+            "value": "Move these applications to Trash?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不再包含此文件夹"
+            "value": "将这些应用移入废纸篓？"
           }
         }
       }
     },
-    "Stop including this folder?": {
+    "No applications in this category": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stop including this folder?"
+            "value": "No applications in this category"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "不再包含此文件夹？"
+            "value": "此分类中没有应用"
           }
         }
       }
     },
-    "Its saved rules and exclusions will be detached. Files in the folder stay untouched.": {
+    "No usage record": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Its saved rules and exclusions will be detached. Files in the folder stay untouched."
+            "value": "No usage record"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "将移除该位置的规则绑定和排除设置，文件夹内的文件保持原样。"
+            "value": "暂无使用记录"
           }
         }
       }
     },
-    "View…": {
+    "No verified components available. Scan again or review access notices.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View…"
+            "value": "No verified components available. Scan again or review access notices."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看…"
+            "value": "没有已核验的可用组件，请重新扫描或查看访问提示。"
           }
         }
       }
     },
-    "Project Folders": {
+    "Optional": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Project Folders"
+            "value": "Optional"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "项目目录"
+            "value": "可选"
           }
         }
       }
     },
-    "Building the space map…": {
+    "Partial Coverage": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Building the space map…"
+            "value": "Partial Coverage"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在生成空间分布…"
+            "value": "部分位置未覆盖"
           }
         }
       }
     },
-    "Loading measured results…": {
+    "Permanently Uninstall Selected…": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading measured results…"
+            "value": "Permanently Uninstall Selected…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载统计结果…"
+            "value": "永久卸载所选应用…"
           }
         }
       }
     },
-    "Organizing measured entries…": {
+    "Permanently uninstall these applications?": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Organizing measured entries…"
+            "value": "Permanently uninstall these applications?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在整理统计结果…"
+            "value": "永久卸载这些应用？"
           }
         }
       }
     },
-    "Saving space analysis…": {
+    "Personal app data selected; work and sign-in information may be lost.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saving space analysis…"
+            "value": "Personal app data selected; work and sign-in information may be lost."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在保存空间分析…"
+            "value": "已选择个人应用数据，可能丢失工作内容与登录信息。"
           }
         }
       }
     },
-    "Scan limit reached. Preparing the measured results; coverage is incomplete.": {
+    "Quit Application First": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan limit reached. Preparing the measured results; coverage is incomplete."
+            "value": "Quit Application First"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已达到本次扫描上限，正在整理已统计的部分结果。"
+            "value": "需关闭应用"
           }
         }
       }
     },
-    "Space analysis entry pages are missing or inconsistent.": {
+    "Quit requested. Scan again after the application closes.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Space analysis entry pages are missing or inconsistent."
+            "value": "Quit requested. Scan again after the application closes."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "空间分析记录缺失或不一致，请重新扫描。"
+            "value": "已请求退出，待应用关闭后请重新扫描。"
           }
         }
       }
     },
-    "Stopping scan…": {
+    "Ready to Uninstall": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopping scan…"
+            "value": "Ready to Uninstall"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在停止扫描…"
+            "value": "可卸载"
           }
         }
       }
     },
-    "Stopping…": {
+    "Request Quit": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stopping…"
+            "value": "Request Quit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在停止…"
+            "value": "请求退出"
+          }
+        }
+      }
+    },
+    "Required for uninstall": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required for uninstall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载必选"
+          }
+        }
+      }
+    },
+    "Scan again to update sizes and status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan again to update sizes and status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新扫描以更新大小与状态"
+          }
+        }
+      }
+    },
+    "Search applications or paths": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search applications or paths"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索应用、标识或路径"
+          }
+        }
+      }
+    },
+    "Select applications in this view": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select applications in this view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全选当前列表中的可卸载应用"
+          }
+        }
+      }
+    },
+    "Selected applications permanently uninstalled.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected applications permanently uninstalled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选应用已永久卸载。"
+          }
+        }
+      }
+    },
+    "Show components": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show components"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "展开组件"
+          }
+        }
+      }
+    },
+    "The selected applications and components will be permanently removed. This action cannot be undone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected applications and components will be permanently removed. This action cannot be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选应用及组件将被永久删除，此操作无法撤销。"
+          }
+        }
+      }
+    },
+    "This application requires elevated access. Automatic administrator removal is not supported.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This application requires elevated access. Automatic administrator removal is not supported."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此应用需要管理员权限，暂不支持自动提权卸载。"
+          }
+        }
+      }
+    },
+    "Uninstall Permanently": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall Permanently"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久卸载"
+          }
+        }
+      }
+    },
+    "Uninstall Selected…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uninstall Selected…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载所选应用…"
+          }
+        }
+      }
+    },
+    "Adobe Bridge caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adobe Bridge caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adobe Bridge 缓存"
+          }
+        }
+      }
+    },
+    "Alfred caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alfred caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alfred 缓存"
+          }
+        }
+      }
+    },
+    "Alibaba Cloud caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alibaba Cloud caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阿里云盘 缓存"
+          }
+        }
+      }
+    },
+    "Android generated caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Android generated caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Android 生成缓存"
+          }
+        }
+      }
+    },
+    "Antigravity caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antigravity caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Antigravity 缓存"
+          }
+        }
+      }
+    },
+    "Apple Music caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Music caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Music 缓存"
+          }
+        }
+      }
+    },
+    "Apple Podcasts caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Podcasts caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 播客 缓存"
+          }
+        }
+      }
+    },
+    "Apple TV caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple TV caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple TV 缓存"
+          }
+        }
+      }
+    },
+    "Application diagnostic logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application diagnostic logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用诊断日志"
+          }
+        }
+      }
+    },
+    "Aria2 caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aria2 caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aria2 缓存"
+          }
+        }
+      }
+    },
+    "Baidu Netdisk caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baidu Netdisk caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "百度网盘 缓存"
+          }
+        }
+      }
+    },
+    "Battle.net caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battle.net caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "战网 缓存"
+          }
+        }
+      }
+    },
+    "Bilibili caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bilibili caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "哔哩哔哩 缓存"
+          }
+        }
+      }
+    },
+    "Blender caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blender caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blender 缓存"
+          }
+        }
+      }
+    },
+    "Bob Translation caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bob Translation caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bob 翻译 缓存"
+          }
+        }
+      }
+    },
+    "Box caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Box caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Box 缓存"
+          }
+        }
+      }
+    },
+    "Bundler download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bundler download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bundler 下载缓存"
+          }
+        }
+      }
+    },
+    "Camo caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camo caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camo 缓存"
+          }
+        }
+      }
+    },
+    "Charles Proxy caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Charles Proxy caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Charles Proxy 缓存"
+          }
+        }
+      }
+    },
+    "ChatGPT caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ChatGPT caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ChatGPT 缓存"
+          }
+        }
+      }
+    },
+    "Cinema 4D caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinema 4D caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cinema 4D 缓存"
+          }
+        }
+      }
+    },
+    "Claude logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 日志"
+          }
+        }
+      }
+    },
+    "CodeBuddy CN caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CodeBuddy CN caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CodeBuddy 国内版 缓存"
+          }
+        }
+      }
+    },
+    "CodeBuddy CN logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CodeBuddy CN logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CodeBuddy 国内版 日志"
+          }
+        }
+      }
+    },
+    "Comet caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comet caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comet 缓存"
+          }
+        }
+      }
+    },
+    "DaVinci Resolve caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DaVinci Resolve caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DaVinci Resolve 缓存"
+          }
+        }
+      }
+    },
+    "Developer generated caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Developer generated caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开发工具生成缓存"
+          }
+        }
+      }
+    },
+    "Dia caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dia caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dia 缓存"
+          }
+        }
+      }
+    },
+    "Dia download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dia download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dia 下载缓存"
+          }
+        }
+      }
+    },
+    "Docker BuildX caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker BuildX caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker BuildX 缓存"
+          }
+        }
+      }
+    },
+    "Edge caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edge caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Edge 缓存"
+          }
+        }
+      }
+    },
+    "Epic Games caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Epic Games caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Epic Games 缓存"
+          }
+        }
+      }
+    },
+    "Expo download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expo download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expo 下载缓存"
+          }
+        }
+      }
+    },
+    "Filo caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filo caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filo 缓存"
+          }
+        }
+      }
+    },
+    "Final Cut Pro caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final Cut Pro caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final Cut Pro 缓存"
+          }
+        }
+      }
+    },
+    "Firefox profile caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firefox profile caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firefox 配置文件 缓存"
+          }
+        }
+      }
+    },
+    "Flomo caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flomo caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flomo 缓存"
+          }
+        }
+      }
+    },
+    "GOG Galaxy caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GOG Galaxy caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GOG Galaxy 缓存"
+          }
+        }
+      }
+    },
+    "Ghostty caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghostty caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghostty 缓存"
+          }
+        }
+      }
+    },
+    "Helium caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helium caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Helium 缓存"
+          }
+        }
+      }
+    },
+    "Hex download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hex download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hex 下载缓存"
+          }
+        }
+      }
+    },
+    "IINA caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IINA caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IINA 缓存"
+          }
+        }
+      }
+    },
+    "Input Source Pro caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Source Pro caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Source Pro 缓存"
+          }
+        }
+      }
+    },
+    "JetBrains IDE logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JetBrains IDE logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JetBrains IDE 日志"
+          }
+        }
+      }
+    },
+    "Klee caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klee caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klee 缓存"
+          }
+        }
+      }
+    },
+    "Kugou Music caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kugou Music caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "酷狗音乐 缓存"
+          }
+        }
+      }
+    },
+    "Kuwo Music caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kuwo Music caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "酷我音乐 缓存"
+          }
+        }
+      }
+    },
+    "LM Studio caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LM Studio 缓存"
+          }
+        }
+      }
+    },
+    "Logseq caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logseq caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logseq 缓存"
+          }
+        }
+      }
+    },
+    "MPV caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MPV caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MPV 缓存"
+          }
+        }
+      }
+    },
+    "MiaoYan caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MiaoYan caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "妙言 缓存"
+          }
+        }
+      }
+    },
+    "Microsoft Excel caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Excel caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Excel 缓存"
+          }
+        }
+      }
+    },
+    "Microsoft PowerPoint caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft PowerPoint caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft PowerPoint 缓存"
+          }
+        }
+      }
+    },
+    "Microsoft Teams logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Teams logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Teams 日志"
+          }
+        }
+      }
+    },
+    "Microsoft Teams web caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Teams web caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Teams 网页缓存"
+          }
+        }
+      }
+    },
+    "Microsoft Word caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Word caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microsoft Word 缓存"
+          }
+        }
+      }
+    },
+    "Minecraft caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minecraft caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minecraft 缓存"
+          }
+        }
+      }
+    },
+    "Minecraft logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minecraft logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minecraft 日志"
+          }
+        }
+      }
+    },
+    "MongoDB Compass caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MongoDB Compass caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MongoDB Compass 缓存"
+          }
+        }
+      }
+    },
+    "Navicat Premium caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navicat Premium caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navicat Premium 缓存"
+          }
+        }
+      }
+    },
+    "NetEase Music caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NetEase Music caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网易云音乐 缓存"
+          }
+        }
+      }
+    },
+    "Notion web caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notion web caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notion 网页缓存"
+          }
+        }
+      }
+    },
+    "Opam download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opam download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opam 下载缓存"
+          }
+        }
+      }
+    },
+    "Opera caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opera caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opera 缓存"
+          }
+        }
+      }
+    },
+    "Ora browser caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ora browser caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ora browser 缓存"
+          }
+        }
+      }
+    },
+    "Orion caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orion caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orion 缓存"
+          }
+        }
+      }
+    },
+    "PCSX2 caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PCSX2 caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PCSX2 缓存"
+          }
+        }
+      }
+    },
+    "Pacifist caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacifist caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacifist 缓存"
+          }
+        }
+      }
+    },
+    "Parallels Desktop caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallels Desktop caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parallels Desktop 缓存"
+          }
+        }
+      }
+    },
+    "Paw API caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paw API caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paw API 缓存"
+          }
+        }
+      }
+    },
+    "Plex caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plex caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plex 缓存"
+          }
+        }
+      }
+    },
+    "Proxyman caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proxyman caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proxyman 缓存"
+          }
+        }
+      }
+    },
+    "QQ Browser caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QQ Browser caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QQ 浏览器 缓存"
+          }
+        }
+      }
+    },
+    "QQ Music Mac caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QQ Music Mac caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QQ 音乐 Mac 版 缓存"
+          }
+        }
+      }
+    },
+    "QQ Music caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QQ Music caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "QQ 音乐 缓存"
+          }
+        }
+      }
+    },
+    "Qoder caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qoder caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qoder 缓存"
+          }
+        }
+      }
+    },
+    "Qoder logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qoder logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qoder 日志"
+          }
+        }
+      }
+    },
+    "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先退出应用。离线资源可能需要重新下载。仅处理明确列出的缓存路径，保留账号、文档、设置、会话及其他持久数据。"
+          }
+        }
+      }
+    },
+    "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先退出应用。所选诊断历史将丢失。保留用户文档、偏好设置、会话和应用保存状态。"
+          }
+        }
+      }
+    },
+    "RPCS3 caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RPCS3 caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RPCS3 缓存"
+          }
+        }
+      }
+    },
+    "Redis Insight caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redis Insight caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redis Insight 缓存"
+          }
+        }
+      }
+    },
+    "Safari caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safari 缓存"
+          }
+        }
+      }
+    },
+    "ScreenFlow caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenFlow caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenFlow 缓存"
+          }
+        }
+      }
+    },
+    "Sequel Ace caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequel Ace caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequel Ace 缓存"
+          }
+        }
+      }
+    },
+    "Sequel Pro caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequel Pro caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sequel Pro 缓存"
+          }
+        }
+      }
+    },
+    "Sketch caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sketch caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sketch 缓存"
+          }
+        }
+      }
+    },
+    "Skype caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skype caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skype 缓存"
+          }
+        }
+      }
+    },
+    "Spacedrive caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spacedrive caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spacedrive 缓存"
+          }
+        }
+      }
+    },
+    "Spark caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spark caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spark 缓存"
+          }
+        }
+      }
+    },
+    "Stash caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stash caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stash 缓存"
+          }
+        }
+      }
+    },
+    "Steam caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steam caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steam 缓存"
+          }
+        }
+      }
+    },
+    "Steam logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steam logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steam 日志"
+          }
+        }
+      }
+    },
+    "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先停止相关工具与构建任务。离线工作流可能需要重新下载。保留已安装工具、凭据、配置和项目源码；受保护的后代内容仍会阻止清理。"
+          }
+        }
+      }
+    },
+    "Stremio caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stremio caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stremio 缓存"
+          }
+        }
+      }
+    },
+    "TablePlus caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TablePlus caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TablePlus 缓存"
+          }
+        }
+      }
+    },
+    "TeamViewer caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TeamViewer caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TeamViewer 缓存"
+          }
+        }
+      }
+    },
+    "Telegram caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telegram caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telegram 缓存"
+          }
+        }
+      }
+    },
+    "Tencent Video caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tencent Video caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腾讯视频 缓存"
+          }
+        }
+      }
+    },
+    "The Unarchiver caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Unarchiver caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Unarchiver 缓存"
+          }
+        }
+      }
+    },
+    "The application creates new diagnostic logs when needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The application creates new diagnostic logs when needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用会在需要时创建新的诊断日志。"
+          }
+        }
+      }
+    },
+    "The application recreates downloaded resources and generated caches when needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The application recreates downloaded resources and generated caches when needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用会在需要时重新下载资源并生成缓存。"
+          }
+        }
+      }
+    },
+    "The tool downloads packages or regenerates cached analysis when needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The tool downloads packages or regenerates cached analysis when needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工具会在需要时重新下载软件包或生成分析缓存。"
+          }
+        }
+      }
+    },
+    "Thunderbird caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thunderbird caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thunderbird 缓存"
+          }
+        }
+      }
+    },
+    "Todoist caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todoist caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todoist 缓存"
+          }
+        }
+      }
+    },
+    "Transmission caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transmission caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transmission 缓存"
+          }
+        }
+      }
+    },
+    "Turbo generated caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turbo generated caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turbo 生成缓存"
+          }
+        }
+      }
+    },
+    "UTM app caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UTM app caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UTM app 缓存"
+          }
+        }
+      }
+    },
+    "Unity Hub caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unity Hub caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unity Hub 缓存"
+          }
+        }
+      }
+    },
+    "VLC caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VLC caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VLC 缓存"
+          }
+        }
+      }
+    },
+    "VMware Fusion caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VMware Fusion caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VMware Fusion 缓存"
+          }
+        }
+      }
+    },
+    "Visual Studio Code logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual Studio Code logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual Studio Code 日志"
+          }
+        }
+      }
+    },
+    "Visual Studio Code web caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual Studio Code web caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual Studio Code 网页缓存"
+          }
+        }
+      }
+    },
+    "Vite generated caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vite generated caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vite 生成缓存"
+          }
+        }
+      }
+    },
+    "WPS Office caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WPS Office caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WPS Office 缓存"
+          }
+        }
+      }
+    },
+    "WakaTime caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WakaTime caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WakaTime 缓存"
+          }
+        }
+      }
+    },
+    "Warp caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warp caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warp 缓存"
+          }
+        }
+      }
+    },
+    "WeCom caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeCom caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "企业微信 缓存"
+          }
+        }
+      }
+    },
+    "WeType caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeType caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信输入法 缓存"
+          }
+        }
+      }
+    },
+    "WhatsApp caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhatsApp caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WhatsApp 缓存"
+          }
+        }
+      }
+    },
+    "Xnip caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xnip caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xnip 缓存"
+          }
+        }
+      }
+    },
+    "Yandex Browser caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yandex Browser caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yandex Browser 缓存"
+          }
+        }
+      }
+    },
+    "Yandex caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yandex caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yandex 缓存"
+          }
+        }
+      }
+    },
+    "Youdao Dictionary caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Youdao Dictionary caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有道词典 缓存"
+          }
+        }
+      }
+    },
+    "Zed caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zed caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zed 缓存"
+          }
+        }
+      }
+    },
+    "Zed logs": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zed logs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zed 日志"
+          }
+        }
+      }
+    },
+    "Zen caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zen caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zen 缓存"
+          }
+        }
+      }
+    },
+    "Zoom caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom 缓存"
+          }
+        }
+      }
+    },
+    "iQIYI caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iQIYI caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "爱奇艺 缓存"
+          }
+        }
+      }
+    },
+    "pyenv download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pyenv download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pyenv 下载缓存"
+          }
+        }
+      }
+    },
+    "qBittorrent caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "qBittorrent caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "qBittorrent 缓存"
+          }
+        }
+      }
+    },
+    "rbenv download caches": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rbenv download caches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "rbenv 下载缓存"
+          }
+        }
+      }
+    },
+    "Privacy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私清理"
+          }
+        }
+      }
+    },
+    "Review browser activity and account data separately.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review browser activity and account data separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单独审阅浏览器活动与账户数据。"
+          }
+        }
+      }
+    },
+    "Scan Privacy Sources": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Privacy Sources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描隐私来源"
+          }
+        }
+      }
+    },
+    "Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先关闭浏览器。清理会永久删除选定的数据库记录，不进入废纸篓，也无法通过历史恢复。所有来源默认不选。"
+          }
+        }
+      }
+    },
+    "Time range": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time range"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间范围"
+          }
+        }
+      }
+    },
+    "History: visit time · Cookies: last access time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History: visit time · Cookies: last access time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史：访问时间 · Cookie：最后访问时间"
+          }
+        }
+      }
+    },
+    "I understand that clearing cookies can sign me out of websites.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand that clearing cookies can sign me out of websites."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我理解清理 Cookie 可能使我退出网站登录。"
+          }
+        }
+      }
+    },
+    "records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条记录"
+          }
+        }
+      }
+    },
+    "Review Permanent Deletion…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Permanent Deletion…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅永久删除…"
+          }
+        }
+      }
+    },
+    "Review privacy sources": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review privacy sources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅隐私来源"
+          }
+        }
+      }
+    },
+    "Scan to see aggregate counts and availability. Browsing records are never displayed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan to see aggregate counts and availability. Browsing records are never displayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描后显示汇总数量和可用状态，不展示浏览记录内容。"
+          }
+        }
+      }
+    },
+    "Privacy cleaning completed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy cleaning completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私清理完成"
+          }
+        }
+      }
+    },
+    "Some sources were not cleaned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some sources were not cleaned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分来源未完成清理"
+          }
+        }
+      }
+    },
+    "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置，以及 Safari 历史。不清理 Safari Cookie、站点存储、保存的密码、自动填充、自定义配置、扩展数据和云端副本。"
+          }
+        }
+      }
+    },
+    "Last hour": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last hour"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近一小时"
+          }
+        }
+      }
+    },
+    "Last 24 hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 24 hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近24小时"
+          }
+        }
+      }
+    },
+    "Last seven days": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last seven days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近七天"
+          }
+        }
+      }
+    },
+    "All time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有时间"
+          }
+        }
+      }
+    },
+    "Browsing history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browsing history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览历史"
+          }
+        }
+      }
+    },
+    "Cookies · may sign you out": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookies · may sign you out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cookie · 可能退出登录"
+          }
+        }
+      }
+    },
+    "Site storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "站点存储"
+          }
+        }
+      }
+    },
+    "Saved passwords": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved passwords"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存的密码"
+          }
+        }
+      }
+    },
+    "Autofill": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autofill"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动填充"
+          }
+        }
+      }
+    },
+    "No matching records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无匹配记录"
+          }
+        }
+      }
+    },
+    "Close browser first": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close browser first"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先关闭浏览器"
+          }
+        }
+      }
+    },
+    "Access required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要访问权限"
+          }
+        }
+      }
+    },
+    "Not supported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持"
+          }
+        }
+      }
+    },
+    "Unsupported database": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsupported database"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据库结构不支持"
+          }
+        }
+      }
+    },
+    "Permanently delete privacy records?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete privacy records?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久删除隐私记录？"
+          }
+        }
+      }
+    },
+    "sources": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个来源"
+          }
+        }
+      }
+    },
+    "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作无法通过 Shou 撤销。各来源分别提交，失败时可能仅部分完成。云端同步副本及其他浏览器数据不在本次范围内。"
+          }
+        }
+      }
+    },
+    "I understand that deletion is permanent and has no restore.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand that deletion is permanent and has no restore."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我理解这将永久删除，且无法恢复。"
+          }
+        }
+      }
+    },
+    "I accept that websites may sign me out.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I accept that websites may sign me out."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我接受可能退出网站登录。"
+          }
+        }
+      }
+    },
+    "Recent privacy receipts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent privacy receipts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的隐私清理记录"
           }
         }
       }

@@ -19,7 +19,7 @@ Sparkle 更新签名与 Apple Developer ID 签名、公证分别管理。初始�
 ## 验证与发布
 
 1. 执行 `sh scripts/test.sh --native-trash-purge` 并检查实际日志。该参数显式启用生成夹具的原生清理、恢复与永久移除；默认测试命令仅恢复、不永久移除。
-2. 执行 `sh scripts/release-macos.sh v0.4.0 /absolute/path/to/private-key-file`。构建两种 CPU 架构，测试 Release 核心和包内 CLI，检查 DMG、ZIP、独立 CLI、更新签名，并验证篡改包与订阅被拒绝。
+2. 执行 `sh scripts/release-macos.sh v0.5.0 /absolute/path/to/private-key-file`。构建两种 CPU 架构，测试 Release 核心和包内 CLI，检查 DMG、ZIP、独立 CLI、更新签名，并验证篡改包与订阅被拒绝。
 3. 审阅源码、文档、运行资源与 Release Notes。提交、推送或发布前，取得用户要求的递交确认。
 4. 推送版本标签。`.github/workflows/release.yml` 在 Apple Silicon 与 Intel 上运行全量测试（含超过 10 万个文件的原生清理及恢复）和发布构建，再生成并验证通用发布包。只有成功的任务才能进入发布阶段。手动重跑要求标签已存在。
 5. 发布任务核对上传后的 SHA-256，在草稿中完成附件上传后公开发布，拒绝覆盖已经发布的版本。发布后确认下载链接，并从已安装应用检查更新。

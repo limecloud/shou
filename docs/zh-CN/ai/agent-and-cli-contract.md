@@ -223,6 +223,7 @@ shou exclusions global remove --pattern "**/keep/**" --json
 | `rules catalog [--workspace <id>]` | 列出内置模板，或返回绑定到具体工作区的规则定义 |
 | `analysis summary --scan-id <id>` | 返回空间根节点、非重叠清理分类、完整性和容量口径 |
 | `analysis children --scan-id <id> [--path <relative>] [--limit <n>] [--cursor <cursor>]` | 按已分配空间排序并分页浏览直接子项；根路径默认 `.` |
+| `analysis large-files --scan-id <id> [--minimum-bytes <bytes>] [--type <type>] [--limit <1..500>] [--cursor <cursor>]` | 跨目录按已计费占用查询普通文件，默认 50 MiB；支持 ai-model 等扩展名类型；稳定游标绑定扫描与筛选，只读 |
 
 `rules list` 同时返回 `builtin_templates`。通过现有 `rules disable / enable` 命令管理内置规则；默认启用仅表示允许扫描匹配。`analysis children` 的游标绑定扫描和具体目录，不能在不同目录之间复用。分析结果包含无清理规则的目录与文件，空间浏览不授予删除权限。
 
@@ -238,11 +239,23 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 
 ## 应用发现与卸载
 
-`applications list [--include-system true|false] --json` 是有界只读发现，不打开清理存储。`applications inspect --path <exact-app-path>` 保存组件审阅，可选扫描预算沿用既有上限。`applications plan --review-id <id> --component <id>... [--include-user-data true|false]` 要求明确选择可处理组件并包含应用本身；个人数据同意默认 false。`applications plan show --plan-id <id>` 返回审阅范围。
+`applications list [--include-system true|false] --json` 发现已安装应用。`applications summary` 增量返回容量估算、运行／保护状态和元数据最近使用时间，不生成删除清单。`applications inspect --path <exact-app-path>` 保存组件审阅。`applications plan --review-id <id> --component <id>... [--include-user-data true|false] [--mode trash|permanent]` 明确选择可处理组件且须包含应用本身。个人数据同意默认 false；单应用默认废纸篓，兼容既有合同。
 
-`applications uninstall --plan-id <id>` 为破坏性操作，需要控制终端及完整短语 `UNINSTALL <plan-id>`，不提供无人确认参数。结果沿用历史回执，包含 `operation=application_uninstall` 和逐项原父目录证据。`history inspect` 及单独确认的 `history restore` 覆盖所有组件父目录；卸载回执拒绝 `history purge`。JSON 明确提供组件 `eligible`、`requires_user_data_consent`、`reasons` 和 `warnings`；提示不构成执行权限。详见[应用卸载](../product/application-uninstall.md)。
+`applications batch plan --file <selections.json> [--mode permanent|trash]` 接受 JSON 数组 `{ "review_id": "…", "component_ids": ["…"], "include_user_data": false }`。拒绝重复应用与交叠路径，每个应用独立表达个人数据同意。批量默认永久删除。`applications [batch] plan show --plan-id <id>` 返回全部选定路径、动作、摘要与过期时间。
+
+`applications [batch] uninstall --plan-id <id>` 需要控制终端；永久模式输入完整短语 `PURGE <plan-id>`，废纸篓模式输入 `UNINSTALL <plan-id>`。一次确认覆盖当前具体批次，变更前预检所有应用，在每个组件变更边界重查运行状态，不提供无人确认参数。
+
+单份共享历史回执记录 `application_uninstall`、`application_permanent_uninstall`、`application_batch_uninstall` 或 `application_batch_permanent_uninstall`。只有已入废纸篓项可以恢复；永久项不能恢复，卸载回执拒绝历史 purge。JSON 继续明确提供组件资格、提示及个人数据同意。详见[应用卸载](../product/application-uninstall.md)。
+
+## 隐私记录
+
+`privacy scan [--range last-hour|last-day|last-seven-days|all-time]` 保存汇总数量与各来源可用状态；`privacy scan show --scan-id <id>` 不返回浏览记录内容。`privacy plan --scan-id <id> --source <id>... [--acknowledge-sign-out true]` 明确选择可处理来源，Cookie 需要独立接受退出登录影响。`privacy plan show --plan-id <id>` 返回时间范围和摘要。
+
+`privacy execute --plan-id <id>` 经终端确认永久删除记录，全计划预检后按来源独立事务执行并复核运行状态、结构和身份。`privacy history` 仅返回汇总结果，不保存网址、域名与 Cookie 值。数据库逻辑删除不进入废纸篓、无法恢复，也不保证物理擦除或释放容量。详见[隐私支持与架构](../engineering/privacy-cleaning.md)。
 
 
 ## 空间分析直接删除
 
 空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。
+
+默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。

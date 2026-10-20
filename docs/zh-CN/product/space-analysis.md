@@ -15,101 +15,86 @@
 
 ```mermaid
 flowchart LR
-  UI[原生 macOS 空间浏览器] --> Core[ShouEngine 空间操作]
+  UI[原生 macOS 浏览器] --> Core[ShouEngine]
   CLI[analysis 命令] --> Core
-  Core --> Scan[StorageScan：不可变目录树与根身份]
-  Core --> Worker[只读 Worker：有界结果分页]
-  Scan --> Pages[条目页与摘要核验元数据]
-  Scan --> Index[StorageIndex 与 StorageSelection]
-  Index --> UI
-  Core --> Plan[StorageRemovalPlan：精确路径与完整清单]
-  Plan --> Journal[共享 TrashExecution / PermanentExecution]
-  Journal --> Native[NativeFileSystem：拒绝跟随链接并核验]
-  Journal --> Records[共享历史与后续操作记录]
-  Native --> OS[macOS 废纸篓 / unlinkat]
+  Core --> Worker[只读流式统计]
+  Worker --> Catalog[SQLite：条目、子树汇总与完整性]
+  Core --> Scan[StorageScan：身份与索引引用]
+  Scan --> Catalog
+  Catalog --> Query[按需查询当前目录]
+  Query --> Cache[已访问目录缓存与选择]
+  Cache --> UI
+  Core --> Plan[删除计划：所选路径与当前完整清单]
+  Plan --> Journal[共享执行日志]
+  Journal --> FS[拒绝跟随链接核验与原生删除]
+  Journal --> History[共享历史]
 ```
 
-`StorageSession` 管理桌面导航、选择、进度和取消；删除资格由共享核心判断。`ShouEngine` 保存分析证据、核验具体目标和当前排除配置，生成有效期 15 分钟的确认摘要，并复用已有跨进程互斥。平台层处理本地元数据、限额遍历、大文件流式 SHA-256、原生废纸篓、不覆盖恢复和按清单永久删除。不引入模型、Agent 运行时、守护进程或特权辅助服务。
+`StorageSession` 缓存已访问目录，按需加载文件列表，不再在 UI 内存中构造整盘所有文件的 Dictionary。`ShouEngine` 管理不可变分析记录、目录查询、具体删除目标与当前排除策略。平台层只读遍历本地元数据，将条目和子树汇总流式写入共享 SQLite 索引；删除仍独立生成所选目标的完整清单，复用原生删除、互斥、日志与历史。不引入模型、Agent 运行时、守护进程或特权辅助服务。
 
 ## 流程
 
 ```mermaid
 flowchart TD
-  A[选择磁盘或目录] --> B[只读分析]
-  B --> Limit{达到扫描上限?}
-  Limit -->|是| Partial[标记覆盖不完整]
-  Limit -->|否| Prepare[整理并加载已统计条目]
-  Partial --> Prepare
-  Prepare --> Save[分段保存后发布扫描元数据]
-  Save --> Index[后台构建空间图与查找索引：可取消]
-  Index --> C{扫描结果}
-  C -->|完整或部分| D[浏览列表与树图]
-  C -->|停止| A
-  D --> E[明确选择文件或目录]
-  E --> F[删除：核验当前目标]
-  F --> G{确认模式与路径}
-  G -->|取消| D
-  G -->|废纸篓| H[再次核验并移入]
-  G -->|永久删除| I[再次核验并永久移除]
-  H --> J[逐项结果及共享历史]
-  I --> J
-  J --> K[从显示树移除成功项目]
-  K --> L[刷新磁盘计量]
-  L --> D
-  J -->|已核验废纸篓项目| M[不覆盖恢复]
+  A[选择磁盘或目录] --> B[流式写入所有可访问条目]
+  B --> C[逐目录汇总容量与完整性]
+  C --> D[完成索引后发布元数据]
+  D --> E[加载当前目录并绘制空间图]
+  E --> F[进入目录：查询已保存的直接子项]
+  F --> E
+  E --> G[选中具体文件或目录]
+  G --> H[重新完整核验所选目标]
+  H --> I{确认路径与删除方式}
+  I -->|Cancel| E
+  I -->|Confirm| J[再次核验、记录意图并删除]
+  J --> K[逐项结果并更新显示缓存]
+  K --> L[刷新获取新计量]
+  L --> B
 ```
 
 ## 时序
 
 ```mermaid
 sequenceDiagram
-  actor User as 用户
-  participant Desktop as 桌面
+  actor User
+  participant UI as Desktop / CLI
   participant Engine as ShouEngine
-  participant Worker as 只读扫描 Worker
-  participant FS as NativeFileSystem
-  participant Store as LocalRecordStore
-  User->>Desktop: 选择位置并开始扫描
-  Desktop->>Engine: scanStorage(path, budget, progress)
-  Engine->>FS: analysisRootIdentity(path)
-  Engine->>Worker: inspect(path)
-  Worker-->>Desktop: 当前路径与已统计项目数
-  Worker-->>Desktop: 整理及加载阶段、真实计数与限额状态
-  Worker-->>Engine: 有界结果分页、TreeSnapshot 及覆盖缺口
-  Engine-->>Desktop: 正在保存统计结果
-  loop 大分析中的每个条目页
-    Engine->>Store: 保存有界分页与 SHA-256 引用
+  participant Worker as Read-only worker
+  participant FS as Native filesystem
+  participant Store as Catalog / record store
+  User->>UI: Choose location; scan
+  UI->>Engine: scanStorage(path)
+  Engine->>Worker: measureStorage(path, catalog)
+  loop Every accessible directory and file
+    Worker->>FS: Read no-follow metadata
+    Worker->>Store: Append row; accumulate subtree totals and coverage
+    Worker-->>UI: Current path and measured entry count
   end
-  Engine->>Store: 全部分页持久化后发布扫描元数据
-  Engine-->>Desktop: 已保存的分析证据
-  Desktop->>Desktop: 在主线程之外构建空间图与查找索引
-  Desktop-->>User: 列表与树图，明确显示部分覆盖
-  User->>Desktop: 勾选并删除
-  Desktop->>Engine: createStorageRemovalPlan(scanId, paths, mode)
-  Engine->>FS: 重新检查明确选中的目标
-  Engine->>Store: 保存限时删除计划
-  Engine-->>Desktop: 路径、清单、容量与摘要
-  User->>Desktop: 一次确认
-  Desktop->>Engine: executeStorageRemoval(planId, digest)
-  Engine->>Store: 获取互斥并保存执行意图
-  loop 每个明确目标
-    Engine->>FS: 核验根身份、当前策略与完整清单
-    Engine->>Store: 保存项目执行意图
-    Engine->>FS: 废纸篓或永久删除
-    FS-->>Engine: 已核验结果或明确失败
-    Engine->>Store: 保存逐项结果
-  end
-  Engine-->>Desktop: ExecutionReceipt
-  Desktop-->>User: 结果及更新后的显示树
+  Worker->>Store: Seal catalog and child index
+  Worker-->>Engine: Root identity, measured count and issues
+  Engine->>Store: Publish StorageScan metadata last
+  UI->>Engine: storageDirectory(scanId, path)
+  Engine->>Store: Query saved totals and direct children
+  Engine-->>UI: Directory list and completeness
+  UI-->>User: List and map; partial sizes use ≥
+  User->>UI: Select items; delete
+  UI->>Engine: createStorageRemovalPlan(paths, mode)
+  Engine->>FS: Fresh complete manifests for selected targets
+  Engine-->>User: Exact scope, estimates and confirmation
+  User->>Engine: Confirm plan digest
+  Engine->>Store: Acquire mutation lease; record intent
+  Engine->>FS: Reverify current targets; remove
+  Engine->>Store: Save each outcome
+  Engine-->>UI: Shared history and per-item results
 ```
 
 ## 数据与边界
 
-`StorageScan` 包含 ID、只读根路径、根身份、时间与 `TreeSnapshot`，独立于规则工作区。`StorageRemovalPlan` 包含分析 ID、根身份、去重后的精确路径、目标当前完整清单、动作、有效期、状态与摘要。分别存入 `storage-scans` 和 `storage-plans`；共享历史使用 `storage_removal` 或 `storage_permanent_removal` 操作类型。
+`StorageScan` 包含扫描 ID、绝对根路径、根身份、时间、覆盖情况、测量条目数与可选 `catalog_id`。私有 `storage-catalogs` 保存 SQLite 索引，`storage-scans` 保存少量 JSON 元数据，索引完成后才发布扫描记录。每个已测量文件都保留；文件行只保存名称和父目录 ID，完整目录路径仅保存一次。遍历时累加子树容量；硬链接去重集合也放在磁盘，避免整盘身份集合占用内存。每个节点提供 `is_complete`，部分目录容量显示 `≥`，不影响完整兄弟目录。旧单记录和摘要分页记录继续可读，以 `completedPaths` 恢复目录完整性，不改写旧记录。`StorageRemovalPlan` 仍保存具体路径、当前完整清单、动作、有效期与确认摘要，空间索引不充当删除授权。
 
 分析整盘不授予删除卷根的权限。系统位置、容器根、凭据、云同步目录、Shou 自身记录、链接目标及特殊文件受保护。每个所选根目标必须属于当前用户；已注册工作区的当前排除配置也保护对应选中项及已测量后代。确认后文件发生变化会拒绝处理该项目，错误不会记作成功。停止扫描结束只读 worker；停止删除在已记账项目之间生效。
 
-限制必须明确：默认扫描最多 100 万项目、600 秒、128 层；一次请求最多 5000 条明确路径。确认前必须完整重新计量每个目标。本地 JSON 单条记录上限为 256 MiB。超过 10000 条目的分析按页保存并记录 SHA-256 摘要，所有页面持久化后才发布扫描元数据，既有单条扫描记录仍可读取；过大的计划在写入前拒绝。进度区分计量、结果加载、保存与空间图索引，停止操作也会在有界检查点取消索引。文件校验流式读取且内存有界，极大文件仍可能耗时或超过读取期限。符号链接按不透明项目计量，不能作为独立删除目标。遍历不跨文件系统、不下载云占位内容。硬链接计量是估计；APFS 克隆、快照及废纸篓会影响实际释放空间。树图前 160 项之后归入其他项目，目录列表保留全部已测量项目。
+默认空间分析不设文件条目数上限；运行边界为 1 小时、512 层目录和 4 GiB 磁盘索引。无法读取、扫描期间变化、跨卷和云占位边界均报告为覆盖缺口。索引写入失败会终止尚未发布的分析，取消也不发布新记录。每个目录独立记录完整性；未测量字节属于未知，不能当作零。删除仍接受最多 5,000 个具体路径，所选目标必须分别通过既有有界、完整的清单与内容核验；空间统计范围扩大不改变删除授权。单条 JSON 记录仍限制为 256 MiB；CLI 显式指定扫描预算时保留旧版有界快照与摘要分页。符号链接不跟随，云占位和跨卷边界显示为不可删除条目，不触发云内容下载。容量采用 `st_blocks × 512`，硬链接按统计遍历顺序只计一次；APFS 克隆、快照和废纸篓决定其不等于必然释放量。树图最多展示 160 块，其余合并，但所有已测量条目均可在各自目录列表访问。成功删除只更新显示缓存，刷新才生成新的权威计量。
 
 ## CLI
 
@@ -127,3 +112,63 @@ shou analysis remove --plan-id "storage-plan_…" --json
 ## 验证
 
 `shou-tests --storage-only` 覆盖选择展开、根保护、变更拒绝、部分分析、当前排除项与新增后代、20 MiB 文件与目录的废纸篓及恢复，以及生成夹具的永久删除和历史核验。`scripts/verify-storage-cli.py` 覆盖发现、分页、父子去重、普通文件选择、非法输入、部分结果与无 TTY 拒绝，不授权删除。桌面验收使用独立 Bundle ID、独立记录目录与生成文件。详见[验收记录](../engineering/acceptance-and-testing.md)与[参考鸣谢](../engineering/reference-design.md)。
+
+默认 `analysis scan` 使用完整空间索引；显式提供 `--max-entries` 或 `--max-seconds` 时采用旧版有界快照。`analysis summary` 返回测量条目数；`analysis children` 为每个节点返回 `is_complete`。
+
+macOS 空间计量仅在身份字段完整时通过 `getattrlistbulk` 批量读取普通文件元数据；目录与链接继续使用 `fstatat`，不支持或字段缺失时回退原 stat 枚举。遍历直接向 SQLite 传递已知父目录行 ID，减少重复路径解析和父项查询。单目录批量元数据保留达到 65,536 条时改走完整回退路径，并不会截断扫描。优化保留准确元数据与实际占用口径。[权限引导](installation-and-access.md)在广泛扫描前提供，并如实记录受保护边界。
+
+
+## 跨目录大文件清理
+
+原生“大文件清理”页面从已有空间分析中跨目录查询普通文件，不要求清理规则。可以开始新的只读扫描，也可以主动复用最近一份未经过清理修改的空间分析结果；两个页面分别维护选择。
+
+- 默认最小占用为 50 MiB。桌面提供 50／100／500 MiB 和 1 GiB，CLI 接受整数的字节阈值。
+- 类型包含全部、视频、音频、图片、压缩文件、文档、AI 模型与其他。只按文件扩展名分类，不读取内容；磁盘映像、安装包和含义不明确的原始二进制归为其他。
+- 按已计费占用空间降序、完整相对路径 UTF-8 二进制升序排列。硬链接遵循已有扫描的计费规则。
+- 切换阈值、类型只查询保存的证据，不重新扫描磁盘。每页最多 500 条，游标绑定扫描与筛选条件，不建立全盘 UI 内存字典。
+- 支持逐文件选择、选择已载入文件、“选择全部符合条件的文件”、清空选择、快速查看、访达定位与复制路径。全选遍历所有查询页，只选符合既有删除条件的文件；支持取消，完成后才发布整份选择。
+- 底部固定展示权威所选数量与占用估计。默认永久删除，通过共享确认界面审阅精确路径；废纸篓是可选动作。两者继续使用完整目标重新验证、执行日志与操作历史。
+- 离开页面后返回会按需载入已完成的扫描，已载入的筛选与选择保持不变。中断结果读取会明确保留未完成状态并支持继续；复用分析期间可查看进度并停止。
+- 清理成功后移除对应行；更新容量汇总需要重新扫描，原索引保持不可变。未读位置继续显示覆盖缺口，不能按零容量处理。
+
+```mermaid
+flowchart TD
+  Entry[大文件清理] --> Source{已有测量？}
+  Source -->|复用最近空间分析| Query[查询保存的索引]
+  Source -->|新位置| Scan[流式只读扫描]
+  Scan --> Query
+  Query --> Filter[占用阈值与扩展名类型]
+  Filter --> Page[稳定有界分页]
+  Page --> Select[选择文件或全部符合条件的文件]
+  Select --> Plan[既有删除计划与完整目标重新验证]
+  Plan --> Confirm{确认精确路径与动作}
+  Confirm -->|取消| Page
+  Confirm -->|确认| Execute[共享执行与逐项历史]
+  Execute --> Refresh[重新扫描更新容量]
+```
+
+```mermaid
+sequenceDiagram
+  actor User as 用户
+  participant UI as 原生大文件页面或CLI
+  participant Engine as ShouEngine
+  participant Catalog as 不可变扫描索引
+  User->>UI: 设置最小占用与文件类型
+  UI->>Engine: storageLargeFiles(scanId, filters, cursor)
+  Engine->>Catalog: 查询数量、占用汇总及排序分页
+  Catalog-->>Engine: 有界匹配结果
+  Engine-->>UI: 条目、总量与下一页游标
+  Note over UI,Catalog: 不遍历文件系统，不读取文件内容
+  User->>UI: 选择文件并清理
+  UI->>Engine: createStorageRemovalPlan(scanId, paths, action)
+  Note over Engine: 重新核验完整目标，复用既有确认与执行
+```
+
+CLI 示例：
+
+```sh
+shou analysis scan --path "$HOME" --json
+shou analysis large-files --scan-id "storage_example" --minimum-bytes 52428800 --type ai-model --limit 100 --json
+```
+
+返回的相对路径可传入 `analysis plan`。查询结果不授予执行权限，CLI 仍遵循既有确认合同。部分扫描返回已测量匹配项，并保留原覆盖问题。

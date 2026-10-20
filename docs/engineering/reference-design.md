@@ -44,7 +44,7 @@ flowchart TD
     Receipt --> Summary[Grouped completion summary]
 ```
 
-- **Window navigation** represents implemented tasks: common-app cleanup, project cleanup, space analysis, rules and history. Keep only user-added project workspaces in the sidebar. Saved rule selections belong in the Rules menu and require a fresh scan. Do not add empty destinations for unimplemented utilities.
+- **Window navigation** represents implemented tasks: Smart Cleanup, Large Files, Space Analysis, Rules, Startup Items and Applications, with History and Settings in the footer. Project scopes remain internal records. Saved rule selections belong in the Rules menu and require a fresh scan. Do not add empty destinations for unimplemented utilities.
 - **Category navigation** represents the purpose of the data: application caches, browser caches, developer tools, project outputs, dependencies and personal rules when matching facts exist. Risk is a rule/source property, not a separate navigation taxonomy.
 - **Rule rows** identify what will be cleaned in user language. Show its impact, selected/total estimate, expandable source count and eligibility state. A software name alone is insufficient when several rules clean different parts of that software.
 - **Source rows** retain exact root-bound paths, file counts, estimates and reasons. Expansion and row focus never silently change selection. Finder reveal, path copying and exclusion remain inspectable actions.
@@ -57,13 +57,13 @@ Selection has one authoritative set of candidate identities. Category, rule and 
 
 | Mode | Behavior |
 | --- | --- |
-| None | Initial state; no destructive scope exists |
+| None | Space analysis and large files start empty; Clear Selection empties any reviewed selection |
 | Reviewable items | Explicit convenience action over current eligible sources; exclude high-risk dependencies. This is not a safety recommendation |
 | Manual | Derived after individual changes; not a second preset that mutates selection |
 | Rule convenience selection | Select eligible children within that visible scope; show high-risk status and retain explicit plan confirmation |
 | All eligible items | Explicitly labelled as including high-risk items; never includes blocked sources or incompletely measured targets |
 
-Initial selection is empty. No convenience action selects blocked or incomplete sources. The inclusive action explicitly names high risk; the interface does not infer safety recommendations from size or color. Saved rule selections continue to require fresh preview and confirmation.
+Space analysis and large files start with no selection. Smart Cleanup preselects eligible built-in and enabled personal-rule recommendations after scanning. No convenience action selects blocked or incomplete sources. The inclusive action explicitly names high risk; the interface does not infer safety recommendations from size or color. Saved rule selections continue to require fresh preview and confirmation.
 
 Keep distinct figures for measured data, reviewable candidates, selected estimate, moved-to-Trash estimate and volume availability. A category or rule shows selected/total values when partly selected. Sum each physical candidate once, preserve parent/child conflicts, and use the established hard-link accounting policy. An inaccessible or unmeasured path is unknown, not zero.
 
@@ -122,7 +122,7 @@ Rust/Swift activity checks use fixed native `ps` and `lsof` invocations for the 
 
 Native Cargo verification has a 10-second budget per crate, at most 256 files, 16 MiB per file, and 64 MiB for the retained archive and for the total uncompressed file bodies. Two fixed `tar` invocations provide strict member metadata and one concatenated body stream. Verification splits that stream using actual archive member sizes, never checksum declarations. Unsupported escaped/Unicode member names and exhausted budgets leave candidates blocked with a reason.
 
-The current filesystem cleanup contract operates on directory manifests. Individual-file cleanup and native tool operations require separate typed capabilities before being exposed. A controlled tool capability must define executable identity, fixed argument construction, bounded output/time, scope, dry-run behavior, cancellation and before/after verification. A rule document cannot supply arbitrary shell commands. Large model stores, virtual disks, toolchains and simulator runtimes are not ordinary caches merely because they occupy substantial space. Add these capabilities only for an implemented use case; do not introduce a generic plugin framework.
+Rule-directed filesystem cleanup uses directory manifests; explicit space-analysis and large-file removal support individual files through fresh identity and content checks. Native tool operations require separate typed capabilities before being exposed. A controlled tool capability must define executable identity, fixed argument construction, bounded output/time, scope, dry-run behavior, cancellation and before/after verification. A rule document cannot supply arbitrary shell commands. Large model stores, virtual disks, toolchains and simulator runtimes are not ordinary caches merely because they occupy substantial space. Add these capabilities only for an implemented use case; do not introduce a generic plugin framework.
 
 Keep scan/verify/Trash/restore/permanent-removal budgets consistent for large targets. Budget exhaustion produces a typed limitation, never a false success. Tests must include a tree beyond the default entry budget, protected generated-content boundaries, independently complete siblings and cancellation after the first mutation. Report both estimated logical/allocated data and actual volume availability without treating them as interchangeable.
 
@@ -170,3 +170,9 @@ On 2026-10-20, REA 6.4.0 used Ghidra 12.1.4 with a matching locally built macOS 
 The UI framework ARM64 research copy has SHA-256 `f87e00451d456754758f62c183c9d90cab374f505b28a0770e2240fbae5d9348`. Research copies and raw evidence remain outside the source repository. Default analysis first exceeded its startup deadline; the successful inventory used a longer bounded startup. Full-module function analysis succeeded with a 30-minute startup limit after a 15-minute attempt timed out. Inspection of the installed 6.4.0 configuration parser showed that the attempted analyzer-disable environment setting is unsupported and has no effect; the recorded analysis profile remains authoritative. Decompilation warnings and missing runtime traces must remain explicit limitations.
 
 These observations informed an independent directory browser, linked list/treemap selection, native Quick Look, navigation, and exact-scope deletion. Shou's permanent-first desktop action is a product decision to reclaim disk space, not a claim that the reference uses the same deletion policy. See [space analysis](../product/space-analysis.md).
+
+## MangoDisk acknowledgment: scanning and access guidance
+
+MangoDisk's complete source informed batch filesystem metadata retrieval, constrained work queues, explicit incomplete-scan explanations, and permission guidance that remains available after dismissal. Shou implements its own Swift measurement/catalog path and keeps deletion verification independent. Source inspection establishes these design choices; it does not establish the behavior or performance of a different installed version.
+
+A focused REA inventory of the installed MangoDisk bundle is retained as `.build/mangodisk-rea-artifact.json`, Evidence `ev_dda64636549bef4a0cac435f101123abb7549f224943246e65c29359c154df2e`. This establishes package identity and contents only. The native overview attempt returned `provider_unavailable`; no decompilation result or runtime scan timing is claimed from that attempt. Shou's metadata equivalence tests and the separately retained before/after CLI catalog benchmarks establish the implementation results, with scope and cache/load limitations recorded in acceptance evidence.

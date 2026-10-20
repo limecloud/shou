@@ -80,12 +80,13 @@ P0 is required for the initial usable release; P1 extends the validated loop; P2
 | F11 | Independent CLI and agent contract | P0 | Workspace/rule management, scan, plan, interactive execution, history, JSON |
 | F12 | Developer templates and personal outputs | P0 | Rust artifacts, specific Node.js caches, reviewed npm dependencies, personal outputs |
 | F13 | Broader cache templates | P1 | Evidence, platform constraints, risks, regression fixtures |
-| F14 | Uninstall and associated files | P1 | [macOS first stage](application-uninstall.md): exact associations, verified shared group containers, separate personal-data consent, duplicate-identifier protection, native Trash and per-component restoration; orphan-only discovery and external registrations remain pending |
+| F14 | Uninstall and associated files | P1 | [macOS application uninstall](application-uninstall.md): size/status/last-used summaries, inline components, multi-application selection, one digest-bound batch confirmation, permanent or Trash execution, exact associations and separate personal-data consent; orphan-only discovery, elevation and external registrations remain pending |
 | F15 | Startup management | P1 | First-stage launchd discovery and restricted current-user LaunchAgent enable/disable with native settings guidance implemented; system sources, complete registration inventory and runtime control require separate acceptance |
 | F16 | Sharing and additional protocols | P2 | Strip local information; add protocols only for demonstrated integration needs |
 | F17 | Monorepo and platform boundaries | P0 | Shared core excludes Apple/Windows-specific APIs |
 | F18 | Native Windows and CLI | P2 | Actual Windows build/runtime, paths, ACLs, links, Recycle Bin, distribution |
 | F19 | Internationalization | P0 | English default docs, multilingual READMEs, initial English/Simplified Chinese UI and CLI targets |
+| F20 | Privacy cleaning | P1 | Browser/source/time-bounded history and cookies; separate sign-out consent, schema-aware transactions and irreversible aggregate receipts. Unsupported private scoring/trigger schemas remain preserved; see [privacy cleaning](../engineering/privacy-cleaning.md) |
 
 ### Exclusions
 
@@ -103,7 +104,7 @@ Merge multiple matches for the same object and resolve parent/child conflicts be
 
 ### Cleanup and recovery
 
-The desktop common-app flow scans explicit fixed locations once, preselects verified built-in matches, and exposes **Clean & Free Space** as the primary action. Users can open **Review Details** to adjust categories and paths; personal rules participate after one-time enablement. The immutable plan, manifest, and preflight checks remain inside the action so the interface does not force every user through a planning screen. A reusable preset saves selection logic, never deletion permission. CLI and agent workflows retain explicit scan, plan, and execute checkpoints.
+The desktop common-app flow scans explicit fixed locations once, preselects verified built-in matches, and exposes **Start Scan** initially and **Clean & Free Space** in the fixed result action bar. Users can open **Review Details** to adjust categories and paths; personal rules participate after one-time enablement. The immutable plan, manifest, and preflight checks remain inside the action so the interface does not force every user through a planning screen. A reusable preset saves selection logic, never deletion permission. CLI and agent workflows retain explicit scan, plan, and execute checkpoints.
 
 Desktop cleanup defaults to permanent removal after one exact-scope irreversible confirmation. Move to Trash is an explicit alternative and does not reclaim space; history follow-up can also permanently remove verified Trash items. Restoration remains a separate confirmed operation and never overwrites destinations. Missing, changed, or permanently removed items may be unrecoverable. Never equate trashed bytes with available disk space.
 
@@ -127,9 +128,9 @@ See [implementation](../engineering/implementation-plan.md), [acceptance](../eng
 
 ## First-use delivery requirement
 
-The first scan of a selected workspace must discover common build artifacts and caches through built-in rules. Personal rules extend coverage. Provide separate categorized cleanup and space-analysis entry points, navigable directory lists and area maps, and direct drafting of rules for unknown large folders. Start with no selected candidates, keep installed Node.js dependencies high risk, and preserve protection gates for built-in matches.
+The first scan of a selected workspace must discover common build artifacts and caches through built-in rules. Personal rules extend coverage. Provide separate categorized cleanup and space-analysis entry points, navigable directory lists and area maps, and direct drafting of rules for unknown large folders. Space analysis and large-file views start with no selected files; Smart Cleanup preselects eligible recommendations after scanning. Keep installed Node.js dependencies high risk and preserve protection gates for built-in matches.
 
-The default desktop entry scans explicit application/developer-cache locations and automatically discovered and remembered projects in one action, using cleanup scope without implicit home-wide discovery. After the scan, verified built-in matches are selected for **Clean Recommended**; enabled personal rules participate automatically; disabled drafts stay out. The catalog contains 74 templates and 35 fixed locations, including project outputs, npm, Cargo, developer tools, Xcode, browsers and specific application caches. Whole application-support roots, chat history, active agent sessions and virtual-machine data are not disposable caches.
+The default desktop entry scans explicit application/developer-cache locations and automatically discovered and remembered projects in one action, using cleanup scope without implicit home-wide discovery. After the scan, verified built-in matches are selected for **Clean Recommended**; enabled personal rules participate automatically; disabled drafts stay out. The catalog contains 210 templates and 65 fixed locations, including project outputs, npm, Cargo, developer tools, Xcode, browsers and specific application caches. Whole application-support roots, chat history, active agent sessions and virtual-machine data are not disposable caches.
 
 Desktop and CLI share root discovery, rule matching, bounded scans, application-activity checks, plans and receipts. Missing locations are skipped; permission failures and incomplete scans remain visible. The desktop quick-clean action groups locations into one visible result and one exact-path confirmation; its action choice routes to Trash or `PermanentExecution`. CLI and agents use explicit plans for machine-readable checkpoints. Completion shows moved, permanently removed, skipped, failed and unverified items separately. Moving to Trash does not mean disk space has been freed; restoration uses the recorded verified object and never overwrites an existing destination.
 
@@ -141,3 +142,15 @@ Broader application-cache coverage, accessibility, performance baselines and rel
 ## Explicit space-analysis removal
 
 Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
+
+Space measurement must cover all accessible files without the deletion-manifest entry cap. A large early directory must not prevent later siblings such as Documents and Library from being discovered and measured. Each directory reports its own completeness: inaccessible or interrupted subtrees show unknown or lower-bound sizes, while complete siblings retain usable totals. Parent totals equal attributed direct-child totals plus the directory's own allocation; hard links count once. Desktop and CLI use the same saved measurements. Directory browsing loads saved direct children on demand and retains full file selection. Removal independently revalidates selected targets; the statistical catalog supplies no deletion authorization.
+
+First use must explain app installation, complete-scanning access and optional CLI installation in one native guide. A remembered accessible-folder choice must preserve direct subsequent scanning. Permission failure, changed data, cloud placeholders and scan limits must remain distinct coverage reasons, with a path back to setup and a fresh scan. See [installation and access](installation-and-access.md).
+
+## Large-file cleanup
+
+Provide an independent large-file entry alongside directory space analysis. Users can scan a volume or folder, or reuse a current space-analysis catalog, then filter by allocated size and extension category without rescanning. Include video, audio, images, archives, documents, AI models and other files. Show matching totals, paged results, Quick Look, Finder reveal, loaded-page mixed selection and explicit selection across every matching page. Selection starts empty. The fixed action bar keeps the selected count and estimate visible; permanent removal and optional Trash reuse exact-scope confirmation, existing history and fresh target verification. After mutation, suppress stale aggregate totals until a new scan. See [space analysis](space-analysis.md) and [reference capability map](../engineering/reference-capability-map.md).
+
+## Privacy cleaning
+
+Privacy is separate from disk cache cleanup. Scans show only aggregate counts, source identity and availability for the last hour, rolling day, seven days or all time. History and cookies are selected separately and start unselected; cookies require sign-out consent. Supported schemas are changed in independent source transactions after the browser closes, with per-source outcomes. Passwords, autofill, downloads, site storage and cloud copies remain outside scope. No restoration, physical-erasure or reclaimed-space promise applies. See the [source support matrix](../engineering/privacy-cleaning.md).

@@ -1,19 +1,16 @@
-Shou v0.4.0 adds interactive space analysis, bundled AI rule-authoring Skills, automatic project discovery, and explicitly confirmed permanent cleanup.
+Shou v0.5.0 adds saved large-file discovery, batch application uninstall, scoped browser privacy cleaning, and a first-use setup guide.
 
-- Analyze a local disk or folder, browse its size-sorted list and treemap, navigate and filter directories, use Quick Look, and select explicit files or directories for removal. Large analyses use paged transfer and storage, show post-scan progress, and support cancellation while building the space map.
-- Review exact paths before deleting permanently or choosing Move to Trash. Completed items update the displayed tree; Trash restoration and separately confirmed purge remain available in History. Permanent deletion cannot be undone.
-- Customize cleanup with your existing AI agent. Install the bundled rule-authoring Skill for Codex or Claude Code, export a ZIP for WorkBuddy, or copy a prepared request with the exact CLI path and selected workspace. Shou does not launch external agents or call models.
-- Discover developer projects automatically and remember extra scan folders. Review scan locations from Settings alongside application caches and existing project workspaces.
-- Use focused command help, machine-readable capability discovery, bundled Skill reads, and the new analysis CLI. The CLI installer can expose the app's bundled executable without copying its resources.
-- Choose Trash or permanent mode for rule-based cleanup, with exact-scope confirmation and per-item history. Noninteractive clients can prepare and inspect plans; destructive CLI execution still requires terminal confirmation.
-- Signed online updates, English and Simplified Chinese interfaces, and download guides in 11 languages.
+- Find large files by size and file type, preview results, and select matches across pages. Space analysis now keeps a SQLite catalog for paged results, with improved metadata measurement, scan progress, cancellation, and disk-capacity display.
+- Compare application sizes and activity, expand associated components inline, select several apps, and confirm the exact batch once. Personal data requires separate consent. Choose permanent removal or Move to Trash; Trash receipts support separately confirmed restoration.
+- Clean supported browser history and Cookies by time range through a separate manual workflow. Cookies require sign-out consent, and all privacy deletion requires irreversible-deletion confirmation. Running browsers and unsupported schemas remain unavailable; some current Firefox and Safari history schemas are unsupported. Receipts contain aggregate results. Privacy cleaning offers no restoration or forensic-erasure guarantee.
+- Follow the first-use guide to install the app in Applications, review Full Disk Access, or continue with accessible folders. Optionally install the bundled CLI without changing shell settings. Scan results retain explicit coverage limits for inaccessible areas.
+- Expand the built-in catalog to 210 rules, including 136 independently declared cache/log additions informed by a pinned Mole source review. The coverage manifest records mapped paths and remaining gaps; it does not claim compatibility with every application in the upstream inventory.
+- Use shared GUI and CLI contracts for batch uninstall, saved large-file queries, and privacy plans. Destructive CLI execution requires interactive terminal confirmation.
 
-Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel.
+Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Download the DMG and drag Shou.app to Applications, or use the ZIP containing the same app. Verify downloads with SHA256SUMS. Existing installations can use Check for Updates; Sparkle verifies signed update archives and feeds.
 
-Download the DMG and drag Shou.app to Applications. The ZIP contains the same app. Verify downloads with SHA256SUMS. Existing Shou installations can use Check for Updates.
+Permanent deletion cannot be undone. Moving items to Trash does not immediately free disk space. Adding global exclusions upgrades the local configuration format; older releases cannot read the upgraded format.
 
-Adding global exclusions upgrades the local configuration format. Older Shou releases cannot read the upgraded configuration, even after the last global exclusion is removed.
+This release is ad-hoc signed and is not Apple-notarized. If macOS blocks the initial launch, verify the download source and review System Settings → Privacy & Security. Updating an ad-hoc signed build may require adding the current installed app to Full Disk Access again.
 
-This release is ad-hoc signed and is not Apple-notarized. If macOS blocks the initial launch, verify the download source and review System Settings → Privacy & Security. Sparkle independently verifies signed update archives and feeds.
-
-简体中文：v0.4.0 新增磁盘与文件夹空间分析，支持列表、矩形树图、导航筛选、快速查看及明确选择文件后移除；新增内置 AI 规则编写 Skill，可为 Codex／Claude Code 安装或导出供 WorkBuddy 导入。自动发现开发项目，并记住额外扫描目录。规则清理和空间分析支持分别确认的永久删除或移到废纸篓，永久删除无法撤销；非交互客户端不能绕过终端确认。更新包和订阅会在安装前验证签名。支持 macOS 14+、Apple Silicon 与 Intel；此版本尚未经过 Apple 公证。
+简体中文：v0.5.0 新增基于持久扫描目录的大文件筛选、跨页选择与预览；升级空间分析的分页、测量、进度和磁盘容量展示。应用卸载支持大小与活动摘要、内联关联组件和多应用一次确认，个人数据需单独同意，移到废纸篓后可分别确认恢复。新增独立的浏览器隐私清理流程，按时段清理受支持的历史记录和 Cookies；Cookies 需确认退出登录影响，删除无法恢复，也不保证彻底抹除痕迹。运行中的浏览器及不受支持的数据库结构会被拒绝，部分当前 Firefox、Safari 历史数据库不支持。首次使用提供安装、磁盘访问和可选 CLI 引导，也可先使用可访问目录。内置规则扩展至 210 条，保留明确的覆盖范围和缺口。支持 macOS 14+、Apple Silicon 与 Intel；此版本尚未经过 Apple 公证，更新后可能需要重新授予磁盘访问权限。

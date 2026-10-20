@@ -18,6 +18,15 @@ erDiagram
     CleanupPlan ||--o{ ExecutionReceipt : records
     ExecutionReceipt ||--|{ ItemReceipt : contains
     ItemReceipt ||--o{ FollowUpReceipt : followed_by
+    StorageScan ||--|| StorageCatalog : measures
+    StorageCatalog ||--o{ StorageNode : aggregates
+    StorageScan ||--o{ StorageRemovalPlan : selects_from
+    StorageRemovalPlan ||--o{ ExecutionReceipt : records
+    PrivacyScan ||--o{ PrivacySource : observes
+    PrivacyScan ||--o{ PrivacyPlan : selected_into
+    PrivacyPlan ||--|{ PrivacySource : binds
+    PrivacyPlan ||--o{ PrivacyReceipt : records
+    PrivacyReceipt ||--|{ PrivacyItemResult : contains
 ```
 
 Relationships are conceptual; bindings may be shared across presets. Plan items retain scan provenance and rule-version snapshots.
@@ -39,6 +48,12 @@ Relationships are conceptual; bindings may be shared across presets. Plan items 
 | ExecutionReceipt | Execution/plan IDs, entry point, stage, overall outcome | Durable intent first; item records; partial outcomes possible |
 | ItemReceipt | Original/result path, before/after identity, state, Trash path, error | `purging` is durable intent; `purged` requires a successful platform result; reverify before restore or purge |
 | FollowUpReceipt | Item reference, restore/purge action, time, outcome | Separate confirmation; never rewrite original facts |
+| StorageScan | Root identity, catalog ID, measured count, coverage issues | Measurement is separate from the deletion manifest |
+| StorageCatalog / StorageNode | Parent ID, basename, identity, allocated/logical totals, per-directory completeness | SQLite stores the full measured inventory; directory queries load immediate children |
+| StorageRemovalPlan | Selected paths, current full manifests, exact action and digest | Fresh independent verification before execution; skipped coverage never supplies deletion evidence |
+| PrivacyScan | Fixed range, home/configuration identity, aggregate source observations and expiry | Counts and source descriptors only; source availability does not grant deletion authority |
+| PrivacyPlan | Exact ready sources, fixed bounds, evidence, sign-out acknowledgement, digest and state | Permanent record deletion; separate current execution consent; five-minute maximum lifetime |
+| PrivacyReceipt / PrivacyItemResult | Source IDs, fixed bounds, counts, item states and sanitized errors | Separate from file-removal history; no record contents, Trash path or restore capability |
 
 ## 3. Rule lifecycle
 
@@ -166,7 +181,7 @@ Configuration version `1` remains readable when global protection is absent or e
 
 `ApplicationCatalog` distinguishes physical installations even when bundle identifiers match, and retains source coverage and issues. `ApplicationUninstallReview` contains nine exact component families, complete manifests, eligibility, personal-data consent requirements, blocking reasons and non-authorizing coverage warnings. `ApplicationUninstallPlan` binds selected components, app metadata, configuration, consent, budget and a 15-minute expiry. Initial configuration has a stable `unconfigured` revision until a real configuration is saved.
 
-`ExecutionReceipt.operation` is optional for compatibility; `application_uninstall` items each carry `UninstallReceiptOrigin` with component kind, application path, bundle identifier and exact parent identity. Ordinary receipts cannot opt into these origins. Restoration validates component-kind paths and parent identity independently of discovery or a later application installation. Uninstall receipts currently allow restore only.
+`ExecutionReceipt.operation` is optional for compatibility; `application_uninstall` items each carry `UninstallReceiptOrigin` with component kind, application path, bundle identifier and exact parent identity. Ordinary receipts cannot opt into these origins. Restoration validates component-kind paths and parent identity independently of discovery or a later application installation. Single and batch Trash operations allow verified restoration. `application_permanent_uninstall` and `application_batch_permanent_uninstall` record irreversible outcomes and reject restoration. `ApplicationUninstallBatchPlan` binds child plans, mode, expiry and one digest; identical or ancestor/descendant component paths are rejected. Legacy single plans omit `action` and retain their Trash semantics and original digest encoding.
 
 `FileEntry.contentDigest` is optional and omitted when absent, preserving legacy directory-manifest encoding. A standalone file target carries one root entry and a bounded SHA-256 digest. Its Trash-root comparison allows only ctime normalization while preserving content and every other metadata field. Directory descendants retain exact metadata comparison. See [application uninstall](../product/application-uninstall.md).
 
@@ -174,3 +189,32 @@ Configuration version `1` remains readable when global protection is absent or e
 ## Explicit space-analysis removal
 
 Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
+
+Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
+
+## Large-file query state
+
+`StorageFileType` and `StorageLargeFilePage` are read models over a saved scan. A page contains items, the matching count and attributed allocated-byte estimate, plus an optional cursor. The cursor binds the scan ID, minimum allocated bytes, extension category and stable order (allocated bytes descending, full UTF-8 path ascending); changing a filter invalidates the cursor. File type is inferred from its filename extension, not content inspection. A catalog query does not traverse the source filesystem or confer removal authority. Cross-page selection materializes concrete eligible paths and goes through the existing `StorageRemovalPlan` and fresh verification.
+
+## Privacy scan, plan and receipt contracts
+
+The actual models live in [PrivacyModels.swift](../../packages/shou-core/Sources/PrivacyModels.swift). They use separate `privacy-scans`, `privacy-plans` and `privacy-history` collections; privacy receipts are not file-removal `ExecutionReceipt` values. [Architecture, flow and sequence](../engineering/privacy-cleaning.md#architecture) describe the shared Core service and browser/schema limits. JSON keys below use the existing snake-case codec and UTC timestamps.
+
+| Model | Persisted fields | Boundary |
+| --- | --- | --- |
+| `PrivacyScan` | `id`, `created_at`, `expires_at`, `range`, optional `range_start`, `range_end`, `configuration_digest`, `home_identity`, `sources`, `issues` | Fixed at scan time; 15-minute validity. It has no aggregate `state` field: each source reports availability independently |
+| `PrivacySource` | `id`, `definition`, `status`, optional `record_count`, optional `reason`, `evidence` | `definition` contains browser/name, bundle identifier, profile, kind, relative database path and unsupported flag. Evidence is directory/database/nonempty-WAL metadata; no browsing-record rows |
+| `PrivacyPlan` | `id`, `scan_id`, `created_at`, `expires_at`, `range`, optional `range_start`, `range_end`, `configuration_digest`, `home_identity`, selected `sources`, `sign_out_acknowledged`, `state`, `digest` | Exact selection copied from a scan. Expiry is the earlier of scan expiry and five minutes after planning. Digest normalizes `state` to `ready` and blanks its own field; current state is checked separately |
+| `PrivacyReceipt` | `id`, `plan_id`, `created_at`, `range`, optional `range_start`, `range_end`, `state`, `items` | Creation time is execution start. Contains no source descriptors, profile paths, record values, restore paths or SQL text |
+| `PrivacyItemResult` | `source_id`, `state`, `removed_records`, optional `reason` | A completed aggregate count and sanitized error code; a zero count in an unfinished/failed result is not proof that no transaction ever committed |
+
+`range` is `last-hour`, `last-day` (rolling 24 hours), `last-seven-days`, or `all-time`. `range_start` is absent for all-time; `range_end` remains an audit timestamp, and all-time intentionally has no timestamp predicate. Computed `eligible`, `requiresSignOutConsent` and total record counts are not persisted fields. `PrivacyConsent` is a non-Codable current-call value with `irreversibleDeletion` and `signOut`; a stored plan acknowledgement cannot replace it.
+
+| State owner | Stored values and meaning |
+| --- | --- |
+| Source | `ready` means a supported source with a positive matching count; `empty` means zero matching records. `browser-running`, `permission-required`, `unsupported`, `schema-unsupported` and `unavailable` are ineligible; unavailable counts remain unknown rather than becoming zero |
+| Plan | `ready` → `executing` → `completed` or `partial`. Expiry, a changed configuration/identity/count, or a running owner causes `plan_stale` or a specific refusal; no synthetic stored `stale` state is added |
+| Receipt | `executing` precedes the first database mutation. `completed` requires all source items completed; any failed/cancelled item produces `partial`. There is no overall `cancelled`, `restored` or `purged` privacy state |
+| Item | `pending` → `executing` → `completed` or `failed`; unstarted items can become `cancelled`. Identity/activity failures before item intent can go directly from `pending` to `failed` |
+
+Plan execution intent is saved before its receipt, and per-item intent before the transaction. A crash or failed result write may leave `executing` or `pending` values; neither proves absence of mutation. They remain unresolved, are not promoted to success, and are never automatically retried. Each database commits independently; earlier successful sources remain completed after a later failure. Privacy has no restoration follow-up model. Logical record deletion does not establish forensic erasure or freed bytes.

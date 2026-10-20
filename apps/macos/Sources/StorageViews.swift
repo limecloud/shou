@@ -3,6 +3,11 @@ import ShouCore
 import AppKit
 import QuickLook
 
+@MainActor private func measuredSize(_ node: StorageNode?, model: AppModel) -> String {
+    if node?.isComplete == false && node?.allocatedBytes == 0 && node?.fileCount == 0 { return model.t("Not measured") }
+    return (node?.isComplete == false ? "≥ " : "") + model.bytes(node?.allocatedBytes ?? 0)
+}
+
 struct StorageBrowser: View {
     @Bindable var model: AppModel
     let inspector: Bool
@@ -23,16 +28,18 @@ private struct StorageAnalysisView: View {
     let inspector: Bool
     @State private var agentContext: StorageAgentContext?
     @State private var previewURL: URL?
+    @State private var showingCoverage=false
     @FocusState private var keyboardArea: StorageKeyboardArea?
     var body: some View {
         VStack(spacing: 0) {
+            if !session.scanning { ScanAccessBanner(model: model) }
             if session.scanning { scanning }
             else if session.scan == nil { entry }
             else { results }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { session.loadLocations() }
-        .sheet(item: $session.plan) { plan in removalConfirmation(plan) }
+        .sheet(item: $session.plan) { plan in StorageRemovalConfirmation(model: model, session: session, plan: plan) }
         .sheet(item: $agentContext) { AgentRuleSetupView(model: model, contextPath: $0.path) }
         .quickLookPreview($previewURL)
     }
@@ -63,49 +70,26 @@ private struct StorageAnalysisView: View {
             Spacer().frame(height: 20)
         }.padding(30)
     }
-    private var scanning: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            ZStack {
-                Circle().stroke(Color.accentColor.opacity(0.1), lineWidth: 12).frame(width: 152, height: 152)
-                ProgressView().controlSize(.large).scaleEffect(1.6).frame(width: 152, height: 152)
-                Image(systemName: "internaldrive.fill").font(.system(size: 48)).foregroundStyle(Color.accentColor).offset(y: -1)
-            }.padding(.bottom, 8)
-            Text(model.t(session.progressTitle)).font(.system(size: 26, weight: .semibold))
-            Text(String(format: model.t("%lld items measured"), locale: model.language.locale, session.progress?.entryCount ?? 0))
-                .font(.title3.monospacedDigit()).foregroundStyle(.secondary)
-            if session.progress?.limitReached == true {
-                Text(model.t("Scan limit reached. Preparing the measured results; coverage is incomplete."))
-                    .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            }
-            Text(session.progress?.currentPath ?? session.location).font(.caption.monospaced())
-                .foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle).frame(maxWidth: 520)
-            TimelineView(.periodic(from: session.startedAt, by: 1)) { timeline in
-                Text(Duration.seconds(max(0, timeline.date.timeIntervalSince(session.startedAt))).formatted(.time(pattern: .minuteSecond)))
-                    .font(.callout.monospacedDigit()).foregroundStyle(.tertiary)
-            }
-            Button(model.t(session.stopRequested ? "Stopping…" : "Stop")) { session.stop() }.controlSize(.large).padding(.top, 8)
-                .disabled(session.stopRequested)
-                .accessibilityIdentifier("storage.stop")
-            Spacer()
-        }.padding(30)
-    }
+    private var scanning: some View { StorageScanProgressView(model: model, session: session) }
     private var results: some View {
         VStack(spacing: 0) {
             navigation
             if session.scan?.tree.complete == false {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
-                    Text(model.t("Partial analysis: some locations are inaccessible or exceeded the scan limit.")).font(.caption)
+                    Text(model.t("Partial analysis: some locations could not be fully measured.")).font(.caption)
                     Spacer()
-                    Menu(model.t("Details")) {
-                        ForEach(Array((session.scan?.tree.issues ?? []).prefix(40).enumerated()), id: \.offset) { _, issue in Text(issue) }
-                    }.menuStyle(.borderlessButton).fixedSize()
+                    Button(model.t("Details")) { showingCoverage=true }
+                        .buttonStyle(.link).accessibilityIdentifier("storage.coverage")
+                        .popover(isPresented: $showingCoverage) {
+                            StorageCoverageView(model: model, session: session, dismiss: { showingCoverage=false })
+                        }
                 }.padding(.horizontal, 20).padding(.vertical, 9).background(.orange.opacity(0.06))
             }
             Divider()
             HSplitView {
                 directoryList.frame(minWidth: 320, idealWidth: 380, maxWidth: 510)
+                    .overlay { if session.loadingDirectory { ProgressView().controlSize(.large) } }
                 chart.frame(minWidth: 280, maxWidth: .infinity, maxHeight: .infinity)
             }
             Divider()
@@ -196,8 +180,12 @@ private struct StorageAnalysisView: View {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(node.name).font(.system(size: 13, weight: .medium)).lineLimit(1).truncationMode(.middle)
+                    if node.isComplete == false {
+                        Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+                            .help(model.t("Incomplete measurement. The displayed size is a lower bound."))
+                    }
                     Spacer(minLength: 4)
-                    Text(model.bytes(node.allocatedBytes)).font(.system(size: 12, weight: .medium, design: .rounded)).monospacedDigit().foregroundStyle(.secondary)
+                    Text(measuredSize(node, model: model)).font(.system(size: 12, weight: .medium, design: .rounded)).monospacedDigit().foregroundStyle(.secondary)
                 }
                 GeometryReader { geo in
                     Capsule().fill(color(node.path).opacity(0.65)).frame(width: max(2, geo.size.width * min(1, Double(node.allocatedBytes) / Double(max(1, session.index.nodes[session.path]?.allocatedBytes ?? 1)))))
@@ -222,7 +210,7 @@ private struct StorageAnalysisView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(node?.path == "." ? model.t("Measured Space") : node?.name ?? model.t("Measured Space")).font(.headline).lineLimit(1).truncationMode(.middle)
                 Spacer()
-                Text(model.bytes(node?.allocatedBytes ?? 0)).font(.title3.weight(.semibold)).monospacedDigit()
+                Text(measuredSize(node, model: model)).font(.title3.weight(.semibold)).monospacedDigit()
             }
             StorageTreemap(session: session, model: model, color: color,
                 focus: { session.focus=$0; keyboardArea = .map },
@@ -284,36 +272,6 @@ private struct StorageAnalysisView: View {
         }
         Button(model.t("Quick Look")) { previewURL=URL(fileURLWithPath: absolute(node.path)) }
     }
-    private func removalConfirmation(_ plan: StorageRemovalPlan) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 14) {
-                Image(systemName: plan.action == "permanent" ? "trash.slash.fill" : "trash.fill").font(.system(size: 30)).foregroundStyle(plan.action == "permanent" ? Color.red : Color.accentColor)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(model.t(plan.action == "permanent" ? "Delete these items permanently?" : "Move these items to Trash?")).font(.title2.weight(.semibold))
-                    Text(String(format: model.t("%lld items selected"), plan.items.count) + " · " + model.bytes(plan.allocatedBytesEstimate)).foregroundStyle(.secondary)
-                }
-            }
-            Text(model.t(plan.action == "permanent" ? "These files will be permanently removed. This action cannot be undone." : "You can restore these items from History. Moving to Trash does not free disk space."))
-                .font(.callout).foregroundStyle(plan.action == "permanent" ? Color.red : Color.secondary)
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 12) {
-                    ForEach(plan.items) { item in
-                        HStack(alignment: .top) {
-                            Text(StorageRemovalPolicy.absolute(root: plan.rootPath, relative: item.path)).font(.caption.monospaced()).textSelection(.enabled)
-                            Spacer()
-                            Text(model.bytes(item.allocatedBytesEstimate)).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                        }
-                    }
-                }.padding(14)
-            }.frame(minHeight: 100, maxHeight: 250).background(.quaternary.opacity(0.3), in: RoundedRectangle(cornerRadius: 8))
-            HStack {
-                Spacer()
-                Button(model.t("Cancel")) { session.plan=nil }.keyboardShortcut(.cancelAction)
-                Button(model.t(plan.action == "permanent" ? "Delete Permanently" : "Move to Trash"), role: .destructive) { session.execute(app: model, plan: plan) }
-                    .buttonStyle(.borderedProminent).tint(plan.action == "permanent" ? .red : .accentColor).accessibilityIdentifier("storage.confirm-delete")
-            }
-        }.padding(28).frame(width: 610)
-    }
     private func handleKeyPress(_ press: KeyPress) -> KeyPress.Result {
         guard keyboardArea != nil, !model.busy else { return .ignored }
         if press.key == "a", press.modifiers == .command {
@@ -336,6 +294,73 @@ private struct StorageAnalysisView: View {
     }
 }
 
+struct StorageCoverageView: View {
+    var model: AppModel
+    var session: StorageSession
+    var dismiss: () -> Void
+    @State private var copied: String?
+    private var issues: [String] { session.scan?.tree.issues ?? [] }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(model.t("Scan Coverage")).font(.headline)
+            Text(model.t("Only measured space is included. Complete folders remain available even when another location cannot be read."))
+                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(Array(issues.prefix(50).enumerated()), id: \.offset) { _, issue in
+                        let parts=issue.components(separatedBy: ": ")
+                        HStack(alignment: .top, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(model.t(reason(parts[0]))).font(.callout.weight(.medium))
+                                if parts.count > 1 {
+                                    Text(parts.dropFirst().joined(separator: ": ")).font(.caption.monospaced())
+                                        .foregroundStyle(.secondary).textSelection(.enabled)
+                                }
+                            }.frame(maxWidth: .infinity, alignment: .leading)
+                            if parts.count > 1 {
+                                Button {
+                                    let relative=parts.dropFirst().joined(separator: ": ")
+                                    let path=StorageRemovalPolicy.absolute(root: session.scan?.rootPath ?? "/", relative: relative)
+                                    NSPasteboard.general.clearContents(); NSPasteboard.general.setString(path, forType: .string)
+                                    copied=issue
+                                } label: { Image(systemName: copied == issue ? "checkmark" : "doc.on.doc") }
+                                    .buttonStyle(.borderless).help(model.t("Copy Path"))
+                                    .accessibilityLabel(model.t("Copy Path"))
+                            }
+                        }
+                    }
+                }.padding(.trailing, 8)
+            }.frame(maxHeight: 280)
+            if issues.count > 50 {
+                Text(model.t("Showing the first 50 scan notes.")).font(.caption).foregroundStyle(.secondary)
+            }
+            Divider()
+            HStack {
+                if model.scanAccess.needsAccess {
+                    Button(model.t("Finish Setup…")) {
+                        dismiss()
+                        Task { @MainActor in await Task.yield(); model.scanAccess.showingSetup=true }
+                    }
+                }
+                Spacer()
+                Button(model.t("Scan Again")) { dismiss(); session.start(app: model, retainPath: true) }.disabled(model.busy)
+            }
+        }.padding(20).frame(width: 460)
+    }
+    private func reason(_ code: String) -> String {
+        switch code {
+        case "authorization_required": "Disk access is required for this location."
+        case "unreadable", "unreadable_directory": "This location could not be read."
+        case "changed_during_scan", "changed_directory": "This location changed during scanning."
+        case "cloud_placeholder": "Cloud-only content was not downloaded."
+        case "cross_filesystem": "This location belongs to another volume."
+        case "resource_limit": "This location exceeded a scan resource boundary."
+        case "additional_coverage_issues": "Additional scan notes are summarized here."
+        default: "This location could not be fully measured."
+        }
+    }
+}
+
 private struct StorageTreemap: View {
     @Bindable var session: StorageSession
     var model: AppModel
@@ -354,7 +379,9 @@ private struct StorageTreemap: View {
             let nodes=nodes, lookup=Dictionary(uniqueKeysWithValues: nodes.map { ($0.path,$0) })
             let tiles=SpaceMap.layout(nodes, width: geometry.size.width, height: geometry.size.height)
             ZStack(alignment: .topLeading) {
-                if tiles.isEmpty { ContentUnavailableView(model.t("No allocated data in this folder"), systemImage: "folder") }
+                if tiles.isEmpty {
+                    ContentUnavailableView(model.t(session.index.nodes[session.path]?.isComplete == false ? "This folder could not be fully measured" : "No allocated data in this folder"), systemImage: "folder")
+                }
                 ForEach(tiles) { tile in
                     if let node=lookup[tile.id] {
                         let selected=session.isSelected(node.path), focused=session.focus == node.path || session.hovered == node.path
@@ -363,7 +390,7 @@ private struct StorageTreemap: View {
                             if tile.width > 65 && tile.height > 42 {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(node.kind == "remainder" ? model.t("Other Entries") : node.name).font(.system(size: tile.width > 200 ? 15 : 12, weight: .medium)).lineLimit(2).truncationMode(.middle)
-                                    Text(model.bytes(node.allocatedBytes)).font(.system(size: 11, design: .rounded)).monospacedDigit().opacity(0.85)
+                                    Text(measuredSize(node, model: model)).font(.system(size: 11, design: .rounded)).monospacedDigit().opacity(0.85)
                                 }.padding(12).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading).foregroundStyle(.white)
                             }
                             if tile.width > 45 && tile.height > 40, session.reason(node) == nil {

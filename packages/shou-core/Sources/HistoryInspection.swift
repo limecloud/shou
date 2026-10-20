@@ -70,7 +70,7 @@ enum HistoryInspector {
                     followUp.action == "purge" && trash.state == "missing" ? "purged" : "needs_verification"
             } else if followUp?.state == "pending" { state="needs_verification" }
             else if item.state == "purged", original.state == "missing", item.trashPath == nil,
-                    ["storage_permanent_removal", "permanent_cleanup"].contains(receipt.operation ?? "") { state="purged" }
+                    ["storage_permanent_removal", "permanent_cleanup", "application_permanent_uninstall", "application_batch_permanent_uninstall"].contains(receipt.operation ?? "") { state="purged" }
             else if trash.state == "matches" { state=original.state == "missing" ? "verified_trash" : "restore_conflict" }
             else if original.state == "matches" { state="verified_original" }
             else if original.state == "missing" && ["missing", "not_recorded"].contains(trash.state) { state="missing" }

@@ -34,14 +34,15 @@ Moving to Trash is reported as a processed estimate, not freed disk space. Only 
 
 ## 2. Desktop fast path and detailed review
 
-Fixed rules are designed for the normal one-click experience. After the standard scan, eligible built-in candidates are selected automatically and the primary action is **Clean Recommended**. The immutable plan is created and revalidated behind that action; users do not have to navigate an internal plan screen. Custom rules, blocked items and users who need path-level control use **Review Details** and **Clean Selected**.
+The initial view centers **Start Scan**, with scan modes in its adjacent menu and current disk capacity in the header. After the standard scan, eligible built-in and enabled personal-rule candidates are selected automatically. Category checkboxes and path details adjust the same selection; the fixed bottom bar shows its count, estimate and **Clean & Free Space** action. The immutable plan is created and revalidated behind that action; users do not navigate an internal plan screen. The scan-and-clean shortcut remains in the scan menu.
 
 ```mermaid
 flowchart TD
-    Open[Open Shou] --> Scan[Scan fixed locations and discovered and remembered projects]
+    Open[Open Shou] --> Entry[Start Scan and scan-mode menu]
+    Entry --> Scan[Scan fixed locations and discovered and remembered projects]
     Scan --> Matches[Group verified matches by app, browser, developer tool and project]
     Matches --> Auto[Auto-select eligible built-in candidates]
-    Auto --> Recommended[Clean Recommended]
+    Auto --> Recommended[Bottom bar: Clean and Free Space]
     Matches --> Details[Review Details]
     Details --> Adjust[Adjust categories and concrete paths]
     Adjust --> Selected[Clean Selected]
@@ -241,3 +242,7 @@ For permanent execution, an item enters `purging` before the platform call and `
 ## Explicit space-analysis removal
 
 Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
+
+Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
+
+Installation, access setup, limited-scope scanning and update identity follow the [installation flow and permission sequence](../product/installation-and-access.md).

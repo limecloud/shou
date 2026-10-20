@@ -24,6 +24,85 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if Array(CommandLine.arguments.dropFirst()) == ["--privacy-only"] {
+            do {
+                try await privacyChromiumRangePreservesUnselectedRelationsAndReceipts()
+                try await privacyCookiesRequireSeparateConsentAndUseLastAccessTime()
+                try await privacyFirefoxAndSafariEpochsPreserveBookmarksAndDownloads()
+                try await privacyRefusesRunningStaleExcludedAndUnsupportedSources()
+                try await privacyTransactionsRollbackAndUnknownSchemasStayUnavailable()
+                try await privacyIntegerTimeBoundsAndUnknownCascadesAreConservative()
+                print("6/6 privacy range, consent, schema and transaction tests passed; generated databases only.")
+            } catch { print("FAIL privacy: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--applications-only"] {
+            do {
+                try await applicationSummariesStreamOneInventoryAndKeepOwnershipConservative()
+                try nativeApplicationSummaryMeasuresWithoutManifestsOrLinkTraversal()
+                try await uninstallBatchUsesOneReceiptAndRestoresTwoApplications()
+                try await uninstallBatchDefaultPermanentCannotRestoreAndSingleTrashRemainsCompatible()
+                try await uninstallBatchPreflightsAllAppsAndRejectsConsentRunningStaleAndOverlaps()
+                try await uninstallPermanentRechecksActivityAtJournalBoundary()
+                try await uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles()
+                try await uninstallReviewIncludesOnlyVerifiedGroupContainers()
+                try await uninstallCompleteLoopRestoresIndependentComponentOrigins()
+                try await uninstallRefusesChangedEvidenceRunningApplicationsAndExcludedData()
+                try await uninstallRechecksActivityAtTheJournalBoundary()
+                try await uninstallCoverageGapsRequireExplicitChoicesAndConsentCannotBeForged()
+                try await uninstallParentSiblingChangesPreservePlansButNotTargetChanges()
+                try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
+                print("14/14 application summary, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+            } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-performance-only"] {
+            do {
+                try storageBulkMetadataPreservesExactStatEvidence()
+                try storageCatalogParentIDsPreserveNestedNamesAndTotals()
+                print("2/2 bulk storage metadata and catalog parent-ID equivalence tests passed; generated fixtures only.")
+            } catch { print("FAIL storage performance: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--scan-access-only"] {
+            do {
+                try scanAccessPolicyProtectsExactBoundaries()
+                try await scanAccessSkipsContainersAndPreservesAccessibleCoverage()
+                try cliInstallationIsRepeatableAndPreservesConflicts()
+                try cliInstallationPreservesSymbolicLinks()
+                print("4/4 scan access boundaries, partial/authorized coverage, CLI installation and conflict preservation tests passed; generated fixtures only.")
+            } catch { print("FAIL scan access: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-catalog-only"] {
+            do {
+                try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories()
+                try await storageCatalogAccountsHardLinksAndOpaqueLinks()
+                try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings()
+                try await storageCatalogCancellationNeverPublishesAScan()
+                print("4/4 streaming storage catalog, sibling coverage, hard-link accounting, permissions and cancellation tests passed; generated fixtures only.")
+            } catch { print("FAIL storage catalog: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-large-files-only"] {
+            do {
+                try await storageLargeFilesFilterSavedEvidenceWithoutRescanning()
+                try await storageLargeFilesPageGloballyWithBinaryPathTies()
+                try await storageLargeFilesPreserveLegacyHardLinkAccounting()
+                try await storageLargeFilesRejectInvalidFiltersCursorsAndCatalogs()
+                try await storageLargeFilesBoundResultsAndHonorCancellation()
+                try await storageLargeFilesReuseReviewedRemovalAndRejectChangedEvidence()
+                print("6/6 large-file filtering, stable pagination, legacy/catalog parity, validation, cancellation and stale removal-plan tests passed; generated fixtures only.")
+            } catch { print("FAIL storage large files: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-catalog-million-only"] {
+            do {
+                try storageCatalogSupportsMoreThanAMillionEntries()
+                print("1/1 catalog test passed with 1,000,005 generated file rows beyond the old scan cap.")
+            } catch { print("FAIL million-row catalog: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-progress-only"] {
             do {
                 try await storageWorkerReportsPostScanStagesAndExactLimit()
@@ -78,7 +157,31 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--mole-rules-only"] {
+            do {
+                try await moleRulesKeepProfilesGamesAndDeveloperState()
+                try await moleRulesRetainProtectedContentsAndPlatformBoundaries()
+                print("2/2 Mole path migration boundary and protection tests passed; generated fixtures only.")
+            } catch { print("FAIL Mole rule coverage: \(error)"); Foundation.exit(1) }
+            return
+        }
         var cases: [(String, () async throws -> Void)] = [
+            ("Disk access policy preserves exact protected boundaries", { try scanAccessPolicyProtectsExactBoundaries() }),
+            ("Limited scan retains accessible sibling coverage", { try await scanAccessSkipsContainersAndPreservesAccessibleCoverage() }),
+            ("CLI installation preserves arguments and conflicting entries", { try cliInstallationIsRepeatableAndPreservesConflicts() }),
+            ("CLI installation preserves symbolic links", { try cliInstallationPreservesSymbolicLinks() }),
+            ("Bulk metadata preserves exact stat evidence", { try storageBulkMetadataPreservesExactStatEvidence() }),
+            ("Catalog parent IDs preserve nested names and totals", { try storageCatalogParentIDsPreserveNestedNamesAndTotals() }),
+            ("Streaming storage catalog measures later siblings", { try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories() }),
+            ("Storage catalog deduplicates hard links without following symlinks", { try await storageCatalogAccountsHardLinksAndOpaqueLinks() }),
+            ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),
+            ("Cancelled storage catalog is never published", { try await storageCatalogCancellationNeverPublishesAScan() }),
+            ("Large-file filters reuse saved evidence without rescanning", { try await storageLargeFilesFilterSavedEvidenceWithoutRescanning() }),
+            ("Large-file pagination keeps global binary path order", { try await storageLargeFilesPageGloballyWithBinaryPathTies() }),
+            ("Large-file legacy and catalog hard-link accounting agree", { try await storageLargeFilesPreserveLegacyHardLinkAccounting() }),
+            ("Large-file filters and cursors reject invalid evidence", { try await storageLargeFilesRejectInvalidFiltersCursorsAndCatalogs() }),
+            ("Large-file result pages stay bounded and cancellable", { try await storageLargeFilesBoundResultsAndHonorCancellation() }),
+            ("Large-file selections retain removal-plan revalidation", { try await storageLargeFilesReuseReviewedRemovalAndRejectChangedEvidence() }),
             ("Storage progress reports exact limit and post-scan stages", { try await storageWorkerReportsPostScanStagesAndExactLimit() }),
             ("Paged read worker preserves evidence and cancels loading", { try storageWorkerPagesLargeResultsWithoutChangingEvidence() }),
             ("Large storage pages round-trip and reject corruption", { try await storagePagedResultsRoundTripAndRejectCorruption() }),
@@ -98,11 +201,23 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("UTC decision precision", { try utcTimestampsPreserveDecisionPrecision() }),
             ("Chinese desktop default and saved language", { try desktopLanguageDefaultsAndSavedChoice() }),
             ("Runtime localization switches in both directions", { try localizedResourcesSwitchWithoutProcessRestart() }),
+            ("Privacy ranges preserve unselected relations and receipts", { try await privacyChromiumRangePreservesUnselectedRelationsAndReceipts() }),
+            ("Privacy cookies require separate consent and use last access time", { try await privacyCookiesRequireSeparateConsentAndUseLastAccessTime() }),
+            ("Privacy epochs preserve bookmarks and downloads", { try await privacyFirefoxAndSafariEpochsPreserveBookmarksAndDownloads() }),
+            ("Privacy refuses running, stale, excluded and unsupported sources", { try await privacyRefusesRunningStaleExcludedAndUnsupportedSources() }),
+            ("Privacy transactions roll back and unknown schemas stay unavailable", { try await privacyTransactionsRollbackAndUnknownSchemasStayUnavailable() }),
+            ("Privacy integer time bounds, WAL and unknown cascades", { try await privacyIntegerTimeBoundsAndUnknownCascadesAreConservative() }),
             ("Application discovery validates before read and cancellation", { try await applicationCatalogValidatesBeforeReadAndHonorsCancellation() }),
             ("Application catalog preserves distinct paths and explicit scope", { try nativeApplicationCatalogPreservesDistinctPathsAndBoundsItsScope() }),
             ("Application catalog rejects unsafe metadata with explicit gaps", { try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps() }),
             ("File targets bind bounded content and preserve legacy manifests", { try fileTargetsRequireBoundedContentEvidenceAndKeepLegacyManifestsStable() }),
             ("Uninstall preview separates personal data without file mutation", { try await uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles() }),
+            ("Application summaries stream one inventory and conservative ownership", { try await applicationSummariesStreamOneInventoryAndKeepOwnershipConservative() }),
+            ("Native application summaries avoid manifests and link traversal", { try nativeApplicationSummaryMeasuresWithoutManifestsOrLinkTraversal() }),
+            ("Application batch uses one receipt and restores two applications", { try await uninstallBatchUsesOneReceiptAndRestoresTwoApplications() }),
+            ("Application batch permanent default cannot restore; single Trash remains compatible", { try await uninstallBatchDefaultPermanentCannotRestoreAndSingleTrashRemainsCompatible() }),
+            ("Application batch preflights consent, activity, stale evidence and overlaps", { try await uninstallBatchPreflightsAllAppsAndRejectsConsentRunningStaleAndOverlaps() }),
+            ("Permanent uninstall rechecks activity before mutation intent", { try await uninstallPermanentRechecksActivityAtJournalBoundary() }),
             ("Uninstall includes only verified shared group containers", { try await uninstallReviewIncludesOnlyVerifiedGroupContainers() }),
             ("Uninstall restores independent component origins", { try await uninstallCompleteLoopRestoresIndependentComponentOrigins() }),
             ("Uninstall refuses stale evidence, running apps, sharing and exclusions", { try await uninstallRefusesChangedEvidenceRunningApplicationsAndExcludedData() }),
@@ -139,6 +254,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Application activity policy and revalidation", { try await applicationActivityBlocksAndRechecksExecution() }),
             ("Expanded cache and user-data boundaries", { try await expandedCatalogKeepsCacheAndUserDataBoundaries() }),
             ("Expanded application secret protection", { try await expandedApplicationCacheSecretsRemainProtected() }),
+            ("Mole cache migration preserves profiles and developer state", { try await moleRulesKeepProfilesGamesAndDeveloperState() }),
+            ("Mole declarations retain protection and platform boundaries", { try await moleRulesRetainProtectedContentsAndPlatformBoundaries() }),
             ("Declarative application activity metadata", { try applicationActivityFollowsDeclarativeCatalogMetadata() }),
             ("Generated Rust requires trusted rule facts", { try await generatedRustSourcesRequireTrustedRulesAndFacts() }),
             ("Generated Rust retains authored sources", { try await generatedRustSourcesPreserveAuthoredFilesAndRequireLayout() }),

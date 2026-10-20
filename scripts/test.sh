@@ -13,15 +13,18 @@ esac
 TASK_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TASK_ROOT"
 python3 "scripts/update-localizations.py" --check
+python3 "scripts/verify-mole-coverage.py" --self-test
 python3 "scripts/verify-docs.py"
 swift build --jobs 4
 python3 "scripts/verify-products.py"
 ".build/debug/shou-tests" "$TASK_NATIVE_MODE"
 python3 "scripts/verify-cli.py"
 python3 "scripts/verify-storage-cli.py"
+python3 "scripts/verify-large-files-cli.py" ".build/debug/shou"
 python3 "scripts/verify-cli-install.py"
 python3 "apps/cli/Tests/verify-confirmation.py"
 python3 "scripts/verify-uninstall-cli.py"
+python3 "scripts/verify-application-batch-cli.py" ".build/debug/shou"
 if [ "$TASK_NATIVE_MODE" = --native-trash-purge ]; then
     python3 "scripts/verify-native-cli.py" --native-trash-purge
 else

@@ -11,6 +11,16 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
     public let directory: URL
     private let root: Int32
     public var protectedPaths: [String] { [directory.path] }
+    public func storageCatalogURL(id: String) throws -> URL? {
+        try validate(id)
+        let descriptor=try collection("storage-catalogs")
+        defer { close(descriptor) }
+        var metadata=stat()
+        guard fstat(descriptor, &metadata) == 0, metadata.st_uid == getuid(), metadata.st_mode & 0o077 == 0 else {
+            throw ShouError("permission_denied", "Space analysis storage must be private to the current user.")
+        }
+        return directory.appendingPathComponent("storage-catalogs", isDirectory: true).appendingPathComponent(id + ".sqlite")
+    }
     public static var defaultDirectory: URL {
         if let path=ProcessInfo.processInfo.environment["SHOU_DATA_DIR"] { return URL(fileURLWithPath: path) }
         return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("Shou", isDirectory: true)

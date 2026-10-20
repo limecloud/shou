@@ -4,6 +4,7 @@ TASK_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TASK_ROOT"
 TASK_CONFIGURATION=${1:-release}
 TASK_ARCHITECTURES=${2:-native}
+TASK_SIGNING_IDENTITY=${SHOU_SIGNING_IDENTITY:--}
 case "$TASK_CONFIGURATION" in debug|release) ;; *) echo "Usage: sh scripts/build-macos.sh [debug|release] [native|universal]" >&2; exit 2 ;; esac
 case "$TASK_ARCHITECTURES" in native|universal) ;; *) echo "Unknown architecture: $TASK_ARCHITECTURES" >&2; exit 2 ;; esac
 python3 "scripts/update-localizations.py" --check
@@ -29,6 +30,14 @@ else
     cp "$TASK_BIN/shou" "$TASK_APP/Contents/Helpers/shou"
 fi
 cp "apps/macos/Info.plist" "$TASK_APP/Contents/Info.plist"
+python3 - "$TASK_APP/Contents/Info.plist" "$TASK_SIGNING_IDENTITY" <<'PY'
+import plistlib, sys
+from pathlib import Path
+path=Path(sys.argv[1])
+info=plistlib.loads(path.read_bytes())
+info['ShouSigningMode']='ad-hoc' if sys.argv[2] == '-' else 'developer-id'
+path.write_bytes(plistlib.dumps(info))
+PY
 cp "assets/brand/Shou.icns" "$TASK_APP/Contents/Resources/Shou.icns"
 cp "LICENSE" "$TASK_APP/Contents/Resources/LICENSE.txt"
 cp ".build/artifacts/sparkle/Sparkle/LICENSE" "$TASK_APP/Contents/Resources/Sparkle-LICENSE.txt"
@@ -42,8 +51,24 @@ ditto ".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/S
 for TASK_BUNDLE in "$TASK_APP/Contents/Resources/"*.bundle "$TASK_APP/Contents/Helpers/"*.bundle; do
     codesign --force --sign - "$TASK_BUNDLE"
 done
-codesign --force --sign - "$TASK_APP/Contents/Helpers/shou"
-codesign --force --sign - "$TASK_APP"
+if [ "$TASK_SIGNING_IDENTITY" = - ]; then
+    codesign --force --sign - --identifier dev.limecloud.shou.cli "$TASK_APP/Contents/Helpers/shou"
+    codesign --force --sign - "$TASK_APP"
+else
+    # Use an explicitly selected identity. Never silently pick a team from the keychain.
+    # Local builds can omit the network timestamp; public releases require it.
+    if [ "${SHOU_SIGNING_TIMESTAMP:-none}" = none ]; then
+        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp=none --identifier dev.limecloud.shou.cli "$TASK_APP/Contents/Helpers/shou"
+        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp=none "$TASK_APP"
+    else
+        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp --identifier dev.limecloud.shou.cli "$TASK_APP/Contents/Helpers/shou"
+        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp "$TASK_APP"
+    fi
+fi
 codesign --verify --deep --strict "$TASK_APP"
 python3 "scripts/verify-products.py" --bin "$TASK_BIN" --app "$TASK_APP"
-echo "Built $TASK_APP (local ad-hoc signature; not notarized)."
+if [ "$TASK_SIGNING_IDENTITY" = - ]; then
+    echo "Built $TASK_APP (temporary ad-hoc signature; privacy access may need reauthorization after updates; not notarized)."
+else
+    echo "Built $TASK_APP (Developer ID signature; notarization is a separate release step)."
+fi

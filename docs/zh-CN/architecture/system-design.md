@@ -46,7 +46,10 @@ Agent 是外部调用者；模型输出、项目内容和导入文件都位于�
 
 ```mermaid
 flowchart LR
+    Setup[首次使用与扫描权限引导] --> Access[ShouPlatform 原生访问能力检查]
+    Access --> Privacy[用户控制的 macOS 隐私设置]
     App[ShouApp / SwiftUI + AppKit] --> Core[ShouCore / Swift Package]
+    App --> Setup
     App --> AgentSupport[ShouAgentSupport / Skill 资源]
     CLI --> AgentSupport
     App --> SkillInstall[ShouPlatform / Skill 安装与 ZIP 导出]
@@ -55,6 +58,10 @@ flowchart LR
     CLI[shou / Swift executable] --> Core
     App --> Quick[桌面快速清理路由]
     Quick --> Core
+    Core --> Uninstall[应用摘要与批量卸载]
+    Core --> PrivacyService[按来源的隐私服务]
+    PrivacyService --> SQLite[时间范围与结构感知 SQLite 事务]
+    PrivacyService --> PrivacyReceipts[不可恢复的隐私汇总回执]
     Core --> Rules[规则解析与匹配]
     Core --> Scanner[目录遍历与容量统计]
     Core --> Planner[候选解释与计划]
@@ -233,7 +240,7 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 
 ## 应用卸载边界
 
-应用发现和卸载独立于可重建缓存规则。`ShouEngine` 负责完整标识关联、个人数据同意、当前排除策略及摘要绑定计划；`ApplicationCatalogReading`、`ApplicationUninstallChecking` 提供平台证据。执行复用既有 `TrashExecution` 日志边界。每个卸载项保存确切原父目录和组件类型，一份回执可覆盖多个 Library 类别及应用安装目录；历史核验和恢复前由 `ReceiptOrigins` 重现关联。独立的受限应用父目录身份能力保持普通工作区根目录限制。架构、流程和时序见[应用卸载](../product/application-uninstall.md)。
+应用发现和卸载独立于可重建缓存规则。`ShouEngine` 负责完整标识关联、个人数据同意、当前排除策略及摘要绑定计划；`ApplicationCatalogReading`、`ApplicationUninstallChecking` 提供平台证据。增量 `ApplicationSummary` 与完整删除清单分离，`ApplicationUninstallBatchPlan` 绑定各应用具体选择并拒绝重叠路径。一次批量确认后复用既有 `TrashExecution` 或 `PermanentExecution` 日志边界。每个卸载项保存确切原父目录和组件类型，一份回执可覆盖多个应用及 Library 类别；历史核验和恢复前由 `ReceiptOrigins` 重现关联，永久结果不支持恢复。独立的受限应用父目录身份能力保持普通工作区根目录限制。架构、流程和时序见[应用卸载](../product/application-uninstall.md)。
 
 ## 11. 当前执行路径
 
@@ -282,3 +289,23 @@ flowchart LR
 ## 空间分析直接删除
 
 空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。
+
+默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。
+
+## 大文件查询边界
+
+```mermaid
+flowchart LR
+  GUI[原生大文件页面] --> Query[共享只读查询]
+  CLI[analysis large-files] --> Query
+  Query --> Catalog[已有扫描 SQLite 索引]
+  GUI --> Plan[既有精确删除计划]
+  Plan --> Verify[重新测量并核验所选目标]
+  Verify --> Execute[永久或废纸篓执行及历史]
+```
+
+阈值、类型及分页属于已保存证据的查询，不重新遍历磁盘。普通文件按索引中已计费的占用空间排序；文件类型只按扩展名分类。扫描和查询不会赋予删除权限。
+
+### 隐私清理边界
+
+隐私记录按来源独立建模，不作为普通文件缓存删除。GUI 与 CLI 共用 `PrivacyService`；平台层仅发现标准 profile 和无跟随身份，Core 对时间、数据库结构、运行状态、排除与指纹预检后按来源事务执行。回执只保存汇总，永久逻辑删除不提供恢复或空间释放承诺。完整架构图、流程图、时序图与支持矩阵见[隐私清理](../engineering/privacy-cleaning.md)。

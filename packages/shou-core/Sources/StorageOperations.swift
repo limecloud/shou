@@ -6,6 +6,9 @@ public struct StorageScan: Codable, Sendable, Identifiable {
     public let identity: FileEntry
     public let createdAt: Date
     public var tree: TreeSnapshot
+    public var catalogId: String? = nil
+    public var measuredEntryCount: Int? = nil
+    public var entryCount: Int { measuredEntryCount ?? tree.entries.count }
     public var status: String { tree.complete ? "complete" : "partial" }
 }
 
@@ -88,14 +91,36 @@ public enum StorageRemovalPolicy {
 }
 
 extension ShouEngine {
-    public func scanStorage(path: String, budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> StorageScan {
-        try budget.validate()
+    public func scanStorage(path: String, budget: ScanBudget? = nil, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> StorageScan {
+        try budget?.validate()
         guard path == "/" || (path.hasPrefix("/") && StorageRemovalPolicy.validRelative(String(path.dropFirst()))) else { throw ShouError("invalid_argument", "Select an absolute normalized analysis root.") }
         let identity=try filesystem.analysisRootIdentity(path)
-        let tree=try filesystem.inspect(path, budget: budget, cancelled: { Task.isCancelled }, progress: progress)
+        let id=Codec.id("storage")
+        if budget == nil, filesystem.supportsStorageCatalog, let url=try store.storageCatalogURL(id: id) {
+            var published=false
+            defer { if !published { try? FileManager.default.removeItem(at: url) } }
+            let measurement=try filesystem.measureStorage(path, catalog: url, cancelled: { Task.isCancelled }, progress: progress)
+            if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+            guard measurement.tree.entries.first?.sameObject(as: identity) == true else { throw ShouError("plan_stale", "Analysis root changed during scanning.") }
+            var scan=StorageScan(id: id, rootPath: path, identity: measurement.tree.entries[0], createdAt: now(), tree: measurement.tree)
+            scan.catalogId=id; scan.measuredEntryCount=measurement.entryCount
+            // Small scans retain their legacy inline evidence for compatibility.
+            if measurement.entryCount <= 10_000 {
+                var entries=[FileEntry]()
+                try StorageCatalog(url: url).forEachEntry { entries.append($0) }
+                scan.tree.entries=entries.sorted { $0.path < $1.path }
+            }
+            progress(ScanProgress(stage: "saving", entryCount: measurement.entryCount, currentPath: path))
+            try StorageScanRecords.save(scan, store: store) {
+                if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+            }
+            published=true
+            return scan
+        }
+        let tree=try filesystem.inspect(path, budget: budget ?? ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled }, progress: progress)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         guard tree.entries.first(where: { $0.path == "." })?.sameObject(as: identity) == true else { throw ShouError("plan_stale", "Analysis root changed during scanning.") }
-        let scan=StorageScan(id: Codec.id("storage"), rootPath: path, identity: identity, createdAt: now(), tree: tree)
+        let scan=StorageScan(id: id, rootPath: path, identity: identity, createdAt: now(), tree: tree)
         progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, currentPath: path, limitReached: tree.issues.contains("resource_limit")))
         try StorageScanRecords.save(scan, store: store) {
             if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
@@ -105,25 +130,64 @@ extension ShouEngine {
     public func storageScan(_ id: String) throws -> StorageScan {
         try StorageScanRecords.load(id, store: store)
     }
+    func catalog(for scan: StorageScan) throws -> StorageCatalog? {
+        guard let id=scan.catalogId else { return nil }
+        guard id == scan.id, let url=try store.storageCatalogURL(id: id) else { throw ShouError("store_corrupt", "Space analysis index is missing.") }
+        let catalog=try StorageCatalog(url: url)
+        guard try catalog.entry(at: ".")?.entry == scan.identity else { throw ShouError("store_corrupt", "Space analysis index belongs to a different root.") }
+        return catalog
+    }
+    private func storageEntry(scan: StorageScan, path: String) throws -> FileEntry? {
+        if let catalog=try catalog(for: scan) { return try catalog.entry(at: path)?.entry }
+        return scan.tree.entries.first { $0.path == path }
+    }
+    public func storageDirectory(scanId: String, path: String = ".") throws -> StorageDirectory {
+        guard path == "." || StorageRemovalPolicy.validRelative(path) else { throw ShouError("invalid_argument", "Use an exact directory path in this analysis.") }
+        let scan=try storageScan(scanId)
+        if let catalog=try catalog(for: scan) {
+            guard let item=try catalog.entry(at: path), item.entry.kind == "directory" else { throw ShouError("invalid_argument", "Directory is absent from this analysis.") }
+            return StorageDirectory(item: item, children: try catalog.children(of: path))
+        }
+        let index=StorageIndex(tree: scan.tree), entries=Dictionary(uniqueKeysWithValues: scan.tree.entries.map { ($0.path, $0) })
+        guard let node=index.nodes[path], let entry=entries[path], entry.kind == "directory" else { throw ShouError("invalid_argument", "Directory is absent from this analysis.") }
+        return StorageDirectory(item: StorageCatalogItem(entry: entry, node: node), children: index.children(of: path).compactMap { node in
+            entries[node.path].map { StorageCatalogItem(entry: $0, node: node) }
+        })
+    }
     public func storageRemovalReason(scan: StorageScan, path: String) -> String? {
-        guard let entry=scan.tree.entries.first(where: { $0.path == path }) else { return "Item is absent from this analysis." }
+        guard let entry=try? storageEntry(scan: scan, path: path) else { return "Item is absent from this analysis." }
         if entry.owner != scanOwner() { return "This item is not owned by the current user." }
         if let reason=StorageRemovalPolicy.reason(root: scan.rootPath, path: path, entry: entry, home: homeDirectory.path, protectedPaths: store.protectedPaths) { return reason }
-        return storageExclusionReason(scan: scan, entries: scan.tree.entries.filter { $0.path == path || $0.path.hasPrefix(path + "/") })
+        if scan.catalogId == nil { return storageExclusionReason(scan: scan, entries: scan.tree.entries.filter { $0.path == path || $0.path.hasPrefix(path + "/") }) }
+        guard let config=try? configuration() else { return "Cleanup exclusions could not be verified." }
+        let absolute=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path))
+        let relevant=config.workspaces.filter { root in
+            !(root.exclusions + (config.globalExclusions ?? [])).isEmpty && (absolute == root.path || absolute.hasPrefix(root.path + "/") || root.path.hasPrefix(absolute + "/"))
+        }
+        guard !relevant.isEmpty else { return nil }
+        do {
+            guard let catalog=try catalog(for: scan) else { return "Cleanup exclusions could not be verified." }
+            try catalog.forEachEntry(under: path) { entry in
+                if exclusionMatches(scan: scan, entry: entry, config: config) { throw ShouError("permission_denied", "This selection contains excluded content.") }
+            }
+            return nil
+        } catch let error as ShouError where error.code == "permission_denied" { return error.message }
+        catch { return "Cleanup exclusions could not be verified." }
+    }
+    private func exclusionMatches(scan: StorageScan, entry: FileEntry, config: Configuration) -> Bool {
+        let full=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: entry.path))
+        for root in config.workspaces {
+            let prefix=StorageRemovalPolicy.canonical(root.path) + "/"
+            if full.hasPrefix(prefix) {
+                let relative=String(full.dropFirst(prefix.count))
+                if ((config.globalExclusions ?? []) + root.exclusions).contains(where: { PathPattern.matches($0, relative, caseSensitive: scan.tree.caseSensitive) }) { return true }
+            }
+        }
+        return false
     }
     private func storageExclusionReason(scan: StorageScan, entries: [FileEntry]) -> String? {
         guard let config=try? configuration() else { return "Cleanup exclusions could not be verified." }
-        for root in config.workspaces {
-            let prefix=StorageRemovalPolicy.canonical(root.path) + "/"
-            let patterns=(config.globalExclusions ?? []) + root.exclusions
-            for entry in entries {
-                let full=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: entry.path))
-                if full.hasPrefix(prefix) {
-                    let relative=String(full.dropFirst(prefix.count))
-                    if patterns.contains(where: { PathPattern.matches($0, relative, caseSensitive: scan.tree.caseSensitive) }) { return "This selection contains excluded content." }
-                }
-            }
-        }
+        if entries.contains(where: { exclusionMatches(scan: scan, entry: $0, config: config) }) { return "This selection contains excluded content." }
         return nil
     }
     private func scanOwner() -> UInt32 {
@@ -144,7 +208,7 @@ extension ShouEngine {
             let full=StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path)
             let tree=try filesystem.inspectStorageTarget(full, budget: budget, cancelled: { Task.isCancelled })
             guard tree.complete, let current=tree.entries.first(where: { $0.path == "." }),
-                  let saved=scan.tree.entries.first(where: { $0.path == path }), current.metadata == renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed or could not be completely measured.", details: ["path": path]) }
+                  let saved=try storageEntry(scan: scan, path: path), current.metadata == renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed or could not be completely measured.", details: ["path": path]) }
             if let reason=storageExclusionReason(scan: scan, entries: tree.entries.map { renamed($0, to: $0.path == "." ? path : path + "/" + $0.path) }) {
                 throw ShouError("permission_denied", reason, details: ["path": path])
             }
@@ -183,7 +247,7 @@ extension ShouEngine {
             if let reason=self.storageRemovalReason(scan: scan, path: item.path) { return reason }
             let tree=try self.filesystem.inspectStorageTarget(items[index].originalPath, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled })
             guard tree.complete, tree.entries == item.manifest,
-                  let saved=scan.tree.entries.first(where: { $0.path == item.path }),
+                  let saved=try self.storageEntry(scan: scan, path: item.path),
                   tree.entries.first(where: { $0.path == "." })?.metadata == self.renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
             if let reason=self.storageExclusionReason(scan: scan, entries: tree.entries.map { self.renamed($0, to: $0.path == "." ? item.path : item.path + "/" + $0.path) }) { return reason }
             return nil

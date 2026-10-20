@@ -8,7 +8,7 @@ import Glibc
 #endif
 
 #if canImport(Darwin) || canImport(Glibc)
-private enum ReadOperation: String, Codable, Sendable { case identity, inspect }
+private enum ReadOperation: String, Codable, Sendable { case identity, inspect, storage }
 private struct ReadRequest: Codable, Sendable {
     let version: Int
     let id: String
@@ -87,6 +87,17 @@ private enum ReadChannel {
 
 struct NativeReadClient {
     let executable: URL
+    func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
+        let request=ReadRequest(version: 1, id: UUID().uuidString, parentPid: getpid(), operation: .storage, path: path, rules: nil,
+            budget: ScanBudget(maxEntries: 1, maxSeconds: 3600, maxDepth: 128))
+        let response=try run(request, cancelled: cancelled, progress: progress, catalogDestination: catalog)
+        guard let tree=response.snapshot, tree.entries.count == 1, tree.entries[0].path == ".", tree.entries[0].kind == "directory",
+              let count=response.entryCount, count > 0, response.pageDigests == nil, response.identity == nil,
+              !tree.complete || tree.issues.isEmpty else { throw invalidResponse() }
+        let index=try StorageCatalog(url: catalog)
+        guard let root=try index.entry(at: "."), root.entry == tree.entries[0], root.node.isComplete == tree.complete else { throw invalidResponse() }
+        return StorageMeasurement(tree: tree, entryCount: count)
+    }
     func rootIdentity(_ path: String) throws -> FileEntry {
         let request=ReadRequest(version: 1, id: UUID().uuidString, parentPid: getpid(), operation: .identity, path: path, rules: nil, budget: ScanBudget(maxEntries: 1, maxSeconds: 10))
         let response=try run(request, cancelled: { Task.isCancelled }, progress: { _ in })
@@ -123,9 +134,9 @@ struct NativeReadClient {
         return !path.hasPrefix("/") && !path.contains("\0") && path.split(separator: "/", omittingEmptySubsequences: false).allSatisfy { !$0.isEmpty && $0 != "." && $0 != ".." }
     }
     private func invalidResponse() -> ShouError { ShouError("io_error", "Read worker returned invalid or incomplete evidence.") }
-    private func run(_ request: ReadRequest, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> ReadResponse {
+    private func run(_ request: ReadRequest, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void, catalogDestination: URL? = nil) throws -> ReadResponse {
         guard (1...1_000_000).contains(request.budget.maxEntries), request.budget.maxSeconds.isFinite,
-              (1...600).contains(request.budget.maxSeconds), (1...128).contains(request.budget.maxDepth) else {
+              (1...(request.operation == .storage ? 3600 : 600)).contains(request.budget.maxSeconds), (1...128).contains(request.budget.maxDepth) else {
             throw ShouError("invalid_argument", "Scan budget is outside supported limits.")
         }
         let deadline=ProcessInfo.processInfo.systemUptime + request.budget.maxSeconds + 2
@@ -160,7 +171,7 @@ struct NativeReadClient {
         func readProgress() {
             if let data=try? ReadChannel.read(progressURL, limit: 65_536), data != lastProgress,
                let update=try? Codec.decode(ReadProgress.self, from: data), update.id == request.id,
-               update.entryCount >= 0, update.entryCount <= request.budget.maxEntries,
+               update.entryCount >= 0, request.operation == .storage || update.entryCount <= request.budget.maxEntries,
                ["scanning", "analysis", "transferring"].contains(update.stage) {
                 let value=ScanProgress(stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached ?? false)
                 lastUpdate=value
@@ -177,8 +188,8 @@ struct NativeReadClient {
         try check()
         guard process.terminationReason == .exit, process.terminationStatus == 0 else { throw invalidResponse() }
         readProgress()
-        let limit=min(536_870_912, max(1_048_576, request.budget.maxEntries * 2048 + 1_048_576))
-        if request.operation == .inspect {
+        let limit=request.operation == .storage ? 16_777_216 : min(536_870_912, max(1_048_576, request.budget.maxEntries * 2048 + 1_048_576))
+        if request.operation == .inspect || request.operation == .storage {
             progress(ScanProgress(stage: "loading", entryCount: lastUpdate?.entryCount ?? 0, currentPath: request.path, limitReached: lastUpdate?.limitReached ?? false))
         }
         let data=try ReadChannel.read(resultURL, limit: limit, check: check)
@@ -190,6 +201,18 @@ struct NativeReadClient {
         if let failure=response.error {
             guard response.identity == nil, response.snapshot == nil else { throw invalidResponse() }
             throw failure
+        }
+        if request.operation == .storage {
+            guard let catalogDestination, response.snapshot != nil, response.entryCount != nil,
+                  response.pageDigests == nil, response.identity == nil else { throw invalidResponse() }
+            let source=channel.appendingPathComponent("catalog.sqlite")
+            var metadata=stat()
+            guard lstat(source.path, &metadata) == 0, metadata.st_mode & S_IFMT == S_IFREG, metadata.st_uid == getuid(),
+                  metadata.st_nlink == 1, metadata.st_size > 0, metadata.st_size <= 4_294_967_296 else { throw invalidResponse() }
+            try check()
+            try FileManager.default.copyItem(at: source, to: catalogDestination)
+            try check()
+            return response
         }
         if let count=response.entryCount {
             guard request.operation == .inspect, response.identity == nil,
@@ -231,7 +254,7 @@ public enum NativeReadWorker {
             let request=try Codec.decode(ReadRequest.self, from: data)
             guard request.version == 1, UUID(uuidString: request.id) != nil, request.parentPid == getppid(),
                   (1...1_000_000).contains(request.budget.maxEntries), request.budget.maxSeconds.isFinite,
-                  (1...600).contains(request.budget.maxSeconds), (1...128).contains(request.budget.maxDepth) else { return 2 }
+                  (1...(request.operation == .storage ? 3600 : 600)).contains(request.budget.maxSeconds), (1...128).contains(request.budget.maxDepth) else { return 2 }
             _ = try SecurePaths.components(request.path)
             let deadline=ProcessInfo.processInfo.systemUptime + request.budget.maxSeconds + 3
             let watchdog=DispatchSource.makeTimerSource(queue: .global(qos: .utility))
@@ -251,6 +274,12 @@ public enum NativeReadWorker {
                 case .identity:
                     guard request.rules == nil else { return 2 }
                     response=ReadResponse(version: 1, id: request.id, identity: try native.rootIdentity(request.path), snapshot: nil, error: nil)
+                case .storage:
+                    guard request.rules == nil else { return 2 }
+                    let result=try native.measureStorageDirect(request.path, catalog: channel.appendingPathComponent("catalog.sqlite"), cancelled: { false }, progress: { update in
+                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached), to: progressURL)
+                    })
+                    response=ReadResponse(version: 1, id: request.id, identity: nil, snapshot: result.tree, error: nil, entryCount: result.entryCount)
                 case .inspect:
                     for rule in request.rules ?? [] { _ = try CleanupRule.parse(Codec.encode(rule)) }
                     let emit: @Sendable (ScanProgress) -> Void = { update in

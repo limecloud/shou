@@ -18,6 +18,15 @@ erDiagram
     CleanupPlan ||--o{ ExecutionReceipt : records
     ExecutionReceipt ||--|{ ItemReceipt : contains
     ItemReceipt ||--o{ FollowUpReceipt : followed_by
+    StorageScan ||--|| StorageCatalog : measures
+    StorageCatalog ||--o{ StorageNode : aggregates
+    StorageScan ||--o{ StorageRemovalPlan : selects_from
+    StorageRemovalPlan ||--o{ ExecutionReceipt : records
+    PrivacyScan ||--o{ PrivacySource : observes
+    PrivacyScan ||--o{ PrivacyPlan : selected_into
+    PrivacyPlan ||--|{ PrivacySource : binds
+    PrivacyPlan ||--o{ PrivacyReceipt : records
+    PrivacyReceipt ||--|{ PrivacyItemResult : contains
 ```
 
 关系为概念表达；规则绑定可被多个方案引用，计划项目必须保留扫描来源和规则版本快照。
@@ -39,6 +48,12 @@ erDiagram
 | ExecutionReceipt | 计划引用、执行 ID、入口、阶段、总体结果 | 执行意图先落盘，逐项追加结果；可表示部分成功 |
 | ItemReceipt | 原路径、实际目标位置、前后身份、状态、错误 | `purging` 是持久化意图；只有平台成功结果才能进入 `purged`；恢复与永久移除必须重新核验 |
 | FollowUpReceipt | 原项目引用、恢复/永久移除、时间、结果 | 独立确认；不修改原始执行事实 |
+| StorageScan | 根目录身份、空间索引 ID、已计量数量、覆盖缺口 | 空间计量独立于删除清单 |
+| StorageCatalog / StorageNode | 父目录 ID、名称、文件身份、实际占用与逻辑汇总、逐目录完整性 | SQLite 保存完整计量条目，浏览时按需查询直接子项 |
+| StorageRemovalPlan | 所选路径、当前完整清单、准确动作与摘要 | 执行前独立重新核验，跳过位置不能提供删除证据 |
+| PrivacyScan | 固定范围、用户目录及配置身份、来源汇总观察、过期时间 | 仅数量与来源描述，来源可用不授予删除权限 |
+| PrivacyPlan | 确切可用来源、固定边界、证据、退出登录确认、摘要及状态 | 永久删除记录，仍需当前执行确认；最长有效五分钟 |
+| PrivacyReceipt / PrivacyItemResult | 来源 ID、固定边界、数量、逐项状态与脱敏错误 | 独立于文件删除历史，无记录内容、废纸篓路径或恢复能力 |
 
 ## 3. 规则状态
 
@@ -193,7 +208,7 @@ stateDiagram-v2
 
 `ApplicationCatalog` 按物理安装位置区分应用，即使完整标识相同也保留独立对象，并明确记录来源覆盖和问题。`ApplicationUninstallReview` 包含九类确切组件、完整清单、可处理状态、个人数据同意要求、阻止原因及不授予权限的覆盖提示。`ApplicationUninstallPlan` 绑定组件选择、应用元数据、配置、同意、预算和15分钟有效期。实际配置保存前使用稳定的 `unconfigured` 版本标识。
 
-`ExecutionReceipt.operation` 为兼容旧回执而可选；`application_uninstall` 的每项保存 `UninstallReceiptOrigin`，包含组件类型、应用路径、完整标识与确切父目录身份。普通清理回执不能使用该原位置能力。恢复分别验证组件类型对应的路径和父目录身份，不依赖事后重新发现应用或后来安装的应用。卸载回执此阶段仅允许恢复。
+`ExecutionReceipt.operation` 为兼容旧回执而可选；应用卸载的每项保存 `UninstallReceiptOrigin`，包含组件类型、应用路径、完整标识与确切父目录身份。普通清理回执不能使用该原位置能力。恢复分别验证组件类型对应的路径和父目录身份，不依赖事后重新发现应用或后来安装的应用。单应用与批量废纸篓结果可恢复；`application_permanent_uninstall` 和 `application_batch_permanent_uninstall` 记录不可恢复结果。`ApplicationUninstallBatchPlan` 绑定子计划、动作、到期时间和单个摘要，拒绝相同及父子重叠组件路径。旧单应用计划缺省 `action`，继续使用废纸篓语义和原摘要编码。
 
 `FileEntry.contentDigest` 可选，缺省时不编码，保持旧目录清单不变。独立文件目标只有一条根记录和有界 SHA-256 内容摘要。废纸篓根比较仅归一化 ctime，仍匹配内容和其他全部元数据；目录后代仍严格比较元数据。详见[应用卸载](../product/application-uninstall.md)。
 
@@ -201,3 +216,32 @@ stateDiagram-v2
 ## 空间分析直接删除
 
 空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。
+
+默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。
+
+## 大文件查询状态
+
+`StorageFileType` 与 `StorageLargeFilePage` 是已保存扫描的只读模型。分页包含条目、符合条件的总数、归属分配容量估计和可选游标。游标绑定扫描 ID、最小分配容量、扩展名类别及稳定顺序（分配容量降序、完整路径 UTF-8 升序）；改变条件后旧游标失效。类型根据文件扩展名判断，不检测内容。查询统计目录不遍历原始文件系统，也不赋予删除权限。跨分页全选汇集具体合格路径，仍通过已有 `StorageRemovalPlan` 和重新核验执行。
+
+## 隐私扫描、计划与回执合同
+
+实际模型位于 [PrivacyModels.swift](../../../packages/shou-core/Sources/PrivacyModels.swift)，分别使用 `privacy-scans`、`privacy-plans`、`privacy-history` 集合，隐私回执不是文件删除的 `ExecutionReceipt`。[架构、流程与时序](../engineering/privacy-cleaning.md#架构)说明共享 Core 服务及浏览器结构限制。下表 JSON 字段沿用 snake-case 编码和 UTC 时间。
+
+| 模型 | 持久化字段 | 边界 |
+| --- | --- | --- |
+| `PrivacyScan` | `id`、`created_at`、`expires_at`、`range`、可选 `range_start`、`range_end`、`configuration_digest`、`home_identity`、`sources`、`issues` | 扫描时固定，15分钟有效；没有整体 `state` 字段，来源分别报告可用性 |
+| `PrivacySource` | `id`、`definition`、`status`、可选 `record_count`、可选 `reason`、`evidence` | `definition` 含浏览器/名称、完整标识、配置名、类型、数据库相对路径及不支持标志；证据为目录、数据库及非空 WAL 元数据，不含逐条浏览记录 |
+| `PrivacyPlan` | `id`、`scan_id`、`created_at`、`expires_at`、`range`、可选 `range_start`、`range_end`、`configuration_digest`、`home_identity`、已选 `sources`、`sign_out_acknowledged`、`state`、`digest` | 从扫描复制确切选择；到期时间取扫描期限与创建后五分钟的较早者；摘要计算将 `state` 归一为 `ready` 并清空自身字段，当前状态另行检查 |
+| `PrivacyReceipt` | `id`、`plan_id`、`created_at`、`range`、可选 `range_start`、`range_end`、`state`、`items` | 创建时间为执行开始；不含来源描述、配置路径、记录值、恢复路径或 SQL 文本 |
+| `PrivacyItemResult` | `source_id`、`state`、`removed_records`、可选 `reason` | 完成汇总数量及脱敏错误码；未完成或失败记录中的零不证明事务从未提交 |
+
+`range` 为 `last-hour`、`last-day`（滚动24小时）、`last-seven-days` 或 `all-time`。所有时间不保存 `range_start`；`range_end` 仍用于审计，但所有时间不添加时间谓词。计算属性 `eligible`、`requiresSignOutConsent` 和总记录数不持久化。`PrivacyConsent` 是不可编码的当前调用值，含 `irreversibleDeletion` 与 `signOut`；计划中已存的影响确认不能替代它。
+
+| 状态所属模型 | 实际存储值及含义 |
+| --- | --- |
+| 来源 | `ready` 表示结构受支持且匹配数大于零；`empty` 表示匹配数为零。`browser-running`、`permission-required`、`unsupported`、`schema-unsupported`、`unavailable` 均不可选；不可用的数量保持未知，不转为零 |
+| 计划 | `ready` → `executing` → `completed` 或 `partial`。过期、配置/身份/数量变化或所属浏览器运行时，返回 `plan_stale` 或具体拒绝原因，不虚构落盘的 `stale` 状态 |
+| 回执 | 首次数据库变更前为 `executing`；所有来源均完成才为 `completed`，任一失败或取消则为 `partial`。没有整体 `cancelled`、`restored` 或 `purged` 隐私状态 |
+| 项目 | `pending` → `executing` → `completed` 或 `failed`；尚未开始的项目可转为 `cancelled`。逐项意图前的身份或活动检查失败可由 `pending` 直接转为 `failed` |
+
+先保存计划执行意图，再保存回执；事务前先保存逐项意图。崩溃或结果写入失败可能留下 `executing` 或 `pending`，这些状态均不能证明未发生变更，不升级为成功，也不自动重试。数据库独立提交，后续来源失败不撤销先前已完成的来源。隐私没有恢复后续操作模型；逻辑删除记录不证明法证擦除或空间释放。

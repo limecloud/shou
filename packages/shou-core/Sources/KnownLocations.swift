@@ -38,6 +38,7 @@ public enum KnownLocations {
         guard let url=CoreResources.bundle.url(forResource: "known-locations", withExtension: "json") else { throw ShouError("io_error", "Built-in scan locations are unavailable.") }
         let values=try JSONDecoder().decode([Definition].self, from: Data(contentsOf: url))
         guard Set(values.map { $0.platform + ":" + $0.id }).count == values.count else { throw ShouError("invalid_rule", "Built-in location identifiers must be unique per platform.") }
+        guard Set(values.map { $0.platform + ":" + $0.relativePath }).count == values.count else { throw ShouError("invalid_rule", "Built-in location paths must be unique per platform.") }
         for value in values {
             try PathPattern.validate(value.relativePath)
             guard value.id.range(of: "^[a-z][a-z0-9-]{0,63}$", options: .regularExpression) != nil,
@@ -62,9 +63,15 @@ public enum KnownLocations {
     /// Windows roots will be added with a Windows filesystem adapter and verified rules.
     public static func catalog(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, platform: String = currentPlatform) throws -> [KnownLocation] {
         let templates=try BuiltinCatalog.templates()
-        return try definitions.get().filter { $0.platform == platform }.map { definition in
+        let values=try definitions.get()
+        for template in templates where template.location != "projects" {
+            guard template.supportedPlatforms.allSatisfy({ supported in values.contains { $0.id == template.location && $0.platform == supported } }) else {
+                throw ShouError("invalid_rule", "A built-in rule has no platform-scoped scan location.", details: ["rule": template.id, "location": template.location])
+            }
+        }
+        return try values.filter { $0.platform == platform }.map { definition in
             let path=homeDirectory.appendingPathComponent(definition.relativePath, isDirectory: true).path
-            let rules=templates.filter { $0.location == definition.id }
+            let rules=templates.filter { $0.location == definition.id && $0.supportedPlatforms.contains(definition.platform) }
             guard !rules.isEmpty else { throw ShouError("invalid_rule", "A built-in scan location has no scoped rules.", details: ["location": definition.id]) }
             return KnownLocation(id: definition.id, title: definition.title, path: path,
                 ruleIds: rules.map(\.id), category: definition.category,

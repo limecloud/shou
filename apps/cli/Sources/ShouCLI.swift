@@ -15,11 +15,49 @@ struct CommandSpec: Codable, Sendable {
     let optional: [String]
     let repeated: [String]
     let exactlyOne: [String]?
+    let inputSchema: JSONValue?
     let description: String
-    init(_ command: String, _ sideEffect: String, _ required: [String] = [], _ optional: [String] = [], repeated: [String] = [], exactlyOne: [String]? = nil, _ description: String) {
-        self.command=command; self.sideEffect=sideEffect; self.required=required; self.optional=optional; self.repeated=repeated; self.exactlyOne=exactlyOne; self.description=description
+    init(_ command: String, _ sideEffect: String, _ required: [String] = [], _ optional: [String] = [], repeated: [String] = [], exactlyOne: [String]? = nil, inputSchema: JSONValue? = nil, _ description: String) {
+        self.command=command; self.sideEffect=sideEffect; self.required=required; self.optional=optional; self.repeated=repeated; self.exactlyOne=exactlyOne; self.inputSchema=inputSchema; self.description=description
     }
 }
+
+private let largeFileInputSchema: JSONValue = .object([
+    "type": .string("object"), "required": .array([.string("scan-id")]), "additionalProperties": .bool(false),
+    "properties": .object([
+        "scan-id": .object(["type": .string("string"), "description": .string("A saved analysis scan ID, including legacy scans without a catalog.")]),
+        "minimum-bytes": .object(["type": .string("integer"), "minimum": .integer(0), "maximum": .integer(Int64.max), "default": .integer(52_428_800)]),
+        "type": .object(["type": .string("string"), "enum": .array(StorageFileType.allCases.map { .string($0.rawValue) }), "default": .string("all")]),
+        "limit": .object(["type": .string("integer"), "minimum": .integer(1), "maximum": .integer(500), "default": .integer(100)]),
+        "cursor": .object(["type": .string("string"), "description": .string("Opaque next_cursor for the same scan, minimum-bytes and type; omit after changing filters.")])
+    ])
+])
+
+private let uninstallBatchInputSchema: JSONValue = .object([
+    "type": .string("object"), "required": .array([.string("file")]), "additionalProperties": .bool(false),
+    "properties": .object([
+        "file": .object(["type": .string("string"), "description": .string("JSON array of 1–100 selections: review_id, component_ids (nonempty distinct strings), include_user_data (boolean, default false). Each selection must include its application component. File limit 1 MiB."),
+            "contentMediaType": .string("application/json"), "contentSchema": .object([
+                "type": .string("array"), "minItems": .integer(1), "maxItems": .integer(100), "items": .object([
+                    "type": .string("object"), "required": .array([.string("review_id"), .string("component_ids")]), "additionalProperties": .bool(false),
+                    "properties": .object([
+                        "review_id": .object(["type": .string("string")]),
+                        "component_ids": .object(["type": .string("array"), "minItems": .integer(1), "uniqueItems": .bool(true), "items": .object(["type": .string("string")])]),
+                        "include_user_data": .object(["type": .string("boolean"), "default": .bool(false)])
+                    ])
+                ])
+            ])]),
+        "mode": .object(["type": .string("string"), "enum": .array([.string("permanent"), .string("trash")]), "default": .string("permanent")])
+    ])
+])
+
+private let applicationSummaryInputSchema: JSONValue = .object([
+    "type": .string("object"), "additionalProperties": .bool(false), "properties": .object([
+        "include-system": .object(["type": .string("string"), "enum": .array([.string("true"), .string("false")]), "default": .string("false")]),
+        "max-entries": .object(["type": .string("integer"), "minimum": .integer(1), "maximum": .integer(1_000_000), "default": .integer(100_000)]),
+        "max-seconds": .object(["type": .string("number"), "minimum": .integer(1), "maximum": .integer(600), "default": .integer(60)])
+    ])
+])
 
 let commands: [CommandSpec] = [
     .init("capabilities", "read", [], ["command"], "Discover operations, inputs, limits, and platform capabilities without opening storage. Command optionally selects one command or group."),
@@ -32,10 +70,14 @@ let commands: [CommandSpec] = [
     .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report best-effort configured/runtime states and explicit unknowns; never changes startup settings. Login Items and background registrations remain in System Settings."),
     .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent after rechecking its plist, owner, label and exact path. Action is enable or disable; system definitions remain read-only."),
     .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles with explicit directory coverage; never changes applications."),
+    .init("applications summary", "read", [], ["include-system", "max-entries", "max-seconds"], inputSchema: applicationSummaryInputSchema, "Read application sizes, versions, activity/ownership status (ready/running/admin-required/protected/unavailable) and optional last-used metadata from one inventory. Size is an allocated-byte estimate; no removal manifests are saved. Last-used may be unknown. Per-application measurement budget defaults to 100000 entries/60 seconds. Admin-required items cannot be removed by this build."),
     .init("applications inspect", "snapshot", ["path"], ["max-entries", "max-seconds"], "Review an application and exact bundle-identifier associations. Personal data is separate; shared groups and package receipts are not removed."),
-    .init("applications plan", "plan", ["review-id", "component"], ["include-user-data"], repeated: ["component"], "Plan explicitly selected eligible components, including the application. Personal data requires include-user-data true; defaults false."),
+    .init("applications plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Plan explicitly selected eligible components, including the application. Personal data requires include-user-data true; defaults false. Mode trash (legacy default) or permanent (irreversible)."),
     .init("applications plan show", "read", ["plan-id"], [], "Inspect an uninstall plan, exact components, consent, digest and expiry."),
-    .init("applications uninstall", "destructive", ["plan-id"], [], "Move reviewed application components to native Trash after current-scope terminal confirmation. Restore through history."),
+    .init("applications uninstall", "destructive", ["plan-id"], [], "Execute reviewed application components in the plan's mode after current-scope terminal confirmation. Trash supports history restore; permanent removal cannot be restored."),
+    .init("applications batch plan", "plan", ["file"], ["mode"], inputSchema: uninstallBatchInputSchema, "Create one plan from a JSON array of explicit application-review selections. Each selection has review_id, component_ids and optional include_user_data (default false). Mode permanent (default, irreversible) or trash. Reject all duplicate/overlapping paths before execution; personal data requires consent per application."),
+    .init("applications batch plan show", "read", ["plan-id"], [], "Show all application selections, exact components, removal mode, consent, total estimate, digest and expiry for one batch."),
+    .init("applications batch uninstall", "destructive", ["plan-id"], [], "Execute a reviewed application batch after one current-scope terminal confirmation. Recheck every application before starting and each component before mutation; partial results enter shared history."),
     .init("workspaces list", "read", [], [], "List registered workspaces."),
     .init("workspaces show", "read", ["workspace"], [], "Show workspace and current process access."),
     .init("workspaces add", "configuration", ["path", "root-ref"], [], "Register a local workspace; does not grant OS permissions."),
@@ -58,12 +100,14 @@ let commands: [CommandSpec] = [
     .init("scan", "snapshot", [], ["workspace", "location", "rule-id", "scope", "max-entries", "max-seconds"], repeated: ["rule-id"], exactlyOne: ["workspace", "location"], "Scan one registered workspace or built-in location. Scope full (default) measures the whole tree; cleanup discovers and measures rule targets. Save immutable evidence."),
     .init("system scan", "snapshot", [], ["include-projects", "max-entries", "max-seconds"], "Scan built-in cache roots; optionally discover conventional developer folders and include remembered projects (include-projects true/false, default false). Report each location's failures."),
     .init("scan results", "read", ["scan-id"], ["limit", "cursor"], "Page through stable candidate results."),
-    .init("analysis scan", "snapshot", ["path"], ["max-entries", "max-seconds"], "Analyze a local disk or folder without registering a cleanup workspace. No automatic selection."),
+    .init("analysis scan", "snapshot", ["path"], ["max-entries", "max-seconds"], "Analyze all accessible entries using a disk-backed index, without a cleanup workspace or automatic selection. Explicit max-entries/max-seconds select a bounded legacy snapshot."),
     .init("analysis plan", "plan", ["scan-id", "path"], ["mode"], repeated: ["path"], "Review explicit literal file and directory paths from space analysis; mode trash (default) or permanent. Parent selections subsume descendants."),
     .init("analysis plan show", "read", ["plan-id"], [], "Show the exact space removal scope, byte estimates, digest and expiry."),
     .init("analysis remove", "destructive", ["plan-id"], [], "Remove reviewed space-analysis items after terminal confirmation. File evidence is rechecked; results enter shared history."),
     .init("analysis summary", "read", ["scan-id"], [], "Show non-overlapping cleanup categories and measured workspace usage."),
     .init("analysis children", "read", ["scan-id"], ["path", "limit", "cursor"], "Browse allocated space in a saved scan; default path is the workspace root (.)."),
+    .init("analysis large-files", "read", ["scan-id"], ["minimum-bytes", "type", "limit", "cursor"], inputSchema: largeFileInputSchema,
+          "Query saved space-analysis evidence across all directories without rescanning. Minimum-bytes is nonnegative allocated bytes (default 52428800 = 50 MiB); type is all (default), video, audio, image, archive, document, ai-model or other, inferred only from filename extensions. Limit 1..500 (default 100). Stable order is allocated bytes descending then full path ascending. Hard links follow saved space accounting; byte totals are estimates. Reuse returned paths with analysis plan, then analysis remove for confirmed execution."),
     .init("plan create", "plan", ["scan-id", "candidate"], ["mode"], repeated: ["candidate"], "Create a plan from explicitly selected candidates. Mode is trash (default) or permanent."),
     .init("plan show", "read", ["plan-id"], [], "Inspect exact scope, manifest digest, risk, and expiry."),
     .init("plan execute", "destructive", ["plan-id"], [], "Execute the current Trash or permanent plan after terminal confirmation."),
@@ -76,7 +120,7 @@ let commands: [CommandSpec] = [
     .init("presets show", "read", ["preset-id"], [], "Show preset configuration."),
     .init("presets save", "configuration", ["name", "workspace", "rule-id"], [], repeated: ["rule-id"], "Save selection logic, never deletion permission."),
     .init("presets scan", "snapshot", ["preset-id"], [], "Generate a fresh scan using a saved preset.")
-]
+] + PrivacyCLI.commands
 
 struct Arguments {
     var command: String
@@ -154,7 +198,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.4.0"
+    static let version = "0.5.0"
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         await run()
@@ -259,6 +303,7 @@ enum Terminal {
             let store=try LocalRecordStore(directory: directory)
             let fs=NativeFileSystem()
             let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+            if try await PrivacyCLI.run(args, engine: engine) { return }
             var value: JSONValue = .null
             var warnings: [String] = []
             var next: [JSONValue] = []
@@ -266,6 +311,12 @@ enum Terminal {
             func nextResults(_ scan: ScanSnapshot) -> [JSONValue] { [.object(["command": .string("scan results"), "arguments": .object(["scan_id": .string(scan.id)])])] }
             switch args.command {
             case "locations list": value=try .from(await engine.knownLocations())
+            case "applications summary":
+                let includeSystem=args.values["include-system"]?.first ?? "false"
+                guard ["true", "false"].contains(includeSystem), let entries=Int(args.values["max-entries"]?.first ?? "100000"),
+                      let seconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Use boolean include-system and numeric measurement budgets.") }
+                let summary=try await engine.applicationSummaries(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true"), budget: ScanBudget(maxEntries: entries, maxSeconds: seconds))
+                value = .object(["status": .string(summary.status), "catalog": try .from(summary.catalog), "items": try .from(summary.items), "metric": .string("allocated_bytes_estimate"), "last_used_detection": .string("native_last_used_metadata")])
             case "applications inspect":
                 guard let entries=Int(args.values["max-entries"]?.first ?? "100000"), let seconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
                 let review=try await engine.reviewApplication(path: args.value("path"), budget: ScanBudget(maxEntries: entries, maxSeconds: seconds))
@@ -273,12 +324,24 @@ enum Terminal {
             case "applications plan":
                 let consent=args.values["include-user-data"]?.first ?? "false"
                 guard ["true", "false"].contains(consent) else { throw ShouError("invalid_argument", "Include-user-data must be true or false.") }
-                value=try .from(await engine.createUninstallPlan(reviewId: args.value("review-id"), componentIds: args.all("component"), includeUserData: consent == "true"))
+                value=try .from(await engine.createUninstallPlan(reviewId: args.value("review-id"), componentIds: args.all("component"), includeUserData: consent == "true", action: args.values["mode"]?.first ?? "trash"))
             case "applications plan show": value=try .from(await engine.uninstallPlan(args.value("plan-id")))
             case "applications uninstall":
                 let plan=try await engine.uninstallPlan(args.value("plan-id"))
-                try Terminal.confirm(TerminalReviewScope(uninstall: plan, locale: args.locale), phrase: "UNINSTALL " + plan.id, locale: args.locale)
+                try Terminal.confirm(TerminalReviewScope(uninstall: plan, locale: args.locale), phrase: (plan.effectiveAction == "permanent" ? "PURGE " : "UNINSTALL ") + plan.id, locale: args.locale)
                 value=try .from(await engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
+            case "applications batch plan":
+                let url=URL(fileURLWithPath: args.value("file"))
+                let bytes=try Data(contentsOf: url, options: .mappedIfSafe)
+                guard bytes.count <= 1_048_576, let selections=try? Codec.decode([ApplicationUninstallSelection].self, from: bytes) else {
+                    throw ShouError("invalid_argument", "Use a JSON selection array no larger than 1 MiB; see applications batch plan --help.")
+                }
+                value=try .from(await engine.createUninstallBatchPlan(selections: selections, action: args.values["mode"]?.first ?? "permanent"))
+            case "applications batch plan show": value=try .from(await engine.uninstallBatchPlan(args.value("plan-id")))
+            case "applications batch uninstall":
+                let plan=try await engine.uninstallBatchPlan(args.value("plan-id"))
+                try Terminal.confirm(TerminalReviewScope(uninstallBatch: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "UNINSTALL ") + plan.id, locale: args.locale)
+                value=try .from(await engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
             case "system scan":
                 guard let maxEntries=Int(args.values["max-entries"]?.first ?? "100000"), let maxSeconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
                 let projectOption=args.values["include-projects"]?.first ?? "false"
@@ -345,8 +408,9 @@ enum Terminal {
                 value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "candidates": try .from(Array(snapshot.candidates[offset..<end])), "next_cursor": end < snapshot.candidates.count ? .string(snapshot.id + ":" + String(end)) : .null, "total": .integer(Int64(snapshot.candidates.count))])
             case "analysis scan":
                 guard let count=Int(args.values["max-entries"]?.first ?? "1000000"), let seconds=Double(args.values["max-seconds"]?.first ?? "600") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
-                let result=try await engine.scanStorage(path: args.value("path"), budget: ScanBudget(maxEntries: count, maxSeconds: seconds))
-                value = .object(["scan_id": .string(result.id), "root_path": .string(result.rootPath), "status": .string(result.status), "entry_count": .integer(Int64(result.tree.entries.count)), "issues": try .from(result.tree.issues)])
+                let bounded=args.values["max-entries"] != nil || args.values["max-seconds"] != nil
+                let result=try await engine.scanStorage(path: args.value("path"), budget: bounded ? ScanBudget(maxEntries: count, maxSeconds: seconds) : nil)
+                value = .object(["scan_id": .string(result.id), "root_path": .string(result.rootPath), "status": .string(result.status), "entry_count": .integer(Int64(result.entryCount)), "issues": try .from(result.tree.issues)])
                 warnings=result.tree.issues
             case "analysis plan":
                 value=try .from(await engine.createStorageRemovalPlan(scanId: args.value("scan-id"), paths: args.all("path"), action: args.values["mode"]?.first ?? "trash"))
@@ -355,15 +419,35 @@ enum Terminal {
                 let plan=try await engine.storageRemovalPlan(args.value("plan-id"))
                 try Terminal.confirm(TerminalReviewScope(storage: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
                 value=try .from(await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
+            case "analysis large-files":
+                guard let minimum=Int64(args.values["minimum-bytes"]?.first ?? "52428800"),
+                      let limit=Int(args.values["limit"]?.first ?? "100"),
+                      let type=StorageFileType(rawValue: args.values["type"]?.first ?? "all") else {
+                    throw ShouError("invalid_argument", "Use integer minimum-bytes/limit and a supported filename type. See analysis large-files --help.")
+                }
+                let snapshot=try await engine.storageScan(args.value("scan-id"))
+                let page=try await engine.storageLargeFiles(scanId: snapshot.id, minimumBytes: minimum, type: type,
+                    limit: limit, cursor: args.values["cursor"]?.first)
+                var rows=[JSONValue]()
+                for item in page.items {
+                    rows.append(.object(["entry": try .from(item.entry), "node": try .from(item.node),
+                        "removal_block_reason": try .from(await engine.storageRemovalReason(scan: snapshot, path: item.entry.path))]))
+                }
+                value = .object(["scan_id": .string(snapshot.id), "root_path": .string(snapshot.rootPath), "status": .string(snapshot.status),
+                    "metric": .string("allocated_bytes_estimate"), "minimum_bytes": .integer(minimum), "type": .string(type.rawValue),
+                    "type_detection": .string("filename_extension"), "sort": .string("allocated_bytes_desc_path_asc"),
+                    "entries": .array(rows), "total": .integer(Int64(page.totalCount)), "total_allocated_bytes": .integer(page.totalAllocatedBytes),
+                    "next_cursor": try .from(page.nextCursor), "issues": try .from(snapshot.tree.issues)])
+                warnings=snapshot.tree.issues
             case "analysis summary" where args.value("scan-id").hasPrefix("storage_"):
                 let snapshot=try await engine.storageScan(args.value("scan-id"))
-                let storage=StorageIndex(entries: snapshot.tree.entries)
-                value = .object(["scan_id": .string(snapshot.id), "root_path": .string(snapshot.rootPath), "status": .string(snapshot.status), "metric": .string("allocated_bytes_estimate"), "root": try .from(storage.nodes["."]), "issues": try .from(snapshot.tree.issues)])
+                let directory=try await engine.storageDirectory(scanId: snapshot.id)
+                value = .object(["scan_id": .string(snapshot.id), "root_path": .string(snapshot.rootPath), "status": .string(snapshot.status), "metric": .string("allocated_bytes_estimate"), "entry_count": .integer(Int64(snapshot.entryCount)), "root": try .from(directory.item.node), "issues": try .from(snapshot.tree.issues)])
             case "analysis children" where args.value("scan-id").hasPrefix("storage_"):
                 let snapshot=try await engine.storageScan(args.value("scan-id"))
-                let storage=StorageIndex(entries: snapshot.tree.entries), path=args.values["path"]?.first ?? "."
-                guard storage.nodes[path]?.kind == "directory" else { throw ShouError("invalid_argument", "Path must name an exact directory in this scan.") }
-                let children=storage.children(of: path), limit=Int(args.values["limit"]?.first ?? "50") ?? 0
+                let path=args.values["path"]?.first ?? "."
+                let directory=try await engine.storageDirectory(scanId: snapshot.id, path: path)
+                let children=directory.children.map(\.node), limit=Int(args.values["limit"]?.first ?? "50") ?? 0
                 guard (1...500).contains(limit) else { throw ShouError("invalid_argument", "Limit must be between 1 and 500.") }
                 let prefix=snapshot.id + ":" + String(try Digest.of(path).prefix(16)) + ":"
                 var offset=0
@@ -376,7 +460,7 @@ enum Terminal {
                 for node in children[offset..<end] {
                     rows.append(.object(["node": try .from(node), "removal_block_reason": try .from(await engine.storageRemovalReason(scan: snapshot, path: node.path))]))
                 }
-                value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "path": .string(path), "directory": try .from(storage.nodes[path]), "entries": .array(rows), "total": .integer(Int64(children.count)), "next_cursor": end < children.count ? .string(prefix + String(end)) : .null])
+                value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "path": .string(path), "directory": try .from(directory.item.node), "entries": .array(rows), "total": .integer(Int64(children.count)), "next_cursor": end < children.count ? .string(prefix + String(end)) : .null])
             case "analysis summary":
                 let snapshot=try await engine.scanSnapshot(args.value("scan-id"))
                 guard snapshot.scope != .cleanup else { throw ShouError("partial_result", "Space analysis requires a full-tree scan. Run scan with --scope full.") }

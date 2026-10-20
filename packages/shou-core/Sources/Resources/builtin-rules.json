@@ -1567,5 +1567,2785 @@
     "limitation": "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Every source file must match its retained crate archive and Cargo checksum evidence. Modified, unverified or credential-bearing crates are blocked. Archives, registry indexes, installed tools and configuration are retained.",
     "location": "cargo",
     "applicationBundleIdentifiers": []
+  },
+  {
+    "id": "shou.builtin.mole-zed-cache",
+    "version": "1.0.0",
+    "name": "Zed caches",
+    "category": "cache",
+    "patterns": [
+      "Zed"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "dev.zed.Zed"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-us-zoom-xos-cache",
+    "version": "1.0.0",
+    "name": "Zoom caches",
+    "category": "cache",
+    "patterns": [
+      "us.zoom.xos"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "us.zoom.xos"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-ru-keepcoder-telegram-cache",
+    "version": "1.0.0",
+    "name": "Telegram caches",
+    "category": "cache",
+    "patterns": [
+      "ru.keepcoder.Telegram"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "ru.keepcoder.Telegram"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-net-whatsapp-whatsapp-cache",
+    "version": "1.0.0",
+    "name": "WhatsApp caches",
+    "category": "cache",
+    "patterns": [
+      "net.whatsapp.WhatsApp"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "net.whatsapp.WhatsApp"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-skype-skype-cache",
+    "version": "1.0.0",
+    "name": "Skype caches",
+    "category": "cache",
+    "patterns": [
+      "com.skype.skype"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.skype.skype"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tencent-weworkmac-cache",
+    "version": "1.0.0",
+    "name": "WeCom caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.WeWorkMac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.WeWorkMac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-openai-chat-cache",
+    "version": "1.0.0",
+    "name": "ChatGPT caches",
+    "category": "cache",
+    "patterns": [
+      "com.openai.chat"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.openai.chat",
+      "com.openai.codex"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-lmstudio-lmstudio-cache",
+    "version": "1.0.0",
+    "name": "LM Studio caches",
+    "category": "cache",
+    "patterns": [
+      "com.lmstudio.lmstudio"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.lmstudio.lmstudio"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-bohemiancoding-sketch3-cache",
+    "version": "1.0.0",
+    "name": "Sketch caches",
+    "category": "cache",
+    "patterns": [
+      "com.bohemiancoding.sketch3"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.bohemiancoding.sketch3"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-adobe-bridge-cache",
+    "version": "1.0.0",
+    "name": "Adobe Bridge caches",
+    "category": "cache",
+    "patterns": [
+      "com.adobe.bridge"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.adobe.bridge"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-net-telestream-screenflow10-cache",
+    "version": "1.0.0",
+    "name": "ScreenFlow caches",
+    "category": "cache",
+    "patterns": [
+      "net.telestream.screenflow10"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "net.telestream.screenflow10"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-apple-finalcut-cache",
+    "version": "1.0.0",
+    "name": "Final Cut Pro caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.FinalCut"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.apple.FinalCut"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-blackmagic-design-davinciresolve-cache",
+    "version": "1.0.0",
+    "name": "DaVinci Resolve caches",
+    "category": "cache",
+    "patterns": [
+      "com.blackmagic-design.DaVinciResolve"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.blackmagic-design.DaVinciResolve"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-org-blenderfoundation-blender-cache",
+    "version": "1.0.0",
+    "name": "Blender caches",
+    "category": "cache",
+    "patterns": [
+      "org.blenderfoundation.blender"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "org.blenderfoundation.blender"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-maxon-cinema4d-cache",
+    "version": "1.0.0",
+    "name": "Cinema 4D caches",
+    "category": "cache",
+    "patterns": [
+      "com.maxon.cinema4d"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.maxon.cinema4d"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tw93-miaoyan-cache",
+    "version": "1.0.0",
+    "name": "MiaoYan caches",
+    "category": "cache",
+    "patterns": [
+      "com.tw93.MiaoYan"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tw93.MiaoYan"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-klee-desktop-cache",
+    "version": "1.0.0",
+    "name": "Klee caches",
+    "category": "cache",
+    "patterns": [
+      "com.klee.desktop"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.klee.desktop"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-orabrowser-app-cache",
+    "version": "1.0.0",
+    "name": "Ora browser caches",
+    "category": "cache",
+    "patterns": [
+      "com.orabrowser.app"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.orabrowser.app"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-filo-client-cache",
+    "version": "1.0.0",
+    "name": "Filo caches",
+    "category": "cache",
+    "patterns": [
+      "com.filo.client"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.filo.client"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-flomoapp-mac-cache",
+    "version": "1.0.0",
+    "name": "Flomo caches",
+    "category": "cache",
+    "patterns": [
+      "com.flomoapp.mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.flomoapp.mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-apple-music-cache",
+    "version": "1.0.0",
+    "name": "Apple Music caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.Music"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.apple.Music"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-apple-podcasts-cache",
+    "version": "1.0.0",
+    "name": "Apple Podcasts caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.podcasts"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.apple.podcasts"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-apple-tv-cache",
+    "version": "1.0.0",
+    "name": "Apple TV caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.TV"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.apple.TV"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-tv-plex-player-desktop-cache",
+    "version": "1.0.0",
+    "name": "Plex caches",
+    "category": "cache",
+    "patterns": [
+      "tv.plex.player.desktop"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "tv.plex.player.desktop"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-netease-163music-cache",
+    "version": "1.0.0",
+    "name": "NetEase Music caches",
+    "category": "cache",
+    "patterns": [
+      "com.netease.163music"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.netease.163music"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tencent-qqmusic-cache",
+    "version": "1.0.0",
+    "name": "QQ Music caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.QQMusic"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.QQMusic"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tencent-qqmusicmac-cache",
+    "version": "1.0.0",
+    "name": "QQ Music Mac caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.QQMusicMac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.QQMusicMac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-kugou-mac-cache",
+    "version": "1.0.0",
+    "name": "Kugou Music caches",
+    "category": "cache",
+    "patterns": [
+      "com.kugou.mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.kugou.mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-kuwo-mac-cache",
+    "version": "1.0.0",
+    "name": "Kuwo Music caches",
+    "category": "cache",
+    "patterns": [
+      "com.kuwo.mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.kuwo.mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-colliderli-iina-cache",
+    "version": "1.0.0",
+    "name": "IINA caches",
+    "category": "cache",
+    "patterns": [
+      "com.colliderli.iina"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.colliderli.iina"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-org-videolan-vlc-cache",
+    "version": "1.0.0",
+    "name": "VLC caches",
+    "category": "cache",
+    "patterns": [
+      "org.videolan.vlc"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "org.videolan.vlc"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-io-mpv-cache",
+    "version": "1.0.0",
+    "name": "MPV caches",
+    "category": "cache",
+    "patterns": [
+      "io.mpv"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "io.mpv"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-iqiyi-player-cache",
+    "version": "1.0.0",
+    "name": "iQIYI caches",
+    "category": "cache",
+    "patterns": [
+      "com.iqiyi.player"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.iqiyi.player"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tencent-tenvideo-cache",
+    "version": "1.0.0",
+    "name": "Tencent Video caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.tenvideo"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.tenvideo"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-tv-danmaku-bili-cache",
+    "version": "1.0.0",
+    "name": "Bilibili caches",
+    "category": "cache",
+    "patterns": [
+      "tv.danmaku.bili"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "tv.danmaku.bili"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-net-xmac-aria2gui-cache",
+    "version": "1.0.0",
+    "name": "Aria2 caches",
+    "category": "cache",
+    "patterns": [
+      "net.xmac.aria2gui"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "net.xmac.aria2gui"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-org-m0k-transmission-cache",
+    "version": "1.0.0",
+    "name": "Transmission caches",
+    "category": "cache",
+    "patterns": [
+      "org.m0k.transmission"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "org.m0k.transmission"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-qbittorrent-qbittorrent-cache",
+    "version": "1.0.0",
+    "name": "qBittorrent caches",
+    "category": "cache",
+    "patterns": [
+      "com.qbittorrent.qBittorrent"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.qbittorrent.qBittorrent"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-charlessoft-pacifist-cache",
+    "version": "1.0.0",
+    "name": "Pacifist caches",
+    "category": "cache",
+    "patterns": [
+      "com.charlessoft.pacifist"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.charlessoft.pacifist"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-valvesoftware-steam-cache",
+    "version": "1.0.0",
+    "name": "Steam caches",
+    "category": "cache",
+    "patterns": [
+      "com.valvesoftware.steam"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.valvesoftware.steam"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-epicgames-epicgameslauncher-cache",
+    "version": "1.0.0",
+    "name": "Epic Games caches",
+    "category": "cache",
+    "patterns": [
+      "com.epicgames.EpicGamesLauncher"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.epicgames.EpicGamesLauncher"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-blizzard-battle-net-cache",
+    "version": "1.0.0",
+    "name": "Battle.net caches",
+    "category": "cache",
+    "patterns": [
+      "com.blizzard.Battle.net"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.blizzard.Battle.net"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-gog-galaxy-cache",
+    "version": "1.0.0",
+    "name": "GOG Galaxy caches",
+    "category": "cache",
+    "patterns": [
+      "com.gog.galaxy"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.gog.galaxy"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-net-pcsx2-pcsx2-cache",
+    "version": "1.0.0",
+    "name": "PCSX2 caches",
+    "category": "cache",
+    "patterns": [
+      "net.pcsx2.PCSX2"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "net.pcsx2.PCSX2"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-net-rpcs3-rpcs3-cache",
+    "version": "1.0.0",
+    "name": "RPCS3 caches",
+    "category": "cache",
+    "patterns": [
+      "net.rpcs3.rpcs3"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "net.rpcs3.rpcs3"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-youdao-youdaodict-cache",
+    "version": "1.0.0",
+    "name": "Youdao Dictionary caches",
+    "category": "cache",
+    "patterns": [
+      "com.youdao.YoudaoDict"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.youdao.YoudaoDict"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-bob-build-bob-cache",
+    "version": "1.0.0",
+    "name": "Bob Translation caches",
+    "category": "cache",
+    "patterns": [
+      "com.bob-build.Bob"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.bob-build.Bob"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-reincubate-camo-cache",
+    "version": "1.0.0",
+    "name": "Camo caches",
+    "category": "cache",
+    "patterns": [
+      "com.reincubate.camo"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.reincubate.camo"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-xnipapp-xnip-cache",
+    "version": "1.0.0",
+    "name": "Xnip caches",
+    "category": "cache",
+    "patterns": [
+      "com.xnipapp.xnip"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.xnipapp.xnip"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-readdle-smartemail-mac-cache",
+    "version": "1.0.0",
+    "name": "Spark caches",
+    "category": "cache",
+    "patterns": [
+      "com.readdle.smartemail-Mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.readdle.smartemail-Mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-todoist-mac-todoist-cache",
+    "version": "1.0.0",
+    "name": "Todoist caches",
+    "category": "cache",
+    "patterns": [
+      "com.todoist.mac.Todoist"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.todoist.mac.Todoist"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-dev-warp-warp-stable-cache",
+    "version": "1.0.0",
+    "name": "Warp caches",
+    "category": "cache",
+    "patterns": [
+      "dev.warp.Warp-Stable"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "dev.warp.Warp-Stable"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-mitchellh-ghostty-cache",
+    "version": "1.0.0",
+    "name": "Ghostty caches",
+    "category": "cache",
+    "patterns": [
+      "com.mitchellh.ghostty"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.mitchellh.ghostty"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-runjuu-input-source-pro-cache",
+    "version": "1.0.0",
+    "name": "Input Source Pro caches",
+    "category": "cache",
+    "patterns": [
+      "com.runjuu.Input-Source-Pro"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.runjuu.Input-Source-Pro"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-macos-wakatime-wakatime-cache",
+    "version": "1.0.0",
+    "name": "WakaTime caches",
+    "category": "cache",
+    "patterns": [
+      "macos-wakatime.WakaTime"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "macos-wakatime.WakaTime"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-ws-stash-app-mac-cache",
+    "version": "1.0.0",
+    "name": "Stash caches",
+    "category": "cache",
+    "patterns": [
+      "ws.stash.app.mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "ws.stash.app.mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-logseq-logseq-cache",
+    "version": "1.0.0",
+    "name": "Logseq caches",
+    "category": "cache",
+    "patterns": [
+      "com.logseq.logseq"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.logseq.logseq"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-runningwithcrayons-alfred-cache",
+    "version": "1.0.0",
+    "name": "Alfred caches",
+    "category": "cache",
+    "patterns": [
+      "com.runningwithcrayons.Alfred"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.runningwithcrayons.Alfred"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-cx-c3-theunarchiver-cache",
+    "version": "1.0.0",
+    "name": "The Unarchiver caches",
+    "category": "cache",
+    "patterns": [
+      "cx.c3.theunarchiver"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "cx.c3.theunarchiver"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-teamviewer-teamviewer-cache",
+    "version": "1.0.0",
+    "name": "TeamViewer caches",
+    "category": "cache",
+    "patterns": [
+      "com.teamviewer.TeamViewer"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.teamviewer.TeamViewer"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-sequel-ace-sequel-ace-cache",
+    "version": "1.0.0",
+    "name": "Sequel Ace caches",
+    "category": "cache",
+    "patterns": [
+      "com.sequel-ace.sequel-ace"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.sequel-ace.sequel-ace"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-eggerapps-sequel-pro-cache",
+    "version": "1.0.0",
+    "name": "Sequel Pro caches",
+    "category": "cache",
+    "patterns": [
+      "com.eggerapps.Sequel-Pro"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.eggerapps.Sequel-Pro"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-navicat-navicatpremium-cache",
+    "version": "1.0.0",
+    "name": "Navicat Premium caches",
+    "category": "cache",
+    "patterns": [
+      "com.navicat.NavicatPremium"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.navicat.NavicatPremium"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-redis-redisinsight-cache",
+    "version": "1.0.0",
+    "name": "Redis Insight caches",
+    "category": "cache",
+    "patterns": [
+      "com.redis.RedisInsight"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.redis.RedisInsight"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-postmanlabs-mac-cache",
+    "version": "1.0.0",
+    "name": "Postman caches",
+    "category": "cache",
+    "patterns": [
+      "com.postmanlabs.mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.postmanlabs.mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-konghq-insomnia-cache",
+    "version": "1.0.0",
+    "name": "Insomnia caches",
+    "category": "cache",
+    "patterns": [
+      "com.konghq.insomnia"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.insomnia.app",
+      "rest.insomnia.Insomnia"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tinyapp-tableplus-cache",
+    "version": "1.0.0",
+    "name": "TablePlus caches",
+    "category": "cache",
+    "patterns": [
+      "com.tinyapp.TablePlus"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tinyapp.TablePlus"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-getpaw-paw-cache",
+    "version": "1.0.0",
+    "name": "Paw API caches",
+    "category": "cache",
+    "patterns": [
+      "com.getpaw.Paw"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.getpaw.Paw"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-charlesproxy-charles-cache",
+    "version": "1.0.0",
+    "name": "Charles Proxy caches",
+    "category": "cache",
+    "patterns": [
+      "com.charlesproxy.charles"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.charlesproxy.charles"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-proxyman-nsproxy-cache",
+    "version": "1.0.0",
+    "name": "Proxyman caches",
+    "category": "cache",
+    "patterns": [
+      "com.proxyman.NSProxy"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.proxyman.NSProxy"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-unity3d-unityhub-cache",
+    "version": "1.0.0",
+    "name": "Unity Hub caches",
+    "category": "cache",
+    "patterns": [
+      "com.unity3d.unityhub"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.unity3d.unityhub"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-mongodb-compass-cache",
+    "version": "1.0.0",
+    "name": "MongoDB Compass caches",
+    "category": "cache",
+    "patterns": [
+      "com.mongodb.compass"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.mongodb.compass"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-github-githubdesktop-cache",
+    "version": "1.0.0",
+    "name": "GitHub Desktop caches",
+    "category": "cache",
+    "patterns": [
+      "com.github.GitHubDesktop"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.github.GitHubClient"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-apple-safari-cache",
+    "version": "1.0.0",
+    "name": "Safari caches",
+    "category": "cache",
+    "patterns": [
+      "com.apple.Safari"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.apple.Safari"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-microsoft-edgemac-cache",
+    "version": "1.0.0",
+    "name": "Edge caches",
+    "category": "cache",
+    "patterns": [
+      "com.microsoft.edgemac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.edgemac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-company-thebrowser-dia-cache",
+    "version": "1.0.0",
+    "name": "Dia caches",
+    "category": "cache",
+    "patterns": [
+      "company.thebrowser.dia"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "company.thebrowser.dia"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-net-imput-helium-cache",
+    "version": "1.0.0",
+    "name": "Helium caches",
+    "category": "cache",
+    "patterns": [
+      "net.imput.helium"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "net.imput.helium"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-yandex-yandexbrowser-cache",
+    "version": "1.0.0",
+    "name": "Yandex caches",
+    "category": "cache",
+    "patterns": [
+      "Yandex/YandexBrowser"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "ru.yandex.desktop.yandex-browser"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-operasoftware-opera-cache",
+    "version": "1.0.0",
+    "name": "Opera caches",
+    "category": "cache",
+    "patterns": [
+      "com.operasoftware.Opera"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.operasoftware.Opera"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-comet-cache",
+    "version": "1.0.0",
+    "name": "Comet caches",
+    "category": "cache",
+    "patterns": [
+      "Comet"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "ai.perplexity.comet"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-kagi-kagimacos-cache",
+    "version": "1.0.0",
+    "name": "Orion caches",
+    "category": "cache",
+    "patterns": [
+      "com.kagi.kagimacOS"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.kagi.kagimacOS"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-zen-cache",
+    "version": "1.0.0",
+    "name": "Zen caches",
+    "category": "cache",
+    "patterns": [
+      "zen"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "app.zen-browser.zen"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-tencent-qqbrowser3-cache",
+    "version": "1.0.0",
+    "name": "QQ Browser caches",
+    "category": "cache",
+    "patterns": [
+      "com.tencent.QQBrowser3"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.tencent.QQBrowser3"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-baidu-netdisk-cache",
+    "version": "1.0.0",
+    "name": "Baidu Netdisk caches",
+    "category": "cache",
+    "patterns": [
+      "com.baidu.netdisk"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.baidu.netdisk"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-alibaba-teambitiondisk-cache",
+    "version": "1.0.0",
+    "name": "Alibaba Cloud caches",
+    "category": "cache",
+    "patterns": [
+      "com.alibaba.teambitiondisk"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.alibaba.teambitiondisk"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-box-desktop-cache",
+    "version": "1.0.0",
+    "name": "Box caches",
+    "category": "cache",
+    "patterns": [
+      "com.box.desktop"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.box.desktop"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-microsoft-word-cache",
+    "version": "1.0.0",
+    "name": "Microsoft Word caches",
+    "category": "cache",
+    "patterns": [
+      "com.microsoft.Word"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.Word"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-microsoft-excel-cache",
+    "version": "1.0.0",
+    "name": "Microsoft Excel caches",
+    "category": "cache",
+    "patterns": [
+      "com.microsoft.Excel"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.Excel"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-microsoft-powerpoint-cache",
+    "version": "1.0.0",
+    "name": "Microsoft PowerPoint caches",
+    "category": "cache",
+    "patterns": [
+      "com.microsoft.Powerpoint"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.Powerpoint"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-kingsoft-wpsoffice-mac-cache",
+    "version": "1.0.0",
+    "name": "WPS Office caches",
+    "category": "cache",
+    "patterns": [
+      "com.kingsoft.wpsoffice.mac"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.kingsoft.wpsoffice.mac"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-org-mozilla-thunderbird-cache",
+    "version": "1.0.0",
+    "name": "Thunderbird caches",
+    "category": "cache",
+    "patterns": [
+      "org.mozilla.thunderbird"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "org.mozilla.thunderbird"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-utmapp-utm-cache",
+    "version": "1.0.0",
+    "name": "UTM app caches",
+    "category": "cache",
+    "patterns": [
+      "com.utmapp.UTM"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.utmapp.UTM"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-vmware-fusion-cache",
+    "version": "1.0.0",
+    "name": "VMware Fusion caches",
+    "category": "cache",
+    "patterns": [
+      "com.vmware.fusion"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.vmware.fusion"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-com-parallels-desktop-console-cache",
+    "version": "1.0.0",
+    "name": "Parallels Desktop caches",
+    "category": "cache",
+    "patterns": [
+      "com.parallels.desktop.console"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "caches",
+    "applicationBundleIdentifiers": [
+      "com.parallels.desktop.console"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.zed-caches",
+    "version": "1.0.0",
+    "name": "Zed caches",
+    "category": "cache",
+    "patterns": [
+      "node/cache",
+      "node/node-v*/cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "zed",
+    "applicationBundleIdentifiers": [
+      "dev.zed.Zed"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.codebuddy-cn-caches",
+    "version": "1.0.0",
+    "name": "CodeBuddy CN caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "CachedData",
+      "CachedExtensionVSIXs",
+      "Code Cache",
+      "GPUCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "codebuddy-cn",
+    "applicationBundleIdentifiers": [
+      "com.tencent.codebuddycn"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.sketch-caches",
+    "version": "1.0.0",
+    "name": "Sketch caches",
+    "category": "cache",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "sketch",
+    "applicationBundleIdentifiers": [
+      "com.bohemiancoding.sketch3"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.spacedrive-caches",
+    "version": "1.0.0",
+    "name": "Spacedrive caches",
+    "category": "cache",
+    "patterns": [
+      "thumbnails"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "spacedrive",
+    "applicationBundleIdentifiers": [
+      "com.spacedrive.desktop"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.steam-caches",
+    "version": "1.0.0",
+    "name": "Steam caches",
+    "category": "cache",
+    "patterns": [
+      "htmlcache",
+      "appcache",
+      "depotcache",
+      "steamapps/shadercache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "steam",
+    "applicationBundleIdentifiers": [
+      "com.valvesoftware.steam"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.battle-net-caches",
+    "version": "1.0.0",
+    "name": "Battle.net caches",
+    "category": "cache",
+    "patterns": [
+      "Cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "battle-net",
+    "applicationBundleIdentifiers": [
+      "com.blizzard.Battle.net"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.minecraft-caches",
+    "version": "1.0.0",
+    "name": "Minecraft caches",
+    "category": "cache",
+    "patterns": [
+      "webcache",
+      "webcache2"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "minecraft",
+    "applicationBundleIdentifiers": [
+      "com.mojang.minecraftlauncher"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.pcsx2-caches",
+    "version": "1.0.0",
+    "name": "PCSX2 caches",
+    "category": "cache",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "pcsx2",
+    "applicationBundleIdentifiers": [
+      "net.pcsx2.PCSX2"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.stremio-caches",
+    "version": "1.0.0",
+    "name": "Stremio caches",
+    "category": "cache",
+    "patterns": [
+      "stremio-server/stremio-cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "stremio",
+    "applicationBundleIdentifiers": [
+      "com.stremio.Stremio",
+      "com.westbridge.stremio5-mac",
+      "com.stremio.stremio-shell-macos"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.wetype-caches",
+    "version": "1.0.0",
+    "name": "WeType caches",
+    "category": "cache",
+    "patterns": [
+      "com.onevcat.Kingfisher.ImageCache.WeType",
+      "DictUpdate"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "wetype",
+    "applicationBundleIdentifiers": [
+      "com.tencent.inputmethod.wetype"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.antigravity-caches",
+    "version": "1.0.0",
+    "name": "Antigravity caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "antigravity",
+    "applicationBundleIdentifiers": [
+      "com.google.antigravity"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.filo-caches",
+    "version": "1.0.0",
+    "name": "Filo caches",
+    "category": "cache",
+    "patterns": [
+      "production/Cache",
+      "production/Code Cache",
+      "production/GPUCache",
+      "production/DawnGraphiteCache",
+      "production/DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "filo",
+    "applicationBundleIdentifiers": [
+      "com.filo.client"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.qoder-caches",
+    "version": "1.0.0",
+    "name": "Qoder caches",
+    "category": "cache",
+    "patterns": [
+      "Cache",
+      "CachedData",
+      "CachedExtensionVSIXs",
+      "Code Cache",
+      "GPUCache",
+      "DawnGraphiteCache",
+      "DawnWebGPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "qoder",
+    "applicationBundleIdentifiers": [
+      "com.qoder.ide"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.firefox-support-caches",
+    "version": "1.0.0",
+    "name": "Firefox profile caches",
+    "category": "cache",
+    "patterns": [
+      "*/cache2"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "firefox-support",
+    "applicationBundleIdentifiers": [
+      "org.mozilla.firefox"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.dia-caches",
+    "version": "1.0.0",
+    "name": "Dia caches",
+    "category": "cache",
+    "patterns": [
+      "GraphiteDawnCache",
+      "GPUPersistentCache",
+      "component_crx_cache",
+      "extensions_crx_cache",
+      "*/DawnGraphiteCache",
+      "*/DawnWebGPUCache",
+      "*/GPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "dia",
+    "applicationBundleIdentifiers": [
+      "company.thebrowser.dia"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.dia-downloads-caches",
+    "version": "1.0.0",
+    "name": "Dia download caches",
+    "category": "cache",
+    "patterns": [
+      "*/Cache",
+      "*/Code Cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "dia-downloads",
+    "applicationBundleIdentifiers": [
+      "company.thebrowser.dia"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.helium-caches",
+    "version": "1.0.0",
+    "name": "Helium caches",
+    "category": "cache",
+    "patterns": [
+      "*/GPUCache",
+      "component_crx_cache",
+      "extensions_crx_cache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "ShaderCache",
+      "*/Application Cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "helium",
+    "applicationBundleIdentifiers": [
+      "net.imput.helium"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.yandex-caches",
+    "version": "1.0.0",
+    "name": "Yandex Browser caches",
+    "category": "cache",
+    "patterns": [
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "*/GPUCache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "yandex",
+    "applicationBundleIdentifiers": [
+      "ru.yandex.desktop.yandex-browser"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.qqbrowser-caches",
+    "version": "1.0.0",
+    "name": "QQ Browser caches",
+    "category": "cache",
+    "patterns": [
+      "*/Code Cache",
+      "*/GPUCache",
+      "ShaderCache",
+      "GrShaderCache",
+      "GraphiteDawnCache",
+      "component_crx_cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "qqbrowser",
+    "applicationBundleIdentifiers": [
+      "com.tencent.QQBrowser3"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.vscode-mole-caches",
+    "version": "1.0.0",
+    "name": "Visual Studio Code web caches",
+    "category": "cache",
+    "patterns": [
+      "WebStorage/*/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "vscode",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.VSCode",
+      "com.microsoft.VSCodeInsiders"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.notion-mole-caches",
+    "version": "1.0.0",
+    "name": "Notion web caches",
+    "category": "cache",
+    "patterns": [
+      "Partitions/*/Service Worker/CacheStorage"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "notion",
+    "applicationBundleIdentifiers": [
+      "notion.id"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.teams-mole-caches",
+    "version": "1.0.0",
+    "name": "Microsoft Teams web caches",
+    "category": "cache",
+    "patterns": [
+      "Application Cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application recreates downloaded resources and generated caches when needed.",
+    "limitation": "Quit the application first. Offline resources may need downloading again. Only the named cache paths are targeted; accounts, documents, settings, sessions and other persistent data are retained.",
+    "location": "teams",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.teams",
+      "com.microsoft.teams2"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.vscode-diagnostic-logs",
+    "version": "1.0.0",
+    "name": "Visual Studio Code logs",
+    "category": "logs",
+    "patterns": [
+      "logs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "vscode",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.VSCode",
+      "com.microsoft.VSCodeInsiders"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.codebuddy-cn-diagnostic-logs",
+    "version": "1.0.0",
+    "name": "CodeBuddy CN logs",
+    "category": "logs",
+    "patterns": [
+      "logs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "codebuddy-cn",
+    "applicationBundleIdentifiers": [
+      "com.tencent.codebuddycn"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.teams-diagnostic-logs",
+    "version": "1.0.0",
+    "name": "Microsoft Teams logs",
+    "category": "logs",
+    "patterns": [
+      "logs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "teams",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.teams",
+      "com.microsoft.teams2"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.steam-diagnostic-logs",
+    "version": "1.0.0",
+    "name": "Steam logs",
+    "category": "logs",
+    "patterns": [
+      "logs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "steam",
+    "applicationBundleIdentifiers": [
+      "com.valvesoftware.steam"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.minecraft-diagnostic-logs",
+    "version": "1.0.0",
+    "name": "Minecraft logs",
+    "category": "logs",
+    "patterns": [
+      "logs",
+      "crash-reports"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "minecraft",
+    "applicationBundleIdentifiers": [
+      "com.mojang.minecraftlauncher"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.qoder-diagnostic-logs",
+    "version": "1.0.0",
+    "name": "Qoder logs",
+    "category": "logs",
+    "patterns": [
+      "logs"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "qoder",
+    "applicationBundleIdentifiers": [
+      "com.qoder.ide"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.zed-user-logs",
+    "version": "1.0.0",
+    "name": "Zed logs",
+    "category": "logs",
+    "patterns": [
+      "Zed"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "application-logs",
+    "applicationBundleIdentifiers": [
+      "dev.zed.Zed"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.claude-user-logs",
+    "version": "1.0.0",
+    "name": "Claude logs",
+    "category": "logs",
+    "patterns": [
+      "Claude"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "application-logs",
+    "applicationBundleIdentifiers": [
+      "com.anthropic.claudefordesktop"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.jetbrains-user-logs",
+    "version": "1.0.0",
+    "name": "JetBrains IDE logs",
+    "category": "logs",
+    "patterns": [
+      "JetBrains"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The application creates new diagnostic logs when needed.",
+    "limitation": "Quit the application first. Selected diagnostic history will be lost. User documents, preferences, sessions and saved application state are retained.",
+    "location": "application-logs",
+    "applicationBundleIdentifiers": [
+      "com.jetbrains.intellij",
+      "com.jetbrains.intellij.ce",
+      "com.jetbrains.pycharm",
+      "com.jetbrains.pycharm.ce",
+      "com.jetbrains.WebStorm",
+      "com.jetbrains.goland",
+      "com.jetbrains.rustrover",
+      "com.jetbrains.PhpStorm",
+      "com.jetbrains.CLion",
+      "com.jetbrains.datagrip",
+      "com.jetbrains.rider"
+    ],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-developer-cache",
+    "version": "1.0.0",
+    "name": "Developer generated caches",
+    "category": "packages",
+    "patterns": [
+      "poetry",
+      "typescript",
+      "node-gyp",
+      "vite",
+      "webpack",
+      "eslint",
+      "prettier",
+      "prisma",
+      "curl",
+      "wget"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "developer-cache",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-pyenv-downloads",
+    "version": "1.0.0",
+    "name": "pyenv download caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "pyenv-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-rbenv-downloads",
+    "version": "1.0.0",
+    "name": "rbenv download caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "rbenv-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-bundler-downloads",
+    "version": "1.0.0",
+    "name": "Bundler download caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "bundler-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-hex-downloads",
+    "version": "1.0.0",
+    "name": "Hex download caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "hex-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-opam-downloads",
+    "version": "1.0.0",
+    "name": "Opam download caches",
+    "category": "packages",
+    "patterns": [
+      "download-cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "opam-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-android-generated",
+    "version": "1.0.0",
+    "name": "Android generated caches",
+    "category": "packages",
+    "patterns": [
+      "build-cache",
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "android-generated",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-expo-downloads",
+    "version": "1.0.0",
+    "name": "Expo download caches",
+    "category": "packages",
+    "patterns": [
+      "expo-go",
+      "android-apk-cache",
+      "ios-simulator-app-cache",
+      "native-modules-cache",
+      "schema-cache",
+      "template-cache",
+      "versions-cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "expo-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-turbo-downloads",
+    "version": "1.0.0",
+    "name": "Turbo generated caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "turbo-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-vite-downloads",
+    "version": "1.0.0",
+    "name": "Vite generated caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "vite-downloads",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
+  },
+  {
+    "id": "shou.builtin.mole-docker-buildx",
+    "version": "1.0.0",
+    "name": "Docker BuildX caches",
+    "category": "packages",
+    "patterns": [
+      "cache"
+    ],
+    "marker": null,
+    "risk": "review",
+    "rebuildNote": "The tool downloads packages or regenerates cached analysis when needed.",
+    "limitation": "Stop affected tools and builds first. Offline workflows may need downloads again. Installed tools, credentials, configuration and project sources are retained; protected descendants still block cleanup.",
+    "location": "docker-buildx",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "macos"
+    ]
   }
 ]

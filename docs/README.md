@@ -16,6 +16,7 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 
 | Goal | Documents |
 | --- | --- |
+| Install and enable complete scanning | [Installation and disk access](product/installation-and-access.md) |
 | Understand the product | [PRD](product/prd.md) → [Unified daily cleanup](product/unified-cleanup.md) → [Stories and use cases](product/user-stories-and-use-cases.md) |
 | Understand developer storage | [Developer scenarios](product/developer-space-scenarios.md) → [Rules](rules/rule-specification.md) |
 | Inspect startup sources | [Startup discovery](product/startup-items.md) → [CLI contract](ai/agent-and-cli-contract.md) |
@@ -49,3 +50,8 @@ The PRD owns product scope and priorities. The rule specification owns matching 
 Synchronize identifiers, states, fields, defaults, and safety constraints when changing either technical language edition. Render diagrams with a Mermaid-capable Markdown viewer.
 
 - [Space analysis and explicit removal](product/space-analysis.md)
+
+- [Reference capability map and implementation gates](engineering/reference-capability-map.md)
+
+- [Privacy cleaning and source contracts](engineering/privacy-cleaning.md)
+- [Mole application inventory and rule coverage](engineering/mole-rule-coverage.md)

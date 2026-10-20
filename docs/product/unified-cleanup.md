@@ -6,13 +6,13 @@ Shou saves the user time by discovering cleanup targets together. Project Cleanu
 
 ## User experience
 
-1. Open Smart Cleanup and choose Scan & Free Space, or Scan Only to inspect first.
+1. Open Smart Cleanup and choose Start Scan. The adjacent menu offers Scan & Free Space and Scan Locations.
 2. Shou finds fixed cache roots, conventional project collections and previously included folders. It applies built-in and enabled personal rules and selects eligible results.
 3. Confirm the concrete paths once. Permanent removal is the default; Trash is an explicit alternative. Outcomes and recovery capabilities remain itemized.
 
-The first page summarizes discovered locations and enabled personal rules. It does not present a directory checklist. Scan Locations is an optional view in Smart Cleanup and Settings. Include Folder supports several extra folders at once and remembers them for later scans. Advanced rule previews can still open one folder's detail view, with a return action to Smart Cleanup.
+The first page presents one central scan action, the current disk capacity, and optional Agent customization. Scan Locations is an optional view in Smart Cleanup and Settings. Include Folder supports several extra folders at once and remembers them for later scans. Advanced rule previews can still open one folder's detail view, with a return action to Smart Cleanup.
 
-Space Analysis stays independent for finding large files and directly removing explicit selections. Startup, Applications, Rules and History retain their separate purposes.
+Large Files lists matching files across folders; Space Analysis provides directory navigation and a treemap. Both support direct removal of explicit selections. Startup, Applications, Rules and History retain their separate purposes.
 
 ## Automatic discovery
 
@@ -74,7 +74,7 @@ sequenceDiagram
   participant Engine as ShouEngine
   participant FS as Platform adapter
   participant Store as Local records
-  User->>UI: Scan & Free Space
+  User->>UI: Start Scan, or Scan & Free Space
   UI->>Engine: scanKnownLocations(includeProjects: true)
   Engine->>FS: Probe conventional directories and verify identities
   Engine->>Store: Reuse policy; register missing eligible roots
@@ -84,6 +84,8 @@ sequenceDiagram
   end
   Engine-->>UI: Per-location evidence and coverage gaps
   UI->>UI: Aggregate built-in and enabled personal matches
+  UI-->>User: Categories, recommendations, and selection bar
+  User->>UI: Clean selected, or continue the quick action
   UI->>Engine: Prepare exact selected plans
   UI-->>User: One paths and irreversible-action confirmation
   User->>UI: Confirm

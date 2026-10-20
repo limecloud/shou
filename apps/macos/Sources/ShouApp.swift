@@ -61,6 +61,7 @@ struct CleanupCompletion: Identifiable {
 
 @MainActor @Observable final class AppModel {
     let updater=AppUpdater()
+    let scanAccess=ScanAccessController()
     var configuration=Configuration()
     var workspaceId=""
     var section="smart"
@@ -83,6 +84,9 @@ struct CleanupCompletion: Identifiable {
     }
     var storage=StorageIndex(entries: [])
     var space=StorageSession()
+    var largeFiles=LargeFilesSession()
+    var applicationsSession=ApplicationsSession()
+    var privacySession=PrivacySession()
     var browsingPath="."
     var focusedPath: String?
     var ruleDraftPattern=""
@@ -92,10 +96,6 @@ struct CleanupCompletion: Identifiable {
     var history: [ExecutionReceipt]=[]
     var followups: [FollowUpReceipt]=[]
     var startupInventory: StartupInventory?
-    var applicationCatalog: ApplicationCatalog?
-    var applicationReview: ApplicationUninstallReview?
-    var applicationsLoading=false
-    var applicationsIncludeSystem=false
     var startupIncludeSystem=false
     var startupLoading=false
     var startupControlLoading=false
@@ -135,6 +135,7 @@ struct CleanupCompletion: Identifiable {
                 ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
             }.value
             await refresh()
+            await scanAccess.initialize()
         }
         catch { engine=nil; self.error=error.localizedDescription }
     }
@@ -277,8 +278,10 @@ struct CleanupCompletion: Identifiable {
     func scanCurrentSection() {
         if section == "smart" { scanCommonLocations() }
         else if section == "storage" { space.start(app: self, retainPath: true) }
+        else if section == "large-files" { largeFiles.storage.start(app: self) }
         else if section == "startup" { scanStartup() }
         else if section == "applications" { scanApplications() }
+        else if section == "privacy" { privacySession.scan(app: self) }
         else if section == "overview" { startScan() }
         else { section="smart"; scanCommonLocations() }
     }
@@ -315,48 +318,14 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func scanApplications() {
-        guard let engine, !busy else { return }
-        busy=true; applicationsLoading=true; applicationReview=nil
-        statusKey="Reading installed applications…"
-        let options=ApplicationCatalogOptions(includeSystem: applicationsIncludeSystem)
-        task=Task {
-            defer { busy=false; applicationsLoading=false }
-            do {
-                applicationCatalog=try await engine.applications(options: options)
-                statusKey="Applications checked. Review components before uninstalling."
-            } catch {
-                if !Task.isCancelled { self.error=error.localizedDescription }
-                statusKey="Application scan stopped."
-            }
-        }
+        applicationsSession.scan(app: self)
     }
-    func inspectApplication(_ application: ApplicationDefinition) {
+    func scanCommonLocations(cleanAfterScan: Bool = false, permanentAfterScan: Bool = true, accessChecked: Bool = false) {
         guard let engine, !busy else { return }
-        busy=true; applicationsLoading=true; statusKey="Reviewing application components…"
-        task=Task {
-            defer { busy=false; applicationsLoading=false }
-            do { applicationReview=try await engine.reviewApplication(path: application.path); statusKey="Ready to review" }
-            catch { if !Task.isCancelled { self.error=error.localizedDescription }; statusKey="Application review stopped." }
+        if !accessChecked {
+            scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(cleanAfterScan: cleanAfterScan, permanentAfterScan: permanentAfterScan, accessChecked: true) }
+            return
         }
-    }
-    func previewUninstall(_ review: ApplicationUninstallReview, componentIds: [String], includeUserData: Bool) {
-        guard let engine, !busy else { return }
-        busy=true; statusKey="Preparing cleanup preview…"
-        task=Task {
-            defer { busy=false }
-            do {
-                let plan=try await engine.createUninstallPlan(reviewId: review.id, componentIds: componentIds, includeUserData: includeUserData)
-                prompt=ReviewPrompt(id: plan.id, digest: plan.digest, action: "uninstall", paths: plan.components.map(\.path), itemIds: [], byteEstimate: plan.allocatedBytesEstimate,
-                    impacts: [plan.includesUserData ? "Selected personal app data will also move to Trash." : "Personal app data is retained.", "Shared groups, package receipts and external helpers are not removed."])
-                statusKey="Ready to review"
-            } catch {
-                statusKey="Review application components again."
-                if !Task.isCancelled { self.error=error.localizedDescription }
-            }
-        }
-    }
-    func scanCommonLocations(cleanAfterScan: Bool = false, permanentAfterScan: Bool = true) {
-        guard let engine, !busy else { return }
         busy=true; scanning=true; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
         statusKey="Preparing common app scan…"
         let operation=UUID(); operationID=operation
@@ -432,13 +401,16 @@ struct CleanupCompletion: Identifiable {
             } catch { self.error=error.localizedDescription }
         }
     }
-    func cancel() { if isExecuting { stopRequested=true }; task?.cancel(); space.stop() }
+    func cancel() { if isExecuting { stopRequested=true }; task?.cancel(); space.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
     func stopAndWaitForExecution() async -> Bool {
         guard isExecuting else { return !operationHadError && error == nil }
         let running=task
         cancel()
         await running?.value
         await space.waitForOperation()
+        await largeFiles.waitForOperation()
+        await applicationsSession.waitForOperation()
+        await privacySession.waitForOperation()
         return !operationHadError && error == nil
     }
     func importRule() {
@@ -617,17 +589,6 @@ struct CleanupCompletion: Identifiable {
                     statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }
                         ? (review.action == "permanent" ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.")
                         : "Some items were not moved. Inspect history."
-                } else if review.action == "uninstall" {
-                    let receipt=try await engine.executeUninstall(planId: review.id, confirmedDigest: review.digest, entryPoint: "desktop", progress: { [weak self] update in
-                        Task { @MainActor in
-                            guard let self, self.isExecuting, self.operationID == operation else { return }
-                            self.executionProgress=update
-                        }
-                    })
-                    if receipt.items.contains(where: { ["failed", "unknown", "moving"].contains($0.state) }) { operationHadError=true }
-                    completion=CleanupCompletion(receipts: [receipt])
-                    applicationReview=nil; applicationCatalog=nil
-                    statusKey=receipt.state == "completed" ? "Application components moved to Trash. Restore them from History." : "Some items were not moved. Inspect history."
                 } else {
                     let results=try await engine.followUp(executionId: review.id, itemIds: review.itemIds, action: review.action, confirmedDigest: review.digest, progress: { [weak self] update in
                         Task { @MainActor in
@@ -677,28 +638,38 @@ struct ContentView: View {
     @State private var ruleEditor=false
     private var navigationSelection: Binding<String> {
         Binding(get: { model.section }, set: { section in
-            guard ["smart", "overview", "storage", "rules", "startup", "applications", "history", "settings"].contains(section) else { return }
+            guard ["smart", "overview", "storage", "large-files", "rules", "startup", "applications", "privacy", "history", "settings"].contains(section) else { return }
             model.section=section
         })
     }
     var body: some View {
         NavigationSplitView {
             List(selection: navigationSelection) {
-                Section(model.displayTitle) {
+                Section(model.t("Storage")) {
                     Label(model.t("Smart Cleanup"), systemImage: "sparkle.magnifyingglass").tag("smart")
+                    Label(model.t("Large Files"), systemImage: "doc.text.magnifyingglass").tag("large-files")
                     Label(model.t("Space Analysis"), systemImage: "square.grid.2x2").tag("storage")
+                }
+                Section(model.t("Tools")) {
                     Label(model.t("Rules"), systemImage: "line.3.horizontal.decrease.circle").tag("rules")
                     Label(model.t("Startup Items"), systemImage: "power.circle").tag("startup")
-                    Label(model.t("Applications"), systemImage: "square.stack.3d.up").tag("applications")
-                    Label(model.t("History"), systemImage: "clock.arrow.circlepath").tag("history")
+                    Label(model.t("Application Uninstall"), systemImage: "shippingbox").tag("applications")
+                    Label(model.t("Privacy"), systemImage: "hand.raised").tag("privacy")
                 }
             }.listStyle(.sidebar)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
+                    VStack(spacing: 0) {
+                    Button { model.section="history" } label: {
+                        Label(model.t("History"), systemImage: "clock.arrow.circlepath")
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 12).padding(.vertical, 10)
+                            .background(model.section == "history" ? Color.accentColor.opacity(0.14) : .clear, in: RoundedRectangle(cornerRadius: 8))
+                    }.buttonStyle(.plain).padding(.horizontal, 10)
                     Button { model.section="settings" } label: {
                         Label(model.t("Settings"), systemImage: "gearshape")
                             .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 12).padding(.vertical, 10)
                             .background(model.section == "settings" ? Color.accentColor.opacity(0.14) : .clear, in: RoundedRectangle(cornerRadius: 8))
                     }.buttonStyle(.plain).accessibilityAddTraits(model.section == "settings" ? [.isSelected] : []).padding(10)
+                    }
                 }
                 .navigationSplitViewColumnWidth(min: 190, ideal: 215)
         } detail: {
@@ -706,10 +677,12 @@ struct ContentView: View {
                 if model.section == "smart" { SmartScanView(model: model) }
                 else if model.section == "rules" { RulesView(model: model, editor: $ruleEditor) }
                 else if model.section == "startup" { StartupInventoryView(model: model) }
-                else if model.section == "applications" { ApplicationsView(model: model) }
+                else if model.section == "applications" { ApplicationsView(model: model, session: model.applicationsSession) }
+                else if model.section == "privacy" { PrivacyView(app: model, session: model.privacySession) }
                 else if model.section == "history" { HistoryView(model: model) }
                 else if model.section == "settings" { SettingsView(model: model, updater: model.updater) }
                 else if model.section == "storage" { StorageBrowser(model: model, inspector: inspector) }
+                else if model.section == "large-files" { LargeFilesView(model: model, session: model.largeFiles) }
                 else { CleanupView(model: model, inspector: inspector) }
                 if model.isExecuting {
                     ExecutionProgressView(title: model.executionTitle,
@@ -723,7 +696,7 @@ struct ContentView: View {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.5.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {
@@ -753,6 +726,7 @@ struct ContentView: View {
         .sheet(item: $model.historyInspection) { request in HistoryInspectionView(model: model, executionId: request.id) }
         .sheet(isPresented: $ruleEditor) { RuleWizard(model: model, initialPattern: model.ruleDraftPattern) }
         .sheet(isPresented: $model.showingExclusions) { ExclusionsView(model: model) }
+        .sheet(isPresented: Binding(get: { model.scanAccess.showingSetup }, set: { model.scanAccess.showingSetup=$0 }), onDismiss: { model.scanAccess.dismissed() }) { SetupView(model: model) }
         .alert(model.t("Unable to complete the operation"), isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error=nil } })) {
             Button(model.t("OK")) { model.error=nil }
         } message: { Text(model.diagnostic(model.error ?? "")) }
@@ -765,6 +739,9 @@ struct ContentView: View {
         }
         .onChange(of: model.scanning) { _, _ in
             AccessibilityNotification.Announcement(model.status).post()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await model.scanAccess.refresh() }
         }
         .onChange(of: model.isExecuting) { _, executing in
             if !executing && model.completion == nil && model.error == nil {

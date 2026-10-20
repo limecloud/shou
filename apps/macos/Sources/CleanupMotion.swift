@@ -157,7 +157,7 @@ struct ScanActivity: View {
                     .font(.system(size: 11, design: .monospaced)).foregroundStyle(.secondary)
                     .lineLimit(2).truncationMode(.middle).frame(height: 30, alignment: .topLeading)
                     .help(currentPath.isEmpty ? model.scanningLocation?.path ?? model.workspace?.path ?? "" : currentPath)
-                Text(model.t("Results appear here when analysis finishes. Nothing is selected automatically."))
+                Text(model.t("Results appear here when analysis finishes. Review the selection before cleanup."))
                     .font(.caption).foregroundStyle(.tertiary)
             }
         }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

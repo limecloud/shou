@@ -17,6 +17,7 @@
 
 | 目标 | 阅读顺序 |
 | --- | --- |
+| 安装并开启完整扫描 | [安装与磁盘访问权限](product/installation-and-access.md) |
 | 了解为什么做 | [PRD](product/prd.md) → [统一日常清理](product/unified-cleanup.md) → [用户故事](product/user-stories-and-use-cases.md) |
 | 对照实际占用问题 | [开发者空间场景](product/developer-space-scenarios.md) → [规则规范](rules/rule-specification.md) |
 | 检查启动项来源 | [启动项发现](product/startup-items.md) → [CLI 合同](ai/agent-and-cli-contract.md) |
@@ -54,3 +55,8 @@
 修改合同字段、状态、风险或默认行为时，必须同步上述关联文档。Mermaid 图应在支持 Mermaid 的 Markdown 查看器中阅读。
 
 - [空间分析与显式删除](product/space-analysis.md)
+
+- [参考功能对照与实现门槛](engineering/reference-capability-map.md)
+
+- [隐私清理与来源合同](engineering/privacy-cleaning.md)
+- [Mole 软件清单与规则覆盖](engineering/mole-rule-coverage.md)

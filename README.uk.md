@@ -15,9 +15,9 @@
 
 ## Завантаження та встановлення
 
-Shou v0.4.0 потребує **macOS 14 або новішої**. Універсальна програма працює на Apple Silicon та Intel. Перетягніть **Shou.app** з образу диска до **Applications**. Інтерфейс доступний англійською та спрощеною китайською.
+Shou v0.5.0 потребує **macOS 14 або новішої**. Універсальна програма працює на Apple Silicon та Intel. Перетягніть **Shou.app** з образу диска до **Applications**. Інтерфейс доступний англійською та спрощеною китайською.
 
-[**Shou v0.4.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.4.0/Shou-0.4.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.4.0/Shou-0.4.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.4.0/shou-0.4.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.5.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.5.0/shou-0.5.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Версія має підпис ad-hoc і не нотаризована Apple. У разі блокування запуску перевірте джерело та відкрийте **Системні параметри → Приватність і безпека**, щоб дозволити запуск.
 

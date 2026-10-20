@@ -38,7 +38,7 @@ private struct HistoryReceiptView: View {
                 Text(model.date(receipt.createdAt))
                 Text(model.t(receipt.state == "executing" ? "Unfinished cleanup" : receipt.state))
                 Text(model.t(receipt.entryPoint == "desktop" ? "Desktop" : "CLI"))
-                if receipt.operation == "application_uninstall" { Text(model.t("Application uninstall")).foregroundStyle(.secondary) }
+                if receipt.items.contains(where: { $0.uninstallOrigin != nil }) { Text(model.t("Application uninstall")).foregroundStyle(.secondary) }
                 Spacer()
             }
             Text(receipt.id).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
@@ -63,7 +63,7 @@ private struct HistoryReceiptView: View {
                     Spacer(minLength: 8)
                     Button(model.t("Restore…")) { model.review(receipt, items: selected, action: "restore") }
                         .disabled(selected.isEmpty).accessibilityIdentifier("history.restore." + receipt.id)
-                    if receipt.operation != "application_uninstall" {
+                    if !receipt.items.contains(where: { $0.uninstallOrigin != nil }) {
                         Button(model.t("Permanently Remove…"), role: .destructive) { model.review(receipt, items: selected, action: "purge") }
                             .disabled(selected.isEmpty).accessibilityIdentifier("history.remove." + receipt.id)
                     }
@@ -73,7 +73,7 @@ private struct HistoryReceiptView: View {
                     itemRow(item, followups: itemHistory[item.id] ?? [], selectable: availableIDs.contains(item.id))
                     Divider()
                 }
-                Text(model.t("Moved to Trash; this is not freed space."))
+                Text(model.t(receipt.items.contains { $0.state == "purged" } ? "Permanently removed items cannot be restored." : "Moved to Trash; this is not freed space."))
                     .font(.caption).foregroundStyle(.secondary).padding(12)
             }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
         }.onChange(of: availableIDs) { _, ids in selection.formIntersection(ids) }

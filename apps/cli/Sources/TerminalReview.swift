@@ -67,10 +67,27 @@ struct TerminalReviewScope: Encodable {
     }
 
     init(uninstall plan: ApplicationUninstallPlan, locale: String) {
-        action="uninstall"; planId=plan.id; executionId=nil; digest=plan.digest; workspace=WorkspaceScope(application: plan.application)
-        selectedItemCount=plan.components.count; allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=false
-        notes=[locale == "zh-CN" ? "将以下明确选中的应用组件移入废纸篓。个人数据仅在单独同意后纳入；可从历史记录恢复，不覆盖已有文件。移入废纸篓不代表已释放空间。" : "Move only these selected application components to Trash. Personal data is included only with separate consent. Restore from history without overwriting existing files. Moving to Trash does not free disk space."]
+        action=plan.effectiveAction == "permanent" ? "permanent_uninstall" : "uninstall"
+        planId=plan.id; executionId=nil; digest=plan.digest; workspace=WorkspaceScope(application: plan.application)
+        selectedItemCount=plan.components.count; allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=plan.effectiveAction == "permanent"
+        notes=Self.uninstallNotes(permanent: irreversible, locale: locale)
         items=plan.components.map(Item.init(component:))
+    }
+
+    init(uninstallBatch plan: ApplicationUninstallBatchPlan, locale: String) {
+        action=plan.action == "permanent" ? "permanent_batch_uninstall" : "batch_uninstall"
+        planId=plan.id; executionId=nil; digest=plan.digest
+        workspace=WorkspaceScope(id: plan.id, rootRef: "application-batch-uninstall", path: plan.plans.map(\.application.path).joined(separator: "\n"))
+        selectedItemCount=plan.plans.reduce(0) { $0 + $1.components.count }; allocatedBytesEstimate=plan.allocatedBytesEstimate
+        irreversible=plan.action == "permanent"; notes=Self.uninstallNotes(permanent: irreversible, locale: locale)
+        items=plan.plans.flatMap(\.components).map(Item.init(component:))
+    }
+
+    private static func uninstallNotes(permanent: Bool, locale: String) -> [String] {
+        if permanent {
+            return [locale == "zh-CN" ? "永久删除以下明确选中的应用组件，此操作不可恢复。个人数据仅在单独同意后纳入；执行前重新核验所有应用与组件。" : "Permanently remove only these selected application components. This cannot be undone. Personal data requires separate consent. All applications and components are rechecked before execution."]
+        }
+        return [locale == "zh-CN" ? "将以下明确选中的应用组件移入废纸篓。个人数据仅在单独同意后纳入；可从历史记录恢复，不覆盖已有文件。移入废纸篓不代表已释放空间。" : "Move only these selected application components to Trash. Personal data is included only with separate consent. Restore from history without overwriting existing files. Moving to Trash does not free disk space."]
     }
 
     init(plan: CleanupPlan, locale: String) {

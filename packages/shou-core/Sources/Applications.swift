@@ -76,6 +76,85 @@ public struct ApplicationCatalog: Codable, Sendable, Equatable {
 public protocol ApplicationCatalogReading: Sendable {
     func read(options: ApplicationCatalogOptions) throws -> ApplicationCatalog
     func application(at path: String) throws -> ApplicationDefinition
+    func measureSummary(for application: ApplicationDefinition, budget: ScanBudget, progress: @Sendable (ScanProgress) -> Void) throws -> ApplicationSummaryMeasurement
+}
+public extension ApplicationCatalogReading {
+    func measureSummary(for application: ApplicationDefinition, budget: ScanBudget, progress: @Sendable (ScanProgress) -> Void) throws -> ApplicationSummaryMeasurement {
+        throw ShouError("capability_unavailable", "Application size measurement is unavailable.")
+    }
+}
+
+public struct ApplicationSummaryMeasurement: Sendable {
+    public let allocatedBytesEstimate: Int64
+    public let owner: UInt32
+    public let containsForeignOwnedContent: Bool
+    public let lastUsed: Date?
+    public let issues: [String]
+    public init(allocatedBytesEstimate: Int64, owner: UInt32, containsForeignOwnedContent: Bool = false, lastUsed: Date? = nil, issues: [String] = []) {
+        self.allocatedBytesEstimate=allocatedBytesEstimate; self.owner=owner; self.containsForeignOwnedContent=containsForeignOwnedContent
+        self.lastUsed=lastUsed; self.issues=issues
+    }
+}
+
+public struct ApplicationSummary: Codable, Sendable, Identifiable {
+    public var id: String { application.id }
+    public let application: ApplicationDefinition
+    public let allocatedBytesEstimate: Int64?
+    public let status: String
+    public let lastUsed: Date?
+    public let issues: [String]
+}
+public struct ApplicationSummaryProgress: Sendable {
+    public let processedCount: Int
+    public let applicationCount: Int
+    public let currentPath: String
+}
+public struct ApplicationSummaryCatalog: Codable, Sendable {
+    public let catalog: ApplicationCatalog
+    public let items: [ApplicationSummary]
+    public var status: String { catalog.status == "complete" && items.allSatisfy { $0.issues.isEmpty } ? "complete" : "partial" }
+}
+
+extension ShouEngine {
+    /// One inventory and activity snapshot; only requested reviews persist manifests.
+    public func applicationSummaries(options: ApplicationCatalogOptions = ApplicationCatalogOptions(), budget: ScanBudget = ScanBudget(),
+                                     progress: @Sendable (ApplicationSummaryProgress) -> Void = { _ in },
+                                     onSummary: @Sendable (ApplicationSummary) -> Void = { _ in }) throws -> ApplicationSummaryCatalog {
+        try options.validate(); try budget.validate()
+        let catalog=try applications(options: options)
+        let facts: [String: ApplicationUninstallFacts]
+        var activityIssue: String?
+        do { facts=try uninstallEvidence.facts(for: catalog.items) }
+        catch let error as ShouError { if error.code == "cancelled" { throw error }; facts=[:]; activityIssue=error.code }
+        var summaries=[ApplicationSummary]()
+        for app in catalog.items {
+            if Task.isCancelled { throw ShouError("cancelled", "Application summary stopped.") }
+            let processedCount=summaries.count
+            progress(ApplicationSummaryProgress(processedCount: processedCount, applicationCount: catalog.items.count, currentPath: app.path))
+            let activity=facts[app.id]
+            var issues=catalog.issues.filter { $0.path == app.path }.map(\.code)
+            if let activityIssue { issues.append(activityIssue) }
+            var measurement: ApplicationSummaryMeasurement?
+            do {
+                measurement=try applicationCatalog.measureSummary(for: app, budget: budget, progress: { _ in
+                    progress(ApplicationSummaryProgress(processedCount: processedCount, applicationCount: catalog.items.count, currentPath: app.path))
+                })
+            } catch let error as ShouError { if error.code == "cancelled" { throw error }; issues.append(error.code) }
+            if let measurement { issues.append(contentsOf: measurement.issues) }
+            let status: String
+            if app.source.systemOwned || app.bundleIdentifier?.hasPrefix("com.apple.") == true || activity?.currentApplication == true { status="protected" }
+            else if activity?.running == true { status="running" }
+            else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true { status="admin-required" }
+            else if activity == nil || measurement == nil || !issues.isEmpty || app.infoDigest == nil || app.bundleIdentifier == nil { status="unavailable" }
+            else { status="ready" }
+            let summary=ApplicationSummary(application: app, allocatedBytesEstimate: measurement?.allocatedBytesEstimate, status: status,
+                lastUsed: measurement?.lastUsed, issues: Array(Set(issues)).sorted())
+            summaries.append(summary); onSummary(summary)
+            progress(ApplicationSummaryProgress(processedCount: summaries.count, applicationCount: catalog.items.count, currentPath: app.path))
+        }
+        if Task.isCancelled { throw ShouError("cancelled", "Application summary stopped.") }
+        return ApplicationSummaryCatalog(catalog: catalog, items: summaries)
+    }
 }
 
 public struct UnavailableApplicationCatalog: ApplicationCatalogReading {

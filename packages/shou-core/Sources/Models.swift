@@ -228,12 +228,16 @@ public struct TrashResult: Sendable {
 public protocol StoreLease: Sendable { func release() }
 public protocol RecordStore: Sendable {
     var protectedPaths: [String] { get }
+    func storageCatalogURL(id: String) throws -> URL?
     func read(_ collection: String, id: String) throws -> Data?
     func write(_ collection: String, id: String, data: Data) throws
     func ids(_ collection: String) throws -> [String]
     func lock() throws -> any StoreLease
 }
-extension RecordStore { public var protectedPaths: [String] { [] } }
+extension RecordStore {
+    public var protectedPaths: [String] { [] }
+    public func storageCatalogURL(id: String) throws -> URL? { nil }
+}
 public enum LocationAvailability: Sendable {
     case available
     case missing
@@ -249,6 +253,8 @@ public protocol PlatformFileSystem: Sendable {
     func rootIdentity(_ path: String) throws -> FileEntry
     func applicationParentIdentity(_ path: String) throws -> FileEntry
     func analysisRootIdentity(_ path: String) throws -> FileEntry
+    var supportsStorageCatalog: Bool { get }
+    func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
@@ -261,6 +267,10 @@ public protocol PlatformFileSystem: Sendable {
     func purge(_ path: String, expected: [FileEntry]) throws
 }
 extension PlatformFileSystem {
+    public var supportsStorageCatalog: Bool { false }
+    public func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
+        throw ShouError("capability_unavailable", "Streaming space analysis is unavailable on this filesystem.")
+    }
     public func analysisRootIdentity(_ path: String) throws -> FileEntry { try rootIdentity(path) }
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspectTarget(path, budget: budget, cancelled: cancelled)

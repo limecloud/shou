@@ -209,6 +209,7 @@ A registered workspace can be scanned immediately without importing personal rul
 | `rules catalog [--workspace <id>]` | Built-in templates, or scoped definitions for a registered workspace |
 | `analysis summary --scan-id <id>` | Measured root, non-overlapping cleanup categories, completeness, metric |
 | `analysis children --scan-id <id> [--path <relative>] [--limit <n>] [--cursor <cursor>]` | Direct children ordered by allocated space, with stable pagination; root defaults to `.` |
+| `analysis large-files --scan-id <id> [--minimum-bytes <bytes>] [--type <type>] [--limit <1..500>] [--cursor <cursor>]` | Global ordinary files ordered by charged allocation; default 50 MiB; filename types include ai-model; stable cursors bind scan and filters; read-only |
 
 `rules list` also returns `builtin_templates`. Existing `rules disable / enable` commands control built-in rules. Enabled by default means available for scan matching only. Directory cursors are bound to both the snapshot and exact directory. Analysis includes files and directories without cleanup rules; browsing never grants deletion authority.
 
@@ -224,11 +225,23 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 
 ## Application discovery and uninstall
 
-`applications list [--include-system true|false] --json` is a bounded read that does not open the cleanup store. `applications inspect --path <exact-app-path>` saves a component review; optional scan budgets use the existing limits. `applications plan --review-id <id> --component <id>... [--include-user-data true|false]` requires explicit eligible components including the application. Personal-data consent defaults false. `applications plan show --plan-id <id>` exposes the reviewed scope.
+`applications list [--include-system true|false] --json` discovers installed applications. `applications summary` streams size estimates, running/protected status and metadata last-used dates without building deletion manifests. `applications inspect --path <exact-app-path>` saves a component review. `applications plan --review-id <id> --component <id>... [--include-user-data true|false] [--mode trash|permanent]` requires explicit eligible components including the application. Personal-data consent defaults false; single-application mode defaults to Trash for compatibility.
 
-`applications uninstall --plan-id <id>` is destructive and requires a controlling terminal plus the exact `UNINSTALL <plan-id>` phrase. There is no unattended confirmation option. The result is an ordinary history receipt with `operation=application_uninstall` and per-item original-parent evidence. `history inspect` and separately confirmed `history restore` work across all component parents; uninstall receipts reject `history purge`. JSON component `eligible`, `requires_user_data_consent`, `reasons` and `warnings` are explicit, and warnings do not authorize execution. See [application uninstall](../product/application-uninstall.md).
+`applications batch plan --file <selections.json> [--mode permanent|trash]` accepts a JSON array of `{ "review_id": "…", "component_ids": ["…"], "include_user_data": false }`. It rejects duplicate applications and overlapping paths; consent belongs to each selection. Batch mode defaults to permanent removal. `applications [batch] plan show --plan-id <id>` exposes every selected path, mode, digest and expiry.
+
+`applications [batch] uninstall --plan-id <id>` requires a controlling terminal and the exact `PURGE <plan-id>` phrase for permanent mode or `UNINSTALL <plan-id>` for Trash. One confirmation covers the concrete batch. All applications are preflighted before mutation and activity is rechecked at each component boundary. There is no unattended confirmation option.
+
+One shared history receipt records `application_uninstall`, `application_permanent_uninstall`, `application_batch_uninstall` or `application_batch_permanent_uninstall`. Only trashed items can be restored; permanent items cannot. Uninstall receipts reject history purge. Component eligibility, warnings and personal-data consent remain explicit. See [application uninstall](../product/application-uninstall.md).
+
+## Privacy records
+
+`privacy scan [--range last-hour|last-day|last-seven-days|all-time]` saves aggregate counts and per-source availability. `privacy scan show --scan-id <id>` returns no browsing record contents. `privacy plan --scan-id <id> --source <id>... [--acknowledge-sign-out true]` selects exact ready sources; Cookie sources require separate sign-out consent. `privacy plan show --plan-id <id>` displays the bounded scope and digest.
+
+`privacy execute --plan-id <id>` permanently removes records after terminal confirmation. It performs full-plan preflight, then independent source transactions with activity/schema/identity checks. `privacy history` reports aggregate outcomes without URLs, domains or Cookie values. Logical database deletion has no Trash or restore capability and does not guarantee physical erasure or reclaimed bytes. See [privacy support and architecture](../engineering/privacy-cleaning.md).
 
 
 ## Explicit space-analysis removal
 
 Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
+
+Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.

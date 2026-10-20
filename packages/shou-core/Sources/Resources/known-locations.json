@@ -243,5 +243,215 @@
     "category": "developer",
     "relativePath": ".composer",
     "platform": "macos"
+  },
+  {
+    "id": "zed",
+    "title": "Zed caches",
+    "category": "developer",
+    "relativePath": "Library/Application Support/Zed",
+    "platform": "macos"
+  },
+  {
+    "id": "codebuddy-cn",
+    "title": "CodeBuddy CN caches",
+    "category": "developer",
+    "relativePath": "Library/Application Support/CodeBuddy CN",
+    "platform": "macos"
+  },
+  {
+    "id": "sketch",
+    "title": "Sketch caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/com.bohemiancoding.sketch3",
+    "platform": "macos"
+  },
+  {
+    "id": "spacedrive",
+    "title": "Spacedrive caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/spacedrive",
+    "platform": "macos"
+  },
+  {
+    "id": "steam",
+    "title": "Steam caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Steam",
+    "platform": "macos"
+  },
+  {
+    "id": "battle-net",
+    "title": "Battle.net caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Battle.net",
+    "platform": "macos"
+  },
+  {
+    "id": "minecraft",
+    "title": "Minecraft caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/minecraft",
+    "platform": "macos"
+  },
+  {
+    "id": "pcsx2",
+    "title": "PCSX2 caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/PCSX2",
+    "platform": "macos"
+  },
+  {
+    "id": "stremio",
+    "title": "Stremio caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/stremio",
+    "platform": "macos"
+  },
+  {
+    "id": "wetype",
+    "title": "WeType caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/WeType",
+    "platform": "macos"
+  },
+  {
+    "id": "antigravity",
+    "title": "Antigravity caches",
+    "category": "developer",
+    "relativePath": "Library/Application Support/Antigravity",
+    "platform": "macos"
+  },
+  {
+    "id": "filo",
+    "title": "Filo caches",
+    "category": "application",
+    "relativePath": "Library/Application Support/Filo",
+    "platform": "macos"
+  },
+  {
+    "id": "qoder",
+    "title": "Qoder caches",
+    "category": "developer",
+    "relativePath": "Library/Application Support/Qoder",
+    "platform": "macos"
+  },
+  {
+    "id": "firefox-support",
+    "title": "Firefox profile caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Firefox/Profiles",
+    "platform": "macos"
+  },
+  {
+    "id": "dia",
+    "title": "Dia caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Dia/User Data",
+    "platform": "macos"
+  },
+  {
+    "id": "dia-downloads",
+    "title": "Dia download caches",
+    "category": "browser",
+    "relativePath": "Library/Caches/Dia/User Data",
+    "platform": "macos"
+  },
+  {
+    "id": "helium",
+    "title": "Helium caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/net.imput.helium",
+    "platform": "macos"
+  },
+  {
+    "id": "yandex",
+    "title": "Yandex Browser caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/Yandex/YandexBrowser",
+    "platform": "macos"
+  },
+  {
+    "id": "qqbrowser",
+    "title": "QQ Browser caches",
+    "category": "browser",
+    "relativePath": "Library/Application Support/QQBrowser3",
+    "platform": "macos"
+  },
+  {
+    "id": "pyenv-downloads",
+    "title": "pyenv download caches",
+    "category": "developer",
+    "relativePath": ".pyenv",
+    "platform": "macos"
+  },
+  {
+    "id": "rbenv-downloads",
+    "title": "rbenv download caches",
+    "category": "developer",
+    "relativePath": ".rbenv",
+    "platform": "macos"
+  },
+  {
+    "id": "bundler-downloads",
+    "title": "Bundler download caches",
+    "category": "developer",
+    "relativePath": ".bundle",
+    "platform": "macos"
+  },
+  {
+    "id": "hex-downloads",
+    "title": "Hex download caches",
+    "category": "developer",
+    "relativePath": ".hex",
+    "platform": "macos"
+  },
+  {
+    "id": "opam-downloads",
+    "title": "Opam download caches",
+    "category": "developer",
+    "relativePath": ".opam",
+    "platform": "macos"
+  },
+  {
+    "id": "android-generated",
+    "title": "Android generated caches",
+    "category": "developer",
+    "relativePath": ".android",
+    "platform": "macos"
+  },
+  {
+    "id": "expo-downloads",
+    "title": "Expo download caches",
+    "category": "developer",
+    "relativePath": ".expo",
+    "platform": "macos"
+  },
+  {
+    "id": "turbo-downloads",
+    "title": "Turbo generated caches",
+    "category": "developer",
+    "relativePath": ".turbo",
+    "platform": "macos"
+  },
+  {
+    "id": "vite-downloads",
+    "title": "Vite generated caches",
+    "category": "developer",
+    "relativePath": ".vite",
+    "platform": "macos"
+  },
+  {
+    "id": "docker-buildx",
+    "title": "Docker BuildX caches",
+    "category": "developer",
+    "relativePath": ".docker/buildx",
+    "platform": "macos"
+  },
+  {
+    "id": "application-logs",
+    "title": "Application diagnostic logs",
+    "category": "application",
+    "relativePath": "Library/Logs",
+    "platform": "macos"
   }
 ]

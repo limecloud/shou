@@ -15,22 +15,25 @@ A native macOS cleaner with cleanup rules tailored by your existing AI agent. Te
 
 ## Download and install
 
-Download Shou v0.4.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.5.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.4.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.4.0/Shou-0.4.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.4.0/Shou-0.4.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.4.0/shou-0.4.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.5.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.5.0/shou-0.5.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
+
+The first-use guide explains Full Disk Access and optional CLI installation. You can continue with accessible folders and revisit **Settings → Setup Guide** at any time. See [installation and permissions](docs/product/installation-and-access.md).
 
 ## What Shou can do
 
 | | |
 | --- | --- |
 | **Agent-authored cleanup** | Use the bundled Skill to investigate your own caches and build outputs, answer focused questions, and preview rules without writing JSON. |
-| **Applications** | Review an app and its exact associated files before uninstalling. Personal data needs separate consent; moved components can be restored. |
+| **Application uninstall** | Compare sizes and activity, expand exact components inline, select several apps and confirm once. Personal data needs separate consent; Trash items support restoration. |
 | **Startup items** | Inspect startup definitions, manage current-user LaunchAgents with explicit confirmation, and open macOS Login Items settings for the remaining sources. |
 | **Exclusions** | Protect folders globally or within a project, and edit personal rules as disabled revisions. |
 | **Application caches** | Review caches from browsers, chat apps, editors, and tools, including Chrome, Edge, Firefox, Codex, Claude, QQ, and WeChat. |
 | **Developer tools and projects** | Find npm, Cargo, Xcode, Python, and Go caches, Rust target directories, Node.js dependencies, and Swift build products. |
+| **Large files** | Filter a saved scan by size and file type, preview files, select all matches across pages, and clean the exact selection. |
 | **Space analysis** | Scan disks or folders, select files in the list or treemap, and remove or restore explicit items. |
 | **Personal rules** | Let your coding agent draft rules for your own rebuildable folders, preview matches, and reuse reviewed rules. Manual import/editing remains available under Advanced. |
 | **History and recovery** | Check results, restore selected items, or separately confirm permanent removal of this cleanup batch. |
@@ -79,6 +82,8 @@ Source builds, tests, rule examples, and CLI usage are covered in the documentat
 
 [Documentation](docs/README.md) · [Development](docs/engineering/development.md) · [Rules](docs/rules/rule-specification.md) · [CLI](docs/ai/agent-and-cli-contract.md) · [Issues](https://github.com/limecloud/shou/issues)
 
+Privacy cleaning has a separate source/time-range workflow for supported history and Cookie schemas, with sign-out consent and aggregate receipts. See [support and limits](docs/engineering/privacy-cleaning.md).
+
 ## Acknowledgements
 
 [MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
@@ -90,3 +95,5 @@ Source builds, tests, rule examples, and CLI usage are covered in the documentat
 [Apache License 2.0](LICENSE).
 
 Space analysis supports local volumes and folders, linked list/treemap navigation, multi-selection, Trash/restore and explicitly confirmed permanent removal. See [space analysis](docs/product/space-analysis.md).
+
+Mole path research, attribution and explicit coverage limits: [rule coverage](docs/engineering/mole-rule-coverage.md).

@@ -12,6 +12,9 @@ import Glibc
 #if canImport(Darwin) || canImport(Glibc)
 public struct NativeFileSystem: PlatformFileSystem {
     private let readWorkerExecutable: URL?
+    private let scanPrivacyOverride: ScanPrivacyPolicy?
+    var scanPrivacyPolicy: ScanPrivacyPolicy { scanPrivacyOverride ?? .current }
+    var storageReadWorkerExecutable: URL? { readWorkerExecutable }
     private let applicationRoots: [String]
     public var platform: String {
         #if os(macOS)
@@ -30,8 +33,9 @@ public struct NativeFileSystem: PlatformFileSystem {
         "Native Trash is unavailable on this platform."
         #endif
     }
-    public init(readWorkerExecutable: URL? = nil, applicationRoots: [String]? = nil) {
+    public init(readWorkerExecutable: URL? = nil, applicationRoots: [String]? = nil, scanPrivacyPolicy: ScanPrivacyPolicy? = nil) {
         self.readWorkerExecutable=readWorkerExecutable
+        self.scanPrivacyOverride=scanPrivacyPolicy
         self.applicationRoots=applicationRoots ?? [FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path, "/Applications"]
     }
     public func applicationParentIdentity(_ path: String) throws -> FileEntry {
@@ -80,6 +84,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         if let readWorkerExecutable {
             return try NativeReadClient(executable: readWorkerExecutable).rootIdentity(path)
         }
+        try scanPrivacyPolicy.checkRoot(path)
         // Identity needs metadata and search access, not permission to enumerate.
         let fd = try SecurePaths.directory(path, readFinalDirectory: false); defer { close(fd) }
         let normalized = "/" + (try SecurePaths.components(path)).joined(separator: "/")
@@ -188,6 +193,8 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try inspectTree(path, cleanupRules: rules, budget: budget, cancelled: cancelled, progress: progress)
     }
     private func inspectTree(_ path: String, cleanupRules: [CleanupRule]?, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        let privacy=scanPrivacyPolicy
+        try privacy.checkRoot(path)
         let root = try SecurePaths.directory(path, cancelled: cancelled); defer { close(root) }
         var metadata=stat()
         guard fstat(root, &metadata) == 0 else { throw SecurePaths.failure("Inspect root", path: path) }
@@ -233,6 +240,9 @@ public struct NativeFileSystem: PlatformFileSystem {
                         progress(ScanProgress(stage: "scanning", entryCount: visitedCount, currentPath: child)); lastReported=Date()
                     }
                     if directory && (measuring || discover) {
+                        if privacy.requiresAuthorization(path + "/" + child) {
+                            issues.append("authorization_required: " + child); continue
+                        }
                         let sub = openat(descriptor, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                         guard sub >= 0 else { issues.append("unreadable_directory: " + child); continue }
                         var opened=stat()

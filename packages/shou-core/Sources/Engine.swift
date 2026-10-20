@@ -340,7 +340,10 @@ public actor ShouEngine {
     public func followUpDigest(executionId: String, itemIds: [String], action: String) throws -> String {
         guard ["restore", "purge"].contains(action), !itemIds.isEmpty, Set(itemIds).count == itemIds.count else { throw ShouError("invalid_argument", "Select explicit receipt items and a supported action.") }
         let receipt = try history(executionId)
-        guard receipt.operation != "application_uninstall" || action == "restore" else {
+        guard !["application_permanent_uninstall", "application_batch_permanent_uninstall"].contains(receipt.operation ?? "") else {
+            throw ShouError("capability_unavailable", "Permanently removed application components cannot be restored.")
+        }
+        guard !["application_uninstall", "application_batch_uninstall"].contains(receipt.operation ?? "") || action == "restore" else {
             throw ShouError("capability_unavailable", "Application uninstall receipts currently support restoration only.")
         }
         guard itemIds.allSatisfy({ id in receipt.items.contains { $0.id == id && $0.state == "trashed" } }) else { throw ShouError("invalid_argument", "Only verified trashed items can be restored or permanently removed.") }

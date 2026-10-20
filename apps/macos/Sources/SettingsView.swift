@@ -14,7 +14,6 @@ struct SettingsView: View {
     @Bindable var model: AppModel
     @ObservedObject var updater: AppUpdater
     @AppStorage("ShouAppearance") private var appearance="system"
-    @Environment(\.openURL) private var openURL
     @Environment(\.colorScheme) private var colorScheme
     @State private var scanLocations=false
 
@@ -47,7 +46,7 @@ struct SettingsView: View {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
                     }
                     Divider().padding(.leading, 58)
-                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0"), "Updates are verified before installation.", icon: "shippingbox") {
+                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.5.0"), "Updates are verified before installation.", icon: "shippingbox") {
                         Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
                 }
@@ -60,10 +59,14 @@ struct SettingsView: View {
                         Button(model.t("Manage…")) { model.showingExclusions=true }.disabled(model.busy)
                     }
                     Divider().padding(.leading, 58)
-                    row("Full Disk Access", "Allow access to application caches that macOS protects.", icon: "internaldrive") {
-                        Button { openURL(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) } label: {
-                            Label(model.t("System Settings…"), systemImage: "arrow.up.right.square")
-                        }
+                    row("Full Disk Access", model.scanAccess.statusTitle, icon: "internaldrive") {
+                        Button { model.scanAccess.showingSetup=true } label: {
+                            Label(model.t("Setup Guide…"), systemImage: "list.bullet.rectangle")
+                        }.disabled(model.busy)
+                    }
+                    Divider().padding(.leading, 58)
+                    row("Installation and CLI", "Review app installation, disk permissions, and the optional terminal command.", icon: "shippingbox") {
+                        Button(model.t("Setup Guide…")) { model.scanAccess.showingSetup=true }.disabled(model.busy)
                     }
                     Divider().padding(.leading, 58)
                     row("Local data", "Rules and cleanup history stay on this Mac.", icon: "externaldrive") {

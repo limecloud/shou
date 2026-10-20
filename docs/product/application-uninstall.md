@@ -1,138 +1,136 @@
 # Application uninstall and associated files
 
-[简体中文](../zh-CN/product/application-uninstall.md)
+English | [简体中文](../zh-CN/product/application-uninstall.md)
 
-Status: implemented and locally verified on macOS with generated fixtures; the tested build is installed locally. Precise runtime evidence and limits are recorded in [acceptance](../engineering/acceptance-and-testing.md). This capability is separate from rebuildable-cache rules and from the published release's feature set.
+Application uninstall is separate from rebuildable-cache rules. Desktop and CLI share summaries, component review, batch plans, native execution and history. Shou neither integrates models nor hosts an Agent. Implementation and actual verification are recorded separately in [acceptance and testing](../engineering/acceptance-and-testing.md).
 
-## Purpose and experience
+## Purpose and interaction
 
-Removing an application can leave caches, preferences and databases behind. Users need to inspect those components together without treating personal data as disposable cache. The desktop's Applications page and the independent CLI share one review, plan and execution implementation. Existing coding agents can prepare structured reviews and plans; Shou integrates no model and hosts no agent.
+Users need to compare applications, select several, review associated data inline and confirm once. The native list shows icons, versions, exact identifiers, activity/access status, estimated bundle allocation and optional system last-used records. Associated components are measured only when expanding or selecting an application.
 
-1. Discover application bundles and search by name, bundle identifier or exact path.
-2. Review the application and exact identifier associations. The app is selected by its physical path and filesystem identity; two installations with the same identifier remain separate objects.
-3. Select components. Personal data requires a separate enabling choice and individual selection. Coverage warnings also prevent automatic selection of associated components.
-4. Preview exact paths and confirm the current plan. Components move to native Trash; the application bundle is processed last.
-5. Inspect results and restore explicitly selected components from History without overwriting newer files.
+| Journey | Behavior |
+| --- | --- |
+| Find large applications | Size descending by default; sort by name, status, size or last used; search names, identifiers, versions and paths |
+| Batch selection | Initially empty; selecting an application reviews it and selects eligible bundle/cache/log components without coverage warnings |
+| Component review | Expand in the same list to inspect exact paths, sizes, risks and unavailable reasons |
+| Preserve personal data | Preferences, databases, sessions and containers remain unselected until separately allowed and individually selected |
+| Select the current view | The header affects only currently filtered eligible applications and preserves selections outside the filter and customized components; deselecting the required bundle deselects the application |
+| Running application | Request normal quit, then rescan; no forced termination or automatic selection |
+| Administrator/protected application | Explicit status; this build has no elevation capability and cannot label these applications executable |
+| Uninstall | Default permanent removal, with one exact application/component confirmation; native Trash is an explicit alternative |
+| Results and recovery | Shared per-item history; only verified Trash items can be restored; permanent removal cannot be restored |
 
-This is a series of journaled item operations, not an atomic multi-directory transaction. Failure or cancellation can leave a partial result; only verified moved items are eligible for restoration. Moving to Trash does not immediately free disk space. Application-uninstall receipts currently support restoration only, without an in-app permanent-removal operation.
+List totals describe bundle allocation; the bottom bar describes the actual selected bundles and associated components. Neither promises exclusively reclaimable bytes. Missing last-used metadata stays unknown rather than using modification time. Coverage gaps, unavailable sizes and activity checks remain explicit. Refreshing or changing selection invalidates prior confirmation; mutations require a new scan for current totals and status.
 
-## Scope and evidence
+## Components and associations
 
-| Component | Association | Personal-data consent |
+| Component | Evidence | Personal-data consent |
 | --- | --- | --- |
-| Application bundle | Exact installation path, bundle metadata and device/inode | Application selection |
-| Caches, logs | `~/Library/Caches/<id>`, `~/Library/Logs/<id>` | No additional data consent; review still required |
-| Preferences | `~/Library/Preferences/<id>.plist` | Required |
-| Application support | `~/Library/Application Support/<id>` | Required |
-| Saved state | `~/Library/Saved Application State/<id>.savedState` | Required |
-| App container | `~/Library/Containers/<id>` and matching `MCMMetadataIdentifier` | Required |
-| Shared group container | `~/Library/Group Containers/<name>` with matching native container metadata (`<id>` or `group.<id>`) | Required |
-| WebKit, HTTP storage | Exact identifier directory under the corresponding Library family | Required |
+| Bundle | Exact installation path, metadata and device/inode | Required application selection |
+| Caches/logs | Exact identifier under the corresponding Library directory | Defaults only for eligible components without coverage warnings |
+| Preferences | Exact identifier plist | Required |
+| Application Support/saved state | Exact identifier path in the relevant Library family | Required |
+| Container | Exact identifier and native container metadata | Required |
+| Shared group container | Native metadata identifying the application | Required |
+| WebKit/HTTP storage | Exact identifier path | Required |
 
-An identifier association does not prove exclusive ownership. A discovered duplicate identifier blocks associated components. Shared group containers enter the review only after their native metadata identifies the selected bundle identifier; an unverified or shared container remains protected. Incomplete discovery is a visible warning and requires individual choices. Package receipts, external helper registrations, custom data paths, other accounts and orphan-only discovery are outside this stage. Similar names, substrings and inferred vendor prefixes never authorize deletion. Apps with invalid metadata remain visible in discovery but cannot produce an uninstall review.
+An identifier provides association, not exclusive ownership. Duplicate installations may share components. Unverified/shared components remain protected. Batch plans reject identical or overlapping component paths across applications. Similar names, vendor prefixes and orphan-only leftovers do not authorize removal. Package receipts, external registrations, custom data locations and other accounts remain outside this scope.
 
-Discovery checks `~/Applications` and `/Applications`, plus up to two container-folder levels. `/System/Applications` is opt-in and protected. Embedded helper apps are not traversed. Budgets default to 4,000 entries and ten seconds, with explicit partial coverage. Metadata reads accept XML or binary `Contents/Info.plist` up to 256 KiB and return only approved display fields. Arguments, credentials and arbitrary metadata are not exported.
+Discovery checks `~/Applications`, `/Applications` and two levels of container folders, with a 4,000-entry/10-second budget. Explicitly included system applications stay protected. Embedded bundles are not separately discovered. Each application has its own bounded size measurement; selected components need complete current manifests. Windows is unverified.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Desktop[Native SwiftUI Applications] --> Engine[Shared uninstall orchestration]
-    CLI[Independent structured CLI] --> Engine
-    Engine --> Catalog[ApplicationCatalogReading]
-    Engine --> Evidence[ApplicationUninstallChecking]
-    Engine --> FS[PlatformFileSystem]
-    Engine --> Journal[Shared TrashExecution journal]
-    Journal --> FS
-    Catalog --> Native[macOS platform adapters]
-    Evidence --> Native
-    FS --> Native
-    Engine --> Store[Reviews, plans and existing history]
-    History[Existing history and recovery] --> Store
-    History --> Origins[Per-component origin validation]
-    Origins --> FS
+  Desktop[Native application list] --> Summary[Shared summaries]
+  CLI[Structured CLI] --> Summary
+  Summary --> Catalog[One application inventory]
+  Summary --> Platform[Measurement activity last-used]
+  Desktop --> Review[Lazy component review]
+  CLI --> Review
+  Review --> Batch[Batch plan and overlap checks]
+  Batch --> Confirm[One exact-scope confirmation]
+  Confirm --> Execute[Shared permanent or Trash execution]
+  Execute --> Journal[Per-component journal and receipt]
+  Journal --> History[History and restricted restoration]
 ```
 
-Core owns associations, consent, exclusion policy, plan validation and receipt states. Platform adapters own bounded no-follow reads, current-account process inspection, container metadata and native filesystem mutations. UI and CLI provide explicit choices and confirmation. `TrashExecution` is shared with ordinary cleanup; no second deletion loop or shell-command rules are introduced.
+`ApplicationsSession` owns presentation state, persistent selections across filters and component caches. `ShouEngine` owns associations, consent, exclusions, plan digests and revalidation. Platform ports supply filesystem, process and metadata facts. Batch execution reuses `TrashExecution` or `PermanentExecution`; one receipt stores every component origin without another deletion loop.
 
-Normal workspace registration retains its protected-root restrictions. Application restoration uses a separate restricted parent-identity capability for the supported installation directories. Associated data retains its own user-owned parent identity. Receipt paths must reproduce the exact component-kind association before inspection or recovery.
-
-## Plan and execution flow
+## Flow
 
 ```mermaid
 flowchart TD
-    Discover[Discover directories with explicit gaps] --> Review[Read app identity and exact associations]
-    Review --> Policy[Apply activity, ownership and exclusions]
-    Policy --> Choose[Select app and components]
-    Choose --> Consent{Personal data selected?}
-    Consent -->|Yes| Explicit[Require separate data consent]
-    Consent -->|No| Preview[Reproduce policy and create 15-minute plan]
-    Explicit --> Preview
-    Preview --> Confirm[Confirm exact paths and digest]
-    Confirm --> Recheck[Recheck metadata, manifests, processes and configuration]
-    Recheck --> Intent[Durably record current item intent]
-    Intent --> Trash[Native Trash and returned-path verification]
-    Trash --> Record[Persist verified, failed or unknown outcome]
-    Record --> Next{Continue?}
-    Next -->|More items and not cancelled| Recheck
-    Next -->|Done, cancelled or failed| History[History and independent restoration]
+  Scan[Discover and measure applications] --> List[Sort and filter list]
+  List --> Select[Select applications or inline components]
+  Select --> Review[Validate associations and recommend bundle/cache/logs]
+  Review --> Data{Personal data selected?}
+  Data -->|Yes| Consent[Separate permission and individual selection]
+  Data -->|No| Plan[Batch plan rejects overlapping paths]
+  Consent --> Plan
+  Plan --> Confirm{Confirm exact paths and mode}
+  Confirm -->|Cancel| Select
+  Confirm -->|Confirm| Recheck[Whole-batch preflight then per-item validation]
+  Recheck --> Run[Journal intent and execute; bundle last]
+  Run --> Result[Completed failed cancelled or unknown items]
+  Result --> Refresh[Rescan current sizes and status]
 ```
 
-Plans bind exact component manifests, application metadata, configuration digest, personal-data consent and expiry. Stored records are reproduced against current policy before execution. Activity, app identity, relevant duplicate identifiers, parent identity and target manifests are checked again at each item boundary. Current-account process evidence includes GUI bundle identifiers and executable paths inside the bundle; it does not prove that another account or every external helper has stopped. No process is terminated.
+## Sequence
 
 ```mermaid
 sequenceDiagram
-    actor User
-    participant Entry as Desktop or CLI
-    participant Core as ShouEngine
-    participant Store as Record store
-    participant Mac as Native platform
-    User->>Entry: Choose application and components
-    Entry->>Core: Review and create plan with explicit data consent
-    Core->>Mac: Re-read metadata, activity and complete targets
-    Core->>Store: Save digest-bound expiring plan
-    Core-->>Entry: Exact paths, risks and coverage
-    User->>Entry: Confirm current scope
-    Entry->>Core: Execute plan and confirmed digest
-    Core->>Store: Acquire mutation lease and save execution identity
-    loop Each selected component; bundle last
-        Core->>Mac: Revalidate current item and application activity
-        Core->>Store: Persist moving intent
-        Core->>Mac: Native Trash
-        Mac-->>Core: Exact returned path and verified manifest
-        Core->>Store: Persist item outcome
-    end
-    Core-->>Entry: Completed or partial receipt
-    User->>Entry: Select receipt items and confirm restore
-    Entry->>Core: Restore with independent confirmation
-    Core->>Mac: Verify exact Trash object and original parent identity
-    Core->>Store: Persist follow-up intent
-    Core->>Mac: Atomic no-overwrite restoration
-    Core->>Store: Persist follow-up outcome
+  actor User
+  participant UI as Desktop or CLI
+  participant Core as ShouEngine
+  participant Mac as Platform
+  participant Store
+  UI->>Core: applicationSummaries
+  Core->>Mac: One inventory, activity snapshot, last-used records
+  loop Each application
+    Core->>Mac: Bounded read-only measurement
+    Core-->>UI: Incremental summary and progress
+  end
+  User->>UI: Select multiple applications and components
+  UI->>Core: reviewApplication
+  Core->>Mac: Identity, ownership, activity, complete manifests
+  UI->>Core: createUninstallBatchPlan
+  Core->>Core: Validate consent and cross-application overlaps
+  Core->>Store: Save expiring digest-bound plan
+  UI-->>User: One exact-path and impact confirmation
+  User->>UI: Confirm
+  UI->>Core: executeUninstallBatch
+  Core->>Store: Acquire mutation lease
+  Core->>Mac: Whole-batch preflight
+  loop Components then bundle for each application
+    Core->>Mac: Revalidate component and application activity
+    Core->>Store: Persist intent
+    Core->>Mac: Planned permanent removal or native Trash
+    Core->>Store: Save actual outcome
+  end
+  Core-->>UI: One batch receipt
 ```
 
-## Safety and limits
+## Execution and recovery
 
-- System/Apple applications, the executing application, active applications/helpers, unknown activity, other-owned entries, special files, multiple-linked regular files, protected Shou storage and matching exclusions remain blocked.
-- Parent traversal and target roots reject symbolic links. Internal bundle links are recorded without dereferencing them. Local filesystem boundaries and complete manifests remain required.
-- A standalone preference file requires a bounded content digest, at most 16 MiB. Only its root ctime may differ after a verified Trash/restore operation; content, identity, mtime, permissions and link count must still match. Legacy directory manifests retain their original encoding.
-- Directory evidence remains a complete metadata manifest; this is not a promise to hash every byte of an installed application.
-- Cancellation stops before the next item. An operation with a durable moving intent completes its native verification and records its outcome; unavailable outcomes remain unknown and are never replayed automatically.
-- Restore validates each component's exact original parent, uses no-overwrite rename and does not recreate missing parents. History inspection reads exact recorded locations without enumerating Trash or repairing receipts.
-- No administrator prompt, privileged helper, launchctl mutation, permission change, model integration or Windows support is introduced.
+Plans expire in 15 minutes and bind application identity, complete manifests, configuration, personal-data consent and mode. Whole-batch preflight failure prevents mutation. Failures or cancellation after starting can leave partial results: this is not a cross-application atomic transaction. Stop takes effect at safe item boundaries; completed items are not automatically rolled back and unknown outcomes are never blindly retried.
 
-## CLI workflow
+Protected cases include system/current applications, running owners and helpers, unknown activity, other owners, special files, multiple hard links, credentials, Shou records and exclusions. Bundle links are handled as links. Preference files have bounded content digests; directories retain complete metadata manifests. Restoration verifies every exact original parent without creating parents or overwriting files. Permanent outcomes cannot be restored. No administrator elevation or privileged helper is introduced.
+
+## CLI
 
 ```sh
-shou applications list --json
+shou applications summary --json
 shou applications inspect --path "/Applications/Example.app" --json
-shou applications plan --review-id <review-id> --component <app-id> --component <cache-id> --json
-shou applications plan show --plan-id <plan-id> --json
-shou applications uninstall --plan-id <plan-id> --json
+shou applications plan --review-id <review-id> --component <app-id> --mode trash --json
+shou applications batch plan --file selections.json --mode permanent --json
+shou applications batch plan show --plan-id <plan-id> --json
+shou applications batch uninstall --plan-id <plan-id> --json
 shou history inspect --execution-id <execution-id> --json
-shou history restore --execution-id <execution-id> --item <item-id> --json
 ```
 
-`--include-user-data true` permits explicitly selected personal-data components during plan creation; it never selects them automatically. Execution requires a controlling terminal and the exact `UNINSTALL <plan-id>` phrase. A pipe or `--yes` cannot bypass confirmation. Restoration independently requires `RESTORE <execution-id>`. Read and plan operations remain usable by existing coding agents.
+The batch input is an explicit selection array with `review_id`, `component_ids` and optional `include_user_data` per application. Legacy single plans default to Trash; batches default to permanent. Machine clients must inspect the actual plan mode. Execution requires one current-scope controlling-terminal confirmation; external Agents may prepare and inspect plans. Trash restoration needs separate confirmation.
 
-Verification covers isolated generated bundles and data only. See [acceptance](../engineering/acceptance-and-testing.md) for precise automated, CLI, desktop and installation evidence. Third-party product references are listed in [acknowledgements](../../README.md#acknowledgements).
+## Acknowledgments
+
+MangoDisk informed application-list layout, inline components, filters, sorting and batch interactions. Shou retains an independent native implementation and its own execution, personal-data and history contracts. A visible reference page does not establish Shou feature parity or full acceptance.

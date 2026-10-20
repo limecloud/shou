@@ -2,7 +2,7 @@
 set -eu
 TASK_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TASK_ROOT"
-TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.4.0 private-key-file}
+TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.5.0 private-key-file}
 TASK_KEY=${2:?Pass the update signing key file; never pass the key itself}
 TASK_VERSION=${TASK_TAG#v}
 python3 - "$TASK_TAG" <<'PY'
@@ -22,6 +22,8 @@ python3 "scripts/verify-cli.py" "dist/Shou.app/Contents/Helpers/shou"
 python3 "apps/cli/Tests/verify-confirmation.py" "dist/Shou.app/Contents/Helpers/shou"
 python3 "scripts/verify-native-cli.py" "dist/Shou.app/Contents/Helpers/shou" --native-trash-purge
 python3 "scripts/verify-uninstall-cli.py" "dist/Shou.app/Contents/Helpers/shou"
+python3 "scripts/verify-application-batch-cli.py" "dist/Shou.app/Contents/Helpers/shou"
+python3 "scripts/verify-large-files-cli.py" "dist/Shou.app/Contents/Helpers/shou"
 TASK_APP_NAME="Shou-$TASK_VERSION-macos-universal"
 TASK_CLI_NAME="shou-$TASK_VERSION-macos-universal"
 TASK_OUTPUT="$TASK_ROOT/dist/release-$TASK_VERSION"

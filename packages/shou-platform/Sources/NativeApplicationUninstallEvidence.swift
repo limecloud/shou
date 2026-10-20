@@ -9,7 +9,12 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     private let homeDirectory: URL
     public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) { self.homeDirectory=homeDirectory }
     public func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
+        guard let value=try facts(for: [application])[application.id] else { throw unavailable() }
+        return value
+    }
+    public func facts(for applications: [ApplicationDefinition]) throws -> [String: ApplicationUninstallFacts] {
         #if os(macOS)
+        if applications.isEmpty { return [:] }
         let deadline=ContinuousClock.now.advanced(by: .seconds(3))
         let needed=proc_listpids(UInt32(PROC_UID_ONLY), getuid(), nil, 0)
         guard needed > 0, needed <= 262_144 else { throw unavailable() }
@@ -17,8 +22,8 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         let capacity=Int32(pids.count * MemoryLayout<pid_t>.stride)
         let returned=pids.withUnsafeMutableBytes { proc_listpids(UInt32(PROC_UID_ONLY), getuid(), $0.baseAddress, capacity) }
         guard returned > 0, returned < capacity, returned % Int32(MemoryLayout<pid_t>.stride) == 0 else { throw unavailable() }
-        var running=application.bundleIdentifier.map { !NSRunningApplication.runningApplications(withBundleIdentifier: $0).isEmpty } ?? false
-        let prefix=application.path + "/"
+        let runningIdentifiers=Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+        var executablePaths=[String]()
         for pid in pids.prefix(Int(returned) / MemoryLayout<pid_t>.stride) where pid > 0 {
             if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
             guard ContinuousClock.now < deadline else { throw unavailable() }
@@ -31,10 +36,17 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
                 throw unavailable()
             }
             guard let end=buffer.firstIndex(of: 0), let path=String(bytes: buffer[..<end].map { UInt8(bitPattern: $0) }, encoding: .utf8), path.hasPrefix("/") else { throw unavailable() }
-            if path.hasPrefix(prefix) { running=true }
+            executablePaths.append(path)
         }
         let own=URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath().path
-        return ApplicationUninstallFacts(currentUser: getuid(), running: running, currentApplication: own.hasPrefix(prefix) || Bundle.main.bundleURL.path == application.path)
+        var result=[String: ApplicationUninstallFacts]()
+        for application in applications {
+            let prefix=application.path + "/"
+            let running=application.bundleIdentifier.map(runningIdentifiers.contains) == true || executablePaths.contains { $0.hasPrefix(prefix) }
+            result[application.id]=ApplicationUninstallFacts(currentUser: getuid(), running: running,
+                currentApplication: own.hasPrefix(prefix) || Bundle.main.bundleURL.path == application.path)
+        }
+        return result
         #else
         throw unavailable()
         #endif
