@@ -269,10 +269,10 @@ public sealed class MainViewModel : ObservableObject
     {
         var source = value is JsonArray ? Array(value) : Array(value?["items"]);
         var rows = source.Select(item => new CleanupItemResultRow(Text(item, "path"), Text(item, "state"), item?["error"]?.GetValue<string>())).ToArray();
-        var processed = rows.Count(item => ["trashed", "purged", "restored"].Contains(item.State));
+        var processed = rows.Count(item => new[] { "trashed", "purged", "restored" }.Contains(item.State));
         var skipped = rows.Count(item => item.State is "skipped" or "cancelled");
         var failed = rows.Count(item => item.State == "failed");
-        var needs = rows.Count(item => ["unknown", "pending", "moving", "purging", "needs_verification"].Contains(item.State));
+        var needs = rows.Count(item => new[] { "unknown", "pending", "moving", "purging", "needs_verification" }.Contains(item.State));
         var resultState = value is JsonObject ? Text(value, "state") : (failed + needs > 0 ? "partial" : "completed");
         var issues = failed + needs > 0 || resultState is "partial" or "cancelled";
         var title = !issues ? action switch { "restore" => "恢复完成", "purge" => "永久删除完成", _ => "清理完成" } : resultState == "cancelled" ? "清理已停止" : "清理已结束，部分项目需处理";
@@ -282,7 +282,10 @@ public sealed class MainViewModel : ObservableObject
             "purge" or "permanent" => issues ? "部分项目未能永久删除，请查看操作记录。" : "已永久删除，无法恢复。",
             _ => issues ? "部分项目未能移入回收站，请查看操作记录。" : "已移入回收站，可在操作记录中恢复。"
         };
-        return new(action == "restore" ? "✓" : issues ? "!" : "✓", title, $"{processed} 项", message, processed.ToString(), skipped.ToString(), failed.ToString(), needs.ToString(), issues, rows);
+        var bytes = source.Where(item => ["trashed", "purged"].Contains(Text(item, "state")))
+            .Sum(item => item?["bytes"]?.GetValue<long>() ?? 0);
+        var successText = bytes > 0 && (action is "trash" or "permanent") ? Bytes(bytes) : $"{processed} 项";
+        return new(action == "restore" ? "✓" : issues ? "!" : "✓", title, successText, message, processed.ToString(), skipped.ToString(), failed.ToString(), needs.ToString(), issues, rows);
     }
     private async Task AnalyzeAsync()
     {
