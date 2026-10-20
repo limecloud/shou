@@ -80,6 +80,21 @@ func nativeApplicationActivityKeepsLiveHelpersBlocked() async throws {
         process.waitUntilExit()
     }
     try expect(process.isRunning)
+    // Process.run may return before exec has installed the helper's image.
+    // Establish that prerequisite before testing executable-path protection.
+    let deadline=ContinuousClock.now.advanced(by: .seconds(3))
+    var helperReady=false
+    repeat {
+        var path=[CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
+        let count=path.withUnsafeMutableBytes { proc_pidpath(process.processIdentifier, $0.baseAddress, UInt32($0.count)) }
+        if count > 0 {
+            let observed=String(decoding: path.prefix(Int(count)).prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }, as: UTF8.self)
+            helperReady=URL(fileURLWithPath: observed).resolvingSymlinksInPath() == fixture.helper.resolvingSymlinksInPath()
+        }
+        if helperReady { break }
+        try await Task.sleep(for: .milliseconds(10))
+    } while process.isRunning && ContinuousClock.now < deadline
+    try expect(helperReady && process.isRunning)
     let evidence=NativeApplicationUninstallEvidence(homeDirectory: fixture.fixture.workspace)
     try expect(try evidence.facts(for: fixture.application).running)
     let filesystem=NativeFileSystem(applicationRoots: [fixture.application.source.path])
