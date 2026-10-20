@@ -224,6 +224,11 @@ def exercise():
         database.execute("CREATE TABLE cookies(id INTEGER PRIMARY KEY,host_key TEXT,value TEXT,last_access_utc INTEGER)")
         database.executemany("INSERT INTO cookies VALUES(?,?,?,?)", [(1, sentinel + ".invalid", secret_cookie, old),
                                                                     (2, sentinel + ".invalid", secret_cookie, recent)])
+    # Prepare this generated WAL fixture using the same SQLite library as Shou.
+    # Newer Python SQLite removes sidecars on close; Apple's read-only VFS cannot
+    # open that state until a writable system connection initializes the sidecars.
+    subprocess.run(["/usr/bin/sqlite3", str(cookies), "SELECT count(*) FROM cookies;"],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     record("fixture.json", {"scope": "Only this exclusively created profile is eligible for selection and cleanup.",
                             "profile": str(profile), "fixture_time_basis": "Chromium integer microseconds since 1601",
                             "initial_counts": {"history": 2, "cookies": 2, "downloads": 1}})
@@ -281,6 +286,11 @@ def exercise():
     assert history_rows == [receipt]
     for item in history_rows:
         assert_sanitized_receipt(item)
+    persisted = list((base / "records/privacy-history").glob("*.json"))
+    assert len(persisted) == 1
+    durable_receipt = json.loads(persisted[0].read_text())
+    assert_sanitized_receipt(durable_receipt)
+    assert durable_receipt == receipt
     confirm(plan, expected=4)
     assert logical_snapshot() == completed
     assert run("privacy", "history")["data"] == history_rows

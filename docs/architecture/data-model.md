@@ -12,9 +12,11 @@ erDiagram
     RuleDefinition ||--o{ RuleBinding : referenced_by
     Workspace ||--o{ ScanSnapshot : scanned_as
     ScanSnapshot ||--o{ Candidate : contains
+    ScanSnapshot ||--o{ InstalledApplicationCacheEvidence : observes
     CleanupPreset ||--o{ RuleBinding : selects
     ScanSnapshot ||--o{ CleanupPlan : produces
     CleanupPlan ||--|{ PlanItem : contains
+    CleanupPlan ||--o{ InstalledApplicationCacheEvidence : binds
     CleanupPlan ||--o{ ExecutionReceipt : records
     ExecutionReceipt ||--|{ ItemReceipt : contains
     ItemReceipt ||--o{ FollowUpReceipt : followed_by
@@ -44,6 +46,7 @@ Relationships are conceptual; bindings may be shared across presets. Plan items 
 | Candidate | ID, relative path, project clues, identity, estimates, risk, evidence | Unclassified directories remain visible but not executable |
 | CleanupPlan | ID, API version, digest, creation/expiry, configuration, `action` (`trash` or `permanent`), state | Concrete targets/action; no dynamic expansion; action is immutable after confirmation |
 | PlanItem | Candidate, original path, identity, full manifest digest | No duplicate or unresolved parent/child targets; manifest is the permanent-removal boundary |
+| InstalledApplicationCacheEvidence | `rule_id` and full `application` definition with path/source, bundle identifier, filesystem identity and `info_digest` | Exact installed-owner evidence for one cache rule; never authorizes bundle removal |
 | Confirmation | Plan/digest, action, entry point, time | One-time in-process confirmation, not a stored boolean |
 | ExecutionReceipt | Execution/plan IDs, entry point, stage, overall outcome | Durable intent first; item records; partial outcomes possible |
 | ItemReceipt | Original/result path, before/after identity, state, Trash path, error | `purging` is durable intent; `purged` requires a successful platform result; reverify before restore or purge |
@@ -82,6 +85,12 @@ Scan states are `running`, `complete`, `partial`, `cancelled`, and `failed`. Sta
 | `completedPaths` | Relative roots of independently complete subtrees; a candidate requires full-tree completeness or positive coverage of its own subtree |
 
 These fields are additive and optional for existing records. For legacy records without `treeComplete`, use the previous whole-tree status interpretation. Missing `completedPaths` supplies no independent coverage: an old partial snapshot does not gain execution eligibility. Plans retain the scan scope and budget for fresh policy reproduction, and every selected target still requires an unchanged complete manifest.
+
+`ScanSnapshot.installedApplicationCaches` and `CleanupPlan.installedApplicationCaches` encode as optional `installed_application_caches`. A snapshot retains enabled dynamic-rule evidence; a plan copies only owners referenced by selected candidates and includes it in its digest. Each entry binds `rule_id` to a full `ApplicationDefinition`: `id`, `path`, `source`, `identity`, `name`, optional `bundle_identifier`, `version`, `executable_name`, and `info_digest`. Rule IDs use the reserved built-in namespace plus a SHA-256 hexadecimal identifier hash; names and metadata alone cannot authorize cleanup.
+
+Absent optional arrays remain omitted when re-encoded, preserving old snapshot decoding and plan digest bytes. Legacy plans with static rules need no new evidence. A candidate referring to a dynamic cache rule without matching evidence is refused. Plan creation and execution verify the current complete application inventory and exact owner; each mutation re-reads the owner and activity. Normal `ExecutionReceipt`/`ItemReceipt` and follow-up origins remain unchanged because the target is a cache inside the original workspace, not an uninstall component.
+
+Application discovery issues are independent of filesystem completeness. `installed_application_cache:application_discovery_unavailable`, `installed_application_cache:application_discovery_incomplete` and `installed_application_cache:ambiguous_application_owner` are snapshot issues, projected to visible per-location system issues. A complete tree does not imply complete generic coverage. Static rules can still supply independently eligible targets.
 
 The validated time budget also bounds candidate analysis during scanning, planning, and execution. Candidate analysis uses a monotonic deadline in each phase; persisted budgets outside the supported limits are rejected before policy reproduction.
 

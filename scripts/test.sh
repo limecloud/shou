@@ -25,6 +25,7 @@ python3 "scripts/verify-cli-install.py"
 python3 "apps/cli/Tests/verify-confirmation.py"
 python3 "scripts/verify-uninstall-cli.py"
 python3 "scripts/verify-application-batch-cli.py" ".build/debug/shou"
+python3 "scripts/verify-privacy-cli.py" ".build/debug/shou"
 if [ "$TASK_NATIVE_MODE" = --native-trash-purge ]; then
     python3 "scripts/verify-native-cli.py" --native-trash-purge
 else

@@ -246,3 +246,9 @@ Space analysis now supports local volume/folder discovery and direct explicit fi
 Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
 
 Installation, access setup, limited-scope scanning and update identity follow the [installation flow and permission sequence](../product/installation-and-access.md).
+
+## Application batches and privacy
+
+Application uninstall follows incremental summaries → inline components → multi-application selection → one confirmation → batch preflight → per-component execution → shared history. Filtering preserves other selections. Permanent removal is the desktop default, with an explicit Trash alternative. See [application uninstall](../product/application-uninstall.md) for its flow, sequence and personal-data boundaries.
+
+Privacy follows source/time-range scan → initially empty selection → separate Cookie consent → exact plan → irreversible confirmation → full preflight → per-source database transactions → aggregate receipt. Each source commits independently; later failures do not roll back already committed sources. There is no restore entry. See [privacy cleaning](../engineering/privacy-cleaning.md) for the architecture, flow and sequence diagrams.

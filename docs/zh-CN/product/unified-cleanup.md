@@ -24,6 +24,14 @@ Shou 通过自动发现和统一清理为用户省时间。“项目清理”退
 
 全部根准备完成后才捕获首个快照，确保同批快照配置摘要一致。`Workspace` 保留为内部身份与规则范围记录，并兼容现有 CLI；用户无需把它作为独立功能管理，也不必先进入登记页面。
 
+### 已安装应用缓存
+
+macOS 在精确的 `~/Library/Caches` 根扫描中，额外通过平台目录读取已安装应用。合法且归属唯一的 Bundle ID 生成只匹配该标识的相对规则；Mole 实测清单及其标识提示不参与执行。既有静态缓存模式优先，包括已禁用规则和仅覆盖后代的窄规则，通用发现不能扩大这些范围；动态规则也可通过绑定关闭。
+
+只有独立完整、归当前用户且通过共享排除项、受保护内容与禁止跟随检查的缓存清单，才能进入推荐。系统／Apple 应用和当前应用受保护，运行中或状态未知时阻止清理。安装包可以由管理员拥有，因为这里只读核验安装包。缓存清理使用普通计划和回执，不卸载应用，也不选择偏好、支持数据或容器。
+
+当前策略要求应用目录盘点完整，以确认唯一归属。盘点不完整或不可用时，静态规则继续扫描，`scanKnownLocations` 明确报告未纳入的通用覆盖；重复标识仅跳过这些通用 Owner，并报告歧义。`ScanSnapshot.status` 仍描述文件系统扫描是否完成；系统汇总遇到上述发现问题时为部分完成。任意自定义安装位置和其他账户不在目录覆盖范围内。
+
 ## 个人规则
 
 现有 Agent 分析尚未覆盖的大目录，询问不明确的用途和重建方式，编写规则并预览禁用草稿。用户确认启用一次后，符合条件的命中项自动参与后续智能清理推荐；禁用草稿、预览快照、不完整及受阻目标继续排除。每次真实清理仍确认当前具体范围。
@@ -42,6 +50,8 @@ flowchart LR
   Batch --> Roots
   Roots --> Scan[按规则只读扫描]
   Rules[内置及已启用个人规则] --> Scan
+  Apps[实装包身份与运行状态] --> Generic[精确 Bundle ID 缓存规则]
+  Generic --> Scan
   Scan --> Review[去重后的可清理推荐]
   Review --> Confirm[一次具体范围确认]
   Confirm --> Execute[共享永久或废纸篓执行]
@@ -53,7 +63,12 @@ flowchart LR
 ```mermaid
 flowchart TD
   Open[打开智能清理] --> Scan[扫描全部包含位置]
-  Scan --> Found{有可清理目标？}
+  Scan --> Ownership{应用盘点完整？}
+  Ownership -->|是| Exact[加入唯一标识缓存并保留静态窄范围]
+  Ownership -->|否| Gap[报告通用覆盖缺口并保留静态规则]
+  Exact --> Found
+  Gap --> Found
+  Found{有可清理目标？}
   Found -->|有| Review[展示已选目标与空间估计]
   Review --> Confirm{确认清理}
   Confirm -->|确认| Run[执行并报告实际结果]
@@ -73,24 +88,35 @@ sequenceDiagram
   participant UI as 智能清理
   participant Engine as ShouEngine
   participant FS as 平台适配器
+  participant Apps as 应用盘点与运行状态
   participant Store as 本地记录
   User->>UI: 开始扫描，或扫描并释放空间
   UI->>Engine: scanKnownLocations(includeProjects: true)
   Engine->>FS: 探测常见目录并核验身份
   Engine->>Store: 复用策略并登记缺少的合格根
   loop 每个包含位置
+    opt 精确的当前用户 Library/Caches 根
+      Engine->>Apps: 读取实装身份与当前运行状态
+      Apps-->>Engine: 唯一归属或明确发现问题
+      Engine->>Engine: 保留静态范围并绑定精确动态规则
+    end
     Engine->>FS: 按规则只读扫描
-    Engine->>Store: 保存配置摘要稳定的快照
+    Engine->>Store: 保存快照、配置摘要及可选实装证据
   end
   Engine-->>UI: 各位置证据与覆盖缺口
   UI->>UI: 汇总并推荐内置及已启用个人规则命中项
   UI-->>User: 类别三态选择、路径详情和固定底栏
   User->>UI: 调整选择并点击清理
   UI->>Engine: 准备具体选择的计划
+  Engine->>Apps: 重新盘点并核验已选归属身份及运行状态
   UI-->>User: 一次路径及不可恢复确认
   User->>UI: 确认
   UI->>Engine: 按确认摘要执行
-  Engine->>FS: 重新核验并删除具体目标
+  Engine->>Apps: 重新盘点并核验已选归属身份
+  loop 每个选中目标
+    Engine->>Apps: 变更前重新读取具体应用与运行状态
+    Engine->>FS: 重新核验并处理精确缓存目标，保留应用
+  end
   Engine->>Store: 保存逐项结果
   Engine-->>UI: 完成结果与操作记录
 ```

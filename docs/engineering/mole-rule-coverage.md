@@ -21,11 +21,11 @@ Of the 844 snapshot entries, 628 contain an explicit reverse-DNS identity hint i
 | Current relative path patterns | 660 |
 | Current explicit macOS scan locations | 65 |
 
-A mapped entry means at least one named cache or diagnostic path has a declaration. It does not mean every version, helper, profile, uninstall residue or persistent data location is supported. An inventory-only entry may still use Shou's general installed-application inventory and explicit bundle removal; this cache manifest makes no claim about that separate workflow.
+A mapped entry means at least one named cache or diagnostic path has a static declaration. The 83 mappings are not a limit on runtime cache discovery. Smart Cleanup also discovers the exact `~/Library/Caches/<bundleID>` of an installed application when current bundle, unique ownership and activity evidence permit it, including applications absent from the 844-entry inventory. This does not establish every version, helper, profile, uninstall residue or persistent data location as supported. Application removal remains a separate workflow.
 
 ## Path migration
 
-The implementation keeps `builtin-rules.json` and `known-locations.json` as the execution source. The research manifest grants no filesystem authority and is not loaded by the cleanup engine. Each of the 136 additions has a pinned source function or selector in `importedRuleSources`. The manifest also records file digests for all ten reviewed cleanup modules.
+The implementation keeps `builtin-rules.json` and `known-locations.json` as the maintained declaration source. Runtime installed-application cache rules derive only from actual installed bundles through `InstalledApplicationCaches`; they are not additions to the 210-template count. The research manifest grants no filesystem authority and is not loaded by the cleanup engine. Each of the 136 static additions has a pinned source function or selector in `importedRuleSources`. The manifest also records file digests for all ten reviewed cleanup modules.
 
 | Family | Declared scope | Retained boundary |
 | --- | --- | --- |
@@ -51,6 +51,16 @@ The reviewed source contains 716 static path **references**, including existence
 
 Owner commands such as package-manager pruning, Docker/Nix cleanup and simulator management, as well as signed browser clones, firmware and old application versions, cannot be replaced by directory globs. Those behaviors are explicitly listed in `behaviorGaps`. No Windows locations were added.
 
+## Installed-application cache discovery
+
+Mole's `clean_user_essentials` discovers children of the user cache root independently of its tested-app page. Shou implements a narrower contract: a complete current application-directory inventory must identify a unique installed owner with a valid bundle identifier and verified bundle/Info.plist identity. Only its exact current-user cache directory can join the ordinary scan, plan, execution and history path. No name aliases, tested-app search hints, Group Containers or application-support roots supply additional authority.
+
+Maintained rules take precedence, including disabled rules and narrow descendant patterns. Generic discovery cannot widen Tencent Meeting or DingTalk to their whole cache parent, or bypass a disabled declaration. System/Apple applications and Shou itself remain protected; running or unverifiable activity blocks a candidate. An application bundle owned by an administrator can still have a disposable current-user cache: cache ownership and manifest policy are checked independently of bundle ownership.
+
+The current unique-owner policy requires complete application inventory coverage. Unavailable or partial inventories omit generic candidates and report `application_discovery_unavailable` or `application_discovery_incomplete` through `scanKnownLocations`; static rules continue. Shared bundle identifiers omit only those generic owners and report `ambiguous_application_owner`. A complete filesystem snapshot can therefore coexist with an application-discovery issue, and the aggregate system result is partial. Known application directories do not cover arbitrary custom install locations or other accounts.
+
+Snapshots and selected plans retain optional installed-application identity evidence. Plan creation and execution re-read the inventory; each mutation re-reads the concrete bundle and activity facts. Cache cleanup never selects or removes an `.app`. The [daily cleanup architecture and sequence](../product/unified-cleanup.md) and [data model](../architecture/data-model.md) describe this shared path.
+
 ## Safety and verification
 
 Imported rules remain review-level, directory-only, trash actions. Application rules retain declarative activity identifiers; unknown application activity blocks execution through the existing gate. Symlinks and cross-filesystem traversal remain disabled. Protected source, credentials, incomplete scans, exclusions and stale evidence still block candidates. A directory whose name says “cache” does not override these protections.
@@ -72,6 +82,8 @@ python3 "scripts/verify-mole-coverage.py" --self-test \
 ```
 
 `shou-tests --mole-rules-only` exercises independently authored positive/negative game, profile and developer-state fixtures, and protected descendants across every added declaration. The existing native catalog suite expands every pattern into generated targets and checks Trash/restore behavior. These test entry points do not establish third-party application compatibility. Native and desktop acceptance must be reported separately with actual results.
+
+`shou-tests --installed-caches-only` adds generated installed-bundle fixtures for dynamic discovery, ordinary cleanup/history/restore without uninstall, activity and identity changes, static-rule priority, missing/ambiguous inventory, protection boundaries and legacy optional-field digest compatibility. Its actual execution result is recorded separately in [acceptance](acceptance-and-testing.md).
 
 To refresh the review, freeze a new upstream commit and inventory HTML digest, re-evaluate every changed source selector and behavioral gap, update the declarations and manifest together, then run these checks and the affected native acceptance. A count change must not automatically generate cleanup targets from inventory names or bundle IDs.
 

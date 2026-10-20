@@ -109,6 +109,10 @@ Cancellation or the wall-clock deadline requests termination of only the owned r
 
 `scanKnownLocations` inventories roots, registers all available roots, then produces one `ScanSnapshot` per root. Registration happens first so it cannot invalidate earlier configuration digests. Missing roots are skipped; inaccessible or incomplete roots produce separate issues. The desktop standard scan probes conventional developer collections and includes remembered project folders; CLI `system scan` includes them only with `--include-projects true` (default `false`). Both use cleanup scope by default. Neither discovers projects through an implicit home-wide scan, changes operating-system permissions nor deletes targets. Plans remain bound to one root and explicit candidates.
 
+`InstalledApplicationCaches` extends only the exact macOS current-user `Library/Caches` root. `ApplicationCatalogReading` supplies actual bundle identity/Info.plist evidence; `ApplicationUninstallChecking` supplies read-only owner activity facts without invoking the uninstall workflow. A complete inventory and unique valid identifier yield an exact directory rule. Static scopes, including disabled and narrower declarations, take priority. Optional snapshot/plan evidence binds selected owners; plan and execute preflight re-read inventory, and each item re-reads the exact app plus activity before shared permanent/Trash execution. Application ownership is distinct from cache ownership: administrator-owned third-party bundles can have eligible current-user caches. No bundle, support data or container is selected by this feature.
+
+Unavailable/partial inventories explicitly omit generic coverage, preserve fixed-rule scans and surface discovery issues in the system result; duplicate identifiers omit their generic targets. Snapshot filesystem status does not silently claim application inventory completeness. See the [daily cleanup architecture, flow and sequence](../product/unified-cleanup.md#installed-application-caches) and [optional evidence contract](data-model.md#4-scan-and-plan-states).
+
 ### Scan coverage and artifact evidence
 
 `full` inspects the workspace tree for space analysis. `cleanup` uses enabled rule prefixes to decide which branches to discover, prunes `.git` during discovery, and fully measures a matched target before it can be eligible. Pruning discovery does not exempt protected content inside a matched target from inspection. Cleanup completion is not proof that the whole tree was measured: snapshots record `scope`, `treeComplete` and candidate coverage in `completedPaths`. A partial scan may authorize an independently complete target; missing legacy coverage never relaxes an incomplete target. UI must explain sparse cleanup results and request a full scan for directory-space exploration.
@@ -124,6 +128,7 @@ Cancellation or the wall-clock deadline requests termination of only the owned r
 | `ShouEngine` | Configuration, snapshots, policy, plans, revalidation and receipts |
 | `PlatformFileSystem` | Availability, bounded inspection, identity and filesystem operations |
 | `ApplicationActivityChecking` | Read application activity without controlling processes |
+| `InstalledApplicationCaches` / application catalog and facts ports | Bind exact installed-ID cache rules and revalidate selected owners without uninstall authority |
 | `ArtifactEvidenceChecking` | Read tracked-content, build-process and Cargo-integrity facts; never supplied by rule documents |
 | `RecordStore` | Atomic records and cross-process mutation lease |
 

@@ -210,6 +210,71 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     assert scan_command['exactly_one'] == ['workspace', 'location']
     assert 'scope' in scan_command['optional']
     assert any(entry['command'] == 'system scan' for entry in capabilities['commands'])
+
+    # Privacy discovery and invalid inputs never open real browser databases.
+    privacy_specs = {
+        'privacy scan': ('snapshot', [], ['range'], []),
+        'privacy scan show': ('read', ['scan-id'], [], []),
+        'privacy plan': ('plan', ['scan-id', 'source'], ['acknowledge-sign-out'], ['source']),
+        'privacy plan show': ('read', ['plan-id'], [], []),
+        'privacy execute': ('destructive', ['plan-id'], [], []),
+        'privacy history': ('read', [], [], []),
+    }
+    privacy_discovery = run('capabilities', '--command', 'privacy',
+                            env_override=startup_environment)['data']['commands']
+    assert {entry['command'] for entry in privacy_discovery} == set(privacy_specs)
+    for entry in privacy_discovery:
+        side_effect, required, optional, repeated = privacy_specs[entry['command']]
+        assert (entry['side_effect'], entry['required'], entry['optional'], entry['repeated']) == (
+            side_effect, required, optional, repeated)
+    privacy_help = run('privacy', '--help', env_override=startup_environment)['data']
+    assert all(command in privacy_help for command in privacy_specs)
+    assert 'applications uninstall' not in privacy_help
+    assert run('privacy', env_override=startup_environment)['data'] == privacy_help
+    for command in privacy_specs:
+        help_text = run(*command.split(), '--help', env_override=startup_environment)['data']
+        assert command in help_text
+        if command == 'privacy scan':
+            assert all(value in help_text for value in ('last-hour', 'last-day', 'last-seven-days', 'all-time'))
+        elif command == 'privacy plan':
+            assert 'Repeatable: --source' in help_text and '--acknowledge-sign-out' in help_text
+        elif command == 'privacy execute':
+            assert 'Permanently' in help_text and 'No Trash or restore capability' in help_text
+    assert blocked_store.read_text() == 'preserve this file; startup discovery does not open a record store'
+
+    privacy_store = base / 'privacy-store'
+    privacy_environment = dict(environment, SHOU_DATA_DIR=str(privacy_store))
+    assert run('privacy', 'history', env_override=privacy_environment)['data'] == []
+    invalid_range = run('privacy', 'scan', '--range', 'invalid', expected=2,
+                        env_override=privacy_environment)
+    assert invalid_range['error']['code'] == 'invalid_argument'
+    assert invalid_range['error']['message'] == 'Unknown privacy time range.'
+    assert not list(privacy_store.rglob('*.json'))
+    invalid_consent = run('privacy', 'plan', '--scan-id', 'missing',
+                          '--source', 'source-one', '--source', 'source-two',
+                          '--acknowledge-sign-out', 'yes', expected=2,
+                          env_override=privacy_environment)
+    assert invalid_consent['error']['code'] == 'invalid_argument'
+    assert invalid_consent['error']['message'] == 'acknowledge-sign-out must be true or false.'
+    # Both distinct and duplicate source values are accepted as repeated options;
+    # absent scan records are rejected before any source evidence can be accessed.
+    for second_source in ('source-two', 'source-one'):
+        missing_scan = run('privacy', 'plan', '--scan-id', 'missing',
+                           '--source', 'source-one', '--source', second_source,
+                           expected=2, env_override=privacy_environment)
+        assert missing_scan['error']['code'] == 'invalid_argument'
+        assert missing_scan['error']['message'] == 'Privacy record does not exist.'
+    for arguments in (('scan', 'show', '--scan-id', 'missing'),
+                      ('plan', 'show', '--plan-id', 'missing'),
+                      ('execute', '--plan-id', 'missing')):
+        missing_record = run('privacy', *arguments, expected=2, env_override=privacy_environment)
+        assert missing_record['error']['code'] == 'invalid_argument'
+        assert missing_record['error']['message'] == 'Privacy record does not exist.'
+    assert run('privacy', 'execute', '--plan-id', 'missing', '--yes', 'true', expected=2,
+               env_override=privacy_environment)['error']['code'] == 'invalid_argument'
+    assert run('privacy', 'history', env_override=privacy_environment)['data'] == []
+    assert not list(privacy_store.rglob('*.json'))
+
     locations=run('locations', 'list')['data']
     assert {item['id'] for item in locations} >= {'caches', 'npm', 'cargo', 'xcode', 'chrome', 'codex', 'claude', 'qq'}
     assert all(isinstance(item['exists'], bool) and item['rule_ids'] for item in locations)

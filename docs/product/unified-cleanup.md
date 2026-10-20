@@ -24,6 +24,14 @@ Previously registered roots are reused with their exact logical references, rule
 
 All roots are prepared before the first snapshot is captured so every snapshot uses the same configuration digest. `Workspace` remains an internal identity and rule-scope record, and a compatible CLI entity. It is not a prerequisite screen or a separate user-managed product feature.
 
+### Installed application caches
+
+On macOS, the exact `~/Library/Caches` scan additionally reads installed applications from the platform catalog. A valid unique bundle identifier produces an exact relative rule for that identifier; the Mole tested-app inventory and its identity hints are never execution input. Existing maintained cache patterns take priority, including disabled rules and narrower descendants, so generic discovery cannot broaden them. Dynamic rule bindings can also be disabled.
+
+Only independently complete, current-user cache manifests passing the shared exclusions, protected-content and no-follow checks can be recommended. System/Apple and current applications are protected; running or unknown activity blocks cleanup. The installed application bundle may be administrator-owned because it is read only. Cache cleanup uses the ordinary plan and receipt flow and does not uninstall the application or select its preferences, support data or containers.
+
+The current policy requires a complete application-directory inventory to establish unique ownership. If inventory is partial or unavailable, fixed rules continue and `scanKnownLocations` reports the omitted generic coverage. Duplicate identifiers omit those generic owners and report ambiguity. `ScanSnapshot.status` still describes the filesystem scan; the aggregate system result becomes partial for these discovery issues. Arbitrary custom installation directories and other accounts remain outside the catalog scope.
+
 ## Personal rules
 
 An existing Agent investigates uncovered large directories, asks about unclear purpose or rebuilding, writes a rule and previews a disabled draft. After the user approves enablement once, eligible matches participate in subsequent Smart Cleanup recommendations automatically. Disabled imports, draft previews, incomplete targets and blocked candidates stay outside recommendations. Each actual cleanup still requires confirmation of its current concrete scope.
@@ -42,6 +50,8 @@ flowchart LR
   Batch --> Roots
   Roots --> Scan[Read-only rule-directed scans]
   Rules[Built-in and enabled personal rules] --> Scan
+  Apps[Installed bundle identity and activity] --> Generic[Exact bundle ID cache rules]
+  Generic --> Scan
   Scan --> Review[Deduplicated eligible recommendations]
   Review --> Confirm[One exact-scope confirmation]
   Confirm --> Execute[Shared permanent or Trash execution]
@@ -53,7 +63,12 @@ flowchart LR
 ```mermaid
 flowchart TD
   Open[Open Smart Cleanup] --> Scan[Scan all included locations]
-  Scan --> Found{Eligible matches?}
+  Scan --> Ownership{Complete installed application inventory?}
+  Ownership -->|Yes| Exact[Add unique exact ID caches without widening static rules]
+  Ownership -->|No| Gap[Report generic coverage gap and retain fixed rules]
+  Exact --> Found
+  Gap --> Found
+  Found{Eligible matches?}
   Found -->|Yes| Review[Show selected items and estimated space]
   Review --> Confirm{Confirm cleanup}
   Confirm -->|Confirm| Run[Execute and report actual outcomes]
@@ -73,24 +88,35 @@ sequenceDiagram
   participant UI as Smart Cleanup
   participant Engine as ShouEngine
   participant FS as Platform adapter
+  participant Apps as Application catalog and activity
   participant Store as Local records
   User->>UI: Start Scan, or Scan & Free Space
   UI->>Engine: scanKnownLocations(includeProjects: true)
   Engine->>FS: Probe conventional directories and verify identities
   Engine->>Store: Reuse policy; register missing eligible roots
   loop Every included root
+    opt Exact current-user Library/Caches root
+      Engine->>Apps: Read installed identities and current activity
+      Apps-->>Engine: Unique verified owners or explicit discovery issues
+      Engine->>Engine: Preserve static scopes; bind exact dynamic rules
+    end
     Engine->>FS: Rule-directed read-only scan
-    Engine->>Store: Save snapshot with stable configuration digest
+    Engine->>Store: Save snapshot, configuration digest and optional app evidence
   end
   Engine-->>UI: Per-location evidence and coverage gaps
   UI->>UI: Aggregate built-in and enabled personal matches
   UI-->>User: Categories, recommendations, and selection bar
   User->>UI: Clean selected, or continue the quick action
   UI->>Engine: Prepare exact selected plans
+  Engine->>Apps: Re-read inventory and verify selected owner identities/activity
   UI-->>User: One paths and irreversible-action confirmation
   User->>UI: Confirm
   UI->>Engine: Execute confirmed digests
-  Engine->>FS: Reverify and remove exact targets
+  Engine->>Apps: Re-read inventory and selected owner identities
+  loop Each selected target
+    Engine->>Apps: Re-read exact owner and activity before mutation
+    Engine->>FS: Reverify and remove exact cache target; retain application
+  end
   Engine->>Store: Record per-item outcomes
   Engine-->>UI: Results and history
 ```

@@ -134,7 +134,7 @@ try:
     assert commands["applications batch plan"]["input_schema"]["properties"]["mode"]["default"] == "permanent"
     assert commands["applications batch uninstall"]["side_effect"] == "destructive"
     assert "include_user_data" in run("applications", "batch", "plan", "--help")["data"]
-    summary = run("applications", "summary", expected=[0, 6])["data"]
+    summary = run("applications", "summary", "--max-entries", "10000", "--max-seconds", "1", expected=[0, 6])["data"]
     rows = {item["application"]["path"]: item for item in summary["items"]}
     for app in applications:
         row = rows[str(app)]
