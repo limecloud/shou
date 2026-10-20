@@ -14,8 +14,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Swift CLI build failed." }
         # Swift 6.2.3's Windows optimizer can assert in SIL partitioning for
         # this test executable. Keep the production CLI optimized while
-        # compiling the validation binary without optimization.
-        swift build -c $swiftConfiguration --jobs 4 --product shou-windows-tests -Xswiftc -Onone
+        # compiling and running the validation binary with Debug settings.
+        swift build -c debug --jobs 4 --product shou-windows-tests
         if ($LASTEXITCODE -ne 0) { throw "Windows native check build failed." }
         Push-Location (Join-Path $repo "apps/windows")
         try {
@@ -24,6 +24,7 @@ try {
         } finally { Pop-Location }
     }
     $bin = (swift build -c $swiftConfiguration --show-bin-path | Select-Object -Last 1).Trim()
+    $testBin = (swift build -c debug --show-bin-path | Select-Object -Last 1).Trim()
     if ($LASTEXITCODE -ne 0 -or -not $bin) { throw "Swift build directory discovery failed." }
     if ($Stage -in @("All", "Check")) {
         # AppData is intentionally protected. Keep generated test workspaces
@@ -35,8 +36,10 @@ try {
             $originalTemp[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
             [Environment]::SetEnvironmentVariable($name, $fixtureRoot, "Process")
         }
+        $originalRecycle = [Environment]::GetEnvironmentVariable("SHOU_WINDOWS_EXPERIMENTAL_RECYCLE", "Process")
+        [Environment]::SetEnvironmentVariable("SHOU_WINDOWS_EXPERIMENTAL_RECYCLE", "1", "Process")
         try {
-            & (Join-Path $bin "shou-windows-tests.exe") --recycle
+            & (Join-Path $testBin "shou-windows-tests.exe") --recycle
             if ($LASTEXITCODE -ne 0) { throw "Windows native checks failed." }
             Push-Location (Join-Path $repo "apps/windows")
             try {
@@ -49,6 +52,7 @@ try {
             foreach ($name in $originalTemp.Keys) {
                 [Environment]::SetEnvironmentVariable($name, $originalTemp[$name], "Process")
             }
+            [Environment]::SetEnvironmentVariable("SHOU_WINDOWS_EXPERIMENTAL_RECYCLE", $originalRecycle, "Process")
             Remove-Item -LiteralPath $fixtureRoot -Recurse -Force
         }
     }
