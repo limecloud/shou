@@ -85,7 +85,18 @@ with tempfile.TemporaryDirectory(prefix="shou-large-files-cli-") as temporary:
     expected_paths = [row["entry"]["path"] for row in rows]
     expected_allocated = sum(row["node"]["allocated_bytes"] for row in rows)
     assert all_files["total_allocated_bytes"] == expected_allocated
-    assert next(row for row in rows if row["entry"]["path"] == "z/video-alias.mp4")["node"]["allocated_bytes"] == 0
+    # Parallel readers may encounter either hard link first. Both rows retain
+    # physical metadata, while their attributed sizes charge the inode once.
+    linked_paths = {"a/video.MP4", "z/video-alias.mp4"}
+    linked = [row for row in rows if row["entry"]["path"] in linked_paths]
+    assert len(linked) == 2
+    physical = (workspace / "a/video.MP4").stat()
+    assert physical.st_blocks > 0 and physical.st_nlink == 2
+    assert all((row["entry"]["device"], row["entry"]["inode"], row["entry"]["links"]) ==
+               (physical.st_dev, physical.st_ino, physical.st_nlink) for row in linked)
+    assert sorted(row["node"]["allocated_bytes"] for row in linked) == [0, physical.st_blocks * 512]
+    assert sorted(row["node"]["logical_bytes"] for row in linked) == [0, physical.st_size]
+    charged_video = next(row["entry"]["path"] for row in linked if row["node"]["allocated_bytes"] > 0)
     sparse = next(row for row in rows if row["entry"]["path"] == "sparse.mov")
     assert sparse["node"]["logical_bytes"] > sparse["node"]["allocated_bytes"]
 
@@ -103,7 +114,7 @@ with tempfile.TemporaryDirectory(prefix="shou-large-files-cli-") as temporary:
     for changed in [["--minimum-bytes", "1"], ["--minimum-bytes", "0", "--type", "video"]]:
         refused = run("analysis", "large-files", "--scan-id", scan_id, "--cursor", first["next_cursor"], *changed, code=2)
         assert refused["error"]["code"] == "invalid_argument"
-    for kind, expected in {"ai-model": {"model.GGUF", "weights.safetensors"}, "video": {"a/video.MP4", "z/video.mp4"}, "image": {"photo.NEF"}, "audio": {"song.FLAC"}, "archive": {"archive.zip"}, "document": {"report.pdf"}}.items():
+    for kind, expected in {"ai-model": {"model.GGUF", "weights.safetensors"}, "video": {charged_video, "z/video.mp4"}, "image": {"photo.NEF"}, "audio": {"song.FLAC"}, "archive": {"archive.zip"}, "document": {"report.pdf"}}.items():
         filtered = run("analysis", "large-files", "--scan-id", scan_id, "--minimum-bytes", "1", "--type", kind)["data"]
         assert {row["entry"]["path"] for row in filtered["entries"]} == expected
     for options in [["--limit", "0"], ["--limit", "501"], ["--minimum-bytes", "-1"], ["--type", "unknown"], ["--cursor", "invalid!"]]:
