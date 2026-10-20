@@ -33,11 +33,11 @@ erDiagram
 | CleanupPreset | 名称、规则绑定引用、选择偏好 | 保存选择逻辑，不保存通用删除许可 |
 | ScanSnapshot | ID、`scope`、`treeComplete`、`completedPaths`、配置摘要、状态、统计 | 仅独立完整且符合策略的候选可生成可执行计划项目 |
 | Candidate | ID、相对路径、项目线索、身份、占用、风险、证据 | 大目录可以无规则；无规则候选不能直接执行 |
-| CleanupPlan | ID、合同版本、摘要、创建/过期时间、规则与配置摘要、状态 | 绑定具体候选、处理方式和完整清单，不动态扩展 |
-| PlanItem | 候选引用、原路径、文件身份、目录清单摘要、动作 | 同一计划内不得重复或存在未解决的父子目标冲突 |
+| CleanupPlan | ID、合同版本、摘要、创建/过期时间、规则与配置摘要、`action`（`trash` 或 `permanent`）、状态 | 绑定具体候选、处理方式和完整清单，不动态扩展；确认后动作不可改变 |
+| PlanItem | 候选引用、原路径、文件身份、目录清单摘要 | 同一计划内不得重复或存在未解决的父子目标冲突；完整清单是永久移除边界 |
 | Confirmation | 计划 ID 与摘要、入口、确认时间、范围 | 当前进程内一次性使用；不得把落盘布尔值当作授权 |
 | ExecutionReceipt | 计划引用、执行 ID、入口、阶段、总体结果 | 执行意图先落盘，逐项追加结果；可表示部分成功 |
-| ItemReceipt | 原路径、实际目标位置、前后身份、动作、错误 | 恢复与永久移除必须重新核验，不只信任路径 |
+| ItemReceipt | 原路径、实际目标位置、前后身份、状态、错误 | `purging` 是持久化意图；只有平台成功结果才能进入 `purged`；恢复与永久移除必须重新核验 |
 | FollowUpReceipt | 原项目引用、恢复/永久移除、时间、结果 | 独立确认；不修改原始执行事实 |
 
 ## 3. 规则状态
@@ -93,7 +93,7 @@ stateDiagram-v2
     interrupted --> [*]
 ```
 
-首版计划有效期建议 10 分钟，由安全原型确定最终值。有效期未过也必须复核对象；改变选择范围、动作、规则或排除时生成新摘要并重新确认。`partial`、`cancelled` 或 `interrupted` 不自动重试未完成项，需要新计划。
+首版计划有效期建议 10 分钟，由安全原型确定最终值。有效期未过也必须复核对象；改变选择范围、动作、规则或排除时生成新摘要并重新确认。`trash` 与 `permanent` 是两个正式动作，确认后不能互换。`partial`、`cancelled` 或 `interrupted` 不自动重试未完成项，需要新计划。
 
 ## 5. 项目执行状态
 
@@ -102,17 +102,36 @@ stateDiagram-v2
 | `pending` | 尚未开始 |
 | `moving` | 系统操作前已持久化逐项意图；若缺少结果，须核验 |
 | `trashed` | 已核验并移到废纸篓，记录实际位置 |
+| `purging` | 永久移除平台调用前已持久化意图；结果尚未确定 |
+| `purged` | 绑定的原始目标已永久移除且结果已持久化 |
 | `skipped` | 状态变化、受保护或用户取消导致未处理 |
 | `failed` | 操作错误，记录错误类型与已知现场 |
 | `unknown` | 中断导致无法确认结果，需要现场核对 |
 | `restored` | 后续已核验并恢复 |
-| `purged` | 后续已单独确认永久移除 |
 
-`restored` 与 `purged` 是后续记录推导出的当前状态，不能覆盖初次清理记录。`unknown` 不能自动当作失败重试，也不能据旧路径永久删除。
+后续 `restored` 与 `purged` 是后续记录推导出的当前状态，不能覆盖初次清理记录；计划动作 `permanent` 的 `purged` 则表示首次执行已永久移除。`unknown` 不能自动当作失败重试，也不能据旧路径永久删除。
 
 新记录的 `pending` 表示尚未保存逐项开始边界；旧版 `pending` 记录不能证明系统操作从未发生。每次系统清理调用前先保存 `moving`，写入失败则不调用文件操作，结果写入丢失时也不会把该项误标为跳过。
 
+```mermaid
+stateDiagram-v2
+    [*] --> pending
+    pending --> moving: action=trash
+    pending --> purging: action=permanent
+    moving --> trashed: 废纸篓结果核验通过
+    purging --> purged: 永久移除结果核验通过
+    moving --> failed: 已知废纸篓错误
+    purging --> failed: 已知永久移除错误
+    moving --> unknown: 结果中断
+    purging --> unknown: 结果中断
+    pending --> skipped: 安全边界或策略变化
+    trashed --> restored: 后续恢复核验通过
+    trashed --> purged: 废纸篓后续永久移除核验通过
+```
+
 `HistoryInspection` 是独立的临时读取结果，保留原记录状态、核验时间、未完成标志及每项确切路径的观察。核验持有同一把修改锁，避免与其他 Shou 操作并发；目录检查共用条目和时间预算，比较完整清单与身份，沿用后续操作的已记录目录根 ctime 例外。此检查不对文件内容计算哈希，不把不确定项目升级为可执行项；缺少目标位置时不搜索用户废纸篓。尚未完成的恢复／永久移除仍保留 pending 并阻止重试，观察结果不能制造成功回执。
+
+永久计划的回执 `operation=permanent_cleanup`，并单独计算 `permanentlyRemovedBytesEstimate`；该估算与卷可用容量不是同一指标。
 
 执行进度属于临时状态：`stage`、`processedCount`、`itemCount` 和 `path` 描述实际工作，不构成新授权或持久结果。停止请求在安全的项目边界阻止新操作；正在进行的单次系统废纸篓操作可能先完成，随后须核对并记录最终回执。
 
@@ -177,3 +196,8 @@ stateDiagram-v2
 `ExecutionReceipt.operation` 为兼容旧回执而可选；`application_uninstall` 的每项保存 `UninstallReceiptOrigin`，包含组件类型、应用路径、完整标识与确切父目录身份。普通清理回执不能使用该原位置能力。恢复分别验证组件类型对应的路径和父目录身份，不依赖事后重新发现应用或后来安装的应用。卸载回执此阶段仅允许恢复。
 
 `FileEntry.contentDigest` 可选，缺省时不编码，保持旧目录清单不变。独立文件目标只有一条根记录和有界 SHA-256 内容摘要。废纸篓根比较仅归一化 ctime，仍匹配内容和其他全部元数据；目录后代仍严格比较元数据。详见[应用卸载](../product/application-uninstall.md)。
+
+
+## 空间分析直接删除
+
+空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。

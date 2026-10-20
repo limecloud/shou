@@ -40,7 +40,7 @@ Passing a schema never establishes that a real directory can be deleted.
 | `exclude.relative_patterns` | Relative exclusions, combined with stronger user/system protection |
 | `risk.declared_level` | `review` or `high`; cannot lower effective engine risk |
 | `risk.rebuild_note`, `limitations` | Rebuild prerequisites and at least one limitation |
-| `action.type` | Only `trash`; permanent removal is a separate receipt operation |
+| `action.type` | Rule declarations remain `trash`-scoped; a reviewed cleanup plan may choose `action=permanent` separately, never from rule text |
 
 `$schema` is an editor hint. The application uses its bundled schema and never fetches executable content or remote definitions based on this value.
 

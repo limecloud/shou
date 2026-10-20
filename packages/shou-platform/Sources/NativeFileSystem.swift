@@ -1,5 +1,8 @@
 import Foundation
 import ShouCore
+#if canImport(CryptoKit)
+import CryptoKit
+#endif
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
@@ -96,13 +99,26 @@ public struct NativeFileSystem: PlatformFileSystem {
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         return SecurePaths.entry(metadata, path: ".")
     }
+    public func analysisRootIdentity(_ path: String) throws -> FileEntry {
+        let descriptor=try SecurePaths.directory(path, readFinalDirectory: false)
+        defer { close(descriptor) }
+        var metadata=stat()
+        guard fstat(descriptor, &metadata) == 0 else { throw SecurePaths.failure("Inspect analysis root", path: path) }
+        guard (try URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeIsLocalKey])).volumeIsLocal == true else {
+            throw ShouError("capability_unavailable", "Space analysis requires a local volume.")
+        }
+        return SecurePaths.entry(metadata, path: ".")
+    }
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspect(path, budget: budget, cancelled: cancelled, progress: { _ in })
     }
     public func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true)
     }
-    private func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, useWorker: Bool) throws -> TreeSnapshot {
+    public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true, largeFile: true)
+    }
+    private func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, useWorker: Bool, largeFile: Bool = false) throws -> TreeSnapshot {
         let (parent, name)=try SecurePaths.parent(path, cancelled: cancelled)
         defer { close(parent) }
         var metadata=stat()
@@ -124,12 +140,38 @@ public struct NativeFileSystem: PlatformFileSystem {
         }
         if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
-        let bytes=try NativeDefinitionFiles.bytes(directory: parent, name: name, path: path, maximumBytes: 16_777_216, deadline: deadline, cancelled: cancelled)
+        let contentDigest: String
+        if largeFile {
+            #if canImport(CryptoKit)
+            var hasher=SHA256(), buffer=[UInt8](repeating: 0, count: 1_048_576)
+            while true {
+                if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
+                guard ContinuousClock.now < deadline else { throw ShouError("resource_limit", "The target read budget was exhausted.") }
+                let count=buffer.withUnsafeMutableBytes { raw in
+                    #if canImport(Darwin)
+                    Darwin.read(descriptor, raw.baseAddress, raw.count)
+                    #else
+                    Glibc.read(descriptor, raw.baseAddress, raw.count)
+                    #endif
+                }
+                if count == 0 { break }
+                if count < 0 && errno == EINTR { continue }
+                guard count > 0 else { throw SecurePaths.failure("Read selected file", path: path) }
+                hasher.update(data: Data(buffer.prefix(count)))
+            }
+            contentDigest="sha256:" + hasher.finalize().map { String(format: "%02x", $0) }.joined()
+            #else
+            throw ShouError("capability_unavailable", "Streaming file verification is unavailable on this platform.")
+            #endif
+        } else {
+            let bytes=try NativeDefinitionFiles.bytes(directory: parent, name: name, path: path, maximumBytes: 16_777_216, deadline: deadline, cancelled: cancelled)
+            contentDigest=Digest.sha256(bytes)
+        }
         guard fstat(descriptor, &opened) == 0, SecurePaths.entry(opened, path: ".") == expected else {
             throw ShouError("plan_stale", "The file changed while reading its content digest.")
         }
         if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
-        expected.contentDigest=Digest.sha256(bytes)
+        expected.contentDigest=contentDigest
         let values=try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
         return TreeSnapshot(entries: [expected], complete: true, issues: [], caseSensitive: values?.volumeSupportsCaseSensitiveNames ?? true)
     }
@@ -240,7 +282,7 @@ public struct NativeFileSystem: PlatformFileSystem {
     private func inspectMutationTarget(_ path: String, entryCount: Int) throws -> TreeSnapshot {
         // Once the caller journals an operation, finish its native verification
         // without delegating to a cancellable scan worker. Stop between items.
-        try inspectTarget(path, budget: ScanBudget(maxEntries: max(100_000, entryCount + 1), maxSeconds: 180), cancelled: { false }, useWorker: false)
+        try inspectTarget(path, budget: ScanBudget(maxEntries: max(100_000, entryCount + 1), maxSeconds: 180), cancelled: { false }, useWorker: false, largeFile: true)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
         #if os(macOS)
@@ -305,6 +347,15 @@ public struct NativeFileSystem: PlatformFileSystem {
         #endif
     }
     public func purge(_ path: String, expected: [FileEntry]) throws {
+        if expected.count == 1, let file=expected.first, file.kind == "file", file.contentDigest != nil {
+            try verify(path, expected, trashReceipt: true)
+            let (fd, name)=try SecurePaths.parent(path); defer { close(fd) }
+            var current=stat()
+            guard fstatat(fd, name, &current, AT_SYMLINK_NOFOLLOW) == 0,
+                  SecurePaths.entry(current, path: ".").sameObject(as: file) else { throw ShouError("plan_stale", "Selected file changed before removal.") }
+            guard unlinkat(fd, name, 0) == 0 else { throw SecurePaths.failure("Remove selected file", path: path) }
+            return
+        }
         guard expected.first(where: { $0.path == "." })?.kind == "directory" else {
             throw ShouError("capability_unavailable", "Permanent removal of file targets is unavailable.")
         }

@@ -1,6 +1,7 @@
 import Foundation
 import ShouCore
 import ShouPlatform
+import ShouAgentSupport
 #if canImport(Darwin)
 import Darwin
 #else
@@ -21,7 +22,12 @@ struct CommandSpec: Codable, Sendable {
 }
 
 let commands: [CommandSpec] = [
-    .init("capabilities", "read", [], [], "Discover implemented operations, inputs, limits, and platform capabilities."),
+    .init("capabilities", "read", [], ["command"], "Discover operations, inputs, limits, and platform capabilities without opening storage. Command optionally selects one command or group."),
+    .init("agent skill", "read", [], [], "Read the bundled rule-authoring skill and its local entrypoint. External agents use it to ask questions, inspect evidence, and preview custom rules; no model or agent is started."),
+    .init("skills list", "read", [], [], "List the bundled rule-authoring skill and supporting files; no record-store access."),
+    .init("skills read", "read", [], ["file"], "Read bundled instructions; file is SKILL.md (default), references/questionnaire.md, or agents/openai.yaml."),
+    .init("skills install", "configuration", ["agent"], ["directory"], "Install the bundled Skill for codex or claude-code. Directory overrides the parent skills folder; default is the client's user skills folder. Preserve local edits; back up managed updates."),
+    .init("skills export", "configuration", ["output"], [], "Export the whole Skill as a ZIP for WorkBuddy's Add Skill > Upload Skill. Never overwrite an existing output file."),
     .init("locations list", "read", [], [], "List built-in application and developer cache roots, their existence, and scoped rules; does not scan or grant access."),
     .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report best-effort configured/runtime states and explicit unknowns; never changes startup settings. Login Items and background registrations remain in System Settings."),
     .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent after rechecking its plist, owner, label and exact path. Action is enable or disable; system definitions remain read-only."),
@@ -50,13 +56,17 @@ let commands: [CommandSpec] = [
     .init("rules disable", "configuration", ["rule-id", "workspace"], ["version"], "Disable a rule binding."),
     .init("rules preview", "snapshot", ["file", "workspace"], [], "Scan a draft without allowing executable plans."),
     .init("scan", "snapshot", [], ["workspace", "location", "rule-id", "scope", "max-entries", "max-seconds"], repeated: ["rule-id"], exactlyOne: ["workspace", "location"], "Scan one registered workspace or built-in location. Scope full (default) measures the whole tree; cleanup discovers and measures rule targets. Save immutable evidence."),
-    .init("system scan", "snapshot", [], ["include-projects", "max-entries", "max-seconds"], "Scan existing built-in cache roots with cleanup coverage; optionally include registered projects (true/false, default false). Report each location's failures."),
+    .init("system scan", "snapshot", [], ["include-projects", "max-entries", "max-seconds"], "Scan built-in cache roots; optionally discover conventional developer folders and include remembered projects (include-projects true/false, default false). Report each location's failures."),
     .init("scan results", "read", ["scan-id"], ["limit", "cursor"], "Page through stable candidate results."),
+    .init("analysis scan", "snapshot", ["path"], ["max-entries", "max-seconds"], "Analyze a local disk or folder without registering a cleanup workspace. No automatic selection."),
+    .init("analysis plan", "plan", ["scan-id", "path"], ["mode"], repeated: ["path"], "Review explicit literal file and directory paths from space analysis; mode trash (default) or permanent. Parent selections subsume descendants."),
+    .init("analysis plan show", "read", ["plan-id"], [], "Show the exact space removal scope, byte estimates, digest and expiry."),
+    .init("analysis remove", "destructive", ["plan-id"], [], "Remove reviewed space-analysis items after terminal confirmation. File evidence is rechecked; results enter shared history."),
     .init("analysis summary", "read", ["scan-id"], [], "Show non-overlapping cleanup categories and measured workspace usage."),
     .init("analysis children", "read", ["scan-id"], ["path", "limit", "cursor"], "Browse allocated space in a saved scan; default path is the workspace root (.)."),
-    .init("plan create", "plan", ["scan-id", "candidate"], [], repeated: ["candidate"], "Create a plan from explicitly selected candidates."),
+    .init("plan create", "plan", ["scan-id", "candidate"], ["mode"], repeated: ["candidate"], "Create a plan from explicitly selected candidates. Mode is trash (default) or permanent."),
     .init("plan show", "read", ["plan-id"], [], "Inspect exact scope, manifest digest, risk, and expiry."),
-    .init("plan execute", "destructive", ["plan-id"], [], "Move current plan targets to Trash after terminal confirmation."),
+    .init("plan execute", "destructive", ["plan-id"], [], "Execute the current Trash or permanent plan after terminal confirmation."),
     .init("history list", "read", [], [], "List execution receipts."),
     .init("history show", "read", ["execution-id"], [], "Show item states and follow-up receipts."),
     .init("history inspect", "read", ["execution-id"], ["max-entries", "max-seconds"], "Verify exact recorded original and Trash locations without changing files or receipts; never searches Trash or retries interrupted actions."),
@@ -88,6 +98,16 @@ struct Arguments {
             } else { words.append(token); index += 1 }
         }
         command=words.joined(separator: " ")
+        if words.starts(with: ["skills", "read"]), words.count > 2 {
+            let target=words[2].split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+            guard (3...4).contains(words.count), target.first.map(String.init) == ShouAgentSkill.name,
+                  target.count == 1 || words.count == 3, values["file"] == nil else {
+                throw ShouError("invalid_argument", "Use skills read shou-rule-authoring [relative-file], or skills read --file <relative-file>.")
+            }
+            if target.count == 2 { values["file"]=[String(target[1])] }
+            else if words.count == 4 { values["file"]=[words[3]] }
+            command="skills read"
+        }
         if let requested=values["locale"]?.first {
             let normalized=requested.replacingOccurrences(of: "_", with: "-").lowercased().split(separator: ".")[0]
             if normalized == "en" || normalized.hasPrefix("en-") { locale="en" }
@@ -95,6 +115,9 @@ struct Arguments {
             else { throw ShouError("invalid_argument", "Unsupported explicit locale. Available: en, zh-CN.") }
         } else if Locale.preferredLanguages.first?.hasPrefix("zh-Hans") == true { locale="zh-CN" }
         if help { return }
+        if !commands.contains(where: { $0.command == command }),
+           commands.contains(where: { $0.command.hasPrefix(command + " ") }),
+           values.keys.allSatisfy({ $0 == "locale" }) { help=true; return }
         guard let spec=commands.first(where: { $0.command == command }) else { throw ShouError("invalid_argument", "Unknown command. Use shou --help.", details: ["command": command]) }
         let allowed=Set(spec.required + spec.optional + ["locale"])
         for (key, list) in values {
@@ -131,7 +154,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.3.0"
+    static let version = "0.4.0"
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         await run()
@@ -164,14 +187,43 @@ enum Terminal {
         do {
             let args=try Arguments(raw)
             if args.help {
-                var help="Shou · 收拾一下 — Tidy up. That's it.\n\nUsage: shou <command> [options] [--json] [--locale en|zh-CN]\n\n"
-                for spec in commands {
-                    let inputs=spec.required.map { "--\($0) <value>" }.joined(separator: " ")
-                    let alternatives=spec.exactlyOne.map { "(" + $0.map { "--\($0) <value>" }.joined(separator: " | ") + ")" } ?? ""
-                    help += "  \(spec.command) \(inputs)\(alternatives)\n      \(spec.description)\n"
-                }
-                help += "\nUse capabilities --json for machine-readable definitions.\nDestructive operations require current-scope terminal confirmation.\n"
+                let help=try CLICommandDiscovery.help(for: args.command)
                 if args.json { try output(ResultEnvelope(data: help), json: true) } else { print(help) }
+                return
+            }
+            if args.command == "capabilities" {
+                let fs=NativeFileSystem()
+                let selected=try CLICommandDiscovery.matching(args.value("command"))
+                let value: JSONValue = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(selected), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("No model integration, agent hosting, or unattended destructive execution.")])])
+                try result(value, json: args.json)
+                return
+            }
+            if args.command == "agent skill" {
+                try result(try .from(ShouAgentSkill.descriptor()), json: args.json)
+                return
+            }
+            if args.command.hasPrefix("skills ") {
+                let value: JSONValue
+                switch args.command {
+                case "skills list":
+                    value = .array([.object(["name": .string(ShouAgentSkill.name), "files": try .from(ShouAgentSkill.files)])])
+                case "skills read":
+                    let file = args.values["file"]?.first ?? "SKILL.md"
+                    guard ShouAgentSkill.files.contains(file) else { throw ShouError("invalid_argument", "Unknown bundled Skill file.", details: ["file": file]) }
+                    let content = try ShouAgentSkill.read(file: file)
+                    if !args.json { print(content, terminator: ""); return }
+                    value = .object(["name": .string(ShouAgentSkill.name), "file": .string(file), "content": .string(content)])
+                case "skills install":
+                    guard let client = AgentSkillInstallation.Client(rawValue: args.value("agent")) else { throw ShouError("invalid_argument", "Choose agent codex or claude-code. Export a ZIP and use Upload Skill for WorkBuddy.") }
+                    let directory = args.values["directory"]?.first.map { URL(fileURLWithPath: $0) }
+                    value = try .from(AgentSkillInstallation.install(client: client, skillsDirectory: directory))
+                case "skills export":
+                    let output = URL(fileURLWithPath: args.value("output"))
+                    try AgentSkillInstallation.exportArchive(to: output)
+                    value = .object(["name": .string(ShouAgentSkill.name), "path": .string(output.path), "state": .string("exported")])
+                default: throw ShouError("invalid_argument", "Unknown Skill operation.")
+                }
+                try result(value, json: args.json)
                 return
             }
             if args.command == "applications list" {
@@ -213,8 +265,6 @@ enum Terminal {
             func scanValue(_ snapshot: ScanSnapshot) throws -> JSONValue { try summary(snapshot) }
             func nextResults(_ scan: ScanSnapshot) -> [JSONValue] { [.object(["command": .string("scan results"), "arguments": .object(["scan_id": .string(scan.id)])])] }
             switch args.command {
-            case "capabilities":
-                value = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(commands), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("No model integration, agent hosting, or unattended destructive execution.")])])
             case "locations list": value=try .from(await engine.knownLocations())
             case "applications inspect":
                 guard let entries=Int(args.values["max-entries"]?.first ?? "100000"), let seconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
@@ -293,6 +343,40 @@ enum Terminal {
                 }
                 let end=min(offset+limit,snapshot.candidates.count)
                 value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "candidates": try .from(Array(snapshot.candidates[offset..<end])), "next_cursor": end < snapshot.candidates.count ? .string(snapshot.id + ":" + String(end)) : .null, "total": .integer(Int64(snapshot.candidates.count))])
+            case "analysis scan":
+                guard let count=Int(args.values["max-entries"]?.first ?? "1000000"), let seconds=Double(args.values["max-seconds"]?.first ?? "600") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
+                let result=try await engine.scanStorage(path: args.value("path"), budget: ScanBudget(maxEntries: count, maxSeconds: seconds))
+                value = .object(["scan_id": .string(result.id), "root_path": .string(result.rootPath), "status": .string(result.status), "entry_count": .integer(Int64(result.tree.entries.count)), "issues": try .from(result.tree.issues)])
+                warnings=result.tree.issues
+            case "analysis plan":
+                value=try .from(await engine.createStorageRemovalPlan(scanId: args.value("scan-id"), paths: args.all("path"), action: args.values["mode"]?.first ?? "trash"))
+            case "analysis plan show": value=try .from(await engine.storageRemovalPlan(args.value("plan-id")))
+            case "analysis remove":
+                let plan=try await engine.storageRemovalPlan(args.value("plan-id"))
+                try Terminal.confirm(TerminalReviewScope(storage: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
+                value=try .from(await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
+            case "analysis summary" where args.value("scan-id").hasPrefix("storage_"):
+                let snapshot=try await engine.storageScan(args.value("scan-id"))
+                let storage=StorageIndex(entries: snapshot.tree.entries)
+                value = .object(["scan_id": .string(snapshot.id), "root_path": .string(snapshot.rootPath), "status": .string(snapshot.status), "metric": .string("allocated_bytes_estimate"), "root": try .from(storage.nodes["."]), "issues": try .from(snapshot.tree.issues)])
+            case "analysis children" where args.value("scan-id").hasPrefix("storage_"):
+                let snapshot=try await engine.storageScan(args.value("scan-id"))
+                let storage=StorageIndex(entries: snapshot.tree.entries), path=args.values["path"]?.first ?? "."
+                guard storage.nodes[path]?.kind == "directory" else { throw ShouError("invalid_argument", "Path must name an exact directory in this scan.") }
+                let children=storage.children(of: path), limit=Int(args.values["limit"]?.first ?? "50") ?? 0
+                guard (1...500).contains(limit) else { throw ShouError("invalid_argument", "Limit must be between 1 and 500.") }
+                let prefix=snapshot.id + ":" + String(try Digest.of(path).prefix(16)) + ":"
+                var offset=0
+                if let cursor=args.values["cursor"]?.first {
+                    guard cursor.hasPrefix(prefix), let parsed=Int(cursor.dropFirst(prefix.count)), (0...children.count).contains(parsed) else { throw ShouError("invalid_argument", "Cursor does not belong to this scan and directory.") }
+                    offset=parsed
+                }
+                let end=min(offset+limit, children.count)
+                var rows=[JSONValue]()
+                for node in children[offset..<end] {
+                    rows.append(.object(["node": try .from(node), "removal_block_reason": try .from(await engine.storageRemovalReason(scan: snapshot, path: node.path))]))
+                }
+                value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "path": .string(path), "directory": try .from(storage.nodes[path]), "entries": .array(rows), "total": .integer(Int64(children.count)), "next_cursor": end < children.count ? .string(prefix + String(end)) : .null])
             case "analysis summary":
                 let snapshot=try await engine.scanSnapshot(args.value("scan-id"))
                 guard snapshot.scope != .cleanup else { throw ShouError("partial_result", "Space analysis requires a full-tree scan. Run scan with --scope full.") }
@@ -313,11 +397,13 @@ enum Terminal {
                 }
                 let end=min(offset+limit, children.count)
                 value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "path": .string(path), "directory": try .from(directory), "entries": try .from(Array(children[offset..<end])), "total": .integer(Int64(children.count)), "next_cursor": end < children.count ? .string(prefix + String(end)) : .null])
-            case "plan create": value=try .from(await engine.createPlan(scanId: args.value("scan-id"), candidateIds: args.all("candidate")))
+            case "plan create":
+                let mode=args.values["mode"]?.first ?? "trash"
+                value=try .from(await engine.createPlan(scanId: args.value("scan-id"), candidateIds: args.all("candidate"), action: mode))
             case "plan show": value=try .from(await engine.plan(args.value("plan-id")))
             case "plan execute":
                 let plan=try await engine.plan(args.value("plan-id"))
-                try Terminal.confirm(TerminalReviewScope(plan: plan, locale: args.locale), phrase: "TRASH " + plan.id, locale: args.locale)
+                try Terminal.confirm(TerminalReviewScope(plan: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
                 value=try .from(await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
             case "history list": value=try .from(await engine.history())
             case "history inspect":

@@ -44,7 +44,7 @@ enum HistoryInspector {
             case .available: break
             }
             do {
-                let tree=try filesystem.inspectTarget(path, budget: ScanBudget(maxEntries: remainingEntries, maxSeconds: min(seconds, budget.maxSeconds), maxDepth: budget.maxDepth), cancelled: { Task.isCancelled })
+                let tree=try filesystem.inspectStorageTarget(path, budget: ScanBudget(maxEntries: remainingEntries, maxSeconds: min(seconds, budget.maxSeconds), maxDepth: budget.maxDepth), cancelled: { Task.isCancelled })
                 remainingEntries=max(0, remainingEntries - tree.entries.count)
                 if Task.isCancelled { throw ShouError("cancelled", "History verification cancelled.") }
                 guard tree.complete else { return HistoryObjectObservation(path: path, state: "unavailable", issue: "incomplete_manifest") }
@@ -69,6 +69,8 @@ enum HistoryInspector {
                 state=followUp.action == "restore" && original.state == "matches" ? "restored" :
                     followUp.action == "purge" && trash.state == "missing" ? "purged" : "needs_verification"
             } else if followUp?.state == "pending" { state="needs_verification" }
+            else if item.state == "purged", original.state == "missing", item.trashPath == nil,
+                    ["storage_permanent_removal", "permanent_cleanup"].contains(receipt.operation ?? "") { state="purged" }
             else if trash.state == "matches" { state=original.state == "missing" ? "verified_trash" : "restore_conflict" }
             else if original.state == "matches" { state="verified_original" }
             else if original.state == "missing" && ["missing", "not_recorded"].contains(trash.state) { state="missing" }
@@ -76,7 +78,7 @@ enum HistoryInspector {
             items.append(HistoryItemInspection(id: item.id, relativePath: item.relativePath, recordedState: item.state,
                 original: original, trash: trash, followUp: followUp, state: state))
         }
-        let unfinished=receipt.state == "executing" || receipt.items.contains { $0.state == "moving" } || items.contains { $0.followUp?.state == "pending" }
+        let unfinished=receipt.state == "executing" || receipt.items.contains { ["moving", "purging"].contains($0.state) } || items.contains { $0.followUp?.state == "pending" }
         let partial=items.contains { ["missing", "needs_verification", "restore_conflict"].contains($0.state) }
         return HistoryInspection(executionId: receipt.id, checkedAt: checkedAt, recordedState: receipt.state, unfinished: unfinished,
             status: partial ? "partial" : "complete", items: items)

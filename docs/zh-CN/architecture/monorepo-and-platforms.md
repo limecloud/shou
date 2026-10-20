@@ -35,6 +35,7 @@ shou/
 ├── scripts/                    # 校验、构建、平台打包与基准
 ├── examples/
 │   └── rules/                 # 手写或 Agent 生成规则的参考
+├── skills/                     # ShouAgentSupport 与随包规则制定 Skill
 ├── assets/
 │   └── brand/                 # 品牌与图标源文件
 ├── docs/
@@ -52,6 +53,9 @@ flowchart TB
     Mac --> Platform[packages/shou-platform]
     CLI[apps/cli] --> Core
     CLI --> Platform
+    Mac --> AgentSupport[skills / ShouAgentSupport]
+    CLI --> AgentSupport
+    Platform --> AgentSupport
     Windows[未来 apps/windows] -.JSON 进程桥.-> CLI
     Core --> Interfaces[平台能力接口]
     Platform --> Interfaces
@@ -62,6 +66,8 @@ flowchart TB
 ```
 
 接口在源码中的放置原则：由核心声明自己需要的最小能力；平台包依赖核心并实现这些协议，核心不反向依赖平台包。Schema 是数据合同的单一事实源，不是需要运行的服务。
+
+`ShouAgentSupport` 管理随包指令资源与读取，不依赖清理引擎；`ShouPlatform` 管理本地技能安装与 macOS ZIP 导出，桌面与 CLI 共用。客户端加载合同与图示见 [Skill 安装与分发](../ai/skill-distribution.md)。
 
 ## 4. 核心与平台划分
 
@@ -115,7 +121,7 @@ CLI 的 `capabilities` 返回当前平台、构建版本、合同版本与每项
 - 应用版本与规则格式版本分开。规则可独立演进，但必须符合当前引擎能力。
 - 构建产物默认不提交；不得将扫描真实开发目录的结果加入夹具。
 - macOS 签名、公证与 Windows 签名、运行库、安装卸载分开验收。
-- 不提供自动修改全局 Codex、Claude Code、WorkBuddy 配置或安装全局插件的脚本。
+- Skill 复制由用户显式发起；集成不编辑 Codex、Claude Code、WorkBuddy 的设置文件、不安装全局插件。
 
 ## 9. 演进顺序
 

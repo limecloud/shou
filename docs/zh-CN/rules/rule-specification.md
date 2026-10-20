@@ -42,7 +42,7 @@ Codex、Claude Code 等现有 Agent 可以生成符合格式的文件，通过 C
 | `exclude.relative_patterns` | 相对工作区根目录的排除模式；保护优先于匹配 |
 | `risk.declared_level` | `review` 或 `high`；不能降低系统算出的更高风险 |
 | `risk.rebuild_note`、`limitations` | 重建条件与局限，至少一条局限说明 |
-| `action.type` | 固定 `trash`；永久移除通过独立历史操作，不由规则触发 |
+| `action.type` | 规则声明保持 `trash` 范围；经审阅的清理计划可以单独选择 `action=permanent`，但不能由规则文本触发 |
 
 `$schema` 只提供编辑器提示；应用使用随包固定 Schema，不根据此字段联网获取或执行任何内容。
 

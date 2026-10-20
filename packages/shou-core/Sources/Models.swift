@@ -205,6 +205,7 @@ public struct ExecutionReceipt: Codable, Sendable, Identifiable {
     public var volumeAvailableAfter: Int64?
     public var operation: String? = nil
     public var trashedBytesEstimate: Int64 { items.filter { $0.state == "trashed" }.reduce(0) { $0 + $1.allocatedBytesEstimate } }
+    public var permanentlyRemovedBytesEstimate: Int64 { items.filter { $0.state == "purged" }.reduce(0) { $0 + $1.allocatedBytesEstimate } }
 }
 public struct FollowUpReceipt: Codable, Sendable, Identifiable {
     public var id: String
@@ -246,9 +247,11 @@ public protocol PlatformFileSystem: Sendable {
     func targetAvailability(_ path: String) -> LocationAvailability
     func rootIdentity(_ path: String) throws -> FileEntry
     func applicationParentIdentity(_ path: String) throws -> FileEntry
+    func analysisRootIdentity(_ path: String) throws -> FileEntry
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
+    func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func availableBytes(_ path: String) -> Int64?
     func isTrashLocation(_ path: String) -> Bool
@@ -257,6 +260,10 @@ public protocol PlatformFileSystem: Sendable {
     func purge(_ path: String, expected: [FileEntry]) throws
 }
 extension PlatformFileSystem {
+    public func analysisRootIdentity(_ path: String) throws -> FileEntry { try rootIdentity(path) }
+    public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspectTarget(path, budget: budget, cancelled: cancelled)
+    }
     public func applicationParentIdentity(_ path: String) throws -> FileEntry {
         throw ShouError("capability_unavailable", "Application removal is unavailable on this filesystem.")
     }

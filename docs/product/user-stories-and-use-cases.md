@@ -20,6 +20,8 @@ Status: design draft. Requirement identifiers refer to the [PRD](prd.md).
 | US10 | Complete tasks with keyboard and assistive technology | Focus, shortcuts, VoiceOver, non-color status indicators | F01–F10 |
 | US11 | Complete cleanup entirely in the terminal | Independent management, scanning, execution, history, recovery | F01–F11 |
 | US16 | Understand risks in a supported language | Localized human text, invariant machine results and decisions | F19 |
+| US17 | Clean verified fixed-rule results in one desktop action | Standard scan auto-selects eligible built-ins; one native confirmation runs the concrete plan | F04, F07 |
+| US18 | Permanently remove a known batch when Trash is not enough | Explicit permanent action, exact manifest review, irreversible confirmation, durable per-item receipt | F08, F10 |
 
 US12–US15 are defined with [developer workspace scenarios](developer-space-scenarios.md).
 
@@ -126,3 +128,38 @@ Inspect project composition; distinguish installed dependencies, caches, and del
 Preserve current projects, source, and needed deliverables. Build a deduplicated plan and confirm. Do not infer disposability from `dist`, treat all package managers as ordinary npm, follow dependency links, or process unverifiable types.
 
 **Outcome:** reusable rules and presets, with a fresh scan next time. Shou runs no automatic reinstall or build commands.
+
+## UC10: One-click clean verified built-in results
+
+**Actors:** Mac user, desktop application, built-in rule catalog.
+
+**Preconditions:** the standard scan has completed enough for independently complete built-in candidates; personal rules participate after enablement.
+
+1. Start the standard scan without choosing a directory.
+2. Review grouped categories and the measured estimate.
+3. Let Shou preselect eligible built-in candidates.
+4. Choose **Clean Recommended** and inspect the native confirmation sheet.
+5. Confirm once; Shou creates and revalidates the concrete Trash plan internally.
+6. Read each result, skipped reason and available history action.
+
+Blocked, custom or ambiguous targets remain outside the quick selection and can be handled through **Review Details**. The shortcut changes presentation, not the plan, manifest or confirmation contract.
+
+## UC11: Permanently remove a reviewed batch
+
+**Actors:** user, desktop or terminal client, permanent execution service.
+
+**Preconditions:** the user has selected a concrete, fully evidenced cleanup batch and understands that permanent removal cannot be restored.
+
+1. Choose **Permanently Remove** from the reviewed cleanup action, or create a CLI plan with `--mode permanent`.
+2. Inspect the exact paths, item count, manifest evidence and irreversible warning.
+3. Confirm the native sheet or enter `PURGE <plan-id>` in the controlling TTY.
+4. Shou rechecks current rules, application activity, object identity and the full manifest for each item.
+5. `PermanentExecution` persists `purging`, removes only the bound original target, then persists `purged` or a typed failure.
+6. Review the durable receipt; missing, changed or interrupted items remain partial/unknown and are not retried by old path.
+
+The operation never empties unrelated Trash contents and never accepts an arbitrary shell deletion command.
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

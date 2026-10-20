@@ -7,10 +7,10 @@ struct SmartScanView: View {
     @ReduceMotion private var reduceMotion
     @State private var category="all"
     @State private var query=""
-    @State private var showMissing=false
     @State private var showIssues=false
+    @State private var scanLocations=false
+    @State private var agentSetup=false
 
-    private var locations: [KnownLocation] { model.systemResult?.locations ?? model.knownLocations }
     private var groups: [CleanupRuleGroup] {
         model.commonReview.categories.filter { category == "all" || $0.id == category }.flatMap(\.groups).filter {
             query.isEmpty || model.t($0.title).localizedStandardContains(query) || $0.sources.contains { $0.path.localizedStandardContains(query) }
@@ -38,6 +38,8 @@ struct SmartScanView: View {
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: model.scanning)
         .onChange(of: model.systemResult?.snapshots.count) { _, _ in category="all" }
+        .sheet(isPresented: $scanLocations) { ScanLocationsView(model: model) }
+        .sheet(isPresented: $agentSetup, onDismiss: { Task { await model.refresh() } }) { AgentRuleSetupView(model: model) }
     }
 
     private var header: some View {
@@ -45,7 +47,7 @@ struct SmartScanView: View {
             Image(nsImage: AppIdentity.icon).resizable().interpolation(.high)
                 .frame(width: 56, height: 56).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                Text(model.systemResult == nil ? model.displayTitle : model.t("Common App Cleanup"))
+                Text(model.systemResult == nil ? model.displayTitle : model.t("Smart Cleanup"))
                     .font(.title2.weight(.semibold)).accessibilityAddTraits(.isHeader)
                 Text(model.t("Tidy up. That's it.")).font(.callout).foregroundStyle(.secondary)
                 if model.systemResult != nil {
@@ -57,14 +59,41 @@ struct SmartScanView: View {
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 8) {
-                Button { if model.scanning { model.cancel() } else { model.scanCommonLocations() } } label: {
-                    Label(model.t(model.scanning ? "Stop" : model.systemResult == nil ? "Scan Common Apps" : "Scan Again"), systemImage: model.scanning ? "stop.fill" : "magnifyingglass")
-                }.buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy && !model.scanning)
+                if model.scanning {
+                    Button { model.cancel() } label: {
+                        Label(model.t("Stop"), systemImage: "stop.fill")
+                    }.buttonStyle(.borderedProminent).controlSize(.large)
+                } else if model.systemResult == nil {
+                    HStack(spacing: 8) {
+                        Button { model.quickCleanCommon() } label: {
+                            Label(model.t("Scan & Free Space"), systemImage: "sparkles")
+                        }.buttonStyle(.borderedProminent).controlSize(.large)
+                        Button { model.scanCommonLocations() } label: {
+                            Text(model.t("Scan Only"))
+                        }.buttonStyle(.bordered).controlSize(.large)
+                    }.disabled(model.busy)
+                } else {
+                    HStack(spacing: 8) {
+                        Button { model.quickCleanCommon() } label: {
+                            Label(model.t("Clean & Free Space"), systemImage: "sparkles")
+                        }.buttonStyle(.borderedProminent).controlSize(.large)
+                            .disabled(model.commonRecommended.isEmpty || model.busy)
+                        Menu {
+                            Button(model.t("Move Recommended to Trash…")) { model.quickCleanCommon(permanent: false) }
+                            Button(model.t("Permanently Clean Recommended…"), role: .destructive) { model.quickCleanCommon(permanent: true) }
+                        } label: {
+                            Image(systemName: "chevron.down")
+                        }.menuStyle(.borderlessButton).frame(width: 24).disabled(model.commonRecommended.isEmpty || model.busy)
+                        Button { model.scanCommonLocations() } label: {
+                            Label(model.t("Scan Again"), systemImage: "arrow.clockwise")
+                        }.buttonStyle(.bordered).controlSize(.large).disabled(model.busy)
+                    }
+                }
                 if let result=model.systemResult, !result.issues.isEmpty {
                     Button { showIssues.toggle() } label: { Label(model.t("Some locations need attention"), systemImage: "exclamationmark.triangle") }
                         .buttonStyle(.link).font(.caption).popover(isPresented: $showIssues) { issues(result) }
                 } else if !model.scanning {
-                    Text(model.t("Scanning does not delete files.")).font(.caption).foregroundStyle(.secondary)
+                    Text(model.t(model.systemResult == nil ? "Scan is read-only. Clean Recommended opens one confirmation." : "Built-in and enabled personal rules are ready to clean.")).font(.caption).foregroundStyle(.secondary)
                 }
             }
         }.padding(.horizontal, 24).padding(.vertical, 18)
@@ -114,7 +143,7 @@ struct SmartScanView: View {
                 .overlay {
                     if groups.isEmpty {
                         ContentUnavailableView(model.t(query.isEmpty ? "No matching cleanup items" : "No search results"), systemImage: query.isEmpty ? "checkmark.circle" : "magnifyingglass",
-                            description: Text(model.t(query.isEmpty ? "Add a project folder to inspect build outputs and project caches." : "Try another rule name or path.")))
+                            description: Text(model.t(query.isEmpty ? "Nothing eligible was found. Use AI to cover your own tools and folders." : "Try another rule name or path.")))
                     }
                 }
         }.frame(minWidth: 360, maxWidth: .infinity, maxHeight: .infinity)
@@ -143,54 +172,62 @@ struct SmartScanView: View {
                 }
                 Spacer()
                 Menu(model.t("Select Items")) {
+                    Button(model.t("Use Recommended Selection")) { model.commonSelection=Set(model.commonRecommended.map(\.id)) }
                     Button(model.t("Select Reviewable Items")) { model.commonSelection=[]; model.selectCommon(groups.flatMap(\.sources).filter { $0.candidate.risk != "high" }, selected: true) }
                     Button(model.t("Select All Eligible Items, Including High Risk")) { model.commonSelection=[]; model.selectCommon(groups.flatMap(\.sources), selected: true) }
                     Divider()
                     Button(model.t("Clear Selection")) { model.commonSelection=[] }
                 }.fixedSize().disabled(model.busy)
-                Button(model.t("Review Cleanup…")) { model.previewCommonCleanup() }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                Menu {
+                    Button(model.t("Move Selected to Trash…")) { model.previewCommonCleanup(permanent: false) }
+                    Button(model.t("Permanently Clean Selected…"), role: .destructive) { model.previewCommonCleanup(permanent: true) }
+                } label: {
+                    Text(model.t("Clean & Free Space"))
+                } primaryAction: { model.previewCommonCleanup() }
+                    .menuStyle(.borderlessButton).fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(model.busy || model.commonSelected.isEmpty)
             }.padding(.horizontal, 20).padding(.vertical, 12)
         }.background(.bar)
     }
 
     private var locationBrowser: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text(model.t("Available on this Mac")).font(.headline)
-                Spacer()
-                TextField(model.t("Search software or paths"), text: $query).textFieldStyle(.roundedBorder).frame(maxWidth: 230)
-            }.padding(16)
-            List {
-                ForEach(["application", "browser", "developer", "system"], id: \.self) { kind in
-                    let matching=locations.filter { $0.category == kind && (showMissing || $0.exists || $0.availabilityIssue != nil) && (query.isEmpty || model.t($0.title).localizedStandardContains(query) || $0.path.localizedStandardContains(query)) }
-                    if !matching.isEmpty {
-                        Section(title(kind)) {
-                            ForEach(matching) { location in
-                                HStack(spacing: 12) {
-                                    SoftwareIcon(identifiers: location.applicationBundleIdentifiers, fallback: symbol(kind))
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(model.t(location.title)).font(.callout.weight(.medium))
-                                        Text(location.path).font(.caption.monospaced()).foregroundStyle(.secondary)
-                                            .lineLimit(1).truncationMode(.middle).help(location.path)
-                                    }
-                                    Spacer()
-                                    if location.availabilityIssue != nil { Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange).help(model.t("Unable to scan this location")) }
-                                    else if !location.exists { Text(model.t("Not found — skipped")).font(.caption).foregroundStyle(.tertiary) }
-                                }.padding(.vertical, 5)
-                            }
-                        }
-                    }
+        ScrollView {
+            VStack(spacing: 28) {
+                Spacer().frame(height: 24)
+                Image(systemName: "sparkles").font(.system(size: 58, weight: .light))
+                    .foregroundStyle(Color.accentColor.gradient).accessibilityHidden(true)
+                VStack(spacing: 12) {
+                    Text(model.t("One scan. A tidier Mac.")).font(.system(size: 28, weight: .semibold))
+                    Text(model.t("App caches, project build outputs, and your enabled rules — together in one cleanup."))
+                        .font(.title3).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 540)
                 }
-            }.listStyle(.inset)
-            Divider()
-            HStack {
-                Toggle(model.t("Show unavailable locations"), isOn: $showMissing).toggleStyle(.checkbox).font(.caption)
-                Spacer()
-                Button(model.t("Choose Project Folder…")) { model.addWorkspace() }.disabled(model.busy)
-            }.padding(14)
+                HStack(spacing: 16) {
+                    discoveryCard("Application Caches", symbol: "app.badge", count: model.knownLocations.filter(\.exists).count)
+                    discoveryCard("Project Folders", symbol: "hammer", count: model.projectLocations.filter(\.exists).count)
+                    discoveryCard("Personal Rules", symbol: "sparkles", count: Set(model.configuration.bindings.filter { $0.enabled && !$0.ruleId.hasPrefix(BuiltinCatalog.prefix) }.map(\.ruleId)).count)
+                }.frame(maxWidth: 650)
+                VStack(spacing: 14) {
+                    Text(model.t("Common locations are found automatically. No project setup needed."))
+                        .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    HStack(spacing: 20) {
+                        Button(model.t("Customize with AI…")) { agentSetup=true }
+                            .accessibilityIdentifier("smart.agent.setup")
+                        Button(model.t("Scan Locations…")) { scanLocations=true }
+                            .accessibilityIdentifier("smart.locations")
+                    }.buttonStyle(.link).disabled(model.busy)
+                }
+                Spacer().frame(height: 24)
+            }.padding(28).frame(maxWidth: .infinity)
         }
+    }
+
+    private func discoveryCard(_ title: String, symbol: String, count: Int) -> some View {
+        VStack(spacing: 10) {
+            Image(systemName: symbol).font(.title2).foregroundStyle(Color.accentColor)
+            Text(count.formatted()).font(.title.weight(.semibold)).monospacedDigit()
+            Text(model.t(title)).font(.callout).foregroundStyle(.secondary)
+        }.padding(20).frame(maxWidth: .infinity)
+            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func issues(_ result: SystemScanResult) -> some View {

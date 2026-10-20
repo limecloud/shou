@@ -8,6 +8,7 @@ struct TerminalReviewScope: Encodable {
         let rootRef: String
         let path: String
 
+        init(id: String, rootRef: String, path: String) { self.id=id; self.rootRef=rootRef; self.path=path }
         init(_ workspace: Workspace) {
             id=workspace.id; rootRef=workspace.rootRef; path=workspace.path
         }
@@ -57,6 +58,14 @@ struct TerminalReviewScope: Encodable {
     let notes: [String]
     let items: [Item]
 
+    init(storage plan: StorageRemovalPlan, locale: String) {
+        action=plan.action; planId=plan.id; executionId=nil; digest=plan.digest
+        workspace=WorkspaceScope(id: plan.scanId, rootRef: "space-analysis", path: plan.rootPath)
+        selectedItemCount=plan.items.count; allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=plan.action == "permanent"
+        notes=[locale == "zh-CN" ? "仅删除用户明确选中的项目。永久删除不可恢复；移入废纸篓可在历史记录恢复，但不会立即释放空间。" : "Only explicitly selected items are removed. Permanent deletion is irreversible. Trash supports restoration from history but does not free disk space."]
+        items=plan.items.map { Item(id: $0.path, originalPath: StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path), trashPath: nil, bytes: $0.allocatedBytesEstimate, candidate: nil, locale: locale) }
+    }
+
     init(uninstall plan: ApplicationUninstallPlan, locale: String) {
         action="uninstall"; planId=plan.id; executionId=nil; digest=plan.digest; workspace=WorkspaceScope(application: plan.application)
         selectedItemCount=plan.components.count; allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=false
@@ -65,10 +74,12 @@ struct TerminalReviewScope: Encodable {
     }
 
     init(plan: CleanupPlan, locale: String) {
-        action="trash"; planId=plan.id; executionId=nil; digest=plan.digest
+        action=plan.action; planId=plan.id; executionId=nil; digest=plan.digest
         workspace=WorkspaceScope(plan.workspace); selectedItemCount=plan.items.count
-        allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=false
-        notes=[locale == "zh-CN" ? "移入废纸篓不代表已释放磁盘空间。执行前将重新核验当前规则与文件证据。" : "Moving to Trash does not mean disk space has been freed. Current rules and file evidence will be verified again before execution."]
+        allocatedBytesEstimate=plan.allocatedBytesEstimate; irreversible=plan.action == "permanent"
+        notes=plan.action == "permanent"
+            ? [locale == "zh-CN" ? "此操作不可恢复，将永久删除以下明确选中的项目。执行前将重新核验当前规则与文件证据。" : "This is irreversible. Only the explicitly selected items below will be permanently removed after current rules and file evidence are rechecked."]
+            : [locale == "zh-CN" ? "移入废纸篓不代表已释放磁盘空间。执行前将重新核验当前规则与文件证据。" : "Moving to Trash does not mean disk space has been freed. Current rules and file evidence will be verified again before execution."]
         items=plan.items.map {
             Item(id: $0.id, originalPath: plan.workspace.path + "/" + $0.candidate.relativePath,
                  trashPath: nil, bytes: $0.candidate.allocatedBytesEstimate, candidate: $0.candidate, locale: locale)

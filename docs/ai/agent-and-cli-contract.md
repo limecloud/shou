@@ -13,7 +13,8 @@ Existing coding agents may call the public CLI under their own authorization pol
 ## 2. Global behavior
 
 - Command: `shou`, future Windows `shou.exe`.
-- `--help` explains usage; `capabilities --json` reports actual commands, input definitions, limits, and side effects.
+- `--help` explains usage; `shou skills --help` or a command group's name alone limits help to that group, including optional and repeatable arguments. Unknown help targets are rejected.
+- `capabilities --json` reports actual commands, input definitions, limits, and side effects. `capabilities --command "rules import" --json` or `--command skills` narrows discovery without opening cleanup storage.
 - `--locale` changes human text according to [internationalization](../product/internationalization.md), never machine semantics.
 - `--json` emits exactly one UTF-8 envelope on stdout; progress and prompts use stderr or a controlling terminal.
 - Escape untrusted terminal/path content. Machine values use integer bytes, UTC ISO 8601 timestamps, stable English identifiers, and explicit completeness.
@@ -28,10 +29,14 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | Command | Level | Purpose |
 | --- | --- | --- |
 | `capabilities` | R | Actual support, contract version, limitations, inputs |
+| `agent skill` | R | Bundled rule-authoring Skill, its local entrypoint/directory and instructions; independent of cleanup storage |
+| `skills list / read` | R | List bundled files or read one allowlisted file; `skills read shou-rule-authoring [relative-file]` and `--file` forms supported; Markdown by default, standard envelope with `--json`; independent of cleanup storage |
+| `skills install` | W | Install for `--agent codex\|claude-code`; optional `--directory` selects the parent skills folder; preserve local edits and back up managed updates |
+| `skills export` | W | Export the complete Skill ZIP to `--output` for WorkBuddy upload; never overwrite existing files |
 | `locations list` | R | Explicit built-in roots, availability, rule IDs and inspection issues |
 | `startup list` | R | Bounded macOS launchd-definition inventory; optional `--include-system true\|false`, default false; best-effort runtime/configured state with explicit unknowns and settings guidance |
 | `startup control` | W | Revalidate an exact current-user LaunchAgent plist, then enable or disable it through the current user's `launchctl`; interactive confirmation required, no process termination or system-daemon changes |
-| `system scan` | W | Cleanup-scope scan of available built-in roots; optionally include registered projects |
+| `system scan` | W | Cleanup-scope scan of available built-in roots; optionally include discovered and remembered projects |
 | `workspaces list / show` | R | Bindings and current-entry-point access |
 | `workspaces add` | W | Register explicit path/root reference; not OS authorization |
 | `workspaces remove` | W | Unregister root, bindings, and presets; preserve target files and receipts |
@@ -46,7 +51,7 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | `rules preview` | W | Read-only draft scan, saved as preview-only |
 | `scan` | W | Exactly one of `--workspace` or `--location`; `--scope full\|cleanup`, default `full` |
 | `scan results` | R | Stable paginated evidence |
-| `plan create` | W | Concrete explicitly selected candidates |
+| `plan create` | W | Concrete explicitly selected candidates; `--mode trash|permanent` chooses the immutable execution action |
 | `plan show` | R | Paths, action, risk, digest, expiry, next actions |
 | `plan execute` | D | Current-plan interactive confirmation |
 | `history list / show` | R | Batch and item outcomes |
@@ -56,6 +61,8 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | `presets list / save / show / scan` | R/W | Reuse logic; scan creates fresh evidence, not permission |
 
 Discover actual availability rather than assuming every documented command exists.
+
+Skill installation, official client directories, invocation syntax and the Lark CLI research are documented in [Skill distribution](skill-distribution.md). These commands run before cleanup storage is opened and do not enable cleanup rules.
 
 `startup list --json` does not open cleanup storage. Its `scope` is `launchd_definitions`; completeness applies to the requested sources, while `unavailable_sources` identifies Login Items, background registrations and embedded helpers outside that scope. Source failures retain a partial envelope and exit `6`. Arguments/environment values are omitted. For current-user LaunchAgents, Shou performs a bounded read of `launchctl print-disabled` and the exact service domain; values are `enabled`, `disabled`, `loaded`, `running` or `not_loaded` when observed, and `unknown` when the command is unavailable or the deadline expires. These are point-in-time facts and do not grant control authority. `startup control --path <exact-path> --action enable|disable` accepts only a path returned by discovery under the current user's `~/Library/LaunchAgents`; it rechecks the parent, owner, regular-file type, plist Label and bytes, then requires `STARTUP ENABLE|DISABLE <label>` on the current TTY. See [startup discovery](../product/startup-items.md).
 
@@ -72,7 +79,7 @@ shou scan --location "chrome" --scope cleanup --json
 shou system scan --include-projects true --json
 ```
 
-`locations list` does not register roots. `system scan` registers existing explicit roots before scanning, preserves existing exclusions and disabled bindings, and returns `locations`, `scans`, `issues` and `skipped_location_ids`. It uses cleanup scope. `--include-projects true|false` defaults to `false`; `true` also scans already registered project workspaces. The desktop standard scan uses `true`. Neither entry implicitly scans home to discover projects. Each scan has its own workspace and evidence. Missing roots are skipped; inaccessible and incomplete roots produce a partial envelope and exit `6`. Cancellation stops the operation. There is no combined home-root plan or implicit cleanup. Known running applications are blocked in results and rechecked before mutation; `application_running` and `application_activity_unavailable` identify those decisions.
+`locations list` does not register roots. `system scan` registers existing explicit roots before scanning, preserves existing exclusions and disabled bindings, and returns `locations`, `scans`, `issues` and `skipped_location_ids`. It uses cleanup scope. `--include-projects true|false` defaults to `false`; `true` also scans automatically discovered and remembered project folders. The desktop standard scan uses `true`. Discovery probes a fixed list of conventional project collections instead of recursively enumerating the entire home directory. Each scan has its own workspace and evidence. Missing roots are skipped; inaccessible and incomplete roots produce a partial envelope and exit `6`. Cancellation stops the operation. There is no combined home-root plan or implicit cleanup. Known running applications are blocked in results and rechecked before mutation; `application_running` and `application_activity_unavailable` identify those decisions.
 
 `scan --scope full|cleanup` defaults to `full` for compatibility. Full mode measures the workspace tree; cleanup mode follows enabled-rule prefixes, prunes `.git` during discovery and fully measures matched targets. A cleanup result can have completed discovery while remaining sparse. It is unsuitable for complete directory-space accounting.
 
@@ -97,7 +104,15 @@ shou plan execute --plan-id "plan_example"
 shou history show --execution-id "execution_example" --json
 ```
 
-Draft preview snapshots are not executable: enable, rescan, then select candidates. `plan create` has no implicit select-all; repeat `--candidate` for additional items.
+`plan create` defaults to `--mode trash`. Use `--mode permanent` only when the caller deliberately chooses irreversible removal:
+
+```sh
+shou plan create --scan-id "scan_example" --candidate "candidate_example" --mode permanent --json
+shou plan show --plan-id "plan_permanent_example" --json
+shou plan execute --plan-id "plan_permanent_example"
+```
+
+Draft preview snapshots are not executable: enable, rescan, then select candidates. `plan create` has no implicit select-all; repeat `--candidate` for additional items. The plan's `action` is included in its digest and cannot be switched at execution time.
 
 ### Exclusion management
 
@@ -167,17 +182,19 @@ Return the primary blocking category and preserve item details. Process-start fa
 
 ## 8. Confirmation and interruption
 
-Display plan ID/digest, inspectable full scope, count, action, and risk before active confirmation. JSON execution may prompt through a separate controlling terminal; no terminal means exit 7. Confirmation is current, one-time, and in-process.
+Display plan ID/digest, inspectable full scope, count, action, and risk before active confirmation. `trash` requires `TRASH <plan-id>`; `permanent` requires `PURGE <plan-id>`. JSON execution may prompt through a separate controlling terminal; no terminal means exit 7. Confirmation is current, one-time, and in-process. A noninteractive agent may create and inspect a permanent plan, but it cannot execute it without the controlling TTY confirmation.
 
 TTY interaction does not prove a human identity. External agents remain subject to their own tool permissions. Never expand scope or retry deletion after revalidation fails.
 
-Repeated execution returns `already_executed` and existing receipt references. After timeout/interruption, query state before any retry. Reimporting identical same-version content is idempotent; changed content conflicts. Recovery/purge accepts verified receipt/item IDs, not arbitrary Trash paths.
+Repeated execution returns `already_executed` and existing receipt references. After timeout/interruption, query state before any retry. Reimporting identical same-version content is idempotent; changed content conflicts. Recovery/purge accepts verified receipt/item IDs, not arbitrary Trash paths. A permanent cleanup receipt uses `operation=permanent_cleanup` and records `purging`/`purged` item states; it has no restore path.
 
 `history inspect --execution-id "execution_example" --json` acquires the shared mutation lease and returns current metadata/manifest observations without rewriting receipts. A live competing operation returns `store_busy`. Optional `--max-entries` and `--max-seconds` use the scan budget limits and bound aggregate manifest inspection. The report contains `recorded_state`, `unfinished`, `checked_at`, and per-item `original`, `trash` and latest `follow_up`. Object observations are `matches`, `missing`, `changed`, `unavailable` or `not_recorded`; item summaries include `verified_trash`, `verified_original`, `restore_conflict`, `restored`, `purged`, `missing` and `needs_verification`. Incomplete/ambiguous observations produce `status=partial` and exit `6`.
 
 `matches` checks identity and the saved directory manifest, not cryptographic file contents. A completed inspection is not a completed cleanup or authorization. A pending follow-up stays blocked even when an object is observed at the original location. If a process exits inside the system Trash call before its returned path is recorded, Shou reports the missing destination as unknown; it does not enumerate Trash, guess names or replay the operation. Every started item now has a durable `moving` state before the filesystem call, so a lost result cannot be displayed as a skipped item.
 
 The desktop displays actual execution stage, current path and processed/total items, with a visible stop-request state. Core stops starting new items at a safe boundary. A system Trash call already in progress may finish; its verified result is recorded before stopping. Progress is not a completion receipt or freed-space claim, and does not change the CLI's single-result JSON envelope.
+
+The desktop fast path may create this plan internally after **Clean Recommended**. This is a presentation shortcut for verified built-in candidates, not an authorization shortcut. Custom and ambiguous items remain in **Review Details**. No command accepts arbitrary `rm`, `rm -rf`, shell scripts or a path outside the returned plan or receipt.
 
 ## 9. Compatibility
 
@@ -210,3 +227,8 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 `applications list [--include-system true|false] --json` is a bounded read that does not open the cleanup store. `applications inspect --path <exact-app-path>` saves a component review; optional scan budgets use the existing limits. `applications plan --review-id <id> --component <id>... [--include-user-data true|false]` requires explicit eligible components including the application. Personal-data consent defaults false. `applications plan show --plan-id <id>` exposes the reviewed scope.
 
 `applications uninstall --plan-id <id>` is destructive and requires a controlling terminal plus the exact `UNINSTALL <plan-id>` phrase. There is no unattended confirmation option. The result is an ordinary history receipt with `operation=application_uninstall` and per-item original-parent evidence. `history inspect` and separately confirmed `history restore` work across all component parents; uninstall receipts reject `history purge`. JSON component `eligible`, `requires_user_data_consent`, `reasons` and `warnings` are explicit, and warnings do not authorize execution. See [application uninstall](../product/application-uninstall.md).
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

@@ -193,7 +193,10 @@ public actor ShouEngine {
         return snapshot
     }
     public func scanSnapshot(_ id: String) throws -> ScanSnapshot { try load(ScanSnapshot.self, collection: "scans", id: id) }
-    public func createPlan(scanId: String, candidateIds: [String]) throws -> CleanupPlan {
+    public func createPlan(scanId: String, candidateIds: [String], action: String = "trash") throws -> CleanupPlan {
+        guard ["trash", "permanent"].contains(action) else {
+            throw ShouError("invalid_argument", "Cleanup action must be trash or permanent.")
+        }
         guard !candidateIds.isEmpty, Set(candidateIds).count == candidateIds.count else { throw ShouError("invalid_argument", "Explicit, unique candidate IDs are required.") }
         let snapshot = try scanSnapshot(scanId)
         let budget=snapshot.budget ?? ScanBudget()
@@ -220,6 +223,7 @@ public actor ShouEngine {
             items.append(PlanItem(id: Codec.id("item"), candidate: candidate, manifest: manifest))
         }
         var plan = CleanupPlan(id: Codec.id("plan"), scanId: scanId, workspace: snapshot.workspace, configurationDigest: snapshot.configurationDigest, createdAt: now(), expiresAt: now().addingTimeInterval(600), items: items)
+        plan.action=action
         plan.scanBudget=snapshot.budget
         plan.scanScope=snapshot.scope
         plan.digest = try plan.calculatedDigest()
@@ -237,7 +241,10 @@ public actor ShouEngine {
         guard confirmedDigest == plan.digest else { throw ShouError("confirmation_required", "Confirmation does not match the current plan.") }
         guard plan.expiresAt > now(), try Digest.of(configuration()) == plan.configurationDigest,
               rootIdentityMatches(try filesystem.rootIdentity(plan.workspace.path), plan.workspace.identity) else { throw ShouError("plan_stale", "Plan expired or workspace/configuration changed; preview again.") }
-        guard filesystem.supportsTrash else { throw ShouError("capability_unavailable", filesystem.trashUnavailableReason ?? "System Trash is unavailable; no deletion fallback is permitted.") }
+        guard ["trash", "permanent"].contains(plan.action) else { throw ShouError("store_corrupt", "Cleanup plan contains an unsupported action.") }
+        if plan.action == "trash" && !filesystem.supportsTrash {
+            throw ShouError("capability_unavailable", filesystem.trashUnavailableReason ?? "System Trash is unavailable; no deletion fallback is permitted.")
+        }
         let currentConfig = try configuration()
         guard let registered = currentConfig.workspaces.first(where: { $0.id == plan.workspace.id }),
               registered.path == plan.workspace.path else { throw ShouError("plan_stale", "Plan workspace does not match its registered binding.") }
@@ -261,21 +268,40 @@ public actor ShouEngine {
         let items=plan.items.map {
             ItemReceipt(id: $0.id, originalPath: plan.workspace.path + "/" + $0.candidate.relativePath, relativePath: $0.candidate.relativePath, trashPath: nil, manifest: $0.manifest, state: "pending", allocatedBytesEstimate: $0.candidate.allocatedBytesEstimate, error: nil)
         }
-        let receipt=try TrashExecution.run(planId: plan.id, workspace: plan.workspace, items: items, entryPoint: entryPoint,
-            store: store, filesystem: filesystem, now: now(), progress: progress,
-            didBegin: { receipt in
-                plan.executionId=receipt.id; plan.state="executing"
-                try save(plan, collection: "plans", id: plan.id)
-            }, validateItem: { index in
-                let item=plan.items[index]
-                let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
-                if let reason=blocked.values.sorted().first { return reason }
-                let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
-                    entries: currentEntries, workspace: workspace,
-                    rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
-                guard policy.reasons.isEmpty else { throw ShouError("plan_stale", "Artifact ownership or build activity changed before cleanup.", details: ["reasons": policy.reasons.joined(separator: ",")]) }
-                return nil
-            })
+        let receipt: ExecutionReceipt
+        if plan.action == "permanent" {
+            receipt=try PermanentExecution.run(planId: plan.id, workspace: plan.workspace, items: items, entryPoint: entryPoint,
+                store: store, filesystem: filesystem, now: now(), progress: progress,
+                didBegin: { receipt in
+                    plan.executionId=receipt.id; plan.state="executing"
+                    try save(plan, collection: "plans", id: plan.id)
+                }, validateItem: { index in
+                    let item=plan.items[index]
+                    let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
+                    if let reason=blocked.values.sorted().first { return reason }
+                    let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
+                        entries: currentEntries, workspace: workspace,
+                        rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
+                    guard policy.reasons.isEmpty else { throw ShouError("plan_stale", "Artifact ownership or build activity changed before cleanup.", details: ["reasons": policy.reasons.joined(separator: ",")]) }
+                    return nil
+                })
+        } else {
+            receipt=try TrashExecution.run(planId: plan.id, workspace: plan.workspace, items: items, entryPoint: entryPoint,
+                store: store, filesystem: filesystem, now: now(), progress: progress,
+                didBegin: { receipt in
+                    plan.executionId=receipt.id; plan.state="executing"
+                    try save(plan, collection: "plans", id: plan.id)
+                }, validateItem: { index in
+                    let item=plan.items[index]
+                    let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
+                    if let reason=blocked.values.sorted().first { return reason }
+                    let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
+                        entries: currentEntries, workspace: workspace,
+                        rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
+                    guard policy.reasons.isEmpty else { throw ShouError("plan_stale", "Artifact ownership or build activity changed before cleanup.", details: ["reasons": policy.reasons.joined(separator: ",")]) }
+                    return nil
+                })
+        }
         plan.state=receipt.state; try save(plan, collection: "plans", id: plan.id)
         return receipt
     }
@@ -296,7 +322,7 @@ public actor ShouEngine {
         }
     }
     private func verify(path: String, manifest: [FileEntry], trashReceipt: Bool = false) throws {
-        let current = try filesystem.inspectTarget(path, budget: ScanBudget(maxEntries: max(100_000, manifest.count + 1), maxSeconds: 180), cancelled: { Task.isCancelled })
+        let current = try filesystem.inspectStorageTarget(path, budget: ScanBudget(maxEntries: max(100_000, manifest.count + 1), maxSeconds: 180), cancelled: { Task.isCancelled })
         guard current.complete, current.entries.count == manifest.count,
               zip(current.entries, manifest).allSatisfy({ observed, saved in
                   observed == saved || (trashReceipt && observed.matchesTrashRoot(as: saved))

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Shou Rule Authoring"
+  short_description: "Ask, inspect, and draft Shou cleanup rules"
+  default_prompt: "Use $shou-rule-authoring to inspect the requested disk usage, ask the missing rule questions, and preview a disabled Shou rule."
+policy:
+  allow_implicit_invocation: true

@@ -2,7 +2,9 @@
 
 [English](../../architecture/system-design.md) | 简体中文
 
-状态：开发中架构。共享扫描、计划、记录与 macOS 适配已有源代码；Windows、分发与文件竞态验收尚未完成。
+当前桌面导航、自动发现及个人规则复用以此为准：[统一日常清理](../product/unified-cleanup.md)。
+
+状态：当前开发架构。共享扫描、计划、记录、废纸篓执行与有界永久移除已有源代码；Windows、分发与文件竞态验收尚未完成。
 
 ## 1. 设计约束
 
@@ -19,6 +21,9 @@
 flowchart TB
     User[用户] --> GUI[原生桌面端]
     User --> CLI[Swift CLI]
+    Terminal[用户 bin 目录中的 shou 入口] -->|原参数执行随包二进制| CLI
+    GUI -->|复制请求与本地路径| Skill[随包规则制定 Skill]
+    Skill -->|用户交给现有客户端| Agents
     Agents[Codex / Claude Code / WorkBuddy 等 Agent] -->|获准调用 CLI| CLI
     Agents -->|生成 JSON 草稿| Drafts[规则草稿文件]
     Drafts --> GUI
@@ -42,22 +47,36 @@ Agent 是外部调用者；模型输出、项目内容和导入文件都位于�
 ```mermaid
 flowchart LR
     App[ShouApp / SwiftUI + AppKit] --> Core[ShouCore / Swift Package]
+    App --> AgentSupport[ShouAgentSupport / Skill 资源]
+    CLI --> AgentSupport
+    App --> SkillInstall[ShouPlatform / Skill 安装与 ZIP 导出]
+    CLI --> SkillInstall
+    SkillInstall --> AgentSupport
     CLI[shou / Swift executable] --> Core
+    App --> Quick[桌面快速清理路由]
+    Quick --> Core
     Core --> Rules[规则解析与匹配]
     Core --> Scanner[目录遍历与容量统计]
     Core --> Planner[候选解释与计划]
     Core --> Safety[权限 / 保护 / 文件身份]
-    Core --> Executor[文件操作与恢复]
+    Core --> Router[执行路由]
+    Router --> TrashExec[TrashExecution]
+    Router --> PurgeExec[PermanentExecution]
+    Core --> FollowUp[恢复与废纸篓后续操作]
     Core --> Persistence[本地存储]
     Scanner --> Platform[平台能力接口]
     Safety --> Platform
-    Executor --> Platform
+    TrashExec --> Platform
+    PurgeExec --> Platform
+    FollowUp --> Platform
     Persistence --> Platform
     Mac[macOS / Foundation + Darwin] --> Platform
     Win[未来 Windows / Win32] -.实现.-> Platform
 ```
 
 首版建立共享核心、平台适配和两个产品入口。图中规则、扫描、计划等先作为核心包内的职责边界，不为每项能力拆一个包。
+
+两个产品共用 Skill 资源；安装与导出不经过清理存储，也不改变规则启用状态。详见 [分发架构与时序](../ai/skill-distribution.md)。
 
 工程布局；Windows 与品牌源资源仍为后续交付：
 
@@ -99,7 +118,7 @@ flowchart LR
 
 `KnownLocations` 只定义固定根及规则关联，不访问磁盘；`PlatformFileSystem.locationAvailability` 提供位置状态，`ShouEngine` 编排注册与有界扫描。`BuiltinCatalog` 只在精确固定根启用对应应用规则，项目规则用于所选项目工作区；其他位置的同名目录不会自动获得应用清理规则。
 
-`scanKnownLocations` 先盘点并注册全部可用根，再分别生成 `ScanSnapshot`，避免后续注册使前序快照的配置摘要失效。确定缺失的位置跳过，访问失败与不完整扫描单独记录。桌面标准扫描纳入已登记的项目工作区；CLI 的 `system scan` 仅在 `--include-projects true` 时纳入，默认 `false`。两者默认使用清理扫描模式，均不隐式遍历整个主目录寻找项目、不改变系统权限、不删除目标。每个计划绑定单一根及明确选择的候选项。
+`scanKnownLocations` 先盘点并注册全部可用根，再分别生成 `ScanSnapshot`，避免后续注册使前序快照的配置摘要失效。确定缺失的位置跳过，访问失败与不完整扫描单独记录。桌面标准扫描自动发现常见开发目录并复用记住的扫描位置；CLI 的 `system scan` 仅在 `--include-projects true` 时纳入，默认 `false`。两者默认使用清理扫描模式，均不隐式遍历整个主目录寻找项目、不改变系统权限、不删除目标。每个计划绑定单一根及明确选择的候选项。
 
 ### 扫描覆盖与产物证据
 
@@ -196,6 +215,8 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 
 首版提供公开规则格式、命令发现、JSON 结果与可持久化计划，供 Codex、Claude Code、WorkBuddy 等在用户许可下调用 CLI。无需为每个 Agent 编写不同的清理引擎。
 
+`ShouAgentSupport` 独立于 `ShouCore` 打包规则制定 Skill 与问询参考，桌面和 CLI 都依赖该资源模块。规则页复制带本地路径的请求；`agent skill --json` 不打开清理存储即可返回同一入口与指令。外部 Agent 追问未明确的信息并编写声明式草稿；校验、禁用导入、预览与后续确认清理继续复用已有核心，不新增 Agent 进程、模型 SDK 或推理服务。
+
 当前通过 CLI 与本地规则文件建立操作合同，不开发 Agent、不调用模型、不提供聊天服务。MCP 不纳入当前范围；只有明确接入障碍出现时才评估额外工具协议。具体合同见 [Agent 操作指南](../ai/coding-agent-integration.md)。
 
 ## 启动项发现边界
@@ -213,3 +234,51 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 ## 应用卸载边界
 
 应用发现和卸载独立于可重建缓存规则。`ShouEngine` 负责完整标识关联、个人数据同意、当前排除策略及摘要绑定计划；`ApplicationCatalogReading`、`ApplicationUninstallChecking` 提供平台证据。执行复用既有 `TrashExecution` 日志边界。每个卸载项保存确切原父目录和组件类型，一份回执可覆盖多个 Library 类别及应用安装目录；历史核验和恢复前由 `ReceiptOrigins` 重现关联。独立的受限应用父目录身份能力保持普通工作区根目录限制。架构、流程和时序见[应用卸载](../product/application-uninstall.md)。
+
+## 11. 当前执行路径
+
+产品有意提供两层交互。桌面端对内置及已启用的个人规则走统一快速路径：一次扫描自动选中符合条件的候选，一次原生确认即可开始具体计划。个人规则只需确认启用一次；受阻目标保留解释，用户可在详情调整选择。CLI 保留扫描、创建计划、查看计划、执行计划的显式检查点，因为现有编码 Agent 需要稳定 JSON 状态和可恢复边界。
+
+```mermaid
+flowchart TD
+    Entry[桌面端或 CLI 入口] --> Fixed{桌面固定规则路径?}
+    Fixed -->|是| Scan[扫描固定位置与自动发现及记住的项目]
+    Scan --> Auto[自动选中符合条件的内置候选]
+    Auto --> Quick[清理推荐项目]
+    Quick --> Mode{用户选择动作}
+    Fixed -->|否| Review[查看详情并选择具体候选]
+    Review --> Mode
+    Mode -->|废纸篓| TrashPlan[创建 action=trash 计划]
+    Mode -->|永久移除| PurgePlan[创建 action=permanent 计划]
+    TrashPlan --> Confirm[原生确认面板或 TTY 确认]
+    PurgePlan --> Confirm
+    Confirm --> Revalidate[重新核验配置、活动、身份和完整清单]
+    Revalidate --> Route{计划动作}
+    Route -->|trash| TrashExec[TrashExecution：移动并核验返回位置]
+    Route -->|permanent| PurgeExec[PermanentExecution：按绑定清单永久移除]
+    TrashExec --> Receipt[持久化回执与后续操作]
+    PurgeExec --> Receipt
+```
+
+`CleanupPlan.action` 是执行路由边界。`TrashExecution` 记录系统返回的废纸篓位置，并支持后续核验恢复。`PermanentExecution` 使用相同的计划绑定、互斥租约、重新核验和逐项日志，但对原始路径调用平台永久移除能力，不创建恢复位置。两个执行器都不接受任意 Shell 文本，也不会在确认后扩展计划。
+
+```mermaid
+flowchart LR
+    Plan[不可变计划 + 完整清单] --> Lease[变更租约]
+    Lease --> Preflight[重新检查策略与身份]
+    Preflight --> Journal[持久化执行意图]
+    Journal --> TrashExecution[TrashExecution]
+    Journal --> PermanentExecution[PermanentExecution]
+    TrashExecution --> TrashReceipt[trash / trashed / trashPath]
+    PermanentExecution --> PurgeReceipt[permanent / purging / purged]
+    TrashReceipt --> FollowUp[可选：核验后的废纸篓恢复或永久移除]
+    PurgeReceipt --> Terminal[completed、partial、cancelled 或 failed]
+    FollowUp --> Terminal
+```
+
+永久路径是正式的一等动作，不是隐藏的删除兜底。安全边界由已审阅计划和精确清单构成：缺失、替换、扩展或无法核验的项目会被跳过或失败，绝不会枚举或清空无关废纸篓。`operation=permanent_cleanup`、`purging`、`purged` 和 `permanentlyRemovedBytesEstimate` 使不可逆结果可被机器读取。
+
+
+## 空间分析直接删除
+
+空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。

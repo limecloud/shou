@@ -120,6 +120,26 @@ with tempfile.TemporaryDirectory(prefix='shou-native-cli-') as temporary:
         assert outside.read_text() == 'Do not change this fixture.' and outside.stat().st_ino == outside_inode
         return receipt
 
+    def permanent_plan():
+        scan = run('scan', '--workspace', binding['id'])
+        candidates = run('scan', 'results', '--scan-id', scan['scan_id'], '--limit', '500')['candidates']
+        selected = [item for item in candidates if str(workspace / item['relative_path']) == str(targets[0])]
+        assert len(selected) == 1 and selected[0]['eligible'], selected
+        plan = run('plan', 'create', '--scan-id', scan['scan_id'], '--candidate', selected[0]['id'], '--mode', 'permanent')
+        receipt = confirm(['plan', 'execute', '--plan-id', plan['id']], environment,
+                          'PURGE ' + plan['id'], {str(targets[0])})
+        assert receipt['state'] == 'completed' and receipt['operation'] == 'permanent_cleanup'
+        assert len(receipt['items']) == 1 and receipt['items'][0]['state'] == 'purged'
+        assert not targets[0].exists()
+        assert outside.read_text() == 'Do not change this fixture.' and outside.stat().st_ino == outside_inode
+        return receipt
+
+    def recreate_first_target():
+        targets[0].mkdir(parents=True)
+        for index in range(17):
+            (targets[0] / f'generated-{index}.bin').write_bytes(bytes([index]) * 4096)
+        (targets[0] / 'outside-link').symlink_to(outside)
+
     def followup(receipt, action):
         for item in receipt['items']:
             result = confirm(['history', action, '--execution-id', receipt['id'], '--item', item['id']],
@@ -138,14 +158,17 @@ with tempfile.TemporaryDirectory(prefix='shou-native-cli-') as temporary:
     assert hashes() == original
     assert link.is_symlink() and link.resolve() == outside
     if options.native_trash_purge:
+        permanent_plan()
+        recreate_first_target()
         second = trash()
         followup(second, 'purge')
         retained = {path: digest for path, digest in original.items()
                     if not any(str(workspace / path).startswith(str(target) + '/') for target in targets)}
         assert hashes() == retained
     assert outside.read_text() == 'Do not change this fixture.' and outside.stat().st_ino == outside_inode
-    assert len(run('history', 'list')) == (2 if options.native_trash_purge else 1)
+    assert len(run('history', 'list')) == (3 if options.native_trash_purge else 1)
     for receipt in run('history', 'list'):
-        assert len(run('history', 'show', '--execution-id', receipt['id'])['followups']) == 2
+        expected_followups = 0 if receipt.get('operation') == 'permanent_cleanup' else 2
+        assert len(run('history', 'show', '--execution-id', receipt['id'])['followups']) == expected_followups
 flow = 'restore and explicit purge' if options.native_trash_purge else 'restore only (no purge)'
 print(f'Real CLI TTY confirmation, native Trash, selected-item {flow}, Unicode paths, hashes, and outside-link retention passed.')

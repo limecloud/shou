@@ -2,11 +2,13 @@
 
 English | [简体中文](../zh-CN/product/prd.md)
 
-Status: design draft · Version: 0.1 · Updated: 2026-10-19.
+Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
+
+Status: active product contract · Version: 0.1 · Updated: 2026-10-20.
 
 ## 1. Product definition
 
-**Shou · 收拾一下** is a native macOS cleanup tool built with Swift. It helps people discover storage usage, express personal cleanup rules, inspect exact effects, and reuse reviewed decisions.
+**Shou · 收拾一下** is a native macOS cleanup tool built with Swift, centered on cleanup rules tailored by an existing coding agent. Users describe their needs and answer focused questions; the agent investigates and writes reusable rules, and Shou validates, previews, and executes them locally.
 
 **Tidy up. That’s it. / 收好，就好。**
 
@@ -55,7 +57,7 @@ Core job: when storage runs low, find meaningful project-level opportunities, sa
 3. Size and naming do not prove disposability.
 4. Built-in, handwritten, and agent-generated rules follow the same validation path.
 5. GUI users need neither JSON editing nor a model account.
-6. Scans are cancellable; unattended destructive execution is outside the initial scope.
+6. Scans are cancellable; the desktop quick-clean path hides internal planning steps while keeping one native confirmation. Unattended destructive execution is outside the initial scope.
 7. CLI is independent, not a desktop launcher.
 8. Native interfaces share contracts while following platform conventions.
 
@@ -71,8 +73,8 @@ P0 is required for the initial usable release; P1 extends the validated loop; P2
 | F04 | Deterministic matching | P0 | Roots, relative patterns, project markers, age, size, exclusions |
 | F05 | Explainable candidates | P0 | Paths, evidence, versions, risks, size basis, unknowns |
 | F06 | Plans and previews | P0 | Explicit selection, deduplication, fixed scope and rule/configuration digests |
-| F07 | Confirmed execution | P0 | Revalidate identities, move to Trash, record item outcomes |
-| F08 | Immediate space recovery | P0 | Separately confirm permanent removal of verified items from this cleanup batch |
+| F07 | Confirmed execution | P0 | Choose Trash or permanent action, revalidate identities/manifests, and record item outcomes |
+| F08 | Immediate space recovery | P0 | Separately confirm permanent removal of a verified cleanup batch, whether directly from a plan or later from recorded Trash items |
 | F09 | Protection and exclusions | P0 | Global/workspace/project exclusions; explain blocked targets |
 | F10 | Presets and history | P0 | Fresh scans, receipts, and verified recovery where available |
 | F11 | Independent CLI and agent contract | P0 | Workspace/rule management, scan, plan, interactive execution, history, JSON |
@@ -97,13 +99,13 @@ No mandatory account, cloud scanning, default telemetry, executable rule scripts
 
 Scan selected workspaces, not the entire home directory by default. Show unclassified large directories even without a matching rule. Permission failures, cancellation, limits, and incomplete statistics remain visible.
 
-Merge multiple matches for the same object and resolve parent/child conflicts before counting or executing. A rule wizard covers scope, purpose, retention, preview, and saving; advanced JSON uses the same validator. Shareable rules contain logical roots rather than personal absolute paths. New or changed rules remain drafts until reviewed; engine extensions still require upgrades.
+Merge multiple matches for the same object and resolve parent/child conflicts before counting or executing. **Rules → Customize with AI** hands the shipped Skill, local CLI path and workspace to the user's existing agent. The Skill guides questions about purpose, rebuild steps, active projects, retention and keep paths, then drives validation, disabled import and preview. The wizard and manual import remain under Advanced. Shareable rules contain logical roots rather than personal absolute paths. New or changed rules remain drafts until reviewed; new engine predicates or native adapters still require upgrades.
 
 ### Cleanup and recovery
 
-No default selection of all candidates. Explain rebuild conditions, risks, exact paths, and allocated-size estimates. A reusable preset saves selection logic, never deletion permission. Each run rescans and obtains confirmation for its current plan.
+The desktop common-app flow scans explicit fixed locations once, preselects verified built-in matches, and exposes **Clean & Free Space** as the primary action. Users can open **Review Details** to adjust categories and paths; personal rules participate after one-time enablement. The immutable plan, manifest, and preflight checks remain inside the action so the interface does not force every user through a planning screen. A reusable preset saves selection logic, never deletion permission. CLI and agent workflows retain explicit scan, plan, and execute checkpoints.
 
-Default action is moving to Trash. Permanent removal and restoration are separate confirmed operations targeting verified receipt items. Do not overwrite restore destinations. Missing, changed, or permanently removed items may be unrecoverable. Never equate trashed bytes with available disk space.
+Desktop cleanup defaults to permanent removal after one exact-scope irreversible confirmation. Move to Trash is an explicit alternative and does not reclaim space; history follow-up can also permanently remove verified Trash items. Restoration remains a separate confirmed operation and never overwrites destinations. Missing, changed, or permanently removed items may be unrecoverable. Never equate trashed bytes with available disk space.
 
 ### Existing agents
 
@@ -127,10 +129,15 @@ See [implementation](../engineering/implementation-plan.md), [acceptance](../eng
 
 The first scan of a selected workspace must discover common build artifacts and caches through built-in rules. Personal rules extend coverage. Provide separate categorized cleanup and space-analysis entry points, navigable directory lists and area maps, and direct drafting of rules for unknown large folders. Start with no selected candidates, keep installed Node.js dependencies high risk, and preserve protection gates for built-in matches.
 
-The default desktop entry scans explicit application/developer-cache locations and already registered projects in one action, using cleanup scope without implicit home-wide discovery. The catalog contains 74 templates and 35 fixed locations, including project outputs, npm, Cargo, developer tools, Xcode, browsers and specific application caches. Whole application-support roots, chat history, active agent sessions and virtual-machine data are not disposable caches.
+The default desktop entry scans explicit application/developer-cache locations and automatically discovered and remembered projects in one action, using cleanup scope without implicit home-wide discovery. After the scan, verified built-in matches are selected for **Clean Recommended**; enabled personal rules participate automatically; disabled drafts stay out. The catalog contains 74 templates and 35 fixed locations, including project outputs, npm, Cargo, developer tools, Xcode, browsers and specific application caches. Whole application-support roots, chat history, active agent sessions and virtual-machine data are not disposable caches.
 
-Desktop and CLI share root discovery, rule matching, bounded scans, application-activity checks, plans and receipts. Missing locations are skipped; permission failures and incomplete scans remain visible. Review is per location, starts with no selection and requires an exact-path confirmation. Completion shows moved, skipped, failed and unverified items separately. Moving to Trash does not mean disk space has been freed; restoration uses the recorded verified object and never overwrites an existing destination.
+Desktop and CLI share root discovery, rule matching, bounded scans, application-activity checks, plans and receipts. Missing locations are skipped; permission failures and incomplete scans remain visible. The desktop quick-clean action groups locations into one visible result and one exact-path confirmation; its action choice routes to Trash or `PermanentExecution`. CLI and agents use explicit plans for machine-readable checkpoints. Completion shows moved, permanently removed, skipped, failed and unverified items separately. Moving to Trash does not mean disk space has been freed; restoration uses the recorded verified object and never overwrites an existing destination.
 
 Cleanup discovery follows rule prefixes and fully measures matched targets. `complete` in this mode is not a whole-tree usage result; space analysis requires `full`. Partial scans may contribute only independently complete, policy-valid targets, with no eligibility inferred from missing legacy coverage. Execution exposes actual progress and a stop request that takes effect at a safe item boundary, without promising interruption of an in-progress system Trash call.
 
 Broader application-cache coverage, accessibility, performance baselines and release acceptance remain separate deliverables; isolated checks do not replace them.
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

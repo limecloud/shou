@@ -3,6 +3,7 @@
 from pathlib import Path
 import argparse
 import hashlib
+import json
 import plistlib
 import subprocess
 import sys
@@ -31,6 +32,14 @@ if args.app:
     linked = subprocess.run(['otool', '-L', str(app / 'Contents/MacOS/Shou')], capture_output=True, text=True, check=True)
     assert 'SwiftUI.framework' in linked.stdout
     assert (app / 'Contents/Resources/Shou_ShouCore.bundle/builtin-rules.json').exists()
+    skill_source = Path('skills/shou-rule-authoring')
+    for location in ('Resources', 'Helpers'):
+        skill_directory = app / f'Contents/{location}/Shou_ShouAgentSupport.bundle/shou-rule-authoring'
+        for source in skill_source.rglob('*'):
+            if source.is_file():
+                assert (skill_directory / source.relative_to(skill_source)).read_bytes() == source.read_bytes(), 'Stale packaged agent skill'
+    skill = json.loads(subprocess.check_output([str((app / 'Contents/Helpers/shou').resolve()), 'agent', 'skill', '--json'], text=True))['data']
+    assert Path(skill['entrypoint']).is_relative_to(app.resolve()), 'Packaged CLI used a source-tree skill'
     info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
     assert info['CFBundleIconFile'] == 'Shou'
     icon = app / 'Contents/Resources/Shou.icns'

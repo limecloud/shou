@@ -27,6 +27,7 @@ shou/
 ├── tests/fixtures/             Fictional filesystem and protocol cases
 ├── scripts/                    Verification, build, package, benchmark
 ├── examples/rules/             Reviewable declarative rules
+├── skills/                     ShouAgentSupport and bundled rule-authoring Skill
 ├── assets/brand/               Brand sources
 ├── docs/                       English and localized technical docs
 ├── README.md
@@ -43,6 +44,9 @@ flowchart TB
     Mac --> Platform[packages/shou-platform]
     CLI[apps/cli] --> Core
     CLI --> Platform
+    Mac --> AgentSupport[skills / ShouAgentSupport]
+    CLI --> AgentSupport
+    Platform --> AgentSupport
     Windows[Future apps/windows] -.JSON process bridge.-> CLI
     Core --> Protocols[Core-owned capability protocols]
     Platform --> Protocols
@@ -51,6 +55,8 @@ flowchart TB
 ```
 
 Core owns its required protocols; adapters depend on core and implement them. Schema files are authoritative data contracts, not a runtime service. Avoid scattered platform conditionals throughout domain logic.
+
+`ShouAgentSupport` owns bundled instruction resources and reads, independently of the cleanup engine. `ShouPlatform` owns local Skill installation and macOS ZIP export; desktop and CLI share those operations. Client loading contracts and diagrams are in [Skill distribution](../ai/skill-distribution.md).
 
 ## 4. Shared versus platform responsibilities
 
@@ -90,7 +96,7 @@ The rule schema accepting `windows` expresses applicability only. Windows suppor
 
 Review entry points and contracts together. Keep application and rule-format versions distinct. Do not commit real workspace scans or generated distributions as fixtures. Verify macOS signing/notarization and Windows signing/runtime/installation independently.
 
-Do not install global plugins or change global coding-agent configuration as part of integration.
+Skill copying is explicitly initiated by the user. Integration does not install global plugins or edit coding-agent settings files.
 
 ## 9. Evolution
 

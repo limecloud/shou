@@ -19,7 +19,7 @@ Status: active development. Native macOS, independent CLI, shared core, platform
 
 ## 2. Provisional baselines
 
-Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; Trash by default; separately confirmed permanent batch removal; no unattended destructive CLI. Select one native Windows UI after prototyping.
+Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; Desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Select one native Windows UI after prototyping.
 
 ## 3. Milestones
 
@@ -60,13 +60,15 @@ Create core/platform/CLI projects. Implement validation, workspaces, exclusions,
 
 Create the native macOS application, navigation, tables/inspector, access flow, rule wizard/import/export/enablement, previews, presets, and equivalent CLI operations. Implement classification and tested developer templates. Add treemaps only after shared accounting/performance/accessibility validation.
 
-**Exit:** GUI rule creation requires no JSON; existing agents import and preview drafts through CLI with no internal model integration; both entries agree.
+**Exit:** the primary personal-rule entry hands the bundled Skill to an existing agent; users answer focused questions while the agent writes, imports and previews disabled drafts through CLI. GUI and CLI agree without internal model integration; the manual wizard remains an advanced option.
 
 ### M3: Controlled execution
 
 Implement immutable plans, digest-bound UI/TTY confirmation, expiry, near-operation revalidation, Trash moves, durable receipts, partial outcomes, cancellation, interruption reconciliation, restoration, and separately confirmed permanent removal.
 
 **Exit:** safety cases pass; each entry completes cleanup independently; no confirmation bypass.
+
+Current source status: the desktop quick path routes verified built-in candidates into an internal immutable plan; `CleanupPlan.action` supports `trash` and `permanent`; `TrashExecution` and `PermanentExecution` share leases, revalidation, manifests and durable item journals. The isolated native suite covers direct permanent plans, Trash follow-up purge and CLI `PURGE` confirmation. Platform race, forced-interruption and release acceptance remain M4 gates.
 
 ### M4: macOS MVP acceptance
 

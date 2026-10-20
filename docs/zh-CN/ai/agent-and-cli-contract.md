@@ -16,7 +16,8 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 
 - 命令为 `shou`，未来 Windows 为 `shou.exe`。
 - 人类可读文本支持 `--locale`；语言选择与回退遵循[国际化规范](../product/internationalization.md)，不改变机器字段和安全语义。
-- `--help` 提供人类说明；`capabilities --json` 返回当前构建实际支持的命令、参数、限制和副作用等级。
+- `--help` 提供人类说明；`shou skills --help` 或直接输入命令组，只显示该组帮助，包含可选参数与重复参数。未知帮助目标会报错。
+- `capabilities --json` 返回当前构建实际支持的命令、参数、限制和副作用等级；`capabilities --command "rules import" --json` 或 `--command skills` 逐步查询具体能力，不打开清理存储。
 - `--json` 使用 UTF-8，stdout 只输出一个版本化结果对象；进度、诊断与交互提示写 stderr 或控制终端。
 - 路径、规则文本和错误消息按不可信数据处理，不能携带终端控制序列影响显示。
 - 机器结果容量为整数 bytes、时间为 UTC ISO 8601；不输出本地化错误码。
@@ -31,10 +32,14 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | 命令 | 等级 | 目标 |
 | --- | --- | --- |
 | `capabilities` | R | 返回真实能力、平台限制、合同版本与输入定义 |
+| `agent skill` | R | 返回随包规则制定 Skill、本地入口、目录与指令；不依赖清理记录存储 |
+| `skills list / read` | R | 列出随包文件或读取允许的单个文件；支持 `skills read shou-rule-authoring [relative-file]` 及 `--file` 形式；默认原始 Markdown，`--json` 使用标准信封；不依赖清理存储 |
+| `skills install` | W | 为 `--agent codex\|claude-code` 安装；可选 `--directory` 指定父级技能目录；保留本地修改、备份受管更新 |
+| `skills export` | W | 将完整 Skill 导出到 `--output` 指定 ZIP，供 WorkBuddy 上传；不覆盖已有文件 |
 | `locations list` | R | 固定根、存在状态、规则 ID 与检查问题 |
 | `startup list` | R | 有预算的 macOS launchd 配置发现；可选 `--include-system true\|false`，默认 false；返回尽力读取的运行／当前配置状态及明确的未知值，并提供系统设置引导 |
 | `startup control` | W | 重新核验当前用户 LaunchAgent 的确切 plist 后，通过当前用户 `launchctl` 启用或停用；需要交互确认，不终止进程、不修改系统 daemon |
-| `system scan` | W | 以清理模式扫描可用固定根，可显式纳入已登记项目 |
+| `system scan` | W | 以清理模式扫描可用固定根，可显式纳入自动发现及记住的项目 |
 | `workspaces list / show` | R | 查看根绑定与当前入口访问状态 |
 | `workspaces add` | W | 注册明确路径与 `root_ref`，不等于系统授予访问权限 |
 | `workspaces remove` | W | 取消注册工作区、绑定与方案，保留目标文件和清理记录 |
@@ -49,7 +54,7 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | `rules preview` | W | 对规则文件作只读扫描并保存预览，不要求先启用 |
 | `scan` | W | `--workspace` 与 `--location` 必须二选一；`--scope full\|cleanup` 默认 `full` |
 | `scan results` | R | 按 `scan_id` 分页查询候选与证据 |
-| `plan create` | W | 从独立完整且符合策略的显式候选 ID 创建固定计划 |
+| `plan create` | W | 从独立完整且符合策略的显式候选 ID 创建固定计划；`--mode trash|permanent` 选择不可变执行动作 |
 | `plan show` | R | 展示路径、风险、动作、摘要、有效期与下一步 |
 | `plan execute` | D | 在交互终端确认当前计划后执行 |
 | `history list / show` | R | 查询执行和逐项结果 |
@@ -59,6 +64,8 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | `presets list / save / show / scan` | R/W | 复用规则组合；`scan` 只生成新扫描，不复用删除许可 |
 
 CLI 参数、GUI 表单和错误均来自同一领域合同；实际命令支持范围必须由 `capabilities` 发现，不能只凭文档假定可用。
+
+安装步骤、官方客户端目录、调用方式与 Lark CLI 调研见 [Skill 安装与分发](skill-distribution.md)。以上命令在打开清理存储前执行，不会启用清理规则。
 
 `startup list --json` 不打开清理存储。`scope` 为 `launchd_definitions`，完整性仅适用于请求的来源；`unavailable_sources` 明确列出该范围之外的登录项、后台注册与应用内辅助程序。来源缺口返回 partial 信封与退出码 `6`。不返回参数和环境变量值，当前配置／运行状态保持 `unknown`。`startup control --path <exact-path> --action enable|disable` 只允许当前用户 `~/Library/LaunchAgents` 中由本次发现返回的路径；执行前重新核验父目录、所有者、普通文件、plist Label 和文件内容，并要求当前 TTY 输入带标签的 `STARTUP ENABLE|DISABLE <label>`。详见[启动项发现](../product/startup-items.md)。
 
@@ -73,7 +80,7 @@ shou scan --location "chrome" --scope cleanup --json
 shou system scan --include-projects true --json
 ```
 
-`locations list` 不注册目录。`system scan` 先注册全部存在的固定根，保留已有排除项及禁用规则，再返回 `locations`、`scans`、`issues`、`skipped_location_ids`。该命令使用清理模式。`--include-projects true|false` 默认 `false`，设为 `true` 时同时扫描已登记项目工作区；桌面标准扫描使用 `true`。两种入口均不隐式遍历主目录发现项目。每个扫描拥有独立工作区与证据。缺失根跳过，访问失败或不完整扫描返回 partial 信封与退出码 `6`；取消会停止操作。不会合成为用户主目录计划，也不隐式清理。已知应用运行中时阻止关联候选，执行前再次检查；机器原因码为 `application_running`、`application_activity_unavailable`。
+`locations list` 不注册目录。`system scan` 先注册全部存在的固定根，保留已有排除项及禁用规则，再返回 `locations`、`scans`、`issues`、`skipped_location_ids`。该命令使用清理模式。`--include-projects true|false` 默认 `false`，设为 `true` 时同时扫描自动发现及记住的项目工作区；桌面标准扫描使用 `true`。项目发现只探测固定的常见开发目录，不递归枚举整个主目录。每个扫描拥有独立工作区与证据。缺失根跳过，访问失败或不完整扫描返回 partial 信封与退出码 `6`；取消会停止操作。不会合成为用户主目录计划，也不隐式清理。已知应用运行中时阻止关联候选，执行前再次检查；机器原因码为 `application_running`、`application_activity_unavailable`。
 
 `scan --scope full|cleanup` 为兼容已有调用默认 `full`。完整模式测量工作区目录树；清理模式沿已启用规则前缀发现，发现时剪枝 `.git`，命中目标后完整测量。清理结果即使发现已完成仍可能是稀疏数据，不能用于完整目录空间统计。
 
@@ -100,7 +107,15 @@ shou plan execute --plan-id "plan_example"
 shou history show --execution-id "execution_example" --json
 ```
 
-`rules preview` 产生的草稿预览不能直接用于执行；启用后重新扫描，再选择候选创建计划。`plan create` 没有缺省全选，多个候选通过重复 `--candidate` 显式提供。
+`plan create` 默认使用 `--mode trash`。只有明确选择不可逆操作时才使用 `--mode permanent`：
+
+```sh
+shou plan create --scan-id "scan_example" --candidate "candidate_example" --mode permanent --json
+shou plan show --plan-id "plan_permanent_example" --json
+shou plan execute --plan-id "plan_permanent_example"
+```
+
+`rules preview` 产生的草稿预览不能直接用于执行；启用后重新扫描，再选择候选创建计划。`plan create` 没有缺省全选，多个候选通过重复 `--candidate` 显式提供。计划的 `action` 会参与摘要计算，执行时不能临时切换。
 
 ### 排除管理
 
@@ -173,11 +188,12 @@ shou exclusions global remove --pattern "**/keep/**" --json
 ## 8. 确认与执行
 
 - 文本模式在 TTY 展示计划 ID、当前摘要、完整可检查范围、项目数、方式与风险；用户主动输入确认。
+- `trash` 必须输入 `TRASH <plan-id>`，`permanent` 必须输入 `PURGE <plan-id>`；无 TTY 的 Agent 可以创建和查看永久计划，但不能执行它。
 - `--json` 执行只在存在独立控制终端时允许交互提示，stdout 仍只有结果对象；无 TTY 则退出 7。
 - 确认绑定当前计划摘要和动作，当前进程内一次性使用；改变计划必须重新确认。
 - 复核失败后禁止自动扩大范围或重试删除；返回原因与新扫描入口。
 - TTY 只能提供交互边界，不能证明操作者必然是人；能控制终端的外部 Agent 仍受其自身授权策略约束。
-- 首版不向无交互调用提供持久删除令牌。若未来有真实自动化需求，另行设计限范围、限次、限时的授权合同。
+- 首版不向无交互调用提供持久删除令牌。永久计划回执使用 `operation=permanent_cleanup`，逐项记录 `purging` / `purged`，不提供恢复位置。
 
 ## 9. 中断、恢复与幂等
 
@@ -186,6 +202,7 @@ shou exclusions global remove --pattern "**/keep/**" --json
 - 部分成功、进程超时或意外退出后先查询历史与现场；不因没收到 stdout 就自动重新执行。
 - 同 ID 同版本同内容导入返回已有规则；同版本不同内容返回冲突。
 - 恢复与永久移除以执行记录及项目 ID 定位，每项重新核验；不能接受任意废纸篓路径。
+- 桌面端的“清理推荐项目”只是已验证内置候选的界面快捷路径，不是绕过计划和确认的授权捷径。自定义或有歧义项目仍须“查看详情”；任何命令都不接受任意 `rm`、`rm -rf`、Shell 脚本或计划／回执之外的路径。
 
 `history inspect --execution-id "execution_example" --json` 取得共享修改锁后返回当前身份／目录清单观察，不改写回执；其他操作仍持锁时返回 `store_busy`。可选 `--max-entries`、`--max-seconds` 遵循扫描预算限制，共同约束全部目录检查。结果包含 `recorded_state`、`unfinished`、`checked_at`，以及每项的 `original`、`trash` 和最新 `follow_up`。位置状态为 `matches`、`missing`、`changed`、`unavailable`、`not_recorded`；项目汇总包括 `verified_trash`、`verified_original`、`restore_conflict`、`restored`、`purged`、`missing`、`needs_verification`。证据不完整或不明确时返回 `status=partial` 与退出码 `6`。
 
@@ -224,3 +241,8 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 `applications list [--include-system true|false] --json` 是有界只读发现，不打开清理存储。`applications inspect --path <exact-app-path>` 保存组件审阅，可选扫描预算沿用既有上限。`applications plan --review-id <id> --component <id>... [--include-user-data true|false]` 要求明确选择可处理组件并包含应用本身；个人数据同意默认 false。`applications plan show --plan-id <id>` 返回审阅范围。
 
 `applications uninstall --plan-id <id>` 为破坏性操作，需要控制终端及完整短语 `UNINSTALL <plan-id>`，不提供无人确认参数。结果沿用历史回执，包含 `operation=application_uninstall` 和逐项原父目录证据。`history inspect` 及单独确认的 `history restore` 覆盖所有组件父目录；卸载回执拒绝 `history purge`。JSON 明确提供组件 `eligible`、`requires_user_data_consent`、`reasons` 和 `warnings`；提示不构成执行权限。详见[应用卸载](../product/application-uninstall.md)。
+
+
+## 空间分析直接删除
+
+空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。

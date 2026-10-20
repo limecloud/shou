@@ -16,6 +16,7 @@ struct SettingsView: View {
     @AppStorage("ShouAppearance") private var appearance="system"
     @Environment(\.openURL) private var openURL
     @Environment(\.colorScheme) private var colorScheme
+    @State private var scanLocations=false
 
     var body: some View {
         ScrollView {
@@ -46,11 +47,15 @@ struct SettingsView: View {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
                     }
                     Divider().padding(.leading, 58)
-                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3.0"), "Updates are verified before installation.", icon: "shippingbox") {
+                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0"), "Updates are verified before installation.", icon: "shippingbox") {
                         Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
                 }
                 group("Scanning and Privacy") {
+                    row("Scan Locations", "App caches and developer projects are discovered automatically. Extra folders are remembered.", icon: "folder.badge.magnifyingglass") {
+                        Button(model.t("View…")) { scanLocations=true }.disabled(model.busy)
+                    }
+                    Divider().padding(.leading, 58)
                     row("Exclusions", "Keep chosen files and projects out of cleanup.", icon: "hand.raised") {
                         Button(model.t("Manage…")) { model.showingExclusions=true }.disabled(model.busy)
                     }
@@ -79,6 +84,7 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }.padding(28).frame(maxWidth: 1040, alignment: .leading).frame(maxWidth: .infinity)
         }.background(colorScheme == .dark ? Color(nsColor: .windowBackgroundColor) : Color(red: 1, green: 0.976, blue: 0.945))
+            .sheet(isPresented: $scanLocations) { ScanLocationsView(model: model) }
     }
 
     private func group<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {

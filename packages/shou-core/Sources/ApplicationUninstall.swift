@@ -107,8 +107,17 @@ public struct ApplicationUninstallPlan: Codable, Sendable, Identifiable {
 /// Application receipts carry an exact parent identity for every component.
 /// Ordinary cleanup receipts retain the original registered-workspace contract.
 enum ReceiptOrigins {
-    struct Origin { let path: String; let identity: FileEntry; let applicationParent: Bool }
+    struct Origin { let path: String; let identity: FileEntry; let applicationParent: Bool; var analysisRoot: Bool = false }
     static func resolve(receipt: ExecutionReceipt, item: ItemReceipt, homeDirectory: URL) throws -> Origin {
+        if ["storage_removal", "storage_permanent_removal"].contains(receipt.operation ?? "") {
+            guard StorageRemovalPolicy.validRelative(item.relativePath), item.uninstallOrigin == nil,
+                  item.originalPath == StorageRemovalPolicy.absolute(root: receipt.workspace.path, relative: item.relativePath),
+                  let root=item.manifest.first(where: { $0.path == "." }),
+                  StorageRemovalPolicy.reason(root: receipt.workspace.path, path: item.relativePath, entry: root, home: homeDirectory.path, protectedPaths: []) == nil else {
+                throw ShouError("store_corrupt", "Space analysis receipt origin is invalid.")
+            }
+            return Origin(path: receipt.workspace.path, identity: receipt.workspace.identity, applicationParent: false, analysisRoot: true)
+        }
         try PathPattern.validate(item.relativePath)
         if receipt.operation == "application_uninstall" {
             guard let origin=item.uninstallOrigin,
@@ -136,13 +145,14 @@ enum ReceiptOrigins {
             }
             return Origin(path: origin.parentPath, identity: origin.parentIdentity, applicationParent: origin.kind == .application)
         }
-        guard receipt.operation == nil, item.uninstallOrigin == nil, item.originalPath == receipt.workspace.path + "/" + item.relativePath else {
+        guard receipt.operation == nil || receipt.operation == "permanent_cleanup", item.uninstallOrigin == nil, item.originalPath == receipt.workspace.path + "/" + item.relativePath else {
             throw ShouError("store_corrupt", "Receipt does not identify its original workspace item.")
         }
         return Origin(path: receipt.workspace.path, identity: receipt.workspace.identity, applicationParent: false)
     }
     static func identity(_ origin: Origin, filesystem: any PlatformFileSystem) throws -> FileEntry {
-        try origin.applicationParent ? filesystem.applicationParentIdentity(origin.path) : filesystem.rootIdentity(origin.path)
+        if origin.analysisRoot { return try filesystem.analysisRootIdentity(origin.path) }
+        return try origin.applicationParent ? filesystem.applicationParentIdentity(origin.path) : filesystem.rootIdentity(origin.path)
     }
     static func validIdentifier(_ value: String) -> Bool {
         value.utf8.count <= 255 && value.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", options: .regularExpression) != nil

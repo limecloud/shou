@@ -24,6 +24,26 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if Array(CommandLine.arguments.dropFirst()) == ["--discovery-only"] {
+            do {
+                try await projectDiscoveryFindsCollectionsWithoutRegistrationAndReusesPolicy()
+                try await projectDiscoveryRespectsExplicitNestedScopeAndDisabledRules()
+                try await projectDiscoveryCancellationStopsBeforeRegistration()
+                try await enabledPersonalRulesJoinRepeatedCleanupWithoutReselecting()
+                print("4/4 automatic discovery and repeated-cleanup tests passed; only generated fixtures were used.")
+            } catch { print("FAIL automatic discovery: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-only"] {
+            do {
+                try storageSelectionPreservesSiblingsAndDeduplicates()
+                try await storageAnalysisProtectsRootsAndDetectsChanges()
+                try await storageRemovalRechecksCurrentExclusionsAndNewDescendants()
+                try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: true)
+                print("4/4 storage tests passed; only generated fixtures were mutated.")
+            } catch { print("FAIL storage tests: \(error)"); Foundation.exit(1) }
+            return
+        }
         if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-interruption-child" {
             do { try await historyInterruptionChild(CommandLine.arguments[2]) }
             catch { Foundation.exit(1) }
@@ -74,6 +94,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Startup discovery rejects links, special and invalid definitions", { try nativeStartupInventoryRejectsUnsafeAndInvalidDefinitions() }),
             ("Startup discovery retains explicit budget gaps", { try nativeStartupInventoryReportsBudgetGapsWithoutLosingValidItems() }),
             ("Explicit platform-scoped known locations", { try knownLocationsAreExplicitAndPlatformScoped() }),
+            ("Automatic project discovery reuses scope and exclusions", { try await projectDiscoveryFindsCollectionsWithoutRegistrationAndReusesPolicy() }),
+            ("Project discovery respects explicit nested policy", { try await projectDiscoveryRespectsExplicitNestedScopeAndDisabledRules() }),
+            ("Project discovery cancels before registration", { try await projectDiscoveryCancellationStopsBeforeRegistration() }),
+            ("Enabled personal rules join repeated cleanup", { try await enabledPersonalRulesJoinRepeatedCleanupWithoutReselecting() }),
             ("Native location availability uses directory metadata", { try nativeAvailabilityDistinguishesDirectoriesWithoutFollowingLinks() }),
             ("Native root identity requires search without enumeration", { try nativeRootIdentityNeedsOnlySearchAccess() }),
             ("Read worker preserves direct evidence without a store", { try nativeReadWorkerMatchesDirectEvidenceWithoutOpeningStore() }),
@@ -106,6 +130,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Built-in disable invalidates evidence", { try await disablingBuiltinInvalidatesPlan() }),
             ("Built-in scope, namespace and presets", { try await builtinCatalogScopeAndNamespace() }),
             ("Built-in protected descendants", { try await builtinRulesPreserveProtectedDescendants() }),
+            ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
+            ("Storage analysis separates read scope and stale removal", { try await storageAnalysisProtectsRootsAndDetectsChanges() }),
+            ("Storage removal rechecks exclusions and new descendants", { try await storageRemovalRechecksCurrentExclusionsAndNewDescendants() }),
+            ("Native space analysis large-file Trash restore and permanent removal", { try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: CommandLine.arguments.contains("--native-trash-purge")) }),
             ("Storage and treemap accounting", { try storageAccountingAndTreemapConserveArea() }),
             ("Non-overlapping cleanup overview", { try await cleanupOverviewDoesNotDoubleCount() }),
             ("Unified review evidence and eligibility", { try await commonReviewGroupsEvidenceWithoutGrantingAuthority() }),
@@ -167,6 +195,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             cases.append(("Native file Trash and conflict-safe restoration", { try await nativeFileTargetTrashAndConflictSafeRestore() }))
             cases.append(("Native uninstall and independent restoration of generated components", { try await uninstallCompleteLoopRestoresIndependentComponentOrigins(nativeTrash: true) }))
             cases.append(("Native Trash cancellation after intent completes one item and restores", { try await nativeTrashCancellationAfterIntentFinishesOneItemAndRestores() }))
+            if includeNativePurge { cases.append(("Native permanent plan purges only its bound fixture target", { try await nativePermanentPlanPurgesOnlyBoundTarget() })) }
             let title=includeNativePurge ? "Complete catalog with native Trash, restoration, and explicit permanent removal" : "Complete catalog with native Trash and restoration"
             cases.append((title, { try await nativeCatalogCleanupAndRestore(includePurge: includeNativePurge) }))
         }

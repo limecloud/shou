@@ -35,7 +35,7 @@ sh scripts/test.sh
 
 测试程序在临时夹具中执行规则、领域与真实文件系统检查，不依赖 XCTest 或 Swift Testing，可直接在 Command Line Tools 环境运行。多数领域用例使用独立夹具废纸篓；`scripts/test.sh` 默认使用 `--native-trash`，对全部 74 条内置规则及其匹配模式执行系统废纸篓移动 → 恢复，比对全部夹具文件的哈希与保留文件。默认原生套件不永久移除废纸篓中的项目。生成夹具的应用与构建活动设为闲置，另有独立测试覆盖活动闸门、Git 所有权和保留的 Cargo 归档。
 
-CLI 测试覆盖非交互拒绝、取消，以及经过真实终端确认的原生清理 → 恢复，确认范围仅限生成夹具；`scripts/verify-native-cli.py` 默认也只恢复。上述检查由 `scripts/test.sh` 执行。仅显式运行 `sh "scripts/test.sh" --native-trash-purge`，才额外启用内置规则及 CLI 套件中对生成夹具的受限永久移除。所有原生测试均不枚举或清空用户废纸篓，后续操作仅针对夹具回执记录的确切项目。
+CLI 测试覆盖非交互拒绝、取消，以及经过真实终端确认的原生清理 → 恢复，确认范围仅限生成夹具；`scripts/verify-native-cli.py` 默认也只恢复。上述检查由 `scripts/test.sh` 执行。仅显式运行 `sh "scripts/test.sh" --native-trash-purge`，才额外启用隔离的 `action=permanent` 直接计划、内置规则及 CLI 套件中对生成夹具的受限永久移除，以及废纸篓项目的后续 purge。所有原生测试均不枚举或清空用户废纸篓，永久和后续操作仅针对夹具完整清单或回执记录的确切项目。
 
 构建后单独运行大目标回归：
 
@@ -84,6 +84,32 @@ python3 scripts/update-localizations.py --check
 
 内置模板位于 `packages/shou-core/Sources/Resources/builtin-rules.json`，当前目录包含 74 条模板与 35 个固定位置。内置与个人规则共用结构校验和执行门槛；生成源码例外还须匹配精确受信包内定义并具有 `NativeArtifactEvidence` 事实。Rust／Swift 定义版本为 `1.1.0`，Cargo 解包源码还须核验匹配的保留归档内容；个人规则不能申请这些例外。
 
-空间统计与目录查询使用 `scan --scope full`，这也是 CLI 默认值。`scan --scope cleanup` 将发现限制在规则前缀，命中目标后仍完整测量。`system scan` 使用清理模式，默认 `--include-projects false`；桌面端纳入已登记项目，两者均不隐式遍历主目录发现项目。快照分别记录发现状态、全树完整性与独立完整目标。界面须说明清理证据的稀疏性，不能将其复用为完整空间分析。详见[覆盖字段](../architecture/data-model.md)及[CLI 行为](../ai/agent-and-cli-contract.md)。
+空间统计与目录查询使用 `scan --scope full`，这也是 CLI 默认值。`scan --scope cleanup` 将发现限制在规则前缀，命中目标后仍完整测量。`system scan` 使用清理模式，默认 `--include-projects false`；桌面端纳入自动发现及记住的项目，项目发现只探测固定的常见开发目录，不递归枚举整个主目录。快照分别记录发现状态、全树完整性与独立完整目标。界面须说明清理证据的稀疏性，不能将其复用为完整空间分析。详见[覆盖字段](../architecture/data-model.md)及[CLI 行为](../ai/agent-and-cli-contract.md)。
 
 空间树、分类和矩形树图计算位于共享核心。`scripts/verify-products.py` 检查桌面与 CLI 的产物身份，防止大小写不敏感文件系统上互相覆盖。桌面执行停止夹具中，24 个目标有 22 项保持未处理，已移入的 2 项经恢复后全部 12,336 个文件哈希一致。无障碍、故障场景与分发保留各自验收边界，详见[本机验证记录](acceptance-and-testing.md#11-本机验证记录--2026-10-19)。
+## 本地 CLI 安装入口
+
+安装应用后，在源码仓库中执行：
+
+```sh
+python3 "scripts/install-cli.py"
+shou --version
+shou skills --help
+shou capabilities --command skills --json
+```
+
+辅助脚本创建 `~/.local/bin/shou`，将原始参数、输入输出和退出码交给 `/Applications/Shou.app/Contents/Helpers/shou`。更新应用时，终端入口使用的二进制和随包资源一同更新，运行 CLI 不需要桌面进程。使用启动脚本避免可执行文件符号链接导致 SwiftPM 回退到开发资源目录。不同内容的现有文件或链接会被保留；脚本不修改 `PATH` 和 Shell 设置，JSON 返回值说明目标 bin 目录是否已在 `PATH` 中。`--bin-directory` 可指定目录，`--executable` 可指定保留在固定位置、含相邻资源包的独立 CLI。此源码辅助脚本使用 Python 3，安装后的启动入口和原生 CLI 不依赖 Python。
+
+`python3 scripts/verify-cli-install.py` 使用临时目录验证迁移后的资源、带引号路径、参数与退出码转交、重复安装和冲突保留。能力发现、帮助和 Skill 读取不打开清理记录存储。
+
+```mermaid
+flowchart LR
+    Build[构建应用与 CLI] --> Package[已签名应用与相邻资源]
+    Package --> Install[备份并更新本地应用]
+    Install --> Entry[安装用户 bin 启动入口]
+    Entry --> Native[通过真实路径执行随包 CLI]
+    Native --> Discovery[分层帮助与能力发现]
+    Native --> Skill[随包 Skill 读取]
+    Native --> Core[共享清理核心]
+    Update[后续应用更新] --> Install
+```

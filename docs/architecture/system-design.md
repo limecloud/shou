@@ -2,7 +2,9 @@
 
 English | [简体中文](../zh-CN/architecture/system-design.md)
 
-Status: development architecture. Shared scanning, planning, receipts and macOS adapters have source implementations; Windows, distribution and filesystem race acceptance remain pending.
+Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
+
+Status: current development architecture. Shared scanning, planning, receipts, Trash execution and bounded permanent execution have source implementations; Windows, distribution and filesystem race acceptance remain pending.
 
 ## 1. Constraints
 
@@ -16,6 +18,9 @@ Shou integrates no models and develops or hosts no agents. Initial operation nee
 flowchart TB
     User[User] --> GUI[Native desktop]
     User --> CLI[Swift CLI]
+    Terminal[User bin shou launcher] -->|Execute packaged binary with original arguments| CLI
+    GUI -->|Copy request and local paths| Skill[Bundled rule-authoring Skill]
+    Skill -->|User hands off to existing client| Agents
     Agents[Existing coding agents] -->|Authorized calls| CLI
     Agents --> Draft[JSON rule draft]
     Draft --> GUI
@@ -39,22 +44,36 @@ External agents, model-generated drafts, imported files, and project content rem
 ```mermaid
 flowchart LR
     App[macOS SwiftUI and AppKit] --> Core[Portable ShouCore]
+    App --> AgentSupport[ShouAgentSupport / Skill resources]
+    CLI --> AgentSupport
+    App --> SkillInstall[ShouPlatform / Skill installation and ZIP export]
+    CLI --> SkillInstall
+    SkillInstall --> AgentSupport
     CLI[Swift executable] --> Core
+    App --> Quick[Desktop quick-clean routing]
+    Quick --> Core
     Core --> Rules[Rule validation and matching]
     Core --> Scanner[Scan orchestration]
     Core --> Planner[Evidence and planning]
     Core --> Safety[Access and protection]
-    Core --> Executor[Execution and recovery]
+    Core --> Router[Execution router]
+    Router --> TrashExec[TrashExecution]
+    Router --> PurgeExec[PermanentExecution]
+    Core --> FollowUp[Restore and Trash follow-up]
     Core --> Store[Persistence orchestration]
     Scanner --> Interfaces[Platform capability interfaces]
     Safety --> Interfaces
-    Executor --> Interfaces
+    TrashExec --> Interfaces
+    PurgeExec --> Interfaces
+    FollowUp --> Interfaces
     Store --> Interfaces
     Mac[macOS adapter] --> Interfaces
     Win[Future Windows adapter] -.Implements.-> Interfaces
 ```
 
 Core declares the minimal protocols it consumes. Platform packages implement them; the core never depends on concrete adapters. Rules, planning, and scanning initially remain responsibilities within one core package rather than independently published packages.
+
+Skill resources are shared by both products. Installation and export stay outside cleanup storage and rule enablement; see [distribution architecture and sequence](../ai/skill-distribution.md).
 
 ### Isolated read operations
 
@@ -78,7 +97,7 @@ Cancellation or the wall-clock deadline requests termination of only the owned r
 
 `KnownLocations` defines explicit roots and rule associations without accessing disk. `PlatformFileSystem.locationAvailability` supplies current availability; `ShouEngine` owns registration and bounded scanning. `BuiltinCatalog` binds fixed rules only to their exact known root. Project rules remain usable in selected project workspaces. A path with the same folder name elsewhere does not activate an application rule.
 
-`scanKnownLocations` inventories roots, registers all available roots, then produces one `ScanSnapshot` per root. Registration happens first so it cannot invalidate earlier configuration digests. Missing roots are skipped; inaccessible or incomplete roots produce separate issues. The desktop standard scan includes already registered project workspaces; CLI `system scan` includes them only with `--include-projects true` (default `false`). Both use cleanup scope by default. Neither discovers projects through an implicit home-wide scan, changes operating-system permissions nor deletes targets. Plans remain bound to one root and explicit candidates.
+`scanKnownLocations` inventories roots, registers all available roots, then produces one `ScanSnapshot` per root. Registration happens first so it cannot invalidate earlier configuration digests. Missing roots are skipped; inaccessible or incomplete roots produce separate issues. The desktop standard scan probes conventional developer collections and includes remembered project folders; CLI `system scan` includes them only with `--include-projects true` (default `false`). Both use cleanup scope by default. Neither discovers projects through an implicit home-wide scan, changes operating-system permissions nor deletes targets. Plans remain bound to one root and explicit candidates.
 
 ### Scan coverage and artifact evidence
 
@@ -109,6 +128,7 @@ apps/windows/               Future native Windows application
 packages/shou-core/         Portable models, rules, orchestration, plans
 packages/shou-platform/     Concrete platform implementations
 packages/shou-contracts/    Language-independent schemas and contracts
+skills/                     ShouAgentSupport and portable rule-authoring Skill
 scripts/                    Build, check, package, benchmark
 examples/rules/             Reviewable rules
 assets/brand/               Brand source assets
@@ -172,6 +192,8 @@ Trash follow-up verification tolerates a change only to the saved top-level dire
 
 Provide public rules, capability discovery, structured CLI results, and stable plan/history IDs. Existing Codex, Claude Code, and WorkBuddy tools may call these under their own authorization policies. No model SDK, agent runner, chat service, or global tool configuration is part of Shou.
 
+`ShouAgentSupport` packages the rule-authoring Skill and its question matrix independently of `ShouCore`. Both frontends depend on this resource target. The Rules page copies a request containing local paths; `agent skill --json` exposes the same entrypoint and instructions without opening cleanup storage. The agent asks unresolved questions and writes a declarative draft; validation, disabled import, preview and later confirmed cleanup remain in the existing core. No agent process, provider SDK or inference service is added.
+
 MCP is outside current scope; additional protocols require demonstrated integration needs. See [agent workflow](../ai/coding-agent-integration.md).
 
 ## Startup discovery boundary
@@ -186,3 +208,51 @@ KISS: one core with limited declarative semantics. DRY: reuse validation, protec
 ## Application uninstall boundary
 
 Application discovery and uninstall are a separate domain from rebuildable-cache rules. `ShouEngine` owns exact component associations, consent, current exclusions and digest-bound plans; `ApplicationCatalogReading` and `ApplicationUninstallChecking` supply platform evidence. The existing `TrashExecution` journal is shared with cleanup. Each uninstall item records an exact original parent and component kind, allowing one receipt to cover several Library families and an installation directory. `ReceiptOrigins` validates those associations before history inspection or restoration. A separate restricted application-parent identity capability preserves ordinary workspace-root restrictions. See [application uninstall](../product/application-uninstall.md) for architecture, flow and sequence diagrams.
+
+## 11. Current execution paths
+
+The user experience intentionally has two levels. The desktop uses a fast path for verified built-in rules: one scan preselects eligible built-in and enabled personal-rule candidates and one native confirmation starts a concrete plan. Custom rules, blocked candidates and mixed selections enter the detail review. The CLI keeps explicit scan, plan and execute checkpoints because an existing coding agent needs stable JSON state and a resumable boundary.
+
+```mermaid
+flowchart TD
+    Entry[Desktop or CLI entry] --> Fixed{Desktop fixed-rule path?}
+    Fixed -->|Yes| Scan[Scan known locations and discovered and remembered projects]
+    Scan --> Auto[Auto-select eligible built-in candidates]
+    Auto --> Quick[Clean Recommended]
+    Quick --> Mode{User chooses action}
+    Fixed -->|No| Review[Review details and select explicit candidates]
+    Review --> Mode
+    Mode -->|Trash| TrashPlan[Create action=trash plan]
+    Mode -->|Permanent| PurgePlan[Create action=permanent plan]
+    TrashPlan --> Confirm[Native sheet or TTY confirmation]
+    PurgePlan --> Confirm
+    Confirm --> Revalidate[Recheck configuration, activity, identity and full manifest]
+    Revalidate --> Route{Plan action}
+    Route -->|trash| TrashExec[TrashExecution: move and verify returned location]
+    Route -->|permanent| PurgeExec[PermanentExecution: purge bound manifest entries]
+    TrashExec --> Receipt[Durable receipt and next actions]
+    PurgeExec --> Receipt
+```
+
+`CleanupPlan.action` is the routing boundary. `TrashExecution` records the system-provided Trash location and supports later verified restoration. `PermanentExecution` uses the same plan binding, lease, revalidation and per-item journal, but calls the platform purge capability against the original path and never creates a recovery location. Neither executor accepts arbitrary shell text or expands a plan after confirmation.
+
+```mermaid
+flowchart LR
+    Plan[Immutable plan + full manifests] --> Lease[Mutation lease]
+    Lease --> Preflight[Fresh policy and identity checks]
+    Preflight --> Journal[Persist execution intent]
+    Journal --> TrashExecution[TrashExecution]
+    Journal --> PermanentExecution[PermanentExecution]
+    TrashExecution --> TrashReceipt[trash / trashed / trashPath]
+    PermanentExecution --> PurgeReceipt[permanent / purging / purged]
+    TrashReceipt --> FollowUp[Optional restore or purge of verified Trash items]
+    PurgeReceipt --> Terminal[Completed, partial, cancelled or failed]
+    FollowUp --> Terminal
+```
+
+The permanent path is deliberately a first-class action rather than a hidden fallback. Its safety boundary is the reviewed plan and its exact manifest: a missing, replaced, expanded or unverifiable item is skipped or fails, and unrelated Trash contents are never enumerated or emptied. `operation=permanent_cleanup`, `purging`, `purged` and `permanentlyRemovedBytesEstimate` make the irreversible outcome machine-readable.
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

@@ -21,10 +21,12 @@ struct CleanupResultView: View {
         }
     }
     private var moved: Int { outcomes.filter { $0.state == .moved }.count }
+    private var purged: Int { outcomes.filter { $0.state == .purged }.count }
     private var skipped: Int { outcomes.filter { $0.state == .skipped }.count }
     private var failed: Int { outcomes.filter { $0.state == .failed }.count }
-    private var unverified: Int { items.count - moved - skipped - failed }
-    private var complete: Bool { result.failures.isEmpty && !items.isEmpty && result.receipts.allSatisfy { $0.state == "completed" } && moved == items.count }
+    private var unverified: Int { items.count - moved - purged - skipped - failed }
+    private var permanent: Bool { result.receipts.contains { ["permanent_cleanup", "storage_permanent_removal"].contains($0.operation ?? "") } }
+    private var complete: Bool { result.failures.isEmpty && !items.isEmpty && result.receipts.allSatisfy { $0.state == "completed" } && moved + purged == items.count }
     private var title: String {
         model.t(complete ? "Cleanup complete" : result.receipts.contains { $0.state == "executing" } ? "Unfinished cleanup" : result.receipts.contains { $0.state == "cancelled" } ? "Cleanup stopped" : "Cleanup finished with issues")
     }
@@ -46,14 +48,14 @@ struct CleanupResultView: View {
             }
 
             HStack(spacing: 10) {
-                metric(model.t("Moved to Trash (estimate)"), value: model.bytes(result.receipts.reduce(0) { $0 + $1.trashedBytesEstimate }))
+                metric(model.t(permanent ? "Permanently removed (estimate)" : "Moved to Trash (estimate)"), value: model.bytes(permanent ? result.receipts.reduce(0) { $0 + $1.permanentlyRemovedBytesEstimate } : result.receipts.reduce(0) { $0 + $1.trashedBytesEstimate }))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                metric(model.t("Moved"), value: moved.formatted(.number.locale(model.language.locale)))
+                metric(model.t(permanent ? "Permanently removed" : "Moved"), value: (permanent ? purged : moved).formatted(.number.locale(model.language.locale)))
                 metric(model.t("Skipped"), value: skipped.formatted(.number.locale(model.language.locale)))
                 metric(model.t("Failed items"), value: failed.formatted(.number.locale(model.language.locale)))
             }
 
-            Text(model.t("Moved to Trash; this is not freed space."))
+            Text(model.t(permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space."))
                 .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
 
             if unverified > 0 {
@@ -129,7 +131,7 @@ struct CleanupResultView: View {
                     Text(URL(fileURLWithPath: item.originalPath).lastPathComponent)
                         .font(.callout.weight(.medium)).lineLimit(2)
                     Spacer(minLength: 0)
-                    Text(item.state == "trashed" ? model.bytes(item.allocatedBytesEstimate) : "—")
+                    Text(["trashed", "purged"].contains(item.state) ? model.bytes(item.allocatedBytesEstimate) : "—")
                         .font(.callout.weight(.medium)).monospacedDigit().fixedSize()
                 }
                 Text(model.t(state.label)).font(.caption).foregroundStyle(state.color)
@@ -151,11 +153,12 @@ struct CleanupResultView: View {
     }
 
     private enum ResultState: Equatable {
-        case moved, skipped, failed, unverified
+        case moved, purged, skipped, failed, unverified
 
         init(_ state: String, executionState: String) {
             switch state {
             case "trashed": self = .moved
+            case "purged": self = .purged
             case "skipped": self = .skipped
             case "pending" where executionState == "cancelled": self = .skipped
             case "failed": self = .failed
@@ -165,6 +168,7 @@ struct CleanupResultView: View {
         var label: String {
             switch self {
             case .moved: "Moved to Trash"
+            case .purged: "Permanently removed"
             case .skipped: "Skipped"
             case .failed: "Failed"
             case .unverified: "Needs verification"
@@ -173,6 +177,7 @@ struct CleanupResultView: View {
         var symbol: String {
             switch self {
             case .moved: "checkmark.circle.fill"
+            case .purged: "checkmark.circle.fill"
             case .skipped: "minus.circle"
             case .failed: "xmark.circle.fill"
             case .unverified: "questionmark.circle.fill"
@@ -181,6 +186,7 @@ struct CleanupResultView: View {
         var color: Color {
             switch self {
             case .moved: .green
+            case .purged: .red
             case .skipped: .secondary
             case .failed: .red
             case .unverified: .orange

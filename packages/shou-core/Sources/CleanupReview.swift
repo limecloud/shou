@@ -9,6 +9,8 @@ public struct CleanupSource: Sendable, Identifiable {
     public let selectable: Bool
     public var id: String { snapshotId + ":" + candidate.id }
     public var path: String { workspace.path + "/" + candidate.relativePath }
+    /// Distinguishes maintained rules from explicitly enabled personal rules.
+    public var isBuiltIn: Bool { candidate.ruleIds.allSatisfy { $0.hasPrefix(BuiltinCatalog.prefix) } && !candidate.ruleIds.isEmpty }
 }
 
 public struct CleanupRuleGroup: Sendable, Identifiable {
@@ -31,6 +33,9 @@ public struct CleanupReview: Sendable {
     public let categories: [CleanupReviewCategory]
     public var sources: [CleanupSource] { categories.flatMap(\.sources) }
     public var bytes: Int64 { categories.reduce(0) { $0 + $1.bytes } }
+    /// Scans contain enabled rules only. Draft previews and incomplete or
+    /// blocked candidates remain ineligible for the repeated one-click path.
+    public var recommendedSources: [CleanupSource] { sources.filter(\.selectable) }
 
     public init() { categories=[] }
 

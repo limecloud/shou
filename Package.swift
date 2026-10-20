@@ -10,15 +10,16 @@ var products: [Product] = [
 ]
 var targets: [Target] = [
     .target(name: "ShouContracts", path: "packages/shou-contracts", exclude: ["README.md", "README.zh-CN.md"], resources: [.copy("rule.schema.json")]),
+    .target(name: "ShouAgentSupport", path: "skills", resources: [.copy("shou-rule-authoring")]),
     .target(name: "ShouCore", dependencies: ["ShouContracts"], path: "packages/shou-core/Sources", resources: [.process("Resources")]),
-    .target(name: "ShouPlatform", dependencies: ["ShouCore"], path: "packages/shou-platform/Sources"),
-    .executableTarget(name: "ShouCLI", dependencies: ["ShouCore", "ShouPlatform"], path: "apps/cli/Sources"),
+    .target(name: "ShouPlatform", dependencies: ["ShouCore", "ShouAgentSupport"], path: "packages/shou-platform/Sources"),
+    .executableTarget(name: "ShouCLI", dependencies: ["ShouCore", "ShouPlatform", "ShouAgentSupport"], path: "apps/cli/Sources"),
     .executableTarget(name: "ShouSelfTests", dependencies: ["ShouCore", "ShouPlatform"], path: "tests/core")
 ]
 #if os(macOS)
 dependencies.append(.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"))
 products.append(.executable(name: "ShouDesktop", targets: ["ShouMac"]))
-targets.append(.executableTarget(name: "ShouMac", dependencies: ["ShouCore", "ShouPlatform", .product(name: "Sparkle", package: "Sparkle")], path: "apps/macos/Sources", linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]))
+targets.append(.executableTarget(name: "ShouMac", dependencies: ["ShouCore", "ShouPlatform", "ShouAgentSupport", .product(name: "Sparkle", package: "Sparkle")], path: "apps/macos/Sources", linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@executable_path/../Frameworks"])]))
 #endif
 
 let package = Package(name: "Shou", defaultLocalization: "en", platforms: [.macOS(.v14)], products: products, dependencies: dependencies, targets: targets)

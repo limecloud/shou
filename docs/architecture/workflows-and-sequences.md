@@ -2,11 +2,16 @@
 
 English | [简体中文](../zh-CN/architecture/workflows-and-sequences.md)
 
-Status: design draft. Diagrams specify intended behavior, not implemented capabilities.
+Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
+
+Status: current workflow contract. Diagrams describe the implemented desktop fast path, reviewed desktop path, CLI/Agent contract and their remaining acceptance limits.
+
+
+The desktop defaults to permanent cleanup with one exact-scope confirmation. Trash remains optional; choosing it never silently falls back to permanent removal. The CLI explicitly supports `--mode permanent` while preserving its existing default. Both modes share root/target verification, exclusions, mutation leases and item journals.
 
 ## 1. Discovery and personal rules
 
-The default desktop action scans known application/developer-cache locations and already registered projects without a directory picker. CLI `system scan` defaults to fixed locations; `--include-projects true` adds registered projects. Both default to cleanup scope and never implicitly search the home directory for projects. Explicit project scanning remains available; space exploration uses full scope.
+The default desktop action scans known application/developer-cache locations and automatically discovered and remembered projects without a directory picker. CLI `system scan` defaults to fixed locations; `--include-projects true` adds discovered and remembered projects. Both default to cleanup scope; project discovery probes conventional collections without recursively searching the whole home directory. Explicit project scanning remains available; space exploration uses full scope.
 
 ```mermaid
 flowchart TD
@@ -27,9 +32,34 @@ flowchart TD
 
 Moving to Trash is reported as a processed estimate, not freed disk space. Only independently complete targets may enter plans, even if the enclosing scan is partial. Missing legacy coverage does not authorize partial targets; cleanup-mode completion does not imply full-tree measurement.
 
+## 2. Desktop fast path and detailed review
+
+Fixed rules are designed for the normal one-click experience. After the standard scan, eligible built-in candidates are selected automatically and the primary action is **Clean Recommended**. The immutable plan is created and revalidated behind that action; users do not have to navigate an internal plan screen. Custom rules, blocked items and users who need path-level control use **Review Details** and **Clean Selected**.
+
 ```mermaid
 flowchart TD
-    Root[Choose workspace] --> Access{Actual access?}
+    Open[Open Shou] --> Scan[Scan fixed locations and discovered and remembered projects]
+    Scan --> Matches[Group verified matches by app, browser, developer tool and project]
+    Matches --> Auto[Auto-select eligible built-in candidates]
+    Auto --> Recommended[Clean Recommended]
+    Matches --> Details[Review Details]
+    Details --> Adjust[Adjust categories and concrete paths]
+    Adjust --> Selected[Clean Selected]
+    Recommended --> Action{Trash or permanent?}
+    Selected --> Action
+    Action --> Trash[Create action=trash and confirm once]
+    Action --> Permanent[Create action=permanent and show irreversible confirmation]
+    Trash --> Verify[Revalidate exact files and policy]
+    Permanent --> Verify
+    Verify --> Execute[Run the selected executor]
+    Execute --> Result[Show item outcomes, estimates and next actions]
+```
+
+This path handles built-in and enabled personal rules together while retaining exact-scope review. The action is visible at the point of execution: **Move to Trash** is recoverable through the recorded batch; **Permanently Remove** is irreversible and remains bound to the selected plan.
+
+```mermaid
+flowchart TD
+    Root[Extra folder or Agent rule scope] --> Access{Actual access?}
     Access -->|No| Grant[Reauthorize or narrow scope]
     Grant --> Access
     Access -->|Yes| Scan[Full-scope read-only space scan]
@@ -40,7 +70,9 @@ flowchart TD
     Full -->|Yes| Inspect[Inspect projects and directories]
     Inspect --> Known{Suitable rule?}
     Known -->|Yes| Evidence[Inspect evidence and risk]
-    Known -->|No| Draft[User or existing agent drafts rule]
+    Known -->|No| Skill[Read shipped rule-authoring Skill]
+    Skill --> Questions[Existing agent asks missing purpose and keep-path questions]
+    Questions --> Draft[Agent writes rule from answers and evidence]
     Draft --> Valid{Validation passes?}
     Valid -->|No| Revise[Revise using explicit errors]
     Revise --> Draft
@@ -56,9 +88,9 @@ flowchart TD
     Select --> Plan[Concrete immutable plan]
 ```
 
-Large unknown directories stay visible in full scans but are not executable. Cleanup snapshots contain only rule-directed evidence. Repair access or rescan affected targets rather than planning from incomplete target evidence; an unrelated gap does not invalidate a complete sibling.
+Large unknown directories remain visible. Rule cleanup requires eligible rule matches; explicit space-analysis removal can handle user-selected files or directories without a rule. Cleanup snapshots contain only rule-directed evidence. Repair access or rescan affected targets rather than planning from incomplete target evidence; an unrelated gap does not invalidate a complete sibling.
 
-## 2. Confirmation and execution
+## 3. Confirmation and execution
 
 ```mermaid
 flowchart TD
@@ -76,13 +108,16 @@ flowchart TD
     Verify -->|No| Stale[Require new preview]
     Verify -->|Yes| Journal{Intent durably recorded?}
     Journal -->|No| Failure[Stop with journal error]
-    Journal -->|Yes| Trash[Process and record each item]
+    Journal -->|Yes| Action{Plan action}
+    Action -->|trash| Trash[TrashExecution: process and record each item]
+    Action -->|permanent| Purge[PermanentExecution: purge bound manifest entries]
     Trash --> Result[Success, skip, failure, unknown]
+    Purge --> Result
 ```
 
 All entry points use the same policy. An unexpired plan still needs revalidation. Journal and filesystem operations are not a cross-system transaction.
 
-## 3. Native desktop sequence
+## 4. Native desktop sequence
 
 ```mermaid
 sequenceDiagram
@@ -96,7 +131,8 @@ sequenceDiagram
     Core->>Core: Deduplicate and bind evidence
     Core->>Store: Save immutable plan
     Core-->>UI: Scope, digest, risks
-    User->>UI: Confirm moving to Trash
+    User->>UI: Choose Trash or permanent removal
+    UI-->>User: Show action-specific confirmation and exact paths
     UI->>Core: One-time current-digest confirmation
     Core->>Store: Acquire execution lock
     Core->>FS: Revalidate root and full manifests
@@ -104,10 +140,15 @@ sequenceDiagram
         FS-->>Core: Invalid state
         Core-->>UI: Refuse or skip changed targets
     else Valid
-        Core->>Store: Persist execution intent
+        Core->>Store: Persist execution intent and action
         loop Each still-valid item
-            Core->>FS: Recheck and move to Trash
-            FS-->>Core: Actual location, identity, or error
+            alt Trash action
+                Core->>FS: Recheck and move to Trash
+                FS-->>Core: Actual Trash location, identity, or error
+            else Permanent action
+                Core->>FS: Recheck and purge original path
+                FS-->>Core: Purged, skipped, failed or unknown
+            end
             Core->>Store: Persist item result
             Core-->>UI: Progress
         end
@@ -118,7 +159,7 @@ sequenceDiagram
 
 Recheck near each operation rather than relying only on one batch-start check. Resource release must cover every exception path.
 
-## 4. Independent CLI sequence
+## 5. Independent CLI sequence
 
 ```mermaid
 sequenceDiagram
@@ -131,12 +172,12 @@ sequenceDiagram
     Core-->>CLI: ID and digest
     User->>CLI: Inspect plan
     CLI-->>User: Paths, evidence, estimates, risks
-    User->>CLI: Execute plan
+    User->>CLI: Execute plan with action=trash or permanent
     alt No TTY
         CLI-->>User: Exit 7, confirmation_required
     else TTY available
-        CLI-->>User: Request current-scope confirmation
-        User->>CLI: Confirm
+        CLI-->>User: Request TRASH or PURGE <plan-id> confirmation
+        User->>CLI: Confirm exact phrase
         CLI->>Core: Execute bound plan
         Core->>FS: Revalidate and process
         FS-->>Core: Outcomes
@@ -147,7 +188,7 @@ sequenceDiagram
 
 No desktop process starts. Existing-agent drafting/import is described in the [agent workflow](../ai/coding-agent-integration.md).
 
-## 5. Recovery and permanent batch removal
+## 6. Recovery and permanent batch removal
 
 ```mermaid
 flowchart TD
@@ -161,7 +202,7 @@ flowchart TD
     Dest -->|Yes| RestoreConfirm[Confirm restoration scope]
     Other --> RestoreConfirm
     RestoreConfirm --> Restore[Restore without overwriting]
-    Action -->|Permanent removal| Explain[Show exact items and irreversibility]
+    Action -->|Permanent removal of Trash item| Explain[Show exact items and irreversibility]
     Explain --> Confirm{Separate confirmation?}
     Confirm -->|No| Keep
     Confirm -->|Yes| Verify[Revalidate identity and manifests]
@@ -173,7 +214,7 @@ flowchart TD
 
 Cancellation never triggers restoration. Permanent removal is irreversible and never empties unrelated Trash contents.
 
-## 6. Interruption reconciliation
+## 7. Interruption reconciliation
 
 ```mermaid
 sequenceDiagram
@@ -190,6 +231,13 @@ sequenceDiagram
     Note over Client,FS: Never replay unknown targets by old path
 ```
 
-## 7. Invariants
+## 8. Invariants
 
 Configuration/action/selection changes invalidate confirmation. Cancellation stops new items at safe boundaries while preserving completed facts; a single in-progress system Trash call may finish before stopping. Partial success is explicit. History records facts; current recovery availability requires inspection. Every exception has a CLI and GUI representation, not only a log entry.
+
+For permanent execution, an item enters `purging` before the platform call and `purged` only after the result is durably recorded. A cancellation or unexpected failure leaves the batch `cancelled` or `partial`; Shou never reports an unverified item as permanently removed and never retries it by path alone.
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

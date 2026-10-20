@@ -33,11 +33,11 @@ Relationships are conceptual; bindings may be shared across presets. Plan items 
 | CleanupPreset | Name, binding references, selection preferences | Stores logic, not execution permission |
 | ScanSnapshot | ID, `scope`, `treeComplete`, `completedPaths`, configuration digest, status, statistics | Only independently complete, policy-valid candidates produce executable plan items |
 | Candidate | ID, relative path, project clues, identity, estimates, risk, evidence | Unclassified directories remain visible but not executable |
-| CleanupPlan | ID, API version, digest, creation/expiry, configuration, state | Concrete targets/action; no dynamic expansion |
-| PlanItem | Candidate, original path, identity, full manifest digest, action | No duplicate or unresolved parent/child targets |
+| CleanupPlan | ID, API version, digest, creation/expiry, configuration, `action` (`trash` or `permanent`), state | Concrete targets/action; no dynamic expansion; action is immutable after confirmation |
+| PlanItem | Candidate, original path, identity, full manifest digest | No duplicate or unresolved parent/child targets; manifest is the permanent-removal boundary |
 | Confirmation | Plan/digest, action, entry point, time | One-time in-process confirmation, not a stored boolean |
 | ExecutionReceipt | Execution/plan IDs, entry point, stage, overall outcome | Durable intent first; item records; partial outcomes possible |
-| ItemReceipt | Original/result path, before/after identity, action, error | Reverify before restore or purge |
+| ItemReceipt | Original/result path, before/after identity, state, Trash path, error | `purging` is durable intent; `purged` requires a successful platform result; reverify before restore or purge |
 | FollowUpReceipt | Item reference, restore/purge action, time, outcome | Separate confirmation; never rewrite original facts |
 
 ## 3. Rule lifecycle
@@ -89,17 +89,33 @@ stateDiagram-v2
     interrupted --> [*]
 ```
 
-A provisional plan lifetime is 10 minutes, subject to prototype evidence. Unexpired plans still require object revalidation. Scope, action, rule, or exclusion changes produce a new digest. Never automatically replay partial, cancelled, or interrupted plans.
+A provisional plan lifetime is 10 minutes, subject to prototype evidence. Unexpired plans still require object revalidation. Scope, action, rule, or exclusion changes produce a new digest. `trash` and `permanent` are separate first-class actions; an action cannot be changed after the plan is confirmed. Never automatically replay partial, cancelled, or interrupted plans.
 
 ## 5. Item states
 
-`pending`: no item-start boundary recorded. `moving`: durable item intent saved before the filesystem call; an unfinished result needs verification. `trashed`: verified move with actual location. `skipped`: intentionally unprocessed. `failed`: known operation error. `unknown`: interruption prevents determining outcome. `restored` and `purged`: current status derived from follow-up receipts. Legacy pending records cannot prove no filesystem operation happened.
+`pending`: no item-start boundary recorded. `moving`: durable Trash intent saved before the filesystem call; an unfinished result needs verification. `trashed`: verified move with actual location. `purging`: durable permanent-removal intent saved before the platform call; outcome is not yet known. `purged`: the bound original target was permanently removed and the result was saved. `skipped`: intentionally unprocessed. `failed`: known operation error. `unknown`: interruption prevents determining outcome. `restored` and follow-up `purged`: current status derived from follow-up receipts. Legacy pending records cannot prove no filesystem operation happened.
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending
+    pending --> moving: action=trash
+    pending --> purging: action=permanent
+    moving --> trashed: verified Trash result
+    purging --> purged: verified permanent result
+    moving --> failed: known Trash error
+    purging --> failed: known purge error
+    moving --> unknown: interrupted result
+    purging --> unknown: interrupted result
+    pending --> skipped: safe boundary or policy change
+    trashed --> restored: verified follow-up
+    trashed --> purged: verified Trash follow-up purge
+```
 
 Execution progress is transient: `stage`, `processedCount`, `itemCount` and `path` describe actual work, not a new authorization or durable outcome. A stop request prevents new item operations at a safe boundary; an in-progress system Trash operation may finish and must be reconciled before the final receipt.
 
 Follow-up progress uses the same transient type without changing persisted receipts or CLI JSON. Its total counts only explicitly selected items. `preflight` reports read-only verification; `restoring` or `purging` starts after the pending follow-up intent is saved. `processedCount` increases only after the completed or failed outcome is saved, so it counts persisted outcomes rather than successful actions. Cancellation before intent leaves the item unstarted; after a restore intent, the current item finishes and records its result before the next-item cancellation boundary. Neither progress nor a batch checkbox authorizes retrying a pending follow-up.
 
-Do not rewrite initial facts or retry unknown items by old path. Permanent removal and external Trash actions can eliminate recovery.
+Do not rewrite initial facts or retry unknown items by old path. Permanent removal and external Trash actions can eliminate recovery. A `permanent` plan records `operation=permanent_cleanup`; its byte estimate is reported separately from volume availability.
 
 `HistoryInspection` is a transient read result, separate from execution and follow-up facts. It retains the original recorded state, check time, unfinished flag and per-item observations of the exact saved paths. The mutation lease prevents concurrent Shou mutations during inspection; a shared entry/time budget bounds the directory checks. Full manifests and identities are compared, with the same recorded-root ctime exception as follow-up verification. This does not hash contents or promote unknown items into executable follow-ups. Missing destination paths are reported without searching the user's Trash. A pending restore/purge remains pending and blocked; observations do not manufacture a completion receipt.
 
@@ -153,3 +169,8 @@ Configuration version `1` remains readable when global protection is absent or e
 `ExecutionReceipt.operation` is optional for compatibility; `application_uninstall` items each carry `UninstallReceiptOrigin` with component kind, application path, bundle identifier and exact parent identity. Ordinary receipts cannot opt into these origins. Restoration validates component-kind paths and parent identity independently of discovery or a later application installation. Uninstall receipts currently allow restore only.
 
 `FileEntry.contentDigest` is optional and omitted when absent, preserving legacy directory-manifest encoding. A standalone file target carries one root entry and a bounded SHA-256 digest. Its Trash-root comparison allows only ctime normalization while preserving content and every other metadata field. Directory descendants retain exact metadata comparison. See [application uninstall](../product/application-uninstall.md).
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

@@ -18,6 +18,8 @@ swift build --jobs 4
 python3 "scripts/verify-products.py"
 ".build/debug/shou-tests" "$TASK_NATIVE_MODE"
 python3 "scripts/verify-cli.py"
+python3 "scripts/verify-storage-cli.py"
+python3 "scripts/verify-cli-install.py"
 python3 "apps/cli/Tests/verify-confirmation.py"
 python3 "scripts/verify-uninstall-cli.py"
 if [ "$TASK_NATIVE_MODE" = --native-trash-purge ]; then

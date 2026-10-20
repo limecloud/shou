@@ -34,6 +34,8 @@ struct CleanupPageHeader: View {
     var model: AppModel
     var body: some View {
         HStack {
+            Button { model.section="smart" } label: { Label(model.t("Smart Cleanup"), systemImage: "chevron.left") }
+                .buttonStyle(.borderless).padding(.trailing, 12)
             VStack(alignment: .leading, spacing: 2) {
                 Text(model.t("Cleanup")).font(.system(size: 14, weight: .semibold))
                 Text(model.workspace?.path ?? model.t("Tidy up. That's it.")).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
@@ -71,8 +73,12 @@ struct CleanupSummary: View {
                     }
                 }
                 Spacer()
-                Button(model.selected.isEmpty ? model.t("Review Cleanup…") : model.t("Review") + " " + model.bytes(model.selectedBytes)) { model.previewCleanup() }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                Menu {
+                    Button(model.t("Delete Permanently…"), role: .destructive) { model.previewCleanup() }
+                    Button(model.t("Move to Trash…")) { model.previewCleanup(permanent: false) }
+                } label: { Text(model.t("Clean & Free Space")) }
+                    primaryAction: { model.previewCleanup() }
+                    .menuStyle(.borderlessButton).fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(model.busy || model.selected.isEmpty || model.selected.contains { !$0.eligible } || model.snapshot?.previewOnly == true)
             }
             CapacityDots(segments: segments.map { ($0.1,$0.2) }, scanning: model.scanning).frame(height: 88).accessibilityHidden(true)

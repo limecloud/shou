@@ -67,6 +67,9 @@ def verify_packaged_resource_lookup(executable, resources, base, app=None):
     assert run('locations', 'list') == [], 'Packaged scan locations were ignored'
     assert run('rules', 'catalog', '--workspace', binding['id']) == [], 'Packaged cleanup rules were ignored'
     assert run('rules', 'schema'), 'Packaged rule schema could not be loaded'
+    skill = run('agent', 'skill')
+    assert Path(skill['entrypoint']).is_relative_to(base.parent), 'Source-tree skill leaked into a relocated release'
+    assert (Path(skill['directory']) / 'references/questionnaire.md').is_file()
 
 
 with tempfile.TemporaryDirectory(prefix='shou-distribution-') as directory:

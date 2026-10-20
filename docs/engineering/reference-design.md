@@ -15,7 +15,7 @@ Four evidence types inform this design:
 | Retained REA native package inventories and property lists | Bundle identity, packaged resources and declared localizations | Executed behavior, decompiled source, rule matching or deletion correctness |
 | Direct interaction with an installed reference application | Category → rule → path hierarchy, mixed selection, and a fixed bottom selection/action region | Cleanup, restoration, deletion semantics or Shou's implementation; no cleanup action was triggered in that application |
 
-The available native inventories do not justify another binary analysis for the interaction decisions below. No proprietary catalog or recovered implementation is required. Animation must be specified and exercised in Shou; a still interface reference cannot prove animation behavior.
+The original inventory supports package facts only. The later focused native investigation is documented in the space-analysis acknowledgment below. No proprietary catalog or recovered implementation is required. Animation must be specified and exercised in Shou; a still interface reference cannot prove animation behavior.
 
 ## Product differences to resolve
 
@@ -33,7 +33,7 @@ These differences are interaction requirements. They do not authorize a new cros
 
 ```mermaid
 flowchart TD
-    Standard[Standard scan: explicit locations and registered projects] --> Review[One cleanup review surface]
+    Standard[Standard scan: explicit locations and discovered and remembered projects] --> Review[One cleanup review surface]
     Projects[Selected project scan] --> Review
     Review --> Category[Semantic category: total and selected estimate]
     Category --> Rule[Rule or software purpose: impact, risk and state]
@@ -116,7 +116,7 @@ Discovery coverage and candidate measurement are different facts. The implemente
 
 Generated source inside a verified build output is different from authored project source. Preserve credential and repository protection, and use explicit project provenance and authored-content ownership checks when recognizing disposable outputs. Do not make a file extension the sole authority either to permit deletion or to classify an entire generated tree as authored content. Personal rules do not inherit trusted built-in artifact privileges.
 
-The Rust/Swift bundled definitions are version `1.1.0`. Only exact trusted definitions can use the native evidence port for recognized Rust `OUT_DIR`, Swift generated products and Cargo extracted-source validation. Missing activity/ownership/integrity evidence, tracked content or modified sources fail closed. The catalog contains 74 templates and 35 fixed locations; desktop standard scanning includes registered projects, while CLI `system scan --include-projects` defaults to `false`.
+The Rust/Swift bundled definitions are version `1.1.0`. Only exact trusted definitions can use the native evidence port for recognized Rust `OUT_DIR`, Swift generated products and Cargo extracted-source validation. Missing activity/ownership/integrity evidence, tracked content or modified sources fail closed. The catalog contains 74 templates and 35 fixed locations; desktop standard scanning includes discovered and remembered projects, while CLI `system scan --include-projects` defaults to `false`.
 
 Rust/Swift activity checks use fixed native `ps` and `lsof` invocations for the current UID. A matching build process blocks a project when its verified working directory contains or is contained by that project root; unavailable or ambiguous evidence blocks the candidate. Cargo registry resources are shared, so their process gate remains global. Process results are cached only within one read-only analysis; execution obtains fresh facts before each move. Analysis checks a 12-second evidence-query window before starting further queries.
 
@@ -124,7 +124,7 @@ Native Cargo verification has a 10-second budget per crate, at most 256 files, 1
 
 The current filesystem cleanup contract operates on directory manifests. Individual-file cleanup and native tool operations require separate typed capabilities before being exposed. A controlled tool capability must define executable identity, fixed argument construction, bounded output/time, scope, dry-run behavior, cancellation and before/after verification. A rule document cannot supply arbitrary shell commands. Large model stores, virtual disks, toolchains and simulator runtimes are not ordinary caches merely because they occupy substantial space. Add these capabilities only for an implemented use case; do not introduce a generic plugin framework.
 
-Keep scan/verify/Trash/restore budgets consistent for large targets. Budget exhaustion produces a typed limitation, never a false success. Tests must include a tree beyond the default entry budget, protected generated-content boundaries, independently complete siblings and cancellation after the first mutation. Report both estimated logical/allocated data and actual volume availability without treating them as interchangeable.
+Keep scan/verify/Trash/restore/permanent-removal budgets consistent for large targets. Budget exhaustion produces a typed limitation, never a false success. Tests must include a tree beyond the default entry budget, protected generated-content boundaries, independently complete siblings and cancellation after the first mutation. Report both estimated logical/allocated data and actual volume availability without treating them as interchangeable.
 
 ## Safety and completion semantics
 
@@ -132,9 +132,9 @@ Fixed application rules target verified disposable leaves, not entire applicatio
 
 Permission limits, incomplete measurement, changed identities and unavailable activity checks remain typed limitations. Recheck identified running applications immediately before mutation; skip affected candidates with reasons while preserving independent outcomes. The present application does not quit software. A future close-application feature would need a separately authorized native capability and explicit user interaction.
 
-“Moved to Trash” is the completion metric for recoverable cleanup. It is not a claim of freed volume capacity. Permanent batch removal remains a separate action, confirmation and receipt. A partial batch must never appear as complete success because some children succeeded. Unknown post-operation states remain unknown until verified.
+“Moved to Trash” is the completion metric for recoverable cleanup. It is not a claim of freed volume capacity. Permanent removal is a first-class `action=permanent` path with its own confirmation, `PermanentExecution` journal and `operation=permanent_cleanup` receipt. A partial batch must never appear as complete success because some children succeeded. Unknown post-operation states remain unknown until verified.
 
-Execution progress reports actual stage, path and processed/total items. Stop requests prevent new item operations at safe boundaries; an in-progress system Trash call may finish and must be reconciled. The completion view keeps location-level failures separate from failed item receipts. Project-fixture progress and successful results have been exercised; stop, partial-failure and unverified-state interactions still require acceptance.
+Execution progress reports actual stage, path and processed/total items. Stop requests prevent new item operations at safe boundaries; an in-progress system Trash or permanent-removal call may finish and must be reconciled. The completion view keeps location-level failures separate from failed item receipts. The desktop fast path creates a concrete plan internally for verified built-ins, while personal rules remain in detail review. Project-fixture progress and successful results have been exercised; permanent-removal cancellation, stop, partial-failure and unverified-state interactions still require acceptance.
 
 ## Acceptance still required
 
@@ -144,9 +144,29 @@ Validate the implemented hierarchy, partial selection, parent/child conflicts, l
 
 ## Acknowledgements
 
+- [Lark CLI](https://github.com/larksuite/cli) and [Vercel Skills](https://github.com/vercel-labs/skills): standard Skill distribution and version-matched CLI reads. Shou implements its own native installer and bundled resource reader; see [research and client installation](../ai/skill-distribution.md).
+
 - [MangoDisk](https://github.com/harry0703/MangoDisk): available source informed semantic category navigation, rule/source selection, explicit confirmation and itemized outcomes. Direct interaction with the installed deep-cleanup page confirmed category/rule/path hierarchy, mixed selection and the fixed bottom selection/action region; its cleanup action was not triggered. Inspected owners include `cleanup-result-categories.ts`, `md-cleanup-rule-groups.vue`, `cleanup-rule-selection.ts`, `md-cleanup-plan-dialog.vue`, `md-cleanup-result-dialog.vue`, and Core cleanup scan/execution modules.
 - [MangoDisk](https://github.com/harry0703/MangoDisk) startup source informed the separation of definition evidence, configured state, runtime state and control capability. Inspected owners include Core `startup/models.rs` and platform `macos/startup/mod.rs` and `launchd.rs`. Shou independently implements native read-only discovery and public macOS settings navigation; it does not adopt the reference implementation's helper or state-changing operations.
 - [Pulse](https://pulse.egoist.dev/): compact native capacity summaries and space distribution presentation.
 - [BuhoCleaner](https://www.drbuho.com/buhocleaner): disk exploration and grouped cleanup presentation.
 
 These are design acknowledgements, not dependencies or claims of affiliation. Shou implements its own native views, rules and safety boundaries. Retained REA observations support package facts only; no proprietary rules or decompiled implementation were copied.
+
+## Acknowledgments: native space analysis
+
+Thanks to [BuhoCleaner](https://www.drbuho.com/buhocleaner) for the disk-analysis interaction reference, MangoDisk for locally available cleanup implementation study, and [Mole](https://github.com/tw93/mole) for the terminal utility reference. Shou's implementation is original Swift code; no third-party binary or recovered code is shipped.
+
+On 2026-10-20, REA 6.4.0 used Ghidra 12.1.4 with a matching locally built macOS ARM64 decompiler and Temurin JDK 21. The Codex registration preserves unrelated settings and pins provider paths in the REA process environment. Hopper's official download returned HTTP 403; Ghidra is the working provider. This session uses the REA CLI because an existing client session does not acquire newly registered MCP tools until reconnecting.
+
+| Evidence | Observation | Boundary |
+| --- | --- | --- |
+| `ev_62f71e9b278f74f0183b00a652495580997f5cd70d6e644c98061ffd1f452fac` | The main ARM64 executable has no matching space-analysis procedures in the bounded search | The launcher is not the UI implementation |
+| `ev_8d677385bd1f5842b2dba97bbd1c442e060437c19a20e63822c8d7ec2ffd8e61` | `DesktopApplication.framework` exposes selected-list, left-list and space-key handling procedures | Static procedure identities do not prove runtime selection or deletion behavior |
+| `ev_5cdd9882850f22dd1bc117ba063c72d9dba9faec99e22c9a1c4a06492ec4fded` | Focused `DU` search located left-list double click (`0x173dec`), checkbox (`0x18bdd0`), selected-list double click (`0x217744`) and space-key handling (`0x1763fc`) | A partial class-oriented inventory, not a reconstruction of the scanner or deletion engine |
+| `ev_a9513150ded58787848017e2f8ae4fb594a1a624a417775a656d98e8b5444239` | Full-module decompilation of `checkBtnClicked` (`0x18bdd0`) reads `_checkBtnAction` and invokes its non-null callback between helper calls | Establishes the cell's callback dispatch only. The indirect callback target and downstream selection/deletion logic remain unresolved; Ghidra reports an unexplained terminal `_objc_release` flow |
+| Direct native interaction | Opening `/opt` drills into its children; selecting protected container roots shows a blocking explanation | No reference-app deletion was performed; this is UI observation, separate from static REA evidence |
+
+The UI framework ARM64 research copy has SHA-256 `f87e00451d456754758f62c183c9d90cab374f505b28a0770e2240fbae5d9348`. Research copies and raw evidence remain outside the source repository. Default analysis first exceeded its startup deadline; the successful inventory used a longer bounded startup. Full-module function analysis succeeded with a 30-minute startup limit after a 15-minute attempt timed out. Inspection of the installed 6.4.0 configuration parser showed that the attempted analyzer-disable environment setting is unsupported and has no effect; the recorded analysis profile remains authoritative. Decompilation warnings and missing runtime traces must remain explicit limitations.
+
+These observations informed an independent directory browser, linked list/treemap selection, native Quick Look, navigation, and exact-scope deletion. Shou's permanent-first desktop action is a product decision to reclaim disk space, not a claim that the reference uses the same deletion policy. See [space analysis](../product/space-analysis.md).

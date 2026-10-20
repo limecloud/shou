@@ -36,6 +36,8 @@ cp "packages/shou-contracts/rule.schema.json" "$TASK_APP/Contents/Resources/rule
 cp -R "$TASK_BIN/Shou_ShouCore.bundle" "$TASK_APP/Contents/Resources/"
 cp -R "$TASK_BIN/Shou_ShouCore.bundle" "$TASK_APP/Contents/Helpers/"
 cp -R "$TASK_BIN/Shou_ShouContracts.bundle" "$TASK_APP/Contents/Helpers/"
+ditto "$TASK_BIN/Shou_ShouAgentSupport.bundle" "$TASK_APP/Contents/Resources/Shou_ShouAgentSupport.bundle"
+ditto "$TASK_BIN/Shou_ShouAgentSupport.bundle" "$TASK_APP/Contents/Helpers/Shou_ShouAgentSupport.bundle"
 ditto ".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" "$TASK_APP/Contents/Frameworks/Sparkle.framework"
 for TASK_BUNDLE in "$TASK_APP/Contents/Resources/"*.bundle "$TASK_APP/Contents/Helpers/"*.bundle; do
     codesign --force --sign - "$TASK_BUNDLE"

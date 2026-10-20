@@ -115,7 +115,7 @@ extension ShouEngine {
     public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), progress: @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) throws -> SystemScanResult {
         try validateKnownLocationBudget(budget)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-        let locations=try knownLocations()
+        let locations=try knownLocations() + (includeProjects ? projectLocations() : [])
         var registered: [(KnownLocation, Workspace)]=[]
         var issues=locations.compactMap { location in
             location.availabilityIssue.map { KnownLocationIssue(locationId: location.id, code: "access_unavailable", message: $0) }
@@ -129,14 +129,6 @@ extension ShouEngine {
                 if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
                 let failure=error as? ShouError ?? ShouError("io_error", error.localizedDescription)
                 issues.append(KnownLocationIssue(locationId: location.id, code: failure.code, message: failure.message))
-            }
-        }
-        if includeProjects {
-            let knownPaths=Set(locations.map(\.path))
-            for workspace in try configuration().workspaces where !knownPaths.contains(workspace.path) {
-                if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-                let location=KnownLocation(id: workspace.id, title: "Registered Projects", path: workspace.path, ruleIds: [], category: "developer", applicationBundleIdentifiers: [], exists: true, availabilityIssue: nil)
-                registered.append((location, workspace))
             }
         }
         var snapshots: [ScanSnapshot]=[]
@@ -155,8 +147,7 @@ extension ShouEngine {
             }
         }
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-        let projectLocations=registered.map(\.0).filter { registered in !locations.contains { $0.id == registered.id } }
-        return SystemScanResult(locations: locations + projectLocations, snapshots: snapshots, issues: issues, skippedLocationIds: locations.filter { !$0.exists && $0.availabilityIssue == nil }.map(\.id))
+        return SystemScanResult(locations: locations, snapshots: snapshots, issues: issues, skippedLocationIds: locations.filter { !$0.exists && $0.availabilityIssue == nil }.map(\.id))
     }
 
     private func validateKnownLocationBudget(_ budget: ScanBudget) throws {

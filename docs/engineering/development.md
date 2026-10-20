@@ -25,6 +25,33 @@ The bundle script uses an ad-hoc signature for local development. Developer ID s
 
 The desktop build product is `ShouDesktop`, while the CLI is `shou`. Distinct names prevent collisions on case-insensitive filesystems; the packaged application remains `Shou.app`.
 
+### Install a terminal entry
+
+After installing the application, run:
+
+```sh
+python3 "scripts/install-cli.py"
+shou --version
+shou skills --help
+shou capabilities --command skills --json
+```
+
+The source-tree helper creates `~/.local/bin/shou`, a small launcher that executes `/Applications/Shou.app/Contents/Helpers/shou` with the original arguments, streams and exit code. Updating the app therefore updates this terminal entry's binary and bundled resources together; no desktop process is required. It avoids executable symlinks, which can make SwiftPM locate a development fallback instead of the installed resources. Existing different files or links are preserved. The helper does not edit `PATH` or shell settings; its JSON result states whether the selected bin directory is already on `PATH`. `--bin-directory` selects a different directory; `--executable` can select a CLI in a retained standalone distribution directory with adjacent bundles. This helper uses Python 3; the installed launcher and native CLI do not.
+
+`python3 scripts/verify-cli-install.py` tests relocated packages, quoted paths, argument/exit forwarding, repeated installation and conflict preservation using temporary directories. `capabilities`, help and Skill reads remain usable without opening the cleanup record store.
+
+```mermaid
+flowchart LR
+    Build[Build app and CLI] --> Package[Signed app and adjacent resources]
+    Package --> Install[Back up and update local app]
+    Install --> Entry[Install user bin launcher]
+    Entry --> Native[Execute packaged CLI at its real path]
+    Native --> Discovery[Scoped help and capabilities]
+    Native --> Skill[Bundled Skill reads]
+    Native --> Core[Shared cleanup core]
+    Update[Later app update] --> Install
+```
+
 The desktop's native filesystem adapter uses `Contents/Helpers/shou` for short-lived root-identity and scan reads. Use the packaged application when validating this path: a standalone desktop binary has no bundled helper. The internal worker entry opens no record store and is not part of public CLI discovery. Normal CLI use remains independent of the desktop. Parent-process mutation and confirmation/receipt checks remain in place. See the [read-operation boundary](../architecture/system-design.md#isolated-read-operations).
 
 ## Verification
@@ -35,7 +62,7 @@ sh scripts/test.sh
 
 The test executable runs rule, domain, and real filesystem checks in temporary fixtures. It requires neither XCTest nor Swift Testing, allowing the same suite to run with Command Line Tools. Most domain cases use an isolated fixture Trash. `scripts/test.sh` defaults to `--native-trash`: all 74 bundled rules and their patterns exercise system Trash → restore, comparing the complete fixture file hashes and retained files. This default native suite does not permanently remove items from Trash. Application/build activity is fixed to idle for these generated fixtures; separate tests cover activity gates, Git ownership, and retained Cargo archives.
 
-The CLI checks cover noninteractive refusal, cancellation, and native Trash → restore with real terminal confirmation restricted to generated fixture paths. `scripts/verify-native-cli.py` also defaults to restore only. These checks run through `scripts/test.sh`. Only an explicit `sh "scripts/test.sh" --native-trash-purge` additionally enables bounded permanent removal of generated fixture items in the native catalog and CLI suites. No native test enumerates or empties the user's Trash; follow-up operations use only exact items recorded in its fixture receipts.
+The CLI checks cover noninteractive refusal, cancellation, and native Trash → restore with real terminal confirmation restricted to generated fixture paths. `scripts/verify-native-cli.py` also defaults to restore only. These checks run through `scripts/test.sh`. Only an explicit `sh "scripts/test.sh" --native-trash-purge` additionally enables an isolated direct `action=permanent` plan, bounded permanent removal in the native catalog and CLI suites, and selected Trash follow-up purge. No native test enumerates or empties the user's Trash; permanent and follow-up operations use only exact fixture manifests or receipt items.
 
 Run the large-target regression separately after building:
 
@@ -84,6 +111,6 @@ The generated resources are checked in to support source builds with Command Lin
 
 Built-in templates live in `packages/shou-core/Sources/Resources/builtin-rules.json`. The catalog contains 74 templates and 35 fixed locations. Built-ins and personal rules share structural validation and execution gates; generated-source exceptions additionally require an exact trusted bundled definition and `NativeArtifactEvidence` facts. Rust/Swift definitions are version `1.1.0`; Cargo extracted-source validation also requires matching retained archive contents. Personal rules cannot request these exceptions.
 
-Use `scan --scope full` (the CLI default) for storage accounting and directory queries; `scan --scope cleanup` limits discovery to rule prefixes and fully measures matched targets. `system scan` uses cleanup scope and defaults to `--include-projects false`; the desktop includes already registered projects. Neither implicitly scans home for projects. Snapshots separate discovery status, whole-tree completeness and independently complete targets. The UI must identify sparse cleanup evidence rather than reuse it as full space analysis. See [coverage fields](../architecture/data-model.md) and [CLI behavior](../ai/agent-and-cli-contract.md).
+Use `scan --scope full` (the CLI default) for storage accounting and directory queries; `scan --scope cleanup` limits discovery to rule prefixes and fully measures matched targets. `system scan` uses cleanup scope and defaults to `--include-projects false`; the desktop includes automatically discovered and remembered projects. Discovery probes a fixed list of conventional project collections without recursively enumerating the entire home directory. Snapshots separate discovery status, whole-tree completeness and independently complete targets. The UI must identify sparse cleanup evidence rather than reuse it as full space analysis. See [coverage fields](../architecture/data-model.md) and [CLI behavior](../ai/agent-and-cli-contract.md).
 
 Storage accounting, cleanup categories, and treemap calculations live in the shared core. `scripts/verify-products.py` checks desktop/CLI artifact identity to prevent overwriting on case-insensitive filesystems. The native desktop execution-stop fixture left 22 of 24 targets unprocessed, restored the two moved items, and matched all 12,336 file hashes. Accessibility, fault cases and distribution retain their own acceptance boundaries; see the [local verification record](acceptance-and-testing.md#11-local-verification-record--2026-10-19).

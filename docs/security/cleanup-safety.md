@@ -64,7 +64,7 @@ GUI uses native confirmation; CLI requires a controlling terminal and explicit c
 
 Acquire a cross-process lock; verify scope, configuration, root/object identity, manifests, and access. Recheck near each operation and refuse unverifiable changes. Persist intent first, record actual result identities/locations, and stop new work on journal failure. Unknown outcomes require reconciliation, not blind retry.
 
-Persist the per-item `moving` boundary before calling Trash. A pre-call journal failure prevents that call; a post-call write failure leaves a started, unfinished record. Native Trash errors are known failures only when the original manifest can still be reproduced; otherwise record an unknown outcome. History inspection obtains the same mutation lease and reads only exact saved locations. It cannot infer an unrecorded system Trash destination or authorize retries, and never enumerates unrelated Trash contents. Pending follow-up intents remain blocked even if later observations suggest restoration completed.
+Persist the per-item `moving` boundary before calling Trash and the per-item `purging` boundary before permanent removal. A pre-call journal failure prevents that call; a post-call write failure leaves a started, unfinished record. Native Trash errors are known failures only when the original manifest can still be reproduced; otherwise record an unknown outcome. Permanent execution uses the original path and the immutable manifest, never a recursive path fallback. History inspection obtains the same mutation lease and reads only exact saved locations. It cannot infer an unrecorded system Trash destination or authorize retries, and never enumerates unrelated Trash contents. Pending follow-up intents remain blocked even if later observations suggest restoration completed.
 
 Prototype the interaction between `FileManager.trashItem`, descriptors, identity binding, and directory replacement. If constraints cannot be met, narrow supported scenarios or ship read-only functionality. Permanent removal must stay bounded to verified manifest entries, never an unbounded recursive fallback.
 
@@ -76,11 +76,11 @@ Read/preflight work remains cancellable. After a Trash or restore intent is pers
 
 ## 7. Trash, permanent removal, restoration
 
-Default to system Trash, recording actual returned locations rather than guessing names. If Trash fails, do not fall back to deletion. A same-volume move usually does not free storage.
+Desktop cache/project cleanup and space-analysis removal default to permanent deletion with one exact-scope irreversible confirmation. System Trash is an explicit recoverable alternative, recording actual returned locations rather than guessing names. CLI defaults remain compatible; `--mode permanent` requests direct deletion. If Trash fails, do not fall back to deletion. A same-volume move usually does not free storage.
 
-Permanent removal of this cleanup batch is separate, explicitly confirmed, and irreversible. Reverify recorded objects/manifests; skip missing/replaced/expanded items. Never empty unrelated Trash contents.
+Permanent removal of a cleanup plan is a first-class `action=permanent` execution, separate, explicitly confirmed, and irreversible. Reverify the current configuration, activity, object identity and full manifest before each bound item. Skip or fail missing, replaced, expanded or unverifiable items and record `operation=permanent_cleanup`, `purging` and `purged`; never empty unrelated Trash contents.
 
-Report estimated processed bytes and observed volume availability separately. APFS clones, hard links, snapshots, open files, and other processes affect outcomes.
+Report permanently removed estimates and observed volume availability separately. APFS clones, hard links, snapshots, open files, and other processes affect outcomes; an estimate is not a promise of newly available bytes.
 
 Before restoration verify source identity, destination, and permissions; never overwrite. Offer another verified location or cancellation. External Trash emptying, permanent removal, missing objects, and access changes can make recovery unavailable. Batch cleanup is not transactional rollback.
 
@@ -110,3 +110,8 @@ Only a printable absolute executable path is retained from Program or the first 
 Uninstall uses exact application identity and bundle-identifier associations rather than cache-rule exceptions. Personal data needs separate consent and explicit component selection. Known duplicate identifiers protect associated data; incomplete discovery warns and prevents automatic component selection. Shared group containers enter only after native metadata confirms the selected identifier; unverified containers, external registrations and orphan-only discovery remain outside this stage. System/current apps, current-account running executables/helpers, unknown activity, other-owned content, special or multiply linked files, protected storage and exclusions block processing.
 
 The ordinary workspace-root policy is not relaxed for `/Applications`. Each receipt item validates its exact component-kind origin; application parents use a separate fixed installation-directory capability. Standalone files require bounded content evidence, at most 16 MiB. Shared durable intent, native Trash result verification and no-overwrite recovery apply to files and directories. Uninstall receipts permit restoration only; no new purge flow is introduced. Coverage, process limitations and cancellation behavior are specified in [application uninstall](../product/application-uninstall.md).
+
+
+## Explicit space-analysis removal
+
+Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).

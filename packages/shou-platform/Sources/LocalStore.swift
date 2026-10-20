@@ -63,6 +63,7 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
     }
     public func write(_ collection: String, id: String, data: Data) throws {
         try validate(id)
+        guard data.count <= 268_435_456 else { throw ShouError("resource_limit", "Record exceeds the storage read limit.") }
         let dir = try self.collection(collection); defer { close(dir) }
         let temporary = ".pending-" + UUID().uuidString
         let fd = openat(dir, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)

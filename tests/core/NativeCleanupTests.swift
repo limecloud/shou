@@ -74,6 +74,33 @@ private func prepareCargoSource(home: URL, source: URL, staging: URL) throws {
     try JSONSerialization.data(withJSONObject: checksum, options: [.sortedKeys]).write(to: source.appendingPathComponent(".cargo-checksum.json"))
 }
 
+/// Exercises the first-class permanent plan path against an isolated fixture.
+/// It never targets the user's Trash or an arbitrary path.
+func nativePermanentPlanPurgesOnlyBoundTarget() async throws {
+    let fixture=try Fixture()
+    let (engine, workspace, scan, candidate)=try await engineReadyForPermanentFixture(fixture)
+    let retained=workspace.path + "/project/Cargo.toml"
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id], action: "permanent")
+    try expect(plan.action == "permanent")
+    let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "native-permanent-fixture")
+    try expect(receipt.state == "completed" && receipt.operation == "permanent_cleanup")
+    try expect(receipt.items.count == 1 && receipt.items[0].state == "purged")
+    try expect(!FileManager.default.fileExists(atPath: receipt.items[0].originalPath))
+    try expect(FileManager.default.fileExists(atPath: retained))
+    let finished=try await engine.plan(plan.id)
+    try expect(finished.state == "completed")
+}
+
+private func engineReadyForPermanentFixture(_ fixture: Fixture) async throws -> (ShouEngine, Workspace, ScanSnapshot, Candidate) {
+    let engine=ShouEngine(store: fixture.store, filesystem: FixtureFileSystem(native: fixture.fs, trash: fixture.trash), artifactEvidence: ArtifactFixtureEvidence())
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "test-workspace")
+    _ = try await engine.importRule(fixtureRule())
+    _ = try await engine.setRule(ruleId: "test.artifacts", workspaceId: workspace.id, enabled: true)
+    let scan=try await engine.scan(workspaceId: workspace.id)
+    guard let candidate=scan.candidates.first(where: { $0.relativePath == "project/target" && $0.eligible }) else { throw ShouError("io_error", "Expected permanent fixture candidate is missing.") }
+    return (engine, workspace, scan, candidate)
+}
+
 /// Only generated fixtures enter the native system Trash. The entire Trash is never listed or emptied.
 func nativeCatalogCleanupAndRestore(includePurge: Bool = false) async throws {
     let templates=try BuiltinCatalog.templates()

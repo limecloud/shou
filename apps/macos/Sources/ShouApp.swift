@@ -30,8 +30,8 @@ import Accessibility
             CommandGroup(replacing: .appSettings) {
                 Button(model.t("Settings…")) { model.section="settings" }.keyboardShortcut(",")
             }
-            CommandGroup(after: .newItem) { Button(model.t("Add Workspace…")) { model.addWorkspace() }.keyboardShortcut("o", modifiers: [.command, .shift]) }
-            CommandMenu(model.t("Workspace")) { Button(model.t("Scan")) { model.scanCurrentSection() }.keyboardShortcut("r").disabled(model.busy) }
+            CommandGroup(after: .newItem) { Button(model.t("Include Folder…")) { model.addWorkspace() }.keyboardShortcut("o", modifiers: [.command, .shift]).disabled(model.busy) }
+            CommandMenu(model.t("Cleanup")) { Button(model.t("Scan")) { model.scanCurrentSection() }.keyboardShortcut("r").disabled(model.busy) }
         }
     }
 }
@@ -65,6 +65,7 @@ struct CleanupCompletion: Identifiable {
     var workspaceId=""
     var section="smart"
     var knownLocations: [KnownLocation]=[]
+    var projectLocations: [KnownLocation]=[]
     var systemResult: SystemScanResult?
     var commonReview=CleanupReview()
     var commonSelection=Set<String>()
@@ -81,6 +82,7 @@ struct CleanupCompletion: Identifiable {
         }
     }
     var storage=StorageIndex(entries: [])
+    var space=StorageSession()
     var browsingPath="."
     var focusedPath: String?
     var ruleDraftPattern=""
@@ -118,7 +120,7 @@ struct CleanupCompletion: Identifiable {
         didSet { UserDefaults.standard.set(reduceMotion, forKey: "ShouReduceMotion") }
     }
     private var task: Task<Void, Never>?
-    private var operationHadError=false
+    var operationHadError=false
     private var operationID=UUID()
     private(set) var engine: ShouEngine?
     var initializing=true
@@ -159,6 +161,7 @@ struct CleanupCompletion: Identifiable {
     var workspace: Workspace? { configuration.workspaces.first { $0.id == workspaceId } }
     var projectWorkspaces: [Workspace] { configuration.workspaces.filter { root in !knownLocations.contains { $0.path == root.path } } }
     var commonSelected: [CleanupSource] { commonReview.sources.filter { commonSelection.contains($0.id) && $0.selectable } }
+    var commonRecommended: [CleanupSource] { commonReview.recommendedSources }
     var commonSelectedBytes: Int64 { commonSelected.reduce(0) { $0 + $1.candidate.allocatedBytesEstimate } }
     var selected: [Candidate] { snapshot?.candidates.filter { selection.contains($0.id) } ?? [] }
     var categories: [CleanupCategory] { CleanupOverview.categories(snapshot?.candidates ?? []) }
@@ -174,19 +177,26 @@ struct CleanupCompletion: Identifiable {
             history=try await engine.history(); followups=try await engine.followUps()
             builtins=workspaceId.isEmpty ? [] : try await engine.builtinRules(workspaceId: workspaceId)
             knownLocations=try await engine.knownLocations()
+            projectLocations=try await engine.projectLocations()
         } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
     }
-    func addWorkspace() {
+    func addWorkspace(startScan: Bool = true) {
         guard !busy else { return }
-        let panel=NSOpenPanel(); panel.canChooseFiles=false; panel.canChooseDirectories=true; panel.allowsMultipleSelection=false
-        panel.message=t("Choose a development workspace. Scanning does not delete files.")
-        guard panel.runModal() == .OK, let url=panel.url, let engine else { return }
+        let panel=NSOpenPanel(); panel.canChooseFiles=false; panel.canChooseDirectories=true; panel.allowsMultipleSelection=true
+        panel.message=t("Choose extra folders to remember for future cleanup scans.")
+        guard panel.runModal() == .OK, !panel.urls.isEmpty, let engine else { return }
+        let paths=panel.urls.map(\.path)
+        busy=true
         Task {
             do {
-                let rootRef=configuration.workspaces.isEmpty ? "developer-workspaces" : "workspace-" + String(UUID().uuidString.prefix(8)).lowercased()
-                let root=try await engine.addWorkspace(path: url.path, rootRef: rootRef)
-                workspaceId=root.id; snapshot=nil; selection=[]; section="overview"; await refresh(); startScan()
-            } catch { self.error=error.localizedDescription }
+                for path in paths {
+                    if let root=configuration.workspaces.first(where: { $0.path == path }) { workspaceId=root.id; continue }
+                    let root=try await engine.addWorkspace(path: path, rootRef: "location-" + String(UUID().uuidString.prefix(8)).lowercased())
+                    workspaceId=root.id
+                }
+                invalidateScanEvidence(); await refresh(); busy=false
+                if startScan { section="smart"; scanCommonLocations() }
+            } catch { invalidateScanEvidence(); busy=false; await refresh(); self.error=error.localizedDescription }
         }
     }
     func selectWorkspace(_ root: Workspace) {
@@ -265,9 +275,11 @@ struct CleanupCompletion: Identifiable {
     }
     func scanCurrentSection() {
         if section == "smart" { scanCommonLocations() }
+        else if section == "storage" { space.start(app: self, retainPath: true) }
         else if section == "startup" { scanStartup() }
         else if section == "applications" { scanApplications() }
-        else { startScan() }
+        else if section == "overview" { startScan() }
+        else { section="smart"; scanCommonLocations() }
     }
     func scanStartup() {
         guard !busy else { return }
@@ -342,7 +354,7 @@ struct CleanupCompletion: Identifiable {
             }
         }
     }
-    func scanCommonLocations() {
+    func scanCommonLocations(cleanAfterScan: Bool = false, permanentAfterScan: Bool = true) {
         guard let engine, !busy else { return }
         busy=true; scanning=true; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
         statusKey="Preparing common app scan…"
@@ -358,12 +370,34 @@ struct CleanupCompletion: Identifiable {
                 })
                 commonReview=try await Task.detached(priority: .userInitiated) { try CleanupReview(snapshots: result.snapshots, locations: result.locations) }.value
                 systemResult=result
+                // Fixed rules are the product's fast path. The selection is
+                // visible and editable, but the first result is immediately
+                // actionable instead of presenting an empty checklist.
+                commonSelection=Set(commonRecommended.map(\.id))
                 statusKey=systemResult?.status == "complete" ? "Common app scan complete" : "Some locations could not be fully scanned."
                 await refresh()
+                if cleanAfterScan && !commonRecommended.isEmpty {
+                    // Let the scan state settle before opening the native
+                    // confirmation sheet. The plan is still created by Core;
+                    // it is simply not a user-facing intermediate screen.
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        while self.busy { await Task.yield() }
+                        self.previewCommonCleanup(permanent: permanentAfterScan)
+                    }
+                }
             } catch {
                 if !Task.isCancelled { self.error=error.localizedDescription }
                 statusKey="Scan stopped."; await refresh()
             }
+        }
+    }
+    func quickCleanCommon(permanent: Bool = true) {
+        if systemResult == nil {
+            scanCommonLocations(cleanAfterScan: true, permanentAfterScan: permanent)
+        } else {
+            commonSelection=Set(commonRecommended.map(\.id))
+            previewCommonCleanup(permanent: permanent)
         }
     }
     func activateSystemSnapshot(_ value: ScanSnapshot) {
@@ -376,18 +410,19 @@ struct CleanupCompletion: Identifiable {
         let ids=Set(sources.filter(\.selectable).map(\.id))
         if selected { commonSelection.formUnion(ids) } else { commonSelection.subtract(ids) }
     }
-    func previewCommonCleanup() {
+    func previewCommonCleanup(permanent: Bool = true) {
         guard let engine, !busy, !commonSelected.isEmpty else { return }
         let sources=commonSelected
+        let action=permanent ? "permanent" : "trash"
         busy=true; statusKey="Preparing cleanup preview…"
         task=Task {
             defer { busy=false }
             do {
                 var plans: [CleanupPlan]=[]
                 for snapshotId in Set(sources.map(\.snapshotId)).sorted() {
-                    plans.append(try await engine.createPlan(scanId: snapshotId, candidateIds: sources.filter { $0.snapshotId == snapshotId }.map(\.candidate.id)))
+                    plans.append(try await engine.createPlan(scanId: snapshotId, candidateIds: sources.filter { $0.snapshotId == snapshotId }.map(\.candidate.id), action: action))
                 }
-                prompt=ReviewPrompt(id: UUID().uuidString, digest: "", action: "trash",
+                prompt=ReviewPrompt(id: UUID().uuidString, digest: "", action: action,
                     paths: plans.flatMap { plan in plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath } }, itemIds: [],
                     byteEstimate: plans.reduce(0) { $0 + $1.allocatedBytesEstimate },
                     plans: plans.map { ReviewedPlan(id: $0.id, digest: $0.digest, workspacePath: $0.workspace.path) },
@@ -396,12 +431,13 @@ struct CleanupCompletion: Identifiable {
             } catch { self.error=error.localizedDescription }
         }
     }
-    func cancel() { if isExecuting { stopRequested=true }; task?.cancel() }
+    func cancel() { if isExecuting { stopRequested=true }; task?.cancel(); space.stop() }
     func stopAndWaitForExecution() async -> Bool {
         guard isExecuting else { return !operationHadError && error == nil }
         let running=task
         cancel()
         await running?.value
+        await space.waitForOperation()
         return !operationHadError && error == nil
     }
     func importRule() {
@@ -416,7 +452,8 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func previewRule(_ record: RuleRecord) {
-        guard let engine, !workspaceId.isEmpty, !busy else { return }
+        guard let engine, !busy, let root=configuration.workspaces.first(where: { $0.rootRef == record.rule.scope.rootRef }) else { return }
+        workspaceId=root.id
         busy=true; scanning=true; selection=[]; scanProgress=nil
         task=Task {
             defer { busy=false; scanning=false }
@@ -466,10 +503,13 @@ struct CleanupCompletion: Identifiable {
             catch { self.error=error.localizedDescription }
         }
     }
-    func setEnabled(_ record: RuleRecord, enabled: Bool) { setEnabled(record.rule, enabled: enabled) }
-    func setEnabled(_ rule: CleanupRule, enabled: Bool) {
+    func setEnabled(_ record: RuleRecord, enabled: Bool) {
+        guard let root=configuration.workspaces.first(where: { $0.rootRef == record.rule.scope.rootRef }) else { return }
+        setEnabled(record.rule, enabled: enabled, locationId: root.id)
+    }
+    func setEnabled(_ rule: CleanupRule, enabled: Bool, locationId: String? = nil) {
         guard let engine, !busy else { return }
-        let id=workspaceId
+        let id=locationId ?? workspaceId
         busy=true
         Task {
             defer { busy=false }
@@ -509,22 +549,26 @@ struct CleanupCompletion: Identifiable {
         NSPasteboard.general.setString(URL(fileURLWithPath: workspace.path).appendingPathComponent(path).path, forType: .string)
     }
     func showInSpaceAnalysis(_ path: String) {
-        guard !busy else { return }
+        guard !busy, let workspace else { return }
         section="storage"
-        if snapshot?.scope == .full {
-            browsingPath=StorageIndex.parent(path); focusedPath=path
-        } else {
-            startScan(focusAfterScan: path)
+        space.location=workspace.path
+        space.loadLocations()
+        if !space.locations.contains(where: { $0.path == workspace.path }) {
+            space.locations.append(StorageLocation(path: workspace.path, name: URL(fileURLWithPath: workspace.path).lastPathComponent, symbol: "folder"))
         }
+        if space.scan?.rootPath == workspace.path {
+            space.navigate(StorageIndex.parent(path)); space.focus=path
+        } else { space.start(app: self) }
     }
-    func previewCleanup() {
+    func previewCleanup(permanent: Bool = true) {
         guard let engine, let snapshot, !busy, !selected.isEmpty else { return }
         busy=true; statusKey="Preparing cleanup preview…"
         task=Task {
             defer { busy=false }
             do {
-                let plan=try await engine.createPlan(scanId: snapshot.id, candidateIds: selected.filter(\.eligible).map(\.id))
-                prompt=ReviewPrompt(id: plan.id, digest: plan.digest, action: "trash", paths: plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }, itemIds: [], byteEstimate: plan.allocatedBytesEstimate,
+                let action=permanent ? "permanent" : "trash"
+                let plan=try await engine.createPlan(scanId: snapshot.id, candidateIds: selected.filter(\.eligible).map(\.id), action: action)
+                prompt=ReviewPrompt(id: plan.id, digest: plan.digest, action: action, paths: plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }, itemIds: [], byteEstimate: plan.allocatedBytesEstimate,
                     impacts: Array(Set(plan.items.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations })).sorted())
                 statusKey="Ready to review"
             } catch { self.error=error.localizedDescription }
@@ -549,7 +593,7 @@ struct CleanupCompletion: Identifiable {
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
             do {
-                if review.action == "trash" {
+                if ["trash", "permanent"].contains(review.action) {
                     let plans=review.plans.isEmpty ? [ReviewedPlan(id: review.id, digest: review.digest, workspacePath: "")] : review.plans
                     var receipts: [ExecutionReceipt]=[], failures: [String]=[]
                     for plan in plans {
@@ -569,7 +613,9 @@ struct CleanupCompletion: Identifiable {
                     completion=CleanupCompletion(receipts: receipts, failures: failures)
                     commonSelection=[]
                     if receipts.contains(where: { $0.items.contains { $0.state == "trashed" || $0.state == "unknown" } }) { systemResult=nil; commonReview=CleanupReview() }
-                    statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" } ? "Moved to Trash. Available disk space is measured separately." : "Some items were not moved. Inspect history."
+                    statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }
+                        ? (review.action == "permanent" ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.")
+                        : "Some items were not moved. Inspect history."
                 } else if review.action == "uninstall" {
                     let receipt=try await engine.executeUninstall(planId: review.id, confirmedDigest: review.digest, entryPoint: "desktop", progress: { [weak self] update in
                         Task { @MainActor in
@@ -638,24 +684,12 @@ struct ContentView: View {
         NavigationSplitView {
             List(selection: navigationSelection) {
                 Section(model.displayTitle) {
-                    Label(model.t("Common App Cleanup"), systemImage: "sparkle.magnifyingglass").tag("smart")
-                    Label(model.t("Project Cleanup"), systemImage: "hammer").tag("overview")
+                    Label(model.t("Smart Cleanup"), systemImage: "sparkle.magnifyingglass").tag("smart")
                     Label(model.t("Space Analysis"), systemImage: "square.grid.2x2").tag("storage")
                     Label(model.t("Rules"), systemImage: "line.3.horizontal.decrease.circle").tag("rules")
                     Label(model.t("Startup Items"), systemImage: "power.circle").tag("startup")
                     Label(model.t("Applications"), systemImage: "square.stack.3d.up").tag("applications")
                     Label(model.t("History"), systemImage: "clock.arrow.circlepath").tag("history")
-                }
-                Section(model.t("Workspaces")) {
-                    ForEach(model.projectWorkspaces) { root in
-                            Button { model.selectWorkspace(root) } label: {
-                            Label(URL(fileURLWithPath: root.path).lastPathComponent, systemImage: model.workspaceId == root.id ? "folder.fill" : "folder")
-                                .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-                        }.buttonStyle(.plain).help(root.path).disabled(model.busy).contextMenu {
-                            Button(model.t("Unregister Workspace")) { model.removeWorkspace(root) }.disabled(model.busy)
-                        }
-                    }
-                    Button { model.addWorkspace() } label: { Label(model.t("Add Workspace…"), systemImage: "folder.badge.plus") }.buttonStyle(.plain).disabled(model.busy)
                 }
             }.listStyle(.sidebar)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -674,7 +708,7 @@ struct ContentView: View {
                 else if model.section == "applications" { ApplicationsView(model: model) }
                 else if model.section == "history" { HistoryView(model: model) }
                 else if model.section == "settings" { SettingsView(model: model, updater: model.updater) }
-                else if model.section == "storage" { StorageBrowser(model: model, ruleEditor: $ruleEditor, inspector: inspector) }
+                else if model.section == "storage" { StorageBrowser(model: model, inspector: inspector) }
                 else { CleanupView(model: model, inspector: inspector) }
                 if model.isExecuting {
                     ExecutionProgressView(title: model.executionTitle,
@@ -688,7 +722,7 @@ struct ContentView: View {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.4.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {
@@ -699,10 +733,10 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItemGroup {
-                    if model.section != "settings" && model.section != "startup" && model.section != "applications" {
-                        Button { model.addWorkspace() } label: { Label(model.t("Add Workspace"), systemImage: "folder.badge.plus") }.disabled(model.busy)
+                    if model.section == "rules" {
+                        Button { model.addWorkspace() } label: { Label(model.t("Include Folder…"), systemImage: "folder.badge.plus") }.disabled(model.busy)
                     }
-                    if model.section == "overview" || model.section == "storage" { Button { if model.scanning { model.cancel() } else { model.scanCurrentSection() } } label: {
+                    if model.section == "overview" { Button { if model.scanning { model.cancel() } else { model.scanCurrentSection() } } label: {
                         Label(model.t(model.scanning ? "Stop" : "Scan"), systemImage: model.scanning ? "stop.fill" : "arrow.clockwise")
                     }.disabled((model.busy && !model.scanning) || model.workspaceId.isEmpty) }
                     Menu { LanguagePicker(model: model).pickerStyle(.inline) } label: { Label(model.t("Language"), systemImage: "globe") }
@@ -769,9 +803,34 @@ struct RulesView: View {
     @State private var presetAlert=false
     @State private var editingRule: RuleRecord?
     @State private var ruleSource="all"
+    @State private var agentSetup=false
     var body: some View {
         VStack(alignment: .leading) {
-            HStack { VStack(alignment: .leading) { Text(model.t("Rules")).font(.largeTitle); Text(model.t("Built-in rules work immediately. Personal rules are imported as disabled drafts.")).foregroundStyle(.secondary) }; Spacer(); Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy); Button(model.t("Import…")) { model.importRule() }.disabled(model.busy); Button(model.t("New Rule…")) { model.ruleDraftPattern=""; editor=true }.disabled(model.workspace == nil || model.busy) }.padding(24)
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(model.t("Rules")).font(.largeTitle)
+                    Text(model.t("Built-in rules for everyday cleanup. Your agent tailors the rest to your Mac.")).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy)
+                Menu(model.t("Advanced")) {
+                    Button(model.t("Import…")) { model.importRule() }
+                    Button(model.t("New Rule…")) { model.ruleDraftPattern=""; editor=true }.disabled(model.workspace == nil)
+                }.disabled(model.busy).fixedSize()
+            }.padding(24)
+            HStack(spacing: 14) {
+                Image(systemName: "sparkles").font(.title2).foregroundStyle(Color.accentColor)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(model.t("Cleanup rules made for your Mac")).font(.headline)
+                    Text(model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 16)
+                Button(model.t("Customize with AI…")) { agentSetup=true }
+                    .buttonStyle(.borderedProminent).accessibilityIdentifier("rules.agent.setup")
+            }
+            .padding(18).background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 24).padding(.bottom, 12)
             HStack {
                 if !model.configuration.workspaces.isEmpty {
                     Picker(model.t("Workspace"), selection: $model.workspaceId) {
@@ -815,15 +874,17 @@ struct RulesView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text(model.t("Personal Rules")).font(.headline)
                             if model.configuration.rules.isEmpty {
-                                Text(model.t("Create or import a personal rule to describe your own build outputs and caches.")).font(.callout).foregroundStyle(.secondary).padding(.vertical, 12)
+                                Text(model.t("Ask your agent to create a rule for your build outputs and caches. Imported drafts appear here."))
+                                    .font(.callout).foregroundStyle(.secondary).padding(.vertical, 12)
                             }
                             VStack(alignment: .leading, spacing: 0) {
                                 ForEach(model.configuration.rules) { record in
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
                                             Label(record.rule.name, systemImage: "doc.text").font(.headline); Spacer()
-                                            let enabled=model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == record.rule.id && $0.version == record.rule.version && $0.enabled }
-                                            Toggle(model.t("Enabled"), isOn: Binding(get: { enabled }, set: { model.setEnabled(record, enabled: $0) })).toggleStyle(.switch).disabled(model.workspace == nil || model.busy)
+                                            let root=model.configuration.workspaces.first { $0.rootRef == record.rule.scope.rootRef }
+                                            let enabled=model.configuration.bindings.contains { $0.workspaceId == root?.id && $0.ruleId == record.rule.id && $0.version == record.rule.version && $0.enabled }
+                                            Toggle(model.t("Enabled"), isOn: Binding(get: { enabled }, set: { model.setEnabled(record, enabled: $0) })).toggleStyle(.switch).disabled(root == nil || model.busy)
                                         }
                                         Text(record.rule.description).font(.callout).foregroundStyle(.secondary)
                                         Text(record.rule.id + " · " + record.rule.version + " · " + record.rule.scope.rootRef).font(.caption.monospaced()).foregroundStyle(.tertiary)
@@ -832,7 +893,7 @@ struct RulesView: View {
                                             Button(model.t("Edit Rule…")) { editingRule=record }.disabled(model.busy)
                                                 .buttonStyle(.bordered)
                                                 .accessibilityIdentifier("rules.edit." + record.id)
-                                            Button(model.t("Preview Draft")) { model.previewRule(record) }.disabled(model.busy || model.workspace == nil)
+                                            Button(model.t("Preview Draft")) { model.previewRule(record) }.disabled(model.busy || !model.configuration.workspaces.contains { $0.rootRef == record.rule.scope.rootRef })
                                                 .buttonStyle(.bordered)
                                                 .accessibilityIdentifier("rules.preview." + record.rule.id)
                                             Button(model.t("Export Rule…")) { model.exportRule(record) }
@@ -849,6 +910,11 @@ struct RulesView: View {
             }
         }
         .sheet(item: $editingRule) { RuleRevisionEditor(model: model, original: $0) }
+        .sheet(isPresented: $agentSetup, onDismiss: { Task { await model.refresh() } }) { AgentRuleSetupView(model: model) }
+        .onAppear { Task { await model.refresh() } }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            if !model.busy { Task { await model.refresh() } }
+        }
         .onChange(of: model.workspaceId) { _, _ in model.snapshot=nil; model.selection=[]; Task { await model.refresh() } }
         .alert(model.t("Save Preset"), isPresented: $presetAlert) {
             TextField(model.t("Name"), text: $presetName)
@@ -863,12 +929,12 @@ struct ConfirmationView: View {
     let review: ReviewPrompt
     @Environment(\.dismiss) private var dismiss
     private var title: String {
-        review.action == "purge" ? model.t("Permanently remove these items?") : review.action == "restore" ? model.t("Restore these items?") : model.t("Move these items to Trash?")
+        ["purge", "permanent"].contains(review.action) ? model.t("Permanently remove these items?") : review.action == "restore" ? model.t("Restore these items?") : model.t("Move these items to Trash?")
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Label(title, systemImage: review.action == "purge" ? "exclamationmark.triangle" : "trash").font(.title2.bold())
-            Text(review.action == "purge" ? model.t("This is irreversible. Only the selected items from this cleanup batch will be removed.") : model.t("Check every path. Files and configuration will be verified again immediately before processing.")).foregroundStyle(.secondary)
+            Label(title, systemImage: ["purge", "permanent"].contains(review.action) ? "exclamationmark.triangle" : "trash").font(.title2.bold())
+            Text(["purge", "permanent"].contains(review.action) ? model.t("This is irreversible. Only the selected items from this cleanup batch will be removed.") : model.t("Check every path. Files and configuration will be verified again immediately before processing.")).foregroundStyle(.secondary)
             List(review.paths, id: \.self) { Text($0).font(.callout.monospaced()).textSelection(.enabled) }.frame(minHeight: 160, maxHeight: 300)
             if !review.impacts.isEmpty {
                 DisclosureGroup(model.t("Cleanup Impact")) {
@@ -881,7 +947,7 @@ struct ConfirmationView: View {
                     Text(plan.id + "\n" + plan.digest).font(.caption2.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
                 }
             }
-            HStack { Spacer(); Button(model.t("Cancel"), role: .cancel) { dismiss() }.keyboardShortcut(.cancelAction); Button(model.t("Confirm"), role: review.action == "restore" ? nil : .destructive) { model.confirm(review) }.keyboardShortcut(.defaultAction) }
+            HStack { Spacer(); Button(model.t("Cancel"), role: .cancel) { dismiss() }.keyboardShortcut(.cancelAction); Button(model.t("Confirm"), role: ["restore", "trash"].contains(review.action) ? nil : .destructive) { model.confirm(review) }.keyboardShortcut(.defaultAction) }
         }.padding(24).frame(width: 650)
     }
 }

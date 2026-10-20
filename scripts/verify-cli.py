@@ -7,6 +7,8 @@ import subprocess
 import sys
 import tempfile
 import fcntl
+import hashlib
+import zipfile
 
 root = Path(__file__).resolve().parents[1]
 binary = (Path(sys.argv[1]) if len(sys.argv) > 1 else root / '.build/debug/shou').resolve()
@@ -37,6 +39,20 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     blocked_store = base / 'startup-store-file'
     blocked_store.write_text('preserve this file; startup discovery does not open a record store')
     startup_environment = dict(environment, SHOU_DATA_DIR=str(blocked_store))
+    # Discovery remains usable even if the business record store is damaged.
+    discovered = run('capabilities', env_override=startup_environment)['data']
+    focused = run('capabilities', '--command', 'skills', env_override=startup_environment)['data']
+    assert {item['command'] for item in focused['commands']} == {'skills list', 'skills read', 'skills install', 'skills export'}
+    exact = run('capabilities', '--command', 'rules import', env_override=startup_environment)['data']
+    assert [item['command'] for item in exact['commands']] == ['rules import']
+    run('capabilities', '--command', 'unknown', expected=2, env_override=startup_environment)
+    scoped_help = run('skills', '--help', env_override=startup_environment)['data']
+    assert 'skills install' in scoped_help and 'applications uninstall' not in scoped_help
+    assert run('skills', env_override=startup_environment)['data'] == scoped_help
+    leaf_help = run('skills', 'read', '--help', env_override=startup_environment)['data']
+    assert '--file' in leaf_help and 'skills install' not in leaf_help
+    run('unknown', '--help', expected=2, env_override=startup_environment)
+    assert not (base / 'store').exists()
     startup = run('startup', 'list', expected=(0, 6), env_override=startup_environment)['data']
     assert startup['scope'] == 'launchd_definitions' and startup['include_system'] is False
     assert len(startup['sources']) == 3
@@ -59,6 +75,114 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     assert blocked_store.read_text() == 'preserve this file; startup discovery does not open a record store'
     assert not (base / 'store').exists()
 
+    # Skill discovery is independent of record-store availability and includes
+    # every file required when the directory is copied into an agent's skills.
+    skill = run('agent', 'skill', env_override=startup_environment)['data']
+    skill_directory = Path(skill['directory'])
+    assert skill['name'] == 'shou-rule-authoring'
+    assert Path(skill['entrypoint']) == skill_directory / 'SKILL.md'
+    assert skill['instructions'] == (root / 'skills/shou-rule-authoring/SKILL.md').read_text()
+    assert run('skills', 'read', 'shou-rule-authoring', env_override=startup_environment)['data']['content'] == skill['instructions']
+    for arguments in [('shou-rule-authoring', 'references/questionnaire.md'),
+                      ('shou-rule-authoring/references/questionnaire.md',)]:
+        content = run('skills', 'read', *arguments, env_override=startup_environment)['data']['content']
+        assert content == (skill_directory / 'references/questionnaire.md').read_text()
+    for arguments in [('unknown',), ('shou-rule-authoring', '../SKILL.md'),
+                      ('shou-rule-authoring', 'SKILL.md', 'extra'),
+                      ('shou-rule-authoring/SKILL.md', 'references/questionnaire.md'),
+                      ('shou-rule-authoring', '--file', 'SKILL.md')]:
+        run('skills', 'read', *arguments, expected=2, env_override=startup_environment)
+    for relative in ('references/questionnaire.md', 'agents/openai.yaml'):
+        assert (skill_directory / relative).read_bytes() == (root / 'skills/shou-rule-authoring' / relative).read_bytes()
+
+    bundled_skills = run('skills', 'list', env_override=startup_environment)['data']
+    assert len(bundled_skills) == 1 and bundled_skills[0]['name'] == skill['name']
+    skill_files = bundled_skills[0]['files']
+    assert set(skill_files) == {'SKILL.md', 'references/questionnaire.md', 'agents/openai.yaml'}
+    for relative in skill_files:
+        read = run('skills', 'read', '--file', relative, env_override=startup_environment)['data']
+        assert read['file'] == relative and read['content'] == (skill_directory / relative).read_text()
+    raw = subprocess.run([str(binary), 'skills', 'read'], env=startup_environment,
+                         stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
+    assert raw.returncode == 0 and raw.stdout == (skill_directory / 'SKILL.md').read_bytes()
+    checks += 1
+    for relative in ('../SKILL.md', '/etc/passwd', 'references/../SKILL.md', 'missing.md'):
+        assert run('skills', 'read', '--file', relative, expected=2,
+                   env_override=startup_environment)['error']['code'] == 'invalid_argument'
+    assert run('skills', 'install', '--agent', 'workbuddy', expected=2,
+               env_override=startup_environment)['error']['code'] == 'invalid_argument'
+
+    # Every write stays in this fixture, never a real client's skills directory.
+    skills_parent = base / 'agent-skills'
+    installed = run('skills', 'install', '--agent', 'codex', '--directory', str(skills_parent),
+                    env_override=startup_environment)['data']
+    installed_directory = skills_parent / skill['name']
+    assert installed['state'] == 'installed' and Path(installed['directory']) == installed_directory
+    assert {p.relative_to(installed_directory).as_posix() for p in installed_directory.rglob('*') if p.is_file()} == set(skill_files) | {'.shou-skill-manifest.json'}
+    for relative in skill_files:
+        assert (installed_directory / relative).read_bytes() == (skill_directory / relative).read_bytes()
+    current = run('skills', 'install', '--agent', 'codex', '--directory', str(skills_parent),
+                  env_override=startup_environment)['data']
+    assert current['state'] == 'already_current'
+    local_content = b'Local instructions must be preserved.\n'
+    (installed_directory / 'SKILL.md').write_bytes(local_content)
+    conflict = run('skills', 'install', '--agent', 'codex', '--directory', str(skills_parent),
+                   expected=4, env_override=startup_environment)
+    assert conflict['error']['code'] == 'version_conflict'
+    assert (installed_directory / 'SKILL.md').read_bytes() == local_content
+    assert not list(skills_parent.glob('.shou-rule-authoring-*'))
+
+    # A previous managed version can update, retaining an exact backup.
+    manifest_path = installed_directory / '.shou-skill-manifest.json'
+    manifest = json.loads(manifest_path.read_text())
+    manifest['files']['SKILL.md'] = 'sha256:' + hashlib.sha256(local_content).hexdigest()
+    manifest_path.write_text(json.dumps(manifest))
+    updated = run('skills', 'install', '--agent', 'codex', '--directory', str(skills_parent),
+                  env_override=startup_environment)['data']
+    assert updated['state'] == 'updated'
+    backup = Path(updated['backup_directory'])
+    assert backup.parent == skills_parent and (backup / 'SKILL.md').read_bytes() == local_content
+    assert (installed_directory / 'SKILL.md').read_bytes() == (skill_directory / 'SKILL.md').read_bytes()
+    claude = run('skills', 'install', '--agent', 'claude-code', '--directory', str(base / 'claude-skills'),
+                 env_override=startup_environment)['data']
+    assert claude['agent'] == 'claude-code' and claude['state'] == 'installed'
+
+    outside = base / 'outside-skill-destination'
+    outside.mkdir()
+    linked_parent = base / 'linked-skills'
+    linked_parent.symlink_to(outside, target_is_directory=True)
+    assert run('skills', 'install', '--agent', 'codex', '--directory', str(linked_parent),
+               expected=2, env_override=startup_environment)['error']['code'] == 'invalid_argument'
+    destination_parent = base / 'linked-destination'
+    destination_parent.mkdir()
+    (destination_parent / skill['name']).symlink_to(outside, target_is_directory=True)
+    run('skills', 'install', '--agent', 'codex', '--directory', str(destination_parent),
+        expected=2, env_override=startup_environment)
+    assert not list(outside.iterdir())
+    (installed_directory / 'local-link').symlink_to(outside, target_is_directory=True)
+    run('skills', 'install', '--agent', 'codex', '--directory', str(skills_parent),
+        expected=4, env_override=startup_environment)
+    assert (installed_directory / 'local-link').is_symlink()
+
+    archive = base / 'shou-skill.zip'
+    assert run('skills', 'export', '--output', str(archive),
+               env_override=startup_environment)['data']['state'] == 'exported'
+    with zipfile.ZipFile(archive) as package:
+        names = {name for name in package.namelist() if not name.endswith('/')}
+        assert names == {skill['name'] + '/' + relative for relative in skill_files}
+        for relative in skill_files:
+            assert package.read(skill['name'] + '/' + relative) == (skill_directory / relative).read_bytes()
+    archive_bytes = archive.read_bytes()
+    run('skills', 'export', '--output', str(archive), expected=4, env_override=startup_environment)
+    assert archive.read_bytes() == archive_bytes
+    run('skills', 'export', '--output', str(base / 'skill.txt'), expected=2, env_override=startup_environment)
+    linked_archive = base / 'linked-skill.zip'
+    linked_archive.symlink_to(archive)
+    run('skills', 'export', '--output', str(linked_archive), expected=2, env_override=startup_environment)
+    assert linked_archive.is_symlink() and archive.read_bytes() == archive_bytes
+    assert blocked_store.read_text() == 'preserve this file; startup discovery does not open a record store'
+    assert not (base / 'store').exists()
+
     applications = run('applications', 'list', expected=(0, 6), env_override=startup_environment)['data']
     assert applications['scope'] == 'application_directories'
     assert all(not source['source']['system_owned'] for source in applications['sources'])
@@ -73,6 +197,11 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     capabilities = run('capabilities')['data']
     assert capabilities['platform'] == 'macos'
     assert all('side_effect' in entry and 'required' in entry for entry in capabilities['commands'])
+    assert next(entry for entry in capabilities['commands'] if entry['command'] == 'agent skill')['side_effect'] == 'read'
+    for command in ('skills list', 'skills read'):
+        assert next(entry for entry in capabilities['commands'] if entry['command'] == command)['side_effect'] == 'read'
+    for command in ('skills install', 'skills export'):
+        assert next(entry for entry in capabilities['commands'] if entry['command'] == command)['side_effect'] == 'configuration'
     assert next(entry for entry in capabilities['commands'] if entry['command'] == 'applications uninstall')['side_effect'] == 'destructive'
     assert next(entry for entry in capabilities['commands'] if entry['command'] == 'applications plan')['repeated'] == ['component']
     startup_command = next(entry for entry in capabilities['commands'] if entry['command'] == 'startup list')
