@@ -7,7 +7,7 @@
 "%lld components selected" = "已选择 %lld 个组件";
 "%lld definitions found" = "发现 %lld 项配置";
 "%lld files" = "%lld 个文件";
-"%lld items discovered" = "已发现 %lld 个项目";
+"%lld items discovered" = "累计发现 %lld 个项目";
 "%lld items measured" = "已统计 %lld 个项目";
 "%lld items need verification." = "%lld 项需要核实。";
 "%lld items selected" = "已选择 %lld 项";

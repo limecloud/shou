@@ -59,7 +59,7 @@ Copy-Item -LiteralPath (Join-Path $repo "apps/windows/README.md") -Destination $
 @"
 Shou Windows x64 development build. Start Shou.exe.
 .NET and the resolved Swift/VC runtime dependencies are bundled. Windows 11 supplies winsqlite3.
-Recycle Bin operations are disabled by default pending native safety acceptance.
+Recycle Bin, restoration and permanent removal are enabled with explicit scope confirmation. Permanent removal cannot be undone.
 This is an unsigned development directory, not an accepted installer or production release.
 "@ | Set-Content -LiteralPath (Join-Path $output "READ-FIRST.txt") -Encoding utf8
 

@@ -140,7 +140,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已发现 %lld 个项目"
+            "value": "累计发现 %lld 个项目"
           }
         }
       }

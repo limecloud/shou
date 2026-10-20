@@ -34,35 +34,42 @@ struct OperationProgressView: View {
     @ReduceMotion private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 16)
-            OperationActivityArtwork(symbol: symbol, stopped: stopRequested)
-                .frame(width: 196, height: 138).padding(.bottom, 20)
-            Text(stopRequested ? stoppingLabel : title)
-                .font(.system(size: 23, weight: .semibold)).multilineTextAlignment(.center)
-                .accessibilityAddTraits(.isHeader)
-            if !subtitle.isEmpty {
-                Text(subtitle).font(.callout).foregroundStyle(.secondary).padding(.top, 7)
-            }
-            OperationProgressMeter(fraction: fraction, countText: countText)
-                .padding(.top, 24)
-            Text(currentPath.isEmpty ? " " : currentPath)
-                .font(.caption.monospaced()).foregroundStyle(.secondary)
-                .lineLimit(1).truncationMode(.middle).help(currentPath)
-                .frame(height: 20).padding(.top, 12)
-                .accessibilityIdentifier("operation.current-path")
-            Button(stopRequested ? stoppingLabel : stopLabel, action: onStop)
-                .controlSize(.large).keyboardShortcut(".", modifiers: .command)
-                .disabled(stopRequested).padding(.top, 25)
-                .accessibilityIdentifier("operation.stop")
-            Spacer(minLength: 16)
+        GeometryReader { geometry in
+            content(compact: geometry.size.height < 490)
         }
-        .frame(maxWidth: 520).padding(.horizontal, 36).padding(.vertical, 20)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { AccessibilityNotification.Announcement(title).post() }
         .onChange(of: stopRequested) { _, stopping in
             if stopping { AccessibilityNotification.Announcement(stoppingLabel).post() }
         }
+    }
+
+    private func content(compact: Bool) -> some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: compact ? 8 : 16)
+            OperationActivityArtwork(symbol: symbol, stopped: stopRequested)
+                .scaleEffect(compact ? 0.58 : 1)
+                .frame(width: 196, height: compact ? 80 : 138).padding(.bottom, compact ? 8 : 20)
+            Text(stopRequested ? stoppingLabel : title)
+                .font(.system(size: compact ? 20 : 23, weight: .semibold)).multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
+            if !subtitle.isEmpty && !compact {
+                Text(subtitle).font(.callout).foregroundStyle(.secondary).padding(.top, 7)
+            }
+            OperationProgressMeter(fraction: fraction, countText: countText, compact: compact)
+                .padding(.top, compact ? 16 : 24)
+            Text(currentPath.isEmpty ? " " : currentPath)
+                .font(.caption.monospaced()).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.middle).help(currentPath)
+                .frame(height: compact ? 16 : 20).padding(.top, compact ? 8 : 12)
+                .accessibilityIdentifier("operation.current-path")
+            Button(stopRequested ? stoppingLabel : stopLabel, action: onStop)
+                .controlSize(.large).keyboardShortcut(".", modifiers: .command)
+                .disabled(stopRequested).padding(.top, compact ? 16 : 25)
+                .accessibilityIdentifier("operation.stop")
+            Spacer(minLength: compact ? 8 : 16)
+        }
+        .frame(maxWidth: 520).padding(.horizontal, compact ? 24 : 36).padding(.vertical, compact ? 10 : 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

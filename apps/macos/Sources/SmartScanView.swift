@@ -48,10 +48,7 @@ struct SmartScanView: View {
                 Text(model.t("Tidy up. That's it.")).font(.caption).foregroundStyle(.secondary)
             }
             Spacer(minLength: 8)
-            if model.scanning {
-                Button { model.cancel() } label: { Label(model.t("Stop"), systemImage: "stop.fill") }
-                    .controlSize(.large).disabled(model.stopRequested)
-            } else if model.systemResult != nil {
+            if !model.scanning && model.systemResult != nil {
                 Menu {
                     Button(model.t("Scan Locations…")) { scanLocations=true }
                     Button(model.t("Scan & Free Space")) { model.quickCleanCommon() }

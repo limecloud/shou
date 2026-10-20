@@ -34,6 +34,10 @@ The first adapter rejects case-sensitive directories rather than pretending thei
 
 A failed Recycle Bin operation must not fall back to permanent deletion. Restoration must not overwrite an existing destination. Revalidate tree and identity evidence before mutation, journal intent first, and persist the observed outcome. Unknown outcomes remain unknown and are not automatically retried. Windows race boundaries, recycle receipts and system behavior require native validation.
 
+Recycle Bin, restoration and permanent removal are enabled without an environment switch. The cleanup page offers separate Recycle Bin and permanent-delete buttons; history offers restoration and separately confirmed permanent removal of recorded Recycle Bin items. Every mutation still requires a current scope review. Permanent removal is irreversible.
+
+Permanent removal verifies the complete manifest, pins all reviewed objects with native handles, and checks the original volume, full File ID, SID and metadata before any deletion. It removes known members from children to parents with `SetFileInformationByHandle`, without recursive wildcard deletion. Only a direct parent's timestamps/size are refreshed after removing its own reviewed child; other metadata remains checked. New children stop directory removal. Recycle Bin purge also pins and removes only that item's paired `$I` metadata record. Partial removal retains an unknown/pending journal state and blocks replay.
+
 ## Desktop process protocol
 
 The desktop bridge uses the shared core without fabricating terminal input or adding a global `--yes` switch. Confirmation binds an operation, plan or receipt digest, exact selection, one-use challenge and expiry within the same process. Changes invalidate consent. Public CLI mutation keeps its interactive current-scope terminal review.
@@ -42,7 +46,7 @@ Use a bundled absolute executable path, argument arrays, UTF-8 JSON, bounded inp
 
 Requests are one JSON line with `bridge_version: 1`, a unique `request_id`, `operation` and object `input`. Events contain the same version/ID, `kind` (`progress`, `confirmation`, `result`) and `value`. Result values retain the public CLI `api_version: "1.0"` envelope. Consent carries the challenge and digest from the current review; cancellation and EOF invalidate it. Input is limited to 1 MiB, one event to 8 MiB and client output to 64 MiB. Confirmation expires after 120 seconds.
 
-Connected operations: `capabilities`, `configuration`, `workspace.add`, `scan`, `scan.results`, `plan`, `plan.execute`, `history`, `history.restore`, `rules.import`, `rules.set`, `exclusions.set`, `storage.scan`, `storage.directory`. Candidate pages contain at most 100 items. The bridge remains an internal desktop transport; public terminal confirmation is independent.
+Connected operations: `capabilities`, `configuration`, `workspace.add`, `scan`, `scan.results`, `plan`, `plan.execute`, `history`, `history.restore`, `history.purge`, `rules.import`, `rules.set`, `exclusions.set`, `storage.scan`, `storage.directory`. `plan.input.action` accepts `trash` (default) or `permanent`, and the selected action is bound into the plan digest and confirmation. History returns independent `can_restore` and `can_purge` flags; completed or pending follow-ups disable both. Candidate pages contain at most 100 items. The bridge remains an internal desktop transport; public terminal confirmation is independent. Windows CLI supports `plan create --mode permanent`, `analysis plan --mode permanent` and `history purge`, retaining interactive confirmation.
 
 ## Current development scope
 
@@ -51,19 +55,19 @@ Connected operations: `capabilities`, `configuration`, `workspace.add`, `scan`, 
 | Native directory selection, paged scans and review | WPF source and shared-core bridge connected |
 | Rule drafts, enable/disable, global exclusion add/remove | Connected; imported rules stay disabled |
 | Directory space analysis | Bounded in-memory traversal and navigation; streaming SQLite catalogs are unavailable |
-| History and conflict-safe restoration | Connected; mutation capability is disabled by default |
-| Recycle Bin | Experimental native implementation; enable only for isolated Windows validation with `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1` |
-| Permanent removal | Unavailable on Windows, including direct platform calls |
+| History and conflict-safe restoration | Connected and enabled |
+| Recycle Bin | Native implementation enabled by default; Windows runtime acceptance remains outstanding |
+| Permanent removal | Native manifest-bound removal, CLI, desktop review and recorded Recycle Bin purge connected and enabled |
 | Applications, startup, privacy, large-file UI, full localization | Not connected; initial interface is Simplified Chinese |
 | Rust/Swift generated-source ownership/activity evidence | Unavailable on Windows; affected built-in candidates remain blocked |
 
-This development gate is deliberate: a native implementation without Windows execution evidence must not silently authorize production cleanup.
+Capability availability and release acceptance are separate. The operations above are open in the development build; Windows runtime and distribution evidence remains required for a release.
 
 ## Implementation and acceptance
 
 1. Build Windows targets; implement full identity, private records and shared-contract compatibility.
 2. Connect WPF scope selection, rules, scans, candidate review and plans.
-3. Validate explicit confirmation, recycling, history, restoration, cancellation and failure journals with generated fixtures.
+3. Validate explicit confirmation, recycling, permanent removal, history, restoration, cancellation and failure journals with generated fixtures.
 4. Connect space analysis, large files and exclusions; expose only actual capabilities.
 5. Validate native Windows APIs and UI, then signing, upgrades and clean installation.
 
@@ -90,8 +94,8 @@ Verified on macOS arm64 with Swift 6.2.3 and .NET SDK 10.0.401:
 
 - The complete WPF solution builds with zero warnings and errors. This validates compilation, not Windows rendering or interaction.
 - All 11 real-process bridge checks pass, including UTF-8, output limits, strict JSON, timeout, confirmation and cooperative mutation cancellation.
-- The real Swift protocol passes 105-directory pagination, disabled import/enablement, exclusions, space navigation, refused/foreign/mismatched/EOF consent, and confirmed native macOS Trash → history → restoration using generated fixtures.
-- The core regression executable passes 191/191 cases, including full Windows identity/SID semantics, old-record compatibility, rejected volume rebinding and uncertain-result receipt/replay behavior.
+- The real Swift protocol passes 105-directory pagination, disabled import/enablement, exclusions, space navigation, refused/foreign/mismatched/EOF consent for both cleanup modes, and generated native macOS fixtures for Trash → history → restoration, direct permanent removal and separately confirmed Trash purge.
+- The core regression executable passes 192/192 cases, including full Windows identity/SID semantics, old-record compatibility, rejected volume rebinding and uncertain move/permanent-removal receipt and replay behavior.
 - Documentation pairing and local links pass verification.
 
-Not executed here: Windows Swift/C++ compilation, native ACL/junction/lock/Recycle Bin fixtures, PowerShell build/package scripts, the Windows CI job, WPF UI/accessibility, Windows 11 clean installation, signing and upgrades. Recycle Bin capabilities therefore remain disabled by default. Windows cleanup, restoration and production distribution are not accepted releases.
+Not executed here: Windows Swift/C++ compilation, native ACL/junction/lock/Recycle Bin/permanent-removal fixtures, PowerShell build/package scripts, the Windows CI job, WPF UI/accessibility, Windows 11 clean installation, signing and upgrades. The capabilities are enabled, while Windows runtime and production distribution acceptance remain outstanding.

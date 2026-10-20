@@ -2,9 +2,9 @@
 
 C# / .NET 10 LTS / WPF Fluent / MVVM。规则、计划、排除与回执复用 Swift 核心，通过随包 `Engine/shou.exe --desktop-bridge` 通信。详细边界见 [Windows 实现文档](../../docs/zh-CN/engineering/windows.md)。
 
-首版包括目录选择、分页扫描、候选审阅、规则导入与启停、全局排除增删、目录空间分析和历史恢复。界面目前为简体中文；大文件专用页面、应用卸载、启动项、隐私清理、Windows 生成源码安全证据与完整语言切换尚未接入。Rust/Swift 产物缺少原生 Git/构建活动证据时保持阻断。
+首版包括目录选择、分页扫描、候选审阅、回收站与永久删除、规则导入与启停、全局排除增删、目录空间分析、历史恢复和记录中回收站项目的永久删除。界面目前为简体中文；大文件专用页面、应用卸载、启动项、隐私清理、Windows 生成源码安全证据与完整语言切换尚未接入。Rust/Swift 产物缺少原生 Git/构建活动证据时保持阻断。
 
-Windows 原生回收站代码需要实机验证，开发版默认关闭清理与恢复，永久删除始终不可用。`SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1` 仅用于隔离夹具验证，不代表发布验收通过。
+回收站、恢复和永久删除已默认开放。永久删除与回收站项目 purge 均需单独范围确认，无法恢复；Windows 原生运行与正式发布仍需实机验收。
 
 ## 构建
 
@@ -30,7 +30,6 @@ dotnet run --project "Shou.Windows" -- --engine (Join-Path $bin "shou.exe")
 默认检查私有 ACL、完整身份、Unicode、预算、junction 拒绝、原子记录和跨进程锁。真实回收站与恢复检查只操作新生成的临时夹具：
 
 ```powershell
-$env:SHOU_WINDOWS_EXPERIMENTAL_RECYCLE = "1"
 $bin = (swift build --package-path "../.." -c release --show-bin-path).Trim()
 & (Join-Path $bin "shou-windows-tests.exe") --recycle
 ```
@@ -45,7 +44,7 @@ dotnet run --project "apps/windows/Shou.Windows.Checks" -c Release -- --engine "
 python3 -B "scripts/verify-desktop-bridge.py" --engine "/absolute/path/to/shou"
 ```
 
-给该集成脚本增加 `--native-trash`，可用新生成的单个目录验证系统废纸篓/回收站、历史与恢复；不会选中真实工作区文件。macOS 上通过此闭环仍不能替代 Windows 回收站证据。
+给该集成脚本增加 `--native-trash --native-permanent`，可用新生成的目录验证回收站、历史、恢复、直接永久删除及记录中回收站项目的单独 purge；不会选中真实工作区文件。macOS 上通过此闭环仍不能替代 Windows 原生证据。
 
 ## 开发包
 

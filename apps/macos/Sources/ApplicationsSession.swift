@@ -43,7 +43,7 @@ import ShouCore
             do {
                 let result=try await engine.applicationSummaries(options: options, progress: { [weak self] update in
                     Task { @MainActor in
-                        guard let self, self.operation == token, self.scanning else { return }
+                        guard let self, self.operation == token, self.scanning, update.processedCount >= self.processedCount else { return }
                         self.processedCount=update.processedCount; self.applicationCount=update.applicationCount; self.currentPath=update.currentPath
                     }
                 }, onSummary: { [weak self] summary in

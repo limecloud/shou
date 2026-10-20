@@ -6,7 +6,7 @@ enum CLICommandDiscovery {
         let selected=commands.filter { spec in
             #if os(Windows)
             if ["applications", "uninstall", "startup", "privacy"].contains(where: { spec.command == $0 || spec.command.hasPrefix($0 + " ") }) { return false }
-            if ["history purge", "skills export"].contains(spec.command) { return false }
+            if spec.command == "skills export" { return false }
             #endif
             return command.isEmpty || spec.command == command || spec.command.hasPrefix(command + " ")
         }

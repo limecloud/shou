@@ -44,7 +44,7 @@ enum PermanentExecution {
                 try filesystem.purge(path, expected: receipt.items[index].manifest)
                 receipt.items[index].state="purged"
             } catch {
-                receipt.items[index].state=(error as? ShouError)?.code == "cancelled" ? "unknown" : "failed"
+                receipt.items[index].state=["cancelled", "purge_outcome_unknown"].contains((error as? ShouError)?.code ?? "") ? "unknown" : "failed"
                 receipt.items[index].error=TrashExecution.diagnostic(error)
             }
             try save()

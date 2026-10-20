@@ -149,7 +149,7 @@ struct ScanActivity: View {
                 .accessibilityLabel(model.t("Scan progress"))
                 .accessibilityValue(model.t(stages[stage]))
                 .accessibilityIdentifier("scan.stage")
-            OperationProgressView(title: model.status, subtitle: model.scanningLocation.map { model.t($0.title) } ?? "",
+            OperationProgressView(title: model.t(stages[stage]), subtitle: model.scanningLocation.map { model.t($0.title) } ?? "",
                 currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningLocation?.path ?? model.workspace?.path ?? "",
                 countText: String(format: model.t("%lld items discovered"), locale: model.language.locale, model.scanEntryCount),
                 stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)

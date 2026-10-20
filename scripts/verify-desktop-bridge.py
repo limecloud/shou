@@ -55,6 +55,7 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
                 saw_confirmation = True
                 review = event["value"]
                 assert review["review"]["items"] and review["digest"] and review["challenge"]
+                assert review["operation"] == review["review"]["action"]
                 if confirmation == "eof":
                     process.stdin.close()
                 elif confirmation == "wrong":
@@ -81,7 +82,8 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
         if not process.stdin.closed:
             process.stdin.close()
         if process.poll() is None:
-            # All fixtures reject consent. No real mutation is authorized here.
+            # The test owns only newly generated fixtures and waits for the
+            # child to flush any durable mutation result before forced cleanup.
             try:
                 process.wait(timeout=10)
             except subprocess.TimeoutExpired:
@@ -95,6 +97,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine", type=Path, required=True)
     parser.add_argument("--native-trash", action="store_true", help="Recycle and restore one newly generated fixture")
+    parser.add_argument("--native-permanent", action="store_true", help="Permanently remove newly generated fixtures; also verifies purge after Trash when --native-trash is set")
     args = parser.parse_args()
     engine = args.engine.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="shou-desktop-") as temporary:
@@ -118,7 +121,9 @@ def main():
             return result["data"]
 
         capabilities = success("capabilities")
-        assert capabilities["features"]["permanent"] is False
+        assert capabilities["features"]["permanent"] is True
+        if capabilities["platform"] == "windows":
+            assert capabilities["features"]["trash"] and capabilities["features"]["restore"]
         assert capabilities["features"]["applications"] is False
         print("PASS real capability and version discovery", flush=True)
         registered = success("workspace.add", dict(path=str(workspace), root_ref="desktop-fixture"))
@@ -141,15 +146,16 @@ def main():
         assert len(page["candidates"]) == 5 and page["next_offset"] is None
         print("PASS registration, disabled import, enablement, scan and pagination", flush=True)
         candidate = next(item for item in scan["candidates"] if item["eligible"])
-        if capabilities["features"]["trash"]:
+        for action in ["trash", "permanent"]:
+            if not capabilities["features"][action]:
+                continue
             for control in ["cancel", "wrong", "wrong-digest", "eof"]:
-                plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]]))
+                plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]], action=action))
+                assert plan["action"] == action
                 result, reviewed = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), control)
                 assert reviewed and not result["ok"] and result["error"]["code"] in ["cancelled", "confirmation_required"], result
                 assert (workspace / candidate["relative_path"] / "fixture.bin").is_file()
-            print("PASS rejected, foreign and disconnected consent preserve targets", flush=True)
-        else:
-            print("SKIP native mutation consent: capability disabled", flush=True)
+            print(f"PASS {action}: rejected, foreign and disconnected consent preserve targets", flush=True)
         assert success("history") == []
         if args.native_trash:
             assert capabilities["features"]["trash"], "Native Recycle Bin capability must be explicitly available"
@@ -160,12 +166,12 @@ def main():
             assert receipt["state"] == "completed" and all(item["state"] == "trashed" for item in receipt["items"]), receipt
             assert not (workspace / candidate["relative_path"]).exists()
             history = success("history")
-            assert len(history) == 1 and history[0]["items"][0]["can_restore"]
+            assert len(history) == 1 and history[0]["items"][0]["can_restore"] and history[0]["items"][0]["can_purge"]
             result, reviewed = request(engine, environment, "history.restore",
                                        dict(execution_id=receipt["id"], item_ids=[item["id"] for item in receipt["items"]]), "accept")
             assert reviewed and result["ok"] and all(item["state"] == "completed" for item in result["data"]), result
             restored = success("history")[0]["items"][0]
-            assert restored["state"] == "restored" and not restored["can_restore"], restored
+            assert restored["state"] == "restored" and not restored["can_restore"] and not restored["can_purge"], restored
             assert (workspace / candidate["relative_path"] / "fixture.bin").read_bytes() == b"isolated desktop fixture" * 32
             print("PASS confirmed native Trash, history, restoration and replay eligibility", flush=True)
         storage = success("storage.scan", dict(path=str(workspace)))
@@ -182,6 +188,47 @@ def main():
         success("exclusions.set", dict(pattern="generated-000", remove=True))
         assert all((workspace / f"generated-{index:03}" / "fixture.bin").is_file() for index in range(105))
         print("PASS global exclusion changes preserve generated files", flush=True)
+        if args.native_permanent:
+            # Refresh identity evidence after the optional Trash/restore round trip.
+            scan = success("scan", dict(workspace_id=registered["id"]))
+            candidate = next(item for item in scan["candidates"] if item["eligible"])
+            target = workspace / candidate["relative_path"]
+            plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]], action="permanent"))
+            result, reviewed = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
+            assert reviewed and result["ok"], result
+            receipt = result["data"]
+            assert receipt["state"] == "completed" and not target.exists(), receipt
+            assert all(item["state"] == "purged" and not item["can_restore"] and not item["can_purge"] for item in receipt["items"])
+            for operation in ["history.restore", "history.purge"]:
+                result, reviewed = request(engine, environment, operation,
+                                           dict(execution_id=receipt["id"], item_ids=[item["id"] for item in receipt["items"]]), "accept")
+                assert not result["ok"] and not reviewed, result
+            result, reviewed = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
+            assert not result["ok"] and not target.exists(), result
+            print("PASS native permanent plan, irreversible receipt and replay refusal", flush=True)
+            if args.native_trash:
+                scan = success("scan", dict(workspace_id=registered["id"]))
+                candidate = next(item for item in scan["candidates"] if item["eligible"])
+                target = workspace / candidate["relative_path"]
+                plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]], action="trash"))
+                result, _ = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
+                assert result["ok"] and result["data"]["state"] == "completed", result
+                receipt = result["data"]
+                values = dict(execution_id=receipt["id"], item_ids=[item["id"] for item in receipt["items"]])
+                for control in ["cancel", "wrong-digest", "eof"]:
+                    result, reviewed = request(engine, environment, "history.purge", values, control)
+                    assert reviewed and not result["ok"], result
+                    item = next(row for row in success("history") if row["id"] == receipt["id"])["items"][0]
+                    assert item["can_restore"] and item["can_purge"] and Path(item["resulting_path"]).exists(), item
+                result, reviewed = request(engine, environment, "history.purge", values, "accept")
+                assert reviewed and result["ok"] and all(item["state"] == "completed" for item in result["data"]), result
+                item = next(row for row in success("history") if row["id"] == receipt["id"])["items"][0]
+                assert item["state"] == "purged" and not item["can_restore"] and not item["can_purge"] and item["resulting_path"] is None, item
+                for operation in ["history.restore", "history.purge"]:
+                    result, reviewed = request(engine, environment, operation, values, "accept")
+                    assert not result["ok"] and not reviewed, result
+                assert not target.exists()
+                print("PASS native Trash followed by separately confirmed permanent purge", flush=True)
     print("Desktop protocol integration passed; no user files changed.")
 
 

@@ -10,14 +10,14 @@
       <TabItem Header="清理">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <DockPanel><Button DockPanel.Dock="Right" Content="选择目录…" Command="{Binding ChooseFolderCommand}" /><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" MinWidth="300" AutomationProperties.Name="扫描目录" /></DockPanel>
-          <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14"><Button Content="扫描" Command="{Binding ScanCommand}" /><Button Content="加载更多" Command="{Binding MoreCommand}" /><TextBlock Text="勾选需要清理的项目，审阅后移入系统回收站。" VerticalAlignment="Center" /></StackPanel>
+          <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14"><Button Content="扫描" Command="{Binding ScanCommand}" /><Button Content="加载更多" Command="{Binding MoreCommand}" /><TextBlock Text="勾选项目，选择清理方式并审阅。永久删除无法恢复。" VerticalAlignment="Center" /></StackPanel>
           <DataGrid Grid.Row="2" ItemsSource="{Binding Candidates}" AutoGenerateColumns="False" CanUserAddRows="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" IsReadOnly="False" SelectionMode="Extended" AutomationProperties.Name="清理候选项目">
             <DataGrid.Columns>
               <DataGridTemplateColumn Width="48"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="选择清理项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
               <DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="110" IsReadOnly="True" /><DataGridTextColumn Header="风险与原因" Binding="{Binding Description}" Width="260" IsReadOnly="True" />
             </DataGrid.Columns>
           </DataGrid>
-          <Button Grid.Row="3" Content="审阅所选项目…" Command="{Binding CleanCommand}" HorizontalAlignment="Right" Margin="0,16,0,0" />
+          <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0"><Button Content="移入回收站…" Command="{Binding CleanCommand}" /><Button Content="永久删除…" Command="{Binding PermanentDeleteCommand}" /></StackPanel>
         </Grid>
       </TabItem>
       <TabItem Header="空间分析">
@@ -40,7 +40,7 @@
       </TabItem>
       <TabItem Header="历史与恢复">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="180" /></Grid.RowDefinitions>
-          <StackPanel Orientation="Horizontal"><Button Content="刷新历史" Command="{Binding HistoryCommand}" /><Button Content="恢复所选记录的可恢复项目…" Command="{Binding RestoreCommand}" /></StackPanel>
+          <WrapPanel><Button Content="刷新历史" Command="{Binding HistoryCommand}" /><Button Content="恢复所选记录的可恢复项目…" Command="{Binding RestoreCommand}" /><Button Content="永久删除所选记录的回收站项目…" Command="{Binding PurgeCommand}" /></WrapPanel>
           <DataGrid Grid.Row="1" ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,14,0,0">
             <DataGrid.Columns><DataGridTextColumn Header="时间" Binding="{Binding CreatedAt}" Width="190" /><DataGridTextColumn Header="目录" Binding="{Binding RootPath}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="140" /></DataGrid.Columns>
           </DataGrid>

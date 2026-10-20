@@ -47,15 +47,33 @@ enum WindowsNative {
         defer { shou_win_free(bytes) }; try check(status, path: path)
         guard let bytes else { return Data() }; return Data(bytes: bytes, count: count)
     }
+    static func savedInfo(_ entry: FileEntry) throws -> shou_win_info {
+        guard let identity=entry.windowsIdentity, identity.fileId.range(of: "^[A-Fa-f0-9]{32}$", options: .regularExpression) != nil,
+              identity.ownerSid.range(of: "^S-1-[0-9]+(-[0-9]+)+$", options: .regularExpression) != nil,
+              identity.ownerSid.utf8.count < 192, ["directory", "file"].contains(entry.kind), entry.links <= UInt32.max else {
+            throw ShouError("plan_stale", "The recorded Windows identity is invalid.")
+        }
+        var raw=shou_win_info()
+        raw.volume=identity.volume; raw.logical_bytes=entry.logicalBytes; raw.allocated_bytes=entry.allocatedBytes
+        raw.modified_ns=entry.modifiedNanoseconds; raw.changed_ns=entry.changedNanoseconds
+        raw.attributes=UInt32(entry.mode); raw.links=UInt32(entry.links); raw.kind=entry.kind == "directory" ? 2 : 1
+        let characters=Array(identity.fileId)
+        let bytes=try stride(from: 0, to: 32, by: 2).map { index -> UInt8 in
+            guard let byte=UInt8(String(characters[index...index+1]), radix: 16) else { throw ShouError("plan_stale", "The recorded Windows File ID is invalid.") }
+            return byte
+        }
+        withUnsafeMutableBytes(of: &raw.file_id) { $0.copyBytes(from: bytes) }
+        withUnsafeMutableBytes(of: &raw.owner_sid) { $0.copyBytes(from: identity.ownerSid.utf8CString.map { UInt8(bitPattern: $0) }) }
+        return raw
+    }
 }
 
 public struct NativeFileSystem: PlatformFileSystem {
     public init() {}
     public var platform: String { "windows" }
     public var caseSensitivePaths: Bool { false }
-    // Native Recycle Bin semantics need a Windows fixture run before release.
-    public var supportsTrash: Bool { ProcessInfo.processInfo.environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] == "1" }
-    public var trashUnavailableReason: String? { supportsTrash ? nil : "Windows Recycle Bin operations are experimental and disabled in this development build." }
+    public var supportsTrash: Bool { true }
+    public var trashUnavailableReason: String? { nil }
     public func normalizedPath(_ path: String) throws -> String {
         guard !path.contains("\0") else { throw ShouError("invalid_argument", "Paths cannot contain NUL bytes.") }
         return try WindowsNative.string({ shou_win_normalize(path, $0) }, path: path)
@@ -143,7 +161,6 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try WindowsNative.metadata(path)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
-        guard supportsTrash else { throw ShouError("capability_unavailable", trashUnavailableReason!) }
         _=try rootIdentity(URL(fileURLWithPath: path).deletingLastPathComponent().path)
         var raw=try verify(path, expected: expected)
         var resultingPath: String?
@@ -167,7 +184,6 @@ public struct NativeFileSystem: PlatformFileSystem {
         return parts.count == 4 && parts[1].lowercased() == "$recycle.bin" && parts[2] == identity.ownerSid && parts[3].hasPrefix("$R")
     }
     public func restore(_ path: String, to destination: String, expected: [FileEntry]) throws {
-        guard supportsTrash else { throw ShouError("capability_unavailable", trashUnavailableReason!) }
         guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only the exact recorded Recycle Bin item may be restored.") }
         guard case .missing=targetAvailability(destination) else { throw ShouError("restore_conflict", "The restore destination already exists or is inaccessible.") }
         _=try rootIdentity(URL(fileURLWithPath: destination).deletingLastPathComponent().path)
@@ -192,7 +208,34 @@ public struct NativeFileSystem: PlatformFileSystem {
         return actual
     }
     public func purge(_ path: String, expected: [FileEntry]) throws {
-        throw ShouError("capability_unavailable", "Permanent removal is not available in the Windows first release.")
+        let path=try normalizedPath(path)
+        if !isTrashLocation(path) {
+            guard !protectedRoot(path) else { throw ShouError("permission_denied", "Protected locations cannot be permanently removed.") }
+            _=try rootIdentity(URL(fileURLWithPath: path).deletingLastPathComponent().path)
+        }
+        let root=try verify(path, expected: expected, trash: true)
+        var manifest=try expected.map(WindowsNative.savedInfo)
+        guard let rootIndex=expected.firstIndex(where: { $0.path == "." }) else { throw ShouError("plan_stale", "The target manifest has no root.") }
+        var current=WindowsNative.entry(root, path: ".")
+        current.contentDigest=expected[rootIndex].contentDigest
+        let saved=expected[rootIndex]
+        guard current == saved || current.matchesTrashRoot(as: saved) else { throw ShouError("plan_stale", "The target root changed before removal.") }
+        manifest[rootIndex]=root
+        var names=[CChar](), offsets=[Int]()
+        for entry in expected { offsets.append(names.count); names.append(contentsOf: entry.path.utf8CString) }
+        var removed=0
+        // Keep contiguous UTF-8 storage alive without recursion or per-entry allocations.
+        let code=names.withUnsafeBufferPointer { buffer in
+            let pointers=offsets.map { buffer.baseAddress?.advanced(by: $0) }
+            return manifest.withUnsafeBufferPointer { metadata in
+                shou_win_purge(path, pointers, metadata.baseAddress, metadata.count, { Task.isCancelled ? 1 : 0 }, &removed)
+            }
+        }
+        if code != 0, removed > 0 {
+            throw ShouError("purge_outcome_unknown", "Permanent removal stopped after removing \(removed) manifest entries. Inspect the partial result before any further action.", details: ["path": path, "win32_code": String(code)])
+        }
+        if code == 1223 { throw ShouError("cancelled", "Permanent removal cancelled before any entries were removed.") }
+        try WindowsNative.check(code, path: path)
     }
     public func availableBytes(_ path: String) -> Int64? {
         var count: UInt64=0

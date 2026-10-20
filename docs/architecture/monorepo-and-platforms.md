@@ -88,7 +88,7 @@ Do not follow root/ancestor symlinks, junctions, or unknown reparse points. Know
 
 ## 7. Capability discovery
 
-Expose platform, build, contract versions, actual supported operations, and reasons for unavailable capabilities. An unavailable Recycle Bin implementation must never silently fall back to permanent deletion.
+Expose platform, build, contract versions, actual supported operations, and reasons for unavailable capabilities. Recycle Bin and permanent removal are separate explicit operations; a failed Recycle Bin implementation must never silently fall back to permanent deletion.
 
 The rule schema accepting `windows` expresses applicability only. Windows support requires native build, runtime, filesystem-safety, UI, and clean-install evidence.
 

@@ -19,7 +19,7 @@ Status: active development. Native macOS, independent CLI, shared core, platform
 
 ## 2. Provisional baselines
 
-Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; macOS desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Windows uses C#/.NET 10 LTS/WPF Fluent/MVVM and a structured Swift process bridge; Windows mutations default to unavailable pending native acceptance. See [Windows implementation](windows.md).
+Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; macOS desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Windows uses C#/.NET 10 LTS/WPF Fluent/MVVM and a structured Swift process bridge; Windows Recycle Bin, restoration and manifest-bound permanent removal are enabled with explicit confirmation while native release acceptance remains separate. See [Windows implementation](windows.md).
 
 ## 3. Milestones
 
@@ -80,7 +80,7 @@ Verify signed/notarized distribution, CLI delivery, clean installation, upgrades
 
 ### M5: Windows delivery
 
-The WPF solution, request-scoped JSON confirmation bridge, full Windows identities, private ACL records, locks, traversal and Recycle Bin adapters now have source implementations. The first UI connects directory selection, paginated scans, rules, exclusions, directory space analysis, history and restoration. Windows-native checks, build/package scripts and a separate CI workflow are provided. Recycle Bin operations remain opt-in development capabilities; permanent removal and macOS-only features are unavailable. Validate native filesystems, UI and complete runtime distribution independently; configured CI is not execution evidence.
+The WPF solution, request-scoped JSON confirmation bridge, full Windows identities, private ACL records, locks, traversal, Recycle Bin and manifest-bound permanent-removal adapters now have source implementations. The first UI connects directory selection, paginated scans, rules, exclusions, directory space analysis, history, restoration and separately confirmed purge. Windows-native checks, build/package scripts and a separate CI workflow are provided. Applications, startup, privacy and other macOS-only features remain unavailable. Validate native filesystems, UI and complete runtime distribution independently; configured CI is not execution evidence.
 
 **Exit:** native Windows evidence, not macOS simulations or cross-compilation alone.
 

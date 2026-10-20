@@ -33,14 +33,14 @@ try {
             [Environment]::SetEnvironmentVariable($name, $fixtureRoot, "Process")
         }
         try {
-            & (Join-Path $bin "shou-windows-tests.exe")
+            & (Join-Path $bin "shou-windows-tests.exe") --recycle
             if ($LASTEXITCODE -ne 0) { throw "Windows native checks failed." }
             Push-Location (Join-Path $repo "apps/windows")
             try {
                 dotnet run --project "Shou.Windows.Checks" -c $Configuration --no-build -- --engine (Join-Path $bin "shou.exe")
                 if ($LASTEXITCODE -ne 0) { throw "Desktop process checks failed." }
             } finally { Pop-Location }
-            python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe")
+            python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe") --native-trash --native-permanent
             if ($LASTEXITCODE -ne 0) { throw "Real desktop protocol integration failed." }
         } finally {
             foreach ($name in $originalTemp.Keys) {

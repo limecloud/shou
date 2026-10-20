@@ -53,7 +53,35 @@ private struct UncertainMutationFileSystem: PlatformFileSystem {
         try wrapped.restore(path, to: destination, expected: expected)
         throw ShouError("restore_outcome_unknown", "Injected post-restore verification failure", details: ["resulting_path": destination])
     }
-    func purge(_ path: String, expected: [FileEntry]) throws { throw ShouError("capability_unavailable", "No purge in uncertainty fixtures") }
+    func purge(_ path: String, expected: [FileEntry]) throws {
+        try wrapped.purge(path, expected: expected)
+        throw ShouError("purge_outcome_unknown", "Injected post-purge verification failure")
+    }
+}
+
+func uncertainPermanentRemovalPersistsIntentAndBlocksReplay() async throws {
+    for followUp in [false, true] {
+        let fixture=try Fixture()
+        let (initial, _, scan, candidate)=try await fixture.ready()
+        let plan=try await initial.createPlan(scanId: scan.id, candidateIds: [candidate.id], action: followUp ? "trash" : "permanent")
+        let engine=ShouEngine(store: fixture.store, filesystem: UncertainMutationFileSystem(wrapped: FixtureFileSystem(native: fixture.fs, trash: fixture.trash)), artifactEvidence: ArtifactFixtureEvidence())
+        if followUp {
+            let receipt=try await initial.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+            let ids=receipt.items.map(\.id)
+            let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: ids, action: "purge")
+            let results=try await engine.followUp(executionId: receipt.id, itemIds: ids, action: "purge", confirmedDigest: digest)
+            try expect(results.count == 1 && results[0].state == "pending")
+            try expect(try await engine.followUps()[0].state == "pending")
+            try expect(!FileManager.default.fileExists(atPath: receipt.items[0].trashPath!))
+            for action in ["restore", "purge"] { try await expectThrows { try await engine.followUpDigest(executionId: receipt.id, itemIds: ids, action: action) } }
+        } else {
+            let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+            try expect(receipt.state == "partial" && receipt.items[0].state == "unknown")
+            try expect(try await engine.history(receipt.id).items[0].state == "unknown")
+            try expect(!FileManager.default.fileExists(atPath: receipt.items[0].originalPath))
+            try await expectThrows { try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
+        }
+    }
 }
 
 func uncertainNativeMutationsPreserveObservedPathsAndBlockReplay() async throws {

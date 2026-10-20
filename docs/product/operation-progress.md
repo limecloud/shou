@@ -37,7 +37,7 @@ flowchart LR
   Cancel --> Execute
 ```
 
-Decorative motion does not drive measured progress. It pauses when stopping, when the window is inactive, or when either Reduce Motion preference is enabled. Native typography, controls, accent color and accessibility identifiers accompany monospaced, transitioning numeric values.
+Decorative motion does not drive measured progress. It pauses when stopping, when the window is inactive, or when either Reduce Motion preference is enabled. Native typography, controls, accent color and accessibility identifiers accompany monospaced, transitioning numeric values. Short windows use a compact layout that retains percentage, counts, path and Stop. Smart scanning exposes one Stop action and labels its main count as cumulative discovery.
 
 ## State flow
 

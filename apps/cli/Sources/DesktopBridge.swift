@@ -74,7 +74,7 @@ enum DesktopBridge {
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["scan": .bool(true), "rules": .bool(true), "space_analysis": .bool(true), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(false), "applications": .bool(false), "startup": .bool(false), "privacy": .bool(false)]),
+                "features": .object(["scan": .bool(true), "rules": .bool(true), "space_analysis": .bool(true), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "startup": .bool(false), "privacy": .bool(false)]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
         }
         let engine=ShouEngine(store: try LocalRecordStore(), filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
@@ -96,25 +96,28 @@ enum DesktopBridge {
             guard offset >= 0, offset <= 1_000_000 else { throw ShouError("invalid_argument", "Invalid results offset.") }
             return try scanPage(await engine.scanSnapshot(string("scan_id")), offset: offset)
         case "plan":
-            return try planReview(await engine.createPlan(scanId: string("scan_id"), candidateIds: strings("candidate_ids"), action: "trash"))
+            return try planReview(await engine.createPlan(scanId: string("scan_id"), candidateIds: strings("candidate_ids"), action: input["action"]?.string ?? "trash"))
         case "plan.execute":
             let plan=try await engine.plan(string("plan_id"))
-            guard plan.action == "trash", fs.supportsTrash else { throw ShouError("capability_unavailable", "This desktop entry only executes supported Recycle Bin plans.") }
-            try await session.confirm(digest: plan.digest, review: planReview(plan), operation: "trash")
+            guard plan.action == "permanent" || (plan.action == "trash" && fs.supportsTrash) else { throw ShouError("capability_unavailable", "The selected cleanup mode is unavailable.") }
+            try await session.confirm(digest: plan.digest, review: planReview(plan), operation: plan.action)
             try Task.checkCancellation()
             let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "windows-desktop", progress: executionProgress)
             return try receiptSummary(receipt, followUps: [])
         case "history":
             let followUps=try await engine.followUps()
             return try .from(await engine.history().map { try receiptSummary($0, followUps: followUps) })
-        case "history.restore":
+        case "history.restore", "history.purge":
+            let action=request.operation == "history.restore" ? "restore" : "purge"
             let id=try string("execution_id"), itemIds=try strings("item_ids")
             let receipt=try await engine.history(id)
-            let digest=try await engine.followUpDigest(executionId: id, itemIds: itemIds, action: "restore")
-            let review: JSONValue = .object(["execution_id": .string(id), "items": try .from(receipt.items.filter { itemIds.contains($0.id) }.map { ["id": $0.id, "path": $0.originalPath] })])
-            try await session.confirm(digest: digest, review: review, operation: "restore")
+            let digest=try await engine.followUpDigest(executionId: id, itemIds: itemIds, action: action)
+            let review: JSONValue = .object(["execution_id": .string(id), "action": .string(action), "items": .array(receipt.items.filter { itemIds.contains($0.id) }.map { item in
+                .object(["id": .string(item.id), "path": .string(action == "restore" ? item.originalPath : item.trashPath ?? item.originalPath), "original_path": .string(item.originalPath), "bytes": .integer(item.allocatedBytesEstimate)])
+            })])
+            try await session.confirm(digest: digest, review: review, operation: action)
             try Task.checkCancellation()
-            return try .from(await engine.followUp(executionId: id, itemIds: itemIds, action: "restore", confirmedDigest: digest, progress: executionProgress))
+            return try .from(await engine.followUp(executionId: id, itemIds: itemIds, action: action, confirmedDigest: digest, progress: executionProgress))
         case "rules.import":
             let json=try string("json")
             guard json.utf8.count <= 262144 else { throw ShouError("resource_limit", "Rule exceeds the import limit.") }
@@ -153,7 +156,9 @@ enum DesktopBridge {
                 if let followUp, followUp.state == "pending" { state="needs_verification" }
                 else if let followUp, followUp.state == "completed" { state=followUp.action == "restore" ? "restored" : "purged" }
                 else { state=item.state }
-                return .object(["id": .string(item.id), "path": .string(item.originalPath), "state": .string(state), "bytes": .integer(item.allocatedBytesEstimate), "error": (followUp?.error ?? item.error).map(JSONValue.string) ?? .null, "resulting_path": (followUp?.resultingPath ?? item.trashPath).map(JSONValue.string) ?? .null, "can_restore": .bool(item.state == "trashed" && !followed)])
+                let purgeAllowed = !["application_uninstall", "application_batch_uninstall"].contains(receipt.operation ?? "")
+                let resultingPath=followUp?.state == "completed" && followUp?.action == "purge" ? nil : followUp?.resultingPath ?? item.trashPath
+                return .object(["id": .string(item.id), "path": .string(item.originalPath), "state": .string(state), "bytes": .integer(item.allocatedBytesEstimate), "error": (followUp?.error ?? item.error).map(JSONValue.string) ?? .null, "resulting_path": resultingPath.map(JSONValue.string) ?? .null, "can_restore": .bool(item.state == "trashed" && !followed), "can_purge": .bool(item.state == "trashed" && !followed && purgeAllowed)])
             })])
     }
     private final class LineReader: @unchecked Sendable {

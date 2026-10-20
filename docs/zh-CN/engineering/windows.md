@@ -34,6 +34,10 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 
 原生回收站失败不得退回永久删除；恢复不得覆盖已有目标。变更前核验当前目录树和文件身份，先持久化意图，再执行操作并写回结果。未知结果保留为未知，不自动重试。Windows 原生文件竞态、回收站回执与系统行为必须独立实测。
 
+回收站、恢复和永久删除默认开放，无需环境变量。清理页分别提供回收站与永久删除按钮；历史页提供恢复，以及单独确认后永久删除记录中的回收站项目。每次变更仍需审阅当前范围，永久删除无法恢复。
+
+永久删除先核验完整清单，再以原生句柄固定全部已审阅对象，检查原始卷、完整 File ID、SID 和元数据，之后按子到父调用 `SetFileInformationByHandle` 删除已知条目，不递归通配删除。只有刚删除条目的直接父目录会更新本次操作造成的时间和大小变化基线，其余元数据继续核验。新子项会阻止目录删除。回收站 purge 同时固定并清除该项目对应的 `$I` 元数据记录。中途部分删除保留 unknown/pending 日志状态，阻止重试。
+
 ## 桌面进程协议
 
 桌面桥与公开 CLI 共用核心，但不伪造终端输入，也不增加 `--yes`。桌面确认绑定本次进程中的操作、计划或回执摘要、具体选择、一次性挑战和有效期；版本、摘要或选择变化即拒绝。公开 CLI 继续要求当前范围的终端确认。
@@ -42,7 +46,7 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 
 请求为单行 JSON，包含 `bridge_version: 1`、唯一 `request_id`、`operation` 与对象 `input`。事件保留版本和请求 ID，以 `kind` 区分 `progress`、`confirmation`、`result`，业务内容放在 `value`。结果继续使用公开 CLI 的 `api_version: "1.0"` 信封。确认只接受当前审阅的挑战与摘要，取消和 EOF 使其失效；输入限 1 MiB，单事件限 8 MiB，客户端总输出限 64 MiB，确认有效期为 120 秒。
 
-已连接 `capabilities`、`configuration`、`workspace.add`、`scan`、`scan.results`、`plan`、`plan.execute`、`history`、`history.restore`、`rules.import`、`rules.set`、`exclusions.set`、`storage.scan`、`storage.directory`。候选每页最多 100 项。该桥属于桌面内部传输，公开 CLI 的终端确认独立保留。
+已连接 `capabilities`、`configuration`、`workspace.add`、`scan`、`scan.results`、`plan`、`plan.execute`、`history`、`history.restore`、`history.purge`、`rules.import`、`rules.set`、`exclusions.set`、`storage.scan`、`storage.directory`。`plan.input.action` 接受 `trash`（默认）或 `permanent`，模式绑定在计划摘要与确认中。历史分别返回 `can_restore`、`can_purge`；已有完成或待核验后续操作时，两者都禁用。候选每页最多 100 项。该桥属于桌面内部传输，公开 CLI 的终端确认独立保留。Windows CLI 开放 `plan create --mode permanent`、`analysis plan --mode permanent`、`history purge`，继续要求交互确认。
 
 ## 当前开发范围
 
@@ -51,19 +55,19 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 | 原生目录选择、分页扫描、候选审阅 | WPF 源码与共享核心桥已连接 |
 | 规则草稿、启停、全局排除增删 | 已连接；导入默认停用 |
 | 目录空间分析 | 有界内存遍历与导航；尚无流式 SQLite catalog |
-| 历史与冲突保护恢复 | 已连接；变更能力默认关闭 |
-| 系统回收站 | 原生实验实现；仅隔离 Windows 验证设置 `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1` |
-| 永久删除 | Windows 不可用，直接调用平台接口也拒绝 |
+| 历史与冲突保护恢复 | 已连接并开放 |
+| 系统回收站 | 原生实现默认开放；Windows 运行验收仍待完成 |
+| 永久删除 | 清单绑定的原生删除、CLI、桌面审阅和记录中回收站项目的 purge 均已连接并开放 |
 | 应用、启动项、隐私、大文件专用 UI、完整本地化 | 尚未连接；首版界面为简体中文 |
 | Rust/Swift 生成源码归属与活动证据 | Windows 不可用，相关内置候选保持阻断 |
 
-尚未取得 Windows 运行证据的原生实现不能直接授权正式清理，因此保留此开发门槛。
+能力开放与发布验收分开记录。以上操作在开发版可用，正式发布仍需 Windows 运行与分发证据。
 
 ## 实现与验收顺序
 
 1. 完成 Windows 构建、完整文件身份、私有记录存储和核心合同兼容。
 2. 连接 WPF 界面，完成目录选择、规则、扫描、候选审阅和计划。
-3. 用生成夹具验证明确确认、回收站、历史、恢复、取消及故障回执。
+3. 用生成夹具验证明确确认、回收站、永久删除、历史、恢复、取消及故障回执。
 4. 完成空间分析、大文件与排除交互，未接入能力按实际发现禁用。
 5. 在 Windows 执行原生系统与界面验收，再验证签名、升级和干净系统安装。
 
@@ -90,8 +94,8 @@ Windows GitHub 工作流分别检查静态资源、Swift/WPF 原生构建和生�
 
 - WPF 完整 solution 编译通过，0 警告、0 错误；这只验证编译，不代表 Windows 界面和交互通过。
 - 11 项真实进程桥测试通过，覆盖 UTF-8、输出限额、严格 JSON、超时、确认和变更协作取消。
-- 真实 Swift 协议通过 105 目录分页、停用导入与启用、排除、空间导航、拒绝/外来挑战/错误摘要/EOF 确认，以及生成夹具上的 macOS 废纸篓→历史→恢复闭环。
-- 核心回归 191/191 通过，包含完整 Windows 身份与 SID 语义、旧记录兼容、卷变化绑定拒绝和未知结果回执及防重试。
+- 真实 Swift 协议通过 105 目录分页、停用导入与启用、排除、空间导航、两种清理模式下的拒绝/外来挑战/错误摘要/EOF 确认，以及生成夹具上的 macOS 废纸篓→历史→恢复、直接永久删除和单独确认后废纸篓 purge 闭环。
+- 核心回归 192/192 通过，包含完整 Windows 身份与 SID 语义、旧记录兼容、卷变化绑定拒绝，以及未知移动/永久删除结果的回执和防重试。
 - 文档配对与本地链接检查通过。
 
-本环境未执行 Windows Swift/C++ 编译、原生 ACL/junction/锁/回收站夹具、PowerShell 构建打包脚本、Windows CI、WPF 界面与辅助功能、Windows 11 干净安装、签名和升级。因此回收站能力保持默认关闭，不能将当前实现声明为已验收的 Windows 清理、恢复或正式发布版本。
+本环境未执行 Windows Swift/C++ 编译、原生 ACL/junction/锁/回收站/永久删除夹具、PowerShell 构建打包脚本、Windows CI、WPF 界面与辅助功能、Windows 11 干净安装、签名和升级。能力已开放，Windows 运行与正式分发验收仍待完成。

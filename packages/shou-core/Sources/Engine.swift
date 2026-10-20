@@ -430,7 +430,7 @@ public actor ShouEngine {
             } catch {
                 // An uncertain native move retains its durable intent, which
                 // blocks replay until read-only history inspection resolves it.
-                result.state=(error as? ShouError)?.code == "restore_outcome_unknown" ? "pending" : "failed"
+                result.state=["restore_outcome_unknown", "purge_outcome_unknown"].contains((error as? ShouError)?.code ?? "") ? "pending" : "failed"
                 result.resultingPath=(error as? ShouError)?.details["resulting_path"]
                 result.error=TrashExecution.diagnostic(error)
             }

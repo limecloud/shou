@@ -251,7 +251,7 @@ enum Terminal {
                 var discovery=value
                 #if os(Windows)
                 if case .object(var fields)=discovery {
-                    fields["permanent_available"] = .bool(false)
+                    fields["permanent_available"] = .bool(true)
                     fields["trash_unavailable_reason"] = fs.trashUnavailableReason.map(JSONValue.string) ?? .null
                     discovery = .object(fields)
                 }
@@ -259,11 +259,6 @@ enum Terminal {
                 try result(discovery, json: args.json)
                 return
             }
-            #if os(Windows)
-            if args.command == "history purge" || args.values["action"]?.contains("permanent") == true {
-                throw ShouError("capability_unavailable", "Permanent removal is unavailable in the Windows first release.")
-            }
-            #endif
             if args.command == "agent skill" {
                 try result(try .from(ShouAgentSkill.descriptor()), json: args.json)
                 return
