@@ -48,6 +48,7 @@ jobs:
           python3 scripts/verify-application-batch-cli.py dist/Shou.app/Contents/Helpers/shou
           python3 scripts/verify-large-files-cli.py dist/Shou.app/Contents/Helpers/shou
           python3 scripts/verify-privacy-cli.py dist/Shou.app/Contents/Helpers/shou
+          python3 scripts/verify-installed-cache-cli.py dist/Shou.app/Contents/Helpers/shou --permanent
       - name: Packaged read worker exits after its requesting parent
         run: python3 scripts/verify-read-worker-lifecycle.py --bin dist/Shou.app/Contents/Helpers/shou --evidence "$RUNNER_TEMP/shou-read-worker-lifecycle"
 

@@ -25,6 +25,7 @@ python3 "scripts/verify-uninstall-cli.py" "dist/Shou.app/Contents/Helpers/shou"
 python3 "scripts/verify-application-batch-cli.py" "dist/Shou.app/Contents/Helpers/shou"
 python3 "scripts/verify-large-files-cli.py" "dist/Shou.app/Contents/Helpers/shou"
 python3 "scripts/verify-privacy-cli.py" "dist/Shou.app/Contents/Helpers/shou"
+python3 "scripts/verify-installed-cache-cli.py" "dist/Shou.app/Contents/Helpers/shou" --permanent
 TASK_APP_NAME="Shou-$TASK_VERSION-macos-universal"
 TASK_CLI_NAME="shou-$TASK_VERSION-macos-universal"
 TASK_OUTPUT="$TASK_ROOT/dist/release-$TASK_VERSION"

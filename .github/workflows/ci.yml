@@ -32,3 +32,4 @@ jobs:
           python3 scripts/verify-application-batch-cli.py dist/Shou.app/Contents/Helpers/shou
           python3 scripts/verify-large-files-cli.py dist/Shou.app/Contents/Helpers/shou
           python3 scripts/verify-privacy-cli.py dist/Shou.app/Contents/Helpers/shou
+          python3 scripts/verify-installed-cache-cli.py dist/Shou.app/Contents/Helpers/shou

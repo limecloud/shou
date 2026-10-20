@@ -63,7 +63,7 @@ Snapshots and selected plans retain optional installed-application identity evid
 
 ## Safety and verification
 
-Imported rules remain review-level, directory-only, trash actions. Application rules retain declarative activity identifiers; unknown application activity blocks execution through the existing gate. Symlinks and cross-filesystem traversal remain disabled. Protected source, credentials, incomplete scans, exclusions and stale evidence still block candidates. A directory whose name says “cache” does not override these protections.
+Imported rules remain review-level directory targets and use ordinary cleanup plans for permanent removal or Trash. The desktop defaults to permanent cleanup, with Trash available as an explicit alternative. Application rules retain declarative activity identifiers; unknown application activity blocks execution through the existing gate. Symlinks and cross-filesystem traversal remain disabled. Protected source, credentials, incomplete scans, exclusions and stale evidence still block candidates. A directory whose name says “cache” does not override these protections.
 
 The catalog validates unique identifiers, unique platform-scoped roots, explicit location references, supported platforms and closed path patterns. Imported macOS declarations no longer advertise Windows execution through a generic platform default.
 
@@ -91,4 +91,4 @@ To refresh the review, freeze a new upstream commit and inventory HTML digest, r
 
 Thanks to [Mole](https://github.com/tw93/mole), created by [tw93](https://github.com/tw93), for the publicly reviewed path and safety references. Mole is licensed under [GNU GPL version 3](https://github.com/tw93/mole/blob/7b2a196061e1be7fae4ba422cd9102313fcb321d/LICENSE); the unmodified [upstream license text](../../third-party/mole/LICENSE) is retained with this research attribution.
 
-Shou's Swift implementation and JSON declarations were independently written from reviewed path facts. Mole shell implementation, application icons, screenshots and guide prose are not redistributed. The manifest stores names, identity hints, source links and original review decisions. Homebrew cask metadata for Zed, Antigravity, Minecraft, Spacedrive and Stremio was additionally consulted only to check identity aliases; cask zap deletion lists were not imported. Those URLs and response digests are in `additionalIdentitySources`.
+Shou's Swift implementation and JSON declarations were independently written from reviewed path facts. Mole shell implementation, application icons and guide prose are not redistributed. The manifest stores names, identity hints, source links and original review decisions. Homebrew cask metadata for Zed, Antigravity, Minecraft, Spacedrive and Stremio was additionally consulted only to check identity aliases; cask zap deletion lists were not imported. Those URLs and response digests are in `additionalIdentitySources`.
