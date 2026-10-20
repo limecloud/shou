@@ -48,6 +48,10 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 
 已连接 `capabilities`、`configuration`、`workspace.add`、`scan`、`scan.results`、`plan`、`plan.execute`、`history`、`history.restore`、`history.purge`、`rules.import`、`rules.set`、`exclusions.set`、`storage.scan`、`storage.directory`。`plan.input.action` 接受 `trash`（默认）或 `permanent`，模式绑定在计划摘要与确认中。历史分别返回 `can_restore`、`can_purge`；已有完成或待核验后续操作时，两者都禁用。候选每页最多 100 项。该桥属于桌面内部传输，公开 CLI 的终端确认独立保留。Windows CLI 开放 `plan create --mode permanent`、`analysis plan --mode permanent`、`history purge`，继续要求交互确认。
 
+## 完成页与重试同步
+
+WPF 完成遮罩遵循共享桌面合同。成功清理只显示完成图标、回执提供的实际容量（无法测量时显示处理数量）、简短结果说明和“完成”，不会强制用户进入历史。部分完成、取消、失败或待核验时，才显示“已处理、已跳过、失败项、需核实”统计，详情默认收起，并提供“重新扫描”“查看操作记录”“关闭”。重新扫描会清空过期候选并使用当前证据重新扫描，再创建新计划；不会重放旧计划。遮罩和回执字段与 macOS 的 `CleanupResultView` 对齐，CLI 或 AI Agent 可以依据同一组状态理解两个桌面端。
+
 ## 当前开发范围
 
 | 能力 | 实现状态 |
@@ -90,9 +94,9 @@ Windows GitHub 工作流分别检查静态资源、Swift/WPF 原生构建和生�
 
 ## 验证状态
 
-已在 macOS arm64、Swift 6.2.3、.NET SDK 10.0.401 验证：
+当前 macOS 工作区已验证：
 
-- WPF 完整 solution 编译通过，0 警告、0 错误；这只验证编译，不代表 Windows 界面和交互通过。
+- Swift 6.2.3 共享核心与桌面产品构建通过。当前环境没有 `dotnet` 和 PowerShell，因此不能在这里声称 WPF 与 Windows 原生目标已编译；需要 Windows CI 或安装对应 SDK 后再验收。
 - 11 项真实进程桥测试通过，覆盖 UTF-8、输出限额、严格 JSON、超时、确认和变更协作取消。
 - 真实 Swift 协议通过 105 目录分页、停用导入与启用、排除、空间导航、两种清理模式下的拒绝/外来挑战/错误摘要/EOF 确认，以及生成夹具上的 macOS 废纸篓→历史→恢复、直接永久删除和单独确认后废纸篓 purge 闭环。
 - 核心回归 192/192 通过，包含完整 Windows 身份与 SID 语义、旧记录兼容、卷变化绑定拒绝，以及未知移动/永久删除结果的回执和防重试。

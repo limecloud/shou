@@ -48,6 +48,10 @@ Requests are one JSON line with `bridge_version: 1`, a unique `request_id`, `ope
 
 Connected operations: `capabilities`, `configuration`, `workspace.add`, `scan`, `scan.results`, `plan`, `plan.execute`, `history`, `history.restore`, `history.purge`, `rules.import`, `rules.set`, `exclusions.set`, `storage.scan`, `storage.directory`. `plan.input.action` accepts `trash` (default) or `permanent`, and the selected action is bound into the plan digest and confirmation. History returns independent `can_restore` and `can_purge` flags; completed or pending follow-ups disable both. Candidate pages contain at most 100 items. The bridge remains an internal desktop transport; public terminal confirmation is independent. Windows CLI supports `plan create --mode permanent`, `analysis plan --mode permanent` and `history purge`, retaining interactive confirmation.
 
+## Completion and retry parity
+
+The WPF completion overlay follows the shared desktop contract. A successful cleanup shows the completion icon, measured bytes when the receipt provides them (otherwise the processed count), a short outcome sentence and `Done`. It does not force a History visit. Partial, cancelled, failed or verification-blocked receipts additionally show processed, skipped, failed and needs-verification counters, collapsed item details, `Rescan`, `View History` and `Close`. Rescan clears the stale candidate page and performs a fresh scan before a new plan is created; it never replays the previous plan. The overlay and receipt fields are intentionally aligned with the macOS `CleanupResultView` so a CLI or agent can reason about both clients from the same states.
+
 ## Current development scope
 
 | Capability | Implementation status |
@@ -90,9 +94,9 @@ The Windows GitHub workflow runs static resource checks, native Swift/WPF builds
 
 ## Verification status
 
-Verified on macOS arm64 with Swift 6.2.3 and .NET SDK 10.0.401:
+Verified in the current macOS workspace:
 
-- The complete WPF solution builds with zero warnings and errors. This validates compilation, not Windows rendering or interaction.
+- Swift 6.2.3 shared-core and desktop products build successfully. The current environment has no `dotnet` or PowerShell runtime, so the WPF solution and Windows native targets require a Windows CI/SDK run before claiming compilation.
 - All 11 real-process bridge checks pass, including UTF-8, output limits, strict JSON, timeout, confirmation and cooperative mutation cancellation.
 - The real Swift protocol passes 105-directory pagination, disabled import/enablement, exclusions, space navigation, refused/foreign/mismatched/EOF consent for both cleanup modes, and generated native macOS fixtures for Trash → history → restoration, direct permanent removal and separately confirmed Trash purge.
 - The core regression executable passes 192/192 cases, including full Windows identity/SID semantics, old-record compatibility, rejected volume rebinding and uncertain move/permanent-removal receipt and replay behavior.

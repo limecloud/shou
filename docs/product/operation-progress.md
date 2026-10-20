@@ -90,6 +90,12 @@ sequenceDiagram
 
 Privacy counts advance after each independent database transaction, without displaying browsing content, Cookie values or sites. Committed sources retain their outcomes after cancellation; remaining sources are not cleaned. Animation does not change Core or CLI consent, authorization or execution semantics.
 
+## Completion page contract
+
+The normal successful path is intentionally short: completion icon, measured bytes or processed count, one sentence describing the outcome, and `Done`. A successful operation does not force the user through History. When an operation is partial, cancelled, failed or still needs verification, the page adds four counters (processed, skipped, failed and needs verification), keeps item details collapsed, and exposes `Scan Again`, `View History` and `Close`.
+
+`Scan Again` starts a new scan for the originating section and builds a new plan from current evidence. It never replays the old plan or assumes that a failed path still exists. `View History` opens the durable receipt with the per-item state and diagnostic. macOS and Windows use the same receipt states and follow-up semantics; only the native presentation controls differ.
+
 ## Verification scope
 
 `shou-tests --operation-progress-only` covers batch totals, partial-plan boundaries, integer limits, privacy source progress, committed transactions, cancellation and durable restore boundaries. The installed desktop also requires checks of scanning, execution, stopping, Reduce Motion and runtime language switching. Automated mutation tests use generated data only.

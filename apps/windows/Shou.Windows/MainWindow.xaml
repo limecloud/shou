@@ -56,7 +56,7 @@
     </TabControl>
     <StackPanel Grid.Row="2" Margin="0,16,0,0"><ProgressBar Height="3" IsIndeterminate="{Binding IsBusy}" /><TextBlock Text="{Binding Status}" Margin="0,9,0,0" AutomationProperties.LiveSetting="Polite" /></StackPanel>
   </Grid>
-  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="#AA0B172A" Padding="28">
+  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="#AA0B172A" Padding="28" AutomationProperties.Name="清理完成结果">
     <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CornerRadius="16" Padding="34" MaxWidth="720" MaxHeight="680" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
@@ -65,7 +65,7 @@
         <TextBlock Grid.Row="2" Text="{Binding Completion.SuccessText}" FontSize="38" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,24,0,0" />
         <TextBlock Grid.Row="3" Text="{Binding Completion.Message}" Opacity="0.7" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,4,0,18" />
         <StackPanel Grid.Row="4">
-          <UniformGrid Columns="4" Margin="0,0,0,12">
+          <UniformGrid Columns="4" Margin="0,0,0,12" Visibility="{Binding CompletionHasIssues, Converter={StaticResource BoolToVisibility}}">
             <StackPanel Margin="5"><TextBlock Text="{Binding Completion.Processed}" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" /><TextBlock Text="已处理" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
             <StackPanel Margin="5"><TextBlock Text="{Binding Completion.Skipped}" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center" /><TextBlock Text="已跳过" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
             <StackPanel Margin="5"><TextBlock Text="{Binding Completion.Failed}" FontSize="20" FontWeight="SemiBold" Foreground="#C62828" HorizontalAlignment="Center" /><TextBlock Text="失败项" Opacity="0.7" HorizontalAlignment="Center" /></StackPanel>
