@@ -398,6 +398,19 @@ extension ShouEngine {
         }
     }
     private func validateUninstallSelection(application: ApplicationDefinition, digest: String, selected: [UninstallComponent], current: ApplicationUninstallReview) throws {
+        // Activity failures are retryable inspection failures, not evidence that
+        // the selected files changed. Preserve their cause for both entry points.
+        if current.application == application, current.configurationDigest == digest {
+            for saved in selected {
+                guard let value=current.components.first(where: { $0.id == saved.id }) else { continue }
+                if value.reasons.contains("application_activity_unavailable") {
+                    throw ShouError("application_activity_unavailable", "Application processes and helpers could not be verified.", details: ["path": value.path])
+                }
+                if value.reasons.contains("application_running") {
+                    throw ShouError("application_running", "Quit the application and its helpers before uninstalling.", details: ["path": value.path])
+                }
+            }
+        }
         guard current.application == application, current.configurationDigest == digest,
               selected.allSatisfy({ saved in current.components.contains { value in
                   value.id == saved.id && value.path == saved.path && value.kind == saved.kind && value.eligible && saved.eligible &&

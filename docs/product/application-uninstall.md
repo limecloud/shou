@@ -117,6 +117,25 @@ Plans expire in 15 minutes and bind application identity, complete manifests, co
 
 Protected cases include system/current applications, running owners and helpers, unknown activity, other owners, special files, multiple hard links, credentials, Shou records and exclusions. Bundle links are handled as links. Preference files have bounded content digests; directories retain complete metadata manifests. Restoration verifies every exact original parent without creating parents or overwriting files. Permanent outcomes cannot be restored. No administrator elevation or privileged helper is introduced.
 
+Activity checks combine running bundle identifiers with current-user executable paths. `kill(pid, 0)` also succeeds for zombies: an unreadable path is skipped only when the kernel confirms the process has exited or is `SZOMB`. Live or unknown processes remain blocked. An exit race receives at most one retry within the existing cancellation and three-second deadline.
+
+```mermaid
+flowchart TD
+  PID[Read current-user executable path] --> Path{Path readable?}
+  Path -->|Yes| Match[Match application bundle and helpers]
+  Path -->|No| Kernel{Kernel confirms exit or SZOMB?}
+  Kernel -->|Yes| Skip[Skip exited process]
+  Kernel -->|No| Retry[Retry at most once]
+  Retry --> Unknown{Still unknown?}
+  Unknown -->|Yes| Block[Report activity unavailable and retain selection]
+  Unknown -->|No| Match
+  Match --> Active{Target running?}
+  Active -->|Yes| Quit[Ask to close target application]
+  Active -->|No| Continue[Continue exact component validation]
+```
+
+Failed activity inspection reports `application_activity_unavailable`; an active target reports `application_running`. Neither is mislabeled as changed files. A failed preflight creates no execution receipt and mutates no component. The desktop retains selection after unavailable activity and allows another review, followed by a fresh confirmation. Actual identity, configuration or content changes continue to invalidate old plans.
+
 ## CLI
 
 ```sh

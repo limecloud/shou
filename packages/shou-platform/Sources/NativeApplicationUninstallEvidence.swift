@@ -25,18 +25,7 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         let runningIdentifiers=Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         var executablePaths=[String]()
         for pid in pids.prefix(Int(returned) / MemoryLayout<pid_t>.stride) where pid > 0 {
-            if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
-            guard ContinuousClock.now < deadline else { throw unavailable() }
-            var buffer=[CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
-            let count=buffer.withUnsafeMutableBytes { proc_pidpath(pid, $0.baseAddress, UInt32($0.count)) }
-            guard count > 0 else {
-                // An exited process needs no protection. A live process whose
-                // executable cannot be verified keeps the action unavailable.
-                if kill(pid, 0) != 0 && errno == ESRCH { continue }
-                throw unavailable()
-            }
-            guard let end=buffer.firstIndex(of: 0), let path=String(bytes: buffer[..<end].map { UInt8(bitPattern: $0) }, encoding: .utf8), path.hasPrefix("/") else { throw unavailable() }
-            executablePaths.append(path)
+            if let path=try executablePath(for: pid, deadline: deadline) { executablePaths.append(path) }
         }
         let own=URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath().path
         var result=[String: ApplicationUninstallFacts]()
@@ -51,6 +40,43 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         throw unavailable()
         #endif
     }
+    #if os(macOS)
+    private func executablePath(for pid: pid_t, deadline: ContinuousClock.Instant) throws -> String? {
+        for attempt in 0...1 {
+            if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
+            guard ContinuousClock.now < deadline else { throw unavailable() }
+            var buffer=[CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
+            errno=0
+            let count=buffer.withUnsafeMutableBytes { proc_pidpath(pid, $0.baseAddress, UInt32($0.count)) }
+            let pathError=errno
+            if count > 0 {
+                guard let end=buffer.firstIndex(of: 0), let path=String(bytes: buffer[..<end].map { UInt8(bitPattern: $0) }, encoding: .utf8), path.hasPrefix("/") else { throw unavailable() }
+                return path
+            }
+            if kill(pid, 0) != 0 {
+                if errno == ESRCH { return nil }
+                throw unavailable()
+            }
+            guard pathError == ESRCH else { throw unavailable() }
+            var info=kinfo_proc(), size=MemoryLayout<kinfo_proc>.stride
+            var query=[Int32(CTL_KERN), Int32(KERN_PROC), Int32(KERN_PROC_PID), pid]
+            let result=query.withUnsafeMutableBufferPointer {
+                sysctl($0.baseAddress, UInt32($0.count), &info, &size, nil, 0)
+            }
+            guard result == 0 else { throw unavailable() }
+            // kill(pid, 0) also succeeds for zombies. Only kernel-confirmed
+            // exit evidence permits skipping a process without its executable.
+            if size == 0 { return nil }
+            guard size == MemoryLayout<kinfo_proc>.stride, info.kp_proc.p_pid == pid else { throw unavailable() }
+            if Int(info.kp_proc.p_stat) == Int(SZOMB) { return nil }
+            // An exiting process may remain runnable briefly. Retry once;
+            // unresolved live processes and permission failures stay blocked.
+            guard attempt == 0 else { throw unavailable() }
+            usleep(1_000)
+        }
+        throw unavailable()
+    }
+    #endif
     public func containerIdentifier(at path: String) throws -> String {
         #if os(macOS)
         let descriptor=try SecurePaths.directory(path)

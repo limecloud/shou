@@ -10,11 +10,14 @@ import Glibc
 private final class UninstallFixtureEvidence: ApplicationUninstallChecking, @unchecked Sendable {
     private let lock=NSLock()
     private var active=false
+    private var activityUnavailable=false
     private var verifiedGroupPaths: [String]=[]
     func setRunning(_ value: Bool) { lock.lock(); defer { lock.unlock() }; active=value }
+    func setUnavailable(_ value: Bool) { lock.lock(); defer { lock.unlock() }; activityUnavailable=value }
     func setVerifiedGroupPaths(_ paths: [String]) { lock.lock(); defer { lock.unlock() }; verifiedGroupPaths=paths }
     func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
         lock.lock(); defer { lock.unlock() }
+        if activityUnavailable { throw ShouError("application_activity_unavailable", "Generated activity is unavailable.") }
         return ApplicationUninstallFacts(currentUser: getuid(), running: active, currentApplication: false)
     }
     func containerIdentifier(at path: String) throws -> String { "dev.shou.fixture.uninstall" }
@@ -65,6 +68,31 @@ private struct UninstallFixture {
         try fixture.put("Library/Caches/" + identifier + "/cache.bin", "second generated cache")
         try fixture.put("Library/Preferences/" + identifier + ".plist", "second generated preference")
         return second
+    }
+}
+
+func uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation() async throws {
+    for code in ["application_running", "application_activity_unavailable"] {
+        let fixture=try UninstallFixture(), before=try fixture.hashes()
+        let review=try await fixture.engine.reviewApplication(path: fixture.app.path)
+        let ids=review.components.filter { $0.eligible && !$0.requiresUserDataConsent }.map(\.id)
+        let plan=try await fixture.engine.createUninstallBatchPlan(selections: [ApplicationUninstallSelection(reviewId: review.id, componentIds: ids)], action: "trash")
+        fixture.evidence.setRunning(code == "application_running")
+        fixture.evidence.setUnavailable(code == "application_activity_unavailable")
+        do {
+            _ = try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-activity-failure")
+            throw CheckFailure(description: "Application activity failure was not rejected.")
+        } catch let error as ShouError { try expect(error.code == code) }
+        let history=try await fixture.engine.history()
+        try expect(try fixture.hashes() == before && history.isEmpty)
+        try expect(try await fixture.engine.uninstallBatchPlan(plan.id).executionId == nil)
+        fixture.evidence.setRunning(false); fixture.evidence.setUnavailable(false)
+        let receipt=try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-activity-retry")
+        try expect(receipt.state == "completed" && receipt.items.allSatisfy { $0.state == "trashed" })
+        let itemIds=receipt.items.map(\.id)
+        let digest=try await fixture.engine.followUpDigest(executionId: receipt.id, itemIds: itemIds, action: "restore")
+        _ = try await fixture.engine.followUp(executionId: receipt.id, itemIds: itemIds, action: "restore", confirmedDigest: digest)
+        try expect(try fixture.hashes() == before)
     }
 }
 

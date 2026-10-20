@@ -52,7 +52,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await uninstallCoverageGapsRequireExplicitChoicesAndConsentCannotBeForged()
                 try await uninstallParentSiblingChangesPreservePlansButNotTargetChanges()
                 try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
-                print("14/14 application summary, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+                try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies()
+                try await nativeApplicationActivityKeepsLiveHelpersBlocked()
+                try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation()
+                print("17/17 application summary, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
             } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
             return
         }
@@ -245,6 +248,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Uninstall coverage gaps and personal-data consent resist tampering", { try await uninstallCoverageGapsRequireExplicitChoicesAndConsentCannotBeForged() }),
             ("Uninstall parent siblings preserve identity without weakening target checks", { try await uninstallParentSiblingChangesPreservePlansButNotTargetChanges() }),
             ("Native uninstall activity and explicit container metadata", { try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() }),
+            ("Native application activity skips only kernel-verified zombies", { try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies() }),
+            ("Native application activity preserves live helper protection", { try await nativeApplicationActivityKeepsLiveHelpersBlocked() }),
+            ("Uninstall activity failures preserve their cause and allow a clean retry", { try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation() }),
             ("Startup discovery validates before read and cancellation", { try await startupInventoryValidatesBeforeReadingAndHonorsCancellation() }),
             ("Startup control requires explicit capability and action", { try await startupControlRequiresPlatformCapabilityAndForwardsExplicitAction() }),
             ("Launchctl state parsing stays bounded and explicit", { try launchctlStateParsersKeepOnlyDocumentedStates() }),
