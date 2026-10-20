@@ -7,6 +7,7 @@
 "%lld components selected" = "%lld components selected";
 "%lld definitions found" = "%lld definitions found";
 "%lld files" = "%lld files";
+"%lld items discovered" = "%lld items discovered";
 "%lld items measured" = "%lld items measured";
 "%lld items need verification." = "%lld items need verification.";
 "%lld items selected" = "%lld items selected";
@@ -16,6 +17,7 @@
 "%lld matching · %lld protected · %lld outside conditions" = "%lld matching · %lld protected · %lld outside conditions";
 "%lld of %lld applications checked" = "%lld of %lld applications checked";
 "%lld of %lld items processed" = "%lld of %lld items processed";
+"%lld of %lld sources processed" = "%lld of %lld sources processed";
 "1. Copy the request to Codex, Claude Code, or WorkBuddy." = "1. Copy the request to Codex, Claude Code, or WorkBuddy.";
 "2. Answer questions about your projects and what to keep." = "2. Answer questions about your projects and what to keep.";
 "3. Review the draft in Shou, then enable it when ready." = "3. Review and enable the rule once. Future cleanups include it.";
@@ -95,7 +97,9 @@
 "Application component changed; preview again." = "Application component changed; preview again.";
 "Application components moved to Trash. Restore them from History." = "Application components moved to Trash. Restore them from History.";
 "Application diagnostic logs" = "Application diagnostic logs";
+"Application discovery coverage changed; scan again to review the ownership limitation." = "Application discovery coverage changed; scan again to review the ownership limitation.";
 "Application discovery has gaps. Associated components require individual selection; an exact identifier does not prove exclusive ownership." = "Application discovery has gaps. Associated components require individual selection; an exact identifier does not prove exclusive ownership.";
+"Application discovery is incomplete. Other copies with this bundle identifier may be undiscovered. Review this cache explicitly; it is not recommended automatically." = "Application discovery is incomplete. Other copies with this bundle identifier may be undiscovered. Review this cache explicitly; it is not recommended automatically.";
 "Application or configuration changed; preview again." = "Application or configuration changed; preview again.";
 "Application parent is outside supported installation directories." = "Application parent is outside supported installation directories.";
 "Application plan expired or has an invalid selection; preview again." = "Application plan expired or has an invalid selection; preview again.";
@@ -236,6 +240,7 @@
 "Clean & Free Space" = "Clean & Free Space";
 "Clean Recommended" = "Clean Recommended";
 "Clean Selected" = "Clean Selected";
+"Cleaning browser privacy…" = "Cleaning browser privacy…";
 "Cleanup" = "Cleanup";
 "Cleanup Impact" = "Cleanup Impact";
 "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space." = "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space.";
@@ -335,6 +340,7 @@
 "Discord caches" = "Discord caches";
 "Discord download caches" = "Discord download caches";
 "Discover files" = "Discover files";
+"Discovering startup items…" = "Discovering startup items…";
 "Discovery depth must be a whole number from 1 to 32." = "Discovery depth must be a whole number from 1 to 32.";
 "Disk Usage" = "Disk Usage";
 "Disk access is ready" = "Protected directory access verified";
@@ -393,6 +399,7 @@
 "Find what is taking up space." = "Find what is taking up space.";
 "Find what takes up space. Keep what matters." = "Find what takes up space. Keep what matters.";
 "Finish Setup…" = "Finish Setup…";
+"Finishing cleanup…" = "Finishing cleanup…";
 "Firefox caches" = "Firefox caches";
 "Firefox profile caches" = "Firefox profile caches";
 "Flomo caches" = "Flomo caches";
@@ -689,7 +696,9 @@
 "Preferences, databases, sessions and container files may contain work or sign-in data. Select each item deliberately." = "Preferences, databases, sessions and container files may contain work or sign-in data. Select each item deliberately.";
 "Preparing action preview…" = "Preparing action preview…";
 "Preparing cleanup preview…" = "Preparing cleanup preview…";
+"Preparing cleanup…" = "Preparing cleanup…";
 "Preparing common app scan…" = "Preparing software and registered project scan…";
+"Preparing privacy sources…" = "Preparing privacy sources…";
 "Preset rules must be enabled in this workspace." = "Preset rules must be enabled in this workspace.";
 "Presets" = "Presets";
 "Preview Again" = "Preview Again";
@@ -702,6 +711,8 @@
 "Previous test-state information will be lost." = "Previous test-state information will be lost.";
 "Privacy" = "Privacy";
 "Privacy cleaning completed" = "Privacy cleaning completed";
+"Privacy operation failed." = "Privacy operation failed.";
+"Privacy operation stopped." = "Privacy operation stopped.";
 "Processing selected items…" = "Processing selected items…";
 "Project" = "Project";
 "Project Build Outputs" = "Project Build Outputs";

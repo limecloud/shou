@@ -3,7 +3,13 @@ import ShouCore
 /// One command registry drives human help and progressive machine discovery.
 enum CLICommandDiscovery {
     static func matching(_ command: String) throws -> [CommandSpec] {
-        let selected=commands.filter { command.isEmpty || $0.command == command || $0.command.hasPrefix(command + " ") }
+        let selected=commands.filter { spec in
+            #if os(Windows)
+            if ["applications", "uninstall", "startup", "privacy"].contains(where: { spec.command == $0 || spec.command.hasPrefix($0 + " ") }) { return false }
+            if ["history purge", "skills export"].contains(spec.command) { return false }
+            #endif
+            return command.isEmpty || spec.command == command || spec.command.hasPrefix(command + " ")
+        }
         guard !selected.isEmpty else {
             throw ShouError("invalid_argument", "Unknown command or group. Use shou --help.", details: ["command": command])
         }

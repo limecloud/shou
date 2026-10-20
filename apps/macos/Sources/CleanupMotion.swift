@@ -149,17 +149,10 @@ struct ScanActivity: View {
                 .accessibilityLabel(model.t("Scan progress"))
                 .accessibilityValue(model.t(stages[stage]))
                 .accessibilityIdentifier("scan.stage")
-            VStack(alignment: .leading, spacing: 8) {
-                Text(model.status).font(.system(size: 13, weight: .medium)).monospacedDigit()
-                    .accessibilityIdentifier("scan.status")
-                let currentPath=model.scanProgress?.currentPath ?? ""
-                Text(currentPath.isEmpty ? model.scanningLocation?.path ?? model.workspace?.path ?? "" : currentPath)
-                    .font(.system(size: 11, design: .monospaced)).foregroundStyle(.secondary)
-                    .lineLimit(2).truncationMode(.middle).frame(height: 30, alignment: .topLeading)
-                    .help(currentPath.isEmpty ? model.scanningLocation?.path ?? model.workspace?.path ?? "" : currentPath)
-                Text(model.t("Results appear here when analysis finishes. Review the selection before cleanup."))
-                    .font(.caption).foregroundStyle(.tertiary)
-            }
+            OperationProgressView(title: model.status, subtitle: model.scanningLocation.map { model.t($0.title) } ?? "",
+                currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningLocation?.path ?? model.workspace?.path ?? "",
+                countText: String(format: model.t("%lld items discovered"), locale: model.language.locale, model.scanEntryCount),
+                stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
         }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }

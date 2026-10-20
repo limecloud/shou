@@ -2,7 +2,7 @@
 
 [English](../../architecture/monorepo-and-platforms.md) | 简体中文
 
-状态：设计草案。macOS 优先交付，Windows 为后续正式目标。
+状态：正在实现。macOS 优先交付；Windows 已有原生开发版实现，单独设置验收门槛。
 
 ## 1. 组织原则
 
@@ -18,14 +18,14 @@
 
 ## 2. 目标目录
 
-根目录 Swift Package 已组织 macOS、CLI、核心与平台适配 target。以下布局中的 Windows 与品牌资源目录为后续交付项。构建方式见[本地开发](../engineering/development.md)。
+根目录 Swift Package 组织 macOS、CLI、共享核心、平台适配与 Windows 原生验证 target；WPF 客户端使用独立 .NET solution。见[本地开发](../engineering/development.md)与 [Windows 实现](../engineering/windows.md)。
 
 ```text
 shou/
 ├── apps/
 │   ├── macos/                  # Swift / SwiftUI / AppKit
 │   ├── cli/                    # Swift CLI，装配当前平台实现
-│   └── windows/                # 后续原生 Windows UI
+│   └── windows/                # C# / .NET 10 / WPF Fluent / MVVM
 ├── packages/
 │   ├── shou-core/              # 规则、扫描编排、计划、执行状态机
 │   ├── shou-platform/          # 能力接口、macOS 与未来 Windows 适配
@@ -56,7 +56,7 @@ flowchart TB
     Mac --> AgentSupport[skills / ShouAgentSupport]
     CLI --> AgentSupport
     Platform --> AgentSupport
-    Windows[未来 apps/windows] -.JSON 进程桥.-> CLI
+    Windows[apps/windows WPF] -.JSON 进程桥.-> CLI
     Core --> Interfaces[平台能力接口]
     Platform --> Interfaces
     MacAdapter[macOS 实现] --> Interfaces
@@ -92,11 +92,12 @@ flowchart TB
 - 启动进程使用参数数组、JSON stdin/stdout 与有界输出，不拼接 Shell 命令。
 - 确认与执行之间的进程桥合同在 Windows 原型阶段单独定义，不为桥接增加全局 `--yes` 绕过。
 
-### 尚待原型锁定
+### 实现基线与待验收项
 
-- Windows UI 采用 C# WinUI 3 或 WPF 中的一种，不同时维护两套。
-- Swift 工具链版本、CPU 架构、运行库交付和最低 Windows 版本。
-- 原生回收站 API、身份核验、句柄语义、进程锁和安全取消的实现方式。
+- Windows UI 确定为 C# / .NET 10 LTS / WPF Fluent / MVVM，复用知伴的进程桥实践。
+- 初始验证目标为 Windows 11 x64、Swift 6.2.3；运行库分发仍须实测。
+- 已实现完整 File ID/SID、ACL、LockFileEx、IFileOperation 适配，原生行为仍须 Windows 证据。
+- 一次性挑战与摘要绑定本次确认；变更协作取消并保留回执。回收站变更在开发版默认不可用，细节见 [Windows 实现](../engineering/windows.md)。
 
 Swift 支持 Windows 不代表 Apple 框架可用；在 macOS 上编译部分合同也不代表 Windows 原生操作已通过。
 

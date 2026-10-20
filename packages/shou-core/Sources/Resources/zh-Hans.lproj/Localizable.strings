@@ -7,6 +7,7 @@
 "%lld components selected" = "已选择 %lld 个组件";
 "%lld definitions found" = "发现 %lld 项配置";
 "%lld files" = "%lld 个文件";
+"%lld items discovered" = "已发现 %lld 个项目";
 "%lld items measured" = "已统计 %lld 个项目";
 "%lld items need verification." = "%lld 项需要核实。";
 "%lld items selected" = "已选择 %lld 项";
@@ -16,6 +17,7 @@
 "%lld matching · %lld protected · %lld outside conditions" = "%lld 项符合条件 · %lld 项受保护 · %lld 项条件不符";
 "%lld of %lld applications checked" = "已检查 %lld / %lld 个应用";
 "%lld of %lld items processed" = "已处理 %lld / %lld 项";
+"%lld of %lld sources processed" = "已处理 %lld / %lld 个来源";
 "1. Copy the request to Codex, Claude Code, or WorkBuddy." = "1. 复制请求，交给已有的 Codex、Claude Code 或 WorkBuddy。";
 "2. Answer questions about your projects and what to keep." = "2. 回答项目用途、重建方式和保留项等必要问题。";
 "3. Review the draft in Shou, then enable it when ready." = "3. 确认并启用规则一次，后续清理自动包含。";
@@ -95,7 +97,9 @@
 "Application component changed; preview again." = "应用组件已变化，请重新预览。";
 "Application components moved to Trash. Restore them from History." = "应用组件已移入废纸篓，可从历史记录恢复。";
 "Application diagnostic logs" = "应用诊断日志";
+"Application discovery coverage changed; scan again to review the ownership limitation." = "应用盘点覆盖范围已变化，请重新扫描并审阅归属限制。";
 "Application discovery has gaps. Associated components require individual selection; an exact identifier does not prove exclusive ownership." = "应用发现范围存在缺口，关联组件需逐项选择；完整标识不能证明独占归属。";
+"Application discovery is incomplete. Other copies with this bundle identifier may be undiscovered. Review this cache explicitly; it is not recommended automatically." = "应用盘点不完整，可能尚未发现使用相同 Bundle ID 的其他副本。请明确审阅此缓存；它不会被自动推荐。";
 "Application or configuration changed; preview again." = "应用或配置已变化，请重新预览。";
 "Application parent is outside supported installation directories." = "应用父目录不在支持的安装范围内。";
 "Application plan expired or has an invalid selection; preview again." = "卸载计划已过期或选择无效，请重新预览。";
@@ -236,6 +240,7 @@
 "Clean & Free Space" = "清理并释放空间";
 "Clean Recommended" = "清理推荐项目";
 "Clean Selected" = "清理已选项目";
+"Cleaning browser privacy…" = "正在清理浏览器隐私…";
 "Cleanup" = "清理";
 "Cleanup Impact" = "清理影响";
 "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space." = "清理操作始终需要确认。移入废纸篓不会立即释放磁盘空间。";
@@ -335,6 +340,7 @@
 "Discord caches" = "Discord 缓存";
 "Discord download caches" = "Discord 下载缓存";
 "Discover files" = "发现文件";
+"Discovering startup items…" = "正在发现启动项…";
 "Discovery depth must be a whole number from 1 to 32." = "发现深度必须为 1 至 32 的整数。";
 "Disk Usage" = "磁盘占用";
 "Disk access is ready" = "受保护目录可访问";
@@ -393,6 +399,7 @@
 "Find what is taking up space." = "找到空间，都用在了哪里。";
 "Find what takes up space. Keep what matters." = "找出空间去向，留住重要内容。";
 "Finish Setup…" = "完善设置…";
+"Finishing cleanup…" = "正在整理清理结果…";
 "Firefox caches" = "Firefox 缓存";
 "Firefox profile caches" = "Firefox 配置文件 缓存";
 "Flomo caches" = "Flomo 缓存";
@@ -689,7 +696,9 @@
 "Preferences, databases, sessions and container files may contain work or sign-in data. Select each item deliberately." = "偏好设置、数据库、会话和容器文件可能包含工作内容或登录数据，请逐项确认。";
 "Preparing action preview…" = "正在准备操作预览…";
 "Preparing cleanup preview…" = "正在准备清理预览…";
+"Preparing cleanup…" = "正在准备清理…";
 "Preparing common app scan…" = "正在准备扫描软件与已登记项目…";
+"Preparing privacy sources…" = "正在发现隐私来源…";
 "Preset rules must be enabled in this workspace." = "预设中的规则必须已在此工作区启用。";
 "Presets" = "清理方案";
 "Preview Again" = "重新预览";
@@ -702,6 +711,8 @@
 "Previous test-state information will be lost." = "先前的测试状态信息将丢失。";
 "Privacy" = "隐私清理";
 "Privacy cleaning completed" = "隐私清理完成";
+"Privacy operation failed." = "隐私操作未完成。";
+"Privacy operation stopped." = "隐私操作已停止。";
 "Processing selected items…" = "正在处理所选项…";
 "Project" = "项目";
 "Project Build Outputs" = "项目构建产物";

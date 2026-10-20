@@ -7,3 +7,5 @@ xcuserdata/
 .shou-local/
 __pycache__/
 *.pyc
+apps/windows/**/bin/
+apps/windows/**/obj/

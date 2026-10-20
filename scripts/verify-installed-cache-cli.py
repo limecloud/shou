@@ -49,6 +49,7 @@ evidence.mkdir(parents=True)
 created = {}
 checks = 0
 pending_trash = None
+coverage_limitation = "Application discovery is incomplete. Other copies with this bundle identifier may be undiscovered. Review this cache explicitly; it is not recommended automatically."
 
 
 def record(label, value):
@@ -141,6 +142,8 @@ def confirm(arguments, phrase, action, irreversible=False, cancel=False):
                 assert scope["action"] == action and scope["irreversible"] is irreversible
                 if action != "restore":
                     assert scope["items"][0]["rule_versions"] == {dynamic_rule: "1.0.0"}
+                    if native_inventory_status == "partial":
+                        assert coverage_limitation in scope["items"][0]["limitations"], scope
                 record(f"tty-{checks + 1:02d}-scope.json", scope)
                 os.write(terminal, b"CANCEL\n" if cancel else phrase.encode() + b"\n")
                 sent = True
@@ -165,8 +168,7 @@ def plan_for_generated_cache(mode):
     scan = run("scan", "--workspace", binding["id"], "--rule-id", dynamic_rule,
                "--scope", "cleanup", label=f"{mode}-scan.json")["data"]
     assert scan["status"] == "complete" and scan["scope"] == "cleanup", scan
-    assert not any(issue in {"installed_application_cache:application_discovery_incomplete",
-                             "installed_application_cache:application_discovery_unavailable"} for issue in scan["issues"]), scan
+    assert "installed_application_cache:application_discovery_unavailable" not in scan["issues"], scan
     snapshot_path = Path(environment["SHOU_DATA_DIR"]) / "scans" / (scan["scan_id"] + ".json")
     snapshot = json.loads(snapshot_path.read_text())
     assert snapshot["workspace"]["path"] == str(caches)
@@ -175,12 +177,18 @@ def plan_for_generated_cache(mode):
     assert len(evidence_items) == 1 and evidence_items[0]["rule_id"] == dynamic_rule
     assert evidence_items[0]["application"]["path"] == str(app)
     assert evidence_items[0]["application"]["bundle_identifier"] == identifier
+    incomplete = evidence_items[0].get("ownership_coverage_incomplete") is True
+    assert incomplete is (native_inventory_status == "partial"), evidence_items
+    assert ("installed_application_cache:application_discovery_incomplete" in scan["issues"]) is incomplete, scan
+    if not incomplete:
+        assert "ownership_coverage_incomplete" not in evidence_items[0], evidence_items
     record(f"{mode}-snapshot.json", snapshot)
     results = run("scan", "results", "--scan-id", scan["scan_id"], "--limit", "500")["data"]
     assert results["next_cursor"] is None and results["total"] == 1, results
     selected = results["candidates"]
     assert len(selected) == 1 and selected[0]["eligible"] and selected[0]["relative_path"] == identifier
     assert selected[0]["rule_ids"] == [dynamic_rule], selected
+    assert (coverage_limitation in selected[0]["limitations"]) is incomplete, selected
     plan = run("plan", "create", "--scan-id", scan["scan_id"], "--candidate", selected[0]["id"],
                "--mode", mode, label=f"{mode}-plan.json")["data"]
     assert plan["action"] == mode and len(plan["items"]) == 1
@@ -193,7 +201,7 @@ def plan_for_generated_cache(mode):
 
 
 def exercise():
-    global environment, binding, dynamic_rule, pending_trash
+    global environment, binding, dynamic_rule, pending_trash, native_inventory_status
     for generated in allowed_roots:
         verify_fixture_parent(generated)
     app.mkdir()
@@ -218,36 +226,31 @@ def exercise():
         environment = dict(os.environ, SHOU_DATA_DIR=str(base / "records"))
         inventory_result = run("applications", "list", expected=(0, 6))
         inventory = inventory_result["data"]
+        native_inventory_status = inventory["status"]
+        assert native_inventory_status in {"complete", "partial"}, inventory
         owner_rows = [item for item in inventory["items"] if (item.get("bundle_identifier") or "").lower() == identifier.lower()]
         record("native-inventory.json", {"status": inventory["status"], "sources": inventory["sources"],
                                          "issues": inventory["issues"], "unavailable_sources": inventory["unavailable_sources"],
                                          "application_count": len(inventory["items"]), "generated_owners": owner_rows})
         assert len(owner_rows) == 1 and owner_rows[0]["path"] == str(app) and owner_rows[0].get("info_digest"), owner_rows
+        owner_sources = [source for source in inventory["sources"] if source["source"] == owner_rows[0]["source"]]
+        assert len(owner_sources) == 1 and owner_sources[0]["status"] in {"complete", "partial"}, owner_sources
+        owner_path = str(app).lower()
+        for issue in inventory["issues"]:
+            issue_path = issue["path"].lower()
+            assert issue_path and issue_path != "/" and owner_path != issue_path and not owner_path.startswith(issue_path + "/") and not issue_path.startswith(owner_path + "/"), issue
         binding = run("workspaces", "add", "--path", str(caches), "--root-ref", "generated-cache-cli",
                       label="workspace.json")["data"]
         catalog = run("rules", "catalog", "--workspace", binding["id"])["data"]
         dynamic_rule = "shou.builtin.installed-cache." + hashlib.sha256(identifier.encode()).hexdigest()
         selected_rules = [rule for rule in catalog if rule["id"] == dynamic_rule]
         record("generated-rule.json", {"catalog_count": len(catalog), "selected_rules": selected_rules})
-        if inventory["status"] != "complete":
-            assert selected_rules == [], "Incomplete inventory must not authorize an installed-ID cache rule."
-            refused = run("scan", "--workspace", binding["id"], "--rule-id", dynamic_rule,
-                          "--scope", "cleanup", expected=2, label="incomplete-inventory-refusal.json")
-            assert refused["error"]["code"] == "invalid_argument"
-            assert run("history", "list")["data"] == []
-            assert not list((base / "records/scans").glob("*.json"))
-            assert hashes() == original
-            record("summary.json", {"checks": checks, "native_inventory_complete": False,
-                                    "incomplete_inventory_refused": True, "fixture_hashes_unchanged": True,
-                                    "positive_native_execution": "unavailable", "permanent_generated_cache": False})
-            print(f"{checks} installed-cache CLI guard checks passed; incomplete native inventory refused discovery and scanning; generated files unchanged. Positive native execution unavailable.")
-            print(f"Evidence: {evidence}")
-            return
         assert len(selected_rules) == 1, "Generated installed application did not receive an exact cache rule."
         rule = selected_rules[0]
         assert rule["match"]["relative_patterns"] == [identifier]
         assert rule["scope"]["root_ref"] == binding["root_ref"]
         assert rule["scope"]["follow_symlinks"] is False and rule["scope"]["cross_filesystems"] is False
+        assert (coverage_limitation in rule["risk"]["limitations"]) is (native_inventory_status == "partial"), rule
         plan = plan_for_generated_cache("trash")
         invocation = ["plan", "execute", "--plan-id", plan["id"]]
         confirm(invocation, "TRASH " + plan["id"], "trash", cancel=True)
@@ -280,7 +283,8 @@ def exercise():
             assert not cache.exists() and hashes(include_cache=False) == {p: h for p, h in original.items() if str(cache) + "/" not in p}
             assert len(run("history", "list")["data"]) == 2
             record("retained-after-permanent.json", hashes(include_cache=False))
-        record("summary.json", {"checks": checks, "native_inventory_complete": True,
+        record("summary.json", {"checks": checks, "native_inventory_status": native_inventory_status,
+                                "ownership_coverage_incomplete": native_inventory_status == "partial",
                                 "only_generated_cache_scanned_and_selected": True,
                                 "tty_cancel_unchanged": True, "trash_and_history_restore": True,
                                 "restored_hashes_equal": True, "application_and_preferences_retained": True,

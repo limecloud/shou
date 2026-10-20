@@ -13,13 +13,13 @@ Status: active development. Native macOS, independent CLI, shared core, platform
 | DEC03 | Independent desktop and CLI with shared core | Equivalent workflows and semantics |
 | DEC04 | No model integration or agent development | Local-tool scope and independence |
 | DEC05 | Existing agents add rules through public CLI | Discoverable, verifiable operations |
-| DEC06 | Native multi-platform monorepo, future Windows | Shared contracts and isolated adapters |
+| DEC06 | Native multi-platform monorepo; Windows uses C#/.NET 10/WPF | Shared contracts and isolated adapters |
 | DEC07 | Prioritize project artifacts, Node.js data, inactive projects | Reduce repeated developer cleanup work |
 | DEC08 | English default docs, multilingual entry points, runtime localization | Global users and contributors |
 
 ## 2. Provisional baselines
 
-Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; Desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Select one native Windows UI after prototyping.
+Portable Swift core; macOS 14+; Swift 6 checks; limited declarative JSON; local versioned storage; evidence-based SQLite adoption; direct signed/notarized distribution subject to access prototypes; macOS desktop permanent cleanup by default with exact-scope confirmation; optional Trash and verified restoration; no unattended destructive CLI. Windows uses C#/.NET 10 LTS/WPF Fluent/MVVM and a structured Swift process bridge; Windows mutations default to unavailable pending native acceptance. See [Windows implementation](windows.md).
 
 ## 3. Milestones
 
@@ -80,7 +80,7 @@ Verify signed/notarized distribution, CLI delivery, clean installation, upgrades
 
 ### M5: Windows delivery
 
-Build shared Swift core and `shou.exe` on Windows; deliver runtime dependencies. Implement identities, ACLs, paths, locks, links, occupied files, and Recycle Bin. Select one native UI, define its structured confirmation bridge, and test actual filesystem operations, agents, UI, and clean installation.
+The WPF solution, request-scoped JSON confirmation bridge, full Windows identities, private ACL records, locks, traversal and Recycle Bin adapters now have source implementations. The first UI connects directory selection, paginated scans, rules, exclusions, directory space analysis, history and restoration. Windows-native checks, build/package scripts and a separate CI workflow are provided. Recycle Bin operations remain opt-in development capabilities; permanent removal and macOS-only features are unavailable. Validate native filesystems, UI and complete runtime distribution independently; configured CI is not execution evidence.
 
 **Exit:** native Windows evidence, not macOS simulations or cross-compilation alone.
 

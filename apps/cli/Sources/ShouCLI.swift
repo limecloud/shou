@@ -4,8 +4,10 @@ import ShouPlatform
 import ShouAgentSupport
 #if canImport(Darwin)
 import Darwin
-#else
+#elseif canImport(Glibc)
 import Glibc
+#elseif os(Windows)
+import ucrt
 #endif
 
 struct CommandSpec: Codable, Sendable {
@@ -180,6 +182,9 @@ struct Arguments {
 
 enum Terminal {
     static func confirm<T: Encodable>(_ scope: T, phrase: String, locale: String) throws {
+        #if os(Windows)
+        try WindowsConsole.confirm(review: String(decoding: Codec.encode(scope), as: UTF8.self), phrase: phrase, locale: locale)
+        #else
         guard let tty=FileHandle(forUpdatingAtPath: "/dev/tty"), isatty(tty.fileDescriptor) == 1 else { throw ShouError("confirmation_required", "An interactive terminal is required. No targets were changed.") }
         defer { try? tty.close() }
         let scopeObject=try JSONSerialization.jsonObject(with: Codec.encode(scope))
@@ -194,13 +199,17 @@ enum Terminal {
             response.append(byte)
         }
         guard String(data: response, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) == phrase else { throw ShouError("cancelled", "Operation cancelled. No targets were changed.") }
+        #endif
     }
 }
 
 @main enum ShouCLI {
     static let version = "0.5.0"
     static func main() async {
+        if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
+        #if canImport(Darwin) || canImport(Glibc)
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        #endif
         await run()
     }
     static func ruleData(_ path: String) throws -> Data {

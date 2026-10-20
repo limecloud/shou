@@ -57,7 +57,7 @@ public struct StorageIndex: Sendable {
         let ordered=sorted ? entries : entries.sorted(by: { $0.path < $1.path })
         for (index, entry) in ordered.enumerated() {
             if index % 4096 == 0 { try checkpoint() }
-            let unique=entry.kind != "symlink" && charged.insert("\(entry.device):\(entry.inode)").inserted
+            let unique=entry.kind != "symlink" && charged.insert(entry.objectIdentityKey).inserted
             nodes[entry.path]=StorageNode(path: entry.path, kind: entry.kind,
                 logicalBytes: unique ? max(0, entry.logicalBytes) : 0,
                 allocatedBytes: unique ? max(0, entry.allocatedBytes) : 0,
@@ -170,21 +170,20 @@ struct StorageLargeFileQuery {
         return StorageLargeFilePage(items: items, totalCount: totalCount, totalAllocatedBytes: totalAllocatedBytes, nextCursor: next)
     }
     func legacyPage(_ entries: [FileEntry]) throws -> StorageLargeFilePage {
-        struct Object: Hashable { let device: UInt64; let inode: UInt64 }
         // Legacy manifests already reside in memory. Only multiply-linked files
         // need extra identity state; result retention stays at limit + one.
-        var firstLinks=[Object: String]()
+        var firstLinks=[String: String]()
         for (index, entry) in entries.enumerated() {
             if index % 4096 == 0 { try Self.checkpoint() }
             guard entry.kind == "file", entry.links > 1 else { continue }
-            let object=Object(device: entry.device, inode: entry.inode)
+            let object=entry.objectIdentityKey
             if firstLinks[object].map({ entry.path < $0 }) ?? true { firstLinks[object]=entry.path }
         }
         var heap=[StorageCatalogItem](), totalCount=0, totalAllocatedBytes: Int64=0
         for (index, entry) in entries.enumerated() {
             if index % 4096 == 0 { try Self.checkpoint() }
             guard entry.kind == "file" else { continue }
-            let charged=entry.links <= 1 || firstLinks[Object(device: entry.device, inode: entry.inode)]?.utf8.elementsEqual(entry.path.utf8) == true
+            let charged=entry.links <= 1 || firstLinks[entry.objectIdentityKey]?.utf8.elementsEqual(entry.path.utf8) == true
             let allocated=charged ? max(0, entry.allocatedBytes) : 0
             guard allocated >= minimumBytes, type == .all || StorageFileType.classify(name: entry.path) == type else { continue }
             totalCount += 1

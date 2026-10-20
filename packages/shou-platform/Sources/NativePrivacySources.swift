@@ -7,6 +7,7 @@ import Glibc
 #endif
 
 /// Discovery enumerates profile names only; it never opens history or cookie rows.
+#if canImport(Darwin) || canImport(Glibc)
 public struct NativePrivacySources: PrivacySourceDiscovering {
     public init() {}
     public func discover(home: URL) throws -> [PrivacySourceDefinition] {
@@ -99,3 +100,14 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
         ShouError(errno == EACCES || errno == EPERM ? "permission_denied" : "privacy_identity_unavailable", "The privacy database identity or access could not be verified.")
     }
 }
+#else
+public struct NativePrivacySources: PrivacySourceDiscovering {
+    public init() {}
+    public func discover(home: URL) throws -> [PrivacySourceDefinition] {
+        throw ShouError("capability_unavailable", "Windows browser privacy sources have not been adapted.")
+    }
+    public func evidence(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> [FileEntry] {
+        throw ShouError("capability_unavailable", "Windows browser privacy sources have not been adapted.")
+    }
+}
+#endif

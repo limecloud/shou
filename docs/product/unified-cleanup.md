@@ -26,11 +26,13 @@ All roots are prepared before the first snapshot is captured so every snapshot u
 
 ### Installed application caches
 
-On macOS, the exact `~/Library/Caches` scan additionally reads installed applications from the platform catalog. A valid unique bundle identifier produces an exact relative rule for that identifier; the Mole tested-app inventory and its identity hints are never execution input. Existing maintained cache patterns take priority, including disabled rules and narrower descendants, so generic discovery cannot broaden them. Dynamic rule bindings can also be disabled.
+On macOS, the exact `~/Library/Caches` scan additionally reads installed applications from the platform catalog. A valid installed owner with no observed duplicate bundle identifier produces an exact relative rule for that identifier; the Mole tested-app inventory and its identity hints are never execution input. Existing maintained cache patterns take priority, including disabled rules and narrower descendants, so generic discovery cannot broaden them. Dynamic rule bindings can also be disabled.
 
 Only independently complete, current-user cache manifests passing the shared exclusions, protected-content and no-follow checks can be recommended. System/Apple and current applications are protected; running or unknown activity blocks cleanup. The installed application bundle may be administrator-owned because it is read only. Cache cleanup uses the ordinary plan and receipt flow and does not uninstall the application or select its preferences, support data or containers.
 
-The current policy requires a complete application-directory inventory to establish unique ownership. If inventory is partial or unavailable, fixed rules continue and `scanKnownLocations` reports the omitted generic coverage. Duplicate identifiers omit those generic owners and report ambiguity. `ScanSnapshot.status` still describes the filesystem scan; the aggregate system result becomes partial for these discovery issues. Arbitrary custom installation directories and other accounts remain outside the catalog scope.
+Partial application inventory remains visible as a coverage gap. Valid owners in inspected sources can still provide manually selectable caches when failures concern unrelated paths, with a warning that other copies may be undiscovered. They are not selected by automatic recommendations. Issues on an owner, its descendants or ancestors, unavailable/uninspected owner sources and observed duplicate identifiers block that owner. An unavailable inventory omits generic discovery; fixed rules continue. `ScanSnapshot.status` still describes the filesystem scan; the aggregate system result becomes partial for these discovery issues. Arbitrary custom installation directories and other accounts remain outside the catalog scope, even when known directories are complete.
+
+The optional partial-coverage flag is saved with owner evidence and bound into the plan digest. A complete scan becoming partial requires a new scan and explicit review. Plan creation, execution preflight and every item mutation re-read the inventory, exact bundle and activity; newly discovered owner conflicts or overlapping issues block cleanup.
 
 ## Personal rules
 
@@ -63,10 +65,14 @@ flowchart LR
 ```mermaid
 flowchart TD
   Open[Open Smart Cleanup] --> Scan[Scan all included locations]
-  Scan --> Ownership{Complete installed application inventory?}
-  Ownership -->|Yes| Exact[Add unique exact ID caches without widening static rules]
-  Ownership -->|No| Gap[Report generic coverage gap and retain fixed rules]
-  Exact --> Found
+  Scan --> Ownership{Valid owner with no observed conflict or overlapping issue?}
+  Ownership -->|Yes| Exact[Add exact ID cache without widening static rules]
+  Ownership -->|No| Gap[Omit affected owner and report coverage gap]
+  Exact --> Coverage{Application inventory complete?}
+  Coverage -->|Yes| Recommend[Allow eligible recommendations]
+  Coverage -->|Partial| Manual[Keep coverage warning and require manual selection]
+  Recommend --> Found
+  Manual --> Found
   Gap --> Found
   Found{Eligible matches?}
   Found -->|Yes| Review[Show selected items and estimated space]
@@ -97,14 +103,14 @@ sequenceDiagram
   loop Every included root
     opt Exact current-user Library/Caches root
       Engine->>Apps: Read installed identities and current activity
-      Apps-->>Engine: Unique verified owners or explicit discovery issues
+      Apps-->>Engine: Verified owners, observed conflicts and real coverage issues
       Engine->>Engine: Preserve static scopes; bind exact dynamic rules
     end
     Engine->>FS: Rule-directed read-only scan
     Engine->>Store: Save snapshot, configuration digest and optional app evidence
   end
   Engine-->>UI: Per-location evidence and coverage gaps
-  UI->>UI: Aggregate built-in and enabled personal matches
+  UI->>UI: Aggregate matches; partial-owner caches remain manual choices
   UI-->>User: Categories, recommendations, and selection bar
   User->>UI: Clean selected, or continue the quick action
   UI->>Engine: Prepare exact selected plans
@@ -114,7 +120,7 @@ sequenceDiagram
   UI->>Engine: Execute confirmed digests
   Engine->>Apps: Re-read inventory and selected owner identities
   loop Each selected target
-    Engine->>Apps: Re-read exact owner and activity before mutation
+    Engine->>Apps: Re-read inventory, exact owner and activity before mutation
     Engine->>FS: Reverify and remove exact cache target; retain application
   end
   Engine->>Store: Record per-item outcomes

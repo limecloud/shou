@@ -19,6 +19,7 @@ swift build --jobs 4
 python3 "scripts/verify-products.py"
 ".build/debug/shou-tests" "$TASK_NATIVE_MODE"
 python3 "scripts/verify-cli.py"
+python3 "scripts/verify-desktop-bridge.py" --engine ".build/debug/shou"
 python3 "scripts/verify-storage-cli.py"
 python3 "scripts/verify-large-files-cli.py" ".build/debug/shou"
 python3 "scripts/verify-cli-install.py"

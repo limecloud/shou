@@ -36,15 +36,26 @@ private final class InstalledCacheCatalog: ApplicationCatalogReading, @unchecked
     private var partial=false
     private var additions: [ApplicationDefinition]=[]
     private var applicationOwner: UInt32?
+    private var issues: [ApplicationCatalogIssue]=[]
+    private var sourceStatus: String?
     init(source: ApplicationSource) { native=NativeApplicationCatalog(sources: [source]) }
-    func set(partial: Bool = false, additions: [ApplicationDefinition] = [], applicationOwner: UInt32? = nil) {
-        lock.lock(); defer { lock.unlock() }; self.partial=partial; self.additions=additions; self.applicationOwner=applicationOwner
+    func set(partial: Bool = false, additions: [ApplicationDefinition] = [], applicationOwner: UInt32? = nil,
+             issues: [ApplicationCatalogIssue] = [], sourceStatus: String? = nil) {
+        lock.lock(); defer { lock.unlock() }
+        self.partial=partial; self.additions=additions; self.applicationOwner=applicationOwner; self.issues=issues; self.sourceStatus=sourceStatus
     }
     func read(options: ApplicationCatalogOptions) throws -> ApplicationCatalog {
         let result=try native.read(options: options)
-        lock.lock(); let partial=self.partial, additions=self.additions, owner=applicationOwner; lock.unlock()
-        return ApplicationCatalog(checkedAt: result.checkedAt, sources: result.sources, items: result.items.map { replacingOwner($0, owner: owner) } + additions,
-            issues: result.issues + (partial ? [ApplicationCatalogIssue(path: result.sources.first?.source.path ?? "", code: "resource_limit")] : []))
+        lock.lock()
+        let partial=self.partial, additions=self.additions, owner=applicationOwner, issues=self.issues, sourceStatus=self.sourceStatus
+        lock.unlock()
+        let allIssues=result.issues + issues + (partial ? [ApplicationCatalogIssue(path: result.sources.first?.source.path ?? "", code: "resource_limit")] : [])
+        let sources=result.sources.map { coverage in
+            let affected=allIssues.contains { $0.path == coverage.source.path || $0.path.hasPrefix(coverage.source.path + "/") }
+            return ApplicationSourceCoverage(source: coverage.source, status: sourceStatus ?? (affected ? "partial" : coverage.status),
+                entryCount: coverage.entryCount, applicationCount: coverage.applicationCount)
+        }
+        return ApplicationCatalog(checkedAt: result.checkedAt, sources: sources, items: result.items.map { replacingOwner($0, owner: owner) } + additions, issues: allIssues)
     }
     func application(at path: String) throws -> ApplicationDefinition {
         let application=try native.application(at: path)
@@ -90,6 +101,15 @@ private struct InstalledCacheFixture {
         return (workspace, try await engine.scan(workspaceId: workspace.id, scope: .cleanup))
     }
     func candidate(_ scan: ScanSnapshot) throws -> Candidate { try require(scan.candidates.first { $0.relativePath == identifier }) }
+    var unrelatedIssue: ApplicationCatalogIssue {
+        ApplicationCatalogIssue(path: app.deletingLastPathComponent().appendingPathComponent("Unrelated Broken.app").path, code: "io_error")
+    }
+    func duplicateOwner() throws -> ApplicationDefinition {
+        let original=try catalog.native.application(at: app.path)
+        return ApplicationDefinition(path: app.deletingLastPathComponent().appendingPathComponent("Late Duplicate.app").path,
+            source: original.source, identity: original.identity, name: "Generated Duplicate", bundleIdentifier: identifier.uppercased(),
+            version: original.version, executableName: original.executableName, infoDigest: original.infoDigest)
+    }
     func retainedHashes() throws -> [String: String] {
         let paths=["Applications/Unlisted Generated.app/Contents/Info.plist", "Applications/Unlisted Generated.app/Contents/MacOS/Generated",
             "Library/Application Support/" + identifier + "/personal.bin", "Library/Preferences/" + identifier + ".plist"]
@@ -193,6 +213,30 @@ func installedApplicationCachesRecheckAtEachMutationBoundary() async throws {
         if update.stage == "purging" && update.processedCount == 0 { permanent.activity.set(unavailable: true) }
     })
     try expect(skipped.operation == "permanent_cleanup" && skipped.items[0].state == "skipped" && skipped.items[0].error == "application_activity_unavailable")
+
+    for action in ["trash", "permanent"] {
+        let coverage=try InstalledCacheFixture(), (_, complete)=try await coverage.scan(), completeCandidate=try coverage.candidate(complete)
+        let coveragePlan=try await coverage.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id], action: action)
+        let interrupted=try await coverage.engine.execute(planId: coveragePlan.id, confirmedDigest: coveragePlan.digest, entryPoint: "generated-cache-coverage-boundary", progress: { update in
+            if update.stage == (action == "trash" ? "moving" : "purging") && update.processedCount == 0 {
+                coverage.catalog.set(issues: [coverage.unrelatedIssue])
+            }
+        })
+        try expect(interrupted.items[0].state == "failed" && interrupted.items[0].trashPath == nil)
+        try expect(FileManager.default.fileExists(atPath: coverage.files.workspace.path + "/Library/Caches/" + coverage.identifier + "/cache.bin"))
+
+        let duplicate=try InstalledCacheFixture()
+        duplicate.catalog.set(issues: [duplicate.unrelatedIssue])
+        let (_, partial)=try await duplicate.scan(), selected=try duplicate.candidate(partial), lateOwner=try duplicate.duplicateOwner()
+        let duplicatePlan=try await duplicate.engine.createPlan(scanId: partial.id, candidateIds: [selected.id], action: action)
+        let refused=try await duplicate.engine.execute(planId: duplicatePlan.id, confirmedDigest: duplicatePlan.digest, entryPoint: "generated-cache-duplicate-boundary", progress: { update in
+            if update.stage == (action == "trash" ? "moving" : "purging") && update.processedCount == 0 {
+                duplicate.catalog.set(additions: [lateOwner], issues: [duplicate.unrelatedIssue])
+            }
+        })
+        try expect(refused.items[0].state == "failed" && refused.items[0].trashPath == nil)
+        try expect(FileManager.default.fileExists(atPath: duplicate.files.workspace.path + "/Library/Caches/" + duplicate.identifier + "/cache.bin"))
+    }
     #endif
 }
 
@@ -253,6 +297,27 @@ func installedApplicationCachesRetainSharedProtectionAndNoFollowBoundaries() asy
 
 func installedApplicationCachesReportInventoryGapsAndAmbiguousOwners() async throws {
     #if os(macOS)
+    let local=try InstalledCacheFixture(), retained=try local.retainedHashes()
+    // A real malformed neighbor makes native source coverage partial without changing this owner.
+    let malformed=local.app.deletingLastPathComponent().appendingPathComponent("Malformed Neighbor.app")
+    try FileManager.default.createDirectory(at: malformed, withIntermediateDirectories: true)
+    let native=try local.catalog.native.read(options: ApplicationCatalogOptions())
+    try expect(native.status == "partial" && native.sources.first?.status == "partial")
+    let (_, usable)=try await local.scan(), usableCandidate=try local.candidate(usable)
+    try expect(usableCandidate.eligible && usable.installedApplicationCaches?.first?.ownershipCoverageIncomplete == true)
+    try expect(usable.issues.contains("installed_application_cache:application_discovery_incomplete"))
+    let review=try CleanupReview(snapshots: [usable])
+    let source=try require(review.sources.first { $0.candidate.id == usableCandidate.id })
+    try expect(source.selectable && !source.recommendationEligible && review.recommendedSources.isEmpty)
+    let manual=try await local.engine.createPlan(scanId: usable.id, candidateIds: [usableCandidate.id])
+    try expect(manual.installedApplicationCaches == usable.installedApplicationCaches)
+    let receipt=try await local.engine.execute(planId: manual.id, confirmedDigest: manual.digest, entryPoint: "generated-partial-cache")
+    try expect(receipt.state == "completed" && receipt.items[0].state == "trashed" && receipt.operation == nil)
+    let ids=receipt.items.map(\.id)
+    let restoreDigest=try await local.engine.followUpDigest(executionId: receipt.id, itemIds: ids, action: "restore")
+    let restored=try await local.engine.followUp(executionId: receipt.id, itemIds: ids, action: "restore", confirmedDigest: restoreDigest)
+    try expect(restored.allSatisfy { $0.state == "completed" } && local.retainedHashes() == retained)
+
     let fixture=try InstalledCacheFixture()
     try fixture.files.put("Library/Caches/com.google.Chrome/cache.bin")
     fixture.catalog.set(partial: true)
@@ -261,6 +326,23 @@ func installedApplicationCachesReportInventoryGapsAndAmbiguousOwners() async thr
     try expect(partial.candidates.first { $0.relativePath == "com.google.Chrome" }?.eligible == true)
     let system=try await fixture.engine.scanKnownLocations()
     try expect(system.issues.contains { $0.locationId == "caches" && $0.code == "application_discovery_incomplete" })
+    for issue in [ApplicationCatalogIssue(path: fixture.app.path, code: "source_changed"),
+                  ApplicationCatalogIssue(path: fixture.app.appendingPathComponent("Contents/Info.plist").path, code: "io_error"),
+                  ApplicationCatalogIssue(path: fixture.app.deletingLastPathComponent().path, code: "source_changed"),
+                  ApplicationCatalogIssue(path: fixture.files.workspace.path, code: "resource_limit")] {
+        fixture.catalog.set(issues: [issue])
+        let (_, blocked)=try await fixture.scan()
+        try expect(blocked.installedApplicationCaches == nil && blocked.issues.contains("installed_application_cache:application_discovery_incomplete"))
+    }
+    for status in ["unavailable", "not_scanned", "unknown"] {
+        fixture.catalog.set(sourceStatus: status)
+        let (_, blocked)=try await fixture.scan()
+        try expect(blocked.installedApplicationCaches == nil)
+    }
+    // A gap in another source remains visible without claiming a problem in this source.
+    fixture.catalog.set(issues: [ApplicationCatalogIssue(path: "/Applications/Unrelated Broken.app", code: "io_error")])
+    let (_, otherSource)=try await fixture.scan()
+    try expect(try fixture.candidate(otherSource).eligible && otherSource.installedApplicationCaches?.first?.ownershipCoverageIncomplete == true)
     fixture.catalog.set()
     try InstalledCacheFixture.writeApplication(fixture.app.deletingLastPathComponent().appendingPathComponent("Duplicate.app"), identifier: fixture.identifier)
     let (_, duplicate)=try await fixture.scan()
@@ -271,9 +353,36 @@ func installedApplicationCachesReportInventoryGapsAndAmbiguousOwners() async thr
     try InstalledCacheFixture.writeApplication(fresh.app.deletingLastPathComponent().appendingPathComponent("New Duplicate.app"), identifier: fresh.identifier)
     try await expectThrows { try await fresh.engine.createPlan(scanId: ready.id, candidateIds: [candidate.id]) }
 
+    let changed=try InstalledCacheFixture(), (_, complete)=try await changed.scan(), completeCandidate=try changed.candidate(complete)
+    let completePlan=try await changed.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id])
+    changed.catalog.set(issues: [changed.unrelatedIssue])
+    try await expectThrows { try await changed.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id]) }
+    try await expectThrows { try await changed.engine.execute(planId: completePlan.id, confirmedDigest: completePlan.digest, entryPoint: "generated-complete-to-partial") }
+    try expect(try await changed.engine.history().isEmpty)
+    let (_, rescanned)=try await changed.scan(), rescannedCandidate=try changed.candidate(rescanned)
+    let reviewed=try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id])
+    try expect(reviewed.installedApplicationCaches?.first?.ownershipCoverageIncomplete == true)
+    changed.catalog.set(additions: [try changed.duplicateOwner()], issues: [changed.unrelatedIssue])
+    try await expectThrows { try await changed.engine.execute(planId: reviewed.id, confirmedDigest: reviewed.digest, entryPoint: "generated-new-duplicate") }
+    changed.catalog.set(issues: [ApplicationCatalogIssue(path: changed.app.path, code: "source_changed")])
+    try await expectThrows { try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id]) }
+    changed.catalog.set()
+    let recovered=try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id])
+    try expect(recovered.installedApplicationCaches?.first?.ownershipCoverageIncomplete == true)
+
     let invalid=try InstalledCacheFixture(identifier: "invalid_identifier")
     let (_, invalidScan)=try await invalid.scan()
     try expect(invalidScan.installedApplicationCaches == nil && !invalidScan.candidates.contains(where: \.eligible))
+    let noMetadata=try InstalledCacheFixture()
+    let originalOwner=try noMetadata.catalog.native.application(at: noMetadata.app.path), missingIdentifier="dev.shou.generated.missing-info"
+    let missingInfo=ApplicationDefinition(path: noMetadata.app.deletingLastPathComponent().appendingPathComponent("Missing Info.app").path,
+        source: originalOwner.source, identity: originalOwner.identity, name: "Missing Info", bundleIdentifier: missingIdentifier,
+        version: nil, executableName: nil, infoDigest: nil)
+    try noMetadata.files.put("Library/Caches/" + missingIdentifier + "/retain.bin")
+    noMetadata.catalog.set(additions: [missingInfo], issues: [noMetadata.unrelatedIssue])
+    let (_, missingScan)=try await noMetadata.scan()
+    try expect(!((missingScan.installedApplicationCaches ?? []).contains { $0.application.bundleIdentifier == missingIdentifier }))
+    try expect(missingScan.candidates.first { $0.relativePath == missingIdentifier }?.eligible != true)
     let apple=try InstalledCacheFixture(identifier: "com.apple.generated-fixture")
     let (_, appleScan)=try await apple.scan()
     try expect(appleScan.installedApplicationCaches == nil && !appleScan.candidates.contains(where: \.eligible))
@@ -288,6 +397,16 @@ func installedApplicationCachesKeepLegacyRecordsAndBindEvidenceDigests() async t
     #if os(macOS)
     let fixture=try InstalledCacheFixture(), (_, snapshot)=try await fixture.scan(), candidate=try fixture.candidate(snapshot)
     let plan=try await fixture.engine.createPlan(scanId: snapshot.id, candidateIds: [candidate.id])
+    let evidence=try require(plan.installedApplicationCaches?.first)
+    let evidenceBytes=try Codec.encode(evidence)
+    try expect(!String(decoding: evidenceBytes, as: UTF8.self).contains("ownership_coverage_incomplete"))
+    let decodedEvidence=try Codec.decode(InstalledApplicationCacheEvidence.self, from: evidenceBytes)
+    try expect(decodedEvidence.ownershipCoverageIncomplete == nil && Codec.encode(decodedEvidence) == evidenceBytes)
+    let oldDynamicBytes=try Codec.encode(plan), oldDynamicPlan=try Codec.decode(CleanupPlan.self, from: oldDynamicBytes)
+    try expect(try Codec.encode(oldDynamicPlan) == oldDynamicBytes && oldDynamicPlan.calculatedDigest() == plan.digest)
+    var changedCoverage=plan
+    changedCoverage.installedApplicationCaches=[InstalledApplicationCacheEvidence(ruleId: evidence.ruleId, application: evidence.application, ownershipCoverageIncomplete: true)]
+    try expect(try changedCoverage.calculatedDigest() != plan.calculatedDigest())
     var legacyScan=snapshot; legacyScan.installedApplicationCaches=nil
     let scanBytes=try Codec.encode(legacyScan)
     try expect(!String(decoding: scanBytes, as: UTF8.self).contains("installed_application_caches"))

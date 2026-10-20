@@ -1,0 +1,39 @@
+name: Windows native build
+on:
+  push:
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml"]
+  pull_request:
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: compnerd/gha-setup-swift@bbae8ce86bac5a3449f3992b3d88bc4ca25f2057
+        with:
+          swift-version: swift-6.2.3-release
+          swift-build: 6.2.3-RELEASE
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/windows/global.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build and check isolated native fixtures and desktop protocol
+        run: ./scripts/build-windows.ps1
+      - name: Retain build evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-development-build
+          path: |
+            apps/windows/Shou.Windows/bin/Release/net10.0-windows/
+            .build/x86_64-unknown-windows-msvc/release/
+          if-no-files-found: error
+          retention-days: 7

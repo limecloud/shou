@@ -53,13 +53,13 @@ Mole 将这 844 项描述为作者亲手测试和核查过的 Mac 软件。这�
 
 ## 已安装应用缓存发现
 
-Mole 的 `clean_user_essentials` 独立于官网实测清单发现用户缓存根的子目录。Shou 采用更窄的合同：完整的当前应用目录盘点必须确认唯一实装 Owner、合法 Bundle ID，以及安装包和 Info.plist 身份；随后只有当前用户目录下精确匹配的缓存目录可以加入普通扫描、计划、执行与历史链路。名称别名、实测清单提示、Group Containers 和应用支持目录均不提供额外执行权限。
+Mole 的 `clean_user_essentials` 独立于官网实测清单发现用户缓存根的子目录。Shou 采用更窄的合同：当前应用目录盘点必须确认有效实装 Owner、已发现范围内无重复的合法 Bundle ID，以及安装包和 Info.plist 身份；随后只有当前用户目录下精确匹配的缓存目录可以加入普通扫描、计划、执行与历史链路。名称别名、实测清单提示、Group Containers 和应用支持目录均不提供额外执行权限。
 
 静态维护规则优先，包括已禁用规则及只覆盖特定后代的窄模式。通用发现不能把腾讯会议或 DingTalk 扩为整个缓存父目录，也不能绕过关闭的声明。系统／Apple 应用和 Shou 自身保持受保护；应用正在运行或状态无法验证时，候选不能执行。管理员拥有的应用包仍可产生当前用户的可清缓存；缓存所有权及清单策略独立于安装包所有权检查。
 
-当前唯一归属策略要求应用盘点完整。盘点不可用或不完整时，不生成通用候选，并通过 `scanKnownLocations` 明确报告 `application_discovery_unavailable` 或 `application_discovery_incomplete`；静态规则继续可用。重复 Bundle ID 仅跳过这些通用 Owner，并报告 `ambiguous_application_owner`。因此文件系统快照可以完整，但应用发现仍有缺口，系统汇总结果为部分完成。已知应用目录不代表覆盖任意自定义安装位置或其他账户。
+不完整盘点保留真实状态，并通过 `scanKnownLocations` 报告 `application_discovery_incomplete`。已检查来源中的有效 Owner 若仅遇到无关路径异常，仍可生成可手选的缓存；候选明确提示可能存在未发现的其他副本，不进入自动推荐。Owner 自身、后代或祖先路径异常会阻断该 Owner；来源不可用或未检查、已发现重复标识也会阻断。盘点整体不可用时省略通用发现并报告 `application_discovery_unavailable`；重复标识报告 `ambiguous_application_owner`。静态规则继续可用。因此文件系统快照可以完整，但应用发现仍有缺口，系统汇总结果为部分完成。即使已知应用目录完整，也不代表覆盖任意自定义安装位置或其他账户。
 
-快照及已选计划保存可选的实装身份字段。创建计划和执行前重新盘点应用；每项变更前重新读取具体安装包及运行状态。缓存清理不会选择或移除 `.app`。共享链路见[日常清理架构与时序](../product/unified-cleanup.md)和[数据模型](../architecture/data-model.md)。
+快照及已选计划保存可选的实装身份字段；partial 发现附带 `ownership_coverage_incomplete: true`，并绑定计划摘要。创建计划、执行预检及每项变更前均重新盘点、读取具体安装包及运行状态。完整扫描的证据遇到新出现的 partial 盘点时失效，必须重新扫描并明确审阅；新发现的重复标识或 Owner 路径异常始终阻断。缓存清理不会选择或移除 `.app`。共享链路见[日常清理架构与时序](../product/unified-cleanup.md)和[数据模型](../architecture/data-model.md)。
 
 ## 安全与验证
 
@@ -83,7 +83,7 @@ python3 "scripts/verify-mole-coverage.py" --self-test \
 
 `shou-tests --mole-rules-only` 使用独立编写的游戏、profile 和开发状态正反例，并检查每条新增声明中的受保护后代。既有原生规则目录套件会将每个模式展开为生成目标，核验废纸篓与恢复行为。这些入口不等于第三方应用兼容性证据；原生与桌面验收必须依据实际执行结果单独报告。
 
-`shou-tests --installed-caches-only` 使用生成的实装包夹具，覆盖动态发现、普通清理／历史／恢复而不卸载应用、运行态与身份变化、静态规则优先、缺失或歧义盘点、保护边界及旧可选字段摘要兼容。实际运行结果单独写入[验收记录](acceptance-and-testing.md)。
+`shou-tests --installed-caches-only` 使用生成的实装包夹具，覆盖动态发现、普通清理／历史／恢复而不卸载应用、运行态与身份变化、静态规则优先、partial 发现的局部隔离与手选、逐项变更边界的新缺口／重复标识、保护边界及可选字段摘要兼容。实际运行结果单独写入[验收记录](acceptance-and-testing.md)。
 
 后续更新须固定新的上游提交和清单 HTML 摘要，逐项审查变化路径与行为差异，同步更新声明和映射，再执行这些校验及受影响的原生验收。数量变化不能自动把应用名称或 bundle ID 转成清理目标。
 

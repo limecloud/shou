@@ -11,6 +11,7 @@ import ShouCore
     var personalDataConsent=Set<String>()
     var expandedID: String?
     var scanning=false
+    var stopRequested=false
     var reviewingID: String?
     var preparing=false
     var includeSystem=false
@@ -33,7 +34,7 @@ import ShouCore
         guard let engine=app.engine, !app.busy else { return }
         task?.cancel()
         let token=UUID(); operation=token
-        scanning=true; app.busy=true; processedCount=0; applicationCount=0; currentPath=""
+        scanning=true; stopRequested=false; app.busy=true; processedCount=0; applicationCount=0; currentPath=""
         catalog=nil; summaries=[:]; reviews=[:]; selection=[:]; personalDataConsent=[]; expandedID=nil; hasChanges=false
         let options=ApplicationCatalogOptions(includeSystem: includeSystem)
         app.statusKey="Reading installed applications…"
@@ -94,7 +95,7 @@ import ShouCore
 
     private func review(_ items: [ApplicationSummary], select: Bool, app: AppModel) {
         guard let engine=app.engine, !app.busy, !items.isEmpty else { return }
-        app.busy=true; preparing=true
+        app.busy=true; preparing=true; stopRequested=false; processedCount=0; applicationCount=items.count
         app.statusKey="Reviewing application components…"
         task=Task {
             defer { reviewingID=nil; preparing=false; app.busy=false }
@@ -102,7 +103,7 @@ import ShouCore
             for summary in items {
                 if Task.isCancelled { break }
                 let id=summary.application.id
-                reviewingID=id
+                reviewingID=id; currentPath=summary.application.path
                 do {
                     let value: ApplicationUninstallReview
                     if let cached=reviews[id] { value=cached }
@@ -111,6 +112,7 @@ import ShouCore
                         selection[id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent && ($0.kind == .application || $0.warnings.isEmpty) }.map(\.id))
                     }
                 } catch { if !Task.isCancelled { failures.append(summary.application.name + "\n" + error.localizedDescription) } }
+                processedCount += 1
             }
             app.statusKey=Task.isCancelled ? "Application review stopped." : "Ready to review"
             if !failures.isEmpty { app.error=failures.joined(separator: "\n\n") }
@@ -145,7 +147,7 @@ import ShouCore
             guard let review=reviews[id], let components=selection[id] else { return nil }
             return ApplicationUninstallSelection(reviewId: review.id, componentIds: components.sorted(), includeUserData: personalDataConsent.contains(id))
         }
-        preparing=true; app.busy=true; app.statusKey="Preparing cleanup preview…"
+        preparing=true; stopRequested=false; processedCount=0; applicationCount=0; currentPath=""; app.busy=true; app.statusKey="Preparing cleanup preview…"
         task=Task {
             defer { preparing=false; app.busy=false }
             do {
@@ -157,7 +159,8 @@ import ShouCore
 
     func execute(_ reviewed: ApplicationUninstallBatchPlan, app: AppModel) {
         guard let engine=app.engine, !app.busy, plan?.id == reviewed.id else { return }
-        plan=nil; app.busy=true; app.isExecuting=true; app.stopRequested=false; app.executionProgress=nil; app.operationHadError=false
+        plan=nil; app.busy=true
+        let execution=app.beginExecution(total: reviewed.plans.reduce(0) { $0 + $1.components.count })
         let token=UUID(); operation=token
         task=Task {
             defer { app.busy=false; app.isExecuting=false; app.stopRequested=false }
@@ -165,7 +168,7 @@ import ShouCore
                 let receipt=try await engine.executeUninstallBatch(planId: reviewed.id, confirmedDigest: reviewed.digest, entryPoint: "desktop", progress: { [weak self, weak app] update in
                     Task { @MainActor in
                         guard let self, self.operation == token, let app, app.isExecuting else { return }
-                        app.executionProgress=update
+                        app.updateExecutionProgress(update, operation: execution)
                     }
                 })
                 app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
@@ -178,8 +181,9 @@ import ShouCore
             } catch {
                 app.operationHadError=true
                 if !Task.isCancelled { app.error=error.localizedDescription }
-                app.statusKey="Review application components again."
-                hasChanges=true
+                let activityUnavailable=(error as? ShouError)?.code == "application_activity_unavailable"
+                app.statusKey=activityUnavailable ? "Application processes and helpers could not be verified." : "Review application components again."
+                hasChanges = !activityUnavailable
                 await app.refresh()
             }
         }
@@ -192,6 +196,6 @@ import ShouCore
         }
         app.statusKey="Quit requested. Scan again after the application closes."
     }
-    func stop() { task?.cancel() }
+    func stop() { if scanning || preparing { stopRequested=true }; task?.cancel() }
     func waitForOperation() async { await task?.value }
 }

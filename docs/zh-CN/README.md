@@ -8,7 +8,7 @@
 
 - 更新日期：2026-10-20。
 - 当前状态：开发阶段，已提供原生应用、规则引擎与 CLI 源码，尚未完成完整发布验收。
-- Swift 原生开发、macOS 原生设计、CLI 与桌面双入口、monorepo 与未来 Windows 支持，以及不接入模型、不开发 Agent 是已确认约束。
+- macOS 使用 Swift 原生界面，Windows 使用 C#/WPF 原生界面；CLI 与桌面双入口、monorepo，以及不接入模型、不开发 Agent 是已确认约束。Windows 当前为开发实现，原生验收待完成。
 - macOS 14+、模块拆分、规则字段、命令名和里程碑是首版设计基线，允许通过记录决策调整。
 - 所有性能、兼容性与安全指标均为验收目标，不能作为已完成能力对外宣传。
 - 文档中的示例项目与路径均为虚构。
@@ -30,6 +30,7 @@
 | 安装 Agent 技能 | [Skill 安装与分发](ai/skill-distribution.md) |
 | 规划研发与验收 | [实施计划](engineering/implementation-plan.md) → [验收与测试](engineering/acceptance-and-testing.md) |
 | 本地构建与验证 | [开发指南](engineering/development.md) |
+| 实现 Windows 原生客户端 | [Windows 技术栈、实现与验收](engineering/windows.md) |
 
 ## 核心共识
 
@@ -59,4 +60,5 @@
 - [参考功能对照与实现门槛](engineering/reference-capability-map.md)
 
 - [隐私清理与来源合同](engineering/privacy-cleaning.md)
+- [操作进度与反馈](product/operation-progress.md)
 - [Mole 软件清单与规则覆盖](engineering/mole-rule-coverage.md)

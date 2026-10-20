@@ -45,6 +45,9 @@ enum TrashExecution {
                 if !moved.verified { receipt.items[index].error="Moved identity or contents could not be verified." }
             } catch {
                 receipt.items[index].state=(error as? ShouError)?.code == "trash_outcome_unknown" ? "unknown" : "failed"
+                if let observed=(error as? ShouError)?.details["resulting_path"], !observed.isEmpty {
+                    receipt.items[index].trashPath=observed
+                }
                 receipt.items[index].error=diagnostic(error)
             }
             try save()
@@ -52,6 +55,7 @@ enum TrashExecution {
             if receipt.items[index].state != "trashed" { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "trashed" } ? "completed" : "partial" }
+        progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "moving"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
         receipt.volumeAvailableAfter=filesystem.availableBytes(workspace.path)
         try save()
         return receipt
@@ -59,6 +63,7 @@ enum TrashExecution {
 
     static func diagnostic(_ error: Error) -> String {
         let reasons=(error as? ShouError)?.details["reasons"]?.split(separator: ",").map(String.init) ?? []
-        return ([error.localizedDescription] + reasons).joined(separator: "\n")
+        let observed=(error as? ShouError)?.details["resulting_path"].flatMap { $0.isEmpty ? nil : "Observed result: " + $0 }
+        return ([error.localizedDescription] + reasons + (observed.map { [$0] } ?? [])).joined(separator: "\n")
     }
 }

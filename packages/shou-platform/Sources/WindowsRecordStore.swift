@@ -1,0 +1,59 @@
+#if os(Windows)
+import Foundation
+import ShouCore
+import CShouWindows
+
+public final class LocalRecordStore: RecordStore, @unchecked Sendable {
+    public let directory: URL
+    private let base: String
+    public var protectedPaths: [String] { [base] }
+    public static var defaultDirectory: URL {
+        let env=ProcessInfo.processInfo.environment
+        if let path=env["SHOU_DATA_DIR"] { return URL(fileURLWithPath: path) }
+        return URL(fileURLWithPath: env["LOCALAPPDATA"] ?? FileManager.default.homeDirectoryForCurrentUser.path).appendingPathComponent("Shou", isDirectory: true)
+    }
+    public init(directory: URL = LocalRecordStore.defaultDirectory) throws {
+        self.base=try WindowsNative.string({ shou_win_normalize(directory.path, $0) }, path: directory.path)
+        self.directory=URL(fileURLWithPath: base, isDirectory: true)
+        try WindowsNative.check(shou_win_private_directory(base), path: base)
+    }
+    private func location(_ collection: String, id: String? = nil) throws -> String {
+        for value in [collection] + (id.map { [$0] } ?? []) {
+            guard value.range(of: "^[A-Za-z0-9_-]{1,120}$", options: .regularExpression) != nil else { throw ShouError("invalid_argument", "Invalid record identifier.") }
+        }
+        try WindowsNative.check(shou_win_private_directory(base), path: base)
+        let folder=base + "/" + collection
+        try WindowsNative.check(shou_win_private_directory(folder), path: folder)
+        return id.map { folder + "/" + $0 + ".json" } ?? folder
+    }
+    public func read(_ collection: String, id: String) throws -> Data? {
+        let path=try location(collection, id: id)
+        do { return try WindowsNative.read(path, limit: 268_435_456) }
+        catch let error as ShouError where error.code == "not_found" { return nil }
+    }
+    public func write(_ collection: String, id: String, data: Data) throws {
+        guard data.count <= 268_435_456 else { throw ShouError("resource_limit", "Record exceeds the storage limit.") }
+        let path=try location(collection,id:id)
+        try data.withUnsafeBytes { try WindowsNative.check(shou_win_write(path, $0.baseAddress, $0.count), path: path) }
+    }
+    public func ids(_ collection: String) throws -> [String] {
+        let path=try location(collection)
+        let text=try WindowsNative.string({ shou_win_list(path, 100_000, $0) }, path: path)
+        return text.split(separator: "\n").map(String.init).filter { $0.hasSuffix(".json") && !$0.hasPrefix(".") }.map { String($0.dropLast(5)) }.sorted()
+    }
+    public func lock() throws -> any StoreLease {
+        try WindowsNative.check(shou_win_private_directory(directory.path), path: directory.path)
+        var handle: OpaquePointer?
+        try WindowsNative.check(shou_win_lock_acquire(directory.appendingPathComponent(".mutation.lock").path, &handle), path: directory.path)
+        guard let handle else { throw ShouError("store_busy", "The record lock could not be acquired.") }
+        return WindowsStoreLease(handle)
+    }
+}
+private final class WindowsStoreLease: StoreLease, @unchecked Sendable {
+    private let mutex=NSLock()
+    private var handle: OpaquePointer?
+    init(_ handle: OpaquePointer) { self.handle=handle }
+    func release() { mutex.lock(); defer { mutex.unlock() }; if let handle { shou_win_lock_release(handle); self.handle=nil } }
+    deinit { release() }
+}
+#endif

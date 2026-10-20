@@ -15,21 +15,24 @@ struct PrivacyView: View {
     private var pageContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
+            if session.working {
+                OperationProgressView(title: app.t(app.statusKey), symbol: "hand.raised.fill", currentPath: session.progress?.path ?? "",
+                    countText: session.progress.map { String(format: app.t("%lld of %lld sources processed"), locale: app.language.locale, $0.processedCount, $0.itemCount) } ?? app.t("Preparing privacy sources…"),
+                    fraction: session.progress.flatMap { $0.itemCount > 0 ? Double($0.processedCount) / Double($0.itemCount) : nil },
+                    stopRequested: app.stopRequested, stopLabel: app.t("Stop"), stoppingLabel: app.t("Stopping…"), onStop: session.cancel)
+            } else {
             deletionNotice
             timeControls
-            progressIndicator
             selectionContent
             currentReceipt
             historyContent
             coverageFootnote
+            }
         }.padding(24)
     }
     private var deletionNotice: some View {
         Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically."))
             .font(.callout).foregroundStyle(.secondary)
-    }
-    @ViewBuilder private var progressIndicator: some View {
-        if session.working { ProgressView().frame(maxWidth: .infinity) }
     }
     @ViewBuilder private var selectionContent: some View {
         if let scan=session.scan {
@@ -64,8 +67,7 @@ struct PrivacyView: View {
                 Text(app.t("Review browser activity and account data separately.")).foregroundStyle(.secondary)
             }
             Spacer()
-            if session.working { Button(app.t("Stop")) { session.cancel() }.accessibilityIdentifier("privacy.stop") }
-            else { Button(app.t("Scan Privacy Sources")) { session.scan(app: app) }.disabled(app.busy).accessibilityIdentifier("privacy.scan") }
+            if !session.working { Button(app.t("Scan Privacy Sources")) { session.scan(app: app) }.disabled(app.busy).accessibilityIdentifier("privacy.scan") }
         }
     }
     private var timeControls: some View {

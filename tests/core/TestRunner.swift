@@ -24,6 +24,17 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if Array(CommandLine.arguments.dropFirst()) == ["--operation-progress-only"] {
+            do {
+                try executionProgressKeepsBatchTotalsAndPartialBoundaries()
+                try await privacyProgressTracksSourcesAndCommittedOutcomes()
+                try await privacyProgressCancellationPreservesRemainingSources()
+                try await followUpProgressPreservesDurableCancellationBoundary()
+                try await followUpProgressCountsFailedOutcomeWithoutOverwriting()
+                print("5/5 operation progress, partial batches, privacy transactions and cancellation tests passed; generated fixtures only.")
+            } catch { print("FAIL operation progress: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--privacy-only"] {
             do {
                 try await privacyChromiumRangePreservesUnselectedRelationsAndReceipts()
@@ -182,6 +193,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Execution progress preserves batch totals and partial boundaries", { try executionProgressKeepsBatchTotalsAndPartialBoundaries() }),
+            ("Privacy progress follows committed source outcomes", { try await privacyProgressTracksSourcesAndCommittedOutcomes() }),
+            ("Privacy progress cancellation preserves remaining sources", { try await privacyProgressCancellationPreservesRemainingSources() }),
             ("Installed application caches use ordinary cleanup and preserve applications", { try await installedApplicationCachesUseNormalCleanupWithoutUninstalling() }),
             ("Installed application cache activity and identity are revalidated", { try await installedApplicationCachesKeepActivityAndIdentityGates() }),
             ("Installed application caches recheck at each mutation boundary", { try await installedApplicationCachesRecheckAtEachMutationBoundary() }),
@@ -219,6 +233,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Wildcard semantics", { try wildcardSemantics() }),
             ("Wildcard language equivalence", { try wildcardMatcherPreservesLanguage() }),
             ("Wildcard descendant-prefix soundness", { try wildcardPrefixReachabilityPreservesMatches() }),
+            ("Windows full identity, SID ownership and legacy records", { try windowsIdentityPreservesFileIDOwnerAndLegacyRecords() }),
             ("Canonical digest", { try canonicalDigestIndependentOfObjectKeyOrder() }),
             ("JSON envelope escaping", { try envelopeUsesStableKeysAndExplicitNull() }),
             ("UTC decision precision", { try utcTimestampsPreserveDecisionPrecision() }),

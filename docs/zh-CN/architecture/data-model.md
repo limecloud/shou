@@ -46,7 +46,7 @@ erDiagram
 | Candidate | ID、相对路径、项目线索、身份、占用、风险、证据 | 大目录可以无规则；无规则候选不能直接执行 |
 | CleanupPlan | ID、合同版本、摘要、创建/过期时间、规则与配置摘要、`action`（`trash` 或 `permanent`）、状态 | 绑定具体候选、处理方式和完整清单，不动态扩展；确认后动作不可改变 |
 | PlanItem | 候选引用、原路径、文件身份、目录清单摘要 | 同一计划内不得重复或存在未解决的父子目标冲突；完整清单是永久移除边界 |
-| InstalledApplicationCacheEvidence | `rule_id` 及完整 `application` 定义，含路径／来源、Bundle ID、文件系统身份与 `info_digest` | 仅绑定一条缓存规则的实装归属证据，不授予应用包移除权限 |
+| InstalledApplicationCacheEvidence | `rule_id`、完整 `application` 定义及可选 `ownership_coverage_incomplete` | 仅绑定一条缓存规则的实装归属证据和覆盖限制，不授予应用包移除权限 |
 | Confirmation | 计划 ID 与摘要、入口、确认时间、范围 | 当前进程内一次性使用；不得把落盘布尔值当作授权 |
 | ExecutionReceipt | 计划引用、执行 ID、入口、阶段、总体结果 | 执行意图先落盘，逐项追加结果；可表示部分成功 |
 | ItemReceipt | 原路径、实际目标位置、前后身份、状态、错误 | `purging` 是持久化意图；只有平台成功结果才能进入 `purged`；恢复与永久移除必须重新核验 |
@@ -90,9 +90,9 @@ stateDiagram-v2
 
 这些字段以可选形式兼容已有记录。旧记录没有 `treeComplete` 时沿用原有整树状态解释；没有 `completedPaths` 不提供任何独立覆盖证据，旧 partial 快照不能因此获得执行资格。计划保留扫描模式与预算，用于重新计算当前策略；每个选中目标仍须具有未变化的完整清单。
 
-`ScanSnapshot.installedApplicationCaches` 和 `CleanupPlan.installedApplicationCaches` 编码为可选的 `installed_application_caches`。快照保存已启用动态规则的证据，计划仅复制已选候选引用的 Owner，并将其纳入摘要。每项以 `rule_id` 绑定完整 `ApplicationDefinition`：`id`、`path`、`source`、`identity`、`name`，以及可选的 `bundle_identifier`、`version`、`executable_name`、`info_digest`。规则 ID 使用内置保留命名空间和标识的 SHA-256 十六进制摘要；名称与元数据本身不能授予清理权限。
+`ScanSnapshot.installedApplicationCaches` 和 `CleanupPlan.installedApplicationCaches` 编码为可选的 `installed_application_caches`。快照保存已启用动态规则的证据，计划仅复制已选候选引用的 Owner，并将其纳入摘要。每项以 `rule_id` 绑定完整 `ApplicationDefinition`：`id`、`path`、`source`、`identity`、`name`，以及可选的 `bundle_identifier`、`version`、`executable_name`、`info_digest`。partial 发现增加可选的 `ownership_coverage_incomplete: true`；完整发现省略该键。此标记将可见限制绑定到计划摘要；`CleanupReview` 将这类候选投影为可手选但无推荐资格。规则 ID 使用内置保留命名空间和标识的 SHA-256 十六进制摘要；名称与元数据本身不能授予清理权限。
 
-缺失的可选数组再次编码时保持省略，保留旧快照读取和计划摘要字节。仅含静态规则的旧计划不需要新证据；引用动态缓存规则却缺少对应证据的候选会被拒绝。创建计划和执行前核验当前完整应用盘点及精确归属，每项变更前再读 Owner 和运行状态。普通 `ExecutionReceipt`／`ItemReceipt` 及恢复原位置合同保持原有形式，因为目标是原工作区内的缓存，不是卸载组件。
+缺失的可选数组和覆盖标记再次编码时保持省略，保留旧快照读取和计划摘要字节。仅含静态规则的旧计划不需要新证据；引用动态缓存规则却缺少对应证据的候选会被拒绝。创建计划、执行预检及每项变更前重新盘点并读取精确 Owner 和运行状态。已发现重复标识、Owner 来源不可用／未检查，或自身、后代、祖先路径异常均使该 Owner 失效。无关异常保留 partial 状态，仅允许已绑定标记且经明确审阅的候选；完整扫描变为 partial 必须重扫，partial 证据在盘点恢复完整后可继续保守保留限制。普通 `ExecutionReceipt`／`ItemReceipt` 及恢复原位置合同保持原有形式，因为目标是原工作区内的缓存，不是卸载组件。
 
 应用发现问题独立于文件系统完整性。快照的 `installed_application_cache:application_discovery_unavailable`、`installed_application_cache:application_discovery_incomplete` 和 `installed_application_cache:ambiguous_application_owner` 会投影为可见的位置问题。整棵目录树完整不表示通用发现完整；静态规则仍可提供独立合格目标。
 

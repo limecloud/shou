@@ -92,8 +92,10 @@ public enum StorageRemovalPolicy {
 
 extension ShouEngine {
     public func scanStorage(path: String, budget: ScanBudget? = nil, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> StorageScan {
+        let path=try filesystem.normalizedPath(path)
         try budget?.validate()
-        guard path == "/" || (path.hasPrefix("/") && StorageRemovalPolicy.validRelative(String(path.dropFirst()))) else { throw ShouError("invalid_argument", "Select an absolute normalized analysis root.") }
+        let drivePath=path.count >= 3 && path.prefix(1).allSatisfy({ $0.isASCII && $0.isLetter }) && path.dropFirst().hasPrefix(":/") && (path.count == 3 || StorageRemovalPolicy.validRelative(String(path.dropFirst(3))))
+        guard path == "/" || drivePath || (path.hasPrefix("/") && StorageRemovalPolicy.validRelative(String(path.dropFirst()))) else { throw ShouError("invalid_argument", "Select an absolute normalized analysis root.") }
         let identity=try filesystem.analysisRootIdentity(path)
         let id=Codec.id("storage")
         if budget == nil, filesystem.supportsStorageCatalog, let url=try store.storageCatalogURL(id: id) {

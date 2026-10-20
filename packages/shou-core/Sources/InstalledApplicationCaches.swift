@@ -4,6 +4,10 @@ import Foundation
 public struct InstalledApplicationCacheEvidence: Codable, Sendable, Equatable {
     public let ruleId: String
     public let application: ApplicationDefinition
+    public let ownershipCoverageIncomplete: Bool?
+    public init(ruleId: String, application: ApplicationDefinition, ownershipCoverageIncomplete: Bool? = nil) {
+        self.ruleId=ruleId; self.application=application; self.ownershipCoverageIncomplete=ownershipCoverageIncomplete
+    }
 }
 
 enum InstalledApplicationCaches {
@@ -11,6 +15,7 @@ enum InstalledApplicationCaches {
     static let issuePrefix="installed_application_cache:"
     static let rebuildNote="The application will recreate its cache when needed."
     static let limitation="Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained."
+    static let incompleteLimitation="Application discovery is incomplete. Other copies with this bundle identifier may be undiscovered. Review this cache explicitly; it is not recommended automatically."
 
     struct Discovery {
         var evidence: [InstalledApplicationCacheEvidence]=[]
@@ -47,9 +52,23 @@ enum InstalledApplicationCaches {
         }
         let title=evidence.application.name.isEmpty ? identifier : evidence.application.name
         let name=String(String.UnicodeScalarView(title.unicodeScalars.prefix(120)))
-        return try BuiltinTemplate(id: evidence.ruleId, version: "1.0.0", name: name,
+        var rule=try BuiltinTemplate(id: evidence.ruleId, version: "1.0.0", name: name,
             category: "caches", patterns: [identifier], marker: nil, risk: "review", rebuildNote: rebuildNote,
             limitation: limitation, location: "caches", applicationBundleIdentifiers: [identifier], platforms: ["macos"]).rule(rootRef: workspace.rootRef)
+        if evidence.ownershipCoverageIncomplete == true { rule.risk.limitations.append(incompleteLimitation) }
+        return rule
+    }
+
+    /// An unrelated gap does not invalidate a concrete owner, but overlapping gaps do.
+    private static func verified(_ application: ApplicationDefinition, in inventory: ApplicationCatalog) -> Bool {
+        let sources=inventory.sources.filter { $0.source == application.source }
+        guard sources.count == 1, let source=sources.first, ["complete", "partial"].contains(source.status),
+              application.path.hasPrefix(application.source.path + "/") else { return false }
+        let path=application.path.lowercased()
+        return !inventory.issues.contains {
+            let issue=$0.path.lowercased()
+            return issue.isEmpty || issue == "/" || path == issue || path.hasPrefix(issue + "/") || issue.hasPrefix(path + "/")
+        }
     }
 
     static func discover(workspace: Workspace, homeDirectory: URL, platform: String,
@@ -61,17 +80,18 @@ enum InstalledApplicationCaches {
             if Task.isCancelled || (error as? ShouError)?.code == "cancelled" { throw ShouError("cancelled", "Application discovery stopped.") }
             return Discovery(issues: [issuePrefix + "application_discovery_unavailable"])
         }
-        // A partial inventory cannot establish that a bundle identifier has one owner.
-        guard inventory.status == "complete" else { return Discovery(issues: [issuePrefix + "application_discovery_incomplete"]) }
         let grouped=Dictionary(grouping: inventory.items.filter { $0.bundleIdentifier != nil }, by: { $0.bundleIdentifier!.lowercased() })
-        var result=Discovery()
+        let incomplete=inventory.status != "complete"
+        var result=Discovery(issues: incomplete ? [issuePrefix + "application_discovery_incomplete"] : [])
         for application in inventory.items.sorted(by: { $0.path < $1.path }) {
             if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
             guard valid(application), let identifier=application.bundleIdentifier, !covered(identifier, by: staticRules) else { continue }
             guard grouped[identifier.lowercased()]?.count == 1 else {
                 result.issues.append(issuePrefix + "ambiguous_application_owner"); continue
             }
-            let evidence=InstalledApplicationCacheEvidence(ruleId: ruleId(identifier), application: application)
+            guard verified(application, in: inventory) else { continue }
+            let evidence=InstalledApplicationCacheEvidence(ruleId: ruleId(identifier), application: application,
+                ownershipCoverageIncomplete: incomplete ? true : nil)
             result.evidence.append(evidence)
             result.rules.append(try rule(evidence, workspace: workspace))
         }
@@ -106,28 +126,27 @@ enum InstalledApplicationCaches {
     }
 
     static func revalidate(_ evidence: [InstalledApplicationCacheEvidence], workspace: Workspace, homeDirectory: URL,
-                           platform: String, catalog: any ApplicationCatalogReading, staticRules: [CleanupRule],
-                           inventoryRequired: Bool = true) throws {
+                           platform: String, catalog: any ApplicationCatalogReading, staticRules: [CleanupRule]) throws {
         guard !evidence.isEmpty else { return }
         guard supports(workspace, homeDirectory: homeDirectory, platform: platform), Set(evidence.map(\.ruleId)).count == evidence.count else {
             throw ShouError("store_corrupt", "Installed application cache scope is invalid.")
         }
-        let inventory: ApplicationCatalog?
-        do { inventory=inventoryRequired ? try catalog.read(options: ApplicationCatalogOptions()) : nil }
+        let inventory: ApplicationCatalog
+        do { inventory=try catalog.read(options: ApplicationCatalogOptions()) }
         catch {
             if Task.isCancelled || (error as? ShouError)?.code == "cancelled" { throw ShouError("cancelled", "Application discovery stopped.") }
             throw ShouError("plan_stale", "Installed application ownership could not be verified; scan again.")
         }
-        if let inventory, inventory.status != "complete" { throw ShouError("plan_stale", "Installed application ownership could not be verified; scan again.") }
         for item in evidence {
             _ = try rule(item, workspace: workspace)
+            guard inventory.status == "complete" || item.ownershipCoverageIncomplete == true else {
+                throw ShouError("plan_stale", "Application discovery coverage changed; scan again to review the ownership limitation.")
+            }
             let identifier=item.application.bundleIdentifier!
             guard !covered(identifier, by: staticRules) else { throw ShouError("plan_stale", "A maintained rule already defines this cache scope; scan again.") }
-            if let inventory {
-                let owners=inventory.items.filter { $0.bundleIdentifier?.lowercased() == identifier.lowercased() }
-                guard owners.count == 1, owners.first == item.application else {
-                    throw ShouError("plan_stale", "Installed application ownership changed; scan again.")
-                }
+            let owners=inventory.items.filter { $0.bundleIdentifier?.lowercased() == identifier.lowercased() }
+            guard owners.count == 1, owners.first == item.application, verified(item.application, in: inventory) else {
+                throw ShouError("plan_stale", "Installed application ownership changed; scan again.")
             }
             do {
                 guard try catalog.application(at: item.application.path) == item.application else { throw ShouError("plan_stale", "Installed application identity changed; scan again.") }

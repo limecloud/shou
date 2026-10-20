@@ -52,6 +52,7 @@ enum PermanentExecution {
             if receipt.items[index].state != "purged" { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "purged" } ? "completed" : "partial" }
+        progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "purging"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
         receipt.volumeAvailableAfter=filesystem.availableBytes(workspace.path)
         try save()
         return receipt

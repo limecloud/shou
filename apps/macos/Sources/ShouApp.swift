@@ -92,6 +92,8 @@ struct CleanupCompletion: Identifiable {
     var ruleDraftPattern=""
     var builtins: [CleanupRule]=[]
     var scanProgress: ScanProgress?
+    private var scanEntryCounts=[String: Int]()
+    var scanEntryCount: Int { scanningLocation == nil ? (scanProgress?.entryCount ?? 0) : scanEntryCounts.values.reduce(0, +) }
     var selection=Set<String>()
     var history: [ExecutionReceipt]=[]
     var followups: [FollowUpReceipt]=[]
@@ -107,6 +109,7 @@ struct CleanupCompletion: Identifiable {
     var isExecuting=false
     var stopRequested=false
     var executionProgress: ExecutionProgress?
+    private var executionOperation=UUID()
     var error: String?
     var statusKey=""
     var prompt: ReviewPrompt?
@@ -156,8 +159,20 @@ struct CleanupCompletion: Identifiable {
         case "moving": t("Moving items to Trash…")
         case "restoring": t("Restoring selected items…")
         case "purging": t("Permanently removing selected items…")
+        case "privacy-cleaning": t("Cleaning browser privacy…")
+        case "finalizing": t("Finishing cleanup…")
         default: t("Checking selected items…")
         }
+    }
+    func beginExecution(total: Int) -> UUID {
+        executionOperation=UUID(); isExecuting=true; stopRequested=false; operationHadError=false
+        executionProgress=ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: total)
+        return executionOperation
+    }
+    func updateExecutionProgress(_ update: ExecutionProgress, operation: UUID) {
+        guard isExecuting, executionOperation == operation,
+              update.processedCount >= (executionProgress?.processedCount ?? 0) else { return }
+        executionProgress=update
     }
     func date(_ value: Date) -> String { value.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(language.locale)) }
     var workspace: Workspace? { configuration.workspaces.first { $0.id == workspaceId } }
@@ -287,7 +302,7 @@ struct CleanupCompletion: Identifiable {
     }
     func scanStartup() {
         guard !busy else { return }
-        busy=true; startupLoading=true; startupInventory=nil
+        busy=true; startupLoading=true; stopRequested=false; startupInventory=nil
         statusKey="Reading startup definitions…"
         let options=StartupInventoryOptions(includeSystem: startupIncludeSystem)
         task=Task {
@@ -326,7 +341,7 @@ struct CleanupCompletion: Identifiable {
             scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(cleanAfterScan: cleanAfterScan, permanentAfterScan: permanentAfterScan, accessChecked: true) }
             return
         }
-        busy=true; scanning=true; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
+        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanEntryCounts=[:]; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
         statusKey="Preparing common app scan…"
         let operation=UUID(); operationID=operation
         task=Task {
@@ -336,6 +351,7 @@ struct CleanupCompletion: Identifiable {
                     Task { @MainActor in
                         guard let self, self.scanning, self.operationID == operation else { return }
                         self.scanningLocation=location; self.scanProgress=progress
+                        self.scanEntryCounts[location.id]=max(self.scanEntryCounts[location.id] ?? 0, progress.entryCount)
                     }
                 })
                 commonReview=try await Task.detached(priority: .userInitiated) { try CleanupReview(snapshots: result.snapshots, locations: result.locations) }.value
@@ -401,7 +417,7 @@ struct CleanupCompletion: Identifiable {
             } catch { self.error=error.localizedDescription }
         }
     }
-    func cancel() { if isExecuting { stopRequested=true }; task?.cancel(); space.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
+    func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
     func stopAndWaitForExecution() async -> Bool {
         guard isExecuting else { return !operationHadError && error == nil }
         let running=task
@@ -561,7 +577,8 @@ struct CleanupCompletion: Identifiable {
     }
     func confirm(_ review: ReviewPrompt) {
         guard let engine, !busy else { return }
-        prompt=nil; busy=true; scanProgress=nil; isExecuting=true; stopRequested=false; executionProgress=nil; operationHadError=false
+        prompt=nil; busy=true; scanProgress=nil
+        let execution=beginExecution(total: review.itemIds.isEmpty ? review.paths.count : review.itemIds.count)
         let operation=UUID(); operationID=operation
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
@@ -569,14 +586,20 @@ struct CleanupCompletion: Identifiable {
                 if ["trash", "permanent"].contains(review.action) {
                     let plans=review.plans.isEmpty ? [ReviewedPlan(id: review.id, digest: review.digest, workspacePath: "")] : review.plans
                     var receipts: [ExecutionReceipt]=[], failures: [String]=[]
+                    var processed=0
                     for plan in plans {
                         if Task.isCancelled { failures.append(plan.workspacePath + "\n" + t("Cleanup stopped before this location was processed.")); continue }
-                        do { receipts.append(try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { [weak self] update in
+                        let processedBefore=processed, total=review.paths.count
+                        do {
+                            let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { [weak self] update in
                             Task { @MainActor in
                                 guard let self, self.isExecuting, self.operationID == operation else { return }
-                                self.executionProgress=update
+                                self.updateExecutionProgress(update.inBatch(processedBefore: processedBefore, itemCount: total), operation: execution)
                             }
-                        })) }
+                            })
+                            receipts.append(receipt)
+                            processed += receipt.items.filter { !["pending", "moving", "purging"].contains($0.state) }.count
+                        }
                         catch {
                             if (error as? ShouError)?.code != "cancelled" { operationHadError=true }
                             failures.append(plan.workspacePath + "\n" + error.localizedDescription)
@@ -593,7 +616,7 @@ struct CleanupCompletion: Identifiable {
                     let results=try await engine.followUp(executionId: review.id, itemIds: review.itemIds, action: review.action, confirmedDigest: review.digest, progress: { [weak self] update in
                         Task { @MainActor in
                             guard let self, self.isExecuting, self.operationID == operation else { return }
-                            self.executionProgress=update
+                            self.updateExecutionProgress(update, operation: execution)
                         }
                     })
                     if results.contains(where: { $0.state != "completed" }) {
@@ -674,7 +697,8 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 190, ideal: 215)
         } detail: {
             VStack(spacing: 0) {
-                if model.section == "smart" { SmartScanView(model: model) }
+                if model.isExecuting { ExecutionProgressView(model: model) }
+                else if model.section == "smart" { SmartScanView(model: model) }
                 else if model.section == "rules" { RulesView(model: model, editor: $ruleEditor) }
                 else if model.section == "startup" { StartupInventoryView(model: model) }
                 else if model.section == "applications" { ApplicationsView(model: model, session: model.applicationsSession) }
@@ -684,13 +708,6 @@ struct ContentView: View {
                 else if model.section == "storage" { StorageBrowser(model: model, inspector: inspector) }
                 else if model.section == "large-files" { LargeFilesView(model: model, session: model.largeFiles) }
                 else { CleanupView(model: model, inspector: inspector) }
-                if model.isExecuting {
-                    ExecutionProgressView(title: model.executionTitle,
-                        currentPath: model.executionProgress?.path, processedCount: model.executionProgress?.processedCount ?? 0,
-                        totalCount: model.executionProgress?.itemCount ?? 0,
-                        countText: model.executionProgress.map { String(format: model.t("%lld of %lld items processed"), $0.processedCount, $0.itemCount) } ?? "",
-                        stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping at a safe boundary…"), onStop: model.cancel)
-                }
                 Divider()
                 HStack {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)

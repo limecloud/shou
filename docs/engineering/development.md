@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/engineering/development.md)
 
 This guide covers source builds. A development build is not a signed, notarized release or evidence that every acceptance gate has passed.
 
+For the C#/.NET 10/WPF client and Swift Windows adapters, see [Windows implementation](windows.md) and [Windows build instructions](../../apps/windows/README.md).
+
 ## Toolchain and layout
 
 Use Swift 6 or later and the macOS SDK, with macOS 14 as the deployment baseline. The root Swift package builds the native application, independent CLI, portable core, platform adapter, and isolated test executable. No model SDK, JavaScript dependency manager, or running desktop process is required for the CLI.

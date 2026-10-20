@@ -7,7 +7,7 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 ## Status and conventions
 
 - Updated: 2026-10-20. Status: active development; the native application, core, and CLI have source implementations. Complete release acceptance remains pending.
-- Confirmed constraints: native Swift macOS UI, independent desktop and CLI workflows, a monorepo, future Windows support, and no model integration or agent development.
+- Confirmed constraints: native Swift macOS and C#/WPF Windows UI, independent desktop and CLI workflows, a monorepo, and no model integration or agent development. Windows remains a development implementation pending native acceptance.
 - macOS 14+, module boundaries, rule fields, command names, and budgets are design baselines subject to recorded decisions.
 - Performance, safety, language, and compatibility statements below are acceptance targets, not verified runtime capabilities.
 - Example projects, paths, IDs, and capacity ranges are illustrative.
@@ -29,6 +29,7 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 | Install the agent Skill | [Skill installation and distribution](ai/skill-distribution.md) |
 | Plan implementation | [Milestones](engineering/implementation-plan.md) → [Testing](engineering/acceptance-and-testing.md) |
 | Build and verify locally | [Development guide](engineering/development.md) |
+| Build the native Windows client | [Windows stack, implementation and acceptance](engineering/windows.md) |
 
 ## Product principles
 
@@ -54,4 +55,5 @@ Synchronize identifiers, states, fields, defaults, and safety constraints when c
 - [Reference capability map and implementation gates](engineering/reference-capability-map.md)
 
 - [Privacy cleaning and source contracts](engineering/privacy-cleaning.md)
+- [Operation progress and feedback](product/operation-progress.md)
 - [Mole application inventory and rule coverage](engineering/mole-rule-coverage.md)

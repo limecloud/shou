@@ -69,14 +69,16 @@ struct StartupInventoryView: View {
                 Toggle(model.t("Include Apple system definitions"), isOn: $model.startupIncludeSystem)
                     .toggleStyle(.checkbox).disabled(model.busy).accessibilityIdentifier("startup.includeSystem")
                 if model.startupLoading {
-                    Button(model.t("Stop")) { model.cancel() }.accessibilityIdentifier("startup.stop")
+                    Button(model.t(model.stopRequested ? "Stopping…" : "Stop")) { model.cancel() }.disabled(model.stopRequested).accessibilityIdentifier("startup.stop")
                 } else {
                     Button { model.scanStartup() } label: { Label(model.t("Check Again"), systemImage: "arrow.clockwise") }
                         .disabled(model.busy).accessibilityIdentifier("startup.refresh")
                 }
             }
             if model.startupLoading {
-                ActivityIndicator(title: model.t("Reading startup definitions…")).frame(maxWidth: .infinity, maxHeight: .infinity)
+                OperationProgressView(title: model.t("Reading startup definitions…"), symbol: "power",
+                    countText: model.t("Discovering startup items…"), stopRequested: model.stopRequested,
+                    stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
             } else if let report=model.startupInventory {
                 HStack {
                     Text(String(format: model.t("%lld definitions found"), locale: model.language.locale, report.items.count))

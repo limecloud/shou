@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/architecture/monorepo-and-platforms.md)
 
-Status: design draft. macOS ships first; Windows is a formal future target.
+Status: active implementation. macOS ships first; the native Windows development implementation has separate acceptance gates.
 
 ## 1. Organization principles
 
@@ -12,14 +12,14 @@ Mobile projects, model integrations, and agent hosting are outside scope. Build 
 
 ## 2. Target layout
 
-The root Swift package builds current macOS/CLI/core/platform targets. Windows and brand-source directories below remain future deliverables. See [local development](../engineering/development.md).
+The root Swift package builds macOS/CLI/core/platform and Windows-native check targets. The WPF client uses its own .NET solution. See [local development](../engineering/development.md) and [Windows implementation](../engineering/windows.md).
 
 ```text
 shou/
 ├── apps/
 │   ├── macos/                  Swift / SwiftUI / AppKit
 │   ├── cli/                    Swift CLI with current-platform adapters
-│   └── windows/                Future native Windows UI
+│   └── windows/                C# / .NET 10 / WPF Fluent / MVVM
 ├── packages/
 │   ├── shou-core/              Portable domain services and state machines
 │   ├── shou-platform/          Concrete filesystem and permission adapters
@@ -47,7 +47,7 @@ flowchart TB
     Mac --> AgentSupport[skills / ShouAgentSupport]
     CLI --> AgentSupport
     Platform --> AgentSupport
-    Windows[Future apps/windows] -.JSON process bridge.-> CLI
+    Windows[apps/windows WPF] -.JSON process bridge.-> CLI
     Core --> Protocols[Core-owned capability protocols]
     Platform --> Protocols
     Contracts[packages/shou-contracts] -.Machine definitions.-> Core
@@ -76,9 +76,9 @@ Windows uses a native desktop UI and `shou.exe`, with the same rule, plan, error
 
 Prefer a structured process bridge to the shared Swift CLI rather than an early Swift/C# ABI bridge or duplicate engine. Use argument arrays, bounded JSON stdin/stdout, explicit exit handling, and no concatenated Shell command.
 
-Select one of WinUI 3 or WPF after a native prototype; do not maintain both. Lock Swift/.NET versions, architectures, minimum Windows version, runtime delivery, and Recycle Bin/identity/locking APIs through evidence.
+The UI decision is C# / .NET 10 LTS / WPF Fluent / MVVM, reusing the structured-process practice from Zhiban. The initial target is Windows 11 x64 with Swift 6.2.3. Full File ID/SID, ACL, LockFileEx and IFileOperation adapters are implemented; native behavior and distribution still require Windows evidence.
 
-A future GUI confirmation bridge needs an explicit contract; do not introduce a global `--yes` bypass just to support IPC. Swift language support does not make Apple frameworks portable.
+The request-scoped confirmation bridge binds a one-use challenge and digest. Read operations cancel their owned process; mutations stop cooperatively with durable receipts. Recycle Bin mutations default to unavailable pending native acceptance. See [protocol and verification boundaries](../engineering/windows.md). Swift language support does not make Apple frameworks portable.
 
 ## 6. Path contract
 

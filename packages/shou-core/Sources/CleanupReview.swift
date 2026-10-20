@@ -7,6 +7,7 @@ public struct CleanupSource: Sendable, Identifiable {
     public let candidate: Candidate
     public let fileCount: Int
     public let selectable: Bool
+    public let recommendationEligible: Bool
     public var id: String { snapshotId + ":" + candidate.id }
     public var path: String { workspace.path + "/" + candidate.relativePath }
     /// Distinguishes maintained rules from explicitly enabled personal rules.
@@ -35,7 +36,7 @@ public struct CleanupReview: Sendable {
     public var bytes: Int64 { categories.reduce(0) { $0 + $1.bytes } }
     /// Scans contain enabled rules only. Draft previews and incomplete or
     /// blocked candidates remain ineligible for the repeated one-click path.
-    public var recommendedSources: [CleanupSource] { sources.filter(\.selectable) }
+    public var recommendedSources: [CleanupSource] { sources.filter { $0.selectable && $0.recommendationEligible } }
 
     public init() { categories=[] }
 
@@ -81,7 +82,8 @@ public struct CleanupReview: Sendable {
             if indexes[snapshot.id] == nil { indexes[snapshot.id]=StorageIndex(entries: snapshot.entries) }
             grouped[key, default: []].append(CleanupSource(snapshotId: snapshot.id, workspace: snapshot.workspace, candidate: candidate,
                 fileCount: indexes[snapshot.id]?.nodes[candidate.relativePath]?.fileCount ?? 0,
-                selectable: candidate.eligible && !snapshot.previewOnly && TreeSnapshot(entries: [], complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: [], caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths).isComplete(at: candidate.relativePath)))
+                selectable: candidate.eligible && !snapshot.previewOnly && TreeSnapshot(entries: [], complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: [], caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths).isComplete(at: candidate.relativePath),
+                recommendationEligible: !(snapshot.installedApplicationCaches ?? []).contains { candidate.ruleIds.contains($0.ruleId) && $0.ownershipCoverageIncomplete == true }))
             definitions[key]=(template?.name ?? installedCache?.application.name ?? "Personal Rules", category,
                 template?.applicationBundleIdentifiers ?? installedCache?.application.bundleIdentifier.map { [$0] } ?? [])
         }

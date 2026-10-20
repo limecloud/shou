@@ -24,10 +24,6 @@ struct SmartScanView: View {
             Divider()
             if model.scanning {
                 VStack(alignment: .leading, spacing: 0) {
-                    CapacityDots(segments: [], scanning: true).frame(height: 86).padding(.horizontal, 24).padding(.top, 20)
-                    if let location=model.scanningLocation {
-                        Text(model.t(location.title)).font(.headline).padding(.horizontal, 24).padding(.top, 20)
-                    }
                     ScanActivity(model: model)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else if model.systemResult != nil {
@@ -54,7 +50,7 @@ struct SmartScanView: View {
             Spacer(minLength: 8)
             if model.scanning {
                 Button { model.cancel() } label: { Label(model.t("Stop"), systemImage: "stop.fill") }
-                    .controlSize(.large)
+                    .controlSize(.large).disabled(model.stopRequested)
             } else if model.systemResult != nil {
                 Menu {
                     Button(model.t("Scan Locations…")) { scanLocations=true }

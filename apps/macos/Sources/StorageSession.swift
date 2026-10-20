@@ -231,11 +231,12 @@ struct StorageLocation: Identifiable {
     }
     func execute(app: AppModel, plan: StorageRemovalPlan) {
         guard let engine=app.engine, !app.busy else { return }
-        self.plan=nil; app.busy=true; app.isExecuting=true; app.stopRequested=false; app.executionProgress=nil; app.operationHadError=false
+        self.plan=nil; app.busy=true
+        let execution=app.beginExecution(total: plan.items.count)
         task=Task {
             do {
                 let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { update in
-                    Task { @MainActor in app.executionProgress=update }
+                    Task { @MainActor in app.updateExecutionProgress(update, operation: execution) }
                 })
                 let removed=receipt.items.filter { ["trashed", "purged"].contains($0.state) }.map(\.relativePath)
                 app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }

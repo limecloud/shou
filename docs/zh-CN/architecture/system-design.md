@@ -1,5 +1,7 @@
 # 系统架构
 
+扫描与执行的统一反馈、跨位置计数、停止状态及进度架构、流程与时序见[操作进度与反馈](../product/operation-progress.md)。
+
 [English](../../architecture/system-design.md) | 简体中文
 
 当前桌面导航、自动发现及个人规则复用以此为准：[统一日常清理](../product/unified-cleanup.md)。
@@ -127,9 +129,9 @@ flowchart LR
 
 `scanKnownLocations` 先盘点并注册全部可用根，再分别生成 `ScanSnapshot`，避免后续注册使前序快照的配置摘要失效。确定缺失的位置跳过，访问失败与不完整扫描单独记录。桌面标准扫描自动发现常见开发目录并复用记住的扫描位置；CLI 的 `system scan` 仅在 `--include-projects true` 时纳入，默认 `false`。两者默认使用清理扫描模式，均不隐式遍历整个主目录寻找项目、不改变系统权限、不删除目标。每个计划绑定单一根及明确选择的候选项。
 
-`InstalledApplicationCaches` 仅扩展 macOS 当前用户精确的 `Library/Caches` 根。`ApplicationCatalogReading` 提供真实安装包身份及 Info.plist 证据，`ApplicationUninstallChecking` 提供只读归属活动事实，不调用卸载流程。完整盘点与唯一合法标识才生成精确目录规则；静态范围优先，包括已禁用及后代窄规则。快照／计划的可选字段绑定已选 Owner，创建计划和执行预检重新盘点，逐项变更前再读具体应用与运行状态，随后复用永久或废纸篓执行。安装包归属和缓存归属分别判断，管理员拥有的第三方安装包仍可对应当前用户的合格缓存；此能力不选择安装包、支持数据或容器。
+`InstalledApplicationCaches` 仅扩展 macOS 当前用户精确的 `Library/Caches` 根。`ApplicationCatalogReading` 提供真实安装包身份及 Info.plist 证据，`ApplicationUninstallChecking` 提供只读归属活动事实，不调用卸载流程。有效实装 Owner、已发现范围内无重复的合法标识及无重叠发现异常才生成精确目录规则；静态范围优先，包括已禁用及后代窄规则。快照／计划的可选字段绑定已选 Owner 和 partial 覆盖标记；创建计划、执行预检及每项变更前均重新盘点、读取精确应用与运行状态，随后复用永久或废纸篓执行。安装包归属和缓存归属分别判断，管理员拥有的第三方安装包仍可对应当前用户的合格缓存；此能力不选择安装包、支持数据或容器。
 
-盘点不可用／不完整时，明确省略通用覆盖，保留静态扫描并在系统结果显示发现问题；重复标识省略相关通用目标。快照的文件系统状态不隐含应用盘点完整。详见[日常清理架构、流程与时序](../product/unified-cleanup.md#已安装应用缓存)和[可选证据合同](data-model.md#4-扫描与计划状态)。
+盘点不可用时省略通用发现；partial 盘点保留真实状态，并按 Owner 路径局部隔离。Owner 自身、后代、祖先路径异常，来源不可用／未检查或已发现重复标识，会阻断相应缓存；其他已核验 Owner 保持可手选，覆盖提示绑定摘要且不进入自动推荐。完整证据变为 partial 时必须重新扫描并明确审阅。静态扫描继续可用，系统结果明确投影发现问题。快照的文件系统状态不隐含应用盘点完整。详见[日常清理架构、流程与时序](../product/unified-cleanup.md#已安装应用缓存)和[可选证据合同](data-model.md#4-扫描与计划状态)。
 
 ### 扫描覆盖与产物证据
 

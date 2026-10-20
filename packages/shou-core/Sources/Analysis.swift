@@ -85,7 +85,7 @@ public enum Analysis {
             }
             let manifest = subtreeSorted(ordered, path: path)
             var identities=Set<String>(); logical=0; allocated=0
-            for entry in manifest where entry.kind != "symlink" && identities.insert("\(entry.device):\(entry.inode)").inserted {
+            for entry in manifest where entry.kind != "symlink" && identities.insert(entry.objectIdentityKey).inserted {
                 logical += max(0, entry.logicalBytes); allocated += max(0, entry.allocatedBytes)
             }
             let exclusions = workspace.exclusions + matches.flatMap(\.exclude.relativePatterns)
@@ -96,7 +96,7 @@ public enum Analysis {
                 let b=tree.caseSensitive ? protected : protected.lowercased()
                 return a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
             }) { reasons.append("protected_content") }
-            if manifest.contains(where: { $0.owner != workspace.identity.owner }) { reasons.append("protected_content") }
+            if manifest.contains(where: { !$0.hasSameOwner(as: workspace.identity) }) { reasons.append("protected_content") }
             let dependency = path.split(separator: "/").last == "node_modules" && matches.contains { $0.risk.declaredLevel == "high" }
             for entry in manifest {
                 let full = entry.path == "." ? path : path + "/" + entry.path

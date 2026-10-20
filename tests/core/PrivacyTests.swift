@@ -170,3 +170,59 @@ func privacyIntegerTimeBoundsAndUnknownCascadesAreConservative() async throws {
     try expect(unsupported.sources.first { $0.definition.relativePath == chromeCookies }?.status == .schemaUnsupported)
     try expect(try privacyScalar(chromium, "SELECT COUNT(*) FROM unrelated_accounts") == 1)
 }
+
+private final class PrivacyProgressProbe: @unchecked Sendable {
+    private let lock=NSLock()
+    private var values=[ExecutionProgress]()
+    var events: [ExecutionProgress] { lock.lock(); defer { lock.unlock() }; return values }
+    func record(_ event: ExecutionProgress) { lock.lock(); defer { lock.unlock() }; values.append(event) }
+}
+
+func privacyProgressTracksSourcesAndCommittedOutcomes() async throws {
+    let fixture=try Fixture(), service=privacyService(fixture), probe=PrivacyProgressProbe()
+    let recent=Int64((privacyDate.timeIntervalSince1970 + 11_644_473_600 - 60) * 1_000_000)
+    let url=fixture.workspace.appendingPathComponent(chromeHistory)
+    try privacySQL(url, chromeSchema(recent: recent, old: recent-7_200_000_000))
+    let scan=try await service.scan(range: .lastHour, progress: probe.record)
+    let scanEvents=probe.events
+    try expect(scanEvents.first?.itemCount == 0)
+    try expect(scanEvents.last?.processedCount == scan.sources.count && scanEvents.last?.itemCount == scan.sources.count)
+    try expect(zip(scanEvents, scanEvents.dropFirst()).allSatisfy { $0.processedCount <= $1.processedCount })
+    let source=try require(scan.sources.first { $0.definition.relativePath == chromeHistory })
+    let plan=try await service.preparePlan(scanId: scan.id, sourceIDs: [source.id])
+    let execute=PrivacyProgressProbe()
+    let receipt=try await service.execute(planId: plan.id, digest: plan.digest, consent: PrivacyConsent(irreversibleDeletion: true), progress: execute.record)
+    try expect(receipt.state == "completed")
+    try expect(execute.events.first?.stage == "preflight" && execute.events.first?.processedCount == 0)
+    try expect(execute.events.last?.stage == "privacy-cleaning" && execute.events.last?.processedCount == 1)
+    try expect(execute.events.allSatisfy { $0.itemCount == 1 && !$0.path.contains("private.example") && !$0.path.contains("History") })
+    try expect(try privacyScalar(url, "SELECT COUNT(*) FROM visits") == 1)
+    let saved=try require(fixture.store.read("privacy-history", id: receipt.id))
+    try expect(try Codec.decode(PrivacyReceipt.self, from: saved).items.first?.removedRecords == 1)
+}
+
+func privacyProgressCancellationPreservesRemainingSources() async throws {
+    let fixture=try Fixture(), service=privacyService(fixture), probe=PrivacyProgressProbe()
+    let recent=Int64((privacyDate.timeIntervalSince1970 + 11_644_473_600 - 60) * 1_000_000)
+    let history=fixture.workspace.appendingPathComponent(chromeHistory), cookies=fixture.workspace.appendingPathComponent(chromeCookies)
+    try privacySQL(history, chromeSchema(recent: recent, old: recent))
+    try privacySQL(cookies, "CREATE TABLE cookies(last_access_utc INTEGER); INSERT INTO cookies VALUES(\(recent));")
+    let scan=try await service.scan(range: .lastHour)
+    let sources=scan.sources.filter(\.eligible)
+    try expect(sources.count == 2)
+    let plan=try await service.preparePlan(scanId: scan.id, sourceIDs: sources.map(\.id), acknowledgeSignOut: true)
+    let task=Task {
+        try await service.execute(planId: plan.id, digest: plan.digest, consent: PrivacyConsent(irreversibleDeletion: true, signOut: true), progress: { update in
+            probe.record(update)
+            if update.stage == "privacy-cleaning", update.processedCount == 1 { withUnsafeCurrentTask { $0?.cancel() } }
+        })
+    }
+    let receipt=try await task.value
+    try expect(receipt.state == "partial" && receipt.items.filter { $0.state == "completed" }.count == 1)
+    try expect(probe.events.last?.processedCount == 1 && probe.events.allSatisfy { $0.processedCount < 2 })
+    for item in receipt.items {
+        let source=try require(sources.first { $0.id == item.sourceId })
+        let count=try privacyScalar(fixture.workspace.appendingPathComponent(source.definition.relativePath), source.definition.kind == .history ? "SELECT COUNT(*) FROM visits" : "SELECT COUNT(*) FROM cookies")
+        try expect(count == (item.state == "completed" ? 0 : source.recordCount ?? -1))
+    }
+}

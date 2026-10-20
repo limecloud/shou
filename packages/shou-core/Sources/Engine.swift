@@ -42,8 +42,11 @@ public actor ShouEngine {
         copy.exclusions=ExclusionSettings(globalPatterns: configuration.globalExclusions ?? [], workspaceId: workspace.id, workspacePatterns: workspace.exclusions).effectivePatterns
         let prefix=workspace.path.hasSuffix("/") ? workspace.path : workspace.path + "/"
         copy.protectedRelativePaths=store.protectedPaths.compactMap { path in
-            if path == workspace.path { return "." }
-            return path.hasPrefix(prefix) ? String(path.dropFirst(prefix.count)) : nil
+            let compared=filesystem.caseSensitivePaths ? path : path.lowercased()
+            let root=filesystem.caseSensitivePaths ? workspace.path : workspace.path.lowercased()
+            let start=filesystem.caseSensitivePaths ? prefix : prefix.lowercased()
+            if compared == root { return "." }
+            return compared.hasPrefix(start) ? String(path.dropFirst(prefix.count)) : nil
         }
         return copy
     }
@@ -54,7 +57,8 @@ public actor ShouEngine {
     /// target manifests continue to require their exact device/inode evidence.
     private func rootIdentityMatches(_ current: FileEntry, _ saved: FileEntry) -> Bool {
         current.sameObject(as: saved) ||
-            (current.kind == "directory" && saved.kind == "directory" &&
+            (current.windowsIdentity == nil && saved.windowsIdentity == nil &&
+             current.kind == "directory" && saved.kind == "directory" &&
              current.inode == saved.inode && current.owner == saved.owner)
     }
 
@@ -78,6 +82,7 @@ public actor ShouEngine {
         catch { throw ShouError("store_corrupt", "Stored record is invalid.", details: ["id": id]) }
     }
     public func addWorkspace(path: String, rootRef: String) throws -> Workspace {
+        let path=try filesystem.normalizedPath(path)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         guard rootRef.range(of: "^[a-z][a-z0-9-]{0,79}$", options: .regularExpression) != nil else { throw ShouError("invalid_argument", "Invalid logical workspace root reference.") }
         let lease = try store.lock(); defer { lease.release() }
@@ -270,10 +275,13 @@ public actor ShouEngine {
             additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: workspace) })
         let budget=plan.scanBudget ?? ScanBudget()
         try budget.validate()
-        let currentTree = try inspect(registered.path, rules: currentRules, scope: plan.scanScope ?? .full, budget: budget)
+        let currentTree = try inspect(registered.path, rules: currentRules, scope: plan.scanScope ?? .full, budget: budget, progress: { [itemCount=plan.items.count] update in
+            progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: itemCount, path: update.currentPath))
+        })
         let currentEntries=Dictionary(uniqueKeysWithValues: currentTree.entries.map { ($0.path, $0) })
         let currentCandidates = try Analysis.candidates(tree: currentTree, workspace: workspace, rules: currentRules, now: now(), artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds)
         for item in plan.items {
+            progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.items.count, path: plan.workspace.path + "/" + item.candidate.relativePath))
             try PathPattern.validate(item.candidate.relativePath)
             guard currentCandidates.contains(where: { $0.relativePath == item.candidate.relativePath && $0.eligible && $0.manifestDigest == item.candidate.manifestDigest && $0.ruleVersions == item.candidate.ruleVersions }),
                   try Digest.of(item.manifest) == item.candidate.manifestDigest else { throw ShouError("plan_stale", "Current policy or full manifest no longer permits this target.") }
@@ -334,13 +342,13 @@ public actor ShouEngine {
         try InstalledApplicationCaches.discover(workspace: workspace, homeDirectory: homeDirectory, platform: filesystem.platform,
             catalog: applicationCatalog, staticRules: builtinRules(for: workspace))
     }
-    private func revalidateInstalledCaches(_ evidence: [InstalledApplicationCacheEvidence], workspace: Workspace, inventoryRequired: Bool = true) throws {
+    private func revalidateInstalledCaches(_ evidence: [InstalledApplicationCacheEvidence], workspace: Workspace) throws {
         try InstalledApplicationCaches.revalidate(evidence, workspace: workspace, homeDirectory: homeDirectory, platform: filesystem.platform,
-            catalog: applicationCatalog, staticRules: builtinRules(for: workspace), inventoryRequired: inventoryRequired)
+            catalog: applicationCatalog, staticRules: builtinRules(for: workspace))
     }
     private func installedCacheBlock(for item: PlanItem, evidence: [InstalledApplicationCacheEvidence], workspace: Workspace) throws -> String? {
         let selected=try InstalledApplicationCaches.selected(evidence, ruleIds: item.candidate.ruleIds)
-        try revalidateInstalledCaches(selected, workspace: workspace, inventoryRequired: false)
+        try revalidateInstalledCaches(selected, workspace: workspace)
         return try InstalledApplicationCaches.blocked(selected, workspace: workspace, activity: uninstallEvidence).values.sorted().first
     }
     private func activeRules(_ config: Configuration, workspaceId: String, additionalBuiltins: [CleanupRule] = []) throws -> [CleanupRule] {
@@ -419,7 +427,13 @@ public actor ShouEngine {
                     try filesystem.restore(trashPath, to: item.originalPath, expected: item.manifest); result.resultingPath=item.originalPath
                 } else { try filesystem.purge(trashPath, expected: item.manifest) }
                 result.state="completed"
-            } catch { result.state="failed"; result.error=TrashExecution.diagnostic(error) }
+            } catch {
+                // An uncertain native move retains its durable intent, which
+                // blocks replay until read-only history inspection resolves it.
+                result.state=(error as? ShouError)?.code == "restore_outcome_unknown" ? "pending" : "failed"
+                result.resultingPath=(error as? ShouError)?.details["resulting_path"]
+                result.error=TrashExecution.diagnostic(error)
+            }
             try save(result, collection: "followups", id: result.id); results.append(result)
             progress(ExecutionProgress(stage: stage, processedCount: results.count, itemCount: items.count, path: path))
         }

@@ -4,6 +4,8 @@
 
 本文介绍从源码构建。开发构建不代表已经签名、公证或完成全部验收。
 
+C#/.NET 10/WPF 客户端与 Swift Windows 适配见 [Windows 实现](windows.md)和 [Windows 构建说明](../../../apps/windows/README.md)。
+
 ## 工具链与工程
 
 使用 Swift 6 及以上版本与 macOS SDK，部署基线为 macOS 14。根目录 Swift Package 构建原生应用、独立 CLI、可移植核心、平台适配与隔离测试程序。CLI 不需要模型 SDK、JavaScript 包管理器或运行中的桌面应用。
