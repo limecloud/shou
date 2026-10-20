@@ -12,7 +12,10 @@ try {
     if ($Stage -in @("All", "Build")) {
         swift build -c $swiftConfiguration --jobs 4 --product shou
         if ($LASTEXITCODE -ne 0) { throw "Swift CLI build failed." }
-        swift build -c $swiftConfiguration --jobs 4 --product shou-windows-tests
+        # Swift 6.2.3's Windows optimizer can assert in SIL partitioning for
+        # this test executable. Keep the production CLI optimized while
+        # compiling the validation binary without optimization.
+        swift build -c $swiftConfiguration --jobs 4 --product shou-windows-tests -Xswiftc -Onone
         if ($LASTEXITCODE -ne 0) { throw "Windows native check build failed." }
         Push-Location (Join-Path $repo "apps/windows")
         try {
