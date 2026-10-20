@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Exercise the real desktop protocol using generated, isolated files only."""
 import argparse
-import getpass
 import json
 import os
 from pathlib import Path
@@ -109,10 +108,14 @@ def main():
             directory.mkdir()
             (directory / "fixture.bin").write_bytes(b"isolated desktop fixture" * 32)
         environment = dict(os.environ, SHOU_DATA_DIR=str(root / "records"))
+        if args.native_trash:
+            environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] = "1"
         if os.name == "nt":
             # Elevated CI accounts can create fixtures owned by Administrators.
             # Set only these newly generated files to the current user.
-            subprocess.run(["icacls", str(workspace), "/setowner", getpass.getuser(), "/T", "/Q"],
+            identity = next(token for token in subprocess.check_output(["whoami", "/user"], text=True).split()
+                             if token.startswith("S-1-"))
+            subprocess.run(["icacls", str(workspace), "/setowner", identity, "/T", "/Q"],
                            check=True, stdout=subprocess.DEVNULL)
 
         def success(operation, values=None):
@@ -122,7 +125,7 @@ def main():
 
         capabilities = success("capabilities")
         assert capabilities["features"]["permanent"] is True
-        if capabilities["platform"] == "windows":
+        if capabilities["platform"] == "windows" and args.native_trash:
             assert capabilities["features"]["trash"] and capabilities["features"]["restore"]
         assert capabilities["features"]["applications"] is False
         print("PASS real capability and version discovery", flush=True)
