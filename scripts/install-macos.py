@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify and install a local Shou build, retaining the previous app and all records."""
+"""Verify and replace a local Shou installation without retaining the old app."""
 import argparse
 import datetime
 import hashlib
@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import plistlib
 import re
+import shutil
 import subprocess
 import uuid
 
@@ -53,7 +54,8 @@ def main():
     args = parser.parse_args()
     source = args.source.expanduser().resolve(strict=True)
     destination = args.destination.expanduser().absolute()
-    if source == destination or destination.name != 'Shou.app' or destination.is_symlink():
+    if (source == destination or destination.name != 'Shou.app' or destination.is_symlink()
+            or source.is_relative_to(destination) or destination.is_relative_to(source)):
         raise ValueError('Choose a separate, real Shou.app installation path.')
     info = verify(source)
     if args.check:
@@ -75,30 +77,22 @@ def main():
     run('ditto', str(source), str(staged))
     verify(staged)
     expected = hashes(staged)
-    backup = evidence / 'previous/Shou.app'
     if destination.exists():
-        backup.parent.mkdir()
-        # Keep the entire previous installation; no destructive replacement.
-        os.rename(destination, backup)
-        retained = backup
-    else:
-        retained = None
-    try:
-        os.rename(staged, destination)
-        verify(destination)
-        if hashes(destination) != expected:
-            raise RuntimeError('Installed app bytes differ from the verified candidate.')
-        after = hashes(records)
-        if any(after.get(name) != digest for name, digest in before.items()):
-            raise RuntimeError('An existing Shou record changed during installation.')
-    except Exception:
-        if destination.exists():
-            os.rename(destination, evidence / 'failed-Shou.app')
-        if retained is not None:
-            os.rename(retained, destination)
-        raise
+        previous_info = plistlib.loads((destination / 'Contents/Info.plist').read_bytes())
+        if previous_info.get('CFBundleIdentifier') != 'dev.limecloud.shou':
+            raise ValueError('Refusing to replace an application with a different bundle identifier.')
+        # The replacement is fully staged and verified first. Remove only the selected
+        # application bundle; user records and settings live outside it.
+        shutil.rmtree(destination)
+    os.rename(staged, destination)
+    verify(destination)
+    if hashes(destination) != expected:
+        raise RuntimeError('Installed app bytes differ from the verified candidate.')
+    after = hashes(records)
+    if any(after.get(name) != digest for name, digest in before.items()):
+        raise RuntimeError('An existing Shou record changed during installation.')
     result = {'installed': str(destination), 'version': info['CFBundleShortVersionString'],
-              'signing_mode': info.get('ShouSigningMode', 'unknown'), 'backup': str(backup) if backup.exists() else None,
+              'signing_mode': info.get('ShouSigningMode', 'unknown'), 'backup': None, 'installation_mode': 'replace',
               'verified_file_count': len(expected), 'preserved_record_count': len(before)}
     (evidence / 'verification.json').write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))

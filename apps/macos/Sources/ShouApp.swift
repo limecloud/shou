@@ -725,7 +725,7 @@ struct ContentView: View {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.5.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.6.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {

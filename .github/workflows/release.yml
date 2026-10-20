@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.5.0
+        default: v0.6.0
 
 permissions:
   contents: read
@@ -40,6 +40,10 @@ jobs:
           ref: ${{ env.SHOU_RELEASE_TAG }}
       - name: Full tests including native Trash, restore, and permanent removal
         run: sh scripts/test.sh --native-trash-purge
+      - name: Storage metadata, directory workers, and cancellation
+        run: |
+          SHOU_STORAGE_SCAN_WORKERS=1 .build/debug/shou-tests --storage-performance-only
+          SHOU_STORAGE_SCAN_WORKERS=8 .build/debug/shou-tests --storage-performance-only
       - name: Native cleanup and restoration of more than 100,000 files
         run: .build/debug/shou-tests --native-large-trash-only
       - name: Build and verify release application

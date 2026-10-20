@@ -204,7 +204,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.5.0"
+    static let version = "0.6.0"
     static func main() async {
         if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
         #if canImport(Darwin) || canImport(Glibc)

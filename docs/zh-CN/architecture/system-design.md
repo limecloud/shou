@@ -299,6 +299,8 @@ flowchart LR
 
 默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。
 
+macOS Worker 使用有界目录 FIFO，最多八个读取器并发执行批量元数据查询；SQLite 追加与后序总量更新保持串行。父任务取消会传递到读取器，发布结果前等待全部读取与汇总任务结束。详见[扫描架构、流程与时序](../engineering/storage-scan-performance.md)。
+
 ## 大文件查询边界
 
 ```mermaid

@@ -45,7 +45,7 @@ The source-tree helper creates `~/.local/bin/shou`, a small launcher that execut
 ```mermaid
 flowchart LR
     Build[Build app and CLI] --> Package[Signed app and adjacent resources]
-    Package --> Install[Back up and update local app]
+    Package --> Install[Verify and replace local app]
     Install --> Entry[Install user bin launcher]
     Entry --> Native[Execute packaged CLI at its real path]
     Native --> Discovery[Scoped help and capabilities]
@@ -121,11 +121,11 @@ Space catalogs link SQLite 3 through the `CSQLite` system-library target. The ma
 
 ## Install a verified local build
 
-Run `python3 "scripts/install-macos.py" --check` after building to validate the bundle signature, matching desktop/CLI version, and adjacent Skill resources. Quit Shou normally, then run `python3 "scripts/install-macos.py"`. The installer stages and verifies the app, retains the previous installation under `.build/local-install/`, verifies installed bytes, preserves existing Shou records, and restores the previous app if installation verification fails. The default source and destination must be on the same filesystem for atomic rename. It never edits macOS privacy permissions.
+Run `python3 "scripts/install-macos.py" --check` after building to validate the bundle signature, matching desktop/CLI version, and adjacent Skill resources. Quit Shou normally, then run `python3 "scripts/install-macos.py"`. The installer stages and verifies the replacement before removing the selected old application bundle, installs the new app, and verifies installed bytes and existing Shou records. It does not retain an old application copy or change settings and macOS privacy permissions. Verification reports remain under `.build/local-install/`.
 
 For a stable local signing identity, explicitly set `SHOU_SIGNING_IDENTITY` to your Developer ID Application certificate hash when running `sh "scripts/build-macos.sh" release native`. No identity is selected automatically from the keychain. With no selection, the build is ad-hoc signed and updates may invalidate privacy approvals. Set `SHOU_SIGNING_TIMESTAMP=required` for a network timestamp; notarization remains a separate release requirement. See [installation and disk access](../product/installation-and-access.md).
 
-Targeted regressions: `shou-tests --scan-access-only` and `shou-tests --storage-performance-only`. The latter compares bulk metadata against the exact stat-based evidence, including sparse files, hard links and Unicode names. macOS uses batch metadata reads when all fields are available, falls back to per-file stat when necessary, and passes known parent IDs directly into SQLite. This changes measurement throughput, not cleanup authorization.
+Targeted regressions: `shou-tests --scan-access-only` and `shou-tests --storage-performance-only`. The latter compares bulk metadata against the exact stat-based evidence, including sparse files, hard links and Unicode names, and reports the bounded directory-worker benchmark. macOS uses batch metadata reads when all fields are available, falls back to per-file stat when necessary, and passes known parent IDs directly into SQLite. See [storage scan performance](storage-scan-performance.md) for the worker model, progress throttling and benchmark protocol. This changes measurement throughput, not cleanup authorization.
 
 ## Targeted batch, privacy and rule verification
 

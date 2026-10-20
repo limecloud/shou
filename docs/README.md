@@ -29,6 +29,7 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 | Install the agent Skill | [Skill installation and distribution](ai/skill-distribution.md) |
 | Plan implementation | [Milestones](engineering/implementation-plan.md) → [Testing](engineering/acceptance-and-testing.md) |
 | Build and verify locally | [Development guide](engineering/development.md) |
+| Understand scan performance | [Storage scan performance and concurrency](engineering/storage-scan-performance.md) |
 | Build the native Windows client | [Windows stack, implementation and acceptance](engineering/windows.md) |
 
 ## Product principles

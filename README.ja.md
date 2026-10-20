@@ -15,9 +15,9 @@
 
 ## ダウンロードとインストール
 
-Shou v0.5.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
+Shou v0.6.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
 
-[**Shou v0.5.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.5.0/Shou-0.5.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.5.0/shou-0.5.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.6.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.6.0/Shou-0.6.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.6.0/Shou-0.6.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.6.0/shou-0.6.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 この版は ad-hoc 署名で、Apple の公証は受けていません。初回起動がブロックされた場合は、配布元を確認してから**システム設定 → プライバシーとセキュリティ**で開く許可を確認してください。
 

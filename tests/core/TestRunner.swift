@@ -74,7 +74,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             do {
                 try storageBulkMetadataPreservesExactStatEvidence()
                 try storageCatalogParentIDsPreserveNestedNamesAndTotals()
-                print("2/2 bulk storage metadata and catalog parent-ID equivalence tests passed; generated fixtures only.")
+                try storageParallelDirectoryBenchmark()
+                try await storageDirectoryWorkersObserveParentTaskCancellation()
+                print("4/4 bulk storage metadata, catalog parent-ID equivalence, directory benchmark and worker cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage performance: \(error)"); Foundation.exit(1) }
             return
         }
@@ -209,6 +211,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("CLI installation preserves symbolic links", { try cliInstallationPreservesSymbolicLinks() }),
             ("Bulk metadata preserves exact stat evidence", { try storageBulkMetadataPreservesExactStatEvidence() }),
             ("Catalog parent IDs preserve nested names and totals", { try storageCatalogParentIDsPreserveNestedNamesAndTotals() }),
+            ("Directory workers observe parent task cancellation", { try await storageDirectoryWorkersObserveParentTaskCancellation() }),
             ("Streaming storage catalog measures later siblings", { try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories() }),
             ("Storage catalog deduplicates hard links without following symlinks", { try await storageCatalogAccountsHardLinksAndOpaqueLinks() }),
             ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),

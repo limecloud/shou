@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/architecture/workflows-and-sequences.md)
 
 Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
 
+The macOS space-analysis reader pool, catalog writer, postorder aggregation and cancellation sequence are documented in [storage scan performance](../engineering/storage-scan-performance.md).
+
 Status: current workflow contract. Diagrams describe the implemented desktop fast path, reviewed desktop path, CLI/Agent contract and their remaining acceptance limits.
 
 

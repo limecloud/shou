@@ -4,6 +4,8 @@
 
 当前桌面导航、自动发现及个人规则复用以此为准：[统一日常清理](../product/unified-cleanup.md)。
 
+macOS 空间分析读取池、catalog 写入器、后序汇总及取消时序见[空间扫描性能](../engineering/storage-scan-performance.md)。
+
 状态：当前流程合同。以下图描述已实现的桌面快速路径、桌面详情路径、CLI/Agent 合同及仍待验收的边界。
 
 

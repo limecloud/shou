@@ -23,6 +23,18 @@ public struct NativeFileSystem: PlatformFileSystem {
         "linux"
         #endif
     }
+    // Keep the storage-catalog witnesses on the conformance declaration. Swift otherwise may
+    // bind a protocol existential to PlatformFileSystem's fallback implementation when the
+    // streaming methods live in a later source-file extension.
+    public var supportsStorageCatalog: Bool { true }
+    public func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool,
+                               progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
+        try withoutActuallyEscaping(cancelled) { escapingCancelled in
+            try withoutActuallyEscaping(progress) { escapingProgress in
+                try measureStorageImpl(path, catalog: catalog, cancelled: escapingCancelled, progress: escapingProgress)
+            }
+        }
+    }
     public var supportsTrash: Bool { trashUnavailableReason == nil }
     public var trashUnavailableReason: String? {
         #if os(macOS)

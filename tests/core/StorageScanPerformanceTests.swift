@@ -1,4 +1,5 @@
 import Foundation
+import Dispatch
 import ShouCore
 import ShouPlatform
 
@@ -25,9 +26,12 @@ func storageBulkMetadataPreservesExactStatEvidence() throws {
     let catalog=try StorageCatalog(url: url)
     var actual=[FileEntry]()
     try catalog.forEachEntry { actual.append($0) }
-    try expect(reference.complete && measurement.tree.complete)
+    guard reference.complete && measurement.tree.complete else {
+        throw CheckFailure(description: "Reference issues: \(reference.issues); catalog issues: \(measurement.tree.issues)")
+    }
     try expect(measurement.entryCount == reference.entries.count)
-    try expect(actual.sorted { $0.path < $1.path } == reference.entries.sorted { $0.path < $1.path })
+    let actualSorted=actual.sorted { $0.path < $1.path }, referenceSorted=reference.entries.sorted { $0.path < $1.path }
+    try expect(actualSorted == referenceSorted)
     let expected=try require(StorageIndex(entries: reference.entries).nodes["."])
     let root=try require(catalog.entry(at: "."))
     try expect(root.node.logicalBytes == expected.logicalBytes && root.node.allocatedBytes == expected.allocatedBytes)
@@ -58,3 +62,68 @@ func storageCatalogParentIDsPreserveNestedNamesAndTotals() throws {
     try expect(try loaded.entry(at: "nested")?.node.allocatedBytes == parent.node.allocatedBytes)
     try expect(try loaded.entry(at: ".")?.node.fileCount == 1)
 }
+
+/// A repeatable generated fixture for the directory-worker path. The test reports elapsed time
+/// for local APFS runs without making a machine-specific latency assertion.
+func storageParallelDirectoryBenchmark() throws {
+    let fixture=try Fixture()
+    let filesPerDirectory=1_000
+    for directory in 0..<8 {
+        for file in 0..<filesPerDirectory {
+            try fixture.put("bench/dir-\(directory)/file-\(file).bin", String(repeating: "x", count: 128))
+        }
+    }
+    let started=Date(), catalogURL=fixture.base.appendingPathComponent("benchmark.sqlite")
+    let measurement=try fixture.fs.measureStorage(fixture.workspace.path, catalog: catalogURL, cancelled: { false }, progress: { _ in })
+    let elapsed=Date().timeIntervalSince(started)
+    let workers=max(1, min(8, ProcessInfo.processInfo.environment["SHOU_STORAGE_SCAN_WORKERS"].flatMap(Int.init) ?? ProcessInfo.processInfo.activeProcessorCount))
+    print("storage benchmark: entries=\(measurement.entryCount) elapsed=\(String(format: "%.3f", elapsed))s workers=\(workers)")
+    try expect(measurement.entryCount == filesPerDirectory * 8 + 14)
+    try expect(measurement.tree.complete)
+}
+
+#if os(macOS)
+private final class StorageWorkerCancellationProbe: @unchecked Sendable {
+    private var originatingThread: Thread?
+    private let lock=NSLock()
+    private var blocked=false
+    let started=DispatchSemaphore(value: 0)
+    let resume=DispatchSemaphore(value: 0)
+    func begin() { lock.lock(); originatingThread=Thread.current; lock.unlock() }
+    func checkpoint() -> Bool {
+        lock.lock()
+        let shouldBlock = !blocked && Thread.current !== originatingThread
+        if shouldBlock { blocked=true }
+        lock.unlock()
+        if shouldBlock {
+            started.signal()
+            _ = resume.wait(timeout: .now() + 10)
+        }
+        return false
+    }
+}
+
+func storageDirectoryWorkersObserveParentTaskCancellation() async throws {
+    let fixture=try Fixture(), probe=StorageWorkerCancellationProbe()
+    let task=Task.detached {
+        probe.begin()
+        return try fixture.fs.measureStorage(fixture.workspace.path,
+            catalog: fixture.base.appendingPathComponent("cancel-worker.sqlite"),
+            cancelled: { probe.checkpoint() }, progress: { _ in })
+    }
+    let started=await withCheckedContinuation { continuation in
+        DispatchQueue.global().async {
+            continuation.resume(returning: probe.started.wait(timeout: .now() + 10) == .success)
+        }
+    }
+    task.cancel()
+    probe.resume.signal()
+    do {
+        _ = try await task.value
+        throw CheckFailure(description: "Directory workers must observe the parent task's cancellation.")
+    } catch let error as ShouError { try expect(error.code == "cancelled") }
+    try expect(started)
+}
+#else
+func storageDirectoryWorkersObserveParentTaskCancellation() async throws {}
+#endif

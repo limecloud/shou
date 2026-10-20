@@ -276,6 +276,8 @@ Space analysis now supports local volume/folder discovery and direct explicit fi
 
 Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
 
+On macOS, this worker uses a bounded FIFO of directories and up to eight concurrent readers. Bulk metadata reads overlap; SQLite appends and postorder totals remain serialized. Cancellation propagates from the parent task into the readers, and all tasks join before publication. See [scan architecture, flow and sequence](../engineering/storage-scan-performance.md).
+
 ### Privacy domain
 
 Privacy records have a separate source model from cache files. GUI and CLI share `PrivacyService`; the platform discovers standard profiles and no-follow identities. Core checks time bounds, schema, activity, exclusions and fingerprints before per-source transactions. Receipts retain aggregates only; irreversible logical deletion has no restoration or disk-space promise. See [privacy architecture, flow, sequence and support matrix](../engineering/privacy-cleaning.md).
