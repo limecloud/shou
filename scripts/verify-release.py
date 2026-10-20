@@ -68,8 +68,13 @@ def verify_packaged_resource_lookup(executable, resources, base, app=None):
     assert run('rules', 'catalog', '--workspace', binding['id']) == [], 'Packaged cleanup rules were ignored'
     assert run('rules', 'schema'), 'Packaged rule schema could not be loaded'
     skill = run('agent', 'skill')
-    assert Path(skill['entrypoint']).is_relative_to(base.parent), 'Source-tree skill leaked into a relocated release'
-    assert (Path(skill['directory']) / 'references/questionnaire.md').is_file()
+    # Foundation can report /var while Python resolves the same path to /private/var.
+    # Require the exact shipped bundle after resolving these filesystem aliases.
+    skill_directory = (resources.parent / 'Shou_ShouAgentSupport.bundle/shou-rule-authoring').resolve(strict=True)
+    assert Path(skill['directory']).resolve(strict=True) == skill_directory, 'Source-tree skill leaked into a relocated release'
+    assert Path(skill['entrypoint']).resolve(strict=True) == skill_directory / 'SKILL.md'
+    for name in ('SKILL.md', 'references/questionnaire.md', 'agents/openai.yaml'):
+        assert (skill_directory / name).read_bytes() == (Path('skills/shou-rule-authoring') / name).read_bytes(), 'Stale packaged agent skill'
 
 
 with tempfile.TemporaryDirectory(prefix='shou-distribution-') as directory:

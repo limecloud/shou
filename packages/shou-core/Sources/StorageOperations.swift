@@ -93,14 +93,17 @@ extension ShouEngine {
         guard path == "/" || (path.hasPrefix("/") && StorageRemovalPolicy.validRelative(String(path.dropFirst()))) else { throw ShouError("invalid_argument", "Select an absolute normalized analysis root.") }
         let identity=try filesystem.analysisRootIdentity(path)
         let tree=try filesystem.inspect(path, budget: budget, cancelled: { Task.isCancelled }, progress: progress)
+        if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         guard tree.entries.first(where: { $0.path == "." })?.sameObject(as: identity) == true else { throw ShouError("plan_stale", "Analysis root changed during scanning.") }
         let scan=StorageScan(id: Codec.id("storage"), rootPath: path, identity: identity, createdAt: now(), tree: tree)
-        try store.write("storage-scans", id: scan.id, data: Codec.encode(scan))
+        progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, currentPath: path, limitReached: tree.issues.contains("resource_limit")))
+        try StorageScanRecords.save(scan, store: store) {
+            if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        }
         return scan
     }
     public func storageScan(_ id: String) throws -> StorageScan {
-        guard let data=try store.read("storage-scans", id: id) else { throw ShouError("invalid_argument", "Unknown space analysis.") }
-        return try Codec.decode(StorageScan.self, from: data)
+        try StorageScanRecords.load(id, store: store)
     }
     public func storageRemovalReason(scan: StorageScan, path: String) -> String? {
         guard let entry=scan.tree.entries.first(where: { $0.path == path }) else { return "Item is absent from this analysis." }

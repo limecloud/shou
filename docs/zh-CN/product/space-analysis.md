@@ -18,6 +18,8 @@ flowchart LR
   UI[原生 macOS 空间浏览器] --> Core[ShouEngine 空间操作]
   CLI[analysis 命令] --> Core
   Core --> Scan[StorageScan：不可变目录树与根身份]
+  Core --> Worker[只读 Worker：有界结果分页]
+  Scan --> Pages[条目页与摘要核验元数据]
   Scan --> Index[StorageIndex 与 StorageSelection]
   Index --> UI
   Core --> Plan[StorageRemovalPlan：精确路径与完整清单]
@@ -34,7 +36,13 @@ flowchart LR
 ```mermaid
 flowchart TD
   A[选择磁盘或目录] --> B[只读分析]
-  B --> C{扫描结果}
+  B --> Limit{达到扫描上限?}
+  Limit -->|是| Partial[标记覆盖不完整]
+  Limit -->|否| Prepare[整理并加载已统计条目]
+  Partial --> Prepare
+  Prepare --> Save[分段保存后发布扫描元数据]
+  Save --> Index[后台构建空间图与查找索引：可取消]
+  Index --> C{扫描结果}
   C -->|完整或部分| D[浏览列表与树图]
   C -->|停止| A
   D --> E[明确选择文件或目录]
@@ -66,9 +74,16 @@ sequenceDiagram
   Engine->>FS: analysisRootIdentity(path)
   Engine->>Worker: inspect(path)
   Worker-->>Desktop: 当前路径与已统计项目数
-  Worker-->>Engine: TreeSnapshot 及覆盖缺口
-  Engine->>Store: 保存 StorageScan
-  Engine-->>Desktop: 列表与树图证据
+  Worker-->>Desktop: 整理及加载阶段、真实计数与限额状态
+  Worker-->>Engine: 有界结果分页、TreeSnapshot 及覆盖缺口
+  Engine-->>Desktop: 正在保存统计结果
+  loop 大分析中的每个条目页
+    Engine->>Store: 保存有界分页与 SHA-256 引用
+  end
+  Engine->>Store: 全部分页持久化后发布扫描元数据
+  Engine-->>Desktop: 已保存的分析证据
+  Desktop->>Desktop: 在主线程之外构建空间图与查找索引
+  Desktop-->>User: 列表与树图，明确显示部分覆盖
   User->>Desktop: 勾选并删除
   Desktop->>Engine: createStorageRemovalPlan(scanId, paths, mode)
   Engine->>FS: 重新检查明确选中的目标
@@ -94,7 +109,7 @@ sequenceDiagram
 
 分析整盘不授予删除卷根的权限。系统位置、容器根、凭据、云同步目录、Shou 自身记录、链接目标及特殊文件受保护。每个所选根目标必须属于当前用户；已注册工作区的当前排除配置也保护对应选中项及已测量后代。确认后文件发生变化会拒绝处理该项目，错误不会记作成功。停止扫描结束只读 worker；停止删除在已记账项目之间生效。
 
-限制必须明确：默认扫描最多 100 万项目、600 秒、128 层；一次请求最多 5000 条明确路径。确认前必须完整重新计量每个目标。本地 JSON 单条记录上限为 256 MiB；过大的分析或计划在写入前拒绝，不保存无法重读的记录。文件校验流式读取且内存有界，极大文件仍可能耗时或超过读取期限。符号链接按不透明项目计量，不能作为独立删除目标。遍历不跨文件系统、不下载云占位内容。硬链接计量是估计；APFS 克隆、快照及废纸篓会影响实际释放空间。树图前 160 项之后归入其他项目，目录列表保留全部已测量项目。
+限制必须明确：默认扫描最多 100 万项目、600 秒、128 层；一次请求最多 5000 条明确路径。确认前必须完整重新计量每个目标。本地 JSON 单条记录上限为 256 MiB。超过 10000 条目的分析按页保存并记录 SHA-256 摘要，所有页面持久化后才发布扫描元数据，既有单条扫描记录仍可读取；过大的计划在写入前拒绝。进度区分计量、结果加载、保存与空间图索引，停止操作也会在有界检查点取消索引。文件校验流式读取且内存有界，极大文件仍可能耗时或超过读取期限。符号链接按不透明项目计量，不能作为独立删除目标。遍历不跨文件系统、不下载云占位内容。硬链接计量是估计；APFS 克隆、快照及废纸篓会影响实际释放空间。树图前 160 项之后归入其他项目，目录列表保留全部已测量项目。
 
 ## CLI
 

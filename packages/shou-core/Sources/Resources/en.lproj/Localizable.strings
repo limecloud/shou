@@ -110,6 +110,7 @@
 "Build process names must be exact executable names." = "Build process names must be exact executable names.";
 "Build process output could not be decoded." = "Build process output could not be decoded.";
 "Build tools recreate outputs when needed" = "Build tools recreate outputs when needed";
+"Building the space map…" = "Building the space map…";
 "Built-in Rules" = "Built-in Rules";
 "Built-in and enabled personal rules are ready to clean." = "Built-in and enabled personal rules are ready to clean.";
 "Built-in items are preselected. Personal rules stay opt-in." = "Built-in items are preselected. Personal rules stay opt-in.";
@@ -383,6 +384,7 @@
 "Linked definition was not followed" = "Linked definition was not followed";
 "Links, special files and the scan root cannot be removed here." = "Links, special files and the scan root cannot be removed here.";
 "Loaded" = "Loaded";
+"Loading measured results…" = "Loading measured results…";
 "Local data" = "Local data";
 "Local store is unavailable." = "Local store is unavailable.";
 "Location" = "Location";
@@ -481,6 +483,7 @@
 "Opening local data…" = "Opening local data…";
 "Operation stopped. Review History for remaining items." = "Operation stopped. Review History for remaining items.";
 "Or inspect a common location" = "Or inspect a common location";
+"Organizing measured entries…" = "Organizing measured entries…";
 "Original Location" = "Original Location";
 "Original workspace identity changed." = "Original workspace identity changed.";
 "Other" = "Other";
@@ -659,6 +662,7 @@
 "Saved as a disabled draft. Review and enable it in Rules, then scan again." = "Saved as a disabled draft. Review and enable it in Rules, then scan again.";
 "Saved state" = "Saved state";
 "Saving %lld entries…" = "Saving %lld entries…";
+"Saving space analysis…" = "Saving space analysis…";
 "Scan" = "Scan";
 "Scan & Clean" = "Scan & Clean";
 "Scan & Free Space" = "Scan & Free Space";
@@ -675,6 +679,7 @@
 "Scan complete. Review candidates before cleanup." = "Scan complete. Review candidates before cleanup.";
 "Scan is incomplete. Cleanup is unavailable; you can still explore measured space." = "Scan is incomplete. Cleanup is unavailable; you can still explore measured space.";
 "Scan is read-only. Clean Recommended opens one confirmation." = "Scan is read-only. Clean Recommended opens one confirmation.";
+"Scan limit reached. Preparing the measured results; coverage is incomplete." = "Scan limit reached. Preparing the measured results; coverage is incomplete.";
 "Scan progress" = "Scan progress";
 "Scan stopped." = "Scan stopped.";
 "Scan to find build outputs, dependencies, and large unclassified directories. Nothing is selected automatically." = "Scan to find build outputs, dependencies, and large unclassified directories. Nothing is selected automatically.";
@@ -758,6 +763,7 @@
 "Source could not be read" = "Source could not be read";
 "Space Analysis" = "Space Analysis";
 "Space analysis complete." = "Space analysis complete.";
+"Space analysis entry pages are missing or inconsistent." = "Space analysis entry pages are missing or inconsistent.";
 "Space by Directory" = "Space by Directory";
 "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt." = "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.";
 "Start Over" = "Start Over";
@@ -786,6 +792,8 @@
 "Stop the operation and quit Shou?" = "Stop the operation and quit Shou?";
 "Stopping after the current item…" = "Stopping after the current item…";
 "Stopping at a safe boundary…" = "Stopping at a safe boundary…";
+"Stopping scan…" = "Stopping scan…";
+"Stopping…" = "Stopping…";
 "Stored record is invalid." = "Stored record is invalid.";
 "Stored rule digest verification failed." = "Stored rule digest verification failed.";
 "Support" = "Support";

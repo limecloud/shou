@@ -27,12 +27,23 @@ struct StorageLocation: Identifiable {
     var sort="size"
     var progress: ScanProgress?
     var scanning=false
+    var stopRequested=false
     var reviewing=false
     var plan: StorageRemovalPlan?
     var elapsed: TimeInterval=0
     var startedAt=Date()
     private var task: Task<Void, Never>?
     private var operation=UUID()
+    var progressTitle: String {
+        if stopRequested { return "Stopping scan…" }
+        switch progress?.stage {
+        case "analysis": return "Organizing measured entries…"
+        case "transferring", "loading", "validating": return "Loading measured results…"
+        case "saving": return "Saving space analysis…"
+        case "indexing": return "Building the space map…"
+        default: return "Analyzing disk space…"
+        }
+    }
     var selectedBytes: Int64 { selected.reduce(0) { $0 + (index.nodes[$1]?.allocatedBytes ?? 0) } }
     var children: [StorageNode] {
         let nodes=index.children(of: path).filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }
@@ -90,24 +101,42 @@ struct StorageLocation: Identifiable {
     func start(app: AppModel, retainPath: Bool = false) {
         guard let engine=app.engine, !app.busy else { return }
         let root=location, previous=retainPath ? path : ".", token=UUID(); operation=token
-        app.busy=true; scanning=true; progress=nil; selected=[]; plan=nil; startedAt=Date()
+        app.busy=true; scanning=true; stopRequested=false; progress=nil; selected=[]; plan=nil; startedAt=Date()
         app.statusKey="Scanning disk usage…"
         task=Task {
-            defer { if operation == token { app.busy=false; scanning=false } }
+            defer { if operation == token { app.busy=false; scanning=false; stopRequested=false } }
             do {
                 let result=try await engine.scanStorage(path: root, progress: { [weak self] update in
-                    Task { @MainActor in guard let self, self.operation == token else { return }; self.progress=update }
+                    Task { @MainActor in
+                        guard let self, self.operation == token, self.scanning, !self.stopRequested,
+                              self.progress?.stage != "indexing" else { return }
+                        self.progress=update
+                    }
                 })
-                let tree=await Task.detached(priority: .userInitiated) { StorageIndex(entries: result.tree.entries) }.value
-                guard !Task.isCancelled, operation == token else { return }
-                scan=result; index=tree; entries=Dictionary(uniqueKeysWithValues: result.tree.entries.map { ($0.path,$0) })
+                try Task.checkCancellation()
+                progress=ScanProgress(stage: "indexing", entryCount: result.tree.entries.count, currentPath: root, limitReached: result.tree.issues.contains("resource_limit"))
+                let indexing=Task.detached(priority: .userInitiated) {
+                    let tree=try StorageIndex(entries: result.tree.entries, checkpoint: { try Task.checkCancellation() })
+                    var entries=[String: FileEntry]()
+                    entries.reserveCapacity(result.tree.entries.count)
+                    for (index, entry) in result.tree.entries.enumerated() {
+                        if index % 4096 == 0 { try Task.checkCancellation() }
+                        entries[entry.path]=entry
+                    }
+                    try Task.checkCancellation()
+                    return (tree, entries)
+                }
+                let (tree, lookup)=try await withTaskCancellationHandler { try await indexing.value } onCancel: { indexing.cancel() }
+                try Task.checkCancellation()
+                guard operation == token else { return }
+                scan=result; index=tree; entries=lookup
                 path=tree.nodes[previous]?.kind == "directory" ? previous : "."; focus=nil; hovered=nil; back=[]; forward=[]
                 elapsed=Date().timeIntervalSince(startedAt)
                 app.statusKey=result.tree.complete ? "Space analysis complete." : "Some locations could not be measured. Review scan coverage."
             } catch { if !Task.isCancelled { app.error=error.localizedDescription }; app.statusKey="Scan stopped." }
         }
     }
-    func stop() { task?.cancel() }
+    func stop() { if scanning { stopRequested=true }; task?.cancel() }
     func waitForOperation() async { await task?.value }
     func restart(app: AppModel) {
         guard !app.busy else { return }

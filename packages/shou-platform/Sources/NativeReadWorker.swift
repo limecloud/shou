@@ -23,14 +23,19 @@ private struct ReadProgress: Codable, Sendable {
     let stage: String
     let entryCount: Int
     let currentPath: String
+    let limitReached: Bool?
 }
 private struct ReadResponse: Codable, Sendable {
     let version: Int
     let id: String
     let identity: FileEntry?
-    let snapshot: TreeSnapshot?
+    var snapshot: TreeSnapshot?
     let error: ShouError?
+    var entryCount: Int? = nil
+    var pageDigests: [String]? = nil
 }
+
+private let readEntryPageSize=10_000
 
 /// Keeps at most two children alive, including any child awaiting kernel exit
 /// after SIGKILL. Repeated cancellation cannot accumulate unbounded workers.
@@ -96,15 +101,19 @@ struct NativeReadClient {
         guard let snapshot=response.snapshot, response.identity == nil,
               let root=snapshot.entries.first(where: { $0.path == "." }), root.kind == "directory",
               snapshot.entries.count <= budget.maxEntries,
-              snapshot.entries.map(\.path) == snapshot.entries.map(\.path).sorted(),
-              Set(snapshot.entries.map(\.path)).count == snapshot.entries.count,
               !snapshot.complete || snapshot.issues.isEmpty,
               snapshot.discoveryComplete != true || snapshot.issues.isEmpty else { throw invalidResponse() }
-        for entry in snapshot.entries {
+        progress(ScanProgress(stage: "validating", entryCount: snapshot.entries.count, currentPath: path, limitReached: snapshot.issues.contains("resource_limit")))
+        var previous: String?
+        var directories=Set<String>()
+        for (index, entry) in snapshot.entries.enumerated() {
+            if index % 4096 == 0, cancelled() || Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
             guard validRelativePath(entry.path), ["directory", "file", "symlink", "special"].contains(entry.kind),
-                  entry.device == root.device, entry.logicalBytes >= 0, entry.allocatedBytes >= 0 else { throw invalidResponse() }
+                  entry.device == root.device, entry.logicalBytes >= 0, entry.allocatedBytes >= 0,
+                  previous.map({ $0 < entry.path }) ?? true else { throw invalidResponse() }
+            previous=entry.path
+            if entry.kind == "directory" { directories.insert(entry.path) }
         }
-        let directories=Set(snapshot.entries.filter { $0.kind == "directory" }.map(\.path))
         guard (snapshot.completedPaths ?? []).allSatisfy({ directories.contains($0) }) else { throw invalidResponse() }
         if cancelled() || Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         return snapshot
@@ -147,23 +156,33 @@ struct NativeReadClient {
             if process.isRunning { kill(process.processIdentifier, SIGKILL) }
         }
         var lastProgress=Data()
-        while process.isRunning {
-            try check()
+        var lastUpdate: ScanProgress?
+        func readProgress() {
             if let data=try? ReadChannel.read(progressURL, limit: 65_536), data != lastProgress,
                let update=try? Codec.decode(ReadProgress.self, from: data), update.id == request.id,
                update.entryCount >= 0, update.entryCount <= request.budget.maxEntries,
-               ["scanning", "analysis"].contains(update.stage) {
-                progress(ScanProgress(stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath))
+               ["scanning", "analysis", "transferring"].contains(update.stage) {
+                let value=ScanProgress(stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached ?? false)
+                lastUpdate=value
+                progress(value)
                 lastProgress=data
             }
+        }
+        while process.isRunning {
+            try check()
+            readProgress()
             Thread.sleep(forTimeInterval: 0.025)
         }
         ReadChildren.shared.remove(request.id)
         try check()
         guard process.terminationReason == .exit, process.terminationStatus == 0 else { throw invalidResponse() }
+        readProgress()
         let limit=min(536_870_912, max(1_048_576, request.budget.maxEntries * 2048 + 1_048_576))
+        if request.operation == .inspect {
+            progress(ScanProgress(stage: "loading", entryCount: lastUpdate?.entryCount ?? 0, currentPath: request.path, limitReached: lastUpdate?.limitReached ?? false))
+        }
         let data=try ReadChannel.read(resultURL, limit: limit, check: check)
-        let response: ReadResponse
+        var response: ReadResponse
         do { response=try Codec.decode(ReadResponse.self, from: data) }
         catch { throw invalidResponse() }
         try check()
@@ -172,6 +191,24 @@ struct NativeReadClient {
             guard response.identity == nil, response.snapshot == nil else { throw invalidResponse() }
             throw failure
         }
+        if let count=response.entryCount {
+            guard request.operation == .inspect, response.identity == nil,
+                  var snapshot=response.snapshot, snapshot.entries.isEmpty,
+                  count > readEntryPageSize, count <= request.budget.maxEntries,
+                  let digests=response.pageDigests, digests.count == (count + readEntryPageSize - 1) / readEntryPageSize else { throw invalidResponse() }
+            snapshot.entries.reserveCapacity(count)
+            for (index, digest) in digests.enumerated() {
+                try check()
+                let url=channel.appendingPathComponent("entries-" + String(index) + ".json")
+                let data=try ReadChannel.read(url, limit: readEntryPageSize * 8192 + 1_048_576, check: check)
+                guard Digest.sha256(data) == digest else { throw invalidResponse() }
+                guard let entries=try? Codec.decode([FileEntry].self, from: data) else { throw invalidResponse() }
+                try check()
+                guard entries.count == min(readEntryPageSize, count - index * readEntryPageSize) else { throw invalidResponse() }
+                snapshot.entries.append(contentsOf: entries)
+            }
+            response.snapshot=snapshot
+        } else if response.pageDigests != nil { throw invalidResponse() }
         return response
     }
 }
@@ -207,7 +244,7 @@ public enum NativeReadWorker {
             }
             watchdog.resume()
             defer { watchdog.cancel() }
-            let response: ReadResponse
+            var response: ReadResponse
             do {
                 let native=NativeFileSystem()
                 switch request.operation {
@@ -217,7 +254,7 @@ public enum NativeReadWorker {
                 case .inspect:
                     for rule in request.rules ?? [] { _ = try CleanupRule.parse(Codec.encode(rule)) }
                     let emit: @Sendable (ScanProgress) -> Void = { update in
-                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath), to: progressURL)
+                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached), to: progressURL)
                     }
                     let snapshot: TreeSnapshot
                     if let rules=request.rules {
@@ -226,10 +263,27 @@ public enum NativeReadWorker {
                         snapshot=try native.inspect(request.path, budget: request.budget, cancelled: { false }, progress: emit)
                     }
                     response=ReadResponse(version: 1, id: request.id, identity: nil, snapshot: snapshot, error: nil)
+                    emit(ScanProgress(stage: "transferring", entryCount: snapshot.entries.count, currentPath: request.path, limitReached: snapshot.issues.contains("resource_limit")))
                 }
             } catch {
                 response=ReadResponse(version: 1, id: request.id, identity: nil, snapshot: nil,
                     error: error as? ShouError ?? ShouError("io_error", "The location could not be inspected."))
+            }
+            if let snapshot=response.snapshot, snapshot.entries.count > readEntryPageSize {
+                var digests=[String]()
+                for offset in stride(from: 0, to: snapshot.entries.count, by: readEntryPageSize) {
+                    let end=min(offset + readEntryPageSize, snapshot.entries.count)
+                    let entries=Array(snapshot.entries[offset..<end])
+                    let data=try Codec.encode(entries)
+                    let url=channel.appendingPathComponent("entries-" + String(digests.count) + ".json")
+                    try data.write(to: url, options: .atomic)
+                    try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+                    digests.append(Digest.sha256(data))
+                }
+                response.entryCount=snapshot.entries.count
+                response.pageDigests=digests
+                var metadata=snapshot; metadata.entries=[]
+                response.snapshot=metadata
             }
             try ReadChannel.write(response, to: resultURL)
             return 0

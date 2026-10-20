@@ -1,6 +1,6 @@
 Shou v0.4.0 adds interactive space analysis, bundled AI rule-authoring Skills, automatic project discovery, and explicitly confirmed permanent cleanup.
 
-- Analyze a local disk or folder, browse its size-sorted list and treemap, navigate and filter directories, use Quick Look, and select explicit files or directories for removal.
+- Analyze a local disk or folder, browse its size-sorted list and treemap, navigate and filter directories, use Quick Look, and select explicit files or directories for removal. Large analyses use paged transfer and storage, show post-scan progress, and support cancellation while building the space map.
 - Review exact paths before deleting permanently or choosing Move to Trash. Completed items update the displayed tree; Trash restoration and separately confirmed purge remain available in History. Permanent deletion cannot be undone.
 - Customize cleanup with your existing AI agent. Install the bundled rule-authoring Skill for Codex or Claude Code, export a ZIP for WorkBuddy, or copy a prepared request with the exact CLI path and selected workspace. Shou does not launch external agents or call models.
 - Discover developer projects automatically and remember extra scan folders. Review scan locations from Settings alongside application caches and existing project workspaces.

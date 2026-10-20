@@ -251,7 +251,7 @@ public struct NativeFileSystem: PlatformFileSystem {
             } catch { issues.append("\(relative): \(error)") }
         }
         visit(root, "", 0, measuring: cleanupRules == nil)
-        progress(ScanProgress(stage: "scanning", entryCount: visitedCount))
+        progress(ScanProgress(stage: "analysis", entryCount: visitedCount, currentPath: path, limitReached: issues.contains("resource_limit")))
         return TreeSnapshot(entries: entries.sorted { $0.path < $1.path }, complete: cleanupRules == nil && issues.isEmpty, issues: issues, caseSensitive: caseSensitive, completedPaths: completedPaths.sorted(), discoveryComplete: cleanupRules == nil ? nil : issues.isEmpty)
     }
     public func availableBytes(_ path: String) -> Int64? {

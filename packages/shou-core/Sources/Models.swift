@@ -48,8 +48,9 @@ public struct ScanProgress: Sendable {
     public let stage: String
     public let entryCount: Int
     public let currentPath: String
-    public init(stage: String, entryCount: Int, currentPath: String = "") {
-        self.stage=stage; self.entryCount=entryCount; self.currentPath=currentPath
+    public let limitReached: Bool
+    public init(stage: String, entryCount: Int, currentPath: String = "", limitReached: Bool = false) {
+        self.stage=stage; self.entryCount=entryCount; self.currentPath=currentPath; self.limitReached=limitReached
     }
 }
 

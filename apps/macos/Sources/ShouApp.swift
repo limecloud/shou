@@ -142,6 +142,7 @@ struct CleanupCompletion: Identifiable {
     func diagnostic(_ message: String) -> String { message.components(separatedBy: "\n").map(t).joined(separator: "\n") }
     var displayTitle: String { language == .simplifiedChinese ? "Shou · 收拾一下" : "Shou" }
     var status: String {
+        if space.scanning { return t(space.progressTitle) }
         if scanning, let progress=scanProgress {
             if progress.stage == "preparing" { return t("Preparing common app scan…") }
             let key=progress.stage == "scanning" ? "Scanning: %lld entries" : progress.stage == "analysis" ? "Analyzing %lld entries…" : "Saving %lld entries…"

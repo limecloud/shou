@@ -24,6 +24,25 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-progress-only"] {
+            do {
+                try await storageWorkerReportsPostScanStagesAndExactLimit()
+                try storageWorkerPagesLargeResultsWithoutChangingEvidence()
+                try await storagePagedResultsRoundTripAndRejectCorruption()
+                try await storageCancellationDoesNotPublishIncompletePages()
+                try storageIndexCanCancelAndKeepsAccounting()
+                print("5/5 storage progress, paged transport, persistence and cancellation tests passed; generated fixtures only.")
+            } catch { print("FAIL storage progress: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-million-only"] {
+            do {
+                let started=Date()
+                try await storagePagedResultsRoundTripAndRejectCorruption(count: 1_000_000)
+                print("1/1 million-entry storage round-trip passed in \(Date().timeIntervalSince(started)) seconds; generated metadata only.")
+            } catch { print("FAIL million-entry storage: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--discovery-only"] {
             do {
                 try await projectDiscoveryFindsCollectionsWithoutRegistrationAndReusesPolicy()
@@ -60,6 +79,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Storage progress reports exact limit and post-scan stages", { try await storageWorkerReportsPostScanStagesAndExactLimit() }),
+            ("Paged read worker preserves evidence and cancels loading", { try storageWorkerPagesLargeResultsWithoutChangingEvidence() }),
+            ("Large storage pages round-trip and reject corruption", { try await storagePagedResultsRoundTripAndRejectCorruption() }),
+            ("Storage cancellation does not publish incomplete pages", { try await storageCancellationDoesNotPublishIncompletePages() }),
+            ("Storage index cancels without changing accounting", { try storageIndexCanCancelAndKeepsAccounting() }),
             ("SHA-256 known vector", { try sha256KnownVector() }),
             ("Schema and round trip", { try ruleSchemaAndRoundTrip() }),
             ("Personal draft authoring uses the closed portable contract", { try personalDraftUsesClosedContractAndPortableFields() }),

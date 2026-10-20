@@ -18,6 +18,8 @@ flowchart LR
   UI[Native macOS space browser] --> Core[ShouEngine storage operations]
   CLI[analysis commands] --> Core
   Core --> Scan[StorageScan: immutable tree and root identity]
+  Core --> Worker[Read-only worker: bounded result pages]
+  Scan --> Pages[Entry pages and digest-checked metadata]
   Scan --> Index[StorageIndex and StorageSelection]
   Index --> UI
   Core --> Plan[StorageRemovalPlan: literal paths and manifests]
@@ -34,7 +36,13 @@ flowchart LR
 ```mermaid
 flowchart TD
   A[Choose volume or folder] --> B[Read-only analysis]
-  B --> C{Result}
+  B --> Limit{Scan limit reached?}
+  Limit -->|Yes| Partial[Mark incomplete coverage]
+  Limit -->|No| Prepare[Organize and load measured entries]
+  Partial --> Prepare
+  Prepare --> Save[Persist bounded pages; publish scan metadata last]
+  Save --> Index[Build map and lookup in background; cancellable]
+  Index --> C{Result}
   C -->|Complete or partial| D[Browse list and treemap]
   C -->|Stopped| A
   D --> E[Select explicit files and directories]
@@ -66,9 +74,16 @@ sequenceDiagram
   Engine->>FS: analysisRootIdentity(path)
   Engine->>Worker: inspect(path)
   Worker-->>Desktop: Current path and entry count
-  Worker-->>Engine: TreeSnapshot with coverage gaps
-  Engine->>Store: Save StorageScan
-  Engine-->>Desktop: List and treemap evidence
+  Worker-->>Desktop: Organizing / loading; exact count and limit state
+  Worker-->>Engine: Bounded result pages; TreeSnapshot with coverage gaps
+  Engine-->>Desktop: Saving measured analysis
+  loop Each entry page of a large analysis
+    Engine->>Store: Save bounded page and SHA-256 reference
+  end
+  Engine->>Store: Publish StorageScan metadata after all pages
+  Engine-->>Desktop: Stored evidence
+  Desktop->>Desktop: Build map and lookup off the main thread
+  Desktop-->>User: List and treemap, or explicit partial coverage
   User->>Desktop: Select items; Delete
   Desktop->>Engine: createStorageRemovalPlan(scanId, paths, mode)
   Engine->>FS: Reinspect only explicit selected targets
@@ -94,7 +109,7 @@ sequenceDiagram
 
 Read access to a disk never grants permission to remove its root. System locations, container roots, credentials, cloud-synchronized trees, Shou records, symbolic-link targets and special files remain protected. User ownership is required for each selected root. Current exclusions in registered workspaces apply to matching selected paths and their measured descendants. Changing a selected target after review prevents that target from being removed. Errors are recorded rather than described as success. Cancellation stops scanning workers or stops execution between journaled items.
 
-Limits are explicit: analysis defaults to 1,000,000 entries, 600 seconds and 128 levels; a removal request accepts up to 5,000 explicit paths. Each target must be completely remeasured before confirmation. Local JSON records are limited to 256 MiB; an oversized analysis or plan is rejected before persistence instead of saving an unreadable record. File verification streams content with bounded memory; very large files may take time or exceed the read deadline. Symlinks are measured as opaque entries and cannot be selected as standalone removal targets. Traversal stays on one filesystem and never hydrates cloud placeholders. Hard-link accounting is an estimate; APFS clones, snapshots and Trash mean attributed bytes are not guaranteed reclaimed bytes. Treemap entries beyond the first 160 are grouped as Other Entries; every measured entry remains in the directory list.
+Limits are explicit: analysis defaults to 1,000,000 entries, 600 seconds and 128 levels; a removal request accepts up to 5,000 explicit paths. Each target must be completely remeasured before confirmation. Local JSON records are limited to 256 MiB. Analyses above 10,000 entries use bounded entry pages with SHA-256 digests; the scan metadata is published only after every page is durable, and existing single-record scans remain readable. Oversized plans are rejected before persistence. Progress distinguishes measurement, result loading, saving, and map indexing; Stop also cancels indexing at bounded checkpoints. File verification streams content with bounded memory; very large files may take time or exceed the read deadline. Symlinks are measured as opaque entries and cannot be selected as standalone removal targets. Traversal stays on one filesystem and never hydrates cloud placeholders. Hard-link accounting is an estimate; APFS clones, snapshots and Trash mean attributed bytes are not guaranteed reclaimed bytes. Treemap entries beyond the first 160 are grouped as Other Entries; every measured entry remains in the directory list.
 
 ## CLI
 

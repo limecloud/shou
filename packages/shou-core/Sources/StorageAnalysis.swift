@@ -21,10 +21,20 @@ public struct StorageIndex: Sendable {
     public let nodes: [String: StorageNode]
     private let childPaths: [String: [String]]
     public init(entries: [FileEntry]) {
+        self.init(entries: entries, checkpoint: {})
+    }
+    public init(entries: [FileEntry], checkpoint: () throws -> Void) rethrows {
+        try checkpoint()
         var nodes: [String: StorageNode]=[:], children: [String: [String]]=[:]
         var charged=Set<String>()
-        let ordered=entries.sorted(by: { $0.path < $1.path })
-        for entry in ordered {
+        var sorted=true
+        for index in entries.indices.dropFirst() {
+            if index % 4096 == 0 { try checkpoint() }
+            if entries[index - 1].path > entries[index].path { sorted=false; break }
+        }
+        let ordered=sorted ? entries : entries.sorted(by: { $0.path < $1.path })
+        for (index, entry) in ordered.enumerated() {
+            if index % 4096 == 0 { try checkpoint() }
             let unique=entry.kind != "symlink" && charged.insert("\(entry.device):\(entry.inode)").inserted
             nodes[entry.path]=StorageNode(path: entry.path, kind: entry.kind,
                 logicalBytes: unique ? max(0, entry.logicalBytes) : 0,
@@ -34,7 +44,8 @@ public struct StorageIndex: Sendable {
         }
         // A parent path sorts before all of its descendants. Reverse lexical
         // order gives postorder without splitting paths in a second sort.
-        for entry in ordered.reversed() where entry.path != "." {
+        for (index, entry) in ordered.reversed().enumerated() where entry.path != "." {
+            if index % 4096 == 0 { try checkpoint() }
             let path=entry.path
             guard let child=nodes[path] else { continue }
             let parent=Self.parent(path)
@@ -45,6 +56,7 @@ public struct StorageIndex: Sendable {
                 nodes[parent]?.newestModifiedNanoseconds=max(current, child.newestModifiedNanoseconds)
             }
         }
+        try checkpoint()
         self.nodes=nodes; self.childPaths=children
     }
     public static func parent(_ path: String) -> String {
