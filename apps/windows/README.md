@@ -45,6 +45,8 @@ dotnet run --project "apps/windows/Shou.Windows.Checks" -c Release -- --engine "
 python3 -B "scripts/verify-desktop-bridge.py" --engine "/absolute/path/to/shou"
 ```
 
+给该集成脚本增加 `--native-trash`，可用新生成的单个目录验证系统废纸篓/回收站、历史与恢复；不会选中真实工作区文件。macOS 上通过此闭环仍不能替代 Windows 回收站证据。
+
 ## 开发包
 
 在 Windows 仓库根执行，显式提供官方 Swift 与 VC++ 可再分发 DLL 目录：
@@ -53,7 +55,7 @@ python3 -B "scripts/verify-desktop-bridge.py" --engine "/absolute/path/to/shou"
 ./scripts/package-windows.ps1 -EngineExecutable "C:/build/release/shou.exe" -SwiftRuntimeDirectory "C:/official/swift/runtime", "C:/official/vc/redist/x64" -OutputDirectory "C:/artifacts/Shou-windows-dev"
 ```
 
-脚本生成自包含 .NET 应用，按 PE 导入闭包复制 Swift/VC 依赖与 SwiftPM 资源，校验受限 PATH 下的能力发现，记录文件 SHA-256。Windows 11 提供 `winsqlite3.dll`。运行库再分发许可、签名、干净系统安装、升级和卸载仍需独立验收。
+打包需要工具链中的 `llvm-readobj`。脚本生成自包含 .NET 应用，按 PE 导入闭包复制 Swift/VC 依赖与 SwiftPM 资源，校验受限 PATH 下的能力发现，记录文件 SHA-256。Windows 11 提供 `winsqlite3.dll`。运行库再分发许可、签名、干净系统安装、升级和卸载仍需独立验收。
 
 ```text
 Shou.exe

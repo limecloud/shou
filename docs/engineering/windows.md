@@ -86,4 +86,12 @@ The Windows GitHub workflow runs static resource checks, native Swift/WPF builds
 
 ## Verification status
 
-Implementation and checks performed for this change will be recorded before delivery. Windows cleanup, restoration and production distribution remain unverified until native execution evidence exists.
+Verified on macOS arm64 with Swift 6.2.3 and .NET SDK 10.0.401:
+
+- The complete WPF solution builds with zero warnings and errors. This validates compilation, not Windows rendering or interaction.
+- All 11 real-process bridge checks pass, including UTF-8, output limits, strict JSON, timeout, confirmation and cooperative mutation cancellation.
+- The real Swift protocol passes 105-directory pagination, disabled import/enablement, exclusions, space navigation, refused/foreign/mismatched/EOF consent, and confirmed native macOS Trash → history → restoration using generated fixtures.
+- The core regression executable passes 191/191 cases, including full Windows identity/SID semantics, old-record compatibility, rejected volume rebinding and uncertain-result receipt/replay behavior.
+- Documentation pairing and local links pass verification.
+
+Not executed here: Windows Swift/C++ compilation, native ACL/junction/lock/Recycle Bin fixtures, PowerShell build/package scripts, the Windows CI job, WPF UI/accessibility, Windows 11 clean installation, signing and upgrades. Recycle Bin capabilities therefore remain disabled by default. Windows cleanup, restoration and production distribution are not accepted releases.

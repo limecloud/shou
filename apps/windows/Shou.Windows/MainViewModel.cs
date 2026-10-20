@@ -146,9 +146,11 @@ public sealed class MainViewModel : ObservableObject
             if (item is null) continue;
             if (item["location"] is JsonValue location && location.GetValue<string>() != "projects") continue;
             if (item["scope"] is JsonObject scope && Text(scope, "root_ref") != SelectedWorkspace.RootRef) continue;
+            if (item["platforms"] is JsonArray platforms && !platforms.Any(value => value?.GetValue<string>() == "windows")) continue;
             var id = Text(item, "id"); var version = item["version"]?.GetValue<string>() ?? "1.0.0";
-            var binding = bindings.FirstOrDefault(value => Text(value, "rule_id") == id && Text(value, "workspace_id") == SelectedWorkspace.Id);
-            var enabled = binding?["enabled"]?.GetValue<bool>() ?? id.StartsWith("shou.builtin.", StringComparison.Ordinal);
+            var builtin = id.StartsWith("shou.builtin.", StringComparison.Ordinal);
+            var binding = bindings.FirstOrDefault(value => Text(value, "rule_id") == id && Text(value, "workspace_id") == SelectedWorkspace.Id && (builtin || Text(value, "version") == version));
+            var enabled = binding?["enabled"]?.GetValue<bool>() ?? builtin;
             Rules.Add(new(id, version, $"{Text(item, "name")} · {version} · {(enabled ? "已启用" : "已停用 / 草稿")}"));
         }
     }

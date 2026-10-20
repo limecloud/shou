@@ -19,7 +19,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   windows:
-    runs-on: windows-latest
+    # Swift 6.2.3 ships Clang 19; newer Visual Studio STL requires Clang 20.
+    runs-on: windows-2022
     timeout-minutes: 45
     defaults:
       run:
