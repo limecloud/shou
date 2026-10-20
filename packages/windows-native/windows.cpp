@@ -14,6 +14,8 @@
 #include <cstring>
 #include <cwctype>
 #include <limits>
+#include <map>
+#include <numeric>
 #include <string>
 #include <vector>
 using Microsoft::WRL::ComPtr;
@@ -58,15 +60,15 @@ DWORD normalized(const char *input, std::wstring &path) {
 std::wstring extended(const std::wstring &path) { return L"\\\\?\\"+path; }
 struct Handles {
     std::vector<HANDLE> values;
-    ~Handles(){for(auto h:values)CloseHandle(h);}
+    ~Handles(){for(auto h:values)if(h!=INVALID_HANDLE_VALUE)CloseHandle(h);}
 };
 // Pin ancestors against rename while opening an object. Never follow a reparse point.
-DWORD open(const std::wstring &path, Handles &pins, HANDLE &last, DWORD access=FILE_READ_ATTRIBUTES|READ_CONTROL, DWORD share=FILE_SHARE_READ|FILE_SHARE_WRITE) {
+DWORD open(const std::wstring &path, Handles &pins, HANDLE &last, DWORD access=FILE_READ_ATTRIBUTES|READ_CONTROL, DWORD share=FILE_SHARE_READ|FILE_SHARE_WRITE, DWORD ancestorShare=FILE_SHARE_READ|FILE_SHARE_WRITE) {
     size_t end=3;
     while (true) {
         auto part=extended(path.substr(0,end));
         bool final=end==path.size();
-        HANDLE h=CreateFileW(part.c_str(),final?access:FILE_READ_ATTRIBUTES, final?share:FILE_SHARE_READ|FILE_SHARE_WRITE,
+        HANDLE h=CreateFileW(part.c_str(),final?access:FILE_READ_ATTRIBUTES, final?share:ancestorShare,
             nullptr,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
         if(h==INVALID_HANDLE_VALUE)return GetLastError();
         pins.values.push_back(h);
@@ -127,7 +129,7 @@ DWORD expected(const std::wstring &path,const shou_win_info *saved) {
 }
 DWORD private_descriptor(const std::vector<BYTE> &user,PSECURITY_DESCRIPTOR &descriptor) {
     if(user.empty())return ERROR_INVALID_SID;
-    LPWSTR sid=nullptr;if(!ConvertSidToStringSidW(user.data(),&sid))return GetLastError();
+    LPWSTR sid=nullptr;if(!ConvertSidToStringSidW(reinterpret_cast<PSID>(user.data()),&sid))return GetLastError();
     std::wstring sddl=L"O:"+std::wstring(sid)+L"D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;"+std::wstring(sid)+L")";LocalFree(sid);
     if(!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(),SDDL_REVISION_1,&descriptor,nullptr))return GetLastError();
     return 0;
@@ -280,6 +282,104 @@ int shou_win_write(const char *input,const void *bytes,size_t count){
 }
 int shou_win_recycle(const char *path,const shou_win_info *saved,char **result){return shell_move(path,nullptr,saved,result);}
 int shou_win_restore(const char *path,const char *target,const shou_win_info *saved,char **result){return shell_move(path,target,saved,result);}
+int shou_win_purge(const char *input,const char *const *relative,const shou_win_info *saved,size_t count,shou_win_cancelled cancelled,size_t *removed){
+    *removed=0;
+    if(!count || count>1000000 || !relative || !saved)return ERROR_INVALID_PARAMETER;
+    std::wstring root;DWORD code=normalized(input,root);if(code)return code;
+    if(root.size()<=3)return ERROR_ACCESS_DENIED;
+    Handles ancestors,objects;HANDLE parent;
+    auto parentPath=root.substr(0,root.find_last_of(L'\\'));if(parentPath.size()==2)parentPath+=L'\\';
+    if((code=open(parentPath,ancestors,parent)))return code;
+    std::vector<std::wstring> paths;
+    std::vector<shou_win_info> baseline(saved,saved+count);
+    std::map<std::wstring,size_t> indices;
+    Handles recycleRecord;HANDLE metadata=INVALID_HANDLE_VALUE;shou_win_info metadataBaseline{};
+    // A recorded $R item has one paired $I metadata file in the same SID
+    // directory. Pin that exact regular file too; never empty the whole Bin.
+    auto nameAt=root.find_last_of(L'\\');auto binParent=root.substr(0,nameAt);
+    auto sidAt=binParent.find_last_of(L'\\');auto bin=binParent.substr(0,sidAt);
+    auto binName=bin.size()>3?bin.substr(3):L"";for(auto &c:binName)c=towlower(c);
+    if(binName==L"$recycle.bin" && root.substr(nameAt+1,2)==L"$R"){
+        auto sid=wide(saved[0].owner_sid);
+        if(binParent.substr(sidAt+1)!=sid)return ERROR_ACCESS_DENIED;
+        auto record=root;record[nameAt+2]=L'I';
+        if((code=open(record,recycleRecord,metadata,GENERIC_READ|DELETE|READ_CONTROL,FILE_SHARE_READ)))return code;
+        shou_win_info value{};if((code=info(metadata,&value)))return code;
+        if(value.kind!=1 || !value.current_user || value.links!=1 || value.volume!=saved[0].volume || strcmp(value.owner_sid,saved[0].owner_sid) || value.logical_bytes<28 || value.logical_bytes>64028)return ERROR_INVALID_DATA;
+        uint64_t header[4]{};DWORD bytes=0;
+        if(!ReadFile(metadata,header,28,&bytes,nullptr))return GetLastError();
+        if(bytes!=28 || !((header[0]==1 && value.logical_bytes==544) ||
+            (header[0]==2 && static_cast<uint32_t>(header[3])>0 && static_cast<uint32_t>(header[3])<=32000 && value.logical_bytes==28+2LL*static_cast<uint32_t>(header[3]))))return ERROR_INVALID_DATA;
+        metadataBaseline=value;
+    }
+    // Pin every reviewed object before the first mutation. Deny write/delete
+    // sharing; temporary ancestor handles allow our own DELETE handles.
+    for(size_t i=0;i<count;++i){
+        if(cancelled && cancelled())return ERROR_CANCELLED;
+        auto name=wide(relative[i]);std::wstring path;
+        if(name==L".")path=root;
+        else{
+            if(name.empty() || name.front()==L'/' || name.front()==L'\\' || name.find(L'\\')!=std::wstring::npos)return ERROR_INVALID_NAME;
+            auto full=root+L"\\"+name;auto bytes=utf8(full);if(!bytes)return ERROR_NOT_ENOUGH_MEMORY;
+            code=normalized(bytes,path);free(bytes);if(code)return code;
+        }
+        auto key=path;for(auto &c:key)c=towlower(c);
+        if(!indices.emplace(key,i).second)return ERROR_INVALID_PARAMETER;
+        Handles pins;HANDLE h;
+        if((code=open(path,pins,h,DELETE|FILE_READ_ATTRIBUTES|READ_CONTROL,FILE_SHARE_READ,FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE)))return code;
+        shou_win_info current{};if((code=info(h,&current)))return code;
+        if(!current.current_user || current.volume!=saved[0].volume || (current.kind==1 && current.links!=1) || !same(current,saved[i]))return ERROR_FILE_INVALID;
+        pins.values.pop_back();objects.values.push_back(h);paths.push_back(path);
+    }
+    auto rootKey=root;for(auto &c:rootKey)c=towlower(c);
+    auto rootIndex=indices.find(rootKey);if(rootIndex==indices.end())return ERROR_INVALID_PARAMETER;
+    std::vector<size_t> parents(count,count),order(count);std::iota(order.begin(),order.end(),0);
+    for(size_t i=0;i<count;++i){
+        if(i==rootIndex->second)continue;
+        auto key=paths[i].substr(0,paths[i].find_last_of(L'\\'));for(auto &c:key)c=towlower(c);
+        auto found=indices.find(key);
+        if(found==indices.end() || saved[found->second].kind!=2)return ERROR_INVALID_PARAMETER;
+        parents[i]=found->second;
+    }
+    // Check the entire pinned manifest again before deleting any member.
+    for(size_t i=0;i<count;++i){
+        shou_win_info current{};if((code=info(objects.values[i],&current)))return code;
+        if(!same(current,baseline[i]))return ERROR_FILE_INVALID;
+    }
+    std::sort(order.begin(),order.end(),[&](size_t a,size_t b){return paths[a].size()>paths[b].size();});
+    for(auto i:order){
+        if(cancelled && cancelled())return ERROR_CANCELLED;
+        shou_win_info current{};if((code=info(objects.values[i],&current)))return code;
+        if(!same(current,baseline[i]))return ERROR_FILE_INVALID;
+        auto p=parents[i];
+        if(p<count){
+            if((code=info(objects.values[p],&current)))return code;
+            if(!same(current,baseline[p]))return ERROR_FILE_INVALID;
+        }
+        // This disposition never recurses: unreviewed children keep a directory
+        // nonempty and stop removal. The handle binds deletion to the File ID.
+        FILE_DISPOSITION_INFO disposition{TRUE};
+        if(!SetFileInformationByHandle(objects.values[i],FileDispositionInfo,&disposition,sizeof(disposition)))return GetLastError();
+        ++*removed;
+        HANDLE deleted=objects.values[i];objects.values[i]=INVALID_HANDLE_VALUE;
+        if(!CloseHandle(deleted))return GetLastError();
+        if(p<count){
+            if((code=info(objects.values[p],&current)))return code;
+            if(!same(current,baseline[p],true))return ERROR_FILE_INVALID;
+            // Only the direct parent of our just-removed member gets a new
+            // timestamp/size baseline. Other directories remain fully checked.
+            baseline[p]=current;
+        }
+    }
+    if(metadata!=INVALID_HANDLE_VALUE){
+        shou_win_info current{};if((code=info(metadata,&current)))return code;
+        if(!same(current,metadataBaseline))return ERROR_FILE_INVALID;
+        FILE_DISPOSITION_INFO disposition{TRUE};
+        if(!SetFileInformationByHandle(metadata,FileDispositionInfo,&disposition,sizeof(disposition)))return GetLastError();
+        ++*removed;
+    }
+    return 0;
+}
 int shou_win_available(const char *input,uint64_t *result){std::wstring path;auto code=normalized(input,path);if(code)return code;ULARGE_INTEGER bytes;if(!GetDiskFreeSpaceExW(path.c_str(),&bytes,nullptr,nullptr))return GetLastError();*result=bytes.QuadPart;return 0;}
 int shou_win_stdin(void *buffer,uint32_t capacity,uint32_t *count){
     DWORD read=0;BOOL ok=ReadFile(GetStdHandle(STD_INPUT_HANDLE),buffer,capacity,&read,nullptr);
