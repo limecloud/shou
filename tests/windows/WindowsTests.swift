@@ -44,7 +44,10 @@ func write(_ path: String, _ text: String) throws {
         do { _=try fs.normalizedPath(workspace + "/CON.txt"); throw Failure(message: "Device name accepted") } catch is ShouError { }
         let outside=root + "/outside"; try privateDirectory(outside); try write(outside + "/keep.bin", "keep")
         let junction=Process(); junction.executableURL=URL(fileURLWithPath: ProcessInfo.processInfo.environment["ComSpec"] ?? "C:/Windows/System32/cmd.exe")
-        junction.arguments=["/d", "/c", "mklink", "/J", workspace + "/junction", outside]
+        // mklink parses forward slashes as switches even in absolute paths.
+        junction.arguments=["/d", "/c", "mklink", "/J",
+            (workspace + "/junction").replacingOccurrences(of: "/", with: "\\"),
+            outside.replacingOccurrences(of: "/", with: "\\")]
         try junction.run(); junction.waitUntilExit()
         try require(junction.terminationStatus == 0, "Junction fixture creation failed")
         let linked=try fs.inspect(workspace, budget: ScanBudget(), cancelled: { false })
