@@ -117,23 +117,27 @@ DWORD info(HANDLE h, shou_win_info *out) {
 }
 bool same(const shou_win_info &a,const shou_win_info &b,bool directoryMutation=false) {
     return a.volume==b.volume && !memcmp(a.file_id,b.file_id,16) && !strcmp(a.owner_sid,b.owner_sid) &&
-        a.kind==b.kind && a.links==b.links && (directoryMutation ||
-        (a.logical_bytes==b.logical_bytes && a.modified_ns==b.modified_ns && a.changed_ns==b.changed_ns));
+        a.kind==b.kind && a.links==b.links && a.attributes==b.attributes && (directoryMutation ||
+        (a.logical_bytes==b.logical_bytes && a.allocated_bytes==b.allocated_bytes && a.modified_ns==b.modified_ns && a.changed_ns==b.changed_ns));
 }
 DWORD expected(const std::wstring &path,const shou_win_info *saved) {
     Handles handles;HANDLE h;DWORD code=open(path,handles,h);if(code)return code;
     shou_win_info current{};if((code=info(h,&current)))return code;
     return same(current,*saved)?0:ERROR_FILE_INVALID;
 }
+DWORD private_descriptor(const std::vector<BYTE> &user,PSECURITY_DESCRIPTOR &descriptor) {
+    if(user.empty())return ERROR_INVALID_SID;
+    LPWSTR sid=nullptr;if(!ConvertSidToStringSidW(user.data(),&sid))return GetLastError();
+    std::wstring sddl=L"O:"+std::wstring(sid)+L"D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;"+std::wstring(sid)+L")";LocalFree(sid);
+    if(!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(),SDDL_REVISION_1,&descriptor,nullptr))return GetLastError();
+    return 0;
+}
 DWORD private_acl(const std::wstring &path,bool create) {
     Handles parentPins;HANDLE parent;
     auto parentPath=path.substr(0,path.find_last_of(L'\\'));if(parentPath.size()==2)parentPath+=L'\\';
     DWORD parentCode=open(parentPath,parentPins,parent);if(parentCode)return parentCode;
-    auto user=user_sid();if(user.empty())return ERROR_INVALID_SID;
-    LPWSTR sid=nullptr;if(!ConvertSidToStringSidW(user.data(),&sid))return GetLastError();
-    std::wstring sddl=L"O:"+std::wstring(sid)+L"D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;"+std::wstring(sid)+L")";LocalFree(sid);
-    PSECURITY_DESCRIPTOR descriptor=nullptr;
-    if(!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(),SDDL_REVISION_1,&descriptor,nullptr))return GetLastError();
+    auto user=user_sid();PSECURITY_DESCRIPTOR descriptor=nullptr;
+    if((parentCode=private_descriptor(user,descriptor)))return parentCode;
     SECURITY_ATTRIBUTES attributes{sizeof(attributes),descriptor,FALSE};
     if(create && !CreateDirectoryW(extended(path).c_str(),&attributes) && GetLastError()!=ERROR_ALREADY_EXISTS){DWORD code=GetLastError();LocalFree(descriptor);return code;}
     LocalFree(descriptor);
@@ -250,8 +254,11 @@ struct shou_win_lock{HANDLE handle;OVERLAPPED range;};
 int shou_win_lock_acquire(const char *input,shou_win_lock **result){
     *result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;
     Handles pins;HANDLE parent;auto p=path.substr(0,path.find_last_of(L'\\'));if((code=open(p,pins,parent)))return code;
-    HANDLE h=CreateFileW(extended(path).c_str(),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,nullptr,OPEN_ALWAYS,FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
-    if(h==INVALID_HANDLE_VALUE)return GetLastError();shou_win_info current{};code=info(h,&current);
+    PSECURITY_DESCRIPTOR descriptor=nullptr;if((code=private_descriptor(user_sid(),descriptor)))return code;
+    SECURITY_ATTRIBUTES attributes{sizeof(attributes),descriptor,FALSE};
+    HANDLE h=CreateFileW(extended(path).c_str(),GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,&attributes,OPEN_ALWAYS,FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
+    code=GetLastError();LocalFree(descriptor);
+    if(h==INVALID_HANDLE_VALUE)return code;shou_win_info current{};code=info(h,&current);
     if(code||current.kind!=1||!current.current_user||(current.attributes&FILE_ATTRIBUTE_REPARSE_POINT)){CloseHandle(h);return code?code:ERROR_ACCESS_DENIED;}
     auto lock=new shou_win_lock{h,{}};
     if(!LockFileEx(h,LOCKFILE_EXCLUSIVE_LOCK|LOCKFILE_FAIL_IMMEDIATELY,0,1,0,&lock->range)){code=GetLastError();CloseHandle(h);delete lock;return code;}
@@ -262,7 +269,10 @@ int shou_win_write(const char *input,const void *bytes,size_t count){
     std::wstring path;auto code=normalized(input,path);if(code)return code;
     Handles pins;HANDLE parent;auto p=path.substr(0,path.find_last_of(L'\\'));if((code=open(p,pins,parent)))return code;
     GUID id;if(FAILED(CoCreateGuid(&id)))return ERROR_GEN_FAILURE;wchar_t name[40];if(!StringFromGUID2(id,name,40))return ERROR_GEN_FAILURE;auto temp=extended(p+L"\\.pending-"+name);
-    HANDLE h=CreateFileW(temp.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_WRITE_THROUGH,nullptr);if(h==INVALID_HANDLE_VALUE)return GetLastError();
+    PSECURITY_DESCRIPTOR descriptor=nullptr;if((code=private_descriptor(user_sid(),descriptor)))return code;
+    SECURITY_ATTRIBUTES attributes{sizeof(attributes),descriptor,FALSE};
+    HANDLE h=CreateFileW(temp.c_str(),GENERIC_WRITE,0,&attributes,CREATE_NEW,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_WRITE_THROUGH,nullptr);
+    code=h==INVALID_HANDLE_VALUE?GetLastError():0;LocalFree(descriptor);if(code)return code;
     size_t offset=0;while(offset<count){DWORD n=0;if(!WriteFile(h,static_cast<const char *>(bytes)+offset,static_cast<DWORD>(std::min<size_t>(count-offset,65536)),&n,nullptr)||!n){code=ERROR_WRITE_FAULT;break;}offset+=n;}
     if(!code&&!FlushFileBuffers(h))code=GetLastError();CloseHandle(h);
     if(!code&&!MoveFileExW(temp.c_str(),extended(path).c_str(),MOVEFILE_REPLACE_EXISTING|MOVEFILE_WRITE_THROUGH))code=GetLastError();
