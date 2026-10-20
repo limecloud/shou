@@ -147,6 +147,16 @@ extension ShouEngine {
                 if snapshot.status != "complete" {
                     issues.append(KnownLocationIssue(locationId: location.id, code: "partial_result", message: "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup."))
                 }
+                for issue in snapshot.issues where issue.hasPrefix(InstalledApplicationCaches.issuePrefix) {
+                    let code=String(issue.dropFirst(InstalledApplicationCaches.issuePrefix.count))
+                    let message: String
+                    switch code {
+                    case "application_discovery_incomplete": message="Installed application cache discovery is incomplete. Caches without verified ownership were not included."
+                    case "ambiguous_application_owner": message="Some installed applications share a bundle identifier. Their caches were not included."
+                    default: message="Installed application cache discovery is unavailable. Maintained cleanup rules remain available."
+                    }
+                    issues.append(KnownLocationIssue(locationId: location.id, code: code, message: message))
+                }
             } catch {
                 let failure=error as? ShouError ?? ShouError("io_error", error.localizedDescription)
                 if Task.isCancelled || failure.code == "cancelled" { throw ShouError("cancelled", "Scan cancelled.") }

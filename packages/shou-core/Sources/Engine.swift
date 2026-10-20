@@ -159,7 +159,8 @@ public actor ShouEngine {
         guard let registered = config.workspaces.first(where: { $0.id == workspaceId }) else { throw ShouError("invalid_argument", "Unknown workspace.") }
         let workspace=protectedWorkspace(registered, configuration: config)
         let records = config.rules.filter { $0.rule.id == ruleId && (version == nil || $0.rule.version == version) }
-        let builtin=try builtinRules(for: workspace).first { $0.id == ruleId && (version == nil || $0.version == version) }
+        let definitions=try builtinRules(for: workspace) + installedCacheDiscovery(for: workspace).rules
+        let builtin=definitions.first { $0.id == ruleId && (version == nil || $0.version == version) }
         guard let rule=builtin ?? records.max(by: { $0.importedAt < $1.importedAt })?.rule else { throw ShouError("invalid_argument", "Unknown rule/version.") }
         guard rule.scope.rootRef == workspace.rootRef, rule.platforms.contains(filesystem.platform) else { throw ShouError("invalid_rule", "Rule root or platform does not match this workspace.") }
         config.bindings.removeAll { $0.ruleId == ruleId && $0.workspaceId == workspaceId }
@@ -175,19 +176,23 @@ public actor ShouEngine {
         let registered=try refreshedWorkspace(config, index: index, current: currentIdentity)
         let workspace=protectedWorkspace(registered, configuration: config)
         var rules: [CleanupRule] = []
+        let discovered=previewRule == nil ? try installedCacheDiscovery(for: workspace) : InstalledApplicationCaches.Discovery()
         if let previewRule {
             guard previewRule.scope.rootRef == workspace.rootRef && previewRule.platforms.contains(filesystem.platform) else { throw ShouError("invalid_rule", "Preview rule root or platform does not match.") }
             rules=[previewRule]
         } else {
-            rules=try activeRules(config, workspaceId: workspaceId).filter { ruleIds.isEmpty || ruleIds.contains($0.id) }
+            rules=try activeRules(config, workspaceId: workspaceId, additionalBuiltins: discovered.rules).filter { ruleIds.isEmpty || ruleIds.contains($0.id) }
             if !ruleIds.allSatisfy({ id in rules.contains { $0.id == id } }) { throw ShouError("invalid_argument", "Requested rule is not enabled in this workspace.") }
         }
         let tree = try inspect(workspace.path, rules: rules, scope: scope, budget: budget, progress: progress)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count))
         let referenceTime=now()
+        let installedCaches=discovered.evidence.filter { evidence in rules.contains { $0.id == evidence.ruleId } }
+        let blocked=try ApplicationSafety.blockedRules(rules.map(\.id), activity: applicationActivity).merging(
+            InstalledApplicationCaches.blocked(installedCaches, workspace: workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
         let snapshot = ScanSnapshot(id: Codec.id("scan"), workspace: workspace, configurationDigest: try Digest.of(config), createdAt: referenceTime, status: (tree.discoveryComplete ?? tree.complete) ? "complete" : "partial", previewOnly: previewRule != nil, caseSensitive: tree.caseSensitive, entries: tree.entries,
-            candidates: try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: referenceTime, blockedRules: ApplicationSafety.blockedRules(rules.map(\.id), activity: applicationActivity), artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds), issues: tree.issues, budget: budget, completedPaths: tree.completedPaths, treeComplete: tree.complete, scope: scope)
+            candidates: try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: referenceTime, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds), issues: tree.issues + discovered.issues, budget: budget, completedPaths: tree.completedPaths, treeComplete: tree.complete, scope: scope, installedApplicationCaches: installedCaches.isEmpty ? nil : installedCaches)
         progress(ScanProgress(stage: "saving", entryCount: tree.entries.count))
         try save(snapshot, collection: "scans", id: snapshot.id)
         return snapshot
@@ -204,8 +209,13 @@ public actor ShouEngine {
         guard !snapshot.previewOnly else { throw ShouError("partial_result", "Draft previews cannot produce executable plans.") }
         let config = try configuration()
         guard try Digest.of(config) == snapshot.configurationDigest else { throw ShouError("plan_stale", "Configuration changed; scan again.") }
-        let eligibleRules = try activeRules(config, workspaceId: snapshot.workspace.id)
-        let blocked=ApplicationSafety.blockedRules(eligibleRules.map(\.id), activity: applicationActivity)
+        let selectedRuleIds=snapshot.candidates.filter { candidateIds.contains($0.id) }.flatMap(\.ruleIds)
+        let installedCaches=try InstalledApplicationCaches.selected(snapshot.installedApplicationCaches, ruleIds: selectedRuleIds)
+        try revalidateInstalledCaches(installedCaches, workspace: snapshot.workspace)
+        let eligibleRules = try activeRules(config, workspaceId: snapshot.workspace.id,
+            additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: snapshot.workspace) })
+        let blocked=try ApplicationSafety.blockedRules(eligibleRules.map(\.id), activity: applicationActivity).merging(
+            InstalledApplicationCaches.blocked(installedCaches, workspace: snapshot.workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
         let reviewed = try Analysis.candidates(tree: TreeSnapshot(entries: snapshot.entries, complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: snapshot.issues, caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths), workspace: protectedWorkspace(snapshot.workspace, configuration: config), rules: eligibleRules, now: snapshot.createdAt, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds)
         var items: [PlanItem] = []
         for id in candidateIds {
@@ -226,6 +236,7 @@ public actor ShouEngine {
         plan.action=action
         plan.scanBudget=snapshot.budget
         plan.scanScope=snapshot.scope
+        plan.installedApplicationCaches=installedCaches.isEmpty ? nil : installedCaches
         plan.digest = try plan.calculatedDigest()
         try save(plan, collection: "plans", id: plan.id); return plan
     }
@@ -253,7 +264,10 @@ public actor ShouEngine {
         // Persisted plans are data, never authority. Reproduce policy from fresh
         // coverage; every selected subtree must be complete independently.
         progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.items.count, path: registered.path))
-        let currentRules=try activeRules(currentConfig, workspaceId: registered.id)
+        let installedCaches=try InstalledApplicationCaches.selected(plan.installedApplicationCaches, ruleIds: plan.items.flatMap { $0.candidate.ruleIds })
+        try revalidateInstalledCaches(installedCaches, workspace: workspace)
+        let currentRules=try activeRules(currentConfig, workspaceId: registered.id,
+            additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: workspace) })
         let budget=plan.scanBudget ?? ScanBudget()
         try budget.validate()
         let currentTree = try inspect(registered.path, rules: currentRules, scope: plan.scanScope ?? .full, budget: budget)
@@ -279,6 +293,7 @@ public actor ShouEngine {
                     let item=plan.items[index]
                     let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
                     if let reason=blocked.values.sorted().first { return reason }
+                    if let reason=try installedCacheBlock(for: item, evidence: installedCaches, workspace: workspace) { return reason }
                     let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
                         entries: currentEntries, workspace: workspace,
                         rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
@@ -295,6 +310,7 @@ public actor ShouEngine {
                     let item=plan.items[index]
                     let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
                     if let reason=blocked.values.sorted().first { return reason }
+                    if let reason=try installedCacheBlock(for: item, evidence: installedCaches, workspace: workspace) { return reason }
                     let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
                         entries: currentEntries, workspace: workspace,
                         rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
@@ -310,10 +326,26 @@ public actor ShouEngine {
         return try filesystem.inspect(path, budget: budget, cancelled: { Task.isCancelled }, progress: progress)
     }
     private func builtinRules(for workspace: Workspace) throws -> [CleanupRule] { try BuiltinCatalog.rules(for: workspace, homeDirectory: homeDirectory, platform: filesystem.platform) }
-    public func builtinRules(workspaceId: String) throws -> [CleanupRule] { try builtinRules(for: workspace(workspaceId)) }
-    private func activeRules(_ config: Configuration, workspaceId: String) throws -> [CleanupRule] {
+    public func builtinRules(workspaceId: String) throws -> [CleanupRule] {
+        let workspace=try workspace(workspaceId)
+        return try builtinRules(for: workspace) + installedCacheDiscovery(for: workspace).rules
+    }
+    private func installedCacheDiscovery(for workspace: Workspace) throws -> InstalledApplicationCaches.Discovery {
+        try InstalledApplicationCaches.discover(workspace: workspace, homeDirectory: homeDirectory, platform: filesystem.platform,
+            catalog: applicationCatalog, staticRules: builtinRules(for: workspace))
+    }
+    private func revalidateInstalledCaches(_ evidence: [InstalledApplicationCacheEvidence], workspace: Workspace, inventoryRequired: Bool = true) throws {
+        try InstalledApplicationCaches.revalidate(evidence, workspace: workspace, homeDirectory: homeDirectory, platform: filesystem.platform,
+            catalog: applicationCatalog, staticRules: builtinRules(for: workspace), inventoryRequired: inventoryRequired)
+    }
+    private func installedCacheBlock(for item: PlanItem, evidence: [InstalledApplicationCacheEvidence], workspace: Workspace) throws -> String? {
+        let selected=try InstalledApplicationCaches.selected(evidence, ruleIds: item.candidate.ruleIds)
+        try revalidateInstalledCaches(selected, workspace: workspace, inventoryRequired: false)
+        return try InstalledApplicationCaches.blocked(selected, workspace: workspace, activity: uninstallEvidence).values.sorted().first
+    }
+    private func activeRules(_ config: Configuration, workspaceId: String, additionalBuiltins: [CleanupRule] = []) throws -> [CleanupRule] {
         guard let workspace=config.workspaces.first(where: { $0.id == workspaceId }) else { throw ShouError("invalid_argument", "Unknown workspace.") }
-        let builtins=try builtinRules(for: workspace).filter { rule in
+        let builtins=try (builtinRules(for: workspace) + additionalBuiltins).filter { rule in
             !config.bindings.contains { $0.workspaceId == workspaceId && $0.ruleId == rule.id && !$0.enabled }
         }
         return try builtins + config.bindings.filter { $0.workspaceId == workspaceId && $0.enabled && !$0.ruleId.hasPrefix(BuiltinCatalog.prefix) }.map { binding in
@@ -397,7 +429,8 @@ public actor ShouEngine {
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !ruleIds.isEmpty else { throw ShouError("invalid_argument", "A preset requires a name and explicit rules.") }
         let lease = try store.lock(); defer { lease.release() }
         var config = try configuration()
-        let enabled=try activeRules(config, workspaceId: workspaceId)
+        let workspace=try workspace(workspaceId)
+        let enabled=try activeRules(config, workspaceId: workspaceId, additionalBuiltins: installedCacheDiscovery(for: workspace).rules)
         guard ruleIds.allSatisfy({ id in enabled.contains { $0.id == id } }) else { throw ShouError("invalid_argument", "Preset rules must be enabled in this workspace.") }
         let preset = Preset(id: Codec.id("preset"), name: name, workspaceId: workspaceId, ruleIds: Array(Set(ruleIds)).sorted())
         config.presets.append(preset); try saveConfiguration(config); return preset

@@ -109,7 +109,7 @@ struct ApplicationsView: View {
                     }
                 }
                 .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.separator.opacity(0.55)))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color(nsColor: .separatorColor).opacity(0.55)))
                 .padding(.horizontal, 20)
                 .padding(.bottom, 10)
                 footer
@@ -347,7 +347,7 @@ private struct ApplicationUninstallRow: View {
                 }
             }
         }.padding(.leading, 54).padding(.trailing, 12).padding(.vertical, 12)
-            .overlay(alignment: .leading) { Rectangle().fill(.separator).frame(width: 1).padding(.leading, 32).padding(.vertical, 10) }
+            .overlay(alignment: .leading) { Rectangle().fill(Color(nsColor: .separatorColor)).frame(width: 1).padding(.leading, 32).padding(.vertical, 10) }
     }
     private func componentRow(_ component: UninstallComponent) -> some View {
         HStack(alignment: .top, spacing: 12) {

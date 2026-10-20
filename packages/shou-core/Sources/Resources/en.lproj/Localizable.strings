@@ -24,6 +24,7 @@
 "A file or folder was modified too recently" = "A file or folder was modified too recently";
 "A little setup. More room to breathe." = "A little setup. More room to breathe.";
 "A little space to breathe." = "A little space to breathe.";
+"A maintained rule already defines this cache scope; scan again." = "A maintained rule already defines this cache scope; scan again.";
 "A preset requires a name and explicit rules." = "A preset requires a name and explicit rules.";
 "A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count." = "A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count.";
 "A read-only system tool could not verify artifact evidence." = "A read-only system tool could not verify artifact evidence.";
@@ -88,6 +89,7 @@
 "Application Uninstall" = "Application Uninstall";
 "Application activity checking is unavailable on this platform." = "Application activity checking is unavailable on this platform.";
 "Application activity could not be checked." = "Application activity could not be checked.";
+"Application activity inspection stopped." = "Application activity inspection stopped.";
 "Application bundle" = "Application bundle";
 "Application caches" = "Application caches";
 "Application component changed; preview again." = "Application component changed; preview again.";
@@ -464,6 +466,14 @@
 "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed." = "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.";
 "Installation and CLI" = "Installation and CLI";
 "Installed Dependencies" = "Installed Dependencies";
+"Installed application cache discovery is incomplete. Caches without verified ownership were not included." = "Installed application cache discovery is incomplete. Caches without verified ownership were not included.";
+"Installed application cache discovery is unavailable. Maintained cleanup rules remain available." = "Installed application cache discovery is unavailable. Maintained cleanup rules remain available.";
+"Installed application cache evidence is invalid." = "Installed application cache evidence is invalid.";
+"Installed application cache ownership evidence is missing or ambiguous." = "Installed application cache ownership evidence is missing or ambiguous.";
+"Installed application cache scope is invalid." = "Installed application cache scope is invalid.";
+"Installed application identity changed; scan again." = "Installed application identity changed; scan again.";
+"Installed application ownership changed; scan again." = "Installed application ownership changed; scan again.";
+"Installed application ownership could not be verified; scan again." = "Installed application ownership could not be verified; scan again.";
 "Interface language" = "Interface language";
 "Invalid logical workspace root reference." = "Invalid logical workspace root reference.";
 "Invalid record identifier." = "Invalid record identifier.";
@@ -613,6 +623,7 @@
 "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview." = "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview.";
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated.";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "Only this folder is described. The workspace itself and folders outside it cannot be selected.";
+"Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained." = "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained.";
 "Only verified trashed items can be restored or permanently removed." = "Only verified trashed items can be restored or permanently removed.";
 "Opam download caches" = "Opam download caches";
 "Open Directory" = "Open Directory";
@@ -959,6 +970,7 @@
 "Software Updates" = "Software Updates";
 "Some applications could not be fully inspected. Associated files remain protected when ownership coverage is incomplete." = "Some applications could not be fully inspected. Associated files remain protected when ownership coverage is incomplete.";
 "Some applications could not be fully inspected. Review ownership notices before selecting associated files." = "Some applications could not be fully inspected. Review ownership notices before selecting associated files.";
+"Some installed applications share a bundle identifier. Their caches were not included." = "Some installed applications share a bundle identifier. Their caches were not included.";
 "Some items could not be removed. Review the result." = "Some items could not be removed. Review the result.";
 "Some items were not moved. Inspect history." = "Some items were not moved. Inspect history.";
 "Some locations could not be fully scanned." = "Some locations could not be fully scanned.";
@@ -1045,6 +1057,7 @@
 "The application creates new diagnostic logs when needed." = "The application creates new diagnostic logs when needed.";
 "The application recreates downloaded resources and generated caches when needed." = "The application recreates downloaded resources and generated caches when needed.";
 "The application recreates rendering and downloaded resource caches when needed." = "The application recreates rendering and downloaded resource caches when needed.";
+"The application will recreate its cache when needed." = "The application will recreate its cache when needed.";
 "The browser downloads web resources and rebuilds rendering caches when needed." = "The browser downloads web resources and rebuilds rendering caches when needed.";
 "The built-in rule namespace is reserved." = "The built-in rule namespace is reserved.";
 "The framework recreates these outputs during development or the next build." = "The framework recreates these outputs during development or the next build.";

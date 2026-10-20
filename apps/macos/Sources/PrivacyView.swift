@@ -6,30 +6,56 @@ struct PrivacyView: View {
     @Bindable var session: PrivacySession
     init(app: AppModel, session: PrivacySession) { self.app=app; self.session=session }
     var body: some View {
+        pageContent
+            .task(id: app.initializing) { if !app.initializing { session.loadHistory(app: app) } }
+            .onChange(of: session.range) { _, _ in session.changeRange() }
+            .onChange(of: session.allowCookieReview) { _, allowed in cookieReviewChanged(allowed) }
+            .sheet(item: $session.plan) { plan in PrivacyConfirmation(app: app, session: session, plan: plan) }
+    }
+    private var pageContent: some View {
         VStack(alignment: .leading, spacing: 16) {
             header
-            Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically.")).font(.callout).foregroundStyle(.secondary)
+            deletionNotice
             timeControls
-            if session.working { ProgressView().frame(maxWidth: .infinity) }
-            if let scan=session.scan {
-                sourceSelection(scan)
-            } else if !session.working && session.receipt == nil {
-                ContentUnavailableView(app.t("Review privacy sources"), systemImage: "hand.raised", description: Text(app.t("Scan to see aggregate counts and availability. Browsing records are never displayed."))).frame(maxHeight: .infinity)
-            }
-            if let receipt=session.receipt {
-                receiptView(receipt)
-            }
-            if !session.history.isEmpty {
-                recentHistory
-            }
-            Text(app.t("Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.")).font(.caption).foregroundStyle(.secondary)
+            progressIndicator
+            selectionContent
+            currentReceipt
+            historyContent
+            coverageFootnote
         }.padding(24)
-        .task(id: app.initializing) { if !app.initializing { session.loadHistory(app: app) } }
-        .onChange(of: session.range) { _, _ in session.changeRange() }
-        .onChange(of: session.allowCookieReview) { _, allowed in
-            if !allowed { session.selected.subtract((session.scan?.sources ?? []).filter(\.requiresSignOutConsent).map(\.id)); session.plan=nil }
+    }
+    private var deletionNotice: some View {
+        Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically."))
+            .font(.callout).foregroundStyle(.secondary)
+    }
+    @ViewBuilder private var progressIndicator: some View {
+        if session.working { ProgressView().frame(maxWidth: .infinity) }
+    }
+    @ViewBuilder private var selectionContent: some View {
+        if let scan=session.scan {
+            sourceSelection(scan)
+        } else if !session.working && session.receipt == nil {
+            emptyState
         }
-        .sheet(item: $session.plan) { plan in PrivacyConfirmation(app: app, session: session, plan: plan) }
+    }
+    private var emptyState: some View {
+        ContentUnavailableView(app.t("Review privacy sources"), systemImage: "hand.raised", description: Text(app.t("Scan to see aggregate counts and availability. Browsing records are never displayed.")))
+            .frame(maxHeight: .infinity)
+    }
+    @ViewBuilder private var currentReceipt: some View {
+        if let receipt=session.receipt { receiptView(receipt) }
+    }
+    @ViewBuilder private var historyContent: some View {
+        if !session.history.isEmpty { recentHistory }
+    }
+    private var coverageFootnote: some View {
+        Text(app.t("Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned."))
+            .font(.caption).foregroundStyle(.secondary)
+    }
+    private func cookieReviewChanged(_ allowed: Bool) {
+        guard !allowed else { return }
+        let cookieIDs=(session.scan?.sources ?? []).filter(\.requiresSignOutConsent).map(\.id)
+        session.selected.subtract(cookieIDs); session.plan=nil
     }
     private var header: some View {
         HStack {
@@ -51,41 +77,59 @@ struct PrivacyView: View {
         }
     }
     @ViewBuilder private func sourceSelection(_ scan: PrivacyScan) -> some View {
+        sourceList(scan)
+        cookieConsent
+        selectionFooter
+    }
+    private func sourceList(_ scan: PrivacyScan) -> some View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(scan.sources) { source in sourceRow(source) }
             }
         }.background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
+    }
+    private var cookieConsent: some View {
         Toggle(app.t("I understand that clearing cookies can sign me out of websites."), isOn: $session.allowCookieReview)
             .toggleStyle(.checkbox).disabled(app.busy).accessibilityIdentifier("privacy.cookie-consent")
+    }
+    private var selectionFooter: some View {
         HStack {
-            Text(app.t("Selected") + " \(session.selected.count) · \(session.selectedCount) " + app.t("records")).foregroundStyle(.secondary)
+            Text(selectionSummary).foregroundStyle(.secondary)
             Spacer()
             Button(app.t("Clear Selection")) { session.selected=[] }.disabled(app.busy || session.selected.isEmpty)
             Button(app.t("Review Permanent Deletion…")) { session.review(app: app) }
-                .disabled(app.busy || session.selected.isEmpty || (session.selectedSources.contains(where: \.requiresSignOutConsent) && !session.allowCookieReview))
+                .disabled(reviewDisabled)
                 .buttonStyle(.borderedProminent).accessibilityIdentifier("privacy.review")
         }
+    }
+    private var selectionSummary: String {
+        app.t("Selected") + " \(session.selected.count) · \(session.selectedCount) " + app.t("records")
+    }
+    private var reviewDisabled: Bool {
+        app.busy || session.selected.isEmpty || (session.selectedSources.contains(where: \.requiresSignOutConsent) && !session.allowCookieReview)
     }
     private func receiptView(_ receipt: PrivacyReceipt) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(receipt.state == "completed" ? app.t("Privacy cleaning completed") : app.t("Some sources were not cleaned"), systemImage: receipt.state == "completed" ? "checkmark.circle" : "exclamationmark.triangle")
             ForEach(receipt.items) { item in
-                HStack {
-                    Text(item.sourceId).font(.caption.monospaced()).lineLimit(1)
-                    Spacer()
-                    Text("\(item.removedRecords) · " + item.state).font(.caption)
-                    if let reason=item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
-                }
+                receiptItemRow(item)
             }
         }.padding().background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+    }
+    private func receiptItemRow(_ item: PrivacyItemResult) -> some View {
+        HStack {
+            Text(item.sourceId).font(.caption.monospaced()).lineLimit(1)
+            Spacer()
+            Text("\(item.removedRecords) · " + item.state).font(.caption)
+            if let reason=item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
+        }
     }
     private var recentHistory: some View {
         DisclosureGroup(app.t("Recent privacy receipts")) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(session.history.prefix(20)) { receipt in
-                            historyReceipt(receipt)
+                        historyReceipt(receipt)
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }.frame(maxHeight: 180)
@@ -106,8 +150,8 @@ struct PrivacyView: View {
     }
     private func sourceRow(_ source: PrivacySource) -> some View {
         HStack(spacing: 12) {
-            Toggle("", isOn: Binding(get: { session.selected.contains(source.id) }, set: { selected in if selected { session.selected.insert(source.id) } else { session.selected.remove(source.id) } }))
-                .toggleStyle(.checkbox).labelsHidden().disabled(!source.eligible || app.busy || (source.requiresSignOutConsent && !session.allowCookieReview)).accessibilityIdentifier("privacy.source.\(source.id)")
+            Toggle("", isOn: selectionBinding(source.id))
+                .toggleStyle(.checkbox).labelsHidden().disabled(sourceDisabled(source)).accessibilityIdentifier("privacy.source.\(source.id)")
             Image(systemName: source.definition.kind == .cookies ? "person.crop.circle.badge.exclamationmark" : "clock.arrow.circlepath").font(.title3).frame(width: 28)
             VStack(alignment: .leading, spacing: 4) {
                 Text(source.definition.browserName + " · " + source.definition.profile).font(.body.weight(.medium))
@@ -117,6 +161,14 @@ struct PrivacyView: View {
             Text(source.recordCount.map { String($0) } ?? "—").monospacedDigit()
             Text(statusTitle(source.status)).font(.caption).foregroundStyle(source.eligible ? Color.secondary : Color.orange).frame(width: 140, alignment: .trailing)
         }.padding(14).help(source.reason ?? "").overlay(alignment: .bottom) { Divider() }
+    }
+    private func selectionBinding(_ sourceID: String) -> Binding<Bool> {
+        Binding(get: { session.selected.contains(sourceID) }, set: { selected in
+            if selected { session.selected.insert(sourceID) } else { session.selected.remove(sourceID) }
+        })
+    }
+    private func sourceDisabled(_ source: PrivacySource) -> Bool {
+        !source.eligible || app.busy || (source.requiresSignOutConsent && !session.allowCookieReview)
     }
     private func rangeTitle(_ range: PrivacyTimeRange) -> String {
         switch range {
@@ -156,25 +208,54 @@ private struct PrivacyConfirmation: View {
     @State private var signOut=false
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Label(app.t("Permanently delete privacy records?"), systemImage: "exclamationmark.triangle.fill").font(.title2.bold()).foregroundStyle(.red)
-            Text("\(plan.sources.count) " + app.t("sources") + " · \(plan.recordCount) " + app.t("records"))
-            Text(app.t("This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.")).font(.callout).foregroundStyle(.secondary)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    ForEach(plan.sources) { source in
-                        Text("\(source.definition.browserName) · \(source.definition.profile) · \(source.definition.kind.rawValue) · \(source.recordCount ?? 0)")
-                    }
-                }.frame(maxWidth: .infinity, alignment: .leading)
-            }.frame(maxHeight: 180)
-            Text((plan.rangeStart.map { app.date($0) } ?? app.t("All time")) + " → " + app.date(plan.rangeEnd)).font(.caption).foregroundStyle(.secondary)
-            Toggle(app.t("I understand that deletion is permanent and has no restore."), isOn: $permanent).toggleStyle(.checkbox)
-            if plan.requiresSignOutConsent { Toggle(app.t("I accept that websites may sign me out."), isOn: $signOut).toggleStyle(.checkbox) }
-            HStack {
-                Spacer()
-                Button(app.t("Cancel")) { session.plan=nil }.keyboardShortcut(.cancelAction)
-                Button(app.t("Delete Permanently"), role: .destructive) { session.execute(app: app, plan: plan, signOut: signOut) }
-                    .buttonStyle(.borderedProminent).tint(.red).disabled(!permanent || (plan.requiresSignOutConsent && !signOut)).accessibilityIdentifier("privacy.confirm-delete")
-            }
+            title
+            scopeSummary
+            impactNotice
+            sources
+            timeBounds
+            consentControls
+            actions
         }.padding(28).frame(width: 640)
+    }
+    private var title: some View {
+        Label(app.t("Permanently delete privacy records?"), systemImage: "exclamationmark.triangle.fill")
+            .font(.title2.bold()).foregroundStyle(.red)
+    }
+    private var scopeSummary: some View {
+        Text("\(plan.sources.count) " + app.t("sources") + " · \(plan.recordCount) " + app.t("records"))
+    }
+    private var impactNotice: some View {
+        Text(app.t("This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope."))
+            .font(.callout).foregroundStyle(.secondary)
+    }
+    private var sources: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(plan.sources) { source in
+                    Text("\(source.definition.browserName) · \(source.definition.profile) · \(source.definition.kind.rawValue) · \(source.recordCount ?? 0)")
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading)
+        }.frame(maxHeight: 180)
+    }
+    private var timeBounds: some View {
+        Text((plan.rangeStart.map { app.date($0) } ?? app.t("All time")) + " → " + app.date(plan.rangeEnd))
+            .font(.caption).foregroundStyle(.secondary)
+    }
+    @ViewBuilder private var consentControls: some View {
+        Toggle(app.t("I understand that deletion is permanent and has no restore."), isOn: $permanent).toggleStyle(.checkbox)
+        if plan.requiresSignOutConsent {
+            Toggle(app.t("I accept that websites may sign me out."), isOn: $signOut).toggleStyle(.checkbox)
+        }
+    }
+    private var actions: some View {
+        HStack {
+            Spacer()
+            Button(app.t("Cancel")) { session.plan=nil }.keyboardShortcut(.cancelAction)
+            Button(app.t("Delete Permanently"), role: .destructive) {
+                session.execute(app: app, plan: plan, signOut: signOut)
+            }
+            .buttonStyle(.borderedProminent).tint(.red).disabled(!permanent || (plan.requiresSignOutConsent && !signOut))
+            .accessibilityIdentifier("privacy.confirm-delete")
+        }
     }
 }

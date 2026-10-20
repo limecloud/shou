@@ -157,6 +157,7 @@ public struct ScanSnapshot: Codable, Sendable, Identifiable {
     public var completedPaths: [String]? = nil
     public var treeComplete: Bool? = nil
     public var scope: ScanScope? = nil
+    public var installedApplicationCaches: [InstalledApplicationCacheEvidence]? = nil
 }
 public struct PlanItem: Codable, Sendable, Identifiable {
     public var id: String
@@ -177,6 +178,7 @@ public struct CleanupPlan: Codable, Sendable, Identifiable {
     public var executionId: String? = nil
     public var scanBudget: ScanBudget? = nil
     public var scanScope: ScanScope? = nil
+    public var installedApplicationCaches: [InstalledApplicationCacheEvidence]? = nil
     public var allocatedBytesEstimate: Int64 { items.reduce(0) { $0 + $1.candidate.allocatedBytesEstimate } }
     public func calculatedDigest() throws -> String {
         var copy = self; copy.digest=""; copy.state="ready"; copy.executionId=nil

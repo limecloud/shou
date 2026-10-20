@@ -67,10 +67,12 @@ public struct CleanupReview: Sendable {
             guard !overlaps else { continue }
             claimed.insert(identity)
             let template=candidate.ruleIds.sorted().compactMap { byId[$0] }.first
-            let key=template?.id ?? candidate.ruleIds.sorted().joined(separator: ",")
+            let installedCache=snapshot.installedApplicationCaches?.first { candidate.ruleIds.contains($0.ruleId) }
+            let key=template?.id ?? installedCache?.ruleId ?? candidate.ruleIds.sorted().joined(separator: ",")
             let location=locations.first { $0.path == snapshot.workspace.path }
             let category: String
-            if template == nil { category="personal" }
+            if template == nil && installedCache == nil { category="personal" }
+            else if installedCache != nil && template == nil { category="application" }
             else if template?.location == "projects" { category=template?.category == "build" || template?.category == "dependencies" ? "build" : "developer" }
             else if template?.category == "build" || template?.category == "packages" { category="developer" }
             else if location?.category == "browser" || locations.contains(where: { $0.category == "browser" && !Set($0.applicationBundleIdentifiers).isDisjoint(with: template?.applicationBundleIdentifiers ?? []) }) { category="browser" }
@@ -80,7 +82,8 @@ public struct CleanupReview: Sendable {
             grouped[key, default: []].append(CleanupSource(snapshotId: snapshot.id, workspace: snapshot.workspace, candidate: candidate,
                 fileCount: indexes[snapshot.id]?.nodes[candidate.relativePath]?.fileCount ?? 0,
                 selectable: candidate.eligible && !snapshot.previewOnly && TreeSnapshot(entries: [], complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: [], caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths).isComplete(at: candidate.relativePath)))
-            definitions[key]=(template?.name ?? "Personal Rules", category, template?.applicationBundleIdentifiers ?? [])
+            definitions[key]=(template?.name ?? installedCache?.application.name ?? "Personal Rules", category,
+                template?.applicationBundleIdentifiers ?? installedCache?.application.bundleIdentifier.map { [$0] } ?? [])
         }
         let rules=grouped.map { key, sources in
             let definition=definitions[key]!

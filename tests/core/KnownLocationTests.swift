@@ -282,8 +282,15 @@ func systemScanRegistersBeforeEvidenceAndReportsPartial() async throws {
     let config=try await engine.configuration()
     let existing=result.locations.filter(\.exists)
     let unavailable=result.locations.filter { $0.availabilityIssue != nil }
-    try expect(result.status == (unavailable.isEmpty ? "complete" : "partial"))
-    try expect(result.issues.count == unavailable.count && result.issues.allSatisfy { $0.code == "access_unavailable" })
+    let cacheDiscoveryUnavailable=existing.contains { $0.id == "caches" }
+    try expect(result.status == (unavailable.isEmpty && !cacheDiscoveryUnavailable ? "complete" : "partial"))
+    try expect(result.issues.filter { $0.code == "access_unavailable" }.count == unavailable.count)
+    try expect(result.issues.filter { $0.code == "application_discovery_unavailable" }.count == (cacheDiscoveryUnavailable ? 1 : 0))
+    try expect(result.issues.allSatisfy { $0.code == "access_unavailable" || ($0.locationId == "caches" && $0.code == "application_discovery_unavailable") })
+    if let caches=result.snapshots.first(where: { $0.workspace.path.hasSuffix("/Library/Caches") }) {
+        try expect(caches.status == "complete" && caches.installedApplicationCaches == nil)
+        try expect(try await engine.builtinRules(workspaceId: caches.workspace.id).contains { $0.id == "shou.builtin.wechat-caches" })
+    }
     try expect(config.workspaces.count == existing.count && result.snapshots.count == existing.count)
     let digest=try Digest.of(config)
     try expect(result.snapshots.allSatisfy { $0.configurationDigest == digest })

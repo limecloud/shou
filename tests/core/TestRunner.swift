@@ -157,6 +157,19 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--installed-caches-only"] {
+            do {
+                try await installedApplicationCachesUseNormalCleanupWithoutUninstalling()
+                try await installedApplicationCachesKeepActivityAndIdentityGates()
+                try await installedApplicationCachesRecheckAtEachMutationBoundary()
+                try await installedApplicationCachesRespectStaticScopeAndDisabledRules()
+                try await installedApplicationCachesRetainSharedProtectionAndNoFollowBoundaries()
+                try await installedApplicationCachesReportInventoryGapsAndAmbiguousOwners()
+                try await installedApplicationCachesKeepLegacyRecordsAndBindEvidenceDigests()
+                print("7/7 installed-application cache discovery, ownership, activity, shared cleanup and compatibility tests passed; generated fixtures only.")
+            } catch { print("FAIL installed application caches: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--mole-rules-only"] {
             do {
                 try await moleRulesKeepProfilesGamesAndDeveloperState()
@@ -166,6 +179,13 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Installed application caches use ordinary cleanup and preserve applications", { try await installedApplicationCachesUseNormalCleanupWithoutUninstalling() }),
+            ("Installed application cache activity and identity are revalidated", { try await installedApplicationCachesKeepActivityAndIdentityGates() }),
+            ("Installed application caches recheck at each mutation boundary", { try await installedApplicationCachesRecheckAtEachMutationBoundary() }),
+            ("Installed application caches preserve static scope and disabled rules", { try await installedApplicationCachesRespectStaticScopeAndDisabledRules() }),
+            ("Installed application caches retain shared protection and no-follow boundaries", { try await installedApplicationCachesRetainSharedProtectionAndNoFollowBoundaries() }),
+            ("Installed application cache discovery reports incomplete and ambiguous owners", { try await installedApplicationCachesReportInventoryGapsAndAmbiguousOwners() }),
+            ("Installed application cache evidence preserves legacy digests", { try await installedApplicationCachesKeepLegacyRecordsAndBindEvidenceDigests() }),
             ("Disk access policy preserves exact protected boundaries", { try scanAccessPolicyProtectsExactBoundaries() }),
             ("Limited scan retains accessible sibling coverage", { try await scanAccessSkipsContainersAndPreservesAccessibleCoverage() }),
             ("CLI installation preserves arguments and conflicting entries", { try cliInstallationIsRepeatableAndPreservesConflicts() }),

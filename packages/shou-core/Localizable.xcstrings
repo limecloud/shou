@@ -20064,6 +20064,214 @@
           }
         }
       }
+    },
+    "The application will recreate its cache when needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The application will recreate its cache when needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用会在需要时重新生成缓存。"
+          }
+        }
+      }
+    },
+    "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅包含与此已安装应用的 Bundle ID 精确匹配的缓存。应用数据与应用本身会被保留。"
+          }
+        }
+      }
+    },
+    "Installed application cache discovery is incomplete. Caches without verified ownership were not included.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application cache discovery is incomplete. Caches without verified ownership were not included."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的缓存发现尚未完成。未能验证归属的缓存未被纳入。"
+          }
+        }
+      }
+    },
+    "Some installed applications share a bundle identifier. Their caches were not included.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some installed applications share a bundle identifier. Their caches were not included."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分已安装应用使用相同的 Bundle ID，其缓存未被纳入。"
+          }
+        }
+      }
+    },
+    "Installed application cache discovery is unavailable. Maintained cleanup rules remain available.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application cache discovery is unavailable. Maintained cleanup rules remain available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的缓存发现暂不可用，内置维护规则仍可使用。"
+          }
+        }
+      }
+    },
+    "Installed application cache evidence is invalid.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application cache evidence is invalid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的缓存证据无效。"
+          }
+        }
+      }
+    },
+    "Installed application cache ownership evidence is missing or ambiguous.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application cache ownership evidence is missing or ambiguous."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的缓存归属证据缺失或存在歧义。"
+          }
+        }
+      }
+    },
+    "Installed application cache scope is invalid.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application cache scope is invalid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的缓存范围无效。"
+          }
+        }
+      }
+    },
+    "Installed application ownership could not be verified; scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application ownership could not be verified; scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法验证已安装应用的归属，请重新扫描。"
+          }
+        }
+      }
+    },
+    "A maintained rule already defines this cache scope; scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A maintained rule already defines this cache scope; scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内置维护规则已定义此缓存范围，请重新扫描。"
+          }
+        }
+      }
+    },
+    "Installed application ownership changed; scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application ownership changed; scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的归属已变化，请重新扫描。"
+          }
+        }
+      }
+    },
+    "Installed application identity changed; scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed application identity changed; scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装应用的身份已变化，请重新扫描。"
+          }
+        }
+      }
+    },
+    "Application activity inspection stopped.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application activity inspection stopped."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用运行状态检查已停止。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

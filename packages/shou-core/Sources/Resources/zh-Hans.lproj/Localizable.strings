@@ -24,6 +24,7 @@
 "A file or folder was modified too recently" = "目录或其内部文件近期有修改";
 "A little setup. More room to breathe." = "准备就绪，收拾一下。";
 "A little space to breathe." = "收好，就好。";
+"A maintained rule already defines this cache scope; scan again." = "内置维护规则已定义此缓存范围，请重新扫描。";
 "A preset requires a name and explicit rules." = "预设需要名称及明确选择的规则。";
 "A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count." = "项目标记必须是目标父目录中的普通文件名，例如 package.json；符号链接不作为标记。";
 "A read-only system tool could not verify artifact evidence." = "只读系统工具未能完成产物安全核验。";
@@ -88,6 +89,7 @@
 "Application Uninstall" = "应用卸载";
 "Application activity checking is unavailable on this platform." = "此平台暂不支持应用运行状态检查。";
 "Application activity could not be checked." = "无法检查应用运行状态。";
+"Application activity inspection stopped." = "应用运行状态检查已停止。";
 "Application bundle" = "应用程序包";
 "Application caches" = "应用缓存";
 "Application component changed; preview again." = "应用组件已变化，请重新预览。";
@@ -464,6 +466,14 @@
 "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed." = "安装 shou 命令，供终端、Codex、Claude Code 或 WorkBuddy 操作，无需接入模型。";
 "Installation and CLI" = "安装与 CLI";
 "Installed Dependencies" = "项目依赖";
+"Installed application cache discovery is incomplete. Caches without verified ownership were not included." = "已安装应用的缓存发现尚未完成。未能验证归属的缓存未被纳入。";
+"Installed application cache discovery is unavailable. Maintained cleanup rules remain available." = "已安装应用的缓存发现暂不可用，内置维护规则仍可使用。";
+"Installed application cache evidence is invalid." = "已安装应用的缓存证据无效。";
+"Installed application cache ownership evidence is missing or ambiguous." = "已安装应用的缓存归属证据缺失或存在歧义。";
+"Installed application cache scope is invalid." = "已安装应用的缓存范围无效。";
+"Installed application identity changed; scan again." = "已安装应用的身份已变化，请重新扫描。";
+"Installed application ownership changed; scan again." = "已安装应用的归属已变化，请重新扫描。";
+"Installed application ownership could not be verified; scan again." = "无法验证已安装应用的归属，请重新扫描。";
 "Interface language" = "界面语言";
 "Invalid logical workspace root reference." = "工作区根目录引用无效。";
 "Invalid record identifier." = "记录标识无效。";
@@ -613,6 +623,7 @@
 "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview." = "本次仅在发现深度和扫描预算内测量规则路径，不代表整个工作区的空间分析。修改任一字段后需重新预览。";
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "仅检查列出的应用目录及其下两层文件夹。不枚举内嵌应用、安装包收据或自定义安装位置。";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "仅描述此目录，不能选中工作区本身或工作区外的目录。";
+"Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained." = "仅包含与此已安装应用的 Bundle ID 精确匹配的缓存。应用数据与应用本身会被保留。";
 "Only verified trashed items can be restored or permanently removed." = "只有已核验移入废纸篓的项目才能还原或永久删除。";
 "Opam download caches" = "Opam 下载缓存";
 "Open Directory" = "打开目录";
@@ -959,6 +970,7 @@
 "Software Updates" = "软件更新";
 "Some applications could not be fully inspected. Associated files remain protected when ownership coverage is incomplete." = "部分应用未能完整检查。归属检查范围不完整时，关联文件将保持受保护状态。";
 "Some applications could not be fully inspected. Review ownership notices before selecting associated files." = "部分应用未能完整检查。选择关联文件前，请查看归属提示。";
+"Some installed applications share a bundle identifier. Their caches were not included." = "部分已安装应用使用相同的 Bundle ID，其缓存未被纳入。";
 "Some items could not be removed. Review the result." = "部分项目未能移除，请查看处理结果。";
 "Some items were not moved. Inspect history." = "部分项目未移动，请查看记录。";
 "Some locations could not be fully scanned." = "部分位置未能完整扫描。";
@@ -1045,6 +1057,7 @@
 "The application creates new diagnostic logs when needed." = "应用会在需要时创建新的诊断日志。";
 "The application recreates downloaded resources and generated caches when needed." = "应用会在需要时重新下载资源并生成缓存。";
 "The application recreates rendering and downloaded resource caches when needed." = "应用会按需重建渲染缓存并重新下载资源。";
+"The application will recreate its cache when needed." = "应用会在需要时重新生成缓存。";
 "The browser downloads web resources and rebuilds rendering caches when needed." = "浏览器会按需下载网页资源并重建渲染缓存。";
 "The built-in rule namespace is reserved." = "内置规则的命名空间不可用于个人规则。";
 "The framework recreates these outputs during development or the next build." = "框架会在开发或下次构建时重新生成这些产物。";
