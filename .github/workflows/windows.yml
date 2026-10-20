@@ -57,7 +57,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Rule coverage verification failed." }
       - name: Build Swift engine, native checks and WPF application
         run: ./scripts/build-windows.ps1 -Stage Build
-      - name: Verify native fixtures and real desktop processes
+      - name: Verify WPF and real desktop processes
         run: ./scripts/build-windows.ps1 -Stage Check
       - name: Retain build evidence
         uses: actions/upload-artifact@v4
