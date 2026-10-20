@@ -85,14 +85,24 @@ struct PrivacyView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(session.history.prefix(20)) { receipt in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(app.date(receipt.createdAt) + " · " + receipt.state).font(.caption.bold())
-                            ForEach(receipt.items) { item in Text(item.sourceId + " · \(item.removedRecords) · " + item.state + (item.reason.map { " · " + $0 } ?? "")).font(.caption.monospaced()).textSelection(.enabled) }
-                        }
+                            historyReceipt(receipt)
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }.frame(maxHeight: 180)
         }
+    }
+    private func historyReceipt(_ receipt: PrivacyReceipt) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(app.date(receipt.createdAt) + " · " + receipt.state).font(.caption.bold())
+            ForEach(receipt.items) { item in
+                Text(historyItemText(item)).font(.caption.monospaced()).textSelection(.enabled)
+            }
+        }
+    }
+    private func historyItemText(_ item: PrivacyItemResult) -> String {
+        var fields=[item.sourceId, String(item.removedRecords), item.state]
+        if let reason=item.reason { fields.append(reason) }
+        return fields.joined(separator: " · ")
     }
     private func sourceRow(_ source: PrivacySource) -> some View {
         HStack(spacing: 12) {
