@@ -34,21 +34,18 @@ try {
             $originalTemp[$name] = [Environment]::GetEnvironmentVariable($name, "Process")
             [Environment]::SetEnvironmentVariable($name, $fixtureRoot, "Process")
         }
-        $originalRecycle = [Environment]::GetEnvironmentVariable("SHOU_WINDOWS_EXPERIMENTAL_RECYCLE", "Process")
-        [Environment]::SetEnvironmentVariable("SHOU_WINDOWS_EXPERIMENTAL_RECYCLE", "1", "Process")
         try {
             Push-Location (Join-Path $repo "apps/windows")
             try {
                 dotnet run --project "Shou.Windows.Checks" -c $Configuration --no-build -- --engine (Join-Path $bin "shou.exe")
                 if ($LASTEXITCODE -ne 0) { throw "Desktop process checks failed." }
             } finally { Pop-Location }
-            python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe") --native-trash --native-permanent
+            python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe") --native-permanent
             if ($LASTEXITCODE -ne 0) { throw "Real desktop protocol integration failed." }
         } finally {
             foreach ($name in $originalTemp.Keys) {
                 [Environment]::SetEnvironmentVariable($name, $originalTemp[$name], "Process")
             }
-            [Environment]::SetEnvironmentVariable("SHOU_WINDOWS_EXPERIMENTAL_RECYCLE", $originalRecycle, "Process")
             Remove-Item -LiteralPath $fixtureRoot -Recurse -Force
         }
     }

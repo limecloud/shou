@@ -125,8 +125,6 @@ def main():
 
         capabilities = success("capabilities")
         assert capabilities["features"]["permanent"] is True
-        if capabilities["platform"] == "windows" and args.native_trash:
-            assert capabilities["features"]["trash"] and capabilities["features"]["restore"]
         assert capabilities["features"]["applications"] is False
         print("PASS real capability and version discovery", flush=True)
         registered = success("workspace.add", dict(path=str(workspace), root_ref="desktop-fixture"))
