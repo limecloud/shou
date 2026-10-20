@@ -115,7 +115,7 @@ def main():
             # Set only these newly generated files to the current user.
             identity = next(token for token in subprocess.check_output(["whoami", "/user"], text=True).split()
                              if token.startswith("S-1-"))
-            subprocess.run(["icacls", str(workspace), "/setowner", identity, "/T", "/Q"],
+            subprocess.run(["icacls", str(workspace), "/setowner", "*" + identity, "/T", "/Q"],
                            check=True, stdout=subprocess.DEVNULL)
 
         def success(operation, values=None):
