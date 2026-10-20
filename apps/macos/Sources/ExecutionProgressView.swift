@@ -10,9 +10,9 @@ struct ExecutionProgressView: View {
         let update=model.executionProgress
         OperationProgressView(title: model.executionTitle,
             subtitle: model.t("Tidy up. That's it."),
-            symbol: update?.stage == "restoring" ? "folder.fill" : update?.stage == "moving" ? "trash.fill" : model.section == "privacy" ? "hand.raised.fill" : "tray.fill",
+            symbol: update?.stage == "restoring" ? "folder.fill" : update?.stage == "moving" ? "trash.fill" : model.executionUsesSources ? "hand.raised.fill" : "tray.fill",
             currentPath: update?.path ?? "",
-            countText: update.map { String(format: model.t(model.section == "privacy" ? "%lld of %lld sources processed" : "%lld of %lld items processed"), locale: model.language.locale, $0.processedCount, $0.itemCount) } ?? model.t("Preparing cleanup…"),
+            countText: update.map { String(format: model.t(model.executionUsesSources ? "%lld of %lld sources processed" : "%lld of %lld items processed"), locale: model.language.locale, $0.processedCount, $0.itemCount) } ?? model.t("Preparing cleanup…"),
             fraction: update.flatMap { $0.stage == "preflight" || $0.itemCount <= 0 ? nil : Double(min(max(0, $0.processedCount), $0.itemCount)) / Double($0.itemCount) },
             stopRequested: model.stopRequested,
             stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping at a safe boundary…"), onStop: model.cancel)
@@ -100,6 +100,7 @@ struct OperationProgressMeter: View {
                     .contentTransition(.numericText()).accessibilityIdentifier("operation.count")
             }
         }.animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: value)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: countText)
     }
 }
 

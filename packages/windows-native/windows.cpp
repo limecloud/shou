@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <aclapi.h>
 #include <sddl.h>
+#include <shellapi.h>
 #include <shlobj.h>
 #include <shobjidl.h>
 #include <wrl/client.h>
@@ -41,8 +42,8 @@ DWORD normalized(const char *input, std::wstring &path) {
         auto part=path.substr(start,end-start);
         if (part.empty() || part==L"." || part==L".." || part.back()==L'.' || part.back()==L' ' || part.find_first_of(L"<>:\"|?*")!=std::wstring::npos) return ERROR_INVALID_NAME;
         for (auto c:part) if (c<32) return ERROR_INVALID_NAME;
-        auto base=part.substr(0,part.find(L'.')); for(auto &c:base)c=towupper(c);
-        if (base==L"CON" || base==L"PRN" || base==L"AUX" || base==L"NUL" ||
+        auto base=part.substr(0,part.find(L'.')); while(!base.empty() && base.back()==L' ')base.pop_back();for(auto &c:base)c=towupper(c);
+        if (base==L"CON" || base==L"PRN" || base==L"AUX" || base==L"NUL" || base==L"CONIN$" || base==L"CONOUT$" ||
             (base.size()==4 && (base.substr(0,3)==L"COM" || base.substr(0,3)==L"LPT") &&
              ((base[3]>=L'1' && base[3]<=L'9') || base[3]==L'\u00b9' || base[3]==L'\u00b2' || base[3]==L'\u00b3'))) return ERROR_INVALID_NAME;
         start=end+1;
@@ -74,7 +75,7 @@ DWORD open(const std::wstring &path, Handles &pins, HANDLE &last, DWORD access=F
         if(tag.FileAttributes&FILE_ATTRIBUTE_DIRECTORY){
             FILE_CASE_SENSITIVE_INFO sensitive{};
             if(!GetFileInformationByHandleEx(h,FileCaseSensitiveInfo,&sensitive,sizeof(sensitive)))return GetLastError();
-            if(sensitive.Flags&FILE_CS_FLAG_CASE_SENSITIVE_DIR)return ERROR_NOT_SUPPORTED;
+            if(sensitive.Flags!=0)return ERROR_NOT_SUPPORTED;
         }
         if(final){last=h;return 0;}
         end=path.find(L'\\',end==3?3:end+1);if(end==std::wstring::npos)end=path.size();
@@ -182,6 +183,7 @@ public:
 int shell_move(const char *input,const char *target,const shou_win_info *saved,char **result) {
     *result=nullptr;std::wstring path,destination;DWORD code=normalized(input,path);if(code)return code;
     if(target && (code=normalized(target,destination)))return code;
+    if(target && path[0]!=destination[0])return ERROR_NOT_SAME_DEVICE;
     if((code=expected(path,saved)))return code;
     Handles pins;HANDLE parent;auto parentPath=path.substr(0,path.find_last_of(L'\\'));if(parentPath.size()==2)parentPath+=L'\\';
     if((code=open(parentPath,pins,parent)))return code;
@@ -222,6 +224,8 @@ int shou_win_list(const char *input,size_t limit,char **result){
     if(search==INVALID_HANDLE_VALUE){code=GetLastError();if(code==ERROR_FILE_NOT_FOUND){*result=utf8(L"");return 0;}return code;}
     std::wstring names;size_t count=0;
     do{if(!wcscmp(data.cFileName,L".")||!wcscmp(data.cFileName,L".."))continue;
+       for(auto c:std::wstring(data.cFileName))if(c<32){code=ERROR_INVALID_NAME;break;}
+       if(code)break;
        if(++count>limit || names.size()>8*1024*1024){code=ERROR_MORE_DATA;break;}names+=data.cFileName;names+=L'\n';
     }while(FindNextFileW(search,&data));
     if(!code && GetLastError()!=ERROR_NO_MORE_FILES)code=GetLastError();FindClose(search);
@@ -262,13 +266,6 @@ int shou_win_write(const char *input,const void *bytes,size_t count){
 }
 int shou_win_recycle(const char *path,const shou_win_info *saved,char **result){return shell_move(path,nullptr,saved,result);}
 int shou_win_restore(const char *path,const char *target,const shou_win_info *saved,char **result){return shell_move(path,target,saved,result);}
-int shou_win_remove(const char *input,const shou_win_info *saved){
-    std::wstring path;auto code=normalized(input,path);if(code)return code;Handles pins;HANDLE h;
-    if((code=open(path,pins,h,DELETE|FILE_READ_ATTRIBUTES|READ_CONTROL,FILE_SHARE_READ)))return code;
-    shou_win_info current{};if((code=info(h,&current)))return code;
-    if(!same(current,*saved,current.kind==2))return ERROR_FILE_INVALID;
-    FILE_DISPOSITION_INFO disposition{TRUE};return SetFileInformationByHandle(h,FileDispositionInfo,&disposition,sizeof(disposition))?0:GetLastError();
-}
 int shou_win_available(const char *input,uint64_t *result){std::wstring path;auto code=normalized(input,path);if(code)return code;ULARGE_INTEGER bytes;if(!GetDiskFreeSpaceExW(path.c_str(),&bytes,nullptr,nullptr))return GetLastError();*result=bytes.QuadPart;return 0;}
 int shou_win_stdin(void *buffer,uint32_t capacity,uint32_t *count){
     DWORD read=0;BOOL ok=ReadFile(GetStdHandle(STD_INPUT_HANDLE),buffer,capacity,&read,nullptr);

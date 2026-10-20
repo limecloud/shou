@@ -10,6 +10,8 @@ Windows 使用 C#、.NET 10 LTS 和 WPF，采用 MVVM 分离视图与交互状�
 
 首个验证目标是 Windows 11 x64。ARM64、旧版 Windows、网络卷、云端占位目录和跨卷操作分别验收，不能从工具链支持推断产品支持。
 
+已审阅知伴的 `AgentProcessClient.cs`（参数数组、同时排空管道、有界严格 JSON）、`WorkspaceClient.cs`（能力发现）、`zhiban_io.c`（原生锁与持久记录）及其 Windows 验收文档。该项目同样把 macOS 交叉构建与 Windows 运行、分发验收分开记录。
+
 ## 工程职责
 
 | 位置 | 职责 |
@@ -28,6 +30,8 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 
 扫描不跟随 junction、符号链接、挂载点或未知重解析点，不读取云端占位文件以触发下载。权限拒绝、预算耗尽和不完整遍历必须保留为部分结果，不能据此授权未完整测量的目标。
 
+首版拒绝大小写敏感目录，避免将其误报为大小写不敏感。仅接受固定本地驱动器路径，拒绝 UNC/设备路径、替代数据流与保留设备名。系统目录、用户资料根、敏感目录、已配置的 OneDrive 根和 Shou 记录受保护。
+
 原生回收站失败不得退回永久删除；恢复不得覆盖已有目标。变更前核验当前目录树和文件身份，先持久化意图，再执行操作并写回结果。未知结果保留为未知，不自动重试。Windows 原生文件竞态、回收站回执与系统行为必须独立实测。
 
 ## 桌面进程协议
@@ -35,6 +39,25 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 桌面桥与公开 CLI 共用核心，但不伪造终端输入，也不增加 `--yes`。桌面确认绑定本次进程中的操作、计划或回执摘要、具体选择、一次性挑战和有效期；版本、摘要或选择变化即拒绝。公开 CLI 继续要求当前范围的终端确认。
 
 启动随包程序时使用绝对路径、参数数组、UTF-8 JSON、有界输入输出和明确错误码；stdout 仅用于协议，stderr 同时排空并限制保留量。只读请求可在取消或期限到达时终止自有进程。清理、恢复等变更请求通过协议请求协作取消，让核心在项目边界停止并保存回执；不能把超时当作没有发生变更。
+
+请求为单行 JSON，包含 `bridge_version: 1`、唯一 `request_id`、`operation` 与对象 `input`。事件保留版本和请求 ID，以 `kind` 区分 `progress`、`confirmation`、`result`，业务内容放在 `value`。结果继续使用公开 CLI 的 `api_version: "1.0"` 信封。确认只接受当前审阅的挑战与摘要，取消和 EOF 使其失效；输入限 1 MiB，单事件限 8 MiB，客户端总输出限 64 MiB，确认有效期为 120 秒。
+
+已连接 `capabilities`、`configuration`、`workspace.add`、`scan`、`scan.results`、`plan`、`plan.execute`、`history`、`history.restore`、`rules.import`、`rules.set`、`exclusions.set`、`storage.scan`、`storage.directory`。候选每页最多 100 项。该桥属于桌面内部传输，公开 CLI 的终端确认独立保留。
+
+## 当前开发范围
+
+| 能力 | 实现状态 |
+| --- | --- |
+| 原生目录选择、分页扫描、候选审阅 | WPF 源码与共享核心桥已连接 |
+| 规则草稿、启停、全局排除增删 | 已连接；导入默认停用 |
+| 目录空间分析 | 有界内存遍历与导航；尚无流式 SQLite catalog |
+| 历史与冲突保护恢复 | 已连接；变更能力默认关闭 |
+| 系统回收站 | 原生实验实现；仅隔离 Windows 验证设置 `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1` |
+| 永久删除 | Windows 不可用，直接调用平台接口也拒绝 |
+| 应用、启动项、隐私、大文件专用 UI、完整本地化 | 尚未连接；首版界面为简体中文 |
+| Rust/Swift 生成源码归属与活动证据 | Windows 不可用，相关内置候选保持阻断 |
+
+尚未取得 Windows 运行证据的原生实现不能直接授权正式清理，因此保留此开发门槛。
 
 ## 实现与验收顺序
 
@@ -44,7 +67,11 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 4. 完成空间分析、大文件与排除交互，未接入能力按实际发现禁用。
 5. 在 Windows 执行原生系统与界面验收，再验证签名、升级和干净系统安装。
 
-发布包必须随包交付 .NET、Swift 运行库、SQLite 依赖与资源，普通用户运行不依赖开发工具链。开发目录、交叉编译成功、macOS 桥测试和 Windows CI 配置都不能代替干净系统安装证据。
+`scripts/build-windows.ps1` 构建核心和 WPF，执行原生生成夹具、进程测试和真实协议集成。`scripts/package-windows.ps1` 发布自包含 .NET，从显式指定的官方运行库目录复制 PE 依赖闭包与 SwiftPM 资源，记录 SHA-256，并在受限运行库搜索路径下执行能力发现。Windows 11 提供 `winsqlite3.dll`。构建细节见 [Windows 说明](../../../apps/windows/README.md)。
+
+普通用户运行不应依赖开发工具链。开发目录、交叉编译成功、macOS 桥测试和 Windows CI 配置不能代替干净系统安装证据；运行库再分发许可、签名、安装器、升级与卸载仍需验收。
+
+Windows GitHub 工作流分别检查静态资源、Swift/WPF 原生构建和生成夹具及真实进程合同。`scripts/build-windows.ps1 -Stage Build` 与 `-Stage Check` 对应构建和验证，省略 `-Stage` 时两者都会执行。.NET SDK 以 `apps/windows/global.json` 为准，Swift 与 Python 版本在工作流中声明。任一检查失败都不会上传开发产物，同一引用的新运行会取消旧运行。
 
 ## 官方依据
 
@@ -54,6 +81,8 @@ Windows 文件证据保存卷序列号、完整 128 位 File ID 与所有者 SID
 - [Swift Windows 工具链](https://www.swift.org/install/windows/)
 - [Windows 文件身份](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_id_info)
 - [Windows SID](https://learn.microsoft.com/en-us/windows/win32/secauthz/security-identifiers)
+- [IFileOperation](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ifileoperation)
+- [LockFileEx](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex)
 
 ## 验证状态
 

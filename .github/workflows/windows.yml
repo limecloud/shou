@@ -7,9 +7,12 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   windows:
-    runs-on: windows-2022
+    runs-on: windows-latest
     timeout-minutes: 45
     defaults:
       run:
@@ -26,8 +29,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Build and check isolated native fixtures and desktop protocol
-        run: ./scripts/build-windows.ps1
+      - name: Report native toolchains
+        run: |
+          swift --version
+          if ($LASTEXITCODE -ne 0) { throw "Swift toolchain is unavailable." }
+          dotnet --info
+          if ($LASTEXITCODE -ne 0) { throw ".NET SDK is unavailable." }
+          python --version
+          if ($LASTEXITCODE -ne 0) { throw "Python is unavailable." }
+      - name: Verify localization, documentation and rule coverage
+        run: |
+          python scripts/update-localizations.py --check
+          if ($LASTEXITCODE -ne 0) { throw "Localization verification failed." }
+          python scripts/verify-docs.py
+          if ($LASTEXITCODE -ne 0) { throw "Documentation verification failed." }
+          python scripts/verify-mole-coverage.py --self-test
+          if ($LASTEXITCODE -ne 0) { throw "Rule coverage verification failed." }
+      - name: Build Swift engine, native checks and WPF application
+        run: ./scripts/build-windows.ps1 -Stage Build
+      - name: Verify native fixtures and real desktop processes
+        run: ./scripts/build-windows.ps1 -Stage Check
       - name: Retain build evidence
         uses: actions/upload-artifact@v4
         with:

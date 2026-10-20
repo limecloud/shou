@@ -248,9 +248,22 @@ enum Terminal {
                 let fs=NativeFileSystem()
                 let selected=try CLICommandDiscovery.matching(args.value("command"))
                 let value: JSONValue = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(selected), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("No model integration, agent hosting, or unattended destructive execution.")])])
-                try result(value, json: args.json)
+                var discovery=value
+                #if os(Windows)
+                if case .object(var fields)=discovery {
+                    fields["permanent_available"] = .bool(false)
+                    fields["trash_unavailable_reason"] = fs.trashUnavailableReason.map(JSONValue.string) ?? .null
+                    discovery = .object(fields)
+                }
+                #endif
+                try result(discovery, json: args.json)
                 return
             }
+            #if os(Windows)
+            if args.command == "history purge" || args.values["action"]?.contains("permanent") == true {
+                throw ShouError("capability_unavailable", "Permanent removal is unavailable in the Windows first release.")
+            }
+            #endif
             if args.command == "agent skill" {
                 try result(try .from(ShouAgentSkill.descriptor()), json: args.json)
                 return

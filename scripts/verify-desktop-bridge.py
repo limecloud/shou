@@ -60,6 +60,9 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
                 elif confirmation == "wrong":
                     send(dict(bridge_version=1, request_id=identifier, kind="confirm",
                               challenge="foreign-challenge", digest=review["digest"]))
+                elif confirmation == "wrong-digest":
+                    send(dict(bridge_version=1, request_id=identifier, kind="confirm",
+                              challenge=review["challenge"], digest="changed-selection-digest"))
                 elif confirmation == "accept":
                     send(dict(bridge_version=1, request_id=identifier, kind="confirm",
                               challenge=review["challenge"], digest=review["digest"]))
@@ -94,7 +97,7 @@ def main():
     args = parser.parse_args()
     engine = args.engine.resolve(strict=True)
     with tempfile.TemporaryDirectory(prefix="shou-desktop-") as temporary:
-        root = Path(temporary)
+        root = Path(temporary).resolve()
         workspace = root / "中文 project & literal"
         workspace.mkdir()
         for index in range(105):
@@ -138,7 +141,7 @@ def main():
         print("PASS registration, disabled import, enablement, scan and pagination", flush=True)
         candidate = next(item for item in scan["candidates"] if item["eligible"])
         if capabilities["features"]["trash"]:
-            for control in ["cancel", "wrong", "eof"]:
+            for control in ["cancel", "wrong", "wrong-digest", "eof"]:
                 plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]]))
                 result, reviewed = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), control)
                 assert reviewed and not result["ok"] and result["error"]["code"] in ["cancelled", "confirmation_required"], result

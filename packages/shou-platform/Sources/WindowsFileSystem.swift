@@ -57,7 +57,8 @@ public struct NativeFileSystem: PlatformFileSystem {
     public var supportsTrash: Bool { ProcessInfo.processInfo.environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] == "1" }
     public var trashUnavailableReason: String? { supportsTrash ? nil : "Windows Recycle Bin operations are experimental and disabled in this development build." }
     public func normalizedPath(_ path: String) throws -> String {
-        try WindowsNative.string({ shou_win_normalize(path, $0) }, path: path)
+        guard !path.contains("\0") else { throw ShouError("invalid_argument", "Paths cannot contain NUL bytes.") }
+        return try WindowsNative.string({ shou_win_normalize(path, $0) }, path: path)
     }
     public func locationAvailability(_ path: String) -> LocationAvailability {
         do { return try WindowsNative.metadata(path).kind == 2 ? .available : .unavailable("Select a regular directory.") }

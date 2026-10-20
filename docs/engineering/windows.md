@@ -10,6 +10,8 @@ The Zhiban project informs the native UI separation, structured process bridge a
 
 The initial validation target is Windows 11 x64. ARM64, older Windows releases, network volumes, cloud placeholders and cross-volume operations require separate evidence.
 
+The reviewed Zhiban practices were `AgentProcessClient.cs` (argument arrays, simultaneous pipe draining and bounded strict JSON), `WorkspaceClient.cs` (capability discovery), `zhiban_io.c` (native locking and durable records), and its Windows acceptance document. That project also separates macOS cross-build evidence from Windows runtime and distribution acceptance.
+
 ## Responsibilities
 
 | Location | Responsibility |
@@ -28,6 +30,8 @@ Preserve the volume serial number, full 128-bit File ID and owner SID. Do not tr
 
 Never follow junctions, symbolic links, mount points or unknown reparse points, or hydrate cloud placeholders. Permission errors and exhausted traversal budgets produce partial evidence, which cannot authorize an incompletely measured target.
 
+The first adapter rejects case-sensitive directories rather than pretending their names are case-insensitive. It accepts fixed local drive paths, and refuses UNC/device paths, alternate data streams and reserved device names. System locations, user-profile roots, sensitive directories, configured OneDrive roots and Shou records are protected.
+
 A failed Recycle Bin operation must not fall back to permanent deletion. Restoration must not overwrite an existing destination. Revalidate tree and identity evidence before mutation, journal intent first, and persist the observed outcome. Unknown outcomes remain unknown and are not automatically retried. Windows race boundaries, recycle receipts and system behavior require native validation.
 
 ## Desktop process protocol
@@ -35,6 +39,25 @@ A failed Recycle Bin operation must not fall back to permanent deletion. Restora
 The desktop bridge uses the shared core without fabricating terminal input or adding a global `--yes` switch. Confirmation binds an operation, plan or receipt digest, exact selection, one-use challenge and expiry within the same process. Changes invalidate consent. Public CLI mutation keeps its interactive current-scope terminal review.
 
 Use a bundled absolute executable path, argument arrays, UTF-8 JSON, bounded input/output and structured errors. stdout is protocol-only; stderr is drained concurrently with bounded retained diagnostics. Read requests may terminate their owned process on cancellation or timeout. Mutations request cooperative cancellation and stop at item boundaries with durable receipts. A timeout does not prove that nothing changed.
+
+Requests are one JSON line with `bridge_version: 1`, a unique `request_id`, `operation` and object `input`. Events contain the same version/ID, `kind` (`progress`, `confirmation`, `result`) and `value`. Result values retain the public CLI `api_version: "1.0"` envelope. Consent carries the challenge and digest from the current review; cancellation and EOF invalidate it. Input is limited to 1 MiB, one event to 8 MiB and client output to 64 MiB. Confirmation expires after 120 seconds.
+
+Connected operations: `capabilities`, `configuration`, `workspace.add`, `scan`, `scan.results`, `plan`, `plan.execute`, `history`, `history.restore`, `rules.import`, `rules.set`, `exclusions.set`, `storage.scan`, `storage.directory`. Candidate pages contain at most 100 items. The bridge remains an internal desktop transport; public terminal confirmation is independent.
+
+## Current development scope
+
+| Capability | Implementation status |
+| --- | --- |
+| Native directory selection, paged scans and review | WPF source and shared-core bridge connected |
+| Rule drafts, enable/disable, global exclusion add/remove | Connected; imported rules stay disabled |
+| Directory space analysis | Bounded in-memory traversal and navigation; streaming SQLite catalogs are unavailable |
+| History and conflict-safe restoration | Connected; mutation capability is disabled by default |
+| Recycle Bin | Experimental native implementation; enable only for isolated Windows validation with `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1` |
+| Permanent removal | Unavailable on Windows, including direct platform calls |
+| Applications, startup, privacy, large-file UI, full localization | Not connected; initial interface is Simplified Chinese |
+| Rust/Swift generated-source ownership/activity evidence | Unavailable on Windows; affected built-in candidates remain blocked |
+
+This development gate is deliberate: a native implementation without Windows execution evidence must not silently authorize production cleanup.
 
 ## Implementation and acceptance
 
@@ -44,7 +67,11 @@ Use a bundled absolute executable path, argument arrays, UTF-8 JSON, bounded inp
 4. Connect space analysis, large files and exclusions; expose only actual capabilities.
 5. Validate native Windows APIs and UI, then signing, upgrades and clean installation.
 
-Distribution must include .NET, Swift runtimes, SQLite dependencies and resources. End users must not need a developer toolchain. Development output, cross-compilation, macOS bridge tests and configured Windows CI are separate from clean-system installation evidence.
+`scripts/build-windows.ps1` builds the core and WPF client, runs generated native fixtures, process checks and real protocol integration. `scripts/package-windows.ps1` publishes self-contained .NET, copies SwiftPM resources and the PE dependency closure from explicit official runtime directories, writes SHA-256 inventory and probes the engine with a restricted runtime search path. Windows 11 supplies `winsqlite3.dll`. See [build instructions](../../apps/windows/README.md).
+
+End users must not need a developer toolchain. Development output, cross-compilation, macOS bridge tests and configured Windows CI are separate from clean-system installation evidence. Runtime redistribution licenses, signing, an installer, upgrades and uninstall still require acceptance.
+
+The Windows GitHub workflow runs static resource checks, native Swift/WPF builds, and generated-fixture/process checks as separate gates. `scripts/build-windows.ps1 -Stage Build` and `-Stage Check` expose those gates; omitting `-Stage` runs both. The .NET SDK follows `apps/windows/global.json`, while Swift and Python versions are declared in the workflow. A failed gate prevents development artifact upload, and a newer run cancels an older run for the same ref.
 
 ## Official references
 
@@ -54,6 +81,8 @@ Distribution must include .NET, Swift runtimes, SQLite dependencies and resource
 - [Swift Windows installation](https://www.swift.org/install/windows/)
 - [Windows file identity](https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-file_id_info)
 - [Security identifiers](https://learn.microsoft.com/en-us/windows/win32/secauthz/security-identifiers)
+- [IFileOperation](https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-ifileoperation)
+- [LockFileEx](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex)
 
 ## Verification status
 

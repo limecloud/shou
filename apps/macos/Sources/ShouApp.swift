@@ -109,6 +109,7 @@ struct CleanupCompletion: Identifiable {
     var isExecuting=false
     var stopRequested=false
     var executionProgress: ExecutionProgress?
+    private(set) var executionUsesSources=false
     private var executionOperation=UUID()
     var error: String?
     var statusKey=""
@@ -164,8 +165,9 @@ struct CleanupCompletion: Identifiable {
         default: t("Checking selected items…")
         }
     }
-    func beginExecution(total: Int) -> UUID {
+    func beginExecution(total: Int, sources: Bool = false) -> UUID {
         executionOperation=UUID(); isExecuting=true; stopRequested=false; operationHadError=false
+        executionUsesSources=sources
         executionProgress=ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: total)
         return executionOperation
     }

@@ -234,6 +234,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Wildcard language equivalence", { try wildcardMatcherPreservesLanguage() }),
             ("Wildcard descendant-prefix soundness", { try wildcardPrefixReachabilityPreservesMatches() }),
             ("Windows full identity, SID ownership and legacy records", { try windowsIdentityPreservesFileIDOwnerAndLegacyRecords() }),
+            ("Windows volume changes cannot use POSIX remount compatibility", { try await windowsVolumeChangesCannotUsePOSIXRemountCompatibility() }),
+            ("Uncertain native mutations preserve observed paths and block replay", { try await uncertainNativeMutationsPreserveObservedPathsAndBlockReplay() }),
             ("Canonical digest", { try canonicalDigestIndependentOfObjectKeyOrder() }),
             ("JSON envelope escaping", { try envelopeUsesStableKeysAndExplicitNull() }),
             ("UTC decision precision", { try utcTimestampsPreserveDecisionPrecision() }),

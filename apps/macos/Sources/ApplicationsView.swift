@@ -133,8 +133,8 @@ struct ApplicationsView: View {
             Button {
                 if session.scanning || session.preparing { session.stop() }
                 else { session.scan(app: model) }
-            } label: { Label(model.t(session.scanning || session.preparing ? "Stop" : "Scan Again"), systemImage: session.scanning || session.preparing ? "stop.fill" : "arrow.clockwise") }
-                .disabled(model.busy && !session.scanning && !session.preparing)
+            } label: { Label(model.t(session.stopRequested && (session.scanning || session.preparing) ? "Stopping…" : session.scanning || session.preparing ? "Stop" : "Scan Again"), systemImage: session.scanning || session.preparing ? "stop.fill" : "arrow.clockwise") }
+                .disabled((session.stopRequested && (session.scanning || session.preparing)) || (model.busy && !session.scanning && !session.preparing))
                 .accessibilityIdentifier("applications.refresh")
         }.padding(.horizontal, 20).padding(.vertical, 16)
     }

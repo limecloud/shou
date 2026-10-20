@@ -2,10 +2,14 @@
 import PackageDescription
 
 var dependencies: [Package.Dependency] = []
+var platformDependencies: [Target.Dependency] = ["ShouCore", "ShouAgentSupport"]
 #if os(Windows)
 let sqlitePath = "packages/sqlite-windows"
+let sqlitePackageConfig: String? = nil
+platformDependencies.append("CShouWindows")
 #else
 let sqlitePath = "packages/sqlite"
+let sqlitePackageConfig: String? = "sqlite3"
 #endif
 var products: [Product] = [
     .library(name: "ShouCore", targets: ["ShouCore"]),
@@ -14,16 +18,16 @@ var products: [Product] = [
     .executable(name: "shou-tests", targets: ["ShouSelfTests"])
 ]
 var targets: [Target] = [
-    .systemLibrary(name: "CSQLite", path: sqlitePath, pkgConfig: "sqlite3"),
+    .systemLibrary(name: "CSQLite", path: sqlitePath, pkgConfig: sqlitePackageConfig),
     .target(name: "ShouContracts", path: "packages/shou-contracts", exclude: ["README.md", "README.zh-CN.md"], resources: [.copy("rule.schema.json")]),
     .target(name: "ShouAgentSupport", path: "skills", resources: [.copy("shou-rule-authoring")]),
     .target(name: "ShouCore", dependencies: ["ShouContracts", "CSQLite"], path: "packages/shou-core/Sources", resources: [.process("Resources")]),
-    .target(name: "CShouWindows", path: "packages/windows-native", publicHeadersPath: "include", linkerSettings: [.linkedLibrary("ole32"), .linkedLibrary("shell32"), .linkedLibrary("advapi32"), .linkedLibrary("uuid")]),
-    .target(name: "ShouPlatform", dependencies: ["ShouCore", "ShouAgentSupport", .target(name: "CShouWindows", condition: .when(platforms: [.windows]))], path: "packages/shou-platform/Sources"),
+    .target(name: "ShouPlatform", dependencies: platformDependencies, path: "packages/shou-platform/Sources"),
     .executableTarget(name: "ShouCLI", dependencies: ["ShouCore", "ShouPlatform", "ShouAgentSupport"], path: "apps/cli/Sources"),
     .executableTarget(name: "ShouSelfTests", dependencies: ["ShouCore", "ShouPlatform", "CSQLite"], path: "tests/core")
 ]
 #if os(Windows)
+targets.append(.target(name: "CShouWindows", path: "packages/windows-native", publicHeadersPath: "include", linkerSettings: [.linkedLibrary("ole32"), .linkedLibrary("shell32"), .linkedLibrary("advapi32"), .linkedLibrary("uuid")]))
 products.removeAll { $0.name == "shou-tests" }
 targets.removeAll { $0.name == "ShouSelfTests" }
 products.append(.executable(name: "shou-windows-tests", targets: ["ShouWindowsTests"]))

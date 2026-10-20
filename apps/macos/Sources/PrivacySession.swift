@@ -71,7 +71,7 @@ import ShouPlatform
     func execute(app: AppModel, plan: PrivacyPlan, signOut: Bool) {
         guard !app.busy, let service else { return }
         self.plan=nil; begin(app)
-        let execution=app.beginExecution(total: plan.sources.count)
+        let execution=app.beginExecution(total: plan.sources.count, sources: true)
         task=Task {
             defer { app.isExecuting=false; finish(app) }
             do {
