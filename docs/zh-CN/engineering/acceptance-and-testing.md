@@ -4,6 +4,10 @@
 
 状态：验收计划持续执行中。第 11 节记录本机验证范围；隔离夹具的桌面与 CLI 永久移除路径已有通过结果，强制中断覆盖仍待完成。
 
+v0.4.0 发布跟进（2026-10-20）：提交 `e437d20` 已通过 Apple Silicon 与 Intel 上的[主干 CI](https://github.com/limecloud/shou/actions/runs/39396939377) 和标签 CI，分别包含 **149/149 项核心与文件系统测试**、**130 项 CLI 合同检查**、**20 项空间分析 CLI 检查**，以及包内 CLI、本地化和文档检查。[发布流水线](https://github.com/limecloud/shou/actions/runs/39396895934) 的两个架构任务也已通过显式启用的原生永久移除套件和独立的 10 万文件废纸篓／恢复回归。原始打包失败由直接比较 Foundation 的 `/var` 路径与 Python 的 `/private/var` 路径引起；修复后解析文件系统别名，并核对精确的随包 Skill 目录及三个文件的源码一致性。通用打包、签名和发布由该流水线的后续独立任务负责。
+
+大扫描进度回归（2026-10-20）：**5/5 项针对性检查**通过，覆盖真实限额与阶段反馈、只读 Worker 分页证据、加载期间取消、带摘要的持久化分页读回、损坏分页拒绝、取消时不发布残缺扫描元数据，以及可取消的索引计量；原有 **4/4 项空间操作检查**另行通过。生成的 **1,000,000 条元数据**已分段保存并完整读回。本机高负载下该次测试耗时 308.79 秒，不作为性能基准，也不代表整盘已完整覆盖。测试仅使用生成夹具。日志：`.build/storage-progress-tests.log`、`.build/storage-operation-tests.log`、`.build/storage-million-tests.log`；汇总：`.build/storage-progress-verification.json`。桌面安装和结果页观察在实测后单独记录。
+
 空间分析本机安装（2026-10-20）：重新打包并更新 `/Applications/Shou.app`，保留旧版备份，通过本地临时签名校验与分发文件逐项一致性检查，应用包没有测试环境配置。真实 `~/.local/bin/shou` 入口通过 20 项空间分析 CLI 检查。Computer Use 验证安装版中文入口、生成目录扫描、三态选择、默认永久删除、精确两路径的不可恢复确认、取消后保留选择，以及无选择地返回 Macintosh HD 入口；未请求 GUI 永久执行。全部 4 个夹具文件哈希与全部 251 个原有记录文件哈希一致；本次只读／预览流程仅新增 2 个分析与计划记录。证据：`.build/local-install/20261020-124412/verification.json`、`.build/storage-installed-cli-verification.log`。这是本地构建，尚非公证发布版。
 
 空间分析验证（2026-10-20）：最新完整脚本尝试通过 **141/141 项核心与文件系统测试**，含 74 条内置规则、460 个模式的原生废纸篓／恢复／永久移除闭环，另通过 **130 项 CLI 合同检查**、**20 项空间分析 CLI 检查**、启动入口安装检查和 4 项取消的真实 TTY 确认。脚本随后在卸载集成中因未得到 5 个可选组件失败，保留的审阅记录报告 `application_activity_unavailable`。独立重试曾通过 5 组件卸载及恢复，另一次在执行时返回 `plan_stale`。因此完整脚本**不能计为全部通过**，也未放宽活动或归属核验。证据：`.build/storage-final-full-verification.log`、`.build/storage-uninstall-retry.log`、`.build/storage-final-uninstall-quiet.log`。
