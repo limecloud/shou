@@ -129,7 +129,7 @@ DWORD expected(const std::wstring &path,const shou_win_info *saved) {
 }
 DWORD private_descriptor(const std::vector<BYTE> &user,PSECURITY_DESCRIPTOR &descriptor) {
     if(user.empty())return ERROR_INVALID_SID;
-    LPWSTR sid=nullptr;if(!ConvertSidToStringSidW(const_cast<PSID>(reinterpret_cast<const PSID>(user.data())),&sid))return GetLastError();
+    LPWSTR sid=nullptr;if(!ConvertSidToStringSidW(reinterpret_cast<PSID>(const_cast<BYTE *>(user.data())),&sid))return GetLastError();
     std::wstring sddl=L"O:"+std::wstring(sid)+L"D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;"+std::wstring(sid)+L")";LocalFree(sid);
     if(!ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl.c_str(),SDDL_REVISION_1,&descriptor,nullptr))return GetLastError();
     return 0;
