@@ -7,68 +7,20 @@ struct PrivacyView: View {
     init(app: AppModel, session: PrivacySession) { self.app=app; self.session=session }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(app.t("Privacy")).font(.largeTitle.bold())
-                    Text(app.t("Review browser activity and account data separately.")).foregroundStyle(.secondary)
-                }
-                Spacer()
-                if session.working { Button(app.t("Stop")) { session.cancel() }.accessibilityIdentifier("privacy.stop") }
-                else { Button(app.t("Scan Privacy Sources")) { session.scan(app: app) }.disabled(app.busy).accessibilityIdentifier("privacy.scan") }
-            }
+            header
             Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically.")).font(.callout).foregroundStyle(.secondary)
-            HStack {
-                Picker(app.t("Time range"), selection: $session.range) {
-                    ForEach(PrivacyTimeRange.allCases, id: \.self) { range in Text(rangeTitle(range)).tag(range) }
-                }.frame(maxWidth: 300).disabled(app.busy)
-                Text(app.t("History: visit time · Cookies: last access time")).font(.caption).foregroundStyle(.secondary)
-            }
+            timeControls
             if session.working { ProgressView().frame(maxWidth: .infinity) }
             if let scan=session.scan {
-                ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(scan.sources) { source in sourceRow(source) }
-                    }
-                }.background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
-                Toggle(app.t("I understand that clearing cookies can sign me out of websites."), isOn: $session.allowCookieReview)
-                    .toggleStyle(.checkbox).disabled(app.busy).accessibilityIdentifier("privacy.cookie-consent")
-                HStack {
-                    Text(app.t("Selected") + " \(session.selected.count) · \(session.selectedCount) " + app.t("records")).foregroundStyle(.secondary)
-                    Spacer()
-                    Button(app.t("Clear Selection")) { session.selected=[] }.disabled(app.busy || session.selected.isEmpty)
-                    Button(app.t("Review Permanent Deletion…")) { session.review(app: app) }
-                        .disabled(app.busy || session.selected.isEmpty || (session.selectedSources.contains(where: \.requiresSignOutConsent) && !session.allowCookieReview))
-                        .buttonStyle(.borderedProminent).accessibilityIdentifier("privacy.review")
-                }
+                sourceSelection(scan)
             } else if !session.working && session.receipt == nil {
                 ContentUnavailableView(app.t("Review privacy sources"), systemImage: "hand.raised", description: Text(app.t("Scan to see aggregate counts and availability. Browsing records are never displayed."))).frame(maxHeight: .infinity)
             }
             if let receipt=session.receipt {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(receipt.state == "completed" ? app.t("Privacy cleaning completed") : app.t("Some sources were not cleaned"), systemImage: receipt.state == "completed" ? "checkmark.circle" : "exclamationmark.triangle")
-                    ForEach(receipt.items) { item in
-                        HStack {
-                            Text(item.sourceId).font(.caption.monospaced()).lineLimit(1)
-                            Spacer()
-                            Text("\(item.removedRecords) · " + item.state).font(.caption)
-                            if let reason=item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
-                        }
-                    }
-                }.padding().background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+                receiptView(receipt)
             }
             if !session.history.isEmpty {
-                DisclosureGroup(app.t("Recent privacy receipts")) {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 10) {
-                            ForEach(session.history.prefix(20)) { receipt in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(app.date(receipt.createdAt) + " · " + receipt.state).font(.caption.bold())
-                                    ForEach(receipt.items) { item in Text(item.sourceId + " · \(item.removedRecords) · " + item.state + (item.reason.map { " · " + $0 } ?? "")).font(.caption.monospaced()).textSelection(.enabled) }
-                                }
-                            }
-                        }.frame(maxWidth: .infinity, alignment: .leading)
-                    }.frame(maxHeight: 180)
-                }
+                recentHistory
             }
             Text(app.t("Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.")).font(.caption).foregroundStyle(.secondary)
         }.padding(24)
@@ -78,6 +30,69 @@ struct PrivacyView: View {
             if !allowed { session.selected.subtract((session.scan?.sources ?? []).filter(\.requiresSignOutConsent).map(\.id)); session.plan=nil }
         }
         .sheet(item: $session.plan) { plan in PrivacyConfirmation(app: app, session: session, plan: plan) }
+    }
+    private var header: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(app.t("Privacy")).font(.largeTitle.bold())
+                Text(app.t("Review browser activity and account data separately.")).foregroundStyle(.secondary)
+            }
+            Spacer()
+            if session.working { Button(app.t("Stop")) { session.cancel() }.accessibilityIdentifier("privacy.stop") }
+            else { Button(app.t("Scan Privacy Sources")) { session.scan(app: app) }.disabled(app.busy).accessibilityIdentifier("privacy.scan") }
+        }
+    }
+    private var timeControls: some View {
+        HStack {
+            Picker(app.t("Time range"), selection: $session.range) {
+                ForEach(PrivacyTimeRange.allCases, id: \.self) { range in Text(rangeTitle(range)).tag(range) }
+            }.frame(maxWidth: 300).disabled(app.busy)
+            Text(app.t("History: visit time · Cookies: last access time")).font(.caption).foregroundStyle(.secondary)
+        }
+    }
+    @ViewBuilder private func sourceSelection(_ scan: PrivacyScan) -> some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                ForEach(scan.sources) { source in sourceRow(source) }
+            }
+        }.background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
+        Toggle(app.t("I understand that clearing cookies can sign me out of websites."), isOn: $session.allowCookieReview)
+            .toggleStyle(.checkbox).disabled(app.busy).accessibilityIdentifier("privacy.cookie-consent")
+        HStack {
+            Text(app.t("Selected") + " \(session.selected.count) · \(session.selectedCount) " + app.t("records")).foregroundStyle(.secondary)
+            Spacer()
+            Button(app.t("Clear Selection")) { session.selected=[] }.disabled(app.busy || session.selected.isEmpty)
+            Button(app.t("Review Permanent Deletion…")) { session.review(app: app) }
+                .disabled(app.busy || session.selected.isEmpty || (session.selectedSources.contains(where: \.requiresSignOutConsent) && !session.allowCookieReview))
+                .buttonStyle(.borderedProminent).accessibilityIdentifier("privacy.review")
+        }
+    }
+    private func receiptView(_ receipt: PrivacyReceipt) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(receipt.state == "completed" ? app.t("Privacy cleaning completed") : app.t("Some sources were not cleaned"), systemImage: receipt.state == "completed" ? "checkmark.circle" : "exclamationmark.triangle")
+            ForEach(receipt.items) { item in
+                HStack {
+                    Text(item.sourceId).font(.caption.monospaced()).lineLimit(1)
+                    Spacer()
+                    Text("\(item.removedRecords) · " + item.state).font(.caption)
+                    if let reason=item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
+                }
+            }
+        }.padding().background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+    }
+    private var recentHistory: some View {
+        DisclosureGroup(app.t("Recent privacy receipts")) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(session.history.prefix(20)) { receipt in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(app.date(receipt.createdAt) + " · " + receipt.state).font(.caption.bold())
+                            ForEach(receipt.items) { item in Text(item.sourceId + " · \(item.removedRecords) · " + item.state + (item.reason.map { " · " + $0 } ?? "")).font(.caption.monospaced()).textSelection(.enabled) }
+                        }
+                    }
+                }.frame(maxWidth: .infinity, alignment: .leading)
+            }.frame(maxHeight: 180)
+        }
     }
     private func sourceRow(_ source: PrivacySource) -> some View {
         HStack(spacing: 12) {

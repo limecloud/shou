@@ -123,3 +123,18 @@ flowchart LR
 需要稳定的本地签名身份时，运行 `sh "scripts/build-macos.sh" release native` 前，通过 `SHOU_SIGNING_IDENTITY` 显式指定自己的 Developer ID Application 证书哈希。脚本不会自动选择钥匙串中的身份；未指定时使用临时签名，更新后隐私授权可能失效。需要网络时间戳时设置 `SHOU_SIGNING_TIMESTAMP=required`，Apple 公证仍是单独的发布要求。参见[安装与磁盘访问权限](../product/installation-and-access.md)。
 
 针对性回归入口：`shou-tests --scan-access-only` 与 `shou-tests --storage-performance-only`。后者逐字段比较批量元数据与原 stat 路径的证据，包含稀疏文件、硬链接和 Unicode 名称。macOS 在字段完整时批量读取元数据，必要时回退逐文件 stat，并直接将已知父目录 ID 传入 SQLite。优化影响空间计量吞吐，不改变清理授权。
+
+## 应用批量、隐私与规则定向验证
+
+在已有构建完成后顺序执行；不要并发运行 Swift 构建。所有破坏性测试仅使用生成夹具。
+
+```sh
+swift build --product shou-tests
+".build/debug/shou-tests" --applications-only
+".build/debug/shou-tests" --privacy-only
+".build/debug/shou-tests" --mole-rules-only
+python3 "scripts/verify-mole-coverage.py" --self-test
+python3 "scripts/verify-application-batch-cli.py" "dist/Shou.app/Contents/Helpers/shou"
+```
+
+批量 CLI 验证在唯一命名的生成应用和隔离记录中完成摘要、确认取消、废纸篓／恢复及永久删除，并核对个人偏好保留。隐私数据库测试使用注入的夹具主目录，不更改真实浏览记录。规则来源校验只证明声明与映射一致；应用版本兼容性须独立验收。

@@ -124,3 +124,18 @@ Run `python3 "scripts/install-macos.py" --check` after building to validate the 
 For a stable local signing identity, explicitly set `SHOU_SIGNING_IDENTITY` to your Developer ID Application certificate hash when running `sh "scripts/build-macos.sh" release native`. No identity is selected automatically from the keychain. With no selection, the build is ad-hoc signed and updates may invalidate privacy approvals. Set `SHOU_SIGNING_TIMESTAMP=required` for a network timestamp; notarization remains a separate release requirement. See [installation and disk access](../product/installation-and-access.md).
 
 Targeted regressions: `shou-tests --scan-access-only` and `shou-tests --storage-performance-only`. The latter compares bulk metadata against the exact stat-based evidence, including sparse files, hard links and Unicode names. macOS uses batch metadata reads when all fields are available, falls back to per-file stat when necessary, and passes known parent IDs directly into SQLite. This changes measurement throughput, not cleanup authorization.
+
+## Targeted batch, privacy and rule verification
+
+Run after the build completes; do not start concurrent Swift builds. Destructive tests use generated fixtures only.
+
+```sh
+swift build --product shou-tests
+".build/debug/shou-tests" --applications-only
+".build/debug/shou-tests" --privacy-only
+".build/debug/shou-tests" --mole-rules-only
+python3 "scripts/verify-mole-coverage.py" --self-test
+python3 "scripts/verify-application-batch-cli.py" "dist/Shou.app/Contents/Helpers/shou"
+```
+
+Batch CLI verification uses unique generated applications and isolated records for summaries, confirmation cancellation, Trash/restoration and permanent removal, checking retained personal preferences. Privacy database tests inject a fixture home and never change real browsing records. Rule-source verification proves declaration/mapping consistency; application-version compatibility requires separate acceptance.

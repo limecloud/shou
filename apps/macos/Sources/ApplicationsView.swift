@@ -250,38 +250,59 @@ private struct ApplicationUninstallRow: View {
     private var expanded: Bool { session.expandedID == app.id }
     private var components: [UninstallComponent] { session.reviews[app.id]?.components.filter { $0.status != "missing" } ?? [] }
     private var chosen: Set<String> { session.selection[app.id] ?? [] }
+    private var selectionState: NSControl.StateValue {
+        if chosen.isEmpty { return .off }
+        return components.filter { session.componentSelectable($0, appID: app.id) }
+            .allSatisfy { chosen.contains($0.id) } ? .on : .mixed
+    }
+    private var identitySubtitle: String {
+        let identifier=app.bundleIdentifier ?? model.t("Identifier unavailable")
+        let version=app.version.map { " · " + model.t("Version") + " " + $0 } ?? ""
+        return identifier + version
+    }
+    private var sizeLabel: String {
+        guard let bytes=summary.allocatedBytesEstimate else { return "—" }
+        return (summary.issues.isEmpty ? "" : "≥ ") + model.bytes(bytes)
+    }
+    private var rowColor: Color {
+        if session.isSelected(app.id) { return Color.accentColor.opacity(0.08) }
+        return hovering ? Color.primary.opacity(0.035) : .clear
+    }
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                SelectionCheckbox(state: chosen.isEmpty ? .off : components.filter { session.componentSelectable($0, appID: app.id) }.allSatisfy({ chosen.contains($0.id) }) ? .on : .mixed,
-                    enabled: !model.busy && (session.selectable(summary) || session.isSelected(app.id)), label: model.t("Select") + " " + app.name, identifier: "applications.select." + app.id) {
-                    session.toggle(summary, app: model)
-                }.frame(width: 20, height: 24)
-                Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable().frame(width: 32, height: 32).accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(app.name).font(.callout.weight(.medium)).lineLimit(1)
-                    Text((app.bundleIdentifier ?? model.t("Identifier unavailable")) + (app.version.map { " · " + model.t("Version") + " " + $0 } ?? ""))
-                        .font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-                }.frame(maxWidth: .infinity, alignment: .leading).help(app.path)
-                status.frame(width: 112, alignment: .leading)
-                Text(summary.allocatedBytesEstimate.map { (summary.issues.isEmpty ? "" : "≥ ") + model.bytes($0) } ?? "—").monospacedDigit().font(.callout).frame(width: 88, alignment: .trailing)
-                if !compact {
-                    Text(summary.lastUsed.map(model.date) ?? model.t("No usage record")).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 135, alignment: .trailing)
-                }
-                Button { session.expand(summary, app: model) } label: { Image(systemName: expanded ? "chevron.up" : "chevron.down") }
-                    .buttonStyle(.plain).frame(width: 22, height: 28).disabled(model.busy)
-                    .accessibilityLabel(model.t(expanded ? "Hide components" : "Show components") + " " + app.name)
-                    .accessibilityIdentifier("applications.expand." + app.id)
-            }.padding(.horizontal, 10).padding(.vertical, 12)
-                .background(session.isSelected(app.id) ? Color.accentColor.opacity(0.08) : hovering ? Color.primary.opacity(0.035) : .clear, in: RoundedRectangle(cornerRadius: 8))
-                .onHover { hovering=$0 }.contentShape(Rectangle())
-                .contextMenu {
-                    Button(model.t("Reveal in Finder")) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: app.path)]) }
-                    Button(model.t("Copy Path")) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(app.path, forType: .string) }
-                }
+            summaryRow
             if expanded { details }
         }.accessibilityElement(children: .contain)
+    }
+    private var summaryRow: some View {
+        HStack(spacing: 12) {
+            SelectionCheckbox(state: selectionState,
+                enabled: !model.busy && (session.selectable(summary) || session.isSelected(app.id)), label: model.t("Select") + " " + app.name, identifier: "applications.select." + app.id) {
+                session.toggle(summary, app: model)
+            }.frame(width: 20, height: 24)
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable().frame(width: 32, height: 32).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(app.name).font(.callout.weight(.medium)).lineLimit(1)
+                Text(identitySubtitle)
+                    .font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+            }.frame(maxWidth: .infinity, alignment: .leading).help(app.path)
+            status.frame(width: 112, alignment: .leading)
+            Text(sizeLabel).monospacedDigit().font(.callout).frame(width: 88, alignment: .trailing)
+            if !compact {
+                Text(summary.lastUsed.map(model.date) ?? model.t("No usage record")).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 135, alignment: .trailing)
+            }
+            Button { session.expand(summary, app: model) } label: { Image(systemName: expanded ? "chevron.up" : "chevron.down") }
+                .buttonStyle(.plain).frame(width: 22, height: 28).disabled(model.busy)
+                .accessibilityLabel(model.t(expanded ? "Hide components" : "Show components") + " " + app.name)
+                .accessibilityIdentifier("applications.expand." + app.id)
+        }.padding(.horizontal, 10).padding(.vertical, 12)
+            .background(rowColor, in: RoundedRectangle(cornerRadius: 8))
+            .onHover { hovering=$0 }.contentShape(Rectangle())
+            .contextMenu {
+                Button(model.t("Reveal in Finder")) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: app.path)]) }
+                Button(model.t("Copy Path")) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(app.path, forType: .string) }
+            }
     }
     private var status: some View {
         let title: String=switch summary.status {
