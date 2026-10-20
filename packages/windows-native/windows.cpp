@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cwctype>
+#include <limits>
 #include <string>
 #include <vector>
 using Microsoft::WRL::ComPtr;
@@ -108,8 +109,11 @@ DWORD info(HANDLE h, shou_win_info *out) {
     out->attributes=basic.FileAttributes;out->links=size.NumberOfLinks;
     out->logical_bytes=size.EndOfFile.QuadPart;out->allocated_bytes=size.AllocationSize.QuadPart;
     constexpr int64_t epoch=116444736000000000LL;
-    out->modified_ns=(basic.LastWriteTime.QuadPart-epoch)*100;
-    out->changed_ns=(basic.ChangeTime.QuadPart-epoch)*100;return 0;
+    if(basic.LastWriteTime.QuadPart<0 || basic.ChangeTime.QuadPart<0 || out->logical_bytes<0 || out->allocated_bytes<0)return ERROR_INVALID_DATA;
+    auto modified=basic.LastWriteTime.QuadPart-epoch,changed=basic.ChangeTime.QuadPart-epoch;
+    constexpr auto minimum=std::numeric_limits<int64_t>::min()/100,maximum=std::numeric_limits<int64_t>::max()/100;
+    if(modified<minimum || modified>maximum || changed<minimum || changed>maximum)return ERROR_INVALID_DATA;
+    out->modified_ns=modified*100;out->changed_ns=changed*100;return 0;
 }
 bool same(const shou_win_info &a,const shou_win_info &b,bool directoryMutation=false) {
     return a.volume==b.volume && !memcmp(a.file_id,b.file_id,16) && !strcmp(a.owner_sid,b.owner_sid) &&
@@ -257,7 +261,7 @@ void shou_win_lock_release(shou_win_lock *lock){if(lock){UnlockFileEx(lock->hand
 int shou_win_write(const char *input,const void *bytes,size_t count){
     std::wstring path;auto code=normalized(input,path);if(code)return code;
     Handles pins;HANDLE parent;auto p=path.substr(0,path.find_last_of(L'\\'));if((code=open(p,pins,parent)))return code;
-    GUID id;CoCreateGuid(&id);wchar_t name[40];StringFromGUID2(id,name,40);auto temp=extended(p+L"\\.pending-"+name);
+    GUID id;if(FAILED(CoCreateGuid(&id)))return ERROR_GEN_FAILURE;wchar_t name[40];if(!StringFromGUID2(id,name,40))return ERROR_GEN_FAILURE;auto temp=extended(p+L"\\.pending-"+name);
     HANDLE h=CreateFileW(temp.c_str(),GENERIC_WRITE,0,nullptr,CREATE_NEW,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_WRITE_THROUGH,nullptr);if(h==INVALID_HANDLE_VALUE)return GetLastError();
     size_t offset=0;while(offset<count){DWORD n=0;if(!WriteFile(h,static_cast<const char *>(bytes)+offset,static_cast<DWORD>(std::min<size_t>(count-offset,65536)),&n,nullptr)||!n){code=ERROR_WRITE_FAULT;break;}offset+=n;}
     if(!code&&!FlushFileBuffers(h))code=GetLastError();CloseHandle(h);

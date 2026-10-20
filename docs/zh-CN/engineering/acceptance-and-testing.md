@@ -4,6 +4,9 @@
 
 状态：验收计划持续执行中。第 11 节记录本机验证范围；隔离夹具的桌面与 CLI 永久移除路径已有通过结果，强制中断覆盖仍待完成。
 
+统一进度验证（2026-10-20）：最新 **191/191 项完整核心回归**、**5/5 项进度专项**、**17/17 项应用卸载回归**及 **6/6 项隐私回归**通过。进度专项覆盖跨位置总数、部分结果边界、隐私事务提交、取消与恢复日志；本机安装包和 Computer Use 验收另行记录。进度架构、流程与时序见[操作进度与反馈](../product/operation-progress.md)。证据：`.build/operation-progress-core-regression.log`、`.build/operation-progress-core-tests.log`、`.build/operation-progress-application-tests.log`、`.build/operation-progress-privacy-tests.log`。
+
+
 v0.5.0 候选验证（2026-10-20）：提交 `b218d1b` 通过 [Apple Silicon 与 Intel CI](https://github.com/limecloud/shou/actions/runs/39440323365)，覆盖原生文件系统、CLI、本地化、文档和包内可执行文件。另有 16 项生成浏览器夹具的隐私 CLI 检查通过，覆盖终端取消、限定删除、脱敏持久回执与重复执行拒绝。本地包内 CLI 的 5 项已安装应用缓存保护检查通过：应用清单不完整时拒绝动态发现与扫描，夹具哈希不变。本机存在不可读取或链接应用，无法执行该功能的正向原生路径；完整清单合同由 7 项生成夹具 Core 测试覆盖。证据：`.build/v0.5.0-privacy-cli-final/`、`.build/v0.5.0-installed-cache-cli-guards/`。
 
 通用应用缓存接入后回归（2026-10-20）：**182/182 项核心回归通过**，新增通用缓存 7/7 项定向测试通过，GUI 独立完整类型检查通过。动态发现只覆盖真实安装包标识对应的当前用户标准缓存，复用既有规则计划、执行与回执，不卸载应用。此记录不替代最终安装版 CLI／GUI 验收。日志：`.build/current-core-regression.log`、`.build/installed-cache-tests.log`、`.build/current-ui-typecheck.log`。
