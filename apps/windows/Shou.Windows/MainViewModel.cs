@@ -282,7 +282,7 @@ public sealed class MainViewModel : ObservableObject
             "purge" or "permanent" => issues ? "部分项目未能永久删除，请查看操作记录。" : "已永久删除，无法恢复。",
             _ => issues ? "部分项目未能移入回收站，请查看操作记录。" : "已移入回收站，可在操作记录中恢复。"
         };
-        var bytes = source.Where(item => ["trashed", "purged"].Contains(Text(item, "state")))
+        var bytes = source.Where(item => new[] { "trashed", "purged" }.Contains(Text(item, "state")))
             .Sum(item => item?["bytes"]?.GetValue<long>() ?? 0);
         var successText = bytes > 0 && (action is "trash" or "permanent") ? Bytes(bytes) : $"{processed} 项";
         return new(action == "restore" ? "✓" : issues ? "!" : "✓", title, successText, message, processed.ToString(), skipped.ToString(), failed.ToString(), needs.ToString(), issues, rows);
