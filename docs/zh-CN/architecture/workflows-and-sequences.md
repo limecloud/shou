@@ -404,3 +404,5 @@ sequenceDiagram
     Note over Journal,Store: 清单变化才写新版本；结果写失败保留原执行意图
     Journal->>Store: 发布最终状态和分页摘要
 ```
+
+独立个人规则的“大占用下钻 → 逐条停用草稿 → 原生审阅 → 所选规则新扫描 → 确认与回执核验”流程及时序见[空间分析与 Agent 协作设计 W09](../engineering/space-analysis-agent-design.md)。外部配置变化使旧清理证据失效，不会自动启用其他规则；日常清理复用已经明确启用的选择。

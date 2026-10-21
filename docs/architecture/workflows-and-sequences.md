@@ -400,3 +400,5 @@ sequenceDiagram
     Note over Journal,Store: Changed manifest gets a new version; failed result write preserves intent
     Journal->>Store: Publish final state and paged summary
 ```
+
+The independent personal-rule flow and sequence—major-consumer investigation, separate disabled drafts, native review, a fresh chosen-rule scan, confirmation and receipt verification—are recorded in [space analysis and Agent design W09](../engineering/space-analysis-agent-design.md). External configuration changes invalidate old cleanup evidence without enabling other rules; daily cleanup reuses explicitly enabled choices.

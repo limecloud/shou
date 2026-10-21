@@ -385,3 +385,26 @@ flowchart TB
 位置并发上限为四，结果顺序稳定；目录内读取和空间分析读取仍为独立实现。未实现 FSEvents／USN 复用。工具空间为所属工具报告的估计值，与文件系统估计和实际可用空间分开；中断结果保留为 unknown，已消耗计划不可重放。孤儿残留排除共享容器和名称猜测，未注册的自定义安装属于明确限制。
 
 超过 1024 项的执行清单由 `ReceiptJournal` 保存为不可变 `history-manifests` 依赖；所有依赖持久化后才发布小回执。仅状态变化不重写大清单，废纸篓移动导致清单变化时保存新版本。按需读取完整历史会校验依赖 ID、数量与 SHA-256，历史摘要只读状态。旧版内联回执继续可读。自动维护保留所有仍有主回执的清单；清理操作记录先移除主回执，再移除关联清单与后续记录。删除中断保留执行意图及清单，不能因保存优化而重放。
+
+## 大占用调查与独立规则回流
+
+空间分析索引和目录分页向外部 Agent 提供同一扫描证据，Skill 要求优先调查主要占用的用途、重建代价与保留条件。每个规则 ID 表示一个可独立选择的决策。应用重新激活时检查外部配置修订，使旧清理候选失效；单条预览不改变设置，启用只保存所选规则版本并进行新扫描，再复用现有选择、确认和回执服务。
+
+```mermaid
+flowchart TB
+    Agent[用户已有的外部 Agent 和 Skill] -->|查询大分支及分页| CLI[公开 CLI]
+    Agent -->|逐条校验和停用导入| CLI
+    Mac[macOS 原生审阅] --> Core[共享 ShouEngine]
+    Win[Windows 原生审阅] --> Bridge[桌面进程 bridge]
+    Bridge --> Core
+    CLI --> Core
+    Core --> Index[只读空间索引与分页]
+    Core --> Config[版本化规则和独立启用状态]
+    Config -->|修订变更| Invalidate[失效旧清理候选]
+    Core --> Preview[单条预览及去重收益]
+    Preview --> Fresh[明确启用后重新扫描该规则]
+    Fresh --> Execute[既有选择 确认 执行及逐项回执]
+    Execute --> Verify[相关范围核验与后续日常复用]
+```
+
+Shou 不增加模型接入或 Agent 服务。完整流程、时序和逐项验收见[空间分析与 Agent 协作设计 W09](../engineering/space-analysis-agent-design.md)。

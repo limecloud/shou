@@ -348,3 +348,26 @@ flowchart TB
 Location concurrency is bounded at four and preserves a stable result order; per-directory readers and storage-analysis readers remain separate implementations. No FSEvents/USN reuse is claimed. Tool bytes are owner-reported estimates, separate from filesystem estimates and actual free-space changes. An interrupted tool execution remains unknown and its consumed plan cannot replay. Orphan scope excludes shared containers and unknown name guesses; unregistered custom installations are an explicit limitation.
 
 `ReceiptJournal` stores manifests above 1024 entries as immutable `history-manifests` dependencies, persisting every dependency before publishing the small receipt. State changes do not rewrite large manifests; Trash metadata changes publish a new manifest version. Full history reads validate dependency ID, count and SHA-256; summary reads only need state. Legacy inline receipts remain readable. Retention protects every manifest with an existing history parent. Explicit history cleanup removes the parent before its manifests and follow-ups. Interrupted deletion retains intent and evidence and cannot replay because of this optimization.
+
+## Major-consumer investigation and independent rules
+
+The space index and directory pages expose same-scan evidence to the user's existing Agent. The Skill prioritizes purpose, rebuild cost and retention for major consumers; each rule ID represents one selectable decision. Desktop activation checks external configuration revisions and invalidates old cleanup candidates. Preview changes no settings; enablement saves only the chosen rule version, scans it freshly and reuses existing selection, confirmation and receipt services.
+
+```mermaid
+flowchart TB
+    Agent[Existing external Agent and Skill] -->|Investigate major branches and pages| CLI[Public CLI]
+    Agent -->|Validate and import independent disabled drafts| CLI
+    Mac[Native macOS review] --> Core[Shared ShouEngine]
+    Win[Native Windows review] --> Bridge[Desktop process bridge]
+    Bridge --> Core
+    CLI --> Core
+    Core --> Index[Read-only space index and pages]
+    Core --> Config[Versioned rules and independent enablement]
+    Config -->|Revision changed| Invalidate[Invalidate old cleanup candidates]
+    Core --> Preview[Single-rule preview and deduplicated benefit]
+    Preview --> Fresh[Explicit enablement and fresh rule-specific scan]
+    Fresh --> Execute[Existing selection confirmation execution and receipts]
+    Execute --> Verify[Relevant-scope verification and daily reuse]
+```
+
+Shou adds no model integration or Agent service. The complete flow, sequence and acceptance are recorded in [space analysis and Agent design W09](../engineering/space-analysis-agent-design.md).

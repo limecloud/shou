@@ -14,6 +14,8 @@ Status: active product contract · Version: 0.1 · Updated: 2026-10-20.
 
 The primary audience is developers maintaining multiple projects on limited-capacity computers. macOS ships first; Windows is a future native platform target. A portable core and explicit platform adapters are required from the outset.
 
+Major-consumer investigation is a core deliverable. The Agent follows the largest branches to establish actual purpose, active use, rebuild method and cost instead of stopping at small caches covered by built-in rules. Every major finding explains whether to clean, optionally clean, preserve or investigate; unresolved areas retain concrete unknowns and a next diagnostic. Different purposes or retention needs become independent rule choices, followed by preview, explicit selection, actual execution receipts and relevant-scope verification. See [space analysis and Agent design](../engineering/space-analysis-agent-design.md) for the interaction and acceptance contract.
+
 ## 2. Background
 
 ### Developer workspace storage

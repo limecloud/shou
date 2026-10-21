@@ -190,7 +190,7 @@ sequenceDiagram
 | W05 | Native Windows synchronization | Implemented; cross-build passed; real Windows UI pending | Matching contracts/metrics; Simple/Detailed switching, retained state, selection and handoff on actual Windows |
 | W07 | Dense type colors and layout | Implemented; key macOS presentation and dragging verified | Deep root-scope files, shared legend/leaf palette, compact tables and native UI inspection |
 | W06 | Performance, failures and complete cleanup | Generated cleanup and million-row queries passed; full performance targets pending | Large directories/millions of entries, rapid changes/cancellation, bounded memory; generated-data deletion, retry, return and fresh measurements |
-| W09 | Major-consumer investigation and independent-rule cleanup | Implemented; regression/native acceptance in progress | Investigate large consumers; independent preview, enablement, fresh scan, confirmation, receipt and remaining-space verification |
+| W09 | Major-consumer investigation and independent-rule cleanup | Implemented; deterministic regression and listed macOS interactions passed; external-agent judgment pending | Investigate large consumers; independent preview, enablement, fresh scan, confirmation, receipt and remaining-space verification |
 | W08 | Full-disk directory read stalls | Open; worker samples retained | Identify stalled directories; isolate timed-out reads; reclaim workers on cancellation; never report unread scope as complete |
 
 Targets: existing-snapshot focus/highlight p95 ≤100 ms; cancellable background scope queries with loading feedback within 100 ms; bounded drawing per frame. Record environment, tree size and cold/warm cache; measure first rendering, queries and scans separately. These are targets, not current measured results. Destructive tests use generated data.
@@ -252,7 +252,7 @@ flowchart LR
     Types --> Legend
 ```
 
-Verification of this correction is tracked in W07. Full regression, installation and native visual inspection are recorded after completion; actual Windows interaction remains pending.
+W07 tracks this correction. Native inspection verified the initial 60:40 split, divider dragging, type highlighting and switching without rescanning; the app was replaced locally. Regression evidence follows. Actual Windows interaction remains pending.
 
 Extension legends and aggregate tiles reuse one read-only index aggregation. A recursive directory attribution assigns files to their closest displayed ancestor and produces both map groups and complete extension totals. This avoids a second index traversal and changes neither persistent SQLite data nor filesystem scan evidence. Clipboard reports retain their independent smaller budget.
 
@@ -269,7 +269,7 @@ Evidence: `.build/space-colors-final-tests.log`, `.build/space-colors-app-batch-
 
 During native full-disk acceptance, the entry counter stopped at 3,066,212. Repeated samples of the actual read worker showed multiple parallel directory threads inside `openDirectory → _fcntl_overlay_open → __open`. The last progress path does not identify the stalled directory, and permissions, filesystem behavior or application ownership have not been established as the cause. The worker currently has an overall deadline without per-directory stall isolation.
 
-That scan was stopped; `.build/space-colors-scan-worker.sample` and `.build/space-colors-sample.log` retain evidence. The stop interaction responded, and a separate real development-directory analysis completed. Neither establishes successful full-disk acceptance. W08 requires precise read diagnostics, bounded stall isolation, explicit incomplete coverage after timeouts, cancellation/worker reclamation, then equivalent cold/warm scans and injected-stall checks. This color/layout correction changes neither the scanner nor system permissions.
+That scan was stopped; `.build/space-colors-scan-worker.sample` and `.build/space-colors-sample.log` retain evidence. Stop responded; a separate development-directory analysis returned a queryable partial index with about 146.62 GB measured as a lower bound. Neither establishes complete development-directory or full-disk acceptance. W08 requires precise read diagnostics, bounded stall isolation, explicit incomplete coverage after timeouts, cancellation/worker reclamation, then equivalent cold/warm scans and injected-stall checks. This color/layout correction changes neither the scanner nor system permissions.
 
 
 ## W09: Major consumers and independent-rule cleanup
@@ -323,3 +323,14 @@ sequenceDiagram
 ```
 
 Acceptance uses two independently previewed rules with different retention needs: enable one, reopen the engine, clean generated data, verify its receipt and absence, preserve the other target, and verify a fresh scan. Native acceptance covers review, close, enable/scan, editable selection and cancellation. Deterministic execution tests require no model call; external-agent judgment accuracy is evaluated separately.
+
+### W09 acceptance evidence
+
+- Final Core checks passed 235/235. The new case independently previews two rules, enables only rebuildable output, verifies its reuse by a new engine's daily scan, permanently removes generated data, then checks the `purged` receipt, target absence, preserved offline dependencies and a fresh scan.
+- All 158 CLI contracts, desktop protocol integration and 11 Windows process checks passed; WPF cross-build reported zero warnings/errors. Bridge checks cover disabled preview and explicit `rule_ids` scan scope.
+- macOS Computer Use verified measured matches/benefits, expanded scope, closing without enablement, enabling only one rule, a fresh scan, deselection/reselection, permanent-removal confirmation and cancellation. Other drafts stayed disabled; the fixture rule was restored to its original state, and generated files plus retained sibling were verified and archived as build evidence.
+- The final installed app successfully copied analysis and exposed Review AI Rules…, which returned directly to Personal Rules. Directory selection used the native panel. Native deletion confirmation was cancelled; actual removal is covered by isolated tests, with no personal files deleted.
+- This Codex session reused a real development index through the installed CLI, followed a hidden working directory with about 89.25 GB measured, and distinguished candidate working copies, Rust `target` inside a release copy, and separate `debug` output. The overall tree remains `partial`; estimates cannot be added as reclaimable space. Active use, rebuildability and retention still need verification, so no real cleanup rules were imported.
+- The local release application bundle and signatures passed verification. Version 0.10.0 replaced `/Applications/Shou.app`, with 138 verified files, 132 existing records preserved and `backup: null`. Existing local ad-hoc signing limitations remain.
+
+Evidence: `.build/agent-cleanup-loop-final-core-tests.log`, `.build/agent-cleanup-loop-cli.log`, `.build/agent-cleanup-loop-bridge.log`, `.build/agent-cleanup-loop-windows-final.log`, `.build/agent-cleanup-loop-windows-checks.log`, `.build/agent-cleanup-loop-final-release.log`, `.build/agent-cleanup-loop-final-install.json` and read-only descent records in `.build/agent-cleanup-loop-*.json`. Documentation, 1,404 bilingual resources and Skill validation passed. Real Windows interaction, external-agent investigation quality and complete full-disk performance remain pending.
