@@ -452,6 +452,17 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     assert denied['error']['code'] == 'confirmation_required' and finished_path.is_file()
     assert receipt_path.read_bytes() == before_inspection
     assert (artifacts / 'artifact.bin').read_bytes() == b'x' * 8192
+    opportunities = run('rules', 'opportunities', '--scan-id', scan['scan_id'], '--minimum-bytes', '0', '--limit', '1')['data']
+    assert opportunities['workspace_id'] == workspace_id and opportunities['total_count'] >= 1
+    assert all(item['eligible'] is False for item in opportunities['items'])
+    run('rules', 'opportunities', '--scan-id', scan['scan_id'], '--offset', '-1', expected=2)
+    summaries = run('history', 'summaries', '--limit', '1')['data']
+    assert len(summaries['receipts']) == 1 and summaries['next_offset'] == 1
+    assert summaries['receipts'][0]['items'][0]['manifest'] == []
+    records = run('records', 'preview')['data']
+    assert records['total_bytes'] > 0 and records['removable_bytes'] >= 0
+    run('records', 'collect')
+    assert receipt_path.read_bytes() == before_inspection
     run('workspaces', 'remove', '--workspace', workspace_id)
     assert (artifacts / 'artifact.bin').exists()
     assert run('workspaces', 'list')['data'] == []

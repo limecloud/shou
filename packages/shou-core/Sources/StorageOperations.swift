@@ -122,6 +122,7 @@ public enum StorageRemovalPolicy {
 
 extension ShouEngine {
     public func scanStorage(path: String, budget: ScanBudget? = nil, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> StorageScan {
+        maintainDerivedRecordsIfNeeded()
         let path=try filesystem.normalizedPath(path)
         try budget?.validate()
         let drivePath=path.count >= 3 && path.prefix(1).allSatisfy({ $0.isASCII && $0.isLetter }) && path.dropFirst().hasPrefix(":/") && (path.count == 3 || StorageRemovalPolicy.validRelative(String(path.dropFirst(3))))
@@ -289,12 +290,12 @@ extension ShouEngine {
             var started=plan; started.state="executing"
             try self.store.write("storage-plans", id: started.id, data: Codec.encode(started))
         }
-        let validate: (Int) throws -> String? = { index in
+        let validate: (Int, [FileEntry]) throws -> String? = { index, manifest in
             guard try self.filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
             let item=plan.items[index]
             if let reason=self.storageRemovalReason(scan: scan, path: item.path) { return reason }
             let tree=try self.filesystem.inspectStorageTarget(items[index].originalPath, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled })
-            guard tree.complete, tree.entries == item.manifest,
+            guard tree.complete, tree.entries == manifest,
                   let saved=try self.storageEntry(scan: scan, path: item.path),
                   tree.entries.first(where: { $0.path == "." })?.sameObject(as: saved) == true else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
             if let reason=self.storageExclusionReason(scan: scan, entries: tree.entries.map { self.renamed($0, to: $0.path == "." ? item.path : item.path + "/" + $0.path) }) { return reason }
@@ -303,6 +304,6 @@ extension ShouEngine {
         if plan.action == "permanent" {
             return try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_permanent_removal", progress: progress, didBegin: began, validateItem: validate)
         }
-        return try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_removal", progress: progress, didBegin: began, validateItem: validate)
+        return try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_removal", progress: progress, didBegin: began, validateItem: { index in try validate(index, plan.items[index].manifest) })
     }
 }

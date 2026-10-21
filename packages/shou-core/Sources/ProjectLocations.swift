@@ -12,15 +12,16 @@ extension ShouEngine {
     /// Reads metadata only. Explicit registrations take precedence over an
     /// overlapping suggestion so discovery cannot bypass their rule policy.
     public func projectLocations() throws -> [KnownLocation] {
-        guard filesystem.platform == "macos" else { return [] }
-        let cachePaths=Set(try KnownLocations.catalog(homeDirectory: homeDirectory, platform: filesystem.platform).map(\.path))
-        let roots=try configuration().workspaces.filter { !cachePaths.contains($0.path) }
+        guard ["macos", "windows"].contains(filesystem.platform) else { return [] }
+        let caseSensitive=filesystem.platform != "windows"
+        let cachePaths=Set(try KnownLocations.catalog(homeDirectory: homeDirectory, platform: filesystem.platform).map { caseSensitive ? $0.path : $0.path.lowercased() })
+        let roots=try configuration().workspaces.filter { !cachePaths.contains(caseSensitive ? $0.path : $0.path.lowercased()) }
         var locations=roots.map { projectLocation(path: $0.path, id: $0.id) }
         var identities=roots.map(\.identity)
         for relative in ProjectLocations.relativePaths {
             if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
             let path=homeDirectory.appendingPathComponent(relative, isDirectory: true).path
-            guard !locations.contains(where: { Self.projectPathsOverlap($0.path, path) }) else { continue }
+            guard !locations.contains(where: { Self.projectPathsOverlap($0.path, path, caseSensitive: caseSensitive) }) else { continue }
             switch filesystem.locationAvailability(path) {
             case .missing: continue
             case .unavailable(let message):
@@ -40,8 +41,9 @@ extension ShouEngine {
         return locations
     }
 
-    private static func projectPathsOverlap(_ a: String, _ b: String) -> Bool {
-        a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
+    private static func projectPathsOverlap(_ first: String, _ second: String, caseSensitive: Bool) -> Bool {
+        let a=caseSensitive ? first : first.lowercased(), b=caseSensitive ? second : second.lowercased()
+        return a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
     }
 
     private func projectLocation(path: String, id: String? = nil, issue: String? = nil) -> KnownLocation {

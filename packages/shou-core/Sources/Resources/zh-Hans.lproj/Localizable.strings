@@ -46,6 +46,7 @@
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "不会自动请求管理员权限，当前无法卸载需要提权的应用。";
 "Adobe Bridge caches" = "Adobe Bridge 缓存";
 "Advanced" = "高级";
+"Affected items refreshed. Review your selection to continue." = "受影响项目已刷新，请检查选择后继续。";
 "After an update" = "更新后的权限说明";
 "After installation, use $shou-rule-authoring in Codex. Restart Codex if it does not appear." = "安装后在 Codex 中使用 $shou-rule-authoring；未出现时重启 Codex。";
 "After installation, use /shou-rule-authoring in a local Claude Code session." = "安装后在本机 Claude Code 会话中使用 /shou-rule-authoring。";
@@ -88,6 +89,7 @@
 "Apple system daemons" = "Apple 系统守护任务";
 "Application Caches" = "应用缓存";
 "Application Discovery Coverage" = "应用发现范围";
+"Application Leftovers" = "应用残留";
 "Application Name" = "应用名称";
 "Application Options" = "应用选项";
 "Application Uninstall" = "应用卸载";
@@ -96,12 +98,15 @@
 "Application activity inspection stopped." = "应用运行状态检查已停止。";
 "Application bundle" = "应用程序包";
 "Application caches" = "应用缓存";
+"Application closed. Review its components to continue." = "应用已关闭，请审阅关联文件后继续。";
 "Application component changed; preview again." = "应用组件已变化，请重新预览。";
 "Application components moved to Trash. Restore them from History." = "应用组件已移入废纸篓，可从历史记录恢复。";
 "Application diagnostic logs" = "应用诊断日志";
 "Application discovery coverage changed; scan again to review the ownership limitation." = "应用盘点覆盖范围已变化，请重新扫描并审阅归属限制。";
 "Application discovery has gaps. Associated components require individual selection; an exact identifier does not prove exclusive ownership." = "应用发现范围存在缺口，关联组件需逐项选择；完整标识不能证明独占归属。";
 "Application discovery is incomplete. Other copies with this bundle identifier may be undiscovered. Review this cache explicitly; it is not recommended automatically." = "应用盘点不完整，可能尚未发现使用相同 Bundle ID 的其他副本。请明确审阅此缓存；它不会被自动推荐。";
+"Application discovery is incomplete. Review application coverage before checking leftovers." = "应用识别尚不完整，请查看覆盖范围后再检查应用残留。";
+"Application leftovers are available on macOS." = "应用残留清理仅适用于 macOS。";
 "Application or configuration changed; preview again." = "应用或配置已变化，请重新预览。";
 "Application parent is outside supported installation directories." = "应用父目录不在支持的安装范围内。";
 "Application plan expired or has an invalid selection; preview again." = "卸载计划已过期或选择无效，请重新预览。";
@@ -191,6 +196,7 @@
 "Cargo checksum evidence is invalid or exceeds the verification budget." = "Cargo 校验信息无效或超出核验范围。";
 "Cargo checksum evidence is missing." = "缺少 Cargo 校验信息。";
 "Cargo checksum paths or hashes are invalid." = "Cargo 校验信息中的路径或哈希值无效。";
+"Cargo download archives" = "Cargo 下载归档";
 "Cargo downloads crate archives again when required." = "Cargo 会在需要时重新下载 crate 归档。";
 "Cargo extracted registry sources" = "Cargo 已解压的包源码";
 "Cargo normally regenerates compiled outputs and build-script generated source on the next build." = "Cargo 通常会在下次构建时重新生成编译产物和构建脚本生成的源码。";
@@ -214,6 +220,7 @@
 "Checking is read-only. No startup setting or file is changed." = "检查仅供查看，不会修改启动设置或文件。";
 "Checking selected files…" = "正在核验所选文件…";
 "Checking selected items…" = "正在检查所选项…";
+"Checking tool-managed storage…" = "正在检查工具管理的空间…";
 "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged." = "仅检查记录中的确切路径与目录清单，保留文件及原始回执。";
 "Choose Folder…" = "选择目录…";
 "Choose Project Folder…" = "选择项目目录…";
@@ -230,6 +237,7 @@
 "Choose the app components to move to Trash. Personal data is retained unless you enable it separately." = "选择要移入废纸篓的应用组件。个人数据默认保留，需单独允许后选择。";
 "Choose the language used in Shou." = "选择 Shou 使用的界面语言。";
 "Choose your project collection. Shou finds build outputs and caches with built-in rules, then shows exactly what can be reviewed." = "选择存放项目的目录，收会通过内置规则识别构建产物和缓存，并展示可以审阅的清理项。";
+"Chrome caches" = "Chrome 缓存";
 "Chrome downloads web resources and rebuilds code and graphics caches when needed." = "Chrome 会按需下载网页资源并重建代码和图形缓存。";
 "Chromium caches" = "Chromium 缓存";
 "Chromium download caches" = "Chromium 下载缓存";
@@ -240,9 +248,15 @@
 "Claude preview application caches" = "Claude 预览版应用缓存";
 "Claude recreates web-resource, code and graphics caches when needed." = "Claude 会按需重建网页资源、代码和图形缓存。";
 "Clean & Free Space" = "清理并释放空间";
+"Clean Permanently" = "永久清理";
+"Clean Permanently…" = "永久清理…";
 "Clean Recommended" = "清理推荐项目";
+"Clean Records" = "清理记录";
+"Clean Scan Records…" = "清理扫描记录…";
 "Clean Selected" = "清理已选项目";
+"Clean scan records?" = "清理扫描记录？";
 "Cleaning browser privacy…" = "正在清理浏览器隐私…";
+"Cleaning tool-managed storage…" = "正在清理工具缓存…";
 "Cleanup" = "清理";
 "Cleanup Impact" = "清理影响";
 "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space." = "清理操作始终需要确认。移入废纸篓不会立即释放磁盘空间。";
@@ -256,6 +270,7 @@
 "Cleanup stopped" = "清理已停止";
 "Cleanup stopped before any files were moved." = "清理已停止，尚未移动任何文件。";
 "Cleanup stopped before this location was processed." = "清理已停止，此位置尚未处理。";
+"Clean…" = "清理…";
 "Clear Finished Records…" = "清理已结束记录…";
 "Clear Records" = "清理记录";
 "Clear Selection" = "清空选择";
@@ -280,6 +295,8 @@
 "Component parent changed; preview again." = "组件父目录已变化，请重新预览。";
 "Composer download cache" = "Composer 下载缓存";
 "Composer legacy download cache" = "Composer 旧版下载缓存";
+"Conda package caches" = "Conda 软件包缓存";
+"Conda removes unused packages, archives, index and logs. Environments using symlinks into package caches can be affected. Review your environments before cleaning." = "Conda 清理未使用的软件包、归档、索引与日志。通过符号链接引用软件包缓存的环境可能受影响，清理前请检查环境。";
 "Conditional keep alive" = "按条件保持运行";
 "Conditions & Preservation" = "条件与保留";
 "Conditions Matched" = "符合条件";
@@ -290,6 +307,7 @@
 "Configured and runtime states are unknown. A Disabled key is a definition hint; launchd overrides may differ." = "当前配置状态与运行状态未知。Disabled 字段仅提供配置线索，launchd 的实际覆盖设置可能不同。";
 "Confirm" = "确认";
 "Confirmation does not match the current plan." = "确认信息与当前清理计划不一致。";
+"Container ownership changed." = "容器所属应用已变化。";
 "Container ownership could not be verified." = "无法验证应用容器的归属。";
 "Contains excluded content; the entire cleanup target is preserved" = "包含排除内容，整个清理目标均会保留";
 "Contains protected content" = "包含受保护内容";
@@ -323,6 +341,7 @@
 "Delete these items permanently?" = "永久删除这些项目？";
 "Delete…" = "删除…";
 "Deno dependency cache" = "Deno 依赖缓存";
+"Deselect All" = "取消全选";
 "Deselect Item" = "取消选择项目";
 "Desktop" = "桌面端";
 "Details" = "详情";
@@ -353,6 +372,7 @@
 "Disk access is required for this location." = "此位置需要磁盘访问权限。";
 "Disk access needs verification" = "磁盘访问权限待确认";
 "Docker BuildX caches" = "Docker BuildX 缓存";
+"Docker build cache" = "Docker 构建缓存";
 "Documents" = "文档";
 "Done" = "完成";
 "Dot path components are not supported." = "路径中不支持点目录段。";
@@ -382,6 +402,8 @@
 "Exclusions" = "排除与保护";
 "Exclusions…" = "排除设置…";
 "Executable" = "可执行文件";
+"Execution journal manifests are missing or inconsistent." = "清理记录的文件清单缺失或不一致，请保留记录并重新检查。";
+"Expired scan records are removed automatically. Active plans, cleanup history, recovery data and your files are kept." = "自动移除过期扫描记录，保留活跃计划、操作历史、恢复数据和你的文件。";
 "Explicit, unique candidate IDs are required." = "请明确选择清理项，且不得重复。";
 "Explore Space" = "查看空间分析";
 "Explore the largest directories in Space Analysis and create a personal rule for your own build outputs." = "前往空间分析查看大目录，为自己的构建产物创建个人规则。";
@@ -423,6 +445,7 @@
 "Full Disk Access lets Shou measure protected app data and caches, and avoids repeated macOS app-data prompts. It does not start cleanup." = "完全磁盘访问权限用于统计受保护的应用数据与缓存，减少 macOS 反复询问应用数据访问。授权不会开始清理。";
 "GOG Galaxy caches" = "GOG Galaxy 缓存";
 "General" = "常规";
+"Generated caches are recreated by the owning tool; future launches or builds may require downloads." = "缓存由所属工具重新生成；后续启动或构建可能需要下载。";
 "Get notified when a new version is available." = "新版本发布时通知我。";
 "Ghostty caches" = "Ghostty 缓存";
 "Git ownership could not be inspected." = "无法检查 Git 仓库归属。";
@@ -436,6 +459,7 @@
 "Google Chrome caches" = "Google Chrome 缓存";
 "Google Chrome download caches" = "Google Chrome 下载缓存";
 "Google Chrome profile download caches" = "Chrome 配置文件下载缓存";
+"Gradle generated caches" = "Gradle 构建缓存";
 "HTTP storage" = "HTTP 存储";
 "Helium caches" = "Helium 缓存";
 "Hex download caches" = "Hex 下载缓存";
@@ -450,6 +474,8 @@
 "History" = "操作记录";
 "History verification cancelled." = "历史核验已取消。";
 "History: visit time · Cookies: last access time" = "历史：访问时间 · Cookie：最后访问时间";
+"Homebrew old versions and downloads" = "Homebrew 旧版本与下载缓存";
+"Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download." = "Homebrew 按 30 天策略清理过期版本与下载缓存。重新安装旧版本可能需要下载。";
 "How can these files be rebuilt?" = "如何重新生成这些文件？";
 "I accept that websites may sign me out." = "我接受可能退出网站登录。";
 "I understand that clearing cookies can sign me out of websites." = "我理解清理 Cookie 可能使我退出网站登录。";
@@ -462,6 +488,7 @@
 "In WorkBuddy, open Skills → Add Skill → Upload Skill, select the ZIP, enable it, and start a new task." = "在 WorkBuddy 中打开“技能 → 添加技能 → 上传技能”，选择技能包并启用，然后新建任务使用。";
 "Include Apple system definitions" = "包含 Apple 系统配置";
 "Include Folder…" = "包含其他文件夹…";
+"Include personal application data" = "包含个人应用数据";
 "Include protected system apps" = "显示受保护的系统应用";
 "Incomplete measurement. The displayed size is a lower bound." = "尚未完整统计，显示的容量为已统计下限。";
 "Incomplete scan" = "扫描未完成";
@@ -514,12 +541,16 @@
 "Last Used" = "上次使用";
 "Last hour" = "最近一小时";
 "Last seven days" = "最近七天";
+"Leftover contents changed. Scan again." = "应用残留内容已变化，请重新扫描。";
+"Leftover plan is invalid." = "应用残留清理计划无效。";
+"Leftover scan budget reached." = "应用残留扫描已达到本次扫描上限。";
+"Leftover scan cancelled." = "应用残留扫描已停止。";
 "Light" = "亮色";
 "Limitations and data to preserve" = "局限与必须保留的数据";
 "Limitations and data to preserve, one note per line" = "局限与需保留的数据，每行一条说明";
 "Linked definition was not followed" = "未跟随链接配置";
 "Links, special files and the scan root cannot be removed here." = "此处不能删除链接、特殊文件和扫描根目录。";
-"Load More" = "载入更多";
+"Load More" = "加载更多";
 "Loaded" = "已加载";
 "Loading measured results…" = "正在加载统计结果…";
 "Local data" = "本地数据";
@@ -555,6 +586,7 @@
 "Minecraft logs" = "Minecraft 日志";
 "Minimum Size" = "最小占用";
 "Minimum allocated size (MB, 0 for no minimum)" = "最小分配容量（MB，0 表示不限）";
+"Missing leftover origin." = "缺少应用残留来源信息。";
 "Modified" = "修改时间";
 "MongoDB Compass caches" = "MongoDB Compass 缓存";
 "Move Recommended to Trash…" = "将推荐项目移入废纸篓…";
@@ -603,8 +635,10 @@
 "No matching records" = "无匹配记录";
 "No matching startup definitions" = "没有匹配的启动项配置";
 "No path was recorded" = "未记录路径";
+"No reclaimable tool-managed storage found." = "未发现可回收的工具缓存。";
 "No search results" = "没有搜索结果";
 "No usage record" = "暂无使用记录";
+"No verified application leftovers found." = "未发现已确认的应用残留。";
 "No verified components available. Scan again or review access notices." = "没有已核验的可用组件，请重新扫描或查看访问提示。";
 "No workspace selected" = "尚未选择扫描位置";
 "Node.js build caches" = "Node.js 构建缓存";
@@ -626,6 +660,7 @@
 "Notion caches" = "Notion 缓存";
 "Notion download caches" = "Notion 下载缓存";
 "Notion web caches" = "Notion 网页缓存";
+"NuGet download caches" = "NuGet 下载缓存";
 "OK" = "好";
 "Observed startup state is best effort; launchd can change after this read." = "启动项状态仅代表本次读取结果，launchd 可能在读取后变化。";
 "Obsidian caches" = "Obsidian 缓存";
@@ -635,6 +670,7 @@
 "One Exact Folder" = "一个确切目录";
 "One relative pattern per line" = "相对路径模式，每行一条";
 "One scan. A tidier Mac." = "扫描一次，一起收好。";
+"Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup." = "仅包含明确的缓存子目录，保留用户配置、凭据、环境与源代码项目。清理前请关闭所属工具。";
 "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept." = "仅清理已结束的记录，文件保持原位。恢复所需和未结束的记录会保留。";
 "Only measured space is included. Complete folders remain available even when another location cannot be read." = "结果仅包含已统计的空间。部分位置无法读取，不影响其他完整目录的浏览与审阅。";
 "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained." = "仅匹配已明确列出的用户缓存目录。保留文稿、偏好设置和系统数据。";
@@ -687,7 +723,9 @@
 "Permanently Clean Selected…" = "永久清理已选项目…";
 "Permanently Remove…" = "永久移除…";
 "Permanently Uninstall Selected…" = "永久卸载所选应用…";
+"Permanently clean this tool's storage?" = "永久清理此工具的缓存？";
 "Permanently delete privacy records?" = "永久删除隐私记录？";
+"Permanently delete selected leftovers?" = "永久删除所选残留？";
 "Permanently remove these items?" = "永久移除这些项目？";
 "Permanently removed" = "已永久移除";
 "Permanently removed (estimate)" = "永久移除（估算）";
@@ -756,11 +794,14 @@
 "Quick Look" = "快速查看";
 "Quick Look thumbnail caches" = "快速查看缩略图缓存";
 "Quit Application First" = "需关闭应用";
+"Quit Apps & Refresh" = "关闭应用并刷新";
+"Quit Apps & Refresh…" = "关闭应用并刷新…";
 "Quit Chrome first. Offline web resources may be unavailable until downloaded again. Profiles, cookies, passwords, history and extensions are retained." = "请先退出 Chrome。离线网页资源需重新下载；用户配置、Cookie、密码、历史与扩展均保留。";
 "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted." = "请先退出 Claude。规则不匹配对话存储、设置、凭据、虚拟机及 Agent 会话。";
 "Quit Codex first. Conversation storage, settings, credentials, local workspaces and agent sessions are not targeted." = "请先退出 Codex。规则不匹配对话存储、设置、凭据、本地工作区及 Agent 会话。";
 "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted." = "请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。";
 "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup." = "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。";
+"Quit apps to clean their caches?" = "关闭应用以清理缓存？";
 "Quit requested. Scan again after the application closes." = "已请求退出，待应用关闭后请重新扫描。";
 "Quit the affected IDEs first. Reindexing can take time. Local History, plugins, settings, projects and installed tools are not targeted." = "请先退出相关 IDE。重建索引可能需要一些时间。保留本地历史、插件、设置、项目和已安装工具。";
 "Quit the affected applications first. Offline content may require downloading again. User data and application-support directories are not targeted." = "请先退出相关应用。离线内容可能需要重新下载；规则不匹配用户数据与应用支持目录。";
@@ -792,6 +833,7 @@
 "Receipt item already has a follow-up operation." = "此记录项目已有后续操作。";
 "Receipt paths do not identify a workspace item and a system Trash location." = "记录中的路径与工作区项目或系统废纸篓位置不匹配。";
 "Receipt root changed." = "记录根目录已变化。";
+"Recent Tool Cleanups" = "最近的工具清理";
 "Recent privacy receipts" = "最近的隐私清理记录";
 "Record does not exist." = "记录不存在。";
 "Record exceeds the storage read limit." = "记录超过存储读取限制。";
@@ -844,11 +886,16 @@
 "Review application components again." = "请重新审阅应用组件。";
 "Review background-task definitions and manage login items in macOS Settings." = "审阅后台任务配置，并在 macOS 系统设置中管理登录项。";
 "Review browser activity and account data separately." = "单独审阅浏览器活动与账户数据。";
+"Review current eligible leftovers; personal data requires separate consent." = "请重新审阅可清理的应用残留；个人数据需要单独同意。";
+"Review data associated with apps no longer found in application folders or system registration. Unregistered custom installations may still use this data." = "审阅已不在应用目录及系统注册中发现的应用关联数据。未注册的自定义安装仍可能使用这些数据。";
+"Review leftovers again before cleaning." = "清理前请重新检查应用残留。";
 "Review privacy sources" = "审阅隐私来源";
 "Review required" = "需要审阅";
 "Review the categories below, or use the recommended selection." = "按分类查看，或直接使用推荐选择。";
 "Review the current rule against files in this workspace. A cancelled or failed preview cannot be saved as reviewed." = "用当前工作区文件核对规则。预览取消或失败后，需重新预览才能保存。";
 "Review the directory contents and stop active Python tasks first." = "请先审阅目录内容并停止正在运行的 Python 任务。";
+"Review the tool's current state before trying again. The previous operation may have changed data." = "请先检查工具当前状态，再重试。上次操作可能已更改部分数据。";
+"Review tool preview" = "审阅工具预览";
 "Reviewable" = "可审阅";
 "Reviewable estimate" = "可审阅容量估计";
 "Reviewing application components…" = "正在审阅应用组件…";
@@ -878,6 +925,7 @@
 "Save New Version" = "保存新版本";
 "Save Preset" = "保存方案";
 "Save results" = "保存结果";
+"Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action." = "请先保存工作。收会请求正常退出，确认关闭后刷新受影响项目。此操作不会删除文件。";
 "Saved Rule Selections" = "已保存的规则选择";
 "Saved as a disabled draft. Review and enable it in Rules, then scan again." = "保存为禁用草稿。在清理规则中审阅并启用后，再重新扫描。";
 "Saved passwords" = "保存的密码";
@@ -929,6 +977,7 @@
 "Search startup names or paths" = "搜索启动项名称或路径";
 "See large files across folders, then choose what to remove." = "跨目录汇总大文件，查看后选择要清理的内容。";
 "Select" = "选择";
+"Select All" = "全选";
 "Select All Eligible Items" = "选择全部可清理项目";
 "Select All Eligible Items, Including High Risk" = "选择全部可清理项目（包含高风险）";
 "Select All Matching Files" = "选择全部符合条件的文件";
@@ -949,6 +998,7 @@
 "Select the application and eligible components; personal data requires separate consent." = "请选择应用及可处理的组件；个人数据需要单独同意。";
 "Selected" = "已选";
 "Selected applications permanently uninstalled." = "所选应用已永久卸载。";
+"Selected files are permanently removed. Personal data cannot be restored." = "所选文件将永久删除，个人数据无法恢复。";
 "Selected item changed or could not be completely measured." = "所选项目已变化或未能完整测量，请重新核验后再清理。";
 "Selected item changed since confirmation." = "所选内容在确认后发生了变化，请重新核验后再清理。";
 "Selected item changed. Scan again before removing it." = "所选项目已变化，请重新扫描后再清理。";
@@ -1008,9 +1058,11 @@
 "Some locations in this folder need attention." = "当前目录的部分位置需要处理。";
 "Some locations need attention" = "部分位置需要关注";
 "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup." = "部分路径未能完整扫描。仅可审阅已独立核验的清理项。";
+"Some records need verification and were kept." = "部分记录需要验证，已予保留。";
 "Some selected items could not be processed. Inspect history." = "部分所选项目未能处理，请查看历史记录。";
 "Some sources were not cleaned" = "部分来源未完成清理";
 "Some startup definitions could not be inspected." = "部分启动项配置无法检查。";
+"Some tools could not be checked. Open the owning tool, then check again." = "部分工具未完成检查。请打开所属工具后重新检查。";
 "Sort" = "排序";
 "Source" = "来源";
 "Source checkouts and protected files can block whole-directory cleanup. Review custom build products." = "源码检出和受保护文件会阻止整个目录清理。请审阅自定义构建产物。";
@@ -1039,6 +1091,7 @@
 "Status" = "状态";
 "Steam caches" = "Steam 缓存";
 "Steam logs" = "Steam 日志";
+"Still running. Save your work and quit the application." = "应用仍在运行，请保存工作并退出应用。";
 "Stop" = "停止";
 "Stop Including Folder" = "不再包含此文件夹";
 "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted." = "请先停止相关工具和构建任务。离线工作流可能需要重新下载依赖包。保留已安装工具、项目源码和配置。";
@@ -1092,7 +1145,10 @@
 "The application will recreate its cache when needed." = "应用会在需要时重新生成缓存。";
 "The browser downloads web resources and rebuilds rendering caches when needed." = "浏览器会按需下载网页资源并重建渲染缓存。";
 "The built-in rule namespace is reserved." = "内置规则的命名空间不可用于个人规则。";
+"The file changed before permanent removal." = "文件在永久删除前发生变化，请重新扫描。";
 "The framework recreates these outputs during development or the next build." = "框架会在开发或下次构建时重新生成这些产物。";
+"The hard-linked file changed before permanent removal." = "硬链接文件在永久删除前发生变化，请重新扫描。";
+"The hard-linked file changed during permanent removal." = "硬链接文件在永久删除期间发生变化，已停止清理。";
 "The installed Skill has local changes or is not managed by Shou. Existing files were preserved." = "现有 Skill 已被修改或由其他工具管理，文件已保留。请另选安装目录或手动备份后处理。";
 "The location could not be inspected." = "无法扫描该位置。";
 "The location did not respond within the scan time limit." = "该位置未在扫描时限内响应，已跳过。";
@@ -1100,6 +1156,7 @@
 "The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again." = "新版本默认禁用，现有绑定继续使用原版本。请先预览新草稿，再启用并重新扫描。";
 "The operation will stop at a safe boundary. Unstarted items will stay unchanged. Review processed items in History; they are not automatically restored." = "操作将在安全边界停止，尚未开始的项目保持原状。已处理内容可在操作记录中查看，不会自动恢复。";
 "The output file already exists. Choose another filename; existing files were preserved." = "目标文件已存在，请使用其他文件名；现有文件已保留。";
+"The owner or leftover scope changed. Scan again." = "所属应用或残留范围已变化，请重新扫描。";
 "The packaged CLI is unavailable. Install Shou in Applications first." = "找不到应用内的 CLI，请先将 Shou 安装到应用程序。";
 "The read worker could not be started." = "无法启动扫描，请重试。";
 "The retained Cargo package archive could not be verified." = "无法核验保留的 Cargo 包归档。";
@@ -1110,6 +1167,7 @@
 "The selected application bundle itself." = "当前选择的应用程序包本身。";
 "The selected applications and components will be permanently removed. This action cannot be undone." = "所选应用及组件将被永久删除，此操作无法撤销。";
 "The target or its descendants changed." = "目标或其子项已变化。";
+"The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space." = "工具操作已完成，并重新检查了占用。空间估计与磁盘实际可用空间分别计算。";
 "The tool downloads packages again or regenerates build caches when needed." = "工具会按需重新下载依赖包或生成构建缓存。";
 "The tool downloads packages or regenerates cached analysis when needed." = "工具会在需要时重新下载软件包或生成分析缓存。";
 "These files will be permanently removed. This action cannot be undone." = "这些文件将永久移除，此操作无法撤销。";
@@ -1136,10 +1194,12 @@
 "This selection contains excluded content." = "所选内容包含已排除的项目。";
 "This selection could not be completely read. Review access or scan again." = "未能完整读取所选内容。请检查访问权限或重新扫描后重试。";
 "This system location is protected." = "此系统位置受保护。";
+"This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download." = "此工具链并非当前、默认或目录 override 工具链。项目的 rust-toolchain 文件可能仍指定此版本；移除后使用时需要重新下载。";
 "Thunderbird caches" = "Thunderbird 缓存";
 "Tidy up. That's it." = "收好，就好。";
 "Time range" = "时间范围";
 "Todoist caches" = "Todoist 缓存";
+"Tool-managed Storage" = "工具缓存与版本";
 "Tools" = "系统工具";
 "Tools recreate caches when needed" = "工具会在需要时重新生成缓存";
 "Transmission caches" = "Transmission 缓存";
@@ -1159,12 +1219,15 @@
 "Uninstall Selected…" = "卸载所选应用…";
 "Unity Hub caches" = "Unity Hub 缓存";
 "Unknown built-in scan location." = "内置扫描位置不存在。";
+"Unknown leftover plan." = "未找到应用残留清理计划。";
+"Unknown leftover review." = "未找到应用残留审阅记录。";
 "Unknown rule/version." = "规则或版本不存在。";
 "Unknown workspace." = "工作区不存在。";
 "Unregister Workspace" = "取消注册工作区";
 "Unsafe or overbroad relative pattern." = "相对路径模式不安全或范围过大。";
 "Unsupported configuration version." = "不支持此配置版本。";
 "Unsupported database" = "数据库结构不支持";
+"Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers." = "永久移除未使用的构建缓存，保留镜像、容器与数据卷。后续构建可能需要下载或重新构建层。";
 "Up One Level" = "返回上一级";
 "Updates are verified before installation." = "安装前验证更新签名。";
 "Use Latest Space Analysis" = "使用已有空间分析结果";
@@ -1269,12 +1332,15 @@
 "not_scanned" = "未检查";
 "npm Cache" = "npm 缓存";
 "npm download cache" = "npm 下载缓存";
+"npm download caches" = "npm 下载缓存";
 "npm downloads packages again when required." = "npm 会在需要时重新下载软件包。";
+"owner_absent_from_standard_sources_and_native_registration" = "应用目录及系统注册未发现所属应用";
 "ownership_coverage_incomplete" = "应用发现范围不完整，不能证明关联数据的独占归属，请逐项核对。";
 "ownership_unverified" = "无法验证该组件的归属。";
 "partial" = "部分完成";
 "pending" = "等待处理";
 "permission_or_type_unavailable" = "位置访问受限或类型不受支持。";
+"pip download caches" = "pip 下载缓存";
 "protected_application" = "系统应用或当前应用受保护，不能卸载。";
 "protected_content" = "包含受保护的内容";
 "purge" = "已永久移除";
@@ -1283,6 +1349,7 @@
 "qBittorrent caches" = "qBittorrent 缓存";
 "rbenv download caches" = "rbenv 下载缓存";
 "records" = "条记录";
+"remote_context" = "仅支持本机 Docker context";
 "resource_limit" = "核验超出预算。";
 "restore" = "已恢复";
 "review" = "需审阅";
@@ -1291,6 +1358,9 @@
 "skipped" = "已跳过";
 "source_changed" = "来源目录在检查过程中发生变化。";
 "sources" = "个来源";
+"tool_failed" = "工具未正常完成";
+"tool_timeout" = "工具检查超时";
+"tool_unavailable" = "工具暂不可用";
 "tracked_artifact_content" = "此项包含 Git 跟踪的文件，已阻止清理。";
 "trashed" = "已移入废纸篓";
 "unavailable" = "不可用";
@@ -1298,5 +1368,6 @@
 "unknown" = "结果待核实";
 "unsupported_bundle" = "不支持此应用程序包结构。";
 "unsupported_component_type" = "组件类型与预期不符。";
+"unsupported_schema" = "暂不支持此工具返回的数据格式";
 "unverified_location" = "位置归属无法核验。";
 "uv package cache" = "uv 依赖包缓存";

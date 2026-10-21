@@ -2,13 +2,17 @@
 
 [English](../../engineering/reference-capability-map.md) | 简体中文
 
-状态：基于源码的功能对照，2026-10-20。本文对照 [MangoDisk](https://github.com/harry0703/MangoDisk) 与 Shou，并定义可选实现阶段的验收门槛，不代表功能对等、运行验收通过或可发布。本轮已实现大文件 Core、CLI 与原生 GUI 查询、选择及审阅后移除，并通过限定范围的本地验收；其余功能领域仍按下表分别列出。实际测试记录见[验收与测试](acceptance-and-testing.md)。
+状态：基于源码的功能对照，2026-10-21。本文对照 [MangoDisk](https://github.com/harry0703/MangoDisk)、开源 [Mole CLI](https://github.com/tw93/mole) 与 Shou 当前工作树，定义实现优先级和验收门槛，不代表功能对等或可发布。已有大文件与永久删除验收保持原记录范围。本轮仅更新文档，实际测试记录见[验收与测试](acceptance-and-testing.md)。
+
+以下矩阵及分阶段门槛保留 **0.9.0 实现前基线**，不是当前功能清单。N01–N09 的现状、实际检查与原生／发布门槛以 [0.9.0 跟踪文档](next-version-0.9.0.md)为准。
 
 ## 证据约定
 
 | 证据 | 能够支持的结论 | 边界 |
 | --- | --- | --- |
 | MangoDisk 源码 | 所检查 checkout 的 Owner、算法、操作、保护与界面接线 | 完整源码入口不能证明已安装版本成功执行过该操作 |
+| Mole 源码与上游差异 | 固定提交上的 CLI 命令、Skill 分发和清理选择器变化 | 开源 CLI checkout 不能验证独立发行的原生 Mole 应用及其测试应用目录 |
+| 本机 Shou 记录清单 | 复核时六类记录的文件数量与序列化长度 | 开发实例数据，不代表典型用户增长、磁盘实际分配或性能跑分 |
 | REA 包清单与属性列表 | 已安装包身份、资源和声明元数据 | 包事实不能证明交互、权限、扫描、变更或恢复 |
 | REA 被动运行观察 | 精确绑定的已安装参考进程／窗口暴露清理入口、存储／隐私／系统侧栏、扫描按钮和扫描方式控件；42 个可访问性节点，未截断且无报告缺口 | 未提供操作步骤，不能证明菜单交互、扫描、结果、清理或恢复 |
 | 对已安装参考应用的 CUA 交互 | 已观察的清理类别 → 规则 → 路径层级、部分选择与固定底部选择／操作区域 | 未触发参考应用清理，不能证明删除或恢复语义 |
@@ -19,7 +23,18 @@
 
 本地运行证据：`.build/mangodisk-rea-cleanup-runtime.json`，证据 ID 为 `ev_d10f9814fdd19dd882d7b38fdd2ac46d1cb05aadbf769f85b69eac0f75e5a8be`。原助手编译超时后使用隔离预编译助手恢复观察，对助手源码和可执行文件校验 SHA-256，原目标身份检查继续生效。本地产物与源码结论、CUA 观察分别记录。
 
-## 功能对照矩阵
+## 本轮对照基线
+
+| 对象 | 检查版本 |
+| --- | --- |
+| MangoDisk | 本地源码版本 1.2.0，提交 `032e1e140dec2e28d0bef3232f3f2197cbd4a4d9` |
+| Mole CLI | 上游提交 `84dc779dc651ff1f0509a2054b6e25b8fb5d2ac5`，日期 2026-10-21 |
+| Shou | 当前本地工作树，包含另有验收记录的硬链接永久删除修复 |
+| 已有 Mole 规则映射 | 仍固定在 `7b2a196061e1be7fae4ba422cd9102313fcb321d`；本轮未将映射升级到新提交，也未声称按新提交复验通过 |
+
+上游比较显示，规则映射基线之后新增 25 次提交、变化 60 个文件，涉及 `lib/clean/app_caches.sh`、`caches.sh`、`user.sh`、卸载处理及 Mole Skill。源码和比较元数据保存在 `.build/reference-review-20261021/`。未执行参考项目的清理脚本。本轮没有三款软件在相同数据集上的跑分，也没有新增参考 GUI 验收，因此不能给出速度倍数或运行对等结论。
+
+## 实现前功能基线
 
 MangoDisk 导航覆盖存储、隐私和系统任务，源码入口为 `src/lib/models/shell/application-shell.ts`。Shou 原生导航由 `apps/macos/Sources/ShouApp.swift` 管理。导航入口仅是完整能力的一部分。
 
@@ -38,8 +53,37 @@ MangoDisk 导航覆盖存储、隐私和系统任务，源码入口为 `src/lib/
 | 系统维护 | `src-tauri/crates/mangodisk-core/src/system_maintenance/catalog.rs` 与 `src-tauri/crates/mangodisk-platform/src/macos/system_maintenance.rs` 定义十项 macOS 任务 | 未实现。工具可用不代表诊断出必须执行的维护 |
 | 资源监控／菜单栏 | `src/pages/tray-panel/index.vue` 与平台资源提供者展示 CPU、GPU、内存、磁盘、网络与进程信息 | 未实现。磁盘容量摘要不等于持续资源监控 |
 | 历史与恢复 | `src-tauri/crates/mangodisk-core/src/history/` 支持多个操作领域 | 已实现清理／卸载回执、检查与独立恢复，见 `apps/macos/Sources/HistoryView.swift`、`apps/macos/Sources/HistoryInspectionView.swift` 及 Core 记录。新增变更领域必须明确历史和恢复语义 |
-| AI 辅助 | 参考界面存在带模块上下文的 `MdAiWorkspace` 集成 | Shou 通过 `apps/macos/Sources/AgentRuleSetupView.swift` 接入外部编码 Agent 的规则工作流，自身不托管模型会话或 Agent。内置 AI 属于产品决策，不预设为待补实现 |
+| AI 辅助 | 参考界面存在带模块上下文的 `MdAiWorkspace` 集成 | Shou 通过 `apps/macos/Sources/AgentRuleSetupView.swift` 接入外部编码 Agent 的规则工作流，自身不托管模型会话或 Agent。内置 AI 不属于 Shou 的产品范围 |
 | 设置、排除与更新 | 独立设置、语言、主题与更新流程 | 已实现设置／排除及 `apps/macos/Sources/AppUpdater.swift` 中的 Sparkle；本轮完善安装与访问引导。引导可见不会授予访问权限 |
+
+## 实现前日常清理差距
+
+主要差距是可回收来源、重复工作和失败后的解决路径。增加导航页面不能解决这些问题。
+
+| 范围 | 参考依据 | Shou 差距与下一步边界 |
+| --- | --- | --- |
+| 智能清理扫描 — P0 | MangoDisk 的 `cleanup/scan.rs` 编译扫描计划，按硬件与设备类型限制并发，最多四个 worker；保守设备类型降低并发 | `KnownLocations.scanKnownLocations` 逐个根扫描，`NativeFileSystem.inspectTree` 使用递归名称／stat 读取。`NativeStorageMeasurement` 的批量元数据与 1–8 个 worker 属于空间分析，尚未覆盖这条清理路径。先合并根任务、减少重复 I/O，再优化有界并发 |
+| 二次扫描复用 — P1 | MangoDisk 的 `storage/index/cache.rs` 校验配置指纹、变更版本和文件系统 token；平台层使用 macOS FSEvents 与可支持 Windows 卷上的 USN 证据 | Shou 保存扫描／catalog，但没有对应的变更追踪复用合同。需要可验证复用及变更历史不可用时的回退；保存了结果不能证明结果仍然有效 |
+| Shou 自身记录增长 — P0 | 本机实例只读清点 | 六类文件合计 2,992,132,938 序列化字节：587 份扫描（2,458,527,693 字节）、43 份计划（121,738,909）、100 份空间条目页（343,096,059）、23 份历史（59,501,382）、六份空间计划（8,689,225）、22 份空间扫描（579,670）。`HistoryRetention` 只清历史／后续操作，`LocalStore.removeHistoryRecord` 不清其他集合。需对派生记录增加过期／配额回收和引用保护，历史改为分页摘要；当前 `AppModel.refresh` 会通过 `Engine.history()` 读取完整回执 |
+| 工具管理的大空间来源 — P1 | MangoDisk 的 `cleanup/cleaners/` 包含 Docker 构建缓存、Conda 缓存、闲置 Rust 工具链、模型存储、Codex 归档会话和 Xcode 专属处理；Mole 的 `lib/clean/brew.sh` 预览并执行参数一致的 `brew cleanup --prune=30` | Shou 规则只匹配目录，不能调用所属工具或选择单个磁盘映像文件。声明 BuildX 路径不等于回收 Docker 引擎构建缓存。目录仍用声明式个人规则；依赖工具／版本／引用知识的来源增加类型明确、操作固定的适配器 |
+| 失败后的继续操作 — P0 | MangoDisk 的 `src/pages/cleanup/cleanup-application-close.ts` 按应用归并规则，并将重试限制在剩余失败目标 | Shou 已有卸载“请求退出”和完成页“重新扫描”，但退出请求不会等待确认关闭并恢复受影响选择，结果重试会重新扫描当前模块。智能清理需补齐归并关闭 → 验证 → 刷新受影响目标 → 审阅重试，保留其他选择和成功结果 |
+| 孤儿残留与隐私深度 — P1/P2 | MangoDisk 有独立 `applications/leftovers/` 与逐来源 `privacy/`；Mole 的 `clean` 包含已卸载应用残留 | Shou 卸载时能关联组件，但没有独立孤儿清单；隐私覆盖部分历史／Cookie schema，未覆盖参考的完整活动／账号状态集合。需要精确的所属应用缺失证据，逐来源补能力，避免删除宽泛父目录 |
+| 外部 Agent 定制 — P1 | 最新 Mole 已有 `skills/mole/SKILL.md`、`llms.txt`、Codex／Claude 插件入口及 `npx skills add` 分发；MangoDisk 的 `clean` 提供 human／JSON／JSONL、apply、dry-run 与明确的非交互确认选项 | CLI 或 Skill 本身已经不是独有差异。Shou 已有更细的发现／schema 合同，以及桌面复用的版本化个人规则导入／预览／启用。应完成未覆盖占用发现 → 外部 Agent 制定规则 → 验证收益 → 后续复用，减少反复交接；模型与 Agent 执行保持在 Shou 外部 |
+| Windows 产品覆盖 — P1 | MangoDisk 有 93 份 Windows 文件系统 TOML，另有 128 份 macOS 与 31 份项目产物定义；不同规则模型不能按数量直接比较 | 按 `BuiltinTemplate.supportedPlatforms` 实际计算，macOS 有 210 个模板，Windows 只有六个项目模板，没有固定 Windows 缓存位置模板。`DesktopBridge` 将 applications／startup／privacy 声明为 false。交叉编译与桥接检查不能代表真实 Windows 文件系统／GUI 验收 |
+| 界面语言 — P2 | MangoDisk 包含 11 份 UI locale 目录 | Shou 的 `Localization.swift` 仅开放中文和英文。11 种 README 不代表软件支持 11 种语言；需补齐共享 Core／macOS／Windows 消息和各端切换验收后再扩大支持声明 |
+| 发行身份 — P1 | Shou 自身打包与安装合同 | 未显式提供 Developer ID 时，本地包使用 ad-hoc 签名。已有 Sparkle，但 Developer ID 签名、公证、干净机器更新／权限验收仍需独立完成；本地签名身份变化可能令隐私授权失效 |
+
+### 规则覆盖仍不完整
+
+已有 [Mole 覆盖报告](mole-rule-coverage.md) 记录 844 个测试应用条目，其中 83 个映射到 Shou 明确的缓存／日志声明，761 个仍只有清单。本轮离线映射自测通过。这些是映射，并非 844 款应用兼容性测试；基于已安装 bundle 的动态缓存发现可以补充，但不能证明应用专属配置、工具管理存储或孤儿残留已经覆盖。上游 README 明确开源 CLI 和原生 Mole 应用独立下载，不能将原生应用的测试目录当成 CLI 源码验收结果。
+
+### 架构方向
+
+保留共享确定性 Core 与原生桌面／CLI 适配层。对需要领域知识的来源，在路径规则旁增加固定能力的清理策略：发现 → 类型明确的选择 → 精确预览 → 现有审阅／授权 → 领域执行 → 结果验证。例如 MangoDisk 的 Docker 处理固定本机 default context，区分预览与 builder prune，并限制时间和输出。这适合作为适配器边界，不应据此允许导入 JSON 执行任意命令。
+
+日常桌面操作应是一个任务、适当确认和可见结果；内部 scan／plan／execute 合同不要求用户经过多个独立页面。外部 Agent 的确认传递是单独的体验决策：Shou 公共 CLI 当前要求控制终端确认破坏性操作，Windows bridge 使用单次请求 challenge，本轮对照不改变这两个合同。
+
+精确重复文件和孤儿残留对释放空间的价值比偏好开关或资源仪表盘更直接。通用二进制瘦身、广泛系统优化和监控保持可选；托管模型或 Agent 不属于 Shou 的产品范围。
 
 ## 隐私：必须保留来源粒度
 
@@ -91,10 +135,10 @@ Owner：`src-tauri/crates/mangodisk-core/src/system_maintenance/catalog.rs`、`s
 
 | 阶段 | 范围 | 退出阶段所需证据 |
 | --- | --- | --- |
-| P0：现有旅程基线 | 安装引导、准确访问状态、标准扫描、空间分析与现有清理／卸载／启动项边界 | 首次安装／更新与语言行为；未知访问与拒绝访问区分；有界扫描、取消与部分结果；支持恢复的操作以生成夹具完成审阅 → 确认 → 变更 → 回执 → 恢复。只读启动项证据与受限控制分别验收 |
-| P1：存储能力补全 | 验收本轮大文件实现，确定精确重复和孤儿残留范围，只按明确规则扩展清理覆盖 | 大文件阈值边界、稳定文件身份、完整测量、硬链接计量、取消、过期计划拒绝和 GUI／CLI 一致性。精确重复要求完整内容相同、替换检测与明确保留选择；孤儿判断要求已安装 Owner 缺失及精确关联证据 |
-| P2：独立高影响领域 | 隐私、可恢复系统偏好与选定维护任务 | 逐来源能力矩阵、不可用／不支持状态、明确影响同意、限定所属程序关闭、过期计划、预检、原生执行、逐任务验证和持久结果。偏好要求恢复基线与恢复验证，提权维护要求真实不可取消状态 |
-| P3：可选扩展 | 经产品选择后实现资源监控／菜单栏与通用二进制优化 | 监控要求指标来源、采样周期、不可用状态和资源开销；二进制变更要求架构／签名身份、中断处理、写后验证和明确恢复策略。内置 AI 仍为独立产品决策 |
+| P0：日常清理可靠性与成本 | 智能清理调度、记录回收、轻量历史、关闭应用／失败目标恢复与已有删除回归 | 相同夹具覆盖及优化前后冷／热耗时；有界并发与取消；配额测试保留活跃计划和恢复事实；关闭 → 验证 → 限定重试；部分失败时计数／选择／结果一致；保留原生永久删除和支持范围内恢复回归 |
+| P1：有效回收与定制 | 选定工具适配器、持久化 Agent 规则、独立孤儿发现、可验证扫描复用、Windows 缓存覆盖与发行身份 | 每个适配器预览／执行一致、本机所属范围、时间／输出预算与验证；外部 Agent → 禁用草稿 → 预览 → 授权启用 → 桌面复用；精确孤儿关联和所属应用缺失；变更历史失效；真实 Windows 夹具删除／GUI；签名公证后的干净安装和更新／权限验收 |
+| P2：存储与隐私广度 | 精确重复、选定隐私来源和更多界面语言，保持已有大文件合同 | 重复文件完整内容一致、替换检测和保留选择；大文件身份／分页／计量回归；逐来源隐私 schema／时间范围与影响同意、原生变更验证；各端完整翻译与切换 |
+| P3：可选扩展 | 经产品选择后实现资源监控／菜单栏、通用二进制优化、可恢复系统偏好与选定维护 | 监控要求指标来源、采样周期、不可用状态和资源开销；二进制变更要求架构／签名身份、中断处理、写后验证和恢复策略；偏好要求恢复基线与恢复验证，提权维护要求真实不可取消状态。内置 AI 保持在产品范围之外 |
 
 每项选定能力均需正反例，覆盖权限、运行中应用、身份变化、受保护后代、不支持 schema、时间／输出预算、变更前后取消、部分失败与验证未知。破坏性验收使用可丢弃的生成夹具。成功构建、目录计数、包清单或可见页面均不能替代原生端到端证据。
 
@@ -102,4 +146,8 @@ Owner：`src-tauri/crates/mangodisk-core/src/system_maintenance/catalog.rs`、`s
 
 ## 鸣谢
 
-MangoDisk 可读取的源码为能力盘点、领域边界与分阶段验收标准提供了参考。此处明确致谢，不代表关联关系、运行能力对等或复用完整目录。Shou 保持独立原生实现、规则、Core 合同与安全边界。
+MangoDisk 可读取的源码为能力盘点、扫描调度、领域边界与分阶段验收标准提供了参考。Mole 公开源码为 CLI／Skill 对比和所属工具清理边界提供了参考；独立的 [Mole 覆盖报告](mole-rule-coverage.md) 保留固定版本规则来源、鸣谢和许可证信息。此处明确致谢，不代表关联关系、运行能力对等或复用任一完整目录。Shou 保持独立原生实现、规则、Core 合同与安全边界。
+
+## 0.9.0 实现增量
+
+当前工作树已实现记录回收／历史摘要、有界并发位置扫描、关闭应用／限定重试、专属工具清理器、Agent 规则发现与新增收益、八类 Windows 缓存和独立孤儿残留。检查与原生环境门槛见[交付跟踪](next-version-0.9.0.md)。重复文件、FSEvents／USN、更多隐私类型、Developer ID 分发及 844 软件规则映射缺口仍未因此完成。

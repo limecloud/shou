@@ -3,6 +3,7 @@
 #define _WIN32_WINNT 0x0A00
 #include "shou_windows.h"
 #include <windows.h>
+#include <tlhelp32.h>
 #include <aclapi.h>
 #include <sddl.h>
 #include <shellapi.h>
@@ -21,6 +22,25 @@
 #include <string>
 #include <vector>
 using Microsoft::WRL::ComPtr;
+
+extern "C" int shou_win_process_running(const char *name, int *running) {
+    if (!name || !running) return ERROR_INVALID_PARAMETER;
+    *running=0;
+    HANDLE snapshot=CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snapshot == INVALID_HANDLE_VALUE) return GetLastError();
+    PROCESSENTRY32W entry{}; entry.dwSize=sizeof(entry);
+    if (!Process32FirstW(snapshot, &entry)) {
+        const DWORD error=GetLastError(); CloseHandle(snapshot);
+        return error == ERROR_NO_MORE_FILES ? 0 : error;
+    }
+    do {
+        std::wstring expected;
+        for (const unsigned char *c=reinterpret_cast<const unsigned char *>(name); *c; ++c) expected.push_back(*c);
+        if (_wcsicmp(entry.szExeFile, expected.c_str()) == 0) { *running=1; CloseHandle(snapshot); return 0; }
+    } while (Process32NextW(snapshot, &entry));
+    const DWORD error=GetLastError(); CloseHandle(snapshot);
+    return error == ERROR_NO_MORE_FILES ? 0 : error;
+}
 
 namespace {
 std::wstring wide(const char *text) {

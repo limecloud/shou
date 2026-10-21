@@ -120,6 +120,24 @@ flowchart TD
 
 All entry points use the same policy. An unexpired plan still needs revalidation. Journal and filesystem operations are not a cross-system transaction.
 
+Permanent removal uses an in-memory `PermanentRemovalContext` for one execution. The POSIX adapter pins shared regular files, checks exact metadata before `unlinkat`, then reads the same descriptor afterwards. Only a link count reduced by exactly one and the accompanying ctime change are recorded; every other field must remain unchanged. Subsequent entries and selected targets reconcile only that observed change against the original manifest. The context is discarded after the execution, so an earlier cleanup cannot authorize a stale plan. Windows retains its native verification and rejects unsupported hard-linked targets.
+
+```mermaid
+flowchart TD
+    Verify[Verify selected target and complete manifest] --> Entry[Check next manifest entry]
+    Entry --> Shared{Shared regular file?}
+    Shared -->|Yes| Pin[Pin descriptor and verify exact metadata]
+    Pin --> Unlink[Unlink selected name]
+    Unlink --> Observe[Read the pinned descriptor]
+    Observe --> Expected{Only one link removed and ctime changed?}
+    Expected -->|Yes| Record[Record actual change in this execution context]
+    Expected -->|No| Stop[Stop and record partial outcome]
+    Record --> Entry
+    Shared -->|No| Remove[Verify and remove known entry]
+    Remove --> Entry
+    Entry -->|Target finished| Result[Persist outcome and invalidate desktop scan evidence]
+```
+
 ## 4. Native desktop sequence
 
 ```mermaid
@@ -149,13 +167,16 @@ sequenceDiagram
                 Core->>FS: Recheck and move to Trash
                 FS-->>Core: Actual Trash location, identity, or error
             else Permanent action
-                Core->>FS: Recheck and purge original path
+                Core->>Core: Reconcile only observed links removed in this execution
+                Core->>FS: Recheck and purge original path with execution context
+                FS->>FS: Pin shared inode and verify metadata before and after unlink
                 FS-->>Core: Purged, skipped, failed or unknown
             end
             Core->>Store: Persist item result
             Core-->>UI: Progress
         end
         Core-->>UI: Receipt and available next actions
+        UI->>UI: Invalidate old scan after every attempted cleanup
     end
     Core->>Store: Release lock on all exits
 ```
@@ -310,4 +331,72 @@ flowchart LR
     M -->|System managed| I[Informational scope note]
     M -->|User access| A[Setup or Finder]
     M -->|Changed directory| F[Rescan current folder]
+```
+
+## 0.9.0 daily and custom cleanup
+
+```mermaid
+flowchart TD
+    Start[One standard scan] --> Prepare[Register available roots]
+    Prepare --> Workers[Up to four independent root scans]
+    Workers --> Review[One cleanup list]
+    Review --> Running{Owner running?}
+    Running -->|Yes| Close[Save work and confirm graceful quit]
+    Close --> Verify[Verify exit and refresh affected roots]
+    Verify --> Review
+    Running -->|No| Confirm[One exact selection confirmation]
+    Confirm --> Execute[Per-item revalidation and durable journal]
+    Execute --> Result[Complete / partial / cancelled / unknown]
+    Result --> Back[Back to originating task]
+    Result --> Retry[Refresh only remaining selected paths]
+    Retry --> Review
+    Review --> Custom[Investigate uncovered consumers with external agent]
+    Custom --> Draft[Validate and import disabled draft]
+    Draft --> Benefit[Preview additional coverage against enabled rules]
+    Benefit --> Choice[User chooses enablement]
+    Choice --> Start
+```
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Desktop or CLI
+    participant Core as ToolCleanupService
+    participant Native as NativeCleanupTools
+    participant Store as Local records
+    User->>UI: Check tool storage
+    UI->>Core: scan
+    Core->>Native: Fixed read-only preview
+    Native-->>Core: Bounded output and executable identity
+    Core->>Store: Save targets and evidence
+    User->>UI: Confirm one target and impact
+    UI->>Core: Execute plan and digest
+    Core->>Native: Repeat preview and compare evidence
+    Core->>Store: Executing intent and consumed plan
+    Core->>Native: Fixed owner cleanup in process group
+    Native-->>Core: Exit / timeout / cancellation
+    Core->>Native: Verify current tool storage when possible
+    Core->>Store: Completed / partial / unknown receipt
+    Core-->>UI: Typed result; no blind replay
+```
+
+Orphan removal first checks complete standard application coverage and native registration/activity. It rechecks absence, ownership, exclusions and the full component manifest before execution and again at each mutation boundary. Personal data is a separate opt-in. Permanent and Trash paths use shared per-item journals; Trash restoration remains separately confirmed. Derived-record maintenance never removes these journals or user targets.
+
+```mermaid
+sequenceDiagram
+    participant Core as Shared execution
+    participant Journal as ReceiptJournal
+    participant Store as Local records
+    participant FS as Native filesystem
+    Core->>Journal: Complete manifest and pending receipt
+    Journal->>Store: Persist immutable large manifest
+    Journal->>Store: Publish small receipt referencing manifest
+    Core->>FS: Revalidate identity and contents
+    Core->>Journal: Save moving or purging intent
+    Journal->>Store: Update state only
+    Core->>FS: Execute explicit selection
+    FS-->>Core: Verified or unknown outcome
+    Core->>Journal: Save result
+    Note over Journal,Store: Changed manifest gets a new version; failed result write preserves intent
+    Journal->>Store: Publish final state and paged summary
 ```

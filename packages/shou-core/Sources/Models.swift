@@ -285,10 +285,25 @@ public protocol RecordStore: Sendable {
     func read(_ collection: String, id: String) throws -> Data?
     func write(_ collection: String, id: String, data: Data) throws
     func removeHistoryRecord(_ collection: String, id: String) throws
+    func records(_ collection: String) throws -> [StoredRecord]
+    func recordMetadata(_ collection: String, id: String) throws -> StoredRecord?
+    func removeDerivedRecord(_ record: StoredRecord) throws
     func ids(_ collection: String) throws -> [String]
     func lock() throws -> any StoreLease
 }
 extension RecordStore {
+    public func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? {
+        try records(collection).first { $0.id == id }
+    }
+    public func records(_ collection: String) throws -> [StoredRecord] {
+        try ids(collection).compactMap { id in
+            guard let data=try read(collection, id: id) else { return nil }
+            return StoredRecord(collection: collection, id: id, byteCount: Int64(data.count), modifiedAt: .distantFuture, revision: Digest.sha256(data))
+        }
+    }
+    public func removeDerivedRecord(_ record: StoredRecord) throws {
+        throw ShouError("capability_unavailable", "Derived record cleanup is unavailable in this record store.")
+    }
     public func removeHistoryRecord(_ collection: String, id: String) throws {
         throw ShouError("capability_unavailable", "History cleanup is unavailable in this record store.")
     }
@@ -326,8 +341,12 @@ public protocol PlatformFileSystem: Sendable {
     func restore(_ path: String, to destination: String, expected: [FileEntry]) throws
     func purge(_ path: String, expected: [FileEntry]) throws
     func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws
+    func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws
 }
 extension PlatformFileSystem {
+    public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws {
+        try purge(path, expected: context.reconciled(expected), progress: progress)
+    }
     public func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws {
         try purge(path, expected: expected)
         progress(expected.count, expected.count, path)

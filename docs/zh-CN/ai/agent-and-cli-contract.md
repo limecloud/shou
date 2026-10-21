@@ -263,3 +263,13 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。
 
 默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。
+
+## 0.9.0 发现能力补充
+
+通过 `capabilities --command rules --json` 获取当前安装合同。`rules opportunities --scan-id ID [--minimum-bytes N --offset N --limit N]` 使用已保存的完整目录扫描，返回不可直接清理的调查项、完整性及已覆盖子项标记。嵌套项重叠，按 `next_offset` 翻页，不应求和。草稿 `rules preview` 包含同一观测树上命中、已覆盖和新增的 `benefits` 估计。导入保持禁用，明确启用后，桌面在后续扫描中复用该偏好。
+
+`records preview`／`records collect` 仅维护 Shou 可重新生成的证据，保护活跃计划及恢复日志。`history summaries --offset N --limit N` 分页读取不含 manifest 的摘要，执行与恢复始终重读权威回执。
+
+macOS 提供 `tools scan|plan|execute|history` 固定 Docker／Homebrew／Conda／Rust 操作，以及 `applications leftovers scan|plan|show|execute` 精确的缺失所属应用关联审阅。公共 CLI 执行仍需终端确认当前范围。JSON 规则不可提供可执行文件、参数或 shell 片段。工具结果使用独立回执与估计值，超时／unknown 不允许重放。`system close-plan` 和 `system close-applications` 请求正常退出，不删除文件、不强制结束进程。
+
+Windows 桌面桥新增 `system.scan`（固定缓存加发现／记住的项目）和 `system.clean`（跨根明确选择扫描／候选、一次请求绑定确认），逐项记录结果并保留部分失败。这没有为公共 CLI 提供无人值守删除入口。

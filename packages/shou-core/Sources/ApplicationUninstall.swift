@@ -130,7 +130,7 @@ enum ReceiptOrigins {
             return Origin(path: receipt.workspace.path, identity: receipt.workspace.identity, applicationParent: false, analysisRoot: true)
         }
         try PathPattern.validate(item.relativePath)
-        if ["application_uninstall", "application_permanent_uninstall", "application_batch_uninstall", "application_batch_permanent_uninstall"].contains(receipt.operation ?? "") {
+        if ["application_uninstall", "application_permanent_uninstall", "application_batch_uninstall", "application_batch_permanent_uninstall", "application_orphan_cleanup"].contains(receipt.operation ?? "") {
             guard let origin=item.uninstallOrigin,
                   validIdentifier(origin.bundleIdentifier),
                   !item.relativePath.contains("/"), !item.relativePath.contains("*"), !item.relativePath.contains("?"),
@@ -299,7 +299,7 @@ extension ShouEngine {
         }
         if action == "permanent" {
             return try PermanentExecution.run(planId: planId, workspace: workspace, items: items, entryPoint: entryPoint,
-                store: store, filesystem: filesystem, now: now(), operation: operation, progress: progress, didBegin: didBegin, validateItem: validateItem)
+                store: store, filesystem: filesystem, now: now(), operation: operation, progress: progress, didBegin: didBegin, validateItem: { index, _ in try validateItem(index) })
         }
         return try TrashExecution.run(planId: planId, workspace: workspace, items: items, entryPoint: entryPoint,
             store: store, filesystem: filesystem, now: now(), operation: operation, progress: progress, didBegin: didBegin, validateItem: validateItem)
@@ -431,7 +431,7 @@ extension ShouEngine {
         let a=a.lowercased(), b=b.lowercased()
         return a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
     }
-    private func uninstallExcluded(target: String, manifest: [FileEntry], configuration: Configuration, caseSensitive: Bool) -> Bool {
+    func uninstallExcluded(target: String, manifest: [FileEntry], configuration: Configuration, caseSensitive: Bool) -> Bool {
         let protectedNames: Set<String>=[".ssh", ".gnupg", ".aws", ".azure", ".kube", ".shou", "keychains"]
         for entry in manifest {
             let path=entry.path == "." ? target : target + "/" + entry.path

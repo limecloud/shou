@@ -102,8 +102,46 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         let dir = try self.collection(collection); defer { close(dir) }
         return try SecurePaths.names(dir).filter { $0.hasSuffix(".json") && !$0.hasPrefix(".") }.map { String($0.dropLast(5)) }.sorted()
     }
+    public func records(_ collection: String) throws -> [StoredRecord] {
+        let dir=try self.collection(collection); defer { close(dir) }
+        let suffix=collection == "storage-catalogs" ? ".sqlite" : ".json"
+        return try SecurePaths.names(dir).filter { $0.hasSuffix(suffix) && !$0.hasPrefix(".") }.compactMap { name in
+            try recordMetadata(collection, id: String(name.dropLast(suffix.count)))
+        }
+    }
+    public func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? {
+            try validate(id)
+            let dir=try self.collection(collection); defer { close(dir) }
+            let name=id + (collection == "storage-catalogs" ? ".sqlite" : ".json")
+            var info=stat()
+            if fstatat(dir, name, &info, AT_SYMLINK_NOFOLLOW) != 0 {
+                if errno == ENOENT { return nil }
+                throw SecurePaths.failure("Inspect record metadata", path: id)
+            }
+            guard
+                  info.st_mode & S_IFMT == S_IFREG, info.st_uid == getuid(), info.st_nlink == 1 else {
+                throw ShouError("store_corrupt", "Record metadata has an invalid identity.")
+            }
+            #if canImport(Darwin)
+            let modified=info.st_mtimespec, changed=info.st_ctimespec
+            #else
+            let modified=info.st_mtim, changed=info.st_ctim
+            #endif
+            let revision="\(info.st_dev):\(info.st_ino):\(info.st_size):\(modified.tv_sec):\(modified.tv_nsec):\(changed.tv_sec):\(changed.tv_nsec)"
+            return StoredRecord(collection: collection, id: id, byteCount: Int64(info.st_size),
+                modifiedAt: Date(timeIntervalSince1970: Double(modified.tv_sec) + Double(modified.tv_nsec)/1e9), revision: revision)
+    }
+    public func removeDerivedRecord(_ record: StoredRecord) throws {
+        guard DerivedRecords.collections.contains(record.collection) else { throw ShouError("invalid_argument", "Only derived Shou records can be collected.") }
+        guard try recordMetadata(record.collection, id: record.id) == record else {
+            throw ShouError("plan_stale", "The derived record changed before collection.")
+        }
+        let dir=try collection(record.collection); defer { close(dir) }
+        let suffix=record.collection == "storage-catalogs" ? ".sqlite" : ".json"
+        guard unlinkat(dir, record.id + suffix, 0) == 0, fsync(dir) == 0 else { throw SecurePaths.failure("Collect derived record", path: record.id) }
+    }
     public func removeHistoryRecord(_ collection: String, id: String) throws {
-        guard ["history", "followups"].contains(collection) else { throw ShouError("invalid_argument", "Only history records can be removed here.") }
+        guard ["history", "followups", "history-manifests"].contains(collection) else { throw ShouError("invalid_argument", "Only history records can be removed here.") }
         try validate(id)
         let dir=try self.collection(collection); defer { close(dir) }
         var metadata=stat()

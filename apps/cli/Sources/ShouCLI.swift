@@ -72,6 +72,10 @@ let commands: [CommandSpec] = [
     .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report best-effort configured/runtime states and explicit unknowns; never changes startup settings. Login Items and background registrations remain in System Settings."),
     .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent after rechecking its plist, owner, label and exact path. Action is enable or disable; system definitions remain read-only."),
     .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles with explicit directory coverage; never changes applications."),
+    .init("applications leftovers scan", "snapshot", [], [], "Review exact orphan associations for maintained or previously verified bundle identifiers. Require complete standard-source and native-registration absence; shared containers are retained."),
+    .init("applications leftovers plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Select eligible orphan components; personal data needs explicit consent. Defaults to permanent removal."),
+    .init("applications leftovers show", "read", ["plan-id"], [], "Read the exact leftover selection, digest and expiry."),
+    .init("applications leftovers execute", "destructive", ["plan-id"], [], "Recheck owner absence and every manifest before reviewed leftover removal; use shared cleanup history."),
     .init("applications summary", "read", [], ["include-system", "max-entries", "max-seconds"], inputSchema: applicationSummaryInputSchema, "Read application sizes, versions, activity/ownership status (ready/running/admin-required/protected/unavailable) and optional last-used metadata from one inventory. Size is an allocated-byte estimate; no removal manifests are saved. Last-used may be unknown. Per-application measurement budget defaults to 100000 entries/60 seconds. Admin-required items cannot be removed by this build."),
     .init("applications inspect", "snapshot", ["path"], ["max-entries", "max-seconds"], "Review an application and exact bundle-identifier associations. Personal data is separate; shared groups and package receipts are not removed."),
     .init("applications plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Plan explicitly selected eligible components, including the application. Personal data requires include-user-data true; defaults false. Mode trash (legacy default) or permanent (irreversible)."),
@@ -99,6 +103,7 @@ let commands: [CommandSpec] = [
     .init("rules enable", "configuration", ["rule-id", "workspace"], ["version"], "Enable a rule binding; does not authorize cleanup."),
     .init("rules disable", "configuration", ["rule-id", "workspace"], ["version"], "Disable a rule binding."),
     .init("rules preview", "snapshot", ["file", "workspace"], [], "Scan a draft without allowing executable plans."),
+    .init("rules opportunities", "read", ["scan-id"], ["minimum-bytes", "offset", "limit"], "Find uncovered directories in a full workspace scan. Nested rows overlap; size is investigation evidence, never deletion permission."),
     .init("scan", "snapshot", [], ["workspace", "location", "rule-id", "scope", "max-entries", "max-seconds"], repeated: ["rule-id"], exactlyOne: ["workspace", "location"], "Scan one registered workspace or built-in location. Scope full (default) measures the whole tree; cleanup discovers and measures rule targets. Save immutable evidence."),
     .init("system scan", "snapshot", [], ["include-projects", "max-entries", "max-seconds"], "Scan built-in cache roots; optionally discover conventional developer folders and include remembered projects (include-projects true/false, default false). Report each location's failures."),
     .init("scan results", "read", ["scan-id"], ["limit", "cursor"], "Page through stable candidate results."),
@@ -114,6 +119,15 @@ let commands: [CommandSpec] = [
     .init("plan show", "read", ["plan-id"], [], "Inspect exact scope, manifest digest, risk, and expiry."),
     .init("plan execute", "destructive", ["plan-id"], [], "Execute the current Trash or permanent plan after terminal confirmation."),
     .init("history list", "read", [], [], "List execution receipts."),
+    .init("history summaries", "read", [], ["offset", "limit"], "Page through lightweight execution summaries without filesystem manifests. Use history show for full evidence."),
+    .init("records preview", "read", [], [], "Preview automatic expiry/quota cleanup of derived Shou scans and plans. Recovery journals and user files are retained."),
+    .init("records collect", "configuration", [], [], "Collect expired or over-quota derived Shou records under the mutation lease. Preserves active plans, recent scans and recovery journals."),
+    .init("tools scan", "snapshot", [], [], "Preview local Docker build cache, Homebrew cleanup, Conda caches and non-current Rust toolchains with fixed owner-tool operations."),
+    .init("tools plan", "plan", ["scan-id", "target-id"], [], "Create a short-lived plan for one explicit tool-managed target. Preview includes rebuild and environment impact."),
+    .init("tools execute", "destructive", ["plan-id"], [], "Confirm permanent owner-tool cleanup; no arbitrary shell commands or remote Docker context. Outcomes enter tool history."),
+    .init("tools history", "read", [], [], "Inspect tool-cleanup receipts, including interrupted or unverified outcomes."),
+    .init("system close-plan", "plan", ["scan-id"], [], repeated: ["scan-id"], "Group running cleanup owners from current scans into an identity-bound quit preview."),
+    .init("system close-applications", "destructive", ["plan-id"], [], "Request graceful quit after terminal confirmation and verify all helpers stopped; never force-kill applications or delete files."),
     .init("history cleanup-preview", "read", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Preview local receipt cleanup. Recoverable and unfinished records are kept by default; target files are never removed."),
     .init("history clear", "destructive", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Confirm removal of local receipt records only. include-recoverable=true also discards Shou recovery links; target files stay untouched."),
     .init("history show", "read", ["execution-id"], [], "Show item states and follow-up receipts."),
@@ -206,7 +220,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.8.0"
+    static let version = "0.9.0"
     static func main() async {
         if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
         #if canImport(Darwin) || canImport(Glibc)
@@ -329,6 +343,16 @@ enum Terminal {
             func scanValue(_ snapshot: ScanSnapshot) throws -> JSONValue { try summary(snapshot) }
             func nextResults(_ scan: ScanSnapshot) -> [JSONValue] { [.object(["command": .string("scan results"), "arguments": .object(["scan_id": .string(scan.id)])])] }
             switch args.command {
+            case "applications leftovers scan": value=try .from(await engine.reviewApplicationOrphans(presence: NativeApplicationAbsence()))
+            case "applications leftovers plan":
+                let include=args.values["include-user-data"]?.first ?? "false"
+                guard ["true","false"].contains(include) else { throw ShouError("invalid_argument", "Include-user-data must be true or false.") }
+                value=try .from(await engine.createApplicationOrphanPlan(reviewId: args.value("review-id"), componentIds: args.all("component"), includeUserData: include == "true", action: args.values["mode"]?.first ?? "permanent"))
+            case "applications leftovers show": value=try .from(await engine.applicationOrphanPlan(args.value("plan-id")))
+            case "applications leftovers execute":
+                let plan=try await engine.applicationOrphanPlan(args.value("plan-id"))
+                try Terminal.confirm(plan, phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
+                value=try .from(await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: NativeApplicationAbsence(), entryPoint: "cli"))
             case "locations list": value=try .from(await engine.knownLocations())
             case "applications summary":
                 let includeSystem=args.values["include-system"]?.first ?? "false"
@@ -383,6 +407,11 @@ enum Terminal {
             case "exclusions global add", "exclusions global remove":
                 value = .object(["global_patterns": try .from(await engine.setGlobalExclusion(pattern: args.value("pattern"), remove: args.command.hasSuffix("remove")))])
             case "rules schema": value=try CleanupRule.schema()
+            case "rules opportunities":
+                guard let minimum=Int64(args.values["minimum-bytes"]?.first ?? "52428800"), let offset=Int(args.values["offset"]?.first ?? "0"), let limit=Int(args.values["limit"]?.first ?? "50") else { throw ShouError("invalid_argument", "Opportunity limits must be integers.") }
+                value=try .from(await engine.ruleOpportunities(scanId: args.value("scan-id"), minimumBytes: minimum, offset: offset, limit: limit))
+                warnings=["Nested directories overlap; do not sum rows. Unknown purpose is not permission to delete. Inspect children and confirm rebuild costs before drafting a rule."]
+                next=[.object(["command": .string("analysis children"), "arguments": .object(["scan_id": .string(args.value("scan-id")), "path": .string(".")])])]
             case "rules validate":
                 let rule=try CleanupRule.parse(ruleData(args.value("file")))
                 value = .object(["valid": .bool(true), "rule_id": .string(rule.id), "version": .string(rule.version), "digest": .string(try Digest.of(rule)), "runtime_verified": .bool(false)])
@@ -413,6 +442,14 @@ enum Terminal {
                     snapshot=try await engine.scan(workspaceId: args.value("workspace"), ruleIds: args.all("rule-id"), previewRule: draft, scope: scope, budget: budget)
                 }
                 value=try scanValue(snapshot); warnings=snapshot.issues; next=nextResults(snapshot)
+                if draft != nil {
+                    if case .object(var fields)=value {
+                        fields["benefits"]=try .from(await engine.rulePreviewBenefits(scanId: snapshot.id)); value = .object(fields)
+                    }
+                    next += [.object(["command": .string("rules enable"), "arguments": .object(["workspace": .string(snapshot.workspace.id), "rule_id": .string(draft!.id), "version": .string(draft!.version)]), "requires_user_choice": .bool(true)])]
+                } else if scope == .full {
+                    next += [.object(["command": .string("rules opportunities"), "arguments": .object(["scan_id": .string(snapshot.id)])])]
+                }
             case "scan results":
                 let snapshot=try await engine.scanSnapshot(args.value("scan-id"))
                 let limit=Int(args.values["limit"]?.first ?? "50") ?? 0
@@ -509,6 +546,27 @@ enum Terminal {
                 try Terminal.confirm(TerminalReviewScope(plan: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
                 value=try .from(await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
             case "history list": value=try .from(await engine.history())
+            case "history summaries":
+                guard let offset=Int(args.values["offset"]?.first ?? "0"), let limit=Int(args.values["limit"]?.first ?? "50") else { throw ShouError("invalid_argument", "Invalid history page.") }
+                value=try .from(await engine.historySummaries(offset: offset, limit: limit))
+            case "records preview": value=try .from(await engine.recordRetentionPreview())
+            case "records collect": value=try .from(await engine.collectRecords())
+            case "tools scan", "tools plan", "tools execute", "tools history":
+                let service=ToolCleanupService(runner: NativeCleanupTools(), store: try LocalRecordStore())
+                switch args.command {
+                case "tools scan": value=try .from(await service.scan())
+                case "tools plan": value=try .from(await service.createPlan(scanId: args.value("scan-id"), targetId: args.value("target-id")))
+                case "tools execute":
+                    let plan=try await service.plan(args.value("plan-id"))
+                    try Terminal.confirm(plan, phrase: "CLEAN TOOL " + plan.id, locale: args.locale)
+                    value=try .from(await service.execute(planId: plan.id, confirmedDigest: plan.digest))
+                default: value=try .from(await service.history())
+                }
+            case "system close-plan": value=try .from(await engine.cleanupApplicationClosePlan(scanIds: args.all("scan-id")))
+            case "system close-applications":
+                let plan=try await engine.applicationClosePlan(args.value("plan-id"))
+                try Terminal.confirm(plan, phrase: "CLOSE " + plan.id, locale: args.locale)
+                value=try .from(await engine.closeApplications(planId: plan.id, confirmedDigest: plan.digest, controller: NativeApplicationClosing()))
             case "history cleanup-preview", "history clear":
                 guard let include=Bool(args.values["include-recoverable"]?.first ?? "false") else { throw ShouError("invalid_argument", "include-recoverable must be true or false.") }
                 let ids=args.all("execution-id")

@@ -33,6 +33,7 @@ struct ApplicationsView: View {
     @State private var sort=ApplicationSort.size
     @State private var ascending=false
     @State private var showCoverage=false
+    @State private var showCoverageAfterOrphans=false
     @FocusState private var searchFocused: Bool
     @FocusState private var browsingFocused: Bool
 
@@ -117,12 +118,20 @@ struct ApplicationsView: View {
         .task(id: model.initializing) { if !model.initializing && session.catalog == nil && !model.busy { session.scan(app: model) } }
         .onChange(of: session.includeSystem) { _, _ in session.scan(app: model) }
         .sheet(isPresented: $showCoverage) { coverage }
+        .sheet(isPresented: $model.showApplicationOrphans, onDismiss: {
+            if showCoverageAfterOrphans { showCoverageAfterOrphans=false; showCoverage=true }
+        }) {
+            ApplicationOrphansView(model: model, onReviewCoverage: { showCoverageAfterOrphans=true })
+        }
         .sheet(item: $session.plan) { plan in ApplicationBatchConfirmation(model: model, session: session, plan: plan) }
         .toolbar { ToolbarItemGroup { header } }
     }
 
     private var header: some View {
         HStack {
+            Button(model.t("Application Leftovers")) { model.orphanRetryPaths=[]; model.showApplicationOrphans=true }
+                .disabled(model.busy).accessibilityLabel(model.t("Application Leftovers"))
+                .accessibilityIdentifier("applications.leftovers")
             Menu {
                 Toggle(model.t("Include protected system apps"), isOn: $session.includeSystem)
                 Button(model.t("View Coverage…")) { showCoverage=true }

@@ -71,6 +71,8 @@ flowchart LR
     Core --> Router[Execution router]
     Router --> TrashExec[TrashExecution]
     Router --> PurgeExec[PermanentExecution]
+    PurgeExec --> RemovalContext[Per-execution hard-link evidence]
+    RemovalContext --> Interfaces
     Core --> FollowUp[Restore and Trash follow-up]
     Core --> Store[Persistence orchestration]
     Scanner --> Interfaces[Platform capability interfaces]
@@ -90,6 +92,8 @@ Skill resources are shared by both products. Installation and export stay outsid
 ### Isolated read operations
 
 Full storage analysis streams 64 KiB macOS metadata pages through bounded directory readers and commits at most 128 entries per catalog lock. New catalogs index regular files allocated at least 1 MiB for saved large-file queries; legacy catalogs remain readable. Desktop directory presentation caches and batch selection do not replace Core's fresh manifest checks. See the [pipeline, query strategy and sequence](../engineering/storage-scan-performance.md).
+
+Directory reads and ready postorder finalizers share one scheduler with at most eight executing tasks. Child-completion notifications enqueue parents only after descendants finish, so a parent never occupies a worker slot waiting for its children. SQLite remains a serialized writer; finalizers cannot create an independent unbounded thread backlog.
 
 The desktop injects `NativeFileSystem(readWorkerExecutable:)` with the packaged `Contents/Helpers/shou` executable. Root-identity queries and full/cleanup traversal run in short-lived read workers so a stalled filesystem call does not keep the desktop waiting on that call. The CLI's hidden worker entry accepts only identity and inspection requests and runs before opening the record store. It is a platform implementation detail, not a public agent protocol, a second cleanup engine or a persistent service. The independent CLI keeps its normal direct adapter.
 
@@ -313,3 +317,34 @@ flowchart LR
     M -->|User access| A[Setup or Finder]
     M -->|Changed directory| F[Rescan current folder]
 ```
+
+## 0.9.0 cleanup services
+
+The delivery checklist is [0.9.0](../engineering/next-version-0.9.0.md). The new services remain explicit Core capabilities: `RecordRetention` protects active evidence and recovery journals, `HistorySummaries` pages disposable metadata, `ApplicationClosing` verifies graceful exit, `ToolCleanupService` handles closed owner-tool operations, `RuleOpportunities` supplies investigation evidence, and `ApplicationOrphans` revalidates exact absent-owner associations before shared execution. Imported JSON rules still match paths only.
+
+```mermaid
+flowchart TB
+    Entry[macOS / CLI / Windows bridge] --> Core[Shared Swift Core]
+    Core --> Scan[Register roots then up to four location workers]
+    Scan --> Evidence[Complete targets and shared progress]
+    Core --> Retention[Hourly best-effort derived record collection]
+    Retention --> Protect[Keep active plans and recovery journals]
+    Core --> Rules[Uncovered directories and draft benefit comparison]
+    Rules --> Agent[Existing external agent authors disabled rule]
+    Agent --> Enable[Explicit enablement then shared desktop reuse]
+    Core --> Close[Identity-bound graceful close and scoped refresh]
+    Core --> Tools[Fixed Docker / brew / conda / rustup adapters]
+    Tools --> Process[Native process group, bounded time and output]
+    Tools --> ToolReceipt[Separate tool outcome and estimate]
+    Core --> Orphans[Maintained or verified bundle association]
+    Orphans --> Absence[Complete standard sources, native registration and activity]
+    Absence --> Shared[Shared permanent / Trash journal and recovery]
+    Shared --> Journal[ReceiptJournal small state record]
+    Journal --> Manifest[Immutable large manifest with count and digest]
+    Protect --> Manifest
+    Core --> Win[Eight Windows cache roots and native process snapshot]
+```
+
+Location concurrency is bounded at four and preserves a stable result order; per-directory readers and storage-analysis readers remain separate implementations. No FSEvents/USN reuse is claimed. Tool bytes are owner-reported estimates, separate from filesystem estimates and actual free-space changes. An interrupted tool execution remains unknown and its consumed plan cannot replay. Orphan scope excludes shared containers and unknown name guesses; unregistered custom installations are an explicit limitation.
+
+`ReceiptJournal` stores manifests above 1024 entries as immutable `history-manifests` dependencies, persisting every dependency before publishing the small receipt. State changes do not rewrite large manifests; Trash metadata changes publish a new manifest version. Full history reads validate dependency ID, count and SHA-256; summary reads only need state. Legacy inline receipts remain readable. Retention protects every manifest with an existing history parent. Explicit history cleanup removes the parent before its manifests and follow-ups. Interrupted deletion retains intent and evidence and cannot replay because of this optimization.

@@ -26,6 +26,7 @@ int shou_win_restore(const char *path, const char *destination, const shou_win_i
 typedef int (*shou_win_cancelled)(void);
 int shou_win_purge(const char *path, const char *const *relative_paths, const char *const *content_digests, const shou_win_info *expected, size_t count, shou_win_cancelled cancelled, size_t *removed);
 int shou_win_available(const char *path, uint64_t *result);
+int shou_win_process_running(const char *name, int *running);
 int shou_win_console_confirm(const char *review, const char *prompt, const char *phrase);
 int shou_win_stdin(void *buffer, uint32_t capacity, uint32_t *count);
 void shou_win_free(void *value);

@@ -9,21 +9,23 @@ enum PermanentExecution {
                     store: any RecordStore, filesystem: any PlatformFileSystem, now: Date, operation: String = "permanent_cleanup",
                     progress: (ExecutionProgress) -> Void,
                     didBegin: (ExecutionReceipt) throws -> Void,
-                    validateItem: (Int) throws -> String?) throws -> ExecutionReceipt {
+                    validateItem: (Int, [FileEntry]) throws -> String?) throws -> ExecutionReceipt {
         if Task.isCancelled { throw ShouError("cancelled", "Permanent cleanup stopped before any files were removed.") }
         var receipt=ExecutionReceipt(id: Codec.id("execution"), planId: planId, workspace: workspace,
             createdAt: now, entryPoint: entryPoint, state: "executing", items: items,
             volumeAvailableBefore: filesystem.availableBytes(workspace.path), volumeAvailableAfter: nil)
         receipt.operation=operation
-        func save() throws { try store.write("history", id: receipt.id, data: Codec.encode(receipt)) }
+        var journal=ReceiptJournal()
+        func save() throws { try journal.save(receipt, store: store) }
         try save()
         try didBegin(receipt)
+        var removalContext=PermanentRemovalContext()
         for index in receipt.items.indices {
             if Task.isCancelled { receipt.state="cancelled"; break }
             let path=receipt.items[index].originalPath
             progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: path))
             do {
-                let skip=try validateItem(index)
+                let skip=try validateItem(index, removalContext.reconciled(receipt.items[index].manifest))
                 if Task.isCancelled { receipt.state="cancelled"; break }
                 if let skip {
                     receipt.items[index].state="skipped"; receipt.items[index].error=skip
@@ -41,7 +43,7 @@ enum PermanentExecution {
             receipt.items[index].state="purging"
             try save()
             do {
-                try filesystem.purge(path, expected: receipt.items[index].manifest, progress: { completed, total, current in
+                try filesystem.purge(path, expected: receipt.items[index].manifest, context: &removalContext, progress: { completed, total, current in
                     progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: current,
                         currentItemProcessedCount: completed, currentItemCount: total))
                 })
@@ -58,6 +60,7 @@ enum PermanentExecution {
         progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "purging"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
         receipt.volumeAvailableAfter=filesystem.availableBytes(workspace.path)
         try save()
+        HistorySummaries.save(receipt, store: store)
         return receipt
     }
 }

@@ -120,6 +120,24 @@ flowchart TD
 
 任一入口均调用相同策略。计划尚未过期也不能跳过复核；记录与文件操作不是跨系统事务，异常现场需要核对。
 
+永久删除使用仅在一次执行中存活的 `PermanentRemovalContext`。POSIX 适配层先固定共享文件的描述符，核对完整元数据，再以 `unlinkat` 删除所选名称，并从同一描述符读取删除后的状态。只认可链接数恰好减一及伴随的 ctime 变化，其他字段必须不变。后续条目及同批选中目标仅按这些实际观测结果修正原始清单的核验。执行结束即丢弃上下文，先前清理不会授权过期计划。Windows 保持原生核验，仍拒绝不支持的硬链接目标。
+
+```mermaid
+flowchart TD
+    Verify[复核所选目标与完整清单] --> Entry[核验下一条清单条目]
+    Entry --> Shared{共享的普通文件？}
+    Shared -->|是| Pin[固定描述符并核对完整元数据]
+    Pin --> Unlink[移除所选文件名称]
+    Unlink --> Observe[从同一描述符读取删除后状态]
+    Observe --> Expected{仅链接数减一且 ctime 改变？}
+    Expected -->|是| Record[将实际变化记入本次执行上下文]
+    Expected -->|否| Stop[停止并记录部分完成结果]
+    Record --> Entry
+    Shared -->|否| Remove[核验并移除已知条目]
+    Remove --> Entry
+    Entry -->|目标完成| Result[记录结果并作废桌面端旧扫描]
+```
+
 ## 4. 桌面端清理时序
 
 ```mermaid
@@ -149,7 +167,9 @@ sequenceDiagram
                 Core->>Platform: 受限移动到系统废纸篓
                 Platform-->>Core: 实际废纸篓位置、身份或失败
             else 永久移除动作
-                Core->>Platform: 受限永久移除原始路径
+                Core->>Core: 仅修正本次实际移除的硬链接变化
+                Core->>Platform: 携带执行上下文，复核并永久移除原始路径
+                Platform->>Platform: 固定共享 inode，核对 unlink 前后元数据
                 Platform-->>Core: 已移除、跳过、失败或未知
             end
             Core->>Store: 写入逐项结果
@@ -157,6 +177,7 @@ sequenceDiagram
         end
         Core->>Store: 保存最终状态并释放锁
         Core-->>UI: 执行记录与可用下一步
+        UI->>UI: 每次尝试清理后作废旧扫描证据
     end
 ```
 
@@ -314,4 +335,72 @@ flowchart LR
     M -->|系统管理| I[普通范围说明]
     M -->|用户目录权限| A[完成设置或 Finder]
     M -->|目录变化| F[重新扫描当前文件夹]
+```
+
+## 0.9.0 日常与定制清理
+
+```mermaid
+flowchart TD
+    Start[一键标准扫描] --> Prepare[注册可用根]
+    Prepare --> Workers[最多四个独立位置扫描]
+    Workers --> Review[一张清理结果列表]
+    Review --> Running{所属应用运行中?}
+    Running -->|是| Close[保存工作并确认正常退出]
+    Close --> Verify[验证退出 仅刷新受影响根]
+    Verify --> Review
+    Running -->|否| Confirm[一次确认当前选择]
+    Confirm --> Execute[逐项复验与持久日志]
+    Execute --> Result[完成 部分完成 取消 需核实]
+    Result --> Back[返回原任务]
+    Result --> Retry[仅刷新剩余所选路径]
+    Retry --> Review
+    Review --> Custom[外部 Agent 调查未覆盖占用]
+    Custom --> Draft[校验并导入禁用草稿]
+    Draft --> Benefit[对比已启用规则的新增收益]
+    Benefit --> Choice[用户选择是否启用]
+    Choice --> Start
+```
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant UI as 桌面或 CLI
+    participant Core as ToolCleanupService
+    participant Native as NativeCleanupTools
+    participant Store as 本地记录
+    User->>UI: 检查工具空间
+    UI->>Core: scan
+    Core->>Native: 固定只读预览
+    Native-->>Core: 有界输出与可执行文件身份
+    Core->>Store: 保存目标和证据
+    User->>UI: 确认一个目标及其影响
+    UI->>Core: 计划和确认摘要
+    Core->>Native: 重做预览并对比证据
+    Core->>Store: 执行意图和已消耗计划
+    Core->>Native: 进程组内执行固定清理
+    Native-->>Core: 退出 超时 或取消
+    Core->>Native: 尽可能复验工具当前占用
+    Core->>Store: 完成 部分完成 或 unknown 回执
+    Core-->>UI: 明确结果 禁止盲目重放
+```
+
+孤儿残留先验证完整的标准应用目录、系统注册与运行状态；执行前及每个删除边界再次检查缺失所属应用、所有权、排除项和完整文件清单。个人数据单独选择。永久删除与废纸篓复用逐项日志，废纸篓恢复仍需单独确认。派生记录维护不会移除这些日志或用户文件。
+
+```mermaid
+sequenceDiagram
+    participant Core as 共享执行服务
+    participant Journal as ReceiptJournal
+    participant Store as 本地记录
+    participant FS as 原生文件系统
+    Core->>Journal: 完整清单和 pending 回执
+    Journal->>Store: 持久化不可变大清单
+    Journal->>Store: 发布引用清单的小回执
+    Core->>FS: 复验身份和内容
+    Core->>Journal: 保存 moving 或 purging 意图
+    Journal->>Store: 仅更新状态
+    Core->>FS: 执行明确选择
+    FS-->>Core: 已验证结果或未知结果
+    Core->>Journal: 保存结果
+    Note over Journal,Store: 清单变化才写新版本；结果写失败保留原执行意图
+    Journal->>Store: 发布最终状态和分页摘要
 ```

@@ -14,6 +14,10 @@ struct HistoryView: View {
                         followups: model.followups.filter { $0.executionId == receipt.id },
                         remove: { prepareRemoval(ids: [receipt.id], allowRecoveryLoss: true) })
                 }
+                if model.historyNextOffset != nil {
+                    Button(model.t("Load More")) { model.loadMoreHistory() }
+                        .disabled(model.historyLoading).frame(maxWidth: .infinity)
+                }
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
         }.overlay {
             if model.history.isEmpty { ContentUnavailableView(model.t("No cleanup history"), systemImage: "clock") }

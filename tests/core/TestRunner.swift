@@ -24,6 +24,81 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if Array(CommandLine.arguments.dropFirst()) == ["--receipt-journal-only"] {
+            do {
+                try await largeReceiptJournalRetainsRecoveryWithoutRewritingManifests()
+                try await largeReceiptJournalFailuresPreserveDurableMutationIntent()
+                print("2/2 large journal dependency, recovery, retention and interrupted-intent checks passed.")
+            } catch { print("FAIL large receipt journal: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--native-cleanup-concurrency-only"] {
+            do {
+                try await nativeCleanupConcurrencyPreservesRealFilesystemEvidence()
+                print("1/1 native cleanup concurrency evidence-parity check passed.")
+            } catch { print("FAIL native cleanup concurrency: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--windows-caches-only"] {
+            do {
+                try await windowsCacheRulesKeepProfilesSourcesAndEnvironments()
+                print("1/1 Windows cache positive/negative boundary checks passed; native Windows execution remains separate.")
+            } catch { print("FAIL Windows cache boundaries: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--application-orphans-only"] {
+            do {
+                try await applicationOrphansRequireAbsenceConsentAndReuseDeletionJournals()
+                try await applicationOrphansRespectUnknownOwnersExclusionsAndChangedContents()
+                print("2/2 orphan absence, consent, exclusion, stale selection, permanent deletion and Trash recovery checks passed.")
+            } catch { print("FAIL application leftovers: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--rule-opportunities-only"] {
+            do {
+                try await agentRuleLoopMeasuresAdditionalCoverageAndPersistsReuse()
+                print("1/1 agent discovery, draft benefit, explicit enablement and persisted reuse checks passed.")
+            } catch { print("FAIL agent rule loop: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--tool-cleanup-only"] {
+            do {
+                try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes()
+                try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes()
+                try nativeToolAdapterBoundsRealFixtureProcesses()
+                print("3/3 tool cleanup and native bounded-process checks passed; generated tools only.")
+            } catch { print("FAIL tool cleanup: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--application-closing-only"] {
+            do {
+                try await applicationClosingVerifiesIdentityAndReportsRemainingOwners()
+                print("1/1 application-close identity, confirmation, remaining-process and no-file-mutation checks passed.")
+            } catch { print("FAIL application closing: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--record-retention-only"] {
+            do {
+                try await recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota()
+                try await recordRetentionPreservesDependenciesAndRejectsChangedRecords()
+                try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence()
+                print("3/3 derived-record retention, reference protection and history-summary checks passed.")
+            } catch { print("FAIL record retention: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--permanent-removal-only"] {
+            do {
+                try nativePermanentRemovalHandlesNestedAndRetainedHardLinks()
+                try await permanentRuleBatchHandlesHardLinksAcrossTargets()
+                try await permanentStorageBatchHandlesSharedFilesAndDirectories()
+                try permanentRemovalStillRejectsExternallyChangedHardLinks()
+                try permanentRemovalContextRejectsUnrelatedMetadataChanges()
+                try await permanentBatchRefusesExternalChangeAfterItsOwnUnlink()
+                try await trashFollowUpPurgesHardLinksAcrossRecordedTargets()
+                print("7/7 native permanent-removal checks passed; generated fixtures only.")
+            } catch { print("FAIL permanent removal: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--builtin-performance-only"] {
             do {
                 try await builtinCatalogBindingPreservesValidationAndIsolation()
@@ -56,13 +131,14 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--rule-scan-progress-only"] {
             do {
+                try await cleanupScanUsesBoundedWorkersAndPreservesSerialResults()
                 try await ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages()
                 try await batchScanProgressKeepsCountsAndPercentagesAcrossLocationsAndFailure()
                 try await batchScanProgressCancellationDoesNotReportCompletion()
                 try await systemScanPreparationIsLinearAndReportsRootBeforeIdentity()
                 try await systemScanPreparationCancellationPreventsRegistration()
                 try await systemScanRegistersBeforeEvidenceAndReportsPartial()
-                print("6/6 rule-scan progress, worker phases, multi-location totals, failure and cancellation checks passed; generated fixtures only.")
+                print("7/7 cleanup concurrency, progress, worker phases, multi-location totals, failure and cancellation checks passed; generated fixtures only.")
             } catch { print("FAIL rule-scan progress: \(error)"); Foundation.exit(1) }
             return
         }
@@ -281,6 +357,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage progress reports exact limit and post-scan stages", { try await storageWorkerReportsPostScanStagesAndExactLimit() }),
             ("Progress uses known work and compact paths", { try progressPresentationUsesKnownWorkAndCompactPaths() }),
             ("History retention preserves recovery and target files", { try await historyRetentionPreservesRecoveryAndNeverRemovesTargetFiles() }),
+            ("Large receipt journals retain recovery without rewriting manifests", { try await largeReceiptJournalRetainsRecoveryWithoutRewritingManifests() }),
+            ("Large receipt journal failures preserve durable mutation intent", { try await largeReceiptJournalFailuresPreserveDurableMutationIntent() }),
             ("History retention protects active records and store boundaries", { try await historyRetentionPreservesActiveRecordsAndRejectsStoreEscapes() }),
             ("Storage coverage distinguishes system and user access", { try storageCoverageSeparatesSystemLocationsFromUserAccess() }),
             ("Storage review refreshes directory changes before confirmation", { try await storageReviewRefreshesDirectoryChangesBeforeConfirmation() }),
@@ -399,7 +477,27 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Verified Trash root ctime drift still restores", { try await trashRootCTimeChangeRestoresThroughBothVerificationLayers() }),
             ("Trash root ctime exception never authorizes cleanup", { try await trashRootCTimeExceptionNeverAuthorizesPlanExecution() }),
             ("Changed Trash metadata, identity and descendants stay blocked", { try await changedTrashMetadataIdentityAndDescendantsStillRefuseRestore() }),
+            ("Cleanup scan uses bounded workers with serial parity", { try await cleanupScanUsesBoundedWorkersAndPreservesSerialResults() }),
+            ("Windows cache rules retain profiles, credentials and environments", { try await windowsCacheRulesKeepProfilesSourcesAndEnvironments() }),
+            ("Native cleanup concurrency preserves generated filesystem evidence", { try await nativeCleanupConcurrencyPreservesRealFilesystemEvidence() }),
+            ("Derived record retention preserves active plans and recovery", { try await recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() }),
+            ("Orphan cleanup verifies absence, consent and shared recovery", { try await applicationOrphansRequireAbsenceConsentAndReuseDeletionJournals() }),
+            ("Orphan cleanup retains unknown owners and changed or excluded targets", { try await applicationOrphansRespectUnknownOwnersExclusionsAndChangedContents() }),
+            ("Agent rules measure new coverage and persist opt-in reuse", { try await agentRuleLoopMeasuresAdditionalCoverageAndPersistsReuse() }),
+            ("Application closing binds identity and verifies remaining owners", { try await applicationClosingVerifiesIdentityAndReportsRemainingOwners() }),
+            ("Tool cleanup uses fixed owner operations and verifies outcomes", { try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes() }),
+            ("Tool cleanup rejects remote, stale and unknown outcomes", { try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes() }),
+            ("Native tool adapter bounds generated process groups and output", { try nativeToolAdapterBoundsRealFixtureProcesses() }),
+            ("Record retention groups publications and rejects changed evidence", { try await recordRetentionPreservesDependenciesAndRejectsChangedRecords() }),
+            ("History summaries page and reject stale caches", { try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence() }),
             ("Full descendant manifest invalidation", { try await fullManifestDetectsDescendantChange() }),
+            ("Native purge handles nested and retained hard links", { try nativePermanentRemovalHandlesNestedAndRetainedHardLinks() }),
+            ("Permanent rule batch handles hard links across targets", { try await permanentRuleBatchHandlesHardLinksAcrossTargets() }),
+            ("Permanent storage batch handles shared files and directories", { try await permanentStorageBatchHandlesSharedFilesAndDirectories() }),
+            ("Permanent removal refuses external hard-link changes", { try permanentRemovalStillRejectsExternallyChangedHardLinks() }),
+            ("Permanent removal reconciles only observed unlink effects", { try permanentRemovalContextRejectsUnrelatedMetadataChanges() }),
+            ("Permanent batch refuses external changes after its own unlink", { try await permanentBatchRefusesExternalChangeAfterItsOwnUnlink() }),
+            ("Recorded Trash purge handles shared hard links across targets", { try await trashFollowUpPurgesHardLinksAcrossRecordedTargets() }),
             ("Configuration invalidation", { try await exclusionChangesInvalidatePlan() }),
             ("Global exclusions protect current/future roots and reject forged plans", { try await globalExclusionsProtectAllRootsAndRejectForgedPlans() }),
             ("Project exclusions remain literal and workspace-scoped", { try await projectExclusionsStayLiteralAndScopedToTheirWorkspace() }),

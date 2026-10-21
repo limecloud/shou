@@ -23,6 +23,9 @@ public struct SystemScanResult: Sendable {
     public let snapshots: [ScanSnapshot]
     public let issues: [KnownLocationIssue]
     public let skippedLocationIds: [String]
+    public init(locations: [KnownLocation], snapshots: [ScanSnapshot], issues: [KnownLocationIssue], skippedLocationIds: [String]) {
+        self.locations=locations; self.snapshots=snapshots; self.issues=issues; self.skippedLocationIds=skippedLocationIds
+    }
     public var status: String { issues.isEmpty && snapshots.allSatisfy { $0.status == "complete" } ? "complete" : "partial" }
 }
 
@@ -82,7 +85,7 @@ public enum KnownLocations {
         #endif
     }
 
-    /// Windows roots will be added with a Windows filesystem adapter and verified rules.
+    /// Platform-scoped explicit roots; availability is checked by the platform adapter.
     public static func catalog(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, platform: String = currentPlatform) throws -> [KnownLocation] {
         try scopedDefinitions.get().filter { $0.definition.platform == platform }.map { scoped in
             let definition=scoped.definition
@@ -133,9 +136,11 @@ extension ShouEngine {
 
     /// Register all existing roots before capturing evidence so the registrations
     /// themselves cannot invalidate earlier snapshots in this batch.
-    public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), progress: @escaping @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) throws -> SystemScanResult {
+    public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), maxConcurrentLocations: Int = 4, progress: @escaping @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) async throws -> SystemScanResult {
         try validateKnownLocationBudget(budget)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        guard (1...4).contains(maxConcurrentLocations) else { throw ShouError("invalid_argument", "Cleanup scan concurrency must be between one and four.") }
+        maintainDerivedRecordsIfNeeded()
         let locations=try knownLocations() + (includeProjects ? projectLocations() : [])
         var registered: [(KnownLocation, Workspace)]=[]
         var issues=locations.compactMap { location in
@@ -152,44 +157,56 @@ extension ShouEngine {
                 issues.append(KnownLocationIssue(locationId: location.id, code: failure.code, message: failure.message))
             }
         }
-        var snapshots: [ScanSnapshot]=[]
-        var entriesBefore=0
-        let totalUnits=registered.count * 3
-        for (index, item) in registered.enumerated() {
-            let (location, workspace)=item
-            if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-            let offset=entriesBefore
-            let reporter=ScanProgressReporter(output: { update in
-                progress(location, ScanProgress(stage: update.stage, entryCount: offset + update.entryCount,
-                    currentPath: update.currentPath, limitReached: update.limitReached,
-                    completedUnitCount: index * 3 + (update.completedUnitCount ?? 0), totalUnitCount: totalUnits))
-            })
-            reporter.report(ScanProgress(stage: "scanning", entryCount: 0, currentPath: location.path))
-            do {
-                let snapshot=try scan(workspaceId: workspace.id, scope: .cleanup, budget: budget, progress: { reporter.report($0) })
-                snapshots.append(snapshot)
-                if snapshot.status != "complete" {
-                    issues.append(KnownLocationIssue(locationId: location.id, code: "partial_result", message: "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup."))
-                }
-                for issue in snapshot.issues where issue.hasPrefix(InstalledApplicationCaches.issuePrefix) {
-                    let code=String(issue.dropFirst(InstalledApplicationCaches.issuePrefix.count))
-                    let message: String
-                    switch code {
-                    case "application_discovery_incomplete": message="Installed application cache discovery is incomplete. Caches without verified ownership were not included."
-                    case "ambiguous_application_owner": message="Some installed applications share a bundle identifier. Their caches were not included."
-                    default: message="Installed application cache discovery is unavailable. Maintained cleanup rules remain available."
+        let prepared=registered
+        let reporter=BatchScanProgress(count: prepared.count, output: progress)
+        let workers=min(maxConcurrentLocations, max(1, ProcessInfo.processInfo.activeProcessorCount))
+        let completed=try await withThrowingTaskGroup(of: (Int, ScanSnapshot?, ShouError?).self) { group in
+            func enqueue(_ index: Int) {
+                let (location, workspace)=prepared[index]
+                group.addTask {
+                    reporter.report(ScanProgress(stage: "scanning", entryCount: 0, currentPath: location.path), index: index, location: location)
+                    do {
+                        let snapshot=try await self.scanWorker(workspaceId: workspace.id, budget: budget, progress: {
+                            reporter.report($0, index: index, location: location)
+                        })
+                        return (index, snapshot, nil)
+                    } catch {
+                        let failure=error as? ShouError ?? ShouError("io_error", error.localizedDescription)
+                        if Task.isCancelled || failure.code == "cancelled" { throw ShouError("cancelled", "Scan cancelled.") }
+                        reporter.report(ScanProgress(stage: "saving", entryCount: 0, currentPath: location.path,
+                            completedUnitCount: 3, totalUnitCount: 3), index: index, location: location)
+                        return (index, nil, failure)
                     }
-                    issues.append(KnownLocationIssue(locationId: location.id, code: code, message: message))
                 }
-            } catch {
-                let failure=error as? ShouError ?? ShouError("io_error", error.localizedDescription)
-                if Task.isCancelled || failure.code == "cancelled" { throw ShouError("cancelled", "Scan cancelled.") }
-                issues.append(KnownLocationIssue(locationId: location.id, code: failure.code, message: failure.message))
-                // A failed location has finished processing, with its error retained.
-                reporter.report(ScanProgress(stage: "saving", entryCount: reporter.entryCount, currentPath: location.path,
-                    completedUnitCount: 3, totalUnitCount: 3))
             }
-            entriesBefore += reporter.entryCount
+            var next=0
+            while next < min(workers, prepared.count) { enqueue(next); next += 1 }
+            var values=[(Int, ScanSnapshot?, ShouError?)]()
+            while let value=try await group.next() {
+                values.append(value)
+                if next < prepared.count { enqueue(next); next += 1 }
+            }
+            return values.sorted { $0.0 < $1.0 }
+        }
+        var snapshots=[ScanSnapshot]()
+        for (index, snapshot, failure) in completed {
+            let location=prepared[index].0
+            if let failure { issues.append(KnownLocationIssue(locationId: location.id, code: failure.code, message: failure.message)) }
+            guard let snapshot else { continue }
+            snapshots.append(snapshot)
+            if snapshot.status != "complete" {
+                issues.append(KnownLocationIssue(locationId: location.id, code: "partial_result", message: "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup."))
+            }
+            for issue in snapshot.issues where issue.hasPrefix(InstalledApplicationCaches.issuePrefix) {
+                let code=String(issue.dropFirst(InstalledApplicationCaches.issuePrefix.count))
+                let message: String
+                switch code {
+                case "application_discovery_incomplete": message="Installed application cache discovery is incomplete. Caches without verified ownership were not included."
+                case "ambiguous_application_owner": message="Some installed applications share a bundle identifier. Their caches were not included."
+                default: message="Installed application cache discovery is unavailable. Maintained cleanup rules remain available."
+                }
+                issues.append(KnownLocationIssue(locationId: location.id, code: code, message: message))
+            }
         }
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         return SystemScanResult(locations: locations, snapshots: snapshots, issues: issues, skippedLocationIds: locations.filter { !$0.exists && $0.availabilityIssue == nil }.map(\.id))

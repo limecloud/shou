@@ -4347,5 +4347,157 @@
     "platforms": [
       "macos"
     ]
+  },
+  {
+    "id": "shou.builtin.windows-chrome",
+    "name": "Chrome caches",
+    "category": "browser",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-chrome",
+    "applicationBundleIdentifiers": [
+      "com.google.Chrome"
+    ],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-edge",
+    "name": "Edge caches",
+    "category": "browser",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-edge",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.edgemac"
+    ],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-npm",
+    "name": "npm download caches",
+    "category": "developer",
+    "patterns": [
+      "_cacache",
+      "_logs"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-npm",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-pip",
+    "name": "pip download caches",
+    "category": "developer",
+    "patterns": [
+      "http",
+      "http-v2",
+      "wheels"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-pip",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-gradle",
+    "name": "Gradle generated caches",
+    "category": "developer",
+    "patterns": [
+      "caches"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-gradle",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-nuget",
+    "name": "NuGet download caches",
+    "category": "developer",
+    "patterns": [
+      "v3-cache",
+      "plugins-cache",
+      "http-cache"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-nuget",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-cargo",
+    "name": "Cargo download archives",
+    "category": "developer",
+    "patterns": [
+      "registry/cache"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-cargo",
+    "applicationBundleIdentifiers": [],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-vscode",
+    "name": "Visual Studio Code caches",
+    "category": "developer",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "CachedData"
+    ],
+    "risk": "review",
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-vscode",
+    "applicationBundleIdentifiers": [
+      "com.microsoft.VSCode"
+    ],
+    "platforms": [
+      "windows"
+    ]
   }
 ]

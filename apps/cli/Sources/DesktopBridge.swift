@@ -111,6 +111,47 @@ enum DesktopBridge {
         case "configuration":
             return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) })])
         case "workspace.add": return try .from(await engine.addWorkspace(path: string("path"), rootRef: string("root_ref")))
+        case "system.scan":
+            let result=try await engine.scanKnownLocations(includeProjects: true, progress: { _, update in scanProgress(update) })
+            return .object(["status": .string(result.status), "scans": try .from(result.snapshots.map { try scanPage($0, offset: 0) }), "issues": try .from(result.issues)])
+        case "system.clean":
+            guard let selections=input["selections"]?.array, (1...200).contains(selections.count) else { throw ShouError("invalid_argument", "Select current scan results.") }
+            let action=input["action"]?.string ?? "permanent"
+            var plans=[CleanupPlan]()
+            for selection in selections {
+                guard let fields=selection.object, let scan=fields["scan_id"]?.string, let ids=fields["candidate_ids"]?.array,
+                      !ids.isEmpty, ids.allSatisfy({ $0.string != nil }) else { throw ShouError("invalid_argument", "Select explicit candidates from each scan.") }
+                plans.append(try await engine.createPlan(scanId: scan, candidateIds: ids.compactMap(\.string), action: action))
+            }
+            let paths=plans.flatMap { plan in plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath } }.map { fs.platform == "windows" ? $0.lowercased() : $0 }.sorted()
+            for pair in zip(paths, paths.dropFirst()) where pair.1 == pair.0 || pair.1.hasPrefix(pair.0 + "/") { throw ShouError("invalid_argument", "Selected cleanup paths overlap.") }
+            let digest=try Digest.of(plans)
+            let review: JSONValue = .object(["action": .string(action), "items": .array(try plans.flatMap { try planReview($0).object?["items"]?.array ?? [] })])
+            try await session.confirm(digest: digest, review: review, operation: action)
+            let total=plans.reduce(0) { $0 + $1.items.count }
+            var rows=[JSONValue](), processed=0, state="completed", executionIds=[String]()
+            for plan in plans {
+                let offset=processed
+                do {
+                    try Task.checkCancellation()
+                    let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "windows-desktop", progress: { executionProgress($0.inBatch(processedBefore: offset, itemCount: total)) })
+                    executionIds.append(receipt.id)
+                    rows += try receiptSummary(receipt, followUps: []).object?["items"]?.array ?? []
+                    if receipt.state != "completed" { state=receipt.state == "cancelled" ? "cancelled" : "partial" }
+                } catch {
+                    let cancelled=Task.isCancelled
+                    state=cancelled ? "cancelled" : "partial"
+                    if let receipt=try? await engine.historySummaries(limit: 500).receipts.first(where: { $0.planId == plan.id }) {
+                        executionIds.append(receipt.id)
+                        rows += try receiptSummary(receipt, followUps: []).object?["items"]?.array ?? []
+                    } else {
+                        let verifiedNoMutation=["plan_stale","application_running","application_activity_unavailable","confirmation_required","capability_unavailable"].contains((error as? ShouError)?.code ?? "")
+                        rows += plan.items.map { .object(["path": .string(plan.workspace.path + "/" + $0.candidate.relativePath), "state": .string(cancelled ? "skipped" : verifiedNoMutation ? "failed" : "unknown"), "error": .string(error.localizedDescription)]) }
+                    }
+                }
+                processed += plan.items.count
+            }
+            return .object(["state": .string(state), "items": .array(rows), "execution_ids": try .from(executionIds)])
         case "scan":
             let snapshot=try await engine.scan(workspaceId: string("workspace_id"), scope: .full, progress: scanProgress)
             return try scanPage(snapshot, offset: 0)
@@ -127,9 +168,14 @@ enum DesktopBridge {
             try Task.checkCancellation()
             let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "windows-desktop", progress: executionProgress)
             return try receiptSummary(receipt, followUps: [])
-        case "history":
+        case "history", "history.page":
             let followUps=try await engine.followUps()
-            return try .from(await engine.history().map { try receiptSummary($0, followUps: followUps) })
+            let page=try await engine.historySummaries(offset: Int(input["offset"]?.numeric ?? 0), limit: 50)
+            let summaries=try page.receipts.map { try receiptSummary($0, followUps: followUps) }
+            if request.operation == "history" { return .array(summaries) }
+            return .object(["receipts": .array(summaries), "total_count": .integer(Int64(page.totalCount)), "next_offset": page.nextOffset.map { .integer(Int64($0)) } ?? .null])
+        case "records.preview": return try .from(await engine.recordRetentionPreview())
+        case "records.collect": return try .from(await engine.collectRecords())
         case "history.restore", "history.purge":
             let action=request.operation == "history.restore" ? "restore" : "purge"
             let id=try string("execution_id"), itemIds=try strings("item_ids")
@@ -165,7 +211,7 @@ enum DesktopBridge {
     private static func scanPage(_ scan: ScanSnapshot, offset: Int) throws -> JSONValue {
         let candidates=scan.candidates.filter { !$0.ruleIds.isEmpty }
         let page=Array(candidates.dropFirst(offset).prefix(100))
-        return .object(["scan_id": .string(scan.id), "workspace_id": .string(scan.workspace.id), "status": .string(scan.status), "issues": try .from(scan.issues), "entry_count": .integer(Int64(scan.entries.count)), "candidates": try .from(page), "total_count": .integer(Int64(candidates.count)), "next_offset": offset+page.count<candidates.count ? .integer(Int64(offset+page.count)) : .null])
+        return .object(["scan_id": .string(scan.id), "workspace_id": .string(scan.workspace.id), "root_path": .string(scan.workspace.path), "root_ref": .string(scan.workspace.rootRef), "status": .string(scan.status), "issues": try .from(scan.issues), "entry_count": .integer(Int64(scan.entries.count)), "candidates": try .from(page), "total_count": .integer(Int64(candidates.count)), "next_offset": offset+page.count<candidates.count ? .integer(Int64(offset+page.count)) : .null])
     }
     private static func planReview(_ plan: CleanupPlan) throws -> JSONValue {
         .object(["id": .string(plan.id), "digest": .string(plan.digest), "action": .string(plan.action), "root_path": .string(plan.workspace.path), "expires_at": try .from(plan.expiresAt),

@@ -17,13 +17,17 @@ flowchart LR
     F --> Batch
     Batch --> G[One serialized SQLite catalog writer]
     G --> H[Queue child directories]
-    H --> I[Postorder totals and identity recheck]
+    H --> Ready[Child-completion notification]
+    Ready --> B
+    B --> I[Ready postorder totals and identity recheck]
     I --> J[Seal catalog and publish scan]
 ```
 
 On macOS, `getattrlistbulk` returns a page of names, object types, device/inode identities, timestamps, allocation sizes and logical sizes. Regular files stay on this batched path. Directory metadata is refreshed once with `fstatat` so directory link counts and exact stat evidence remain compatible with the existing cleanup and hard-link contracts. Symlinks, special files, incomplete records and unsupported attributes use the no-follow stat fallback.
 
 The default reader count is `min(activeProcessorCount, 8)`, with a lower bound of one. The pool is a directory pool rather than a file-per-thread pool: a worker reads one directory page, appends its immediate rows, then schedules child directories. A finalizer runs after all descendants complete, updates parent totals, checks that the directory identity is unchanged and marks the subtree complete only when its own coverage and every child coverage are complete.
+
+Readers and ready finalizers share the same bounded scheduler. A serial notification queue only submits work after child completion; parents never wait for children while holding a worker slot. This prevents a separate unbounded finalization queue from creating many threads blocked on the single catalog writer. The bound covers executing scan work, not every runtime or process thread.
 
 SQLite remains a single writer. The catalog is opened with `SQLITE_OPEN_NOMUTEX`; `StorageParallelState` protects all appends and total updates with one lock. This avoids unsafe concurrent SQLite calls while allowing metadata reads to overlap. Waiting directories remain in a FIFO; only active readers are dispatched, so queued directories do not consume blocked threads. The scan is published only after the final transaction is sealed.
 
@@ -43,6 +47,7 @@ sequenceDiagram
         Pool-->>UI: Throttled entry count and path
         Pool->>Pool: Queue children without waiting in a reader
     end
+    Pool->>Pool: On child completion, enqueue ready finalizer in same pool
     Pool->>DB: Postorder totals and subtree coverage
     Pool-->>Parent: Join every reader and finalizer
     alt Cancelled or storage failure
@@ -137,3 +142,18 @@ The page-streaming and catalog-lock changes are implemented in the macOS native 
 Discovery has no fixed denominator and shows a live entry count. Once a stage has a known set of work, `ScanProgress.completedUnitCount` / `totalUnitCount` report its actual completion: catalog sealing statements, transferred pages, validated entries and durable result pages. The percentage describes the named stage, not elapsed time or whole-disk coverage. A partial scan can finish saving at 100% while retaining incomplete coverage. Both desktops shorten long progress paths only in the middle, retaining the path origin and filename suffix without splitting Unicode text elements. macOS passes the complete single-line path to native middle truncation; Windows fits the text to its measured width with a 64-text-element cap. Avoid pre-shortening followed by another layout truncation, which creates two ellipses. The original path is available on hover. CLI and bridge paths retain their complete values.
 
 Permanent removal additionally reports manifest-entry progress inside the current selected item. These transient updates do not replace the durable receipt or treat failed items as successfully removed.
+
+## 0.9.0 finalizer contention check
+
+Live installed full-volume sampling found a separate concurrent finalizer queue reaching GCD's 64-thread soft limit while readers remained bounded. Ready finalizers now share the reader scheduler. The generated 18,449-entry/8,192-file comparison retained exact counts/allocation and every file hash; sampled per-process peaks were 10/46 before and 11/11 after. Warm alternating scan medians were 1.021s/0.992s with ps overhead, which is insufficient for a product-wide speed claim. The initial diagnostic benchmark overlapped other regression work and is excluded. Final isolated evidence: `.build/next-version-finalizer-benchmark-isolated/result.json`; live samples: `.build/next-version-current-scan-worker-sample.txt` and `.build/next-version-current-scan-gui-sample.txt`.
+
+Reproduce with two explicitly retained Release binaries and a new evidence directory; the script only scans its generated tree and retains its files:
+
+```sh
+python3 "scripts/benchmark-storage-finalizers.py" \
+  --baseline "/path/to/baseline/shou" \
+  --candidate ".build/release/shou" \
+  --evidence ".build/storage-finalizer-comparison/new-run"
+```
+
+Many-file deletion and immutable journal comparisons are recorded separately in the [0.9.0 plan](next-version-0.9.0.md); they do not establish scan acceleration.

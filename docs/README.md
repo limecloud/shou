@@ -32,6 +32,10 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 | Understand scan performance | [Storage scan performance and concurrency](engineering/storage-scan-performance.md) |
 | Build the native Windows client | [Windows stack, implementation and acceptance](engineering/windows.md) |
 
+## Next version
+
+[0.9.0 delivery plan and progress](engineering/next-version-0.9.0.md) tracks implementation, verification and remaining delivery gates item by item.
+
 ## Product principles
 
 1. Agent-authored reusable rules and automatic discovery are the core product. The bundled Skill guides investigation without requiring users to write JSON or manage workspaces. Enabled rules join subsequent Smart Cleanup recommendations.

@@ -33,6 +33,10 @@
 | 理解扫描性能 | [空间扫描性能与并发](engineering/storage-scan-performance.md) |
 | 实现 Windows 原生客户端 | [Windows 技术栈、实现与验收](engineering/windows.md) |
 
+## 下一版本
+
+[0.9.0 交付计划与进度](engineering/next-version-0.9.0.md)逐项记录实现、验证与剩余交付门槛。
+
 ## 核心共识
 
 1. **Agent 定制清理优先**：内置规则提供起点，随包 Skill 引导现有 Agent 询问、分析并制定个人规则，可复用个人规则与自动发现是产品核心，用户无需管理工作区；启用后的规则参与后续智能清理。

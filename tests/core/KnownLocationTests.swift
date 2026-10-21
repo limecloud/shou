@@ -8,6 +8,11 @@ import Darwin
 private final class KnownLocationProbe: @unchecked Sendable {
     private let lock=NSLock()
     private var recorded: [String]=[]
+    private var active=0
+    private var peak=0
+    var maxActive: Int { lock.lock(); defer { lock.unlock() }; return peak }
+    func beginRead() { lock.lock(); defer { lock.unlock() }; active += 1; peak=max(peak, active) }
+    func endRead() { lock.lock(); defer { lock.unlock() }; active -= 1 }
     let cancelOnIdentity: Bool
     init(cancelOnIdentity: Bool = false) { self.cancelOnIdentity=cancelOnIdentity }
     func record(_ event: String) {
@@ -54,7 +59,9 @@ private struct KnownLocationFileSystem: PlatformFileSystem {
     var probe: KnownLocationProbe? = nil
     var emitStageProgress=false
     var failurePath: String? = nil
-    var platform: String { "macos" }
+    var readDelay: Double = 0
+    var platformName="macos"
+    var platform: String { platformName }
     var supportsTrash: Bool { false }
     func locationAvailability(_ path: String) -> LocationAvailability {
         probe?.record("availability:" + path)
@@ -73,6 +80,8 @@ private struct KnownLocationFileSystem: PlatformFileSystem {
             issues: path == incompletePath ? ["Simulated unreadable subtree."] : [], caseSensitive: true)
     }
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        probe?.beginRead(); defer { probe?.endRead() }
+        if readDelay > 0 { Thread.sleep(forTimeInterval: readDelay) }
         if emitStageProgress {
             progress(ScanProgress(stage: "scanning", entryCount: 13, currentPath: path))
             progress(ScanProgress(stage: "analysis", entryCount: 13, currentPath: path, completedUnitCount: 1, totalUnitCount: 1))
@@ -93,6 +102,54 @@ private final class RuleScanProgressProbe: @unchecked Sendable {
     private var recorded=[ScanProgress]()
     func record(_ update: ScanProgress) { lock.lock(); defer { lock.unlock() }; recorded.append(update) }
     var values: [ScanProgress] { lock.lock(); defer { lock.unlock() }; return recorded }
+}
+
+func cleanupScanUsesBoundedWorkersAndPreservesSerialResults() async throws {
+    let first=try Fixture(), second=try Fixture(), serial=KnownLocationProbe(), parallel=KnownLocationProbe()
+    let a=ShouEngine(store: first.store, filesystem: KnownLocationFileSystem(probe: serial, readDelay: 0.02), homeDirectory: first.workspace)
+    let b=ShouEngine(store: second.store, filesystem: KnownLocationFileSystem(probe: parallel, readDelay: 0.02), homeDirectory: first.workspace)
+    let started=Date()
+    let one=try await a.scanKnownLocations(maxConcurrentLocations: 1)
+    let serialTime=Date().timeIntervalSince(started), next=Date()
+    let four=try await b.scanKnownLocations(maxConcurrentLocations: 4)
+    let parallelTime=Date().timeIntervalSince(next)
+    try expect(serial.maxActive == 1 && parallel.maxActive <= 4)
+    if ProcessInfo.processInfo.activeProcessorCount > 1 { try expect(parallel.maxActive > 1) }
+    try expect(one.snapshots.map(\.workspace.path) == four.snapshots.map(\.workspace.path))
+    try expect(one.snapshots.map(\.entries) == four.snapshots.map(\.entries))
+    try expect(one.snapshots.map(\.status) == four.snapshots.map(\.status))
+    try expect(one.issues.map(\.code) == four.issues.map(\.code))
+    try await expectThrows { try await a.scanKnownLocations(maxConcurrentLocations: 5) }
+    print(String(format: "Cleanup scheduler fixture: serial %.3fs, bounded concurrent %.3fs, peak %d readers; simulated 20ms/root latency, not a real-disk speed ratio.", serialTime, parallelTime, parallel.maxActive))
+}
+
+private struct EmptyCleanupCatalog: ApplicationCatalogReading {
+    func read(options: ApplicationCatalogOptions) throws -> ApplicationCatalog { .init(checkedAt: Date(), sources: [], items: [], issues: []) }
+    func application(at path: String) throws -> ApplicationDefinition { throw ShouError("not_found", "Generated benchmark contains no applications.") }
+}
+
+func nativeCleanupConcurrencyPreservesRealFilesystemEvidence() async throws {
+    let fixture=try Fixture()
+    let paths=["Library/Caches/pip", ".cache/pip", ".npm/_cacache", ".yarn/berry/cache", ".cargo/registry/cache", "Library/Application Support/Slack/Cache", "Library/Application Support/Code/CachedData", "Library/Application Support/Google/Chrome/Default/Cache"]
+    for path in paths { for index in 0..<128 { try fixture.put(path + "/shard-\(index % 8)/payload-\(index).bin", String(repeating: "x", count: 4096)) } }
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs, applicationCatalog: EmptyCleanupCatalog(), homeDirectory: fixture.workspace)
+    // Warm registration so the timing compares scanning rather than one-time
+    // configuration writes. No OS cache eviction or user data is involved.
+    for location in try await engine.knownLocations() where location.exists { _ = try await engine.workspaceForKnownLocation(location.id) }
+    let started=Date(), one=try await engine.scanKnownLocations(maxConcurrentLocations: 1)
+    let serial=Date().timeIntervalSince(started), next=Date()
+    let four=try await engine.scanKnownLocations(maxConcurrentLocations: 4), concurrent=Date().timeIntervalSince(next)
+    let expectedRoots=one.locations.filter(\.exists)
+    guard expectedRoots.count >= 8, one.snapshots.count == expectedRoots.count, one.snapshots.map(\.workspace.path) == four.snapshots.map(\.workspace.path) else {
+        throw CheckFailure(description: "Native fixture roots \(expectedRoots.count), snapshots \(one.snapshots.count)/\(four.snapshots.count), issues \(one.issues.map(\.code))/\(four.issues.map(\.code))")
+    }
+    try expect(one.snapshots.map(\.entries) == four.snapshots.map(\.entries))
+    for (a,b) in zip(one.snapshots,four.snapshots) {
+        let left=a.candidates.map { "\($0.relativePath):\($0.allocatedBytesEstimate):\($0.eligible):\($0.reasons.joined(separator: ","))" }
+        let right=b.candidates.map { "\($0.relativePath):\($0.allocatedBytesEstimate):\($0.eligible):\($0.reasons.joined(separator: ","))" }
+        try expect(left == right && a.status == b.status)
+    }
+    print(String(format: "Native metadata fixture: %d roots, 1024 generated files; serial %.3fs, four-worker %.3fs. Warm filesystem, serial first; no cold-cache or product speed claim.", expectedRoots.count, serial, concurrent))
 }
 
 func ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages() async throws {
@@ -233,7 +290,9 @@ func knownLocationsAreExplicitAndPlatformScoped() throws {
     try expect(Set(locations.map(\.category)) == Set(["application", "browser", "developer", "system"]))
     try expect(locations.first { $0.id == "chrome" }?.applicationBundleIdentifiers.contains("com.google.Chrome") == true)
     try expect(!locations.contains { $0.path == fixture.workspace.path || $0.path == fixture.workspace.path + "/Library/Application Support" })
-    try expect(try KnownLocations.catalog(homeDirectory: fixture.workspace, platform: "windows").isEmpty)
+    let windows=try KnownLocations.catalog(homeDirectory: fixture.workspace, platform: "windows")
+    try expect(windows.count == 8 && windows.allSatisfy { !$0.ruleIds.isEmpty && $0.id.hasPrefix("windows-") })
+    try expect(!windows.contains { $0.path.hasSuffix("AppData/Local") || $0.path.hasSuffix("AppData/Roaming") })
 }
 
 func expandedCatalogKeepsCacheAndUserDataBoundaries() async throws {
@@ -367,4 +426,37 @@ func systemScanRegistersBeforeEvidenceAndReportsPartial() async throws {
         try expect(snapshot.status == "partial")
         try await expectThrows { try await partialEngine.createPlan(scanId: snapshot.id, candidateIds: ["not-authorized"]) }
     }
+}
+
+func windowsCacheRulesKeepProfilesSourcesAndEnvironments() async throws {
+    let fixture=try Fixture()
+    let locations=try KnownLocations.catalog(homeDirectory: fixture.workspace, platform: "windows")
+    let samples: [(String,[String],[String])]=[
+        ("windows-chrome",["Default/Cache","Profile 2/Code Cache"],["Default/Network","Default/Local Storage","Default/Sessions"]),
+        ("windows-edge",["Default/GPUCache"],["Default/Extensions","Default/IndexedDB"]),
+        ("windows-npm",["_cacache","_logs"],["credentials"]),
+        ("windows-pip",["http-v2","wheels"],["environments"]),
+        ("windows-gradle",["caches"],["init.d","gradle.properties"]),
+        ("windows-nuget",["v3-cache"],["NuGet.Config","packages"]),
+        ("windows-cargo",["registry/cache"],["registry/src","bin","credentials.toml"]),
+        ("windows-vscode",["CachedData","GPUCache"],["User/globalStorage","User/workspaceStorage","Backups"])
+    ]
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    for (id,caches,kept) in samples {
+        let location=try require(locations.first { $0.id == id })
+        let prefix=String(location.path.dropFirst(fixture.workspace.path.count+1))
+        for path in caches+kept { try fixture.put(prefix+"/"+path+"/payload.bin") }
+        let workspace=try await engine.addWorkspace(path: location.path, rootRef: id)
+        let rules=try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "windows")
+        try expect(!rules.isEmpty && rules.allSatisfy { $0.platforms == ["windows"] })
+        let tree=try fixture.fs.inspect(location.path, budget: .init(), cancelled: { false })
+        let candidates=try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: Date())
+        for path in caches { try expect(candidates.first { $0.relativePath == path }?.eligible == true) }
+        for path in kept { try expect(!candidates.contains { $0.eligible && (path == $0.relativePath || path.hasPrefix($0.relativePath+"/")) }) }
+    }
+    let projectEngine=ShouEngine(store: fixture.store, filesystem: KnownLocationFileSystem(platformName: "windows"), homeDirectory: fixture.workspace)
+    let projects=try await projectEngine.projectLocations()
+    try expect(projects.contains { $0.path == fixture.workspace.path + "/Projects" })
+    try expect(projects.filter { $0.path.lowercased() == fixture.workspace.path.lowercased() + "/code" }.count == 1)
+    try expect(!projects.contains { item in locations.contains { $0.path == item.path } })
 }

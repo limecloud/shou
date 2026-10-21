@@ -65,6 +65,9 @@ struct FixtureFileSystem: PlatformFileSystem {
     }
     func restore(_ path: String, to destination: String, expected: [FileEntry]) throws { try native.restore(path, to: destination, expected: expected) }
     func purge(_ path: String, expected: [FileEntry]) throws { try native.purge(path, expected: expected) }
+    func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws {
+        try native.purge(path, expected: expected, context: &context, progress: progress)
+    }
 }
 
 func importIsDisabledAndPreviewCannotExecute() async throws {

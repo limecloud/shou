@@ -134,27 +134,39 @@ extension ShouEngine {
             let activity=facts[app.id]
             var issues=catalog.issues.filter { $0.path == app.path }.map(\.code)
             if let activityIssue { issues.append(activityIssue) }
-            var measurement: ApplicationSummaryMeasurement?
-            do {
-                measurement=try applicationCatalog.measureSummary(for: app, budget: budget, progress: { _ in
-                    progress(ApplicationSummaryProgress(processedCount: processedCount, applicationCount: catalog.items.count, currentPath: app.path))
-                })
-            } catch let error as ShouError { if error.code == "cancelled" { throw error }; issues.append(error.code) }
-            if let measurement { issues.append(contentsOf: measurement.issues) }
-            let status: String
-            if app.source.systemOwned || app.bundleIdentifier?.hasPrefix("com.apple.") == true || activity?.currentApplication == true { status="protected" }
-            else if activity?.running == true { status="running" }
-            else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true { status="admin-required" }
-            else if activity == nil || measurement == nil || !issues.isEmpty || app.infoDigest == nil || app.bundleIdentifier == nil { status="unavailable" }
-            else { status="ready" }
-            let summary=ApplicationSummary(application: app, allocatedBytesEstimate: measurement?.allocatedBytesEstimate, status: status,
-                lastUsed: measurement?.lastUsed, issues: Array(Set(issues)).sorted())
+            let summary=try makeApplicationSummary(app, activity: activity, issues: issues, budget: budget, progress: { _ in
+                progress(ApplicationSummaryProgress(processedCount: processedCount, applicationCount: catalog.items.count, currentPath: app.path))
+            })
             summaries.append(summary); onSummary(summary)
             progress(ApplicationSummaryProgress(processedCount: summaries.count, applicationCount: catalog.items.count, currentPath: app.path))
         }
         if Task.isCancelled { throw ShouError("cancelled", "Application summary stopped.") }
         return ApplicationSummaryCatalog(catalog: catalog, items: summaries)
     }
+    public func applicationSummary(at path: String, budget: ScanBudget = ScanBudget()) throws -> ApplicationSummary {
+        try budget.validate()
+        let app=try applicationCatalog.application(at: path)
+        let activity=try uninstallEvidence.facts(for: app)
+        return try makeApplicationSummary(app, activity: activity, issues: [], budget: budget, progress: { _ in })
+    }
+    private func makeApplicationSummary(_ app: ApplicationDefinition, activity: ApplicationUninstallFacts?, issues initialIssues: [String], budget: ScanBudget,
+                                        progress: @Sendable (ScanProgress) -> Void) throws -> ApplicationSummary {
+        var issues=initialIssues
+        var measurement: ApplicationSummaryMeasurement?
+        do {
+            measurement=try applicationCatalog.measureSummary(for: app, budget: budget, progress: progress)
+        } catch let error as ShouError { if error.code == "cancelled" { throw error }; issues.append(error.code) }
+        if let measurement { issues.append(contentsOf: measurement.issues) }
+        let status: String
+        if app.source.systemOwned || app.bundleIdentifier?.hasPrefix("com.apple.") == true || activity?.currentApplication == true { status="protected" }
+        else if activity?.running == true { status="running" }
+        else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true { status="admin-required" }
+        else if activity == nil || measurement == nil || !issues.isEmpty || app.infoDigest == nil || app.bundleIdentifier == nil { status="unavailable" }
+        else { status="ready" }
+        return ApplicationSummary(application: app, allocatedBytesEstimate: measurement?.allocatedBytesEstimate, status: status,
+            lastUsed: measurement?.lastUsed, issues: Array(Set(issues)).sorted())
+    }
+
 }
 
 public struct UnavailableApplicationCatalog: ApplicationCatalogReading {

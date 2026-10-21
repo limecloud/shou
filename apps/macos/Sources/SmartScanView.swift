@@ -39,6 +39,9 @@ struct SmartScanView: View {
         .toolbar {
             ToolbarItemGroup {
                 if !model.scanning && model.systemResult != nil {
+                    if model.commonReview.sources.contains(where: { $0.candidate.reasons.contains("application_running") }) {
+                        CleanupApplicationCloseButton(model: model)
+                    }
                     Menu {
                         Button(model.t("Scan Locations…")) { scanLocations=true }
                         Button(model.t("Scan & Free Space")) { model.quickCleanCommon() }
@@ -109,9 +112,10 @@ struct SmartScanView: View {
             Divider()
             List {
                 ForEach(groups) { group in CommonRuleRow(model: model, group: group) }
+                if category == "all" || category == "developer" { ToolCleanupPanel(model: model) }
             }.listStyle(.inset)
                 .overlay {
-                    if groups.isEmpty {
+                    if groups.isEmpty && category != "all" && category != "developer" {
                         ContentUnavailableView(model.t(query.isEmpty ? "No matching cleanup items" : "No search results"), systemImage: query.isEmpty ? "checkmark.circle" : "magnifyingglass",
                             description: Text(model.t(query.isEmpty ? "Nothing eligible was found. Use AI to cover your own tools and folders." : "Try another rule name or path.")))
                     }

@@ -290,7 +290,7 @@ extension NativeFileSystem {
 
         let requestedWorkers=ProcessInfo.processInfo.environment["SHOU_STORAGE_SCAN_WORKERS"].flatMap(Int.init)
         let workers=max(1, min(8, requestedWorkers ?? ProcessInfo.processInfo.activeProcessorCount))
-        let queue=DispatchQueue(label: "dev.limecloud.shou.storage-finalize", attributes: .concurrent)
+        let queue=DispatchQueue(label: "dev.limecloud.shou.storage-finalize")
         let scheduler=StorageDirectoryScheduler(limit: workers)
         let work=DispatchGroup()
         let rootResult=StorageChildResults()
@@ -475,20 +475,24 @@ extension NativeFileSystem {
                     }
                 }
             }
-            // Finalization runs outside a reader slot. This avoids a semaphore deadlock when all
-            // readers have discovered children and are waiting for those children to finish.
+            // Notify only after children finish, then share the bounded reader scheduler.
+            // Parents never occupy a slot while waiting. Unbounded finalizers otherwise create
+            // dozens of GCD threads contending with readers for the single catalog writer.
+            let measuredTotal=total, incomplete=locallyIncomplete, children=directories.map { $0.2 }
             work.enter()
             childGroup.notify(queue: queue) {
-                defer { work.leave() }
-                do {
-                    let result=try finalize(entry, total, id, locallyIncomplete, directories.map { $0.2 }, childResults)
-                    completion(result)
-                } catch {
-                    state.fail(error)
-                    // Wake every ancestor even when SQLite or revalidation fails; otherwise
-                    // a parent DispatchGroup can retain an unfinished child indefinitely.
-                    var failed=initial; failed.isComplete=false
-                    completion(failed)
+                scheduler.submit {
+                    defer { work.leave() }
+                    do {
+                        let result=try finalize(entry, measuredTotal, id, incomplete, children, childResults)
+                        completion(result)
+                    } catch {
+                        state.fail(error)
+                        // Wake every ancestor even when SQLite or revalidation fails; otherwise
+                        // a parent DispatchGroup can retain an unfinished child indefinitely.
+                        var failed=initial; failed.isComplete=false
+                        completion(failed)
+                    }
                 }
             }
         }

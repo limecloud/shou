@@ -9,6 +9,16 @@ public actor ShouEngine {
     let now: @Sendable () -> Date
     let applicationCatalog: any ApplicationCatalogReading
     let uninstallEvidence: any ApplicationUninstallChecking
+    var lastRecordMaintenance: Date?
+    func scanWorker(workspaceId: String, budget: ScanBudget, progress: @escaping @Sendable (ScanProgress) -> Void) async throws -> ScanSnapshot {
+        let worker=ShouEngine(store: store, filesystem: filesystem, applicationActivity: applicationActivity, artifactEvidence: artifactEvidence,
+            applicationCatalog: applicationCatalog, uninstallEvidence: uninstallEvidence, homeDirectory: homeDirectory, now: now)
+        return try await worker.scanPreparedWorkspace(workspaceId: workspaceId, budget: budget, progress: progress)
+    }
+    private func scanPreparedWorkspace(workspaceId: String, budget: ScanBudget, progress: @escaping @Sendable (ScanProgress) -> Void) throws -> ScanSnapshot {
+        lastRecordMaintenance=now()
+        return try scan(workspaceId: workspaceId, scope: .cleanup, budget: budget, progress: progress)
+    }
     public init(store: any RecordStore, filesystem: any PlatformFileSystem, applicationActivity: any ApplicationActivityChecking = UnavailableApplicationActivity(), artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), applicationCatalog: any ApplicationCatalogReading = UnavailableApplicationCatalog(), uninstallEvidence: any ApplicationUninstallChecking = UnavailableApplicationUninstallEvidence(), homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, now: @escaping @Sendable () -> Date = { Date() }) {
         self.store=store; self.filesystem=filesystem; self.applicationActivity=applicationActivity; self.artifactEvidence=artifactEvidence; self.applicationCatalog=applicationCatalog; self.uninstallEvidence=uninstallEvidence; self.homeDirectory=homeDirectory; self.now=now
     }
@@ -175,6 +185,7 @@ public actor ShouEngine {
     public func scan(workspaceId: String, ruleIds: [String] = [], previewRule: CleanupRule? = nil, scope: ScanScope = .full, budget: ScanBudget = ScanBudget(), progress: @escaping @Sendable (ScanProgress) -> Void = { _ in }) throws -> ScanSnapshot {
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         try budget.validate()
+        maintainDerivedRecordsIfNeeded()
         let config = try configuration()
         guard let index=config.workspaces.firstIndex(where: { $0.id == workspaceId }) else { throw ShouError("invalid_argument", "Unknown workspace.") }
         let currentIdentity=try filesystem.rootIdentity(config.workspaces[index].path)
@@ -210,6 +221,30 @@ public actor ShouEngine {
         return snapshot
     }
     public func scanSnapshot(_ id: String) throws -> ScanSnapshot { try load(ScanSnapshot.self, collection: "scans", id: id) }
+    public func rulePreviewBenefits(scanId: String) throws -> RulePreviewBenefits {
+        let scan=try scanSnapshot(scanId), config=try configuration()
+        guard scan.previewOnly, scan.configurationDigest == (try Digest.of(config)) else { throw ShouError("plan_stale", "Preview the draft again with the current configuration.") }
+        let discovered=try installedCacheDiscovery(for: scan.workspace)
+        let rules=try activeRules(config, workspaceId: scan.workspace.id, additionalBuiltins: discovered.rules)
+        let tree=TreeSnapshot(entries: scan.entries, complete: scan.treeComplete ?? (scan.status == "complete"), issues: scan.issues, caseSensitive: scan.caseSensitive, completedPaths: scan.completedPaths)
+        let blocked=try ApplicationSafety.blockedRules(rules.map(\.id), activity: applicationActivity).merging(
+            InstalledApplicationCaches.blocked(discovered.evidence, workspace: scan.workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
+        let baseline=try Analysis.candidates(tree: tree, workspace: scan.workspace, rules: rules, now: scan.createdAt, blockedRules: blocked,
+            artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: (scan.budget ?? ScanBudget()).maxSeconds)
+        func measured(_ candidates: [Candidate]) -> [String: Int64] {
+            let paths=candidates.filter(\.eligible).map(\.relativePath)
+            var objects=[String: Int64]()
+            for entry in scan.entries where entry.kind != "symlink" && paths.contains(where: { entry.path == $0 || entry.path.hasPrefix($0 + "/") }) {
+                objects[entry.objectIdentityKey]=max(0, entry.allocatedBytes)
+            }
+            return objects
+        }
+        let draft=measured(scan.candidates), existing=measured(baseline)
+        let matched=draft.values.reduce(0,+), covered=draft.filter { existing[$0.key] != nil }.values.reduce(0,+)
+        return RulePreviewBenefits(eligibleMatchCount: scan.candidates.filter(\.eligible).count,
+            blockedMatchCount: scan.candidates.filter { !$0.ruleIds.isEmpty && !$0.eligible }.count,
+            matchedAllocatedBytesEstimate: matched, alreadyCoveredAllocatedBytesEstimate: covered, additionalAllocatedBytesEstimate: matched-covered)
+    }
     public func createPlan(scanId: String, candidateIds: [String], action: String = "trash") throws -> CleanupPlan {
         guard ["trash", "permanent"].contains(action) else {
             throw ShouError("invalid_argument", "Cleanup action must be trash or permanent.")
@@ -304,7 +339,7 @@ public actor ShouEngine {
                 didBegin: { receipt in
                     plan.executionId=receipt.id; plan.state="executing"
                     try save(plan, collection: "plans", id: plan.id)
-                }, validateItem: { index in
+                }, validateItem: { index, _ in
                     let item=plan.items[index]
                     let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
                     if let reason=blocked.values.sorted().first { return reason }
@@ -377,7 +412,7 @@ public actor ShouEngine {
               }) else { throw ShouError("plan_stale", "Target identity or full directory manifest changed.", details: ["path": path]) }
     }
     public func history() throws -> [ExecutionReceipt] { try store.ids("history").map { try history($0) }.sorted { $0.createdAt > $1.createdAt } }
-    public func history(_ id: String) throws -> ExecutionReceipt { try load(ExecutionReceipt.self, collection: "history", id: id) }
+    public func history(_ id: String) throws -> ExecutionReceipt { try ReceiptJournal.load(id, store: store) }
     public func followUps() throws -> [FollowUpReceipt] { try store.ids("followups").map { try load(FollowUpReceipt.self, collection: "followups", id: $0) } }
     public func inspectHistory(executionId: String, budget: ScanBudget = ScanBudget()) throws -> HistoryInspection {
         // The mutation lease proves another Shou operation cannot still be
@@ -408,6 +443,7 @@ public actor ShouEngine {
         let selectedIds=Set(itemIds)
         let items=receipt.items.filter { selectedIds.contains($0.id) }
         var results: [FollowUpReceipt] = []
+        var removalContext=PermanentRemovalContext()
         progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: items.count, path: receipt.workspace.path))
         for item in items {
             if Task.isCancelled { break }
@@ -419,7 +455,7 @@ public actor ShouEngine {
             var result = FollowUpReceipt(id: Codec.id("followup"), executionId: executionId, itemId: item.id, action: action, createdAt: now(), state: "pending", resultingPath: nil, error: nil)
             progress(ExecutionProgress(stage: "preflight", processedCount: results.count, itemCount: items.count, path: trashPath))
             do {
-                try verify(path: trashPath, manifest: item.manifest, trashReceipt: true)
+                try verify(path: trashPath, manifest: action == "purge" ? removalContext.reconciled(item.manifest) : item.manifest, trashReceipt: true)
                 if action == "restore" {
                     guard try ReceiptOrigins.identity(origin, filesystem: filesystem).sameObject(as: origin.identity) else { throw ShouError("access_expired", "Original workspace identity changed.") }
                 }
@@ -433,7 +469,12 @@ public actor ShouEngine {
             do {
                 if action == "restore" {
                     try filesystem.restore(trashPath, to: item.originalPath, expected: item.manifest); result.resultingPath=item.originalPath
-                } else { try filesystem.purge(trashPath, expected: item.manifest) }
+                } else {
+                    try filesystem.purge(trashPath, expected: item.manifest, context: &removalContext, progress: { completed, total, current in
+                        progress(ExecutionProgress(stage: "purging", processedCount: results.count, itemCount: items.count, path: current,
+                            currentItemProcessedCount: completed, currentItemCount: total))
+                    })
+                }
                 result.state="completed"
             } catch {
                 // An uncertain native move retains its durable intent, which

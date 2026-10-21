@@ -13,7 +13,8 @@ enum TrashExecution {
             createdAt: now, entryPoint: entryPoint, state: "executing", items: items,
             volumeAvailableBefore: filesystem.availableBytes(workspace.path), volumeAvailableAfter: nil)
         receipt.operation=operation
-        func save() throws { try store.write("history", id: receipt.id, data: Codec.encode(receipt)) }
+        var journal=ReceiptJournal()
+        func save() throws { try journal.save(receipt, store: store) }
         try save()
         try didBegin(receipt)
         for index in receipt.items.indices {
@@ -58,6 +59,7 @@ enum TrashExecution {
         progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "moving"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
         receipt.volumeAvailableAfter=filesystem.availableBytes(workspace.path)
         try save()
+        HistorySummaries.save(receipt, store: store)
         return receipt
     }
 

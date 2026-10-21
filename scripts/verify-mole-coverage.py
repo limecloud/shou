@@ -120,7 +120,10 @@ def self_test(manifest, rules, locations):
     changed[-1]["patterns"] = ["../personal"]
     cases.append((manifest, changed, locations))
     changed = copy.deepcopy(rules)
-    changed[-1]["platforms"] = ["windows"]
+    # Select a reviewed macOS declaration explicitly: appended Windows rules
+    # must not turn this platform-mismatch fixture into a no-op.
+    imported_rule_id = manifest["importedRuleSources"][0]["ruleId"]
+    next(rule for rule in changed if rule["id"] == imported_rule_id)["platforms"] = ["windows"]
     cases.append((manifest, changed, locations))
     changed = copy.deepcopy(locations)
     changed[-1]["relativePath"] = "Library/Application Support"

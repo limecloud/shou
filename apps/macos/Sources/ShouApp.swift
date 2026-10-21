@@ -60,6 +60,10 @@ struct CleanupCompletion: Identifiable {
     /// The page that created this result. A retry returns the user directly
     /// to the relevant scan instead of making them navigate through history.
     var sourceSection: String = "smart"
+    var retryPaths: Set<String> = []
+    var retryWorkspaces: [Workspace] = []
+    var retryApplicationPaths: Set<String> = []
+    var retryOrphans=false
 }
 
 @MainActor @Observable final class AppModel {
@@ -89,6 +93,8 @@ struct CleanupCompletion: Identifiable {
     var space=StorageSession()
     var largeFiles=LargeFilesSession()
     var applicationsSession=ApplicationsSession()
+    var showApplicationOrphans=false
+    var orphanRetryPaths=Set<String>()
     var privacySession=PrivacySession()
     var browsingPath="."
     var focusedPath: String?
@@ -98,6 +104,8 @@ struct CleanupCompletion: Identifiable {
     var scanEntryCount: Int { scanProgress?.entryCount ?? 0 }
     var selection=Set<String>()
     var history: [ExecutionReceipt]=[]
+    var historyNextOffset: Int?
+    var historyLoading=false
     var followups: [FollowUpReceipt]=[]
     var startupInventory: StartupInventory?
     var startupIncludeSystem=false
@@ -117,6 +125,7 @@ struct CleanupCompletion: Identifiable {
     var statusKey=""
     var prompt: ReviewPrompt?
     var completion: CleanupCompletion?
+    var toolCompletion: ToolCleanupReceipt?
     var historyInspection: HistoryInspectionRequest?
     var showingExclusions=false
     var language=AppLanguage(savedValue: UserDefaults.standard.string(forKey: "ShouLanguage")) {
@@ -197,11 +206,25 @@ struct CleanupCompletion: Identifiable {
         do {
             configuration=try await engine.configuration()
             if !configuration.workspaces.contains(where: { $0.id == workspaceId }) { workspaceId=configuration.workspaces.first?.id ?? "" }
-            history=try await engine.history(); followups=try await engine.followUps()
+            let page=try await engine.historySummaries(limit: 50)
+            history=page.receipts; historyNextOffset=page.nextOffset
+            followups=try await engine.followUps()
             builtins=workspaceId.isEmpty ? [] : try await engine.builtinRules(workspaceId: workspaceId)
             knownLocations=try await engine.knownLocations()
             projectLocations=try await engine.projectLocations()
         } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+    }
+    func loadMoreHistory() {
+        guard let engine, let offset=historyNextOffset, !historyLoading else { return }
+        historyLoading=true
+        Task {
+            defer { historyLoading=false }
+            do {
+                let page=try await engine.historySummaries(offset: offset, limit: 50)
+                let existing=Set(history.map(\.id))
+                history.append(contentsOf: page.receipts.filter { !existing.contains($0.id) }); historyNextOffset=page.nextOffset
+            } catch { self.error=error.localizedDescription }
+        }
     }
     func addWorkspace(startScan: Bool = true) {
         guard !busy else { return }
@@ -595,8 +618,58 @@ struct CleanupCompletion: Identifiable {
         guard !busy else { return }
         completion=nil
         section=result.sourceSection
+        if result.retryOrphans {
+            orphanRetryPaths=result.retryPaths; showApplicationOrphans=true; return
+        }
+        if !result.retryApplicationPaths.isEmpty {
+            applicationsSession.retry(paths: result.retryApplicationPaths, app: self); return
+        }
+        if result.sourceSection == "smart", !result.retryWorkspaces.isEmpty {
+            refreshCommonWorkspaces(result.retryWorkspaces, selectedPaths: result.retryPaths)
+            return
+        }
         statusKey="Scan again to refresh changed items."
         scanCurrentSection()
+    }
+    func refreshCommonWorkspaces(_ roots: [Workspace], selectedPaths: Set<String>) {
+        guard let engine, !busy else { return }
+        busy=true; scanning=true; scanProgress=nil
+        let previous=systemResult
+        task=Task {
+            defer { busy=false; scanning=false }
+            do { try await updateScopedCleanup(engine: engine, roots: roots, selectedPaths: selectedPaths, previous: previous) }
+            catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+        }
+    }
+    private func updateScopedCleanup(engine: ShouEngine, roots: [Workspace], selectedPaths: Set<String>, previous: SystemScanResult?) async throws {
+        var snapshots=previous?.snapshots.filter { old in !roots.contains { $0.id == old.workspace.id } } ?? []
+        for root in roots { snapshots.append(try await engine.scan(workspaceId: root.id, scope: .cleanup)) }
+        let locations=previous?.locations ?? knownLocations
+        let affectedLocations=Set(locations.filter { location in roots.contains { $0.path == location.path } }.map(\.id))
+        let issues=(previous?.issues ?? []).filter { !affectedLocations.contains($0.locationId) }
+        let refreshed=SystemScanResult(locations: locations, snapshots: snapshots, issues: issues, skippedLocationIds: previous?.skippedLocationIds ?? [])
+        commonReview=try CleanupReview(snapshots: snapshots, locations: refreshed.locations)
+        systemResult=refreshed
+        commonSelection=Set(commonReview.sources.filter { $0.selectable && selectedPaths.contains($0.path) }.map(\.id))
+        statusKey="Affected items refreshed. Review your selection to continue."
+    }
+    func closeCleanupApplications(_ plan: ApplicationClosePlan) {
+        guard let engine, !busy, let result=systemResult else { return }
+        let identifiers=Set(plan.applications.compactMap(\.bundleIdentifier))
+        let affected=commonReview.categories.flatMap(\.groups).filter { !identifiers.isDisjoint(with: $0.applicationBundleIdentifiers) }.flatMap(\.sources)
+        let selectedPaths=Set(commonSelected.map(\.path) + affected.filter { $0.candidate.reasons.contains("application_running") }.map(\.path))
+        let rootIDs=Set(affected.map { $0.workspace.id })
+        let roots=result.snapshots.map(\.workspace).filter { rootIDs.contains($0.id) }
+        busy=true
+        task=Task {
+            defer { busy=false; scanning=false }
+            do {
+                let results=try await engine.closeApplications(planId: plan.id, confirmedDigest: plan.digest, controller: NativeApplicationClosing())
+                try await updateScopedCleanup(engine: engine, roots: roots, selectedPaths: selectedPaths, previous: result)
+                let unresolved=results.filter { $0.state != "closed" }
+                if !unresolved.isEmpty { self.error=unresolved.map { $0.name + ": " + ($0.error ?? t("Still running. Save your work and quit the application.")) }.joined(separator: "\n") }
+            } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+        }
     }
     func clearHistory(_ ids: [String], includeRecoverable: Bool) {
         guard let engine, !busy, !ids.isEmpty else { return }
@@ -605,6 +678,37 @@ struct CleanupCompletion: Identifiable {
             defer { busy=false }
             do { _ = try await engine.clearHistory(executionIds: ids, includeRecoverable: includeRecoverable); await refresh() }
             catch { self.error=error.localizedDescription; await refresh() }
+        }
+    }
+    func executeToolCleanup(_ plan: ToolCleanupPlan, service: ToolCleanupService) {
+        guard !busy else { return }
+        busy=true
+        let operation=beginExecution(total: 1)
+        statusKey="Cleaning tool-managed storage…"
+        task=Task {
+            defer { busy=false; isExecuting=false; stopRequested=false }
+            do {
+                toolCompletion=try await service.execute(planId: plan.id, confirmedDigest: plan.digest)
+                operationHadError=toolCompletion?.state != "completed"
+                updateExecutionProgress(.init(stage: "finalizing", processedCount: 1, itemCount: 1), operation: operation)
+            } catch { operationHadError=true; self.error=error.localizedDescription }
+        }
+    }
+    func executeApplicationOrphans(_ plan: ApplicationOrphanPlan) {
+        guard !busy, let engine else { return }
+        busy=true
+        let operation=beginExecution(total: plan.components.count)
+        task=Task {
+            defer { busy=false; isExecuting=false; stopRequested=false }
+            do {
+                let receipt=try await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: NativeApplicationAbsence(), entryPoint: "macos", progress: { [weak self] update in
+                    Task { @MainActor in self?.updateExecutionProgress(update, operation: operation) }
+                })
+                let remaining=Set(receipt.items.filter { !["trashed","purged"].contains($0.state) }.map(\.originalPath))
+                completion=CleanupCompletion(receipts: [receipt], sourceSection: "applications", retryPaths: remaining, retryOrphans: true)
+                operationHadError=receipt.state != "completed"
+                await refresh()
+            } catch { operationHadError=true; self.error=error.localizedDescription }
         }
     }
     func confirm(_ review: ReviewPrompt) {
@@ -639,9 +743,14 @@ struct CleanupCompletion: Identifiable {
                         }
                     }
                     if receipts.contains(where: { $0.items.contains { ["failed", "unknown", "moving"].contains($0.state) } }) { operationHadError=true }
-                    completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: sourceSection)
+                    let succeeded=Set(receipts.flatMap(\.items).filter { ["purged", "trashed"].contains($0.state) }.map(\.originalPath))
+                    let retryPaths=Set(review.paths).subtracting(succeeded)
+                    let retryWorkspaces=systemResult?.snapshots.map(\.workspace).filter { root in retryPaths.contains { $0.hasPrefix(root.path + "/") } } ?? []
+                    completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: sourceSection, retryPaths: retryPaths, retryWorkspaces: retryWorkspaces)
                     commonSelection=[]
-                    if receipts.contains(where: { $0.items.contains { $0.state == "trashed" || $0.state == "unknown" } }) { systemResult=nil; commonReview=CleanupReview() }
+                    // A failed permanent item may already have removed descendants.
+                    // Every attempted execution invalidates the old scan evidence.
+                    snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview()
                     statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }
                         ? (review.action == "permanent" ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.")
                         : "Some items were not moved. Inspect history."
@@ -714,6 +823,7 @@ struct ContentView: View {
     }
     @ViewBuilder private var presentedContent: some View {
         if model.isExecuting { ExecutionProgressView(model: model) }
+        else if let result=model.toolCompletion { ToolCleanupResultView(model: model, result: result) }
         else if let result=model.completion { CleanupResultView(model: model, result: result).id(result.id) }
         else if model.space.reviewing { StorageReviewProgressView(model: model, session: model.space) }
         else if model.largeFiles.storage.reviewing { StorageReviewProgressView(model: model, session: model.largeFiles.storage) }
@@ -771,7 +881,7 @@ struct ContentView: View {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.8.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.9.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {

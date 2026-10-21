@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import Observation
 import ShouCore
+import ShouPlatform
 
 @MainActor @Observable final class ApplicationsSession {
     var catalog: ApplicationCatalog?
@@ -172,7 +173,11 @@ import ShouCore
                     }
                 })
                 app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
-                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: "applications")
+                let remaining=receipt.items.filter { !["trashed","purged"].contains($0.state) }
+                let remainingApps=Set(remaining.compactMap { $0.uninstallOrigin?.applicationPath })
+                let installed=Set(reviewed.plans.filter { plan in !receipt.items.contains { $0.originalPath == plan.application.path && ["trashed","purged"].contains($0.state) } }.map { $0.application.path })
+                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: "applications", retryPaths: Set(remaining.map(\.originalPath)),
+                    retryApplicationPaths: remainingApps.intersection(installed), retryOrphans: !remaining.isEmpty && remainingApps.isDisjoint(with: installed))
                 let removed=Set(receipt.items.filter { $0.uninstallOrigin?.kind == .application && ["trashed", "purged"].contains($0.state) }.map(\.originalPath))
                 for summary in items where removed.contains(summary.application.path) { summaries[summary.application.id]=nil }
                 selection=[:]; reviews=[:]; personalDataConsent=[]; expandedID=nil; hasChanges=true
@@ -189,12 +194,39 @@ import ShouCore
         }
     }
 
-    func quit(_ summary: ApplicationSummary, app: AppModel) {
-        guard !app.busy else { return }
-        for running in NSWorkspace.shared.runningApplications where running.bundleURL?.standardizedFileURL.path == URL(fileURLWithPath: summary.application.path).standardizedFileURL.path {
-            running.terminate()
+    func retry(paths: Set<String>, app: AppModel) {
+        guard !app.busy, let engine=app.engine else { return }
+        app.busy=true; preparing=true
+        task=Task {
+            defer { app.busy=false; preparing=false }
+            for path in paths.sorted() {
+                if Task.isCancelled { break }
+                do {
+                    let summary=try await engine.applicationSummary(at: path)
+                    summaries[summary.id]=summary
+                    let value=try await engine.reviewApplication(path: path)
+                    reviews[summary.id]=value
+                    selection[summary.id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent }.map(\.id))
+                } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+            }
+            app.statusKey="Affected items refreshed. Review your selection to continue."
         }
-        app.statusKey="Quit requested. Scan again after the application closes."
+    }
+    func quit(_ summary: ApplicationSummary, app: AppModel) {
+        guard !app.busy, let engine=app.engine else { return }
+        app.busy=true
+        task=Task {
+            defer { app.busy=false }
+            do {
+                let plan=try await engine.applicationClosePlan(applications: [summary.application])
+                let results=try await engine.closeApplications(planId: plan.id, confirmedDigest: plan.digest, controller: NativeApplicationClosing())
+                if results.allSatisfy({ $0.state == "closed" }) {
+                    summaries[summary.application.id]=try await engine.applicationSummary(at: summary.application.path)
+                    reviews[summary.application.id]=nil
+                    app.statusKey="Application closed. Review its components to continue."
+                } else { app.error=results.compactMap(\.error).first ?? app.t("Still running. Save your work and quit the application.") }
+            } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+        }
     }
     func stop() { if scanning || preparing { stopRequested=true }; task?.cancel() }
     func waitForOperation() async { await task?.value }

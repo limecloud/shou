@@ -17,13 +17,17 @@ flowchart LR
     F --> Batch
     Batch --> G[串行 SQLite catalog 写入器]
     G --> H[加入子目录]
-    H --> I[后序汇总与身份复核]
+    H --> Ready[子目录完成通知]
+    Ready --> B
+    B --> I[已就绪的后序汇总与身份复核]
     I --> J[封存 catalog 并发布扫描]
 ```
 
 macOS 的 `getattrlistbulk` 一次返回一页名称、对象类型、设备／inode 身份、时间戳、分配大小和逻辑大小。普通文件保持批量路径。目录只额外执行一次 `fstatat`，补齐目录链接数并保持既有清理和硬链接证据兼容。符号链接、特殊文件、字段不完整的记录和不支持批量属性的条目都使用不跟随链接的 stat 回退路径。
 
 默认读取器数量是 `min(activeProcessorCount, 8)`，最低为 1。这里并行的是目录，而不是为每个文件创建线程：读取器完成一个目录的元数据页后写入直接子项，再提交子目录。所有后代完成后，后序汇总器更新父目录大小，复核目录身份；只有自身覆盖和所有子目录覆盖都完整时，才把目录标为完整。
+
+读取与已就绪的汇总任务共用同一个有界调度器。串行通知队列只在子目录完成后提交汇总，父目录不会占据 worker 槽等待后代，避免独立无界汇总队列制造大量争抢 catalog 写锁的线程。上限约束执行中的扫描任务，不等于整个进程或运行时的线程总数。
 
 SQLite 始终只有一个写入器。catalog 使用 `SQLITE_OPEN_NOMUTEX` 打开，`StorageParallelState` 用一把锁保护追加行和更新总量。这样不会让 SQLite 被多个线程不安全地调用，同时允许元数据读取重叠。等待目录留在 FIFO 中，只有实际读取的任务才提交给调度器，不为排队目录占用阻塞线程。最后一个事务封存成功后才发布扫描。
 
@@ -43,6 +47,7 @@ sequenceDiagram
         Pool-->>UI: 节流后的计数与路径
         Pool->>Pool: 提交子目录；读取器不等待后代
     end
+    Pool->>Pool: 子目录完成后将就绪汇总加入同一有界队列
     Pool->>DB: 后序汇总大小与子树完整性
     Pool-->>Parent: 等待全部读取器与汇总器结束
     alt 取消或存储失败
@@ -137,3 +142,18 @@ SHOU_STORAGE_SCAN_WORKERS=8 .build/debug/shou-tests --storage-performance-only
 发现文件时总量未知，显示实时条目计数。进入已知工作量的阶段后，`ScanProgress.completedUnitCount` / `totalUnitCount` 报告真实完成量：catalog 封存语句、传输分页、已验证条目和持久化结果分页。百分比表示标题所指的当前阶段，不代表耗时比例或整盘覆盖率。部分扫描也可以完成保存并显示 100%，但覆盖状态仍为不完整。两端桌面仅省略长进度路径的中间部分，保留路径开头和文件名末尾，不拆分 Unicode 字素。macOS 向原生中间截断传递完整单行路径；Windows 按实际测量宽度适配，上限为 64 个字素。避免预先缩短后再由布局二次截断而产生两个省略号。悬停可查看原路径；CLI 和 bridge 保留完整路径。
 
 永久删除还会报告当前所选目录内部的清单条目进度。这些即时更新不替代持久化回执，也不把失败项目计为删除成功。
+
+## 0.9.0 汇总线程拥堵复验
+
+安装版全盘扫描采样发现：读取已限制并发，但独立并发汇总队列仍触达 GCD 的 64 线程软限制。现将就绪汇总纳入读取调度器。18,449 条目／8,192 文件的生成夹具中，计数／容量及全部文件哈希一致；前后两次进程采样线程峰值分别为 10／46 和 11／11。热缓存交替扫描中位数为 1.021 秒／0.992 秒，包含 ps 采样开销，不足以外推产品整体提速。初次诊断对照与其他回归并行，未用于此结论。最终独立证据：`.build/next-version-finalizer-benchmark-isolated/result.json`；真实采样：`.build/next-version-current-scan-worker-sample.txt` 和 `.build/next-version-current-scan-gui-sample.txt`。
+
+复现时明确指定保留的两个 Release 二进制及尚不存在的证据目录；脚本只扫描自行生成的目录，保留全部夹具文件：
+
+```sh
+python3 "scripts/benchmark-storage-finalizers.py" \
+  --baseline "/path/to/baseline/shou" \
+  --candidate ".build/release/shou" \
+  --evidence ".build/storage-finalizer-comparison/new-run"
+```
+
+大量文件删除与不可变日志的独立对照见 [0.9.0 计划](next-version-0.9.0.md)，其结果不能用于声明扫描提速。

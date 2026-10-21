@@ -46,9 +46,14 @@ shou workspaces add --path "$HOME/.cache" --root-ref "home-cache" --json
 shou scan --workspace "<workspace-id>" --scope full --json
 shou analysis summary --scan-id "<scan-id>" --json
 shou analysis children --scan-id "<scan-id>" --path "." --json
+shou rules opportunities --scan-id "<scan-id>" --minimum-bytes 52428800 --json
 ```
 
 Use scan evidence to identify exact child paths, allocated bytes, newest modification time, file identity, and completeness. Query `scan results --scan-id "<scan-id>" --json` for candidate evidence. Follow `next_cursor` using the same snapshot ID until all relevant rows have been inspected; do the same for `analysis children`. Do not read source bodies, credentials, conversation stores, or virtual-machine disks just to guess their purpose. Report partial scans; only independently complete, eligible candidates can enter a plan. Directory size is an estimate, not proof of reclaimable space.
+
+`rules opportunities` accepts full workspace scans, not cleanup-only scans. Follow `next_offset` with the same scan/minimum. Rows are nested investigation leads: never sum them or equate an unknown directory with reclaimable space. `contains_covered_descendants` means a broad row already includes known targets; inspect its children before drafting.
+
+For Docker build cache, Homebrew, Conda caches or Rust toolchains, discover `tools scan` and use the typed owner adapter when available. Do not author filesystem rules over virtual disks, installed package trees or whole toolchain roots to bypass it. Rust candidates exclude the current/default/override toolchain but can still be pinned by project files; ask about that dependency.
 
 ## Draft a portable rule
 
@@ -75,6 +80,8 @@ shou rules preview --file "<draft.json>" --workspace "<workspace-id>" --json
 shou scan results --scan-id "<preview-scan-id>" --json
 ```
 
+The preview includes `benefits`: eligible/blocked match counts and matched, already-covered and additional allocated-byte estimates, deduplicated by file identity against currently enabled rules on the same observed tree. Report the additional estimate; do not add it to overlapping parent estimates or call it physically freed space. A zero additional estimate may mean an existing rule already covers this target.
+
 Report the exact matched paths, allocated-byte estimates, age evidence, exclusions, risk, incomplete sources, rebuild notes, and the rule ID. Importing or previewing does not enable the rule and does not create a cleanup plan.
 
 ## Continue only with explicit choices
@@ -96,7 +103,7 @@ Explain that enabling a rule is a saved preference: eligible matches join future
 - `~/go` is mixed. Inspect `pkg/mod/cache`, build cache, binaries, and source separately; never target the whole tree by size.
 - `~/.cargo` is mixed. Registry archives and verified extracted sources have different rules; preserve configuration, credentials, modified sources, and active work.
 - `.colima` contains VM images, volumes, and container state. Treat it as high risk and require an explicit recovery decision; do not make a default one-click rule.
-- `.nvm` and `.rustup` are toolchains, not disposable caches. Discuss unused versions with the user; do not promise that a high-risk label makes them eligible. Source protection, symlinks, or unsupported toolchain operations may require a future native adapter.
+- `.nvm` and `.rustup` are toolchains, not disposable caches. Discuss unused versions with the user; do not promise that a high-risk label makes them eligible. Use the typed Rust adapter for reviewed versions; other unsupported toolchain operations remain analysis findings.
 - `.codex`, `.local`, `Documents`, and the whole `Library` can contain sessions, credentials, source, settings, and personal data. Inspect children and ask before narrowing to a cache or generated subtree.
 
 For the detailed question matrix and evidence vocabulary, read [references/questionnaire.md](references/questionnaire.md), or run `shou skills read --file references/questionnaire.md --json` for the current CLI's shipped copy. Discover command inputs from `capabilities` and `--help`; do not infer flags from old documentation. The current rule format matches directories only and cannot express removing a single disk-image file or invoking a package-manager cleanup command. Explain such limits instead of targeting a broader parent or bypassing Shou.

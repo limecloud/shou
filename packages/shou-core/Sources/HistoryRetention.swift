@@ -11,6 +11,7 @@ extension ShouEngine {
         let requested=executionIds.map(Set.init), followups=try followUps()
         let receipts=try history().filter { requested == nil || requested!.contains($0.id) }
         var ids=[String](), bytes=0
+        let manifests=try store.records("history-manifests")
         for receipt in receipts {
             let related=followups.filter { $0.executionId == receipt.id }
             guard receipt.state != "executing", !related.contains(where: { $0.state == "pending" }),
@@ -22,6 +23,7 @@ extension ShouEngine {
             guard includeRecoverable || !unresolved else { continue }
             ids.append(receipt.id)
             bytes += try store.read("history", id: receipt.id)?.count ?? 0
+            bytes += manifests.filter { $0.id.hasPrefix(receipt.id + "_") }.reduce(0) { $0 + Int($1.byteCount) }
             for followup in related { bytes += try store.read("followups", id: followup.id)?.count ?? 0 }
         }
         return HistoryCleanupPreview(executionIds: ids, retainedCount: receipts.count - ids.count, recordBytes: bytes)
@@ -34,10 +36,12 @@ extension ShouEngine {
         let preview=try historyCleanupPreview(executionIds: executionIds, includeRecoverable: includeRecoverable)
         guard Set(preview.executionIds) == Set(executionIds) else { throw ShouError("confirmation_required", "Active or recoverable records were preserved. Review the history selection.") }
         let followups=try followUps().filter { preview.executionIds.contains($0.executionId) }
+        let manifests=try store.ids("history-manifests")
         for id in preview.executionIds {
             // Remove the parent first. Interruption may leave inert orphan follow-ups,
             // but must never make a completed restoration look available again.
             try store.removeHistoryRecord("history", id: id)
+            for manifest in manifests where manifest.hasPrefix(id + "_") { try store.removeHistoryRecord("history-manifests", id: manifest) }
             for followup in followups where followup.executionId == id { try store.removeHistoryRecord("followups", id: followup.id) }
         }
         return preview

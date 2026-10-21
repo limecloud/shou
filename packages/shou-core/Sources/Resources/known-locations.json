@@ -453,5 +453,61 @@
     "category": "application",
     "relativePath": "Library/Logs",
     "platform": "macos"
+  },
+  {
+    "id": "windows-chrome",
+    "title": "Chrome caches",
+    "category": "browser",
+    "relativePath": "AppData/Local/Google/Chrome/User Data",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-edge",
+    "title": "Edge caches",
+    "category": "browser",
+    "relativePath": "AppData/Local/Microsoft/Edge/User Data",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-npm",
+    "title": "npm download caches",
+    "category": "developer",
+    "relativePath": "AppData/Local/npm-cache",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-pip",
+    "title": "pip download caches",
+    "category": "developer",
+    "relativePath": "AppData/Local/pip/Cache",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-gradle",
+    "title": "Gradle generated caches",
+    "category": "developer",
+    "relativePath": ".gradle",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-nuget",
+    "title": "NuGet download caches",
+    "category": "developer",
+    "relativePath": "AppData/Local/NuGet",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-cargo",
+    "title": "Cargo download archives",
+    "category": "developer",
+    "relativePath": ".cargo",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-vscode",
+    "title": "Visual Studio Code caches",
+    "category": "developer",
+    "relativePath": "AppData/Roaming/Code",
+    "platform": "windows"
   }
 ]

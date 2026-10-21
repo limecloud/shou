@@ -51,6 +51,8 @@ flowchart LR
     Setup[首次使用与扫描权限引导] --> Access[ShouPlatform 原生访问能力检查]
     Access --> Privacy[用户控制的 macOS 隐私设置]
     App[ShouApp / SwiftUI + AppKit] --> Core[ShouCore / Swift Package]
+    Core --> RemovalContext[单次永久删除的硬链接变化证据]
+    RemovalContext --> NativeRemoval[平台原生删除与元数据核验]
     App --> Setup
     App --> AgentSupport[ShouAgentSupport / Skill 资源]
     CLI --> AgentSupport
@@ -108,6 +110,8 @@ docs/                      # 产品、架构、接口与验收文档
 ### 隔离只读操作
 
 完整空间分析通过有界目录读取器逐页处理 macOS 的 64 KiB 元数据，每次持有 catalog 锁写入至多 128 项。新 catalog 为分配空间至少 1 MiB 的普通文件建立部分索引，服务已保存的大文件查询；旧 catalog 仍可读取。桌面目录展示缓存和批量选择不会替代 Core 的新清单核验。详见[扫描流程、查询策略与时序](../engineering/storage-scan-performance.md)。
+
+目录读取与已就绪的后序汇总共用最多八个执行槽的调度器。子目录完成通知才将父目录汇总加入队列，父目录不会占据 worker 等待后代。SQLite 保持串行写入，汇总不能再独立创建无界的阻塞线程。
 
 桌面端向 `NativeFileSystem(readWorkerExecutable:)` 注入包内 `Contents/Helpers/shou`。根身份查询及完整／清理遍历由短生命周期只读子进程执行，避免停滞的文件系统调用持续占住桌面端的等待链。CLI 的隐藏 worker 入口只接受身份查询和遍历请求，在打开记录存储前分流；它属于平台实现细节，不是公开 Agent 协议、第二套清理引擎或常驻服务。独立 CLI 继续使用常规直接适配。
 
@@ -350,3 +354,34 @@ flowchart LR
     M -->|用户目录权限| A[完成设置或 Finder]
     M -->|目录变化| F[重新扫描当前文件夹]
 ```
+
+## 0.9.0 清理服务
+
+交付跟踪见 [0.9.0 计划](../engineering/next-version-0.9.0.md)。新增服务均为明确的 Core 能力：`RecordRetention` 保护活跃证据与恢复日志，`HistorySummaries` 分页读取可丢弃摘要，`ApplicationClosing` 验证正常退出，`ToolCleanupService` 执行固定所属工具操作，`RuleOpportunities` 提供调查证据，`ApplicationOrphans` 复验精确的缺失所属应用后复用共享删除。导入的 JSON 规则仍仅匹配路径。
+
+```mermaid
+flowchart TB
+    Entry[macOS / CLI / Windows bridge] --> Core[共享 Swift Core]
+    Core --> Scan[先注册全部根 再最多四个位置 worker]
+    Scan --> Evidence[完整目标证据和统一进度]
+    Core --> Retention[每小时尽力回收派生记录]
+    Retention --> Protect[保留活跃计划与恢复日志]
+    Core --> Rules[未覆盖目录与草稿新增收益]
+    Rules --> Agent[外部 Agent 编写禁用草稿]
+    Agent --> Enable[明确启用 后续桌面复用]
+    Core --> Close[身份绑定 正常退出 限定刷新]
+    Core --> Tools[固定 Docker / brew / conda / rustup 适配器]
+    Tools --> Process[原生进程组 有界时间与输出]
+    Tools --> ToolReceipt[独立工具结果与估计值]
+    Core --> Orphans[维护或已验证的 bundle 关联]
+    Orphans --> Absence[完整应用目录 系统注册 运行状态]
+    Absence --> Shared[共享永久删除 废纸篓 日志与恢复]
+    Shared --> Journal[ReceiptJournal 小状态回执]
+    Journal --> Manifest[一次写入不可变大清单 摘要和数量绑定]
+    Protect --> Manifest
+    Core --> Win[八类 Windows 缓存及原生进程清单]
+```
+
+位置并发上限为四，结果顺序稳定；目录内读取和空间分析读取仍为独立实现。未实现 FSEvents／USN 复用。工具空间为所属工具报告的估计值，与文件系统估计和实际可用空间分开；中断结果保留为 unknown，已消耗计划不可重放。孤儿残留排除共享容器和名称猜测，未注册的自定义安装属于明确限制。
+
+超过 1024 项的执行清单由 `ReceiptJournal` 保存为不可变 `history-manifests` 依赖；所有依赖持久化后才发布小回执。仅状态变化不重写大清单，废纸篓移动导致清单变化时保存新版本。按需读取完整历史会校验依赖 ID、数量与 SHA-256，历史摘要只读状态。旧版内联回执继续可读。自动维护保留所有仍有主回执的清单；清理操作记录先移除主回执，再移除关联清单与后续记录。删除中断保留执行意图及清单，不能因保存优化而重放。

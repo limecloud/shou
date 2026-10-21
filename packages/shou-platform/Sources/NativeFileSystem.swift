@@ -219,7 +219,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         guard fstat(root, &metadata) == 0 else { throw SecurePaths.failure("Inspect root", path: path) }
         let device = metadata.st_dev
         var entries: [FileEntry] = [SecurePaths.entry(metadata, path: ".")], issues: [String] = []
-        var completedPaths=Set<String>()
+        var completedPaths=[String]()
         let values = try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
         let caseSensitive=values?.volumeSupportsCaseSensitiveNames ?? true
         let prepared=(cleanupRules ?? []).flatMap { rule in rule.match.relativePatterns.map { (PathPattern.Compiled($0, caseSensitive: caseSensitive), rule.scope.maxDepth) } }
@@ -233,6 +233,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         func visit(_ descriptor: Int32, _ relative: String, _ depth: Int, measuring: Bool) {
             if stopped { return }
             let initialIssueCount=issues.count
+            let completedStart=completedPaths.count
             if cancelled() { issues.append("cancelled"); stopped=true; return }
             if visitedCount >= budget.maxEntries || Date() > deadline || depth > budget.maxDepth { issues.append("resource_limit"); stopped=true; return }
             do {
@@ -251,9 +252,14 @@ public struct NativeFileSystem: PlatformFileSystem {
                     #endif
                     guard info.st_dev == device else { issues.append("cross_filesystem: " + child); continue }
                     let directory=info.st_mode & S_IFMT == S_IFDIR
-                    let parts=(caseSensitive ? child : child.lowercased()).split(separator: "/").map(String.init)
-                    let target=measuring || (directory && prepared.contains { parts.count <= $0.1 && $0.0.matches(parts) })
-                    let discover=directory && (target || prepared.contains { parts.count < $0.1 && $0.0.couldMatchDescendant(of: parts) })
+                    let target: Bool, discover: Bool
+                    if measuring {
+                        target=true; discover=directory
+                    } else if directory {
+                        let parts=(caseSensitive ? child : child.lowercased()).split(separator: "/").map(String.init)
+                        target=prepared.contains { parts.count <= $0.1 && $0.0.matches(parts) }
+                        discover=target || prepared.contains { parts.count < $0.1 && $0.0.couldMatchDescendant(of: parts) }
+                    } else { target=false; discover=false }
                     if measuring || target || discover || markerNames.contains(name) { entries.append(SecurePaths.entry(info, path: child)) }
                     if visitedCount % 128 == 0 && Date().timeIntervalSince(lastReported) >= 0.25 {
                         progress(ScanProgress(stage: "scanning", entryCount: visitedCount, currentPath: child)); lastReported=Date()
@@ -274,8 +280,11 @@ public struct NativeFileSystem: PlatformFileSystem {
                 if fstat(descriptor, &after) != 0 || SecurePaths.entry(before, path: ".") != SecurePaths.entry(after, path: ".") { issues.append("changed_during_scan: " + relative) }
                 if measuring && issues.count == initialIssueCount && !stopped {
                     let completePath=relative.isEmpty ? "." : relative
-                    for child in completedPaths where completePath == "." || child.hasPrefix(completePath + "/") { completedPaths.remove(child) }
-                    completedPaths.insert(completePath)
+                    // Traversal is depth-first, so only this frame's trailing
+                    // results are descendants. Do not rescan completed siblings
+                    // for each directory in a wide build-cache tree.
+                    completedPaths.removeSubrange(completedStart...)
+                    completedPaths.append(completePath)
                 }
             } catch { issues.append("\(relative): \(error)") }
         }
@@ -384,6 +393,10 @@ public struct NativeFileSystem: PlatformFileSystem {
         try purge(path, expected: expected, progress: { _, _, _ in })
     }
     public func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws {
+        var context=PermanentRemovalContext()
+        try purge(path, expected: expected, context: &context, progress: progress)
+    }
+    public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws {
         var processed=0, lastReport=ProcessInfo.processInfo.systemUptime
         func report(_ current: String) {
             processed += 1
@@ -392,30 +405,40 @@ public struct NativeFileSystem: PlatformFileSystem {
                 progress(processed, expected.count, current); lastReport=time
             }
         }
-        if expected.count == 1, let file=expected.first, file.kind == "file", file.contentDigest != nil {
-            try verify(path, expected, trashReceipt: true)
+        let reconciled=context.reconciled(expected)
+        if reconciled.count == 1, let file=reconciled.first, file.kind == "file", file.contentDigest != nil {
+            try verify(path, reconciled, trashReceipt: true)
             let (fd, name)=try SecurePaths.parent(path); defer { close(fd) }
             var current=stat()
-            guard fstatat(fd, name, &current, AT_SYMLINK_NOFOLLOW) == 0,
-                  SecurePaths.entry(current, path: ".").sameObject(as: file) else { throw ShouError("plan_stale", "Selected file changed before removal.") }
-            guard unlinkat(fd, name, 0) == 0 else { throw SecurePaths.failure("Remove selected file", path: path) }
+            guard fstatat(fd, name, &current, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect selected file", path: path) }
+            var observed=SecurePaths.entry(current, path: ".")
+            observed.contentDigest=file.contentDigest
+            guard observed == file || observed.matchesTrashRoot(as: file) else { throw ShouError("plan_stale", "Selected file changed before removal.") }
+            try unlinkFile(parent: fd, name: name, path: path, expected: observed.metadata, context: &context)
             report(path)
             return
         }
         guard expected.first(where: { $0.path == "." })?.kind == "directory" else {
             throw ShouError("capability_unavailable", "Permanent removal of file targets is unavailable.")
         }
-        try verify(path, expected, trashReceipt: true)
+        try verify(path, reconciled, trashReceipt: true)
         // Only known manifest entries are removed. New entries cause rmdir to fail.
-        for entry in expected.sorted(by: { $0.path.split(separator: "/").count == $1.path.split(separator: "/").count ? $0.path > $1.path : $0.path.split(separator: "/").count > $1.path.split(separator: "/").count }) where entry.path != "." {
+        // Verification above compared this manifest with a lexically ordered
+        // tree. Its reverse is postorder without another sort or path splitting.
+        for entry in expected.reversed() where entry.path != "." {
             if Task.isCancelled { throw ShouError("cancelled", "Permanent removal cancelled; inspect the partial result.") }
             let full = path + "/" + entry.path
             let (fd, name) = try SecurePaths.parent(full); defer { close(fd) }
             var info=stat()
             guard fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect receipt entry", path: full) }
             let current = SecurePaths.entry(info, path: entry.path)
-            guard current.sameObject(as: entry), entry.kind == "directory" || current == entry else { throw ShouError("plan_stale", "Receipt entry changed; permanent removal stopped.") }
-            guard unlinkat(fd, name, entry.kind == "directory" ? AT_REMOVEDIR : 0) == 0 else { throw SecurePaths.failure("Remove receipt entry", path: full) }
+            let saved=context.reconciled([entry])[0]
+            guard current.sameObject(as: saved), entry.kind == "directory" || current == saved else { throw ShouError("plan_stale", "Receipt entry changed; permanent removal stopped.") }
+            if entry.kind == "file" {
+                try unlinkFile(parent: fd, name: name, path: full, expected: saved, context: &context)
+            } else {
+                guard unlinkat(fd, name, entry.kind == "directory" ? AT_REMOVEDIR : 0) == 0 else { throw SecurePaths.failure("Remove receipt entry", path: full) }
+            }
             report(full)
         }
         let (fd, name) = try SecurePaths.parent(path); defer { close(fd) }
@@ -424,6 +447,28 @@ public struct NativeFileSystem: PlatformFileSystem {
               SecurePaths.entry(info, path: ".").sameObject(as: original) else { throw ShouError("plan_stale", "Receipt root changed.") }
         guard unlinkat(fd, name, AT_REMOVEDIR) == 0 else { throw SecurePaths.failure("Remove receipt target", path: path) }
         report(path)
+    }
+
+    private func unlinkFile(parent: Int32, name: String, path: String, expected: FileEntry, context: inout PermanentRemovalContext) throws {
+        // Pin only shared inodes. Most cache files retain the ordinary unlink path.
+        let descriptor=expected.links > 1 ? openat(parent, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC) : -1
+        defer { if descriptor >= 0 { close(descriptor) } }
+        var metadata=stat()
+        if expected.links > 1 {
+            guard descriptor >= 0 else { throw SecurePaths.failure("Pin hard-linked file", path: path) }
+            guard fstat(descriptor, &metadata) == 0, SecurePaths.entry(metadata, path: expected.path) == expected else {
+                throw ShouError("plan_stale", "The hard-linked file changed before permanent removal.")
+            }
+        }
+        guard fstatat(parent, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0,
+              SecurePaths.entry(metadata, path: expected.path) == expected else {
+            throw ShouError("plan_stale", "The file changed before permanent removal.")
+        }
+        guard unlinkat(parent, name, 0) == 0 else { throw SecurePaths.failure("Remove receipt file", path: path) }
+        if descriptor >= 0 {
+            guard fstat(descriptor, &metadata) == 0 else { throw SecurePaths.failure("Inspect unlinked file", path: path) }
+            try context.recordUnlink(before: expected, after: SecurePaths.entry(metadata, path: expected.path))
+        }
     }
 }
 #endif

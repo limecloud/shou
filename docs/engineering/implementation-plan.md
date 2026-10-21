@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/engineering/implementation-plan.md)
 
 Status: active development. Native macOS, independent CLI, shared core, platform adapter, and isolated verification sources exist. Complete platform-safety and release acceptance remain pending. See [local development](development.md).
 
+The next delivery is tracked item by item in the [0.9.0 plan and progress](next-version-0.9.0.md).
+
 ## 1. Product decisions
 
 | ID | Decision | Purpose |

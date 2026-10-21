@@ -103,7 +103,7 @@ private func engineReadyForPermanentFixture(_ fixture: Fixture) async throws -> 
 
 /// Only generated fixtures enter the native system Trash. The entire Trash is never listed or emptied.
 func nativeCatalogCleanupAndRestore(includePurge: Bool = false) async throws {
-    let templates=try BuiltinCatalog.templates()
+    let templates=try BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains("macos") }
     var patternCount=0
     for template in templates {
         let fixture=try Fixture()

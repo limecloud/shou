@@ -13,11 +13,13 @@
 
 A native macOS cleaner with cleanup rules tailored by your existing AI agent. Tell Codex, Claude Code, or WorkBuddy what takes space and what to keep; it asks the missing questions and drafts reusable rules. Shou scans, validates, previews, and cleans locally.
 
+Development work for 0.9.0 is tracked in the [delivery plan](docs/engineering/next-version-0.9.0.md), including custom-rule evidence, tool-managed storage and Windows standard cleanup. Published download links below refer to the existing release.
+
 ## Download and install
 
-Download Shou v0.8.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.9.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.8.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.8.0/Shou-0.8.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.8.0/Shou-0.8.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.8.0/shou-0.8.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.9.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.9.0/Shou-0.9.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.9.0/Shou-0.9.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.9.0/shou-0.9.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 

@@ -255,7 +255,34 @@ def main():
             assert {str(path): path.read_bytes() for path in workspace.rglob("fixture.bin")} == remaining
             result, _ = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
             assert not result["ok"], result
-            print("PASS history preview, confirmation rejection, metadata-only cleanup and consumed-plan refusal", flush=True)
+        print("PASS history preview, confirmation rejection, metadata-only cleanup and consumed-plan refusal", flush=True)
+        # Two independent workspace scans share one desktop confirmation and
+        # journalled execution without exposing unattended public CLI mutation.
+        roots = []
+        for index in range(2):
+            folder = root / f"batch-root-{index}"
+            (folder / "generated-batch").mkdir(parents=True)
+            (folder / "generated-batch/fixture.bin").write_bytes(b"generated batch only")
+            root_ref = f"desktop-batch-{index}"
+            registered = success("workspace.add", dict(path=str(folder), root_ref=root_ref))
+            batch_rule = dict(rule, id=f"test.desktop-batch-{index}", scope=dict(rule["scope"], root_ref=root_ref))
+            success("rules.import", dict(json=json.dumps(batch_rule)))
+            success("rules.set", dict(workspace_id=registered["id"], rule_id=batch_rule["id"], version=batch_rule["version"], enabled=True))
+            roots.append((folder, registered))
+        selections = []
+        for folder, registered in roots:
+            scanned = success("scan", dict(workspace_id=registered["id"]))
+            selections.append(dict(scan_id=scanned["scan_id"], candidate_ids=[row["id"] for row in scanned["candidates"] if row["eligible"]]))
+        result, reviewed = request(engine, environment, "system.clean", dict(selections=selections, action="permanent"), "cancel")
+        assert reviewed and not result["ok"] and all((folder / "generated-batch/fixture.bin").is_file() for folder, _ in roots), result
+        result, reviewed = request(engine, environment, "system.clean", dict(selections=selections, action="permanent"), "accept")
+        assert reviewed and result["ok"] and result["data"]["state"] == "completed", result
+        assert len(result["data"]["execution_ids"]) == 2 and len(result["data"]["items"]) == 2
+        assert all(not (folder / "generated-batch").exists() for folder, _ in roots)
+        result, reviewed = request(engine, environment, "system.clean", dict(selections=selections, action="permanent"), "accept")
+        assert reviewed and result["ok"] and result["data"]["state"] == "partial" and result["data"]["execution_ids"] == [], result
+        assert all(not (folder / "generated-batch").exists() for folder, _ in roots)
+        print("PASS cross-root single confirmation, cancellation, permanent cleanup, journals and stale-target refusal", flush=True)
     print("Desktop protocol integration passed; no user files changed.")
 
 

@@ -42,9 +42,32 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         return text.split(separator: "\n").map(String.init).filter { $0.hasSuffix(".json") && !$0.hasPrefix(".") }.map { String($0.dropLast(5)) }.sorted()
     }
     public func removeHistoryRecord(_ collection: String, id: String) throws {
-        guard ["history", "followups"].contains(collection) else { throw ShouError("invalid_argument", "Only history records can be removed here.") }
+        guard ["history", "followups", "history-manifests"].contains(collection) else { throw ShouError("invalid_argument", "Only history records can be removed here.") }
         let path=try location(collection, id: id)
         try WindowsNative.check(shou_win_remove_record(path), path: path)
+    }
+    public func records(_ collection: String) throws -> [StoredRecord] {
+        // Windows currently persists JSON evidence rather than SQLite catalogs.
+        if collection == "storage-catalogs" { return [] }
+        return try ids(collection).compactMap { id in
+            try recordMetadata(collection, id: id)
+        }
+    }
+    public func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? {
+        if collection == "storage-catalogs" { return nil }
+        let path=try location(collection, id: id)
+        let raw: shou_win_info
+        do { raw=try WindowsNative.metadata(path) }
+        catch let error as ShouError where error.code == "not_found" { return nil }
+        guard raw.kind == 1, raw.current_user == 1, raw.links == 1 else { throw ShouError("store_corrupt", "Record metadata has an invalid identity.") }
+        let info=WindowsNative.entry(raw, path: id)
+        return StoredRecord(collection: collection, id: id, byteCount: info.logicalBytes,
+            modifiedAt: Date(timeIntervalSince1970: Double(info.modifiedNanoseconds)/1e9), revision: try Digest.of(info))
+    }
+    public func removeDerivedRecord(_ record: StoredRecord) throws {
+        guard DerivedRecords.collections.contains(record.collection), record.collection != "storage-catalogs" else { throw ShouError("invalid_argument", "Only derived Shou records can be collected.") }
+        guard try recordMetadata(record.collection, id: record.id) == record else { throw ShouError("plan_stale", "The derived record changed before collection.") }
+        try WindowsNative.check(shou_win_remove_record(try location(record.collection, id: record.id)), path: record.id)
     }
     public func lock() throws -> any StoreLease {
         try WindowsNative.check(shou_win_private_directory(directory.path), path: directory.path)
