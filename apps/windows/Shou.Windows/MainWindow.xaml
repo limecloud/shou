@@ -106,7 +106,7 @@
       <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="68" Foreground="#2779DF" HorizontalAlignment="Center" Margin="0,0,0,28" />
       <TextBlock Text="{Binding Status}" TextAlignment="Center" FontSize="18" Margin="0,0,0,20" />
       <TextBlock Text="{Binding ProgressPercentage}" FontSize="38" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,12" />
-      <ProgressBar Height="8" Maximum="100" Value="{Binding ProgressValue}" IsIndeterminate="{Binding ProgressIndeterminate}" />
+      <ProgressBar Height="8" Maximum="100" Value="{Binding ProgressValue, Mode=OneWay}" IsIndeterminate="{Binding ProgressIndeterminate}" />
       <local:ProgressPathTextBlock FullPath="{Binding ProgressFullPath}" ToolTip="{Binding ProgressFullPath}" TextAlignment="Center" Opacity="0.65" Margin="0,12,0,24" />
       <Button Content="停止" Command="{Binding CancelCommand}" Width="180" Padding="20,10" HorizontalAlignment="Center" />
     </StackPanel>
