@@ -6,6 +6,12 @@ namespace Shou.Windows;
 
 public partial class App : Application
 {
+    public App()
+    {
+        if (Environment.GetEnvironmentVariable("SHOU_PACKAGE_VERIFICATION_REPORT") is { } report)
+            AppDomain.CurrentDomain.UnhandledException += (_, value) => File.WriteAllText(report, value.ExceptionObject.ToString());
+    }
+
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);

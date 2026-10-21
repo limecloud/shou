@@ -53,7 +53,9 @@ with tempfile.TemporaryDirectory(prefix="windows-release-", dir=root / ".build")
     assert run("locations", "list")
     skill = run("agent", "skill")
     assert Path(skill["entrypoint"]).resolve().is_relative_to(app.resolve()), "Packaged Skill escaped the archive"
-    subprocess.run([str(app / "Shou.exe"), "--verify-package"], check=True, env=environment, cwd=base, timeout=60)
+    gui = subprocess.run([str(app / "Shou.exe"), "--verify-package"], capture_output=True, env=environment, cwd=base, timeout=60)
+    assert gui.returncode == 0, {"exit_code": gui.returncode, "stdout": gui.stdout.decode(errors="replace"), "stderr": gui.stderr.decode(errors="replace"),
+                              "report": (base / "wpf-report.json").read_text(encoding="utf-8-sig") if (base / "wpf-report.json").exists() else "No report"}
     wpf = json.loads((base / "wpf-report.json").read_text(encoding="utf-8-sig"))
     assert wpf == {"assembly_version": version + ".0", "application_version": version, "wpf_layout_loaded": True}, wpf
     subprocess.run([sys.executable, "-B", str(root / "scripts/verify-desktop-bridge.py"), "--engine", str(engine), "--native-permanent"],
