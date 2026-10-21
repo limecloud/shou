@@ -10,7 +10,7 @@ Status: current development architecture. Shared scanning, planning, receipts, T
 
 ## 1. Constraints
 
-Share one portable Swift core between the native macOS application and Swift CLI. Windows later consumes the same contracts/core. Rules are declarative whether handwritten or generated externally.
+The native macOS application and Swift CLI share one portable Swift core. The Windows WPF desktop consumes the same engine through the versioned process bridge; its native runtime acceptance remains a separate gate. Rules are declarative whether handwritten or generated externally.
 
 Shou integrates no models and develops or hosts no agents. Initial operation needs no cloud service, account, privileged helper, or persistent daemon. Keep real platform dependencies isolated without a speculative plugin runtime.
 
@@ -29,7 +29,7 @@ flowchart TB
     Draft --> CLI
     GUI --> Core[Shared core]
     CLI --> Core
-    Windows[Future native Windows UI] -.Structured process bridge.-> CLI
+    Windows[Windows WPF desktop] -->|Versioned structured process bridge| CLI
     Core --> Policy[Access and safety policy]
     Core --> Store[Local versioned storage]
     Policy --> FS[Explicit workspace filesystem]
@@ -80,7 +80,7 @@ flowchart LR
     FollowUp --> Interfaces
     Store --> Interfaces
     Mac[macOS adapter] --> Interfaces
-    Win[Future Windows adapter] -.Implements.-> Interfaces
+    Win[Windows native adapter] --> Interfaces
 ```
 
 Core declares the minimal protocols it consumes. Platform packages implement them; the core never depends on concrete adapters. Rules, planning, and scanning initially remain responsibilities within one core package rather than independently published packages.
@@ -88,6 +88,8 @@ Core declares the minimal protocols it consumes. Platform packages implement the
 Skill resources are shared by both products. Installation and export stay outside cleanup storage and rule enablement; see [distribution architecture and sequence](../ai/skill-distribution.md).
 
 ### Isolated read operations
+
+Full storage analysis streams 64 KiB macOS metadata pages through bounded directory readers and commits at most 128 entries per catalog lock. New catalogs index regular files allocated at least 1 MiB for saved large-file queries; legacy catalogs remain readable. Desktop directory presentation caches and batch selection do not replace Core's fresh manifest checks. See the [pipeline, query strategy and sequence](../engineering/storage-scan-performance.md).
 
 The desktop injects `NativeFileSystem(readWorkerExecutable:)` with the packaged `Contents/Helpers/shou` executable. Root-identity queries and full/cleanup traversal run in short-lived read workers so a stalled filesystem call does not keep the desktop waiting on that call. The CLI's hidden worker entry accepts only identity and inspection requests and runs before opening the record store. It is a platform implementation detail, not a public agent protocol, a second cleanup engine or a persistent service. The independent CLI keeps its normal direct adapter.
 
@@ -136,12 +138,12 @@ An unavailable inventory omits generic discovery; partial inventory remains part
 
 These are package-internal responsibilities and small ports, not a plugin system or a separate service for each rule. The CLI runs without the desktop process. A future Windows adapter must implement and validate its own roots, activity and Recycle Bin behavior before enabling them.
 
-Repository organization; Windows and brand-source entries remain future deliverables:
+Repository organization:
 
 ```text
 apps/macos/                 Native SwiftUI and AppKit application
 apps/cli/                   Swift CLI: shou / shou.exe
-apps/windows/               Future native Windows application
+apps/windows/               Windows WPF application and process bridge
 packages/shou-core/         Portable models, rules, orchestration, plans
 packages/shou-platform/     Concrete platform implementations
 packages/shou-contracts/    Language-independent schemas and contracts
@@ -204,6 +206,8 @@ Before execution, recheck access, configuration, rules, expiry, paths, identitie
 Known internal POSIX symlinks are opaque entries, never traversal roots. Platform Trash APIs and descriptor-based identity constraints need actual race prototypes. A check followed by an unrelated path operation is not an atomic safety guarantee; unmet constraints block release or narrow support.
 
 Trash follow-up verification tolerates a change only to the saved top-level directory's `ctime`, which macOS may update after the move. Its identity and every other saved root field must still match, as must all descendant entries. This exception applies only to recorded Trash follow-ups; it does not relax ordinary scan or pre-move verification.
+
+Broad scans skip protected Trash locations without Full Disk Access. Post-move and follow-up verification instead attempt the exact direct-child location returned by the system and recorded in the receipt through `inspectTrashTarget`. The adapter validates the current user's Trash parent and retains OS permissions, no-follow traversal and complete manifest checks; it never enumerates unrelated Trash items. An unstarted `pending` item in a finished partial or cancelled batch is shown as skipped, while uncertain started mutations remain marked for verification.
 
 ## 9. Existing-agent interface
 
@@ -281,3 +285,31 @@ On macOS, this worker uses a bounded FIFO of directories and up to eight concurr
 ### Privacy domain
 
 Privacy records have a separate source model from cache files. GUI and CLI share `PrivacyService`; the platform discovers standard profiles and no-follow identities. Core checks time bounds, schema, activity, exclusions and fingerprints before per-source transactions. Receipts retain aggregates only; irreversible logical deletion has no restoration or disk-space promise. See [privacy architecture, flow, sequence and support matrix](../engineering/privacy-cleaning.md).
+
+### Cleanup presentation boundary
+
+`OperationProgressView` renders both read-only review and mutation progress; the result occupies the same detail area and returns to its source section. The core exposes optional stage work counts and current-item manifest counts, while clients shorten display paths locally. Discovery, confirmation evidence and durable execution facts remain separate responsibilities. Windows receives additive progress fields through the desktop bridge and keeps full paths in protocol data.
+
+## History cleanup and actionable scan coverage
+
+History shows an item, date, outcome and processed size by default. Execution IDs, per-item paths, recovery and verification are available in details. Clearing finished records removes local JSON receipts and related follow-ups while retaining recovery, unknown outcomes and unfinished operations. Removing one record explicitly acknowledges loss of Shou recovery links; active operations and pending follow-up intents remain protected. Referenced files and Trash contents are never removed. Consumed plan state remains intact, preventing replay.
+
+Use `shou history cleanup-preview --json` to preview and `shou history clear` to confirm in a terminal. `--execution-id` selects one record; `--include-recoverable true` explicitly discards recovery links. Windows uses the same core through `history.cleanup-preview` and request-confirmed `history.clear`. Parent receipts are removed before follow-ups so interruption cannot make a restored item available for restoration again.
+
+Coverage notices concern the current directory. Unreadable siblings elsewhere do not mark a complete project folder as incomplete. System-managed locations such as `.fseventsd`, `.Spotlight-V100` and `.DocumentRevisions-V100` use an informational scope note, with individual paths collapsed. The core preserves incomplete coverage facts. User-directory access failures offer setup and Finder actions; changed or temporarily unreadable folders can be rescanned directly. Full Disk Access does not override Unix ownership or system protection, and Shou does not change system permissions to inspect system-managed directories.
+
+`StorageCoverageNote` classifies access failures in shared Core; resource limits and changed contents remain actionable. The bridge exposes this classification and the current directory's completeness. Windows provides Explorer and focused rescanning without duplicating system-path policy. Default bridge scans use the shared catalog path; view state and short paths remain client responsibilities.
+
+```mermaid
+flowchart LR
+    H[History summary] --> D[Optional details]
+    H --> P[Preview removable records and bytes]
+    P --> C[Confirm records only]
+    C --> L[Acquire mutation lease and recheck state]
+    L --> R[Remove parent receipt then follow-ups]
+    L --> K[Keep recovery and unfinished evidence]
+    S[Current directory coverage] --> M{Cause}
+    M -->|System managed| I[Informational scope note]
+    M -->|User access| A[Setup or Finder]
+    M -->|Changed directory| F[Rescan current folder]
+```

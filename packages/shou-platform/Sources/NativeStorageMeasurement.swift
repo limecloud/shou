@@ -14,13 +14,19 @@ private struct StorageReadEntry {
     let flags: UInt32
 }
 
+private struct StorageMeasuredEntry {
+    let name: String
+    let entry: FileEntry
+    let complete: Bool?
+}
+
 #if canImport(Darwin)
 /// Regular files use bulk metadata only when every identity field is present.
 /// Directories and links retain exact stat-based evidence, including allocation.
 private enum StorageBulkReader {
-    static func entries(_ descriptor: Int32, checkpoint: () throws -> Void) throws -> [StorageReadEntry]? {
+    static func enumerate(_ descriptor: Int32, checkpoint: () throws -> Void, consume: ([StorageReadEntry]) throws -> Void) throws -> Bool {
         let copy=openat(descriptor, ".", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
-        guard copy >= 0 else { return nil }
+        guard copy >= 0 else { return false }
         defer { close(copy) }
         let common=UInt32(ATTR_CMN_NAME | ATTR_CMN_DEVID | ATTR_CMN_OBJTYPE | ATTR_CMN_MODTIME | ATTR_CMN_CHGTIME |
             ATTR_CMN_OWNERID | ATTR_CMN_ACCESSMASK | ATTR_CMN_FLAGS | ATTR_CMN_FILEID)
@@ -32,23 +38,21 @@ private enum StorageBulkReader {
         let capacity=64 * 1024
         let buffer=UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 8)
         defer { buffer.deallocate() }
-        var result=[StorageReadEntry]()
         while true {
             try checkpoint()
             let count=getattrlistbulk(copy, &attributes, buffer, capacity, UInt64(FSOPT_NOFOLLOW))
             // Retry through the original stat-based reader from an untouched
             // descriptor if a filesystem omits attributes or rejects bulk I/O.
-            guard count >= 0 else { return nil }
-            if count == 0 { return result.sorted { $0.name < $1.name } }
+            guard count >= 0, count <= capacity / 24 else { return false }
+            if count == 0 { return true }
+            var result=[StorageReadEntry]()
+            result.reserveCapacity(Int(count))
             var offset=0
             for _ in 0..<count {
-                // Keep metadata retention bounded for exceptionally wide
-                // directories. The fallback still measures every sibling.
-                if result.count >= 65_536 { return nil }
                 if result.count % 128 == 0 { try checkpoint() }
-                guard offset + 4 <= capacity else { return nil }
+                guard offset + 4 <= capacity else { return false }
                 let length=Int(buffer.loadUnaligned(fromByteOffset: offset, as: UInt32.self))
-                guard length >= 24, length <= capacity - offset else { return nil }
+                guard length >= 24, length <= capacity - offset else { return false }
                 let end=offset + length
                 var cursor=offset + 4
                 func take<T>(_ type: T.Type) throws -> T {
@@ -60,13 +64,13 @@ private enum StorageBulkReader {
                 do {
                     let returned=try take(attribute_set_t.self)
                     let error=returned.commonattr & UInt32(ATTR_CMN_ERROR) != 0 ? try take(UInt32.self) : 0
-                    guard returned.commonattr & UInt32(ATTR_CMN_NAME) != 0 else { return nil }
+                    guard returned.commonattr & UInt32(ATTR_CMN_NAME) != 0 else { return false }
                     let referenceOffset=cursor, reference=try take(attrreference_t.self)
                     let nameStart=referenceOffset + Int(reference.attr_dataoffset), nameLength=Int(reference.attr_length)
                     guard nameStart >= cursor, nameLength > 0, nameStart <= end, nameLength <= end - nameStart,
-                          buffer.load(fromByteOffset: nameStart + nameLength - 1, as: UInt8.self) == 0 else { return nil }
+                          buffer.load(fromByteOffset: nameStart + nameLength - 1, as: UInt8.self) == 0 else { return false }
                     let bytes=UnsafeRawBufferPointer(start: buffer.advanced(by: nameStart), count: nameLength - 1)
-                    guard let name=String(bytes: bytes, encoding: .utf8), !name.isEmpty, !name.contains("/"), !name.contains("\0") else { return nil }
+                    guard let name=String(bytes: bytes, encoding: .utf8), !name.isEmpty, !name.contains("/"), !name.contains("\0") else { return false }
                     guard name != "." && name != ".." else { offset=end; continue }
                     // Missing/error records still get a fresh fstatat below.
                     if error != 0 || returned.commonattr & common != common {
@@ -76,7 +80,7 @@ private enum StorageBulkReader {
                     let modified=try take(timespec.self), changed=try take(timespec.self)
                     let owner=try take(UInt32.self), mode=try take(UInt32.self), flags=try take(UInt32.self), inode=try take(UInt64.self)
                     guard device >= 0, (0..<1_000_000_000).contains(modified.tv_nsec),
-                          (0..<1_000_000_000).contains(changed.tv_nsec) else { return nil }
+                          (0..<1_000_000_000).contains(changed.tv_nsec) else { return false }
                     // ATTR_CMN_OBJTYPE uses the fsobj_type enum (VREG=1, VDIR=2),
                     // rather than the mode bits returned by stat(2).
                     if type == 2 {
@@ -93,15 +97,18 @@ private enum StorageBulkReader {
                         result.append(StorageReadEntry(name: name, entry: nil, flags: 0)); offset=end; continue
                     }
                     let links=try take(UInt32.self), allocated=try take(Int64.self), logical=try take(Int64.self)
-                    guard links > 0, allocated >= 0, logical >= 0 else { return nil }
+                    guard links > 0, allocated >= 0, logical >= 0 else { return false }
                     let entry=FileEntry(path: name, kind: "file", device: UInt64(device), inode: inode, logicalBytes: logical,
                         allocatedBytes: allocated, modifiedNanoseconds: Int64(modified.tv_sec) * 1_000_000_000 + Int64(modified.tv_nsec),
                         changedNanoseconds: Int64(changed.tv_sec) * 1_000_000_000 + Int64(changed.tv_nsec),
                         mode: mode | UInt32(S_IFREG), owner: owner, links: UInt64(links))
                     result.append(StorageReadEntry(name: name, entry: entry, flags: flags))
-                } catch { return nil }
+                } catch { return false }
                 offset=end
             }
+            // Commit each validated kernel page before requesting the next one.
+            // Exceptionally wide directories retain the batched metadata path.
+            try consume(result)
         }
     }
 }
@@ -161,25 +168,29 @@ private final class StorageParallelState: @unchecked Sendable {
         if let failure { throw failure }
     }
 
-    func append(_ entry: FileEntry, name: String, parentID: Int64, complete: Bool? = nil) throws -> (id: Int64, node: StorageNode) {
-        lock.lock(); defer { lock.unlock() }
-        return try catalog.append(entry, name: name, parentID: parentID, complete: complete)
+    func append(_ entries: [StorageMeasuredEntry], parentID: Int64) throws -> [(id: Int64, node: StorageNode)] {
+        var rows=[(id: Int64, node: StorageNode)]()
+        rows.reserveCapacity(entries.count)
+        var update: ScanProgress?
+        lock.lock()
+        do {
+            for entry in entries {
+                rows.append(try catalog.append(entry.entry, name: entry.name, parentID: parentID, complete: entry.complete))
+            }
+            count += entries.count
+            if let last=entries.last, Date().timeIntervalSince(lastReport) >= 0.25 {
+                lastReport=Date()
+                update=ScanProgress(stage: "scanning", entryCount: count, currentPath: last.entry.path)
+            }
+            lock.unlock()
+        } catch { lock.unlock(); throw error }
+        if let update { progress(update) }
+        return rows
     }
 
     func setTotals(_ node: StorageNode, id: Int64) throws {
         lock.lock(); defer { lock.unlock() }
         try catalog.setTotals(node, id: id)
-    }
-
-    func recordEntry(_ path: String) {
-        var update=false, value=0
-        lock.lock()
-        count += 1; value=count
-        if count % 128 == 0 && Date().timeIntervalSince(lastReport) >= 0.25 {
-            lastReport=Date(); update=true
-        }
-        lock.unlock()
-        if update { progress(ScanProgress(stage: "scanning", entryCount: value, currentPath: path)) }
     }
 
     func result() -> (count: Int, issues: [String]) {
@@ -356,58 +367,71 @@ extension NativeFileSystem {
             var total=initial
             var directories=[(String, FileEntry, StorageNode, Int64)]()
             do {
-                #if canImport(Darwin)
-                let bulk=try StorageBulkReader.entries(descriptor, checkpoint: state.check)
-                #else
-                let bulk: [StorageReadEntry]?=nil
-                #endif
-                let children=try bulk ?? SecurePaths.names(descriptor).map { StorageReadEntry(name: $0, entry: nil, flags: 0) }
-                for childEntry in children {
+                var seen=Set<String>()
+                var pending=[StorageMeasuredEntry]()
+                pending.reserveCapacity(128)
+                func flush() throws {
+                    guard !pending.isEmpty else { return }
                     try state.check()
-                    let name=childEntry.name
-                    let child=entry.path == "." ? name : entry.path + "/" + name
-                    var item: FileEntry, flags=childEntry.flags
-                    if let measured=childEntry.entry {
-                        item=measured; item.path=child
-                        // Directory link counts are not part of the portable bulk common
-                        // attribute set. Refresh only directory records; regular files retain
-                        // the fully batched metadata path, avoiding one stat call per file.
-                        if item.kind == "directory" {
-                            var directoryInfo=stat()
-                            if fstatat(descriptor, name, &directoryInfo, AT_SYMLINK_NOFOLLOW) == 0 {
-                                item=SecurePaths.entry(directoryInfo, path: child)
-                            } else {
+                    let rows=try state.append(pending, parentID: id)
+                    for (item, row) in zip(pending, rows) {
+                        let node=row.node
+                        total.logicalBytes += node.logicalBytes; total.allocatedBytes += node.allocatedBytes
+                        total.fileCount += node.fileCount
+                        total.newestModifiedNanoseconds=max(total.newestModifiedNanoseconds, node.newestModifiedNanoseconds)
+                        if item.entry.kind == "directory" { directories.append((item.name, item.entry, node, row.id)) }
+                    }
+                    pending.removeAll(keepingCapacity: true)
+                }
+                func consume(_ children: [StorageReadEntry]) throws {
+                    for (offset, childEntry) in children.enumerated() {
+                        if offset % 128 == 0 { try state.check() }
+                        let name=childEntry.name
+                        // A late bulk failure restarts the no-follow name reader.
+                        // Already committed pages must not be charged a second time.
+                        guard seen.insert(name).inserted else { continue }
+                        let child=entry.path == "." ? name : entry.path + "/" + name
+                        var item: FileEntry, flags=childEntry.flags
+                        if let measured=childEntry.entry {
+                            item=measured; item.path=child
+                            // Directory link counts require exact stat evidence;
+                            // regular files retain the fully batched metadata path.
+                            if item.kind == "directory" {
+                                var directoryInfo=stat()
+                                if fstatat(descriptor, name, &directoryInfo, AT_SYMLINK_NOFOLLOW) == 0 {
+                                    item=SecurePaths.entry(directoryInfo, path: child)
+                                } else {
+                                    state.issue("unreadable: " + child)
+                                    locallyIncomplete=true
+                                    continue
+                                }
+                            }
+                        }
+                        else {
+                            var info=stat()
+                            guard fstatat(descriptor, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else {
                                 state.issue("unreadable: " + child)
                                 locallyIncomplete=true
                                 continue
                             }
+                            item=SecurePaths.entry(info, path: child)
+                            flags=info.st_flags
                         }
-                    }
-                    else {
-                        var info=stat()
-                        guard fstatat(descriptor, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else {
-                            state.issue("unreadable: " + child)
+                        let foreign=item.device != identity.device
+                        let cloud=flags & UInt32(SF_DATALESS) != 0
+                        if foreign || cloud {
+                            item.kind="special"; item.logicalBytes=0; item.allocatedBytes=0
+                            state.issue((foreign ? "cross_filesystem: " : "cloud_placeholder: ") + child)
                             locallyIncomplete=true
-                            continue
                         }
-                        item=SecurePaths.entry(info, path: child)
-                        flags=info.st_flags
+                        pending.append(StorageMeasuredEntry(name: name, entry: item, complete: (foreign || cloud) ? false : nil))
+                        if pending.count == 128 { try flush() }
                     }
-                    let foreign=item.device != identity.device
-                    let cloud=flags & UInt32(SF_DATALESS) != 0
-                    var opaque=item
-                    if foreign || cloud {
-                        opaque.kind="special"; opaque.logicalBytes=0; opaque.allocatedBytes=0
-                        state.issue((foreign ? "cross_filesystem: " : "cloud_placeholder: ") + child)
-                        locallyIncomplete=true
-                    }
-                    let row=try state.append(opaque, name: name, parentID: id, complete: (foreign || cloud) ? false : nil)
-                    state.recordEntry(child)
-                    let node=row.node
-                    total.logicalBytes += node.logicalBytes; total.allocatedBytes += node.allocatedBytes
-                    total.fileCount += node.fileCount
-                    total.newestModifiedNanoseconds=max(total.newestModifiedNanoseconds, node.newestModifiedNanoseconds)
-                    if !foreign && !cloud && item.kind == "directory" { directories.append((name, item, node, row.id)) }
+                    try flush()
+                }
+                let complete=try StorageBulkReader.enumerate(descriptor, checkpoint: state.check, consume: consume)
+                if !complete {
+                    try consume(SecurePaths.names(descriptor).map { StorageReadEntry(name: $0, entry: nil, flags: 0) })
                 }
             } catch let error as ShouError where error.code == "cancelled" || error.code == "store_corrupt" {
                 throw error
@@ -481,7 +505,10 @@ extension NativeFileSystem {
         let result=state.result()
         let limited=result.issues.contains { $0.hasPrefix("resource_limit") }
         progress(ScanProgress(stage: "analysis", entryCount: result.count, currentPath: path, limitReached: limited))
-        try database.seal(checkpoint: { try state.checkForCommit() })
+        try database.seal(progress: { completed, total in
+            progress(ScanProgress(stage: "analysis", entryCount: result.count, currentPath: path, limitReached: limited,
+                completedUnitCount: completed, totalUnitCount: total))
+        }, checkpoint: { try state.checkForCommit() })
         let values=try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
         return StorageMeasurement(tree: TreeSnapshot(entries: [identity], complete: total.isComplete == true, issues: result.issues,
             caseSensitive: values?.volumeSupportsCaseSensitiveNames ?? true), entryCount: result.count)
@@ -527,12 +554,7 @@ extension NativeFileSystem {
             do {
                 // Discover every immediate sibling before descending. There is
                 // deliberately no deletion-manifest entry cap in measurement.
-                #if canImport(Darwin)
-                let bulk=try StorageBulkReader.entries(descriptor, checkpoint: checkCancellation)
-                #else
-                let bulk: [StorageReadEntry]?=nil
-                #endif
-                let children=try bulk ?? SecurePaths.names(descriptor).map { StorageReadEntry(name: $0, entry: nil, flags: 0) }
+                let children=try SecurePaths.names(descriptor).map { StorageReadEntry(name: $0, entry: nil, flags: 0) }
                 for childEntry in children {
                     let name=childEntry.name
                     try checkCancellation()
@@ -610,7 +632,10 @@ extension NativeFileSystem {
         try checkCancellation()
         let limited=issues.contains { $0.hasPrefix("resource_limit") }
         progress(ScanProgress(stage: "analysis", entryCount: count, currentPath: path, limitReached: limited))
-        try database.seal(checkpoint: checkCancellation)
+        try database.seal(progress: { completed, total in
+            progress(ScanProgress(stage: "analysis", entryCount: count, currentPath: path, limitReached: limited,
+                completedUnitCount: completed, totalUnitCount: total))
+        }, checkpoint: checkCancellation)
         if issueCount > issues.count { issues.append("additional_coverage_issues: " + String(issueCount - issues.count)) }
         let values=try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
         return StorageMeasurement(tree: TreeSnapshot(entries: [identity], complete: total.isComplete == true, issues: issues,

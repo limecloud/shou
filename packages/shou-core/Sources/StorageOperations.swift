@@ -41,14 +41,44 @@ public struct StorageRemovalPlan: Codable, Sendable, Identifiable {
 /// expands only the selected ancestry, preserving every other sibling.
 public enum StorageSelection {
     public static func normalized(_ paths: Set<String>) -> Set<String> {
-        var result=Set<String>()
-        for path in paths.sorted(by: { $0.count < $1.count }) {
-            if !result.contains(where: { path == $0 || path.hasPrefix($0 + "/") }) { result.insert(path) }
+        paths.filter { path in
+            var parent=StorageIndex.parent(path)
+            while parent != "." {
+                if paths.contains(parent) { return false }
+                parent=StorageIndex.parent(parent)
+            }
+            return true
         }
-        return result
     }
     public static func contains(_ path: String, in paths: Set<String>) -> Bool {
-        paths.contains { path == $0 || path.hasPrefix($0 + "/") }
+        if paths.contains(path) { return true }
+        var parent=StorageIndex.parent(path)
+        while parent != "." {
+            if paths.contains(parent) { return true }
+            parent=StorageIndex.parent(parent)
+        }
+        return false
+    }
+    /// Apply a folder selection once, rather than normalizing the growing set
+    /// for every sibling. Descendant exclusions expand only their ancestry.
+    public static func setting(_ targets: Set<String>, selected: Bool, in paths: Set<String>, index: StorageIndex) -> Set<String> {
+        if selected { return normalized(paths.union(targets)) }
+        let excluded=normalized(targets)
+        var ancestors=Set<String>()
+        for target in excluded {
+            var parent=StorageIndex.parent(target)
+            while parent != "." {
+                ancestors.insert(parent)
+                parent=StorageIndex.parent(parent)
+            }
+        }
+        var pending=Array(paths), result=Set<String>()
+        while let path=pending.popLast() {
+            if contains(path, in: excluded) { continue }
+            if ancestors.contains(path) { pending.append(contentsOf: index.children(of: path).map(\.path)) }
+            else { result.insert(path) }
+        }
+        return result
     }
     public static func toggle(_ path: String, selected: Bool, paths: Set<String>, index: StorageIndex) -> Set<String> {
         if selected { return normalized(paths.union([path])) }
@@ -113,7 +143,10 @@ extension ShouEngine {
                 scan.tree.entries=entries.sorted { $0.path < $1.path }
             }
             progress(ScanProgress(stage: "saving", entryCount: measurement.entryCount, currentPath: path))
-            try StorageScanRecords.save(scan, store: store) {
+            try StorageScanRecords.save(scan, store: store, progress: { completed, total in
+                progress(ScanProgress(stage: "saving", entryCount: measurement.entryCount, currentPath: path,
+                    limitReached: measurement.tree.issues.contains("resource_limit"), completedUnitCount: completed, totalUnitCount: total))
+            }) {
                 if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
             }
             published=true
@@ -124,7 +157,10 @@ extension ShouEngine {
         guard tree.entries.first(where: { $0.path == "." })?.sameObject(as: identity) == true else { throw ShouError("plan_stale", "Analysis root changed during scanning.") }
         let scan=StorageScan(id: id, rootPath: path, identity: identity, createdAt: now(), tree: tree)
         progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, currentPath: path, limitReached: tree.issues.contains("resource_limit")))
-        try StorageScanRecords.save(scan, store: store) {
+        try StorageScanRecords.save(scan, store: store, progress: { completed, total in
+            progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, currentPath: path,
+                limitReached: tree.issues.contains("resource_limit"), completedUnitCount: completed, totalUnitCount: total))
+        }) {
             if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         }
         return scan
@@ -196,7 +232,7 @@ extension ShouEngine {
         // The platform supplies the current home identity without granting a cleanup root.
         (try? filesystem.analysisRootIdentity(homeDirectory.path).owner) ?? UInt32.max
     }
-    public func createStorageRemovalPlan(scanId: String, paths: [String], action: String = "trash", budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 600)) throws -> StorageRemovalPlan {
+    public func createStorageRemovalPlan(scanId: String, paths: [String], action: String = "trash", budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> StorageRemovalPlan {
         try budget.validate()
         guard ["trash", "permanent"].contains(action), !paths.isEmpty, paths.count <= 5000,
               paths.allSatisfy(StorageRemovalPolicy.validRelative) else { throw ShouError("invalid_argument", "Select explicit file or directory paths and a supported removal mode.") }
@@ -204,18 +240,28 @@ extension ShouEngine {
         let scan=try storageScan(scanId)
         guard try filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
         var items=[StorageRemovalItem]()
-        for path in StorageSelection.normalized(Set(paths)).sorted() {
+        let selected=StorageSelection.normalized(Set(paths)).sorted()
+        for path in selected {
             if Task.isCancelled { throw ShouError("cancelled", "Selection review stopped.") }
             if let reason=storageRemovalReason(scan: scan, path: path) { throw ShouError("permission_denied", reason, details: ["path": path]) }
             let full=StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path)
+            progress(ExecutionProgress(stage: "preflight", processedCount: items.count, itemCount: selected.count, path: full))
             let tree=try filesystem.inspectStorageTarget(full, budget: budget, cancelled: { Task.isCancelled })
-            guard tree.complete, let current=tree.entries.first(where: { $0.path == "." }),
-                  let saved=try storageEntry(scan: scan, path: path), current.metadata == renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed or could not be completely measured.", details: ["path": path]) }
+            guard tree.complete else {
+                throw ShouError(tree.issues.contains("resource_limit") ? "resource_limit" : "incomplete_scan",
+                    "This selection could not be completely read. Review access or scan again.", details: ["path": path, "reasons": tree.issues.prefix(10).joined(separator: ",")])
+            }
+            // Discovery is a navigation snapshot. A fresh manifest determines the scope
+            // shown for confirmation; replacing the selected object still invalidates it.
+            guard let current=tree.entries.first(where: { $0.path == "." }),
+                  let saved=try storageEntry(scan: scan, path: path), current.sameObject(as: saved), current.hasSameOwner(as: saved),
+                  current.kind == "directory" || current.metadata == renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed. Scan again before removing it.", details: ["path": path]) }
             if let reason=storageExclusionReason(scan: scan, entries: tree.entries.map { renamed($0, to: $0.path == "." ? path : path + "/" + $0.path) }) {
                 throw ShouError("permission_denied", reason, details: ["path": path])
             }
             let bytes=StorageIndex(entries: tree.entries).nodes["."]?.allocatedBytes ?? 0
             items.append(StorageRemovalItem(path: path, manifest: tree.entries, allocatedBytesEstimate: bytes))
+            progress(ExecutionProgress(stage: "preflight", processedCount: items.count, itemCount: selected.count, path: full))
         }
         var plan=StorageRemovalPlan(id: Codec.id("storage-plan"), scanId: scan.id, rootPath: scan.rootPath, identity: scan.identity, createdAt: now(), expiresAt: now().addingTimeInterval(900), action: action, items: items)
         plan.digest=try plan.calculatedDigest()
@@ -250,7 +296,7 @@ extension ShouEngine {
             let tree=try self.filesystem.inspectStorageTarget(items[index].originalPath, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled })
             guard tree.complete, tree.entries == item.manifest,
                   let saved=try self.storageEntry(scan: scan, path: item.path),
-                  tree.entries.first(where: { $0.path == "." })?.metadata == self.renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
+                  tree.entries.first(where: { $0.path == "." })?.sameObject(as: saved) == true else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
             if let reason=self.storageExclusionReason(scan: scan, entries: tree.entries.map { self.renamed($0, to: $0.path == "." ? item.path : item.path + "/" + $0.path) }) { return reason }
             return nil
         }

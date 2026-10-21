@@ -13,8 +13,9 @@ flowchart LR
     C --> D{Metadata complete?}
     D -- yes --> E[Build FileEntry in memory]
     D -- no --> F[fstatat fallback for that entry]
-    E --> G[One serialized SQLite catalog writer]
-    F --> G
+    E --> Batch[Flush at most 128 entries per lock]
+    F --> Batch
+    Batch --> G[One serialized SQLite catalog writer]
     G --> H[Queue child directories]
     H --> I[Postorder totals and identity recheck]
     I --> J[Seal catalog and publish scan]
@@ -26,6 +27,8 @@ The default reader count is `min(activeProcessorCount, 8)`, with a lower bound o
 
 SQLite remains a single writer. The catalog is opened with `SQLITE_OPEN_NOMUTEX`; `StorageParallelState` protects all appends and total updates with one lock. This avoids unsafe concurrent SQLite calls while allowing metadata reads to overlap. Waiting directories remain in a FIFO; only active readers are dispatched, so queued directories do not consume blocked threads. The scan is published only after the final transaction is sealed.
 
+The bulk reader validates and consumes one 64 KiB kernel page at a time. There is no 65,536-entry cutoff and no whole-directory metadata sort. A wide directory therefore keeps bulk I/O throughout. Each worker commits at most 128 measured entries per lock acquisition; metadata reads and progress callbacks run outside that lock. If a later bulk page fails, the no-follow name/stat reader retries the directory and a per-directory name set prevents duplicate rows. This retains names and queued child directories, so it is not a constant-memory traversal. Existing object, coverage and cancellation checks still apply.
+
 ```mermaid
 sequenceDiagram
     participant UI as Desktop or CLI
@@ -36,7 +39,7 @@ sequenceDiagram
     Parent->>Pool: Queue root; retain cancellation context
     loop Independent directories
         Pool->>Pool: Check cancellation; read bulk metadata
-        Pool->>DB: Append immediate entries
+        Pool->>DB: Append validated page in batches of at most 128
         Pool-->>UI: Throttled entry count and path
         Pool->>Pool: Queue children without waiting in a reader
     end
@@ -48,11 +51,24 @@ sequenceDiagram
         Parent->>DB: Seal transaction and indexes
         Parent-->>UI: Publish scan ID and measured count
     end
+    UI->>DB: Query one directory or large-file page
+    DB-->>UI: Measured entries and coverage
+    UI->>UI: Cache directory sort/filter; apply selection as one batch
 ```
+
+## Saved results and desktop interaction
+
+New catalogs maintain a partial `large_files` index on allocated size, name and parent for regular files allocated at least 1 MiB. Queries at or above that threshold include the literal partial-index predicate, allowing SQLite to skip tiny cache/build files for totals and pagination. Smaller thresholds and existing catalogs keep their compatible query path; existing user catalogs are not rewritten. A new scan produces the indexed format. The result still uses physical allocation, once-only hard-link charging, filename-extension classification and binary path ordering for tied sizes.
+
+macOS caches the current directory's size ordering, filter/sort result and local eligibility projection. Index replacement, navigation, query or sort changes invalidate the appropriate presentation. Hover and selection changes reuse those arrays. This cache is presentation only: deletion still prepares and validates fresh manifests through Core.
+
+`StorageSelection` tests ancestor membership using the selected-path set. Folder-wide selection normalizes the batch once; filtered deselection expands only the affected selected ancestry and retains other siblings. The native checkbox and Command-A share this batch operation. The portable implementation also serves CLI plan normalization; it does not change confirmation or removal authority.
+
+The bundled rule schema and fully validated built-in templates are immutable process-wide values. Binding a template to a workspace copies its typed rule and validates the changed root reference against the bundled schema. Dynamic workspace/location selection is still evaluated per request. Public template construction and external rule import continue through complete rule validation; neither arbitrary templates nor rules are cached by caller-supplied identifiers. This removes repeated JSON/schema decoding from common cleanup and repeated plan checks on both platforms.
 
 ## Why this follows MangoDisk's fast path
 
-MangoDisk's macOS implementation uses the same high-value ideas: `getattrlistbulk`, a bounded directory worker pool (up to eight workers), in-memory aggregation and a final index projection. The speedup comes primarily from fewer metadata round trips and overlapping independent directory latency. It is not evidence that the application is doing CPU-heavy parallel computation. Shou keeps its durable SQLite catalog so the CLI and desktop can page through results after publication; the reader side still follows the same batch-and-overlap model. The previous Shou path already batched regular-file metadata; this change overlaps directory reads and keeps exact directory stat evidence.
+MangoDisk's macOS implementation uses the same high-value ideas: `getattrlistbulk`, a bounded directory worker pool (up to eight workers), in-memory aggregation and a final index projection. The speedup comes primarily from fewer metadata round trips and overlapping independent directory latency. It is not evidence that the application is doing CPU-heavy parallel computation. Shou keeps its durable SQLite catalog so the CLI and desktop can page through results after publication; the reader side still follows the same batch-and-overlap model. The comparison baseline below already had bulk metadata reads and a directory worker pool. This iteration removes the wide-directory bulk cutoff and sorting, streams pages, batches catalog locks and preserves exact directory stat evidence.
 
 BuhoCleaner was inspected for package and runtime boundaries with REA. Its native scan internals could not be fully disassembled in this environment because Hopper, Ghidra and IDA providers were unavailable. It is therefore used as a product reference, not as proof of a particular thread count or syscall strategy.
 
@@ -81,6 +97,43 @@ SHOU_STORAGE_SCAN_WORKERS=8 .build/debug/shou-tests --storage-performance-only
 
 The override is for local comparison only; the shipped default remains bounded and device-independent. Benchmark reports must include the machine, macOS version, filesystem type, warm/cold cache state, entry count, elapsed time and coverage issues. A local fixture result is not a promise for every disk or cloud volume.
 
+## Release measurements (2026-10-21)
+
+Local Apple M1 MacBookPro17,1, 8 CPU cores, 16 GB memory, macOS 15.7.3 and APFS. Before/after Release executables alternated for three pairs per workload and worker count, with warm repeated reads and no cache purge. Each run verified complete coverage, exact entry count and identical logical/allocated totals. This is elapsed CLI scan time, including its read worker and durable publication. RSS is the maximum for a single process reported by `/usr/bin/time -l`, not the sum of the process tree.
+
+| Workload | Entries | Readers | Before median | After median | Before / after max process RSS |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 64 generated directories | 65,601 | 1 | 0.4718 s | 0.4419 s | 22.2 / 19.3 MiB |
+| 64 generated directories | 65,601 | 8 | 0.3813 s | 0.2496 s | 26.2 / 22.5 MiB |
+| One wide directory | 70,001 | 1 | 0.5668 s | 0.3673 s | 48.8 / 23.2 MiB |
+| One wide directory | 70,001 | 8 | 0.5273 s | 0.3842 s | 47.2 / 23.2 MiB |
+| Combined generated tree | 135,604 | 1 | 1.0681 s | 0.8637 s | 54.1 / 26.7 MiB |
+| Combined generated tree | 135,604 | 8 | 0.8868 s | 0.7993 s | 56.8 / 30.1 MiB |
+| Read-only Rust documentation | 50,625 | 8 | 0.3601 s | 0.3260 s | 33.4 / 23.5 MiB |
+| Read-only Cargo registry | 85,371 | 8 | 0.9255 s | 0.8895 s | 35.7 / 35.4 MiB |
+
+Eight readers primarily help independent directories; they did not beat one reader on the optimized single wide directory. The host had substantial unrelated CPU/memory pressure, so these local medians do not establish a universal speedup. An earlier Debug series showed Rust documentation with eight readers regressing from 1.715 s to 1.969 s; retain that result alongside the Release comparison instead of treating all workloads as faster. The generated before/after catalogs additionally matched every metadata row and total for 65,601 and 70,001 entries. A separate generated 1,000,005-row catalog test passed in 70.48 s under load, using 89.4 MiB maximum process RSS; it measures catalog construction, not filesystem traversal.
+
+Evidence: `.build/performance-20261021/paired-release-final/results.json`, `paired-debug/results.json`, `catalog-parity.json`, `million-catalog.log` and `after-release-binary.json`. Benchmark scripts and retained binaries are adjacent. These local evidence files are not distribution assets.
+
+After validation, generated scan roots and isolated catalog copies were removed; reports, integrity summaries, logs and comparison binaries remain. `generated-data-cleanup.json` records the exact scope. Rerunning the benchmarks requires recreating their input data.
+
+Saved large-file queries were compared on isolated copies of a 7,083,140-row catalog, alternating five pairs with first/next pages. All 60 responses matched completely, including candidates, totals, cursors, removal reasons and partial coverage; the original user catalog was read-only. Median elapsed CLI time across both pages:
+
+| Filter | Original index | Partial index |
+| --- | ---: | ---: |
+| At least 50 MiB, all types | 7.7807 s | 0.1326 s |
+| At least 1 MiB, all types | 3.9136 s | 0.2201 s |
+| At least 1 MiB, video | 5.5245 s | 0.2588 s |
+
+This compares compatible saved formats; existing catalogs obtain the new index on rescan. The source scan remains partial and the benchmark does not prove full-disk coverage. The first harness incorrectly required exit 0 for a partial result; it was corrected to accept the documented exit 6 while still comparing all returned data. Evidence: `paired-large-files.json`, `paired-large-files-final.log`; the failed harness log is retained separately.
+
 ## Platform scope
 
-This optimization is implemented in the macOS native adapter. Windows keeps its separate platform traversal and must use the same observable contracts—bounded concurrency, no-link traversal, partial coverage, cancellation and durable publication—when its native worker is evolved. A Windows build or benchmark is not claimed by macOS-only validation.
+The page-streaming and catalog-lock changes are implemented in the macOS native adapter. Partial catalog indexing, selection normalization and immutable bundled-rule validation live in shared Swift Core. Windows uses its separate platform traversal; its progress paths and process-bridge behavior are synchronized. The WPF Release cross-build and 12 process-bridge checks passed on this Mac. Windows native C++ traversal and actual Windows UI/runtime performance remain unverified here.
+
+### Progress presentation
+
+Discovery has no fixed denominator and shows a live entry count. Once a stage has a known set of work, `ScanProgress.completedUnitCount` / `totalUnitCount` report its actual completion: catalog sealing statements, transferred pages, validated entries and durable result pages. The percentage describes the named stage, not elapsed time or whole-disk coverage. A partial scan can finish saving at 100% while retaining incomplete coverage. Both desktops shorten long progress paths only in the middle, retaining the path origin and filename suffix without splitting Unicode text elements. macOS passes the complete single-line path to native middle truncation; Windows fits the text to its measured width with a 64-text-element cap. Avoid pre-shortening followed by another layout truncation, which creates two ellipses. The original path is available on hover. CLI and bridge paths retain their complete values.
+
+Permanent removal additionally reports manifest-entry progress inside the current selected item. These transient updates do not replace the durable receipt or treat failed items as successfully removed.

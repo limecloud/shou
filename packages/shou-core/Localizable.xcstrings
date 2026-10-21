@@ -20326,7 +20326,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Moved to Trash"
+            "value": "trashed"
           }
         },
         "zh-Hans": {
@@ -20445,6 +20445,374 @@
           "stringUnit": {
             "state": "translated",
             "value": "uv 依赖包缓存"
+          }
+        }
+      }
+    },
+    "Cleanup could not start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup could not start"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法开始清理"
+          }
+        }
+      }
+    },
+    "This selection could not be completely read. Review access or scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This selection could not be completely read. Review access or scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能完整读取所选内容。请检查访问权限或重新扫描后重试。"
+          }
+        }
+      }
+    },
+    "Selected item changed. Scan again before removing it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected item changed. Scan again before removing it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选项目已变化，请重新扫描后再清理。"
+          }
+        }
+      }
+    },
+    "Selected item changed since confirmation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected item changed since confirmation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选内容在确认后发生了变化，请重新核验后再清理。"
+          }
+        }
+      }
+    },
+    "Selected item changed or could not be completely measured.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected item changed or could not be completely measured."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选项目已变化或未能完整测量，请重新核验后再清理。"
+          }
+        }
+      }
+    },
+    "Clear Finished Records…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Finished Records…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理已结束记录…"
+          }
+        }
+      }
+    },
+    "Clear history records?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear history records?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理操作记录？"
+          }
+        }
+      }
+    },
+    "Clear Records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear Records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理记录"
+          }
+        }
+      }
+    },
+    "%lld records · %@ of local data": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld records · %@ of local data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条记录 · 本地数据 %@"
+          }
+        }
+      }
+    },
+    "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。"
+          }
+        }
+      }
+    },
+    "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅清理已结束的记录，文件保持原位。恢复所需和未结束的记录会保留。"
+          }
+        }
+      }
+    },
+    "Hide Details": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收起详情"
+          }
+        }
+      }
+    },
+    "Remove Record…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove Record…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除此记录…"
+          }
+        }
+      }
+    },
+    "System-managed locations are excluded from analysis.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System-managed locations are excluded from analysis."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析范围不包含系统管理的位置。"
+          }
+        }
+      }
+    },
+    "Some locations in this folder need attention.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some locations in this folder need attention."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前目录的部分位置需要处理。"
+          }
+        }
+      }
+    },
+    "Managed by the system; no action is needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Managed by the system; no action is needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位置由系统管理，无需处理。"
+          }
+        }
+      }
+    },
+    "No access changes are needed for system-managed locations.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No access changes are needed for system-managed locations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统管理的位置无需更改权限。"
+          }
+        }
+      }
+    },
+    "Show system-managed locations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show system-managed locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示系统管理的位置"
+          }
+        }
+      }
+    },
+    "Active or recoverable records were preserved. Review the history selection.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active or recoverable records were preserved. Review the history selection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在执行或恢复所需的记录已保留，请重新检查选择。"
+          }
+        }
+      }
+    },
+    "Select history records to remove.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select history records to remove."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择需要清理的操作记录。"
+          }
+        }
+      }
+    },
+    "Moved identity or contents could not be verified.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Moved identity or contents could not be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移入废纸篓后未能完成核验，请在详情中核验位置。"
+          }
+        }
+      }
+    },
+    "purged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "purged"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已永久清理"
+          }
+        }
+      }
+    },
+    "Rescan This Folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rescan This Folder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新扫描当前文件夹"
           }
         }
       }

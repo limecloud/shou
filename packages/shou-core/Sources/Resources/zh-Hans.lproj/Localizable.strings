@@ -18,6 +18,7 @@
 "%lld of %lld applications checked" = "已检查 %lld / %lld 个应用";
 "%lld of %lld items processed" = "已处理 %lld / %lld 项";
 "%lld of %lld sources processed" = "已处理 %lld / %lld 个来源";
+"%lld records · %@ of local data" = "%lld 条记录 · 本地数据 %@";
 "1. Copy the request to Codex, Claude Code, or WorkBuddy." = "1. 复制请求，交给已有的 Codex、Claude Code 或 WorkBuddy。";
 "2. Answer questions about your projects and what to keep." = "2. 回答项目用途、重建方式和保留项等必要问题。";
 "3. Review the draft in Shou, then enable it when ready." = "3. 确认并启用规则一次，后续清理自动包含。";
@@ -35,6 +36,7 @@
 "A valid application identifier and metadata are required before uninstalling." = "卸载前需要有效的应用标识和元数据。";
 "AI Models" = "AI 模型";
 "Access required" = "需要访问权限";
+"Active or recoverable records were preserved. Review the history selection." = "正在执行或恢复所需的记录已保留，请重新检查选择。";
 "Add Exclusion" = "添加排除";
 "Add Workspace" = "添加工作区";
 "Add Workspace…" = "添加工作区…";
@@ -246,6 +248,7 @@
 "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space." = "清理操作始终需要确认。移入废纸篓不会立即释放磁盘空间。";
 "Cleanup candidates" = "清理候选项";
 "Cleanup complete" = "清理完成";
+"Cleanup could not start" = "暂时无法开始清理";
 "Cleanup exclusions could not be verified." = "无法核验清理排除配置。";
 "Cleanup finished with issues" = "清理已结束，部分项目需处理";
 "Cleanup rules made for your Mac" = "为你的 Mac 定制清理规则";
@@ -253,7 +256,10 @@
 "Cleanup stopped" = "清理已停止";
 "Cleanup stopped before any files were moved." = "清理已停止，尚未移动任何文件。";
 "Cleanup stopped before this location was processed." = "清理已停止，此位置尚未处理。";
+"Clear Finished Records…" = "清理已结束记录…";
+"Clear Records" = "清理记录";
 "Clear Selection" = "清空选择";
+"Clear history records?" = "清理操作记录？";
 "Click to inspect. Double-click a folder to open it." = "单击查看详情，双击进入文件夹。";
 "Close" = "关闭";
 "Close browser first" = "请先关闭浏览器";
@@ -433,6 +439,7 @@
 "HTTP storage" = "HTTP 存储";
 "Helium caches" = "Helium 缓存";
 "Hex download caches" = "Hex 下载缓存";
+"Hide Details" = "收起详情";
 "Hide components" = "收起组件";
 "High risk" = "高风险";
 "High risk (required for installed dependencies)" = "高风险（已安装依赖必须选择）";
@@ -524,6 +531,7 @@
 "Logseq caches" = "Logseq 缓存";
 "MPV caches" = "MPV 缓存";
 "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition." = "请在“全部位置”中管理这些模式。各条规则的排除项保留在规则定义中。";
+"Managed by the system; no action is needed." = "此位置由系统管理，无需处理。";
 "Manage…" = "管理…";
 "Manifest changed" = "目录清单已变化";
 "Manifest matches" = "目录清单一致";
@@ -557,6 +565,7 @@
 "Move to Trash after review" = "审阅后移到废纸篓";
 "Move to Trash…" = "移入废纸篓…";
 "Moved" = "已移入";
+"Moved identity or contents could not be verified." = "移入废纸篓后未能完成核验，请在详情中核验位置。";
 "Moved to Trash" = "已移入废纸篓";
 "Moved to Trash (estimate)" = "已移入废纸篓（估计）";
 "Moved to Trash. Available disk space is measured separately." = "已移到废纸篓。磁盘可用空间单独统计。";
@@ -575,6 +584,7 @@
 "New Rule…" = "新建规则…";
 "Newest modification" = "最新修改";
 "Newest modification at least %lld days ago" = "目录及后代至少 %lld 天未修改";
+"No access changes are needed for system-managed locations." = "系统管理的位置无需更改权限。";
 "No allocated data in this folder" = "此目录没有已分配的数据";
 "No applications found in these directories" = "这些目录中未发现应用";
 "No applications in this category" = "此分类中没有应用";
@@ -625,8 +635,10 @@
 "One Exact Folder" = "一个确切目录";
 "One relative pattern per line" = "相对路径模式，每行一条";
 "One scan. A tidier Mac." = "扫描一次，一起收好。";
+"Only finished records are removed. Files stay in place; recoverable and unfinished records are kept." = "仅清理已结束的记录，文件保持原位。恢复所需和未结束的记录会保留。";
 "Only measured space is included. Complete folders remain available even when another location cannot be read." = "结果仅包含已统计的空间。部分位置无法读取，不影响其他完整目录的浏览与审阅。";
 "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained." = "仅匹配已明确列出的用户缓存目录。保留文稿、偏好设置和系统数据。";
+"Only records are removed. Files stay in place, but Shou can no longer restore or verify these records." = "仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。";
 "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview." = "本次仅在发现深度和扫描预算内测量规则路径，不代表整个工作区的空间分析。修改任一字段后需重新预览。";
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "仅检查列出的应用目录及其下两层文件夹。不枚举内嵌应用、安装包收据或自定义安装位置。";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "仅描述此目录，不能选中工作区本身或工作区外的目录。";
@@ -799,11 +811,13 @@
 "Relative pattern" = "相对路径模式";
 "Removal recorded; Trash object is absent" = "已记录永久移除，废纸篓对象不存在";
 "Remove Exclusion" = "移除排除";
+"Remove Record…" = "删除此记录…";
 "Report an Issue" = "问题反馈";
 "Request Quit" = "请求退出";
 "Requested rule is not enabled in this workspace." = "此工作区尚未启用所请求的规则。";
 "Required for uninstall" = "卸载必选";
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "重新安装需要网络或本地包缓存。请保留经过修改、链接、私有或未发布的包。";
+"Rescan This Folder" = "重新扫描当前文件夹";
 "Restore destination already exists; nothing was overwritten." = "还原位置已存在，未覆盖任何内容。";
 "Restore destination is occupied" = "恢复位置已被占用";
 "Restore these items?" = "恢复这些项目？";
@@ -931,9 +945,13 @@
 "Select available items in this cleanup" = "选择本次清理中可操作的项目";
 "Select explicit receipt items and a supported action." = "请明确选择执行记录中的项目及受支持的操作。";
 "Select files or folders to remove" = "选择需要删除的文件或文件夹";
+"Select history records to remove." = "请选择需要清理的操作记录。";
 "Select the application and eligible components; personal data requires separate consent." = "请选择应用及可处理的组件；个人数据需要单独同意。";
 "Selected" = "已选";
 "Selected applications permanently uninstalled." = "所选应用已永久卸载。";
+"Selected item changed or could not be completely measured." = "所选项目已变化或未能完整测量，请重新核验后再清理。";
+"Selected item changed since confirmation." = "所选内容在确认后发生了变化，请重新核验后再清理。";
+"Selected item changed. Scan again before removing it." = "所选项目已变化，请重新扫描后再清理。";
 "Selected items permanently removed." = "所选项目已永久移除。";
 "Selected items processed. Refresh to measure current disk usage." = "所选项目已处理，刷新以重新统计磁盘占用。";
 "Selected items restored." = "所选项目已恢复。";
@@ -960,6 +978,7 @@
 "Show Skill in Finder…" = "在访达中显示 Skill…";
 "Show components" = "展开组件";
 "Show in Space Analysis" = "在空间分析中显示";
+"Show system-managed locations" = "显示系统管理的位置";
 "Show unavailable locations" = "显示不可用位置";
 "Showing the first 200 measured folders. Counts include all measured rows." = "显示前 200 个已测量目录，统计包含全部已测量行。";
 "Showing the first 50 scan notes." = "当前显示前 50 条扫描说明。";
@@ -986,6 +1005,7 @@
 "Some items were not moved. Inspect history." = "部分项目未移动，请查看记录。";
 "Some locations could not be fully scanned." = "部分位置未能完整扫描。";
 "Some locations could not be measured. Review scan coverage." = "部分位置无法统计，请查看扫描范围说明。";
+"Some locations in this folder need attention." = "当前目录的部分位置需要处理。";
 "Some locations need attention" = "部分位置需要关注";
 "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup." = "部分路径未能完整扫描。仅可审阅已独立核验的清理项。";
 "Some selected items could not be processed. Inspect history." = "部分所选项目未能处理，请查看历史记录。";
@@ -1048,6 +1068,7 @@
 "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually." = "无法打开系统设置，请手动前往“隐私与安全性 → 完全磁盘访问权限”。";
 "System Settings…" = "系统设置…";
 "System state not checked" = "系统状态未核验";
+"System-managed locations are excluded from analysis." = "分析范围不包含系统管理的位置。";
 "TablePlus caches" = "TablePlus 缓存";
 "Target Selection" = "目标选择";
 "Target identity or full directory manifest changed." = "目标身份或完整目录清单已变化。";
@@ -1113,6 +1134,7 @@
 "This record has unfinished actions. Verification does not retry them or authorize another operation." = "此记录存在未完成操作。核验不会重试这些操作，也不授予再次操作的权限。";
 "This root is protected or is not owned by the current user." = "此根目录受保护或不归当前用户所有。";
 "This selection contains excluded content." = "所选内容包含已排除的项目。";
+"This selection could not be completely read. Review access or scan again." = "未能完整读取所选内容。请检查访问权限或重新扫描后重试。";
 "This system location is protected." = "此系统位置受保护。";
 "Thunderbird caches" = "Thunderbird 缓存";
 "Tidy up. That's it." = "收好，就好。";
@@ -1256,6 +1278,7 @@
 "protected_application" = "系统应用或当前应用受保护，不能卸载。";
 "protected_content" = "包含受保护的内容";
 "purge" = "已永久移除";
+"purged" = "已永久清理";
 "pyenv download caches" = "pyenv 下载缓存";
 "qBittorrent caches" = "qBittorrent 缓存";
 "rbenv download caches" = "rbenv 下载缓存";

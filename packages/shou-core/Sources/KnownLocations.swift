@@ -50,6 +50,28 @@ public enum KnownLocations {
         }
         return values
     }
+    private struct ScopedDefinition: Sendable {
+        let definition: Definition
+        let ruleIds: [String]
+        let bundleIdentifiers: [String]
+    }
+    /// Validate immutable resource relationships once. Paths and filesystem
+    /// availability remain specific to each caller and are never cached here.
+    private static let scopedDefinitions: Result<[ScopedDefinition], Error> = Result {
+        let templates=try BuiltinCatalog.templates()
+        let values=try definitions.get()
+        for template in templates where template.location != "projects" {
+            guard template.supportedPlatforms.allSatisfy({ supported in values.contains { $0.id == template.location && $0.platform == supported } }) else {
+                throw ShouError("invalid_rule", "A built-in rule has no platform-scoped scan location.", details: ["rule": template.id, "location": template.location])
+            }
+        }
+        return try values.map { definition in
+            let rules=templates.filter { $0.location == definition.id && $0.supportedPlatforms.contains(definition.platform) }
+            guard !rules.isEmpty else { throw ShouError("invalid_rule", "A built-in scan location has no scoped rules.", details: ["location": definition.id]) }
+            return ScopedDefinition(definition: definition, ruleIds: rules.map(\.id),
+                bundleIdentifiers: Set(rules.flatMap { $0.applicationBundleIdentifiers ?? [] }).sorted())
+        }
+    }
     public static var currentPlatform: String {
         #if os(macOS)
         "macos"
@@ -62,20 +84,12 @@ public enum KnownLocations {
 
     /// Windows roots will be added with a Windows filesystem adapter and verified rules.
     public static func catalog(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, platform: String = currentPlatform) throws -> [KnownLocation] {
-        let templates=try BuiltinCatalog.templates()
-        let values=try definitions.get()
-        for template in templates where template.location != "projects" {
-            guard template.supportedPlatforms.allSatisfy({ supported in values.contains { $0.id == template.location && $0.platform == supported } }) else {
-                throw ShouError("invalid_rule", "A built-in rule has no platform-scoped scan location.", details: ["rule": template.id, "location": template.location])
-            }
-        }
-        return try values.filter { $0.platform == platform }.map { definition in
+        try scopedDefinitions.get().filter { $0.definition.platform == platform }.map { scoped in
+            let definition=scoped.definition
             let path=homeDirectory.appendingPathComponent(definition.relativePath, isDirectory: true).path
-            let rules=templates.filter { $0.location == definition.id && $0.supportedPlatforms.contains(definition.platform) }
-            guard !rules.isEmpty else { throw ShouError("invalid_rule", "A built-in scan location has no scoped rules.", details: ["location": definition.id]) }
             return KnownLocation(id: definition.id, title: definition.title, path: path,
-                ruleIds: rules.map(\.id), category: definition.category,
-                applicationBundleIdentifiers: Set(rules.flatMap { $0.applicationBundleIdentifiers ?? [] }).sorted(), exists: false, availabilityIssue: nil)
+                ruleIds: scoped.ruleIds, category: definition.category,
+                applicationBundleIdentifiers: scoped.bundleIdentifiers, exists: false, availabilityIssue: nil)
         }
     }
 }

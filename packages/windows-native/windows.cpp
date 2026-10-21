@@ -271,6 +271,15 @@ int shou_win_read(const char *input,size_t limit,void **bytes,size_t *count){
     if(code){free(data);return code;}*bytes=data;*count=total;return 0;
 }
 int shou_win_private_directory(const char *input){std::wstring path;auto code=normalized(input,path);return code?code:private_acl(path,true);}
+int shou_win_remove_record(const char *input){
+    std::wstring path;auto code=normalized(input,path);if(code)return code;
+    Handles pins;HANDLE handle;
+    if((code=open(path,pins,handle,FILE_READ_ATTRIBUTES|READ_CONTROL|DELETE,FILE_SHARE_READ)))return code==ERROR_FILE_NOT_FOUND?0:code;
+    shou_win_info current{};if((code=info(handle,&current)))return code;
+    if(current.kind!=1 || !current.current_user || current.links!=1)return ERROR_ACCESS_DENIED;
+    FILE_DISPOSITION_INFO disposition{TRUE};
+    return SetFileInformationByHandle(handle,FileDispositionInfo,&disposition,sizeof(disposition))?0:GetLastError();
+}
 struct shou_win_lock{HANDLE handle;OVERLAPPED range;};
 int shou_win_lock_acquire(const char *input,shou_win_lock **result){
     *result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;

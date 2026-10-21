@@ -32,7 +32,7 @@ private struct StorageAnalysisView: View {
     @FocusState private var keyboardArea: StorageKeyboardArea?
     var body: some View {
         VStack(spacing: 0) {
-            if !session.scanning { ScanAccessBanner(model: model) }
+            if !session.scanning && session.scan == nil { ScanAccessBanner(model: model) }
             if session.scanning { scanning }
             else if session.scan == nil { entry }
             else { results }
@@ -74,17 +74,27 @@ private struct StorageAnalysisView: View {
     private var results: some View {
         VStack(spacing: 0) {
             navigation
-            if session.scan?.tree.complete == false {
+            if session.hasChanges && session.coverageNotes.isEmpty {
                 HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange)
-                    Text(model.t("Partial analysis: some locations could not be fully measured.")).font(.caption)
+                    Image(systemName: "info.circle").foregroundStyle(.secondary)
+                    Text(model.t("Selected items processed. Refresh to measure current disk usage.")).font(.caption)
+                    Spacer()
+                    Button(model.t("Refresh")) { session.start(app: model, retainPath: true) }
+                        .buttonStyle(.link).disabled(model.busy)
+                }.padding(.horizontal, 20).padding(.vertical, 9).background(.quaternary.opacity(0.25))
+            } else if session.currentFolderIncomplete {
+                HStack(spacing: 8) {
+                    Image(systemName: session.actionableCoverage.isEmpty ? "info.circle" : "exclamationmark.triangle")
+                        .foregroundStyle(session.actionableCoverage.isEmpty ? Color.secondary : Color.orange)
+                    Text(model.t(session.actionableCoverage.isEmpty ? "System-managed locations are excluded from analysis." : "Some locations in this folder need attention.")).font(.caption)
                     Spacer()
                     Button(model.t("Details")) { showingCoverage=true }
                         .buttonStyle(.link).accessibilityIdentifier("storage.coverage")
                         .popover(isPresented: $showingCoverage) {
                             StorageCoverageView(model: model, session: session, dismiss: { showingCoverage=false })
                         }
-                }.padding(.horizontal, 20).padding(.vertical, 9).background(.orange.opacity(0.06))
+                }.padding(.horizontal, 20).padding(.vertical, 9)
+                    .background(session.actionableCoverage.isEmpty ? Color.secondary.opacity(0.05) : Color.orange.opacity(0.06))
             }
             Divider()
             HSplitView {
@@ -136,7 +146,7 @@ private struct StorageAnalysisView: View {
                 if !session.query.isEmpty { Button { session.query="" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain) }
             }.padding(10).background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 7)).padding(12)
             HStack {
-                let eligible=session.children.filter { session.reason($0) == nil }
+                let eligible=session.eligibleChildren
                 let count=eligible.filter { session.isSelected($0.path) }.count
                 SelectionCheckbox(state: count == 0 ? .off : count == eligible.count ? .on : .mixed,
                     enabled: !eligible.isEmpty && !model.busy, label: model.t("Select All in This Folder"),
@@ -275,9 +285,7 @@ private struct StorageAnalysisView: View {
     private func handleKeyPress(_ press: KeyPress) -> KeyPress.Result {
         guard keyboardArea != nil, !model.busy else { return .ignored }
         if press.key == "a", press.modifiers == .command {
-            for node in session.children where session.reason(node) == nil {
-                session.selected=StorageSelection.toggle(node.path, selected: true, paths: session.selected, index: session.index)
-            }
+            session.selectVisible(app: model, toggle: false)
             return .handled
         }
         if press.key == .escape { session.selected=[]; return .handled }
@@ -299,7 +307,8 @@ struct StorageCoverageView: View {
     var session: StorageSession
     var dismiss: () -> Void
     @State private var copied: String?
-    private var issues: [String] { session.scan?.tree.issues ?? [] }
+    @State private var showingSystem=false
+    private var notes: [StorageCoverageNote] { session.coverageNotes.filter { showingSystem || !$0.systemManaged } }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(model.t("Scan Coverage")).font(.headline)
@@ -307,32 +316,17 @@ struct StorageCoverageView: View {
                 .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 14) {
-                    ForEach(Array(issues.prefix(50).enumerated()), id: \.offset) { _, issue in
-                        let parts=issue.components(separatedBy: ": ")
-                        HStack(alignment: .top, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(model.t(reason(parts[0]))).font(.callout.weight(.medium))
-                                if parts.count > 1 {
-                                    Text(parts.dropFirst().joined(separator: ": ")).font(.caption.monospaced())
-                                        .foregroundStyle(.secondary).textSelection(.enabled)
-                                }
-                            }.frame(maxWidth: .infinity, alignment: .leading)
-                            if parts.count > 1 {
-                                Button {
-                                    let relative=parts.dropFirst().joined(separator: ": ")
-                                    let path=StorageRemovalPolicy.absolute(root: session.scan?.rootPath ?? "/", relative: relative)
-                                    NSPasteboard.general.clearContents(); NSPasteboard.general.setString(path, forType: .string)
-                                    copied=issue
-                                } label: { Image(systemName: copied == issue ? "checkmark" : "doc.on.doc") }
-                                    .buttonStyle(.borderless).help(model.t("Copy Path"))
-                                    .accessibilityLabel(model.t("Copy Path"))
-                            }
-                        }
+                    ForEach(Array(notes.prefix(50).enumerated()), id: \.offset) { _, note in
+                        noteRow(note)
                     }
                 }.padding(.trailing, 8)
             }.frame(maxHeight: 280)
-            if issues.count > 50 {
+            if notes.isEmpty { Text(model.t("No access changes are needed for system-managed locations.")).font(.callout).foregroundStyle(.secondary) }
+            if notes.count > 50 {
                 Text(model.t("Showing the first 50 scan notes.")).font(.caption).foregroundStyle(.secondary)
+            }
+            if session.coverageNotes.contains(where: \.systemManaged) {
+                Toggle(model.t("Show system-managed locations"), isOn: $showingSystem).font(.caption)
             }
             Divider()
             HStack {
@@ -343,9 +337,37 @@ struct StorageCoverageView: View {
                     }
                 }
                 Spacer()
-                Button(model.t("Scan Again")) { dismiss(); session.start(app: model, retainPath: true) }.disabled(model.busy)
+                Button(model.t("Rescan This Folder")) { dismiss(); session.rescanCurrentFolder(app: model) }.disabled(model.busy)
             }
         }.padding(20).frame(width: 460)
+    }
+    private func noteRow(_ note: StorageCoverageNote) -> some View {
+        let issue=note.code + ": " + note.path
+        return HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(model.t(note.systemManaged ? "Managed by the system; no action is needed." : reason(note.code)))
+                    .font(.callout.weight(.medium))
+                if !note.path.isEmpty {
+                    Text(ProgressPresentation.shortPath(note.path)).font(.caption)
+                        .foregroundStyle(.secondary).textSelection(.enabled).help(note.path)
+                }
+                if !note.systemManaged && ["authorization_required", "unreadable", "unreadable_directory"].contains(note.code) {
+                    HStack {
+                        Button(model.t("Finish Setup…")) { dismiss(); model.scanAccess.showingSetup=true }
+                        Button(model.t("Reveal in Finder")) { session.reveal(note.path) }
+                    }.font(.caption).buttonStyle(.link)
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading)
+            if !note.path.isEmpty {
+                Button {
+                    let path=StorageRemovalPolicy.absolute(root: session.scan?.rootPath ?? "/", relative: note.path)
+                    NSPasteboard.general.clearContents(); NSPasteboard.general.setString(path, forType: .string)
+                    copied=issue
+                } label: { Image(systemName: copied == issue ? "checkmark" : "doc.on.doc") }
+                    .buttonStyle(.borderless).help(model.t("Copy Path"))
+                    .accessibilityLabel(model.t("Copy Path"))
+            }
+        }
     }
     private func reason(_ code: String) -> String {
         switch code {
@@ -369,7 +391,7 @@ private struct StorageTreemap: View {
     var customize: (String) -> Void
     var preview: (String) -> Void
     private var nodes: [StorageNode] {
-        let all=session.index.children(of: session.path)
+        let all=session.measuredChildren
         guard all.count > 160 else { return all }
         let remaining=all.dropFirst(160)
         return Array(all.prefix(160)) + [StorageNode(path: "", kind: "remainder", logicalBytes: remaining.reduce(0) { $0 + $1.logicalBytes }, allocatedBytes: remaining.reduce(0) { $0 + $1.allocatedBytes }, fileCount: remaining.reduce(0) { $0 + $1.fileCount }, newestModifiedNanoseconds: 0)]

@@ -10,10 +10,10 @@ struct ExecutionProgressView: View {
         let update=model.executionProgress
         OperationProgressView(title: model.executionTitle,
             subtitle: model.t("Tidy up. That's it."),
-            symbol: update?.stage == "restoring" ? "folder.fill" : update?.stage == "moving" ? "trash.fill" : model.executionUsesSources ? "hand.raised.fill" : "tray.fill",
+            symbol: update?.stage == "restoring" ? "folder.fill" : ["moving", "purging", "finalizing"].contains(update?.stage ?? "") ? "trash" : model.executionUsesSources ? "hand.raised.fill" : "doc.text.magnifyingglass",
             currentPath: update?.path ?? "",
-            countText: update.map { String(format: model.t(model.executionUsesSources ? "%lld of %lld sources processed" : "%lld of %lld items processed"), locale: model.language.locale, $0.processedCount, $0.itemCount) } ?? model.t("Preparing cleanup…"),
-            fraction: update.flatMap { $0.stage == "preflight" || $0.itemCount <= 0 ? nil : Double(min(max(0, $0.processedCount), $0.itemCount)) / Double($0.itemCount) },
+            countText: update.map { String(format: model.t(model.executionUsesSources ? "%lld of %lld sources processed" : "%lld of %lld items processed"), locale: model.language.locale, $0.currentItemProcessedCount ?? $0.processedCount, $0.currentItemCount ?? $0.itemCount) } ?? model.t("Preparing cleanup…"),
+            fraction: update.flatMap { $0.stage == "preflight" ? nil : $0.fractionCompleted },
             stopRequested: model.stopRequested,
             stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping at a safe boundary…"), onStop: model.cancel)
     }
@@ -57,13 +57,16 @@ struct OperationProgressView: View {
             }
             OperationProgressMeter(fraction: fraction, countText: countText, compact: compact)
                 .padding(.top, compact ? 16 : 24)
-            Text(currentPath.isEmpty ? " " : currentPath)
-                .font(.caption.monospaced()).foregroundStyle(.secondary)
+            Text(currentPath.isEmpty ? " " : ProgressPresentation.singleLinePath(currentPath))
+                .font(.callout).foregroundStyle(.secondary)
                 .lineLimit(1).truncationMode(.middle).help(currentPath)
-                .frame(height: compact ? 16 : 20).padding(.top, compact ? 8 : 12)
+                .frame(maxWidth: 360).frame(height: compact ? 18 : 22).padding(.top, compact ? 8 : 12)
+                .accessibilityValue(currentPath)
                 .accessibilityIdentifier("operation.current-path")
-            Button(stopRequested ? stoppingLabel : stopLabel, action: onStop)
-                .controlSize(.large).keyboardShortcut(".", modifiers: .command)
+            Button(action: onStop) {
+                Text(stopRequested ? stoppingLabel : stopLabel).frame(minWidth: 140)
+            }
+                .buttonStyle(.bordered).controlSize(.large).keyboardShortcut(".", modifiers: .command)
                 .disabled(stopRequested).padding(.top, compact ? 16 : 25)
                 .accessibilityIdentifier("operation.stop")
             Spacer(minLength: compact ? 8 : 16)

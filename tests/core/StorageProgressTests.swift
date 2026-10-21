@@ -20,8 +20,39 @@ func storageWorkerReportsPostScanStagesAndExactLimit() async throws {
     try expect(values.contains { $0.stage == "loading" && $0.entryCount == 2 && $0.limitReached })
     try expect(values.last?.stage == "saving" && values.last?.entryCount == 2 && values.last?.limitReached == true)
     try expect(values.allSatisfy { $0.entryCount <= 2 })
+    let saving=values.filter { $0.stage == "saving" }.compactMap(\.fractionCompleted)
+    try expect(saving.first == 0 && saving.last == 1 && saving == saving.sorted())
     let loaded=try await engine.storageScan(scan.id)
     try expect(loaded.tree.entries == scan.tree.entries)
+}
+
+func progressPresentationUsesKnownWorkAndCompactPaths() throws {
+    try expect(ScanProgress(stage: "scanning", entryCount: 100).fractionCompleted == nil)
+    try expect(ScanProgress(stage: "saving", entryCount: 100, completedUnitCount: 1, totalUnitCount: 4).fractionCompleted == 0.25)
+    try expect(ScanProgress(stage: "saving", entryCount: 100, completedUnitCount: 5, totalUnitCount: 4).fractionCompleted == nil)
+    try expect(ScanProgress(stage: "analysis", entryCount: 0, completedUnitCount: 0, totalUnitCount: 0).fractionCompleted == nil)
+    try expect(ProgressPresentation.shortPath("/Users/person/Library/Caches/build/output.bin") == "/Users/person/Library/Caches/build/output.bin")
+    try expect(ProgressPresentation.shortPath("C:\\Users\\person\\build\\output.bin") == "C:/Users/person/build/output.bin")
+    try expect(ProgressPresentation.shortPath("/file.bin") == "/file.bin")
+    try expect(ProgressPresentation.shortPath("").isEmpty)
+    try expect(ProgressPresentation.singleLinePath("C:\\Users\\person\\line\r\nfile") == "C:/Users/person/line file")
+    let fullPath="/Users/person/" + String(repeating: "nested/", count: 20) + "locale.pak"
+    try expect(ProgressPresentation.singleLinePath(fullPath) == fullPath)
+    try expect(ProgressPresentation.shortPath("/a/line\r\n/tab\tfile") == "/a/line /tab file")
+    for path in [
+        "/Users/person/Library/Containers/long.application.identifier/Data/Library/Caches/LINE.lproj/locale.pak",
+        "C:/Users/person/AppData/Local/long.application.identifier/Cache/LINE.lproj/locale.pak",
+        "/Users/测试/" + String(repeating: "e\u{301}👩🏽‍💻中文", count: 30) + "/locale.pak"
+    ] {
+        let shortened=ProgressPresentation.shortPath(path)
+        try expect(shortened == String(path.prefix(24)) + "…" + String(path.suffix(39)))
+        try expect(shortened.count == 64 && shortened.hasSuffix("/locale.pak"))
+    }
+    try expect(ProgressPresentation.shortPath(String(repeating: "a", count: 64)) == String(repeating: "a", count: 64))
+    try expect(ProgressPresentation.shortPath(String(repeating: "a", count: 65)) == String(repeating: "a", count: 24) + "…" + String(repeating: "a", count: 39))
+    let nested=ExecutionProgress(stage: "purging", processedCount: 1, itemCount: 4, currentItemProcessedCount: 50, currentItemCount: 100)
+    try expect(nested.fractionCompleted == 0.375)
+    try expect(nested.inBatch(processedBefore: 2, itemCount: 8).fractionCompleted == 0.4375)
 }
 
 func storageWorkerPagesLargeResultsWithoutChangingEvidence() throws {

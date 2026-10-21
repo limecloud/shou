@@ -41,6 +41,11 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         let text=try WindowsNative.string({ shou_win_list(path, 100_000, $0) }, path: path)
         return text.split(separator: "\n").map(String.init).filter { $0.hasSuffix(".json") && !$0.hasPrefix(".") }.map { String($0.dropLast(5)) }.sorted()
     }
+    public func removeHistoryRecord(_ collection: String, id: String) throws {
+        guard ["history", "followups"].contains(collection) else { throw ShouError("invalid_argument", "Only history records can be removed here.") }
+        let path=try location(collection, id: id)
+        try WindowsNative.check(shou_win_remove_record(path), path: path)
+    }
     public func lock() throws -> any StoreLease {
         try WindowsNative.check(shou_win_private_directory(directory.path), path: directory.path)
         var handle: OpaquePointer?

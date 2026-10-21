@@ -53,6 +53,10 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
                 guard let end=buffer.firstIndex(of: 0), let path=String(bytes: buffer[..<end].map { UInt8(bitPattern: $0) }, encoding: .utf8), path.hasPrefix("/") else { throw unavailable() }
                 return path
             }
+            // A package-manager update can unlink an executable while its process
+            // remains alive. Verify its kernel-cached executable instead of making
+            // every unrelated application unavailable for uninstall.
+            if pathError == ENOENT { return try cachedExecutablePath(for: pid) }
             if kill(pid, 0) != 0 {
                 if errno == ESRCH { return nil }
                 throw unavailable()
@@ -75,6 +79,45 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
             usleep(1_000)
         }
         throw unavailable()
+    }
+    private func cachedExecutablePath(for pid: pid_t) throws -> String? {
+        func identity() throws -> proc_bsdinfo? {
+            var info=proc_bsdinfo()
+            let size=Int32(MemoryLayout<proc_bsdinfo>.stride)
+            if proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) != size {
+                if kill(pid, 0) != 0 && errno == ESRCH { return nil }
+                throw unavailable()
+            }
+            guard info.pbi_pid == UInt32(pid), info.pbi_uid == getuid() else { throw unavailable() }
+            return info.pbi_status == UInt32(SZOMB) ? nil : info
+        }
+        guard let before=try identity() else { return nil }
+        var query=[Int32(CTL_KERN), Int32(KERN_PROCARGS2), pid]
+        var count=0
+        let sized=query.withUnsafeMutableBufferPointer { sysctl($0.baseAddress, UInt32($0.count), nil, &count, nil, 0) }
+        guard sized == 0, count > MemoryLayout<Int32>.size, count <= 2_097_152 else {
+            if try identity() == nil { return nil }
+            throw unavailable()
+        }
+        var buffer=[UInt8](repeating: 0, count: count)
+        // KERN_PROCARGS2 also returns arguments and environment. Retain only its
+        // executable prefix and erase the temporary bytes without logging them.
+        defer { buffer.withUnsafeMutableBytes { bytes in _ = bytes.initializeMemory(as: UInt8.self, repeating: 0) } }
+        let result=query.withUnsafeMutableBufferPointer { query in
+            buffer.withUnsafeMutableBytes { sysctl(query.baseAddress, UInt32(query.count), $0.baseAddress, &count, nil, 0) }
+        }
+        guard let after=try identity() else { return nil }
+        guard result == 0, before.pbi_start_tvsec == after.pbi_start_tvsec,
+              before.pbi_start_tvusec == after.pbi_start_tvusec,
+              count > MemoryLayout<Int32>.size, count <= buffer.count else { throw unavailable() }
+        let path: String?=buffer.withUnsafeBytes { bytes in
+            let prefix=bytes[MemoryLayout<Int32>.size..<count].prefix(while: { $0 != 0 })
+            guard !prefix.isEmpty, prefix.count < 4 * Int(MAXPATHLEN) else { return nil }
+            return String(bytes: prefix, encoding: .utf8)
+        }
+        guard let path, path.hasPrefix("/") else { throw unavailable() }
+        let resolved=URL(fileURLWithPath: path).resolvingSymlinksInPath().standardizedFileURL.path
+        return resolved.hasPrefix("/var/") ? "/private" + resolved : resolved
     }
     #endif
     public func containerIdentifier(at path: String) throws -> String {

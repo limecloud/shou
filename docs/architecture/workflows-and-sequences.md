@@ -254,3 +254,60 @@ Installation, access setup, limited-scope scanning and update identity follow th
 Application uninstall follows incremental summaries → inline components → multi-application selection → one confirmation → batch preflight → per-component execution → shared history. Filtering preserves other selections. Permanent removal is the desktop default, with an explicit Trash alternative. See [application uninstall](../product/application-uninstall.md) for its flow, sequence and personal-data boundaries.
 
 Privacy follows source/time-range scan → initially empty selection → separate Cookie consent → exact plan → irreversible confirmation → full preflight → per-source database transactions → aggregate receipt. Each source commits independently; later failures do not roll back already committed sources. There is no restore entry. See [privacy cleaning](../engineering/privacy-cleaning.md) for the architecture, flow and sequence diagrams.
+
+## Space cleanup progress and return
+
+```mermaid
+flowchart LR
+    List[Selected items] --> Review[Dedicated read-only review progress]
+    Review -->|Complete current manifest| Confirm[Confirm current scope]
+    Review -->|Access, budget or identity failure| Issues[Reason and retry page]
+    Confirm --> Execute[Dedicated cleanup progress]
+    Execute --> Result[Complete, partial or stopped result]
+    Issues -->|Back| List
+    Issues -->|Scan again| Scan[Refresh measurement]
+    Result -->|Back| Updated[Original location with removed items omitted]
+    Result -->|Issues| Scan
+```
+
+Discovery is a navigation snapshot. A directory may change before review if its object identity and owner remain the same; review creates a new complete manifest and updated size for confirmation. Regular files retain the discovery metadata check. After confirmation, the full manifest must match exactly. Incomplete reads expose their coverage cause and publish no removal plan. A result page preserves return navigation instead of ending in an acknowledgement-only alert.
+
+```mermaid
+sequenceDiagram
+    participant UI as Desktop
+    participant Core as Shared core
+    participant FS as Platform filesystem
+    UI->>Core: Review selected paths
+    Core->>FS: Read fresh complete manifests
+    FS-->>Core: Current identities, entries and coverage
+    Core-->>UI: Current scope for confirmation or actionable failure
+    UI->>Core: Execute confirmed digest
+    Core->>FS: Revalidate exact manifest then remove
+    FS-->>UI: Throttled current-entry progress
+    Core-->>UI: Durable receipt
+    UI->>UI: Result page then return to original location
+```
+
+## History cleanup and actionable scan coverage
+
+History shows an item, date, outcome and processed size by default. Execution IDs, per-item paths, recovery and verification are available in details. Clearing finished records removes local JSON receipts and related follow-ups while retaining recovery, unknown outcomes and unfinished operations. Removing one record explicitly acknowledges loss of Shou recovery links; active operations and pending follow-up intents remain protected. Referenced files and Trash contents are never removed. Consumed plan state remains intact, preventing replay.
+
+Use `shou history cleanup-preview --json` to preview and `shou history clear` to confirm in a terminal. `--execution-id` selects one record; `--include-recoverable true` explicitly discards recovery links. Windows uses the same core through `history.cleanup-preview` and request-confirmed `history.clear`. Parent receipts are removed before follow-ups so interruption cannot make a restored item available for restoration again.
+
+Coverage notices concern the current directory. Unreadable siblings elsewhere do not mark a complete project folder as incomplete. System-managed locations such as `.fseventsd`, `.Spotlight-V100` and `.DocumentRevisions-V100` use an informational scope note, with individual paths collapsed. The core preserves incomplete coverage facts. User-directory access failures offer setup and Finder actions; changed or temporarily unreadable folders can be rescanned directly. Full Disk Access does not override Unix ownership or system protection, and Shou does not change system permissions to inspect system-managed directories.
+
+Only access/readability issues qualify as system-managed exclusions; resource limits and scan-time changes remain actionable, including when scanning a system root. After cleanup, the return page offers a measurement refresh instead of labeling changed totals as an access problem. Windows consumes the same coverage classification and directory completeness, with Explorer and focused rescan actions; its default bridge scan uses the shared disk-backed measurement path.
+
+```mermaid
+flowchart LR
+    H[History summary] --> D[Optional details]
+    H --> P[Preview removable records and bytes]
+    P --> C[Confirm records only]
+    C --> L[Acquire mutation lease and recheck state]
+    L --> R[Remove parent receipt then follow-ups]
+    L --> K[Keep recovery and unfinished evidence]
+    S[Current directory coverage] --> M{Cause}
+    M -->|System managed| I[Informational scope note]
+    M -->|User access| A[Setup or Finder]
+    M -->|Changed directory| F[Rescan current folder]
+```

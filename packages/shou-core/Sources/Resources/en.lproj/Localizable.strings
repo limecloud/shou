@@ -18,6 +18,7 @@
 "%lld of %lld applications checked" = "%lld of %lld applications checked";
 "%lld of %lld items processed" = "%lld of %lld items processed";
 "%lld of %lld sources processed" = "%lld of %lld sources processed";
+"%lld records · %@ of local data" = "%lld records · %@ of local data";
 "1. Copy the request to Codex, Claude Code, or WorkBuddy." = "1. Copy the request to Codex, Claude Code, or WorkBuddy.";
 "2. Answer questions about your projects and what to keep." = "2. Answer questions about your projects and what to keep.";
 "3. Review the draft in Shou, then enable it when ready." = "3. Review and enable the rule once. Future cleanups include it.";
@@ -35,6 +36,7 @@
 "A valid application identifier and metadata are required before uninstalling." = "A valid application identifier and metadata are required before uninstalling.";
 "AI Models" = "AI Models";
 "Access required" = "Access required";
+"Active or recoverable records were preserved. Review the history selection." = "Active or recoverable records were preserved. Review the history selection.";
 "Add Exclusion" = "Add Exclusion";
 "Add Workspace" = "Add Workspace";
 "Add Workspace…" = "Add Workspace…";
@@ -246,6 +248,7 @@
 "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space." = "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space.";
 "Cleanup candidates" = "Cleanup candidates";
 "Cleanup complete" = "Cleanup complete";
+"Cleanup could not start" = "Cleanup could not start";
 "Cleanup exclusions could not be verified." = "Cleanup exclusions could not be verified.";
 "Cleanup finished with issues" = "Cleanup finished with issues";
 "Cleanup rules made for your Mac" = "Cleanup rules made for your Mac";
@@ -253,7 +256,10 @@
 "Cleanup stopped" = "Cleanup stopped";
 "Cleanup stopped before any files were moved." = "Cleanup stopped before any files were moved.";
 "Cleanup stopped before this location was processed." = "Cleanup stopped before this location was processed.";
+"Clear Finished Records…" = "Clear Finished Records…";
+"Clear Records" = "Clear Records";
 "Clear Selection" = "Clear Selection";
+"Clear history records?" = "Clear history records?";
 "Click to inspect. Double-click a folder to open it." = "Click to inspect. Double-click a folder to open it.";
 "Close" = "Close";
 "Close browser first" = "Close browser first";
@@ -433,6 +439,7 @@
 "HTTP storage" = "HTTP storage";
 "Helium caches" = "Helium caches";
 "Hex download caches" = "Hex download caches";
+"Hide Details" = "Hide Details";
 "Hide components" = "Hide components";
 "High risk" = "High risk";
 "High risk (required for installed dependencies)" = "High risk (required for installed dependencies)";
@@ -524,6 +531,7 @@
 "Logseq caches" = "Logseq caches";
 "MPV caches" = "MPV caches";
 "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition." = "Manage these patterns in All Locations. Per-rule exclusions remain in each rule definition.";
+"Managed by the system; no action is needed." = "Managed by the system; no action is needed.";
 "Manage…" = "Manage…";
 "Manifest changed" = "Manifest changed";
 "Manifest matches" = "Manifest matches";
@@ -557,6 +565,7 @@
 "Move to Trash after review" = "Move to Trash after review";
 "Move to Trash…" = "Move to Trash…";
 "Moved" = "Moved";
+"Moved identity or contents could not be verified." = "Moved identity or contents could not be verified.";
 "Moved to Trash" = "Moved to Trash";
 "Moved to Trash (estimate)" = "Moved to Trash (estimate)";
 "Moved to Trash. Available disk space is measured separately." = "Moved to Trash. Available disk space is measured separately.";
@@ -575,6 +584,7 @@
 "New Rule…" = "New Rule…";
 "Newest modification" = "Newest modification";
 "Newest modification at least %lld days ago" = "Newest modification at least %lld days ago";
+"No access changes are needed for system-managed locations." = "No access changes are needed for system-managed locations.";
 "No allocated data in this folder" = "No allocated data in this folder";
 "No applications found in these directories" = "No applications found in these directories";
 "No applications in this category" = "No applications in this category";
@@ -625,8 +635,10 @@
 "One Exact Folder" = "One Exact Folder";
 "One relative pattern per line" = "One relative pattern per line";
 "One scan. A tidier Mac." = "One scan. A tidier Mac.";
+"Only finished records are removed. Files stay in place; recoverable and unfinished records are kept." = "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept.";
 "Only measured space is included. Complete folders remain available even when another location cannot be read." = "Only measured space is included. Complete folders remain available even when another location cannot be read.";
 "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained." = "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained.";
+"Only records are removed. Files stay in place, but Shou can no longer restore or verify these records." = "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.";
 "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview." = "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview.";
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated.";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "Only this folder is described. The workspace itself and folders outside it cannot be selected.";
@@ -799,11 +811,13 @@
 "Relative pattern" = "Relative pattern";
 "Removal recorded; Trash object is absent" = "Removal recorded; Trash object is absent";
 "Remove Exclusion" = "Remove Exclusion";
+"Remove Record…" = "Remove Record…";
 "Report an Issue" = "Report an Issue";
 "Request Quit" = "Request Quit";
 "Requested rule is not enabled in this workspace." = "Requested rule is not enabled in this workspace.";
 "Required for uninstall" = "Required for uninstall";
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.";
+"Rescan This Folder" = "Rescan This Folder";
 "Restore destination already exists; nothing was overwritten." = "Restore destination already exists; nothing was overwritten.";
 "Restore destination is occupied" = "Restore destination is occupied";
 "Restore these items?" = "Restore these items?";
@@ -931,9 +945,13 @@
 "Select available items in this cleanup" = "Select available items in this cleanup";
 "Select explicit receipt items and a supported action." = "Select explicit receipt items and a supported action.";
 "Select files or folders to remove" = "Select files or folders to remove";
+"Select history records to remove." = "Select history records to remove.";
 "Select the application and eligible components; personal data requires separate consent." = "Select the application and eligible components; personal data requires separate consent.";
 "Selected" = "Selected";
 "Selected applications permanently uninstalled." = "Selected applications permanently uninstalled.";
+"Selected item changed or could not be completely measured." = "Selected item changed or could not be completely measured.";
+"Selected item changed since confirmation." = "Selected item changed since confirmation.";
+"Selected item changed. Scan again before removing it." = "Selected item changed. Scan again before removing it.";
 "Selected items permanently removed." = "Selected items permanently removed.";
 "Selected items processed. Refresh to measure current disk usage." = "Selected items processed. Refresh to measure current disk usage.";
 "Selected items restored." = "Selected items restored.";
@@ -960,6 +978,7 @@
 "Show Skill in Finder…" = "Show Skill in Finder…";
 "Show components" = "Show components";
 "Show in Space Analysis" = "Show in Space Analysis";
+"Show system-managed locations" = "Show system-managed locations";
 "Show unavailable locations" = "Show unavailable locations";
 "Showing the first 200 measured folders. Counts include all measured rows." = "Showing the first 200 measured folders. Counts include all measured rows.";
 "Showing the first 50 scan notes." = "Showing the first 50 scan notes.";
@@ -986,6 +1005,7 @@
 "Some items were not moved. Inspect history." = "Some items were not moved. Inspect history.";
 "Some locations could not be fully scanned." = "Some locations could not be fully scanned.";
 "Some locations could not be measured. Review scan coverage." = "Some locations could not be measured. Review scan coverage.";
+"Some locations in this folder need attention." = "Some locations in this folder need attention.";
 "Some locations need attention" = "Some locations need attention";
 "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup." = "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup.";
 "Some selected items could not be processed. Inspect history." = "Some selected items could not be processed. Inspect history.";
@@ -1048,6 +1068,7 @@
 "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually." = "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually.";
 "System Settings…" = "System Settings…";
 "System state not checked" = "System state not checked";
+"System-managed locations are excluded from analysis." = "System-managed locations are excluded from analysis.";
 "TablePlus caches" = "TablePlus caches";
 "Target Selection" = "Target Selection";
 "Target identity or full directory manifest changed." = "Target identity or full directory manifest changed.";
@@ -1113,6 +1134,7 @@
 "This record has unfinished actions. Verification does not retry them or authorize another operation." = "This record has unfinished actions. Verification does not retry them or authorize another operation.";
 "This root is protected or is not owned by the current user." = "This root is protected or is not owned by the current user.";
 "This selection contains excluded content." = "This selection contains excluded content.";
+"This selection could not be completely read. Review access or scan again." = "This selection could not be completely read. Review access or scan again.";
 "This system location is protected." = "This system location is protected.";
 "Thunderbird caches" = "Thunderbird caches";
 "Tidy up. That's it." = "Tidy up. That's it.";
@@ -1256,6 +1278,7 @@
 "protected_application" = "protected_application";
 "protected_content" = "protected_content";
 "purge" = "Permanently removed";
+"purged" = "purged";
 "pyenv download caches" = "pyenv download caches";
 "qBittorrent caches" = "qBittorrent caches";
 "rbenv download caches" = "rbenv download caches";
@@ -1269,7 +1292,7 @@
 "source_changed" = "source_changed";
 "sources" = "sources";
 "tracked_artifact_content" = "This target contains Git-tracked files; cleanup is blocked.";
-"trashed" = "Moved to Trash";
+"trashed" = "trashed";
 "unavailable" = "Unavailable";
 "unclassified" = "unclassified";
 "unknown" = "Needs verification";

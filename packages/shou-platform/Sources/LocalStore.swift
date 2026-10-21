@@ -102,6 +102,19 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         let dir = try self.collection(collection); defer { close(dir) }
         return try SecurePaths.names(dir).filter { $0.hasSuffix(".json") && !$0.hasPrefix(".") }.map { String($0.dropLast(5)) }.sorted()
     }
+    public func removeHistoryRecord(_ collection: String, id: String) throws {
+        guard ["history", "followups"].contains(collection) else { throw ShouError("invalid_argument", "Only history records can be removed here.") }
+        try validate(id)
+        let dir=try self.collection(collection); defer { close(dir) }
+        var metadata=stat()
+        let name=id + ".json"
+        if fstatat(dir, name, &metadata, AT_SYMLINK_NOFOLLOW) != 0 {
+            if errno == ENOENT { return }
+            throw SecurePaths.failure("Inspect history record", path: id)
+        }
+        guard metadata.st_mode & S_IFMT == S_IFREG, metadata.st_uid == getuid(), metadata.st_nlink == 1 else { throw ShouError("store_corrupt", "History record identity is invalid.") }
+        guard unlinkat(dir, name, 0) == 0, fsync(dir) == 0 else { throw SecurePaths.failure("Remove history record", path: id) }
+    }
     public func lock() throws -> any StoreLease {
         let fd = openat(root, ".mutation.lock", O_RDWR | O_CREAT | O_NOFOLLOW | O_CLOEXEC, 0o600)
         guard fd >= 0 else { throw SecurePaths.failure("Open mutation lock", path: directory.path) }

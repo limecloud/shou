@@ -1,6 +1,7 @@
 import Foundation
 import ShouCore
 import ShouPlatform
+import CSQLite
 
 private let largeFileMiB: Int64=1024 * 1024
 
@@ -91,6 +92,41 @@ func storageLargeFilesFilterSavedEvidenceWithoutRescanning() async throws {
         }
         let empty=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: Int64.max)
         try expect(empty.items.isEmpty && empty.totalCount == 0 && empty.totalAllocatedBytes == 0 && empty.nextCursor == nil)
+    }
+}
+
+func storageLargeFileIndexPreservesThresholdBoundariesAndLegacyCatalogs() async throws {
+    let floor: Int64=1_048_576
+    for catalog in [false, true] {
+        let fixture=try Fixture(), root=try fixture.fs.analysisRootIdentity(fixture.workspace.path)
+        let files: [(String, Int64)]=[("empty.bin", 0), ("tiny.mp4", floor - 1),
+            ("boundary.MP4", floor), ("over.bin", floor + 1), ("large.mp4", 50 * largeFileMiB)]
+        let entries=[root] + files.enumerated().map { index, file in
+            largeFileEntry(root, path: file.0, allocated: file.1, inode: root.inode + UInt64(index + 1))
+        }
+        let (engine, scan)=try await savedLargeFileEvidence(fixture, entries: entries, catalog: catalog)
+        let below=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: floor - 1)
+        try expect(below.items.map(\.entry.path) == ["large.mp4", "over.bin", "boundary.MP4", "tiny.mp4"])
+        let boundary=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: floor, limit: 2)
+        try expect(boundary.items.map(\.entry.path) == ["large.mp4", "over.bin"] && boundary.totalCount == 3)
+        let next=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: floor, cursor: boundary.nextCursor)
+        try expect(next.items.map(\.entry.path) == ["boundary.MP4"] && next.nextCursor == nil)
+        let video=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: floor, type: .video)
+        try expect(video.items.map(\.entry.path) == ["large.mp4", "boundary.MP4"])
+        let all=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: 0)
+        try expect(all.totalCount == 5 && all.items.last?.node.allocatedBytes == 0)
+        if catalog {
+            // A pre-optimization immutable catalog has the same schema version
+            // and no optional large-file index. Reading it must still work.
+            let url=try require(fixture.store.storageCatalogURL(id: scan.id))
+            var database: OpaquePointer?
+            try expect(sqlite3_open(url.path, &database) == SQLITE_OK)
+            defer { sqlite3_close(database) }
+            try expect(sqlite3_exec(database, "DROP INDEX large_files", nil, nil, nil) == SQLITE_OK)
+            let legacy=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: floor, type: .video)
+            try expect(legacy.items.map(\.entry) == video.items.map(\.entry))
+            try expect(legacy.totalCount == video.totalCount && legacy.totalAllocatedBytes == video.totalAllocatedBytes)
+        }
     }
 }
 

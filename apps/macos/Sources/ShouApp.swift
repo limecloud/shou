@@ -177,6 +177,8 @@ struct CleanupCompletion: Identifiable {
     func updateExecutionProgress(_ update: ExecutionProgress, operation: UUID) {
         guard isExecuting, executionOperation == operation,
               update.processedCount >= (executionProgress?.processedCount ?? 0) else { return }
+        if let current=executionProgress, current.stage == update.stage,
+           let previous=current.fractionCompleted, let next=update.fractionCompleted, next < previous { return }
         executionProgress=update
     }
     func date(_ value: Date) -> String { value.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(language.locale)) }
@@ -587,8 +589,18 @@ struct CleanupCompletion: Identifiable {
         statusKey="Scan again to refresh changed items."
         scanCurrentSection()
     }
+    func clearHistory(_ ids: [String], includeRecoverable: Bool) {
+        guard let engine, !busy, !ids.isEmpty else { return }
+        busy=true
+        task=Task {
+            defer { busy=false }
+            do { _ = try await engine.clearHistory(executionIds: ids, includeRecoverable: includeRecoverable); await refresh() }
+            catch { self.error=error.localizedDescription; await refresh() }
+        }
+    }
     func confirm(_ review: ReviewPrompt) {
         guard let engine, !busy else { return }
+        let sourceSection=section
         prompt=nil; busy=true; scanProgress=nil
         let execution=beginExecution(total: review.itemIds.isEmpty ? review.paths.count : review.itemIds.count)
         let operation=UUID(); operationID=operation
@@ -618,7 +630,7 @@ struct CleanupCompletion: Identifiable {
                         }
                     }
                     if receipts.contains(where: { $0.items.contains { ["failed", "unknown", "moving"].contains($0.state) } }) { operationHadError=true }
-                    completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: section)
+                    completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: sourceSection)
                     commonSelection=[]
                     if receipts.contains(where: { $0.items.contains { $0.state == "trashed" || $0.state == "unknown" } }) { systemResult=nil; commonReview=CleanupReview() }
                     statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }
@@ -677,6 +689,27 @@ struct ContentView: View {
             model.section=section
         })
     }
+    @ViewBuilder private var presentedContent: some View {
+        if model.isExecuting { ExecutionProgressView(model: model) }
+        else if let result=model.completion { CleanupResultView(model: model, result: result).id(result.id) }
+        else if model.space.reviewing { StorageReviewProgressView(model: model, session: model.space) }
+        else if model.largeFiles.storage.reviewing { StorageReviewProgressView(model: model, session: model.largeFiles.storage) }
+        else { sectionContent }
+    }
+    @ViewBuilder private var sectionContent: some View {
+        switch model.section {
+        case "smart": SmartScanView(model: model)
+        case "rules": RulesView(model: model, editor: $ruleEditor)
+        case "startup": StartupInventoryView(model: model)
+        case "applications": ApplicationsView(model: model, session: model.applicationsSession)
+        case "privacy": PrivacyView(app: model, session: model.privacySession)
+        case "history": HistoryView(model: model)
+        case "settings": SettingsView(model: model, updater: model.updater)
+        case "storage": StorageBrowser(model: model, inspector: inspector)
+        case "large-files": LargeFilesView(model: model, session: model.largeFiles)
+        default: CleanupView(model: model, inspector: inspector)
+        }
+    }
     var body: some View {
         NavigationSplitView {
             List(selection: navigationSelection) {
@@ -709,23 +742,13 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 190, ideal: 215)
         } detail: {
             VStack(spacing: 0) {
-                if model.isExecuting { ExecutionProgressView(model: model) }
-                else if model.section == "smart" { SmartScanView(model: model) }
-                else if model.section == "rules" { RulesView(model: model, editor: $ruleEditor) }
-                else if model.section == "startup" { StartupInventoryView(model: model) }
-                else if model.section == "applications" { ApplicationsView(model: model, session: model.applicationsSession) }
-                else if model.section == "privacy" { PrivacyView(app: model, session: model.privacySession) }
-                else if model.section == "history" { HistoryView(model: model) }
-                else if model.section == "settings" { SettingsView(model: model, updater: model.updater) }
-                else if model.section == "storage" { StorageBrowser(model: model, inspector: inspector) }
-                else if model.section == "large-files" { LargeFilesView(model: model, session: model.largeFiles) }
-                else { CleanupView(model: model, inspector: inspector) }
+                presentedContent
                 Divider()
                 HStack {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.6.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {
@@ -751,7 +774,6 @@ struct ContentView: View {
             }
         }
         .sheet(item: $model.prompt) { review in ConfirmationView(model: model, review: review) }
-        .sheet(item: $model.completion) { result in CleanupResultView(model: model, result: result) }
         .sheet(item: $model.historyInspection) { request in HistoryInspectionView(model: model, executionId: request.id) }
         .sheet(isPresented: $ruleEditor) { RuleWizard(model: model, initialPattern: model.ruleDraftPattern) }
         .sheet(isPresented: $model.showingExclusions) { ExclusionsView(model: model) }

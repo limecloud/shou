@@ -1,20 +1,23 @@
-Shou v0.6.0 improves macOS storage-analysis throughput with bounded parallel directory reads and exact metadata checks.
+Shou v0.7.0 improves storage scans and saved-result queries, adds reviewed history cleanup, and makes operation progress easier to follow.
 
-- Read independent directories with up to eight workers and batch regular-file metadata with `getattrlistbulk`. A serialized SQLite writer keeps saved results available for paging and large-file queries.
-- Use the native streaming storage catalog through the shared filesystem interface, including the desktop's packaged read worker.
-- Retain exact directory identity checks, sparse-file and hard-link accounting, no-follow traversal, privacy boundaries and explicit partial coverage for unreadable, changed, cloud or cross-filesystem entries.
-- Preserve parent-task cancellation across directory workers. Progress updates are throttled, cancellation aborts publication, and time limits produce an explicitly partial catalog.
-- Replace a local development installation only after staging and verifying the new app. The installer checks installed bytes and existing Shou records and does not retain another old application copy.
-- Add generated-fixture metadata-equivalence, worker-cancellation and directory benchmark checks, with English and Chinese architecture and performance documentation. Actual throughput depends on the disk, metadata cache and directory layout.
+- Stream macOS bulk metadata page by page, remove the wide-directory bulk cutoff, and batch catalog writes while retaining bounded directory readers, exact identity checks, cancellation and partial coverage.
+- Index files allocated at least 1 MiB for faster saved large-file queries. Existing catalogs remain readable; rescan to create the new index. Cache directory sorting and filtering, and apply large selection changes as a batch.
+- Reuse immutable bundled rule/schema validation while keeping workspace bindings isolated and external rule imports fully validated.
+- Show measured percentages for stages with known work, detailed progress within permanent removal, and paths shortened only in the middle. Discovery retains live counts when its total is unknown. macOS and Windows share the progress contracts.
+- Preview and explicitly confirm cleanup of local history records through the app or CLI. Unfinished and recoverable records are preserved by default. Including recoverable records discards Shou recovery links; target files and Trash items stay untouched, and completed plans cannot be replayed.
+- Improve history summaries, result-page return and rescan actions. Separate system-managed scan gaps from user-access issues and retain per-directory completeness.
+- Keep live and unlinked application helpers protected during uninstall checks and retain exact-location verification for receipt-bound restoration.
 
-The source tree also includes ongoing native Windows work using WPF and the shared Swift core. Release assets contain the macOS application and CLI; a Windows installer remains unavailable.
+Local warm-cache measurements, workload details and limits are documented in the source tree. They do not promise the same speedup for every disk or complete protected-disk coverage.
 
-Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Download the DMG and drag Shou.app to Applications, or use the ZIP containing the same app. Verify downloads with SHA256SUMS. Existing installations can use Check for Updates; Sparkle verifies signed update archives and feeds.
+Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Download the DMG and drag Shou.app to Applications, or use the ZIP containing the same app. Verify downloads with SHA256SUMS. Existing installations can use Check for Updates; Sparkle verifies signed archives and feeds.
 
-Permanent deletion cannot be undone. Moving items to Trash does not immediately free disk space. Adding global exclusions upgrades the local configuration format; older releases cannot read the upgraded format.
+The source tree includes the native Windows implementation and synchronized WPF progress/bridge checks. This release provides macOS installation assets; a Windows installer remains unavailable.
 
-This release is ad-hoc signed and is not Apple-notarized. If macOS blocks the initial launch, verify the download source and review System Settings → Privacy & Security. Updating an ad-hoc signed build may require adding the current installed app to Full Disk Access again.
+Permanent deletion cannot be undone. Moving items to Trash does not immediately free disk space. Removing recoverable history prevents further recovery or verification through Shou. This release is ad-hoc signed and is not Apple-notarized; updating may require granting the current app Full Disk Access again.
 
-简体中文：v0.6.0 优化 macOS 空间分析，使用最多八个目录读取工作线程和批量文件元数据读取，并由单一 SQLite 写入路径保存可分页结果。修复通过共享文件系统接口调用原生流式目录的分派，桌面端仍通过包内读取进程工作。保留目录身份复核、稀疏文件及硬链接计量、不跟随符号链接、隐私边界和覆盖缺口；父任务取消会传递到目录工作线程，进度限频，取消后不发布扫描，超时仅发布明确标识的部分结果。本地开发安装器先暂存并验证应用，再替换旧包，核对安装内容与既有记录，不保留额外旧应用副本。新增元数据等价、取消及目录基准检查和中英文说明；具体速度取决于磁盘、缓存与目录结构。
+简体中文：v0.7.0 优化 macOS 空间扫描的批量元数据分页和目录写入，移除宽目录的批量读取上限；为至少占用 1 MiB 的文件增加索引，提升已保存大文件查询，并优化目录排序、筛选与批量选择。旧扫描目录保持可读，新索引需重新扫描生成。内置规则及 Schema 复用不可变校验结果，外部规则仍完整校验。
 
-支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅及 SHA256SUMS。Windows 原生实现仍在开发，尚无正式安装包。此版本未经过 Apple 公证，更新后可能需要重新授予当前应用磁盘访问权限。
+操作进度在工作总量已知的阶段展示实际百分比，永久删除展示当前项目内部进度，长路径仅在中间截断；发现阶段继续显示实时数量。历史记录支持预览后明确确认清理，默认保留未完成和可恢复记录；主动包含可恢复记录会丢弃 Shou 恢复关联，但不删除原文件或废纸篓项目，已执行计划仍禁止重放。改进历史摘要、结果返回与重新扫描入口，区分系统管理目录缺口和用户访问问题，并保留应用卸载时对存活及已解除链接辅助进程的保护。
+
+支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅和 SHA256SUMS。Windows 代码及进度协议同步更新，尚无正式安装包。性能数据来自明确记录条件的本机测试，不代表所有磁盘或完整受保护目录覆盖。此版本未经过 Apple 公证，更新后可能需要重新授予磁盘访问权限。

@@ -87,17 +87,33 @@ private func expectFixtureWorkerExited(_ marker: URL) throws {
     try expect(kill(pid, 0) != 0 && errno == ESRCH)
 }
 
+private final class WorkerCancellationProbe: @unchecked Sendable {
+    private let marker: URL
+    private let lock=NSLock()
+    private var timestamp: TimeInterval?
+    init(marker: URL) { self.marker=marker }
+    func requested() -> Bool {
+        guard FileManager.default.fileExists(atPath: marker.path) else { return false }
+        lock.lock(); defer { lock.unlock() }
+        if timestamp == nil { timestamp=ProcessInfo.processInfo.systemUptime }
+        return true
+    }
+    var requestedAt: TimeInterval? { lock.lock(); defer { lock.unlock() }; return timestamp }
+}
+
 func nativeReadWorkerCancellationStopsOwnedChild() throws {
     let fixture=try Fixture()
     let marker=fixture.base.appendingPathComponent("cancelled-worker.pid")
     let executable=try fixtureWorkerScript(fixture, body: "printf '%s' \"$$\" > " + shellLiteral(marker.path) + "\nexec /bin/sleep 60\n")
     let worker=NativeFileSystem(readWorkerExecutable: executable)
-    let started=ProcessInfo.processInfo.systemUptime
+    let cancellation=WorkerCancellationProbe(marker: marker)
     do {
-        _ = try worker.inspect(fixture.workspace.path, budget: ScanBudget(), cancelled: { FileManager.default.fileExists(atPath: marker.path) })
+        _ = try worker.inspect(fixture.workspace.path, budget: ScanBudget(), cancelled: { cancellation.requested() })
         throw CheckFailure(description: "A cancelled worker must not return scan evidence.")
     } catch let failure as ShouError { try expect(failure.code == "cancelled") }
-    try expect(ProcessInfo.processInfo.systemUptime - started < 3)
+    // Measure Stop responsiveness after cancellation is requested, independently
+    // of filesystem setup and process startup under host load.
+    try expect(ProcessInfo.processInfo.systemUptime - (try require(cancellation.requestedAt)) < 3)
     try expectFixtureWorkerExited(marker)
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
 }

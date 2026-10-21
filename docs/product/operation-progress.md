@@ -9,13 +9,15 @@ Scanning, rule cleanup, application uninstall, storage analysis, large-file remo
 | Workflow | Count source | Presentation |
 | --- | --- | --- |
 | Smart scan | Sum of the highest observed entry count per location | Cumulative count, phase, current path, indeterminate progress |
-| Storage and large-file scan | Entries measured by the read-only scanner | Count, path, elapsed time, indeterminate progress |
+| Storage and large-file scan | Measured entries; known work during sealing, transfer and saving | Count, middle-truncated path, elapsed time; percentage for a named stage with a known total |
 | Application scan and component review | Known application set and checked applications | Percentage, processed/total, current application; results stream into the list |
 | Rule cleanup, uninstall, direct removal and restore | Reviewed independent targets and durable outcomes | Central progress screen, percentage, processed/total, path and Stop |
 | Privacy scan and deletion | Discovered or reviewed database sources and transaction outcomes | Source counts and percentage; browser and profile names only |
 | Startup discovery and plan preparation | Total not yet established | Current action, indeterminate progress and Stop |
 
-Percentages describe processed targets in a known set, rather than elapsed time, successful cleanup or reclaimed disk space. A selected directory is one reviewed target. No file-level count is invented when its descendants have no individual progress events. Unknown scan totals remain indeterminate.
+Percentages describe processed work in a known set, rather than elapsed time, successful cleanup or reclaimed disk space. A selected directory is one reviewed target. Permanent removal can report actual manifest entries inside the current target; this subprogress is combined with the batch position without marking the target durably complete before its receipt is saved. No file-level count is invented when its descendants have no progress events. Unknown discovery totals remain indeterminate. Sealing, transfer and saving may show their named stage's percentage, including 100% when saving a partial scan; coverage remains explicit and is not a percentage.
+
+Progress paths retain their origin and filename and omit only the middle when space is insufficient. Keep a single ellipsis, use Unicode text boundaries and provide the full original value through hover/accessibility; CLI and bridge data keep complete paths.
 
 Preflight never advances deletion counts. Executors advance counts after persisting individual outcomes; failures and skipped targets are processed outcomes, while completion separately reports success, failure and remaining work. Final receipt handling displays “Finishing cleanup”. Partial results and cancellation never receive a fabricated 100%.
 
@@ -31,6 +33,8 @@ flowchart LR
   Sessions --> Aggregate[Batch counts and operation identity checks]
   Aggregate --> Full[OperationProgressView central screen]
   Aggregate --> Inline[OperationProgressMeter inline presentation]
+  Sessions --> Path[Full single-line path; omit middle at layout width]
+  Path --> Full
   Full --> Artwork[Independent decorative motion]
   Preferences[System and application Reduce Motion] --> Artwork
   User[Stop request] --> Cancel[Cooperative cancellation]
@@ -45,7 +49,8 @@ Decorative motion does not drive measured progress. It pauses when stopping, whe
 flowchart TD
   Start[Start operation] --> Known{Known total?}
   Known -->|No| Discover[Indeterminate activity and measured counts]
-  Discover --> Ready[Results ready for review]
+  Discover --> Stage[Known sealing / transfer / saving work]
+  Stage --> Ready[Results ready; retain complete or partial coverage]
   Known -->|Yes| Check[Preflight and current target]
   Check --> Work[Process one target]
   Work --> Save[Persist actual outcome]
@@ -74,6 +79,10 @@ sequenceDiagram
   loop Independent targets
     Core->>Store: Persist intent
     Core->>Core: Revalidate and execute
+    opt Permanent target with a measured manifest
+      Core-->>Session: Actual entries processed inside current target
+      Session-->>UI: Current item count and combined batch fraction
+    end
     Core->>Store: Persist individual outcome
     Core-->>Session: Actual processed count
     Session-->>UI: Verify operation ID and aggregate counts

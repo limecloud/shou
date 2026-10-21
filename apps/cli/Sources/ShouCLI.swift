@@ -114,6 +114,8 @@ let commands: [CommandSpec] = [
     .init("plan show", "read", ["plan-id"], [], "Inspect exact scope, manifest digest, risk, and expiry."),
     .init("plan execute", "destructive", ["plan-id"], [], "Execute the current Trash or permanent plan after terminal confirmation."),
     .init("history list", "read", [], [], "List execution receipts."),
+    .init("history cleanup-preview", "read", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Preview local receipt cleanup. Recoverable and unfinished records are kept by default; target files are never removed."),
+    .init("history clear", "destructive", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Confirm removal of local receipt records only. include-recoverable=true also discards Shou recovery links; target files stay untouched."),
     .init("history show", "read", ["execution-id"], [], "Show item states and follow-up receipts."),
     .init("history inspect", "read", ["execution-id"], ["max-entries", "max-seconds"], "Verify exact recorded original and Trash locations without changing files or receipts; never searches Trash or retries interrupted actions."),
     .init("history restore", "destructive", ["execution-id", "item"], [], repeated: ["item"], "Confirm and restore selected verified receipt items without overwrite."),
@@ -204,7 +206,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.6.0"
+    static let version = "0.7.0"
     static func main() async {
         if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
         #if canImport(Darwin) || canImport(Glibc)
@@ -507,6 +509,14 @@ enum Terminal {
                 try Terminal.confirm(TerminalReviewScope(plan: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
                 value=try .from(await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
             case "history list": value=try .from(await engine.history())
+            case "history cleanup-preview", "history clear":
+                guard let include=Bool(args.values["include-recoverable"]?.first ?? "false") else { throw ShouError("invalid_argument", "include-recoverable must be true or false.") }
+                let ids=args.all("execution-id")
+                let preview=try await engine.historyCleanupPreview(executionIds: ids.isEmpty ? nil : ids, includeRecoverable: include)
+                if args.command == "history clear", !preview.executionIds.isEmpty {
+                    try Terminal.confirm(["records": try JSONValue.from(preview), "warning": .string("Remove records only. Files stay untouched. Removed records can no longer be restored or verified through Shou.")], phrase: "CLEAR HISTORY", locale: args.locale)
+                    value=try .from(await engine.clearHistory(executionIds: preview.executionIds, includeRecoverable: include))
+                } else { value=try .from(preview) }
             case "history inspect":
                 guard let maxEntries=Int(args.values["max-entries"]?.first ?? "100000"), let maxSeconds=Double(args.values["max-seconds"]?.first ?? "60") else { throw ShouError("invalid_argument", "Scan budgets must be numeric.") }
                 value=try .from(await engine.inspectHistory(executionId: args.value("execution-id"), budget: ScanBudget(maxEntries: maxEntries, maxSeconds: maxSeconds)))

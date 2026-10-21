@@ -24,6 +24,8 @@ private struct ReadProgress: Codable, Sendable {
     let entryCount: Int
     let currentPath: String
     let limitReached: Bool?
+    var completedUnitCount: Int? = nil
+    var totalUnitCount: Int? = nil
 }
 private struct ReadResponse: Codable, Sendable {
     let version: Int
@@ -114,7 +116,11 @@ struct NativeReadClient {
               snapshot.entries.count <= budget.maxEntries,
               !snapshot.complete || snapshot.issues.isEmpty,
               snapshot.discoveryComplete != true || snapshot.issues.isEmpty else { throw invalidResponse() }
-        progress(ScanProgress(stage: "validating", entryCount: snapshot.entries.count, currentPath: path, limitReached: snapshot.issues.contains("resource_limit")))
+        func validating(_ completed: Int) {
+            progress(ScanProgress(stage: "validating", entryCount: snapshot.entries.count, currentPath: path,
+                limitReached: snapshot.issues.contains("resource_limit"), completedUnitCount: completed, totalUnitCount: snapshot.entries.count))
+        }
+        validating(0)
         var previous: String?
         var directories=Set<String>()
         for (index, entry) in snapshot.entries.enumerated() {
@@ -124,9 +130,11 @@ struct NativeReadClient {
                   previous.map({ $0 < entry.path }) ?? true else { throw invalidResponse() }
             previous=entry.path
             if entry.kind == "directory" { directories.insert(entry.path) }
+            if (index + 1) % 4096 == 0 { validating(index + 1) }
         }
         guard (snapshot.completedPaths ?? []).allSatisfy({ directories.contains($0) }) else { throw invalidResponse() }
         if cancelled() || Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        validating(snapshot.entries.count)
         return snapshot
     }
     private func validRelativePath(_ path: String) -> Bool {
@@ -173,7 +181,8 @@ struct NativeReadClient {
                let update=try? Codec.decode(ReadProgress.self, from: data), update.id == request.id,
                update.entryCount >= 0, request.operation == .storage || update.entryCount <= request.budget.maxEntries,
                ["scanning", "analysis", "transferring"].contains(update.stage) {
-                let value=ScanProgress(stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached ?? false)
+                let value=ScanProgress(stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached ?? false,
+                    completedUnitCount: update.completedUnitCount, totalUnitCount: update.totalUnitCount)
                 lastUpdate=value
                 progress(value)
                 lastProgress=data
@@ -220,6 +229,8 @@ struct NativeReadClient {
                   count > readEntryPageSize, count <= request.budget.maxEntries,
                   let digests=response.pageDigests, digests.count == (count + readEntryPageSize - 1) / readEntryPageSize else { throw invalidResponse() }
             snapshot.entries.reserveCapacity(count)
+            progress(ScanProgress(stage: "loading", entryCount: count, currentPath: request.path,
+                limitReached: snapshot.issues.contains("resource_limit"), completedUnitCount: 0, totalUnitCount: count))
             for (index, digest) in digests.enumerated() {
                 try check()
                 let url=channel.appendingPathComponent("entries-" + String(index) + ".json")
@@ -229,6 +240,8 @@ struct NativeReadClient {
                 try check()
                 guard entries.count == min(readEntryPageSize, count - index * readEntryPageSize) else { throw invalidResponse() }
                 snapshot.entries.append(contentsOf: entries)
+                progress(ScanProgress(stage: "loading", entryCount: count, currentPath: request.path,
+                    limitReached: snapshot.issues.contains("resource_limit"), completedUnitCount: snapshot.entries.count, totalUnitCount: count))
             }
             response.snapshot=snapshot
         } else if response.pageDigests != nil { throw invalidResponse() }
@@ -277,13 +290,15 @@ public enum NativeReadWorker {
                 case .storage:
                     guard request.rules == nil else { return 2 }
                     let result=try native.measureStorageDirect(request.path, catalog: channel.appendingPathComponent("catalog.sqlite"), cancelled: { false }, progress: { update in
-                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached), to: progressURL)
+                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached,
+                            completedUnitCount: update.completedUnitCount, totalUnitCount: update.totalUnitCount), to: progressURL)
                     })
                     response=ReadResponse(version: 1, id: request.id, identity: nil, snapshot: result.tree, error: nil, entryCount: result.entryCount)
                 case .inspect:
                     for rule in request.rules ?? [] { _ = try CleanupRule.parse(Codec.encode(rule)) }
                     let emit: @Sendable (ScanProgress) -> Void = { update in
-                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached), to: progressURL)
+                        try? ReadChannel.write(ReadProgress(id: request.id, stage: update.stage, entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached,
+                            completedUnitCount: update.completedUnitCount, totalUnitCount: update.totalUnitCount), to: progressURL)
                     }
                     let snapshot: TreeSnapshot
                     if let rules=request.rules {
@@ -300,6 +315,12 @@ public enum NativeReadWorker {
             }
             if let snapshot=response.snapshot, snapshot.entries.count > readEntryPageSize {
                 var digests=[String]()
+                let total=(snapshot.entries.count + readEntryPageSize - 1) / readEntryPageSize + 1
+                func transferring(_ completed: Int) throws {
+                    try ReadChannel.write(ReadProgress(id: request.id, stage: "transferring", entryCount: snapshot.entries.count,
+                        currentPath: request.path, limitReached: snapshot.issues.contains("resource_limit"), completedUnitCount: completed, totalUnitCount: total), to: progressURL)
+                }
+                try transferring(0)
                 for offset in stride(from: 0, to: snapshot.entries.count, by: readEntryPageSize) {
                     let end=min(offset + readEntryPageSize, snapshot.entries.count)
                     let entries=Array(snapshot.entries[offset..<end])
@@ -308,6 +329,7 @@ public enum NativeReadWorker {
                     try data.write(to: url, options: .atomic)
                     try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
                     digests.append(Digest.sha256(data))
+                    try transferring(digests.count)
                 }
                 response.entryCount=snapshot.entries.count
                 response.pageDigests=digests
@@ -315,6 +337,11 @@ public enum NativeReadWorker {
                 response.snapshot=metadata
             }
             try ReadChannel.write(response, to: resultURL)
+            if let count=response.entryCount, let pages=response.pageDigests {
+                try ReadChannel.write(ReadProgress(id: request.id, stage: "transferring", entryCount: count,
+                    currentPath: request.path, limitReached: response.snapshot?.issues.contains("resource_limit"),
+                    completedUnitCount: pages.count + 1, totalUnitCount: pages.count + 1), to: progressURL)
+            }
             return 0
         } catch { return 5 }
     }

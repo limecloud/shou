@@ -16,8 +16,9 @@ public struct StorageNode: Codable, Sendable, Identifiable {
     }
 }
 
-/// A single accounting tree shared by the desktop and CLI. Hard links are charged
-/// to the first lexical path, so sibling totals never count the same object twice.
+/// A single accounting tree shared by the desktop and CLI. Inline snapshots charge
+/// hard links to the first lexical path; catalogs retain their first encountered
+/// charge. Both account for each object once across sibling totals.
 public struct StorageIndex: Sendable {
     public let nodes: [String: StorageNode]
     private let childPaths: [String: [String]]

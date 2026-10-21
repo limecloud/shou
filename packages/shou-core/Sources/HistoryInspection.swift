@@ -31,7 +31,7 @@ enum HistoryInspector {
         try budget.validate()
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
         var remainingEntries=budget.maxEntries
-        func observe(_ path: String?, manifest: [FileEntry], permitted: Bool) throws -> HistoryObjectObservation {
+        func observe(_ path: String?, manifest: [FileEntry], permitted: Bool, trashReceipt: Bool = false) throws -> HistoryObjectObservation {
             if Task.isCancelled { throw ShouError("cancelled", "History verification cancelled.") }
             guard let path else { return HistoryObjectObservation(path: nil, state: "not_recorded", issue: nil) }
             guard permitted else { return HistoryObjectObservation(path: path, state: "unavailable", issue: "unverified_location") }
@@ -44,7 +44,8 @@ enum HistoryInspector {
             case .available: break
             }
             do {
-                let tree=try filesystem.inspectStorageTarget(path, budget: ScanBudget(maxEntries: remainingEntries, maxSeconds: min(seconds, budget.maxSeconds), maxDepth: budget.maxDepth), cancelled: { Task.isCancelled })
+                let readBudget=ScanBudget(maxEntries: remainingEntries, maxSeconds: min(seconds, budget.maxSeconds), maxDepth: budget.maxDepth)
+                let tree=try trashReceipt ? filesystem.inspectTrashTarget(path, budget: readBudget, cancelled: { Task.isCancelled }) : filesystem.inspectStorageTarget(path, budget: readBudget, cancelled: { Task.isCancelled })
                 remainingEntries=max(0, remainingEntries - tree.entries.count)
                 if Task.isCancelled { throw ShouError("cancelled", "History verification cancelled.") }
                 guard tree.complete else { return HistoryObjectObservation(path: path, state: "unavailable", issue: "incomplete_manifest") }
@@ -62,7 +63,7 @@ enum HistoryInspector {
                 throw ShouError("store_corrupt", "Receipt does not identify a complete workspace target.")
             }
             let original=try observe(item.originalPath, manifest: item.manifest, permitted: workspaceMatches)
-            let trash=try observe(item.trashPath, manifest: item.manifest, permitted: item.trashPath.map(filesystem.isTrashLocation) ?? false)
+            let trash=try observe(item.trashPath, manifest: item.manifest, permitted: item.trashPath.map(filesystem.isTrashLocation) ?? false, trashReceipt: true)
             let followUp=followUps.filter { $0.executionId == receipt.id && $0.itemId == item.id }.max { $0.createdAt < $1.createdAt }
             let state: String
             if let followUp, followUp.state == "completed" {

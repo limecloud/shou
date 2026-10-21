@@ -10,7 +10,7 @@
 
 ## 1. 设计约束
 
-1. macOS SwiftUI 桌面端与 Swift CLI 共享领域核心；未来 Windows 复用同一合同和可移植核心。
+1. macOS SwiftUI 桌面端与 Swift CLI 共享领域核心；Windows WPF 桌面端通过带版本的进程桥复用同一引擎，其原生运行验收单独跟踪。
 2. 核心任务能在任一入口独立完成，CLI 不依赖 GUI 进程。
 3. 用户自定义规则与 AI 生成规则使用同一种声明式格式。
 4. 不接入任何模型，不开发 Agent，不引入模型 SDK；首版也不需要账号、网络服务、常驻服务或特权 helper。
@@ -32,7 +32,7 @@ flowchart TB
     Drafts --> CLI
     GUI --> Core[ShouCore 共享核心]
     CLI --> Core
-    Windows[未来 Windows 原生 UI] -.结构化进程桥.-> CLI
+    Windows[Windows WPF 桌面端] -->|带版本的结构化进程桥| CLI
     Core --> Policy[授权与安全策略]
     Core --> Store[本地版本化存储]
     Policy --> FS[授权范围内的文件系统]
@@ -80,19 +80,19 @@ flowchart LR
     FollowUp --> Platform
     Persistence --> Platform
     Mac[macOS / Foundation + Darwin] --> Platform
-    Win[未来 Windows / Win32] -.实现.-> Platform
+    Win[Windows / Win32 适配器] --> Platform
 ```
 
 首版建立共享核心、平台适配和两个产品入口。图中规则、扫描、计划等先作为核心包内的职责边界，不为每项能力拆一个包。
 
 两个产品共用 Skill 资源；安装与导出不经过清理存储，也不改变规则启用状态。详见 [分发架构与时序](../ai/skill-distribution.md)。
 
-工程布局；Windows 与品牌源资源仍为后续交付：
+工程布局：
 
 ```text
 apps/macos/                 # SwiftUI / AppKit 原生应用与应用工程
 apps/cli/                   # Swift CLI；产品命令 shou / shou.exe
-apps/windows/               # 后续 Windows 原生 UI，不代表已经实现
+apps/windows/               # Windows WPF 桌面端与进程桥
 packages/shou-core/         # 可移植 Swift 领域模型、规则、扫描编排与计划
 packages/shou-platform/     # 平台接口的具体实现，当前为 macOS
 packages/shou-contracts/    # 语言无关 JSON Schema 与公开合同
@@ -106,6 +106,8 @@ docs/                      # 产品、架构、接口与验收文档
 完整依赖规则见 [Monorepo 与平台边界](monorepo-and-platforms.md)。平台能力接口由核心声明，具体实现由入口注入，核心不依赖平台适配包。
 
 ### 隔离只读操作
+
+完整空间分析通过有界目录读取器逐页处理 macOS 的 64 KiB 元数据，每次持有 catalog 锁写入至多 128 项。新 catalog 为分配空间至少 1 MiB 的普通文件建立部分索引，服务已保存的大文件查询；旧 catalog 仍可读取。桌面目录展示缓存和批量选择不会替代 Core 的新清单核验。详见[扫描流程、查询策略与时序](../engineering/storage-scan-performance.md)。
 
 桌面端向 `NativeFileSystem(readWorkerExecutable:)` 注入包内 `Contents/Helpers/shou`。根身份查询及完整／清理遍历由短生命周期只读子进程执行，避免停滞的文件系统调用持续占住桌面端的等待链。CLI 的隐藏 worker 入口只接受身份查询和遍历请求，在打开记录存储前分流；它属于平台实现细节，不是公开 Agent 协议、第二套清理引擎或常驻服务。独立 CLI 继续使用常规直接适配。
 
@@ -225,6 +227,8 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 
 废纸篓后续操作核验仅容许已记录顶层目录的 `ctime` 变化，因为 macOS 可能在移动后继续更新它。对象身份与其他根字段、全部后代条目仍须与记录一致。该例外只用于已记录的废纸篓后续操作，不放宽普通扫描或移入前复核。
 
+未授予完全磁盘访问权限时，广泛扫描跳过受保护的废纸篓位置。移入后的核验与后续操作通过 `inspectTrashTarget` 尝试读取系统返回并写入回执的精确直接子项。适配器验证当前用户的废纸篓父目录，并保留系统权限、不跟随链接与完整清单核验；不枚举无关废纸篓项目。部分完成或取消批次中未开始的 `pending` 项显示为已跳过，已开始但结果不确定的操作继续标记为需要核实。
+
 ## 9. AI Agent 接入方式
 
 首版提供公开规则格式、命令发现、JSON 结果与可持久化计划，供 Codex、Claude Code、WorkBuddy 等在用户许可下调用 CLI。无需为每个 Agent 编写不同的清理引擎。
@@ -318,3 +322,31 @@ flowchart LR
 ### 隐私清理边界
 
 隐私记录按来源独立建模，不作为普通文件缓存删除。GUI 与 CLI 共用 `PrivacyService`；平台层仅发现标准 profile 和无跟随身份，Core 对时间、数据库结构、运行状态、排除与指纹预检后按来源事务执行。回执只保存汇总，永久逻辑删除不提供恢复或空间释放承诺。完整架构图、流程图、时序图与支持矩阵见[隐私清理](../engineering/privacy-cleaning.md)。
+
+### 清理展示边界
+
+`OperationProgressView` 统一呈现只读核验与删除进度；结果页占用同一内容区，并能返回来源页面。核心提供可选的阶段工作量和当前项目内部清单计数，客户端只在展示时缩短路径。发现、确认依据和持久化执行事实保持独立职责。Windows 通过桌面 bridge 接收增量进度字段，协议中的路径仍为完整值。
+
+## 操作记录清理与扫描问题处理
+
+操作记录默认只呈现项目、日期、结果与已处理大小；执行 ID、逐项路径、恢复和核验操作放在详情中。清理已结束记录会删除本地 JSON 回执及关联后续记录，保留恢复所需、结果未知和未结束记录。单独删除记录需要明确确认恢复入口丢失；正在执行或尚有后续意图的记录仍保留。只删除记录，不移动或清空实际文件和废纸篓。已执行计划保留消费状态，不能通过清空记录重放。
+
+CLI 使用 `shou history cleanup-preview --json` 预览、`shou history clear` 在终端确认；指定 `--execution-id` 可清理单条，`--include-recoverable true` 明确允许丢弃恢复入口。Windows 通过 `history.cleanup-preview` 与带本次确认挑战的 `history.clear` 调用同一核心。记录删除顺序是主回执在前、关联后续记录在后，避免中断后让已恢复的项目再次成为可恢复项。
+
+扫描提示只针对当前目录。其他目录的不可读状态不污染完整项目目录的浏览。系统管理位置如 `.fseventsd`、`.Spotlight-V100`、`.DocumentRevisions-V100` 使用普通范围说明，默认折叠具体路径；核心仍保留覆盖事实，不把它们伪装为已测量。用户目录的访问问题提供完成设置和 Finder 入口，变化或临时读取失败可重新扫描当前文件夹。完整磁盘访问权限不能覆盖 Unix 所有权或系统保护，软件不会为读取系统目录而修改系统权限。
+
+`StorageCoverageNote` 在共用 Core 中对访问问题分类，资源限制和内容变化保留处理入口。桥接暴露分类及当前目录完整性，Windows 提供资源管理器与当前文件夹重扫，不复制系统路径策略。默认桥接扫描使用共用索引路径；视图状态与短路径展示仍由客户端负责。
+
+```mermaid
+flowchart LR
+    H[操作记录摘要] --> D[按需展开详情]
+    H --> P[预览可清理记录与大小]
+    P --> C[确认仅删除记录]
+    C --> L[获取变更锁并复核状态]
+    L --> R[删除主回执再删除关联后续记录]
+    L --> K[保留恢复所需或未结束记录]
+    S[当前目录覆盖问题] --> M{原因}
+    M -->|系统管理| I[普通范围说明]
+    M -->|用户目录权限| A[完成设置或 Finder]
+    M -->|目录变化| F[重新扫描当前文件夹]
+```

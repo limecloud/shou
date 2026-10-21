@@ -124,6 +124,7 @@ def main():
             return result["data"]
 
         capabilities = success("capabilities")
+        assert success("history.cleanup-preview")["execution_ids"] == []
         assert capabilities["features"]["permanent"] is True
         assert capabilities["features"]["applications"] is False
         print("PASS real capability and version discovery", flush=True)
@@ -230,6 +231,20 @@ def main():
                     assert not result["ok"] and not reviewed, result
                 assert not target.exists()
                 print("PASS native Trash followed by separately confirmed permanent purge", flush=True)
+            preview = success("history.cleanup-preview")
+            assert preview["execution_ids"] and preview["retained_count"] == 0 and preview["record_bytes"] > 0, preview
+            for control in ["cancel", "wrong-digest", "eof"]:
+                result, reviewed = request(engine, environment, "history.clear", confirmation=control)
+                assert reviewed and not result["ok"], result
+                assert success("history.cleanup-preview")["execution_ids"] == preview["execution_ids"]
+            remaining = {str(path): path.read_bytes() for path in workspace.rglob("fixture.bin")}
+            result, reviewed = request(engine, environment, "history.clear", confirmation="accept")
+            assert reviewed and result["ok"] and result["data"]["execution_ids"] == preview["execution_ids"], result
+            assert success("history") == [] and success("history.cleanup-preview")["record_bytes"] == 0
+            assert {str(path): path.read_bytes() for path in workspace.rglob("fixture.bin")} == remaining
+            result, _ = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
+            assert not result["ok"], result
+            print("PASS history preview, confirmation rejection, metadata-only cleanup and consumed-plan refusal", flush=True)
     print("Desktop protocol integration passed; no user files changed.")
 
 

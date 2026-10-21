@@ -79,12 +79,35 @@ enum DesktopBridge {
         }
         let engine=ShouEngine(store: try LocalRecordStore(), filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
         @Sendable func scanProgress(_ progress: ScanProgress) {
-            try? session.send(kind: "progress", value: .object(["stage": .string(progress.stage), "entry_count": .integer(Int64(progress.entryCount)), "path": .string(progress.currentPath)]))
+            var fields: [String: JSONValue]=["stage": .string(progress.stage), "entry_count": .integer(Int64(progress.entryCount)), "path": .string(progress.currentPath)]
+            if progress.fractionCompleted != nil, let completed=progress.completedUnitCount, let total=progress.totalUnitCount {
+                fields["completed_unit_count"] = .integer(Int64(completed))
+                fields["total_unit_count"] = .integer(Int64(total))
+            }
+            try? session.send(kind: "progress", value: .object(fields))
         }
         @Sendable func executionProgress(_ progress: ExecutionProgress) {
-            try? session.send(kind: "progress", value: .object(["stage": .string(progress.stage), "processed_count": .integer(Int64(progress.processedCount)), "item_count": .integer(Int64(progress.itemCount)), "path": .string(progress.path)]))
+            var fields: [String: JSONValue]=["stage": .string(progress.stage), "processed_count": .integer(Int64(progress.processedCount)), "item_count": .integer(Int64(progress.itemCount)), "path": .string(progress.path)]
+            if let completed=progress.currentItemProcessedCount, let total=progress.currentItemCount {
+                fields["current_item_processed_count"] = .integer(Int64(completed))
+                fields["current_item_count"] = .integer(Int64(total))
+            }
+            try? session.send(kind: "progress", value: .object(fields))
         }
         switch request.operation {
+        case "history.cleanup-preview", "history.clear":
+            let ids=input["execution_ids"] == nil ? nil : try strings("execution_ids")
+            let include: Bool
+            if case .bool(let value)? = input["include_recoverable"] { include=value }
+            else if input["include_recoverable"] == nil { include=false }
+            else { throw ShouError("invalid_argument", "include_recoverable must be a boolean.") }
+            let preview=try await engine.historyCleanupPreview(executionIds: ids, includeRecoverable: include)
+            if request.operation == "history.clear", !preview.executionIds.isEmpty {
+                let review: JSONValue = .object(["action": .string("history.clear"), "items": .array(preview.executionIds.map { .object(["path": .string($0)]) })])
+                try await session.confirm(digest: try Digest.of(preview), review: review, operation: "history.clear")
+                return try .from(await engine.clearHistory(executionIds: preview.executionIds, includeRecoverable: include))
+            }
+            return try .from(preview)
         case "configuration":
             return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) })])
         case "workspace.add": return try .from(await engine.addWorkspace(path: string("path"), rootRef: string("root_ref")))
@@ -129,14 +152,15 @@ enum DesktopBridge {
             guard case .bool(let remove)=input["remove"] else { throw ShouError("invalid_argument", "An exclusion action is required.") }
             return try .from(await engine.setGlobalExclusion(pattern: string("pattern"), remove: remove))
         case "storage.scan":
-            let scan=try await engine.scanStorage(path: string("path"), budget: ScanBudget(), progress: scanProgress)
-            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
+            let scan=try await engine.scanStorage(path: string("path"), progress: scanProgress)
+            let notes=scan.tree.issues.map { StorageCoverageNote(issue: $0, root: scan.rootPath) }
+            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) }), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
         case "storage.directory": return try directoryValue(await engine.storageDirectory(scanId: string("scan_id"), path: input["path"]?.string ?? "."))
         default: throw ShouError("capability_unavailable", "This desktop operation is not available.")
         }
     }
     private static func directoryValue(_ directory: StorageDirectory) throws -> JSONValue {
-        .object(["path": .string(directory.item.entry.path), "children": try .from(directory.children.map(\.node)), "total_count": .integer(Int64(directory.children.count))])
+        .object(["path": .string(directory.item.entry.path), "complete": .bool(directory.item.node.isComplete == true), "children": try .from(directory.children.map(\.node)), "total_count": .integer(Int64(directory.children.count))])
     }
     private static func scanPage(_ scan: ScanSnapshot, offset: Int) throws -> JSONValue {
         let candidates=scan.candidates.filter { !$0.ruleIds.isEmpty }

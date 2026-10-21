@@ -50,6 +50,35 @@ func builtinCatalogScopeAndNamespace() async throws {
     try expect(try await engine.scan(workspaceId: root.id, ruleIds: preset.ruleIds).candidates.contains(where: \.eligible))
 }
 
+func builtinCatalogBindingPreservesValidationAndIsolation() async throws {
+    let fixture=try Fixture()
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    var workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "binding-first")
+    let templates=try BuiltinCatalog.templates().filter { $0.location == "projects" && $0.supportedPlatforms.contains("macos") }
+    let expected=try templates.map { try $0.rule(rootRef: workspace.rootRef) }
+    try expect(!expected.isEmpty)
+    try expect(try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "macos") == expected)
+    workspace.rootRef="binding-second"
+    let second=try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "macos")
+    try expect(second.allSatisfy { $0.scope.rootRef == "binding-second" })
+    try expect(expected.allSatisfy { $0.scope.rootRef == "binding-first" })
+    for root in ["", "Invalid", "../outside", String(repeating: "a", count: 81)] {
+        workspace.rootRef=root
+        try expectThrows { try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "macos") }
+    }
+    workspace.rootRef="binding-benchmark"
+    let firstLocations=try KnownLocations.catalog(homeDirectory: fixture.workspace, platform: "macos")
+    let otherHome=fixture.base.appendingPathComponent("other-home")
+    let secondLocations=try KnownLocations.catalog(homeDirectory: otherHome, platform: "macos")
+    try expect(firstLocations.map(\.ruleIds) == secondLocations.map(\.ruleIds))
+    try expect(secondLocations.allSatisfy { $0.path.hasPrefix(otherHome.path + "/") && !$0.exists && $0.availabilityIssue == nil })
+    let started=Date()
+    for _ in 0..<40 {
+        try expect(try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "macos").count == expected.count)
+    }
+    print("builtin binding benchmark: iterations=40 rules=\(expected.count) elapsed=\(String(format: "%.6f", Date().timeIntervalSince(started)))s")
+}
+
 func builtinRulesPreserveProtectedDescendants() async throws {
     let fixture=try Fixture()
     try fixture.put("project/target/.env", "preserve")

@@ -24,6 +24,25 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 @main enum TestRunner {
     static func main() async {
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
+        if Array(CommandLine.arguments.dropFirst()) == ["--builtin-performance-only"] {
+            do {
+                try await builtinCatalogBindingPreservesValidationAndIsolation()
+                print("1/1 built-in binding validation, isolation and benchmark checks passed.")
+            } catch { print("FAIL built-in binding: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--native-activity-only"] {
+            do {
+                try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
+                try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies()
+                try await nativeApplicationActivityKeepsLiveHelpersBlocked()
+                try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked()
+                try nativeReadWorkerCancellationStopsOwnedChild()
+                try nativeReadWorkerTimeoutStopsOwnedChildWithoutEvidence()
+                print("6/6 native activity, unlinked executable and read-worker cancellation tests passed; generated fixtures only.")
+            } catch { print("FAIL native activity: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--operation-progress-only"] {
             do {
                 try executionProgressKeepsBatchTotalsAndPartialBoundaries()
@@ -65,8 +84,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
                 try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies()
                 try await nativeApplicationActivityKeepsLiveHelpersBlocked()
+                try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked()
                 try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation()
-                print("17/17 application summary, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+                print("18/18 application summary, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
             } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
             return
         }
@@ -103,12 +123,13 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-large-files-only"] {
             do {
                 try await storageLargeFilesFilterSavedEvidenceWithoutRescanning()
+                try await storageLargeFileIndexPreservesThresholdBoundariesAndLegacyCatalogs()
                 try await storageLargeFilesPageGloballyWithBinaryPathTies()
                 try await storageLargeFilesPreserveLegacyHardLinkAccounting()
                 try await storageLargeFilesRejectInvalidFiltersCursorsAndCatalogs()
                 try await storageLargeFilesBoundResultsAndHonorCancellation()
                 try await storageLargeFilesReuseReviewedRemovalAndRejectChangedEvidence()
-                print("6/6 large-file filtering, stable pagination, legacy/catalog parity, validation, cancellation and stale removal-plan tests passed; generated fixtures only.")
+                print("7/7 large-file filtering, index boundaries, stable pagination, legacy/catalog parity, validation, cancellation and stale removal-plan tests passed; generated fixtures only.")
             } catch { print("FAIL storage large files: \(error)"); Foundation.exit(1) }
             return
         }
@@ -121,13 +142,35 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-progress-only"] {
             do {
+                try progressPresentationUsesKnownWorkAndCompactPaths()
                 try await storageWorkerReportsPostScanStagesAndExactLimit()
                 try storageWorkerPagesLargeResultsWithoutChangingEvidence()
                 try await storagePagedResultsRoundTripAndRejectCorruption()
                 try await storageCancellationDoesNotPublishIncompletePages()
                 try storageIndexCanCancelAndKeepsAccounting()
-                print("5/5 storage progress, paged transport, persistence and cancellation tests passed; generated fixtures only.")
+                print("6/6 storage progress, compact paths, paged transport, persistence and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage progress: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-removal-only"] {
+            do {
+                try await storageReviewRefreshesDirectoryChangesBeforeConfirmation()
+                try await storageIncompleteReviewReportsCauseAndRemainsRetryable()
+                try await storageNativeRemovalReportsManifestProgress()
+                try await storageAnalysisProtectsRootsAndDetectsChanges()
+                try await storageRemovalRechecksCurrentExclusionsAndNewDescendants()
+                try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: true)
+                print("6/6 storage review, retry, progress, stale evidence, exclusions and native deletion tests passed; generated fixtures only.")
+            } catch { print("FAIL storage removal: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--history-retention-only"] {
+            do {
+                try await historyRetentionPreservesRecoveryAndNeverRemovesTargetFiles()
+                try await historyRetentionPreservesActiveRecordsAndRejectsStoreEscapes()
+                try storageCoverageSeparatesSystemLocationsFromUserAccess()
+                print("3/3 history retention, recovery protection and actionable coverage tests passed; generated fixtures only.")
+            } catch { print("FAIL history retention: \(error)"); Foundation.exit(1) }
             return
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-million-only"] {
@@ -217,12 +260,20 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),
             ("Cancelled storage catalog is never published", { try await storageCatalogCancellationNeverPublishesAScan() }),
             ("Large-file filters reuse saved evidence without rescanning", { try await storageLargeFilesFilterSavedEvidenceWithoutRescanning() }),
+            ("Large-file index preserves threshold boundaries and legacy catalogs", { try await storageLargeFileIndexPreservesThresholdBoundariesAndLegacyCatalogs() }),
             ("Large-file pagination keeps global binary path order", { try await storageLargeFilesPageGloballyWithBinaryPathTies() }),
             ("Large-file legacy and catalog hard-link accounting agree", { try await storageLargeFilesPreserveLegacyHardLinkAccounting() }),
             ("Large-file filters and cursors reject invalid evidence", { try await storageLargeFilesRejectInvalidFiltersCursorsAndCatalogs() }),
             ("Large-file result pages stay bounded and cancellable", { try await storageLargeFilesBoundResultsAndHonorCancellation() }),
             ("Large-file selections retain removal-plan revalidation", { try await storageLargeFilesReuseReviewedRemovalAndRejectChangedEvidence() }),
             ("Storage progress reports exact limit and post-scan stages", { try await storageWorkerReportsPostScanStagesAndExactLimit() }),
+            ("Progress uses known work and compact paths", { try progressPresentationUsesKnownWorkAndCompactPaths() }),
+            ("History retention preserves recovery and target files", { try await historyRetentionPreservesRecoveryAndNeverRemovesTargetFiles() }),
+            ("History retention protects active records and store boundaries", { try await historyRetentionPreservesActiveRecordsAndRejectsStoreEscapes() }),
+            ("Storage coverage distinguishes system and user access", { try storageCoverageSeparatesSystemLocationsFromUserAccess() }),
+            ("Storage review refreshes directory changes before confirmation", { try await storageReviewRefreshesDirectoryChangesBeforeConfirmation() }),
+            ("Storage incomplete review stays retryable", { try await storageIncompleteReviewReportsCauseAndRemainsRetryable() }),
+            ("Storage native removal reports manifest progress", { try await storageNativeRemovalReportsManifestProgress() }),
             ("Paged read worker preserves evidence and cancels loading", { try storageWorkerPagesLargeResultsWithoutChangingEvidence() }),
             ("Large storage pages round-trip and reject corruption", { try await storagePagedResultsRoundTripAndRejectCorruption() }),
             ("Storage cancellation does not publish incomplete pages", { try await storageCancellationDoesNotPublishIncompletePages() }),
@@ -271,6 +322,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Native uninstall activity and explicit container metadata", { try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() }),
             ("Native application activity skips only kernel-verified zombies", { try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies() }),
             ("Native application activity preserves live helper protection", { try await nativeApplicationActivityKeepsLiveHelpersBlocked() }),
+            ("Native application activity preserves unlinked helper protection", { try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked() }),
             ("Uninstall activity failures preserve their cause and allow a clean retry", { try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation() }),
             ("Startup discovery validates before read and cancellation", { try await startupInventoryValidatesBeforeReadingAndHonorsCancellation() }),
             ("Startup control requires explicit capability and action", { try await startupControlRequiresPlatformCapabilityAndForwardsExplicitAction() }),
@@ -317,6 +369,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("First scan built-in discovery and cleanup", { try await builtinDiscoveryWorksWithoutImport() }),
             ("Built-in disable invalidates evidence", { try await disablingBuiltinInvalidatesPlan() }),
             ("Built-in scope, namespace and presets", { try await builtinCatalogScopeAndNamespace() }),
+            ("Built-in binding validation, isolation and benchmark", { try await builtinCatalogBindingPreservesValidationAndIsolation() }),
             ("Built-in protected descendants", { try await builtinRulesPreserveProtectedDescendants() }),
             ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
             ("Storage analysis separates read scope and stale removal", { try await storageAnalysisProtectsRootsAndDetectsChanges() }),

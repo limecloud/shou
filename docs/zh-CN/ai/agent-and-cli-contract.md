@@ -58,12 +58,16 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 | `plan show` | R | 展示路径、风险、动作、摘要、有效期与下一步 |
 | `plan execute` | D | 在交互终端确认当前计划后执行 |
 | `history list / show` | R | 查询执行和逐项结果 |
+| `history cleanup-preview` | R | 预览记录数量和本地占用；可重复 `--execution-id` 缩小选择范围；默认保留可恢复及未结束的记录 |
+| `history clear` | D | 当前终端输入 `CLEAR HISTORY` 确认后，仅删除所选本地回执；`--include-recoverable true` 显式放弃恢复入口；执行中的操作始终保留 |
 | `history inspect` | R | 有界核验记录中的原始／废纸篓确切路径，不修改记录或重试操作 |
 | `history restore` | D | 单独确认后恢复明确记录对应的项目 |
 | `history purge` | D | 单独确认永久移除明确记录对应的本次项目 |
 | `presets list / save / show / scan` | R/W | 复用规则组合；`scan` 只生成新扫描，不复用删除许可 |
 
 CLI 参数、GUI 表单和错误均来自同一领域合同；实际命令支持范围必须由 `capabilities` 发现，不能只凭文档假定可用。
+
+清理操作记录不会删除记录引用的文件、清空废纸篓或删除已消费计划的执行证据。引擎在变更锁内重新核验选定记录 ID。桌面桥接的 `history.cleanup-preview`、`history.clear` 复用同一实现；清理确认绑定当前预览摘要和本次请求挑战。删除可恢复记录会失去 Shou 对该记录的恢复／核验入口，必须明确提示。
 
 安装步骤、官方客户端目录、调用方式与 Lark CLI 调研见 [Skill 安装与分发](skill-distribution.md)。以上命令在打开清理存储前执行，不会启用清理规则。
 

@@ -9,6 +9,7 @@ namespace Shou.Windows;
 
 public sealed class WindowsDialogs(Window owner)
 {
+    public void RevealFolder(string path) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
     public string? ChooseFolder()
     {
         var picker = new OpenFolderDialog { Title = "选择需要分析或清理的本地目录" };
@@ -23,11 +24,12 @@ public sealed class WindowsDialogs(Window owner)
     {
         if (cancellation.IsCancellationRequested || challenge["review"]?["items"] is not JsonArray { Count: > 0 } ||
             !DateTimeOffset.TryParse(challenge["expires_at"]?.GetValue<string>(), out var expiry) || expiry <= DateTimeOffset.UtcNow ||
-            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge")) return Task.FromResult(false);
+            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear")) return Task.FromResult(false);
         var operation = challenge["operation"]!.GetValue<string>();
         if (challenge["review"]?["action"]?.GetValue<string>() != operation) return Task.FromResult(false);
         var (caption, heading, warning) = operation switch
         {
+            "history.clear" => ("清理操作记录", "删除以下本地操作记录？", "仅删除记录，文件保持原位。删除记录后将无法通过 Shou 恢复或核验。未结束的操作记录会保留。"),
             "restore" => ("确认恢复", "恢复以下具体项目？", "恢复遇到同名目标时停止，不会覆盖。"),
             "permanent" => ("确认永久删除", "永久删除以下具体项目？", "此操作不可撤销，删除后无法通过历史恢复。请先停止相关应用、构建和包管理任务。"),
             "purge" => ("确认永久删除", "永久删除以下已记录的回收站项目？", "此操作不可撤销，删除后无法恢复。只处理以下记录中的具体项目。"),

@@ -41,7 +41,10 @@ enum PermanentExecution {
             receipt.items[index].state="purging"
             try save()
             do {
-                try filesystem.purge(path, expected: receipt.items[index].manifest)
+                try filesystem.purge(path, expected: receipt.items[index].manifest, progress: { completed, total, current in
+                    progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: current,
+                        currentItemProcessedCount: completed, currentItemCount: total))
+                })
                 receipt.items[index].state="purged"
             } catch {
                 receipt.items[index].state=["cancelled", "purge_outcome_unknown"].contains((error as? ShouError)?.code ?? "") ? "unknown" : "failed"

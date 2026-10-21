@@ -10,7 +10,10 @@ namespace Shou.Windows;
 public sealed record WorkspaceRow(string Id, string Path, string RootRef);
 public sealed record RuleRow(string Id, string Version, string Title);
 public sealed record HistoryItemRow(string Path, string State, string? Error, string? ResultingPath);
-public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, string[] PurgeableIds, HistoryItemRow[] Items);
+public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, string[] PurgeableIds, HistoryItemRow[] Items)
+{
+    public string Label => ProgressPresentation.ShortPath(RootPath);
+}
 public sealed record StorageRow(string Path, string Size, string Kind);
 public sealed record CleanupItemResultRow(string Path, string State, string? Error);
 public sealed record CleanupCompletionRow(string Icon, string Title, string SuccessText, string Message, string Processed, string Skipped, string Failed, string NeedsVerification, bool HasIssues, CleanupItemResultRow[] Items);
@@ -34,6 +37,8 @@ public sealed class MainViewModel : ObservableObject
     private TaskCompletionSource? idle;
     private JsonObject? configuration;
     private string? scanId, storageScanId;
+    private string? storageRoot;
+    private JsonNode?[] storageCoverage = [];
     private int? nextOffset;
     private bool busy, trashAvailable, permanentAvailable;
     private string status = "正在连接清理核心…", exclusionPattern = "", storagePath = ".";
@@ -44,6 +49,9 @@ public sealed class MainViewModel : ObservableObject
     private string? selectedExclusion;
     private CleanupCompletionRow? completion;
     private int selectedSection;
+    private double? progressFraction;
+    private string progressPath = "", progressFullPath = "";
+    private bool progressVisible;
 
     public MainViewModel(BridgeProcessClient client, WindowsDialogs dialogs)
     {
@@ -55,7 +63,11 @@ public sealed class MainViewModel : ObservableObject
         PermanentDeleteCommand = new AsyncRelayCommand(() => CleanAsync("permanent"), () => !IsBusy && permanentAvailable && Candidates.Any(item => item.IsSelected));
         AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => !IsBusy);
         StorageUpCommand = new AsyncRelayCommand(StorageUpAsync, () => !IsBusy && storageScanId is not null && StoragePath != ".");
+        RescanStorageCommand = new AsyncRelayCommand(() => RunAsync(() => ScanStorageAsync(CurrentStorageFolder!)), () => !IsBusy && CurrentStorageFolder is not null);
+        RevealStorageCommand = new RelayCommand(() => dialogs.RevealFolder(CurrentStorageFolder!), () => !IsBusy && CurrentStorageFolder is not null);
         HistoryCommand = new AsyncRelayCommand(() => RunAsync(LoadHistoryAsync), () => !IsBusy);
+        ClearHistoryCommand = new AsyncRelayCommand(() => ClearHistoryAsync(false), () => !IsBusy && History.Count > 0);
+        RemoveHistoryCommand = new AsyncRelayCommand(() => ClearHistoryAsync(true), () => !IsBusy && SelectedHistory is not null);
         RestoreCommand = new AsyncRelayCommand(() => FollowUpAsync("restore"), () => !IsBusy && trashAvailable && SelectedHistory?.RestorableIds.Length > 0);
         PurgeCommand = new AsyncRelayCommand(() => FollowUpAsync("purge"), () => !IsBusy && permanentAvailable && SelectedHistory?.PurgeableIds.Length > 0);
         DismissCompletionCommand = new RelayCommand(() => Completion = null, () => Completion is not null);
@@ -68,6 +80,8 @@ public sealed class MainViewModel : ObservableObject
         RemoveExclusionCommand = new AsyncRelayCommand(RemoveExclusionAsync, () => !IsBusy && SelectedExclusion is not null);
         CancelCommand = new RelayCommand(() => { active?.Cancel(); Status = "正在停止；请等待当前项目写回回执。"; }, () => IsBusy);
         commands = [ChooseFolderCommand, ScanCommand, MoreCommand, CleanCommand, PermanentDeleteCommand, AnalyzeCommand, StorageUpCommand, HistoryCommand, RestoreCommand, PurgeCommand, ImportRuleCommand, EnableRuleCommand, DisableRuleCommand, AddExclusionCommand, RemoveExclusionCommand, CancelCommand, DismissCompletionCommand, ViewHistoryFromCompletionCommand, RetryCleanupCommand];
+        commands.Add(ClearHistoryCommand); commands.Add(RemoveHistoryCommand);
+        commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
         PropertyChanged += (_, _) => RefreshCommands();
     }
     public ObservableCollection<WorkspaceRow> Workspaces { get; } = [];
@@ -84,7 +98,12 @@ public sealed class MainViewModel : ObservableObject
     public IAsyncRelayCommand PermanentDeleteCommand { get; }
     public IAsyncRelayCommand AnalyzeCommand { get; }
     public IAsyncRelayCommand StorageUpCommand { get; }
+    public IAsyncRelayCommand RescanStorageCommand { get; }
+    public IRelayCommand RevealStorageCommand { get; }
+    private string? CurrentStorageFolder => storageRoot is null ? null : StoragePath == "." ? storageRoot : Path.Combine(storageRoot, StoragePath.Replace('/', Path.DirectorySeparatorChar));
     public IAsyncRelayCommand HistoryCommand { get; }
+    public IAsyncRelayCommand ClearHistoryCommand { get; }
+    public IAsyncRelayCommand RemoveHistoryCommand { get; }
     public IAsyncRelayCommand RestoreCommand { get; }
     public IAsyncRelayCommand PurgeCommand { get; }
     public IRelayCommand DismissCompletionCommand { get; }
@@ -97,6 +116,13 @@ public sealed class MainViewModel : ObservableObject
     public IAsyncRelayCommand RemoveExclusionCommand { get; }
     public IRelayCommand CancelCommand { get; }
     public bool IsBusy { get => busy; private set => SetProperty(ref busy, value); }
+    public bool ProgressIndeterminate => IsBusy && ProgressFraction is null;
+    public double? ProgressFraction { get => progressFraction; private set { SetProperty(ref progressFraction, value); OnPropertyChanged(nameof(ProgressIndeterminate)); OnPropertyChanged(nameof(ProgressValue)); OnPropertyChanged(nameof(ProgressPercentage)); } }
+    public double ProgressValue => (ProgressFraction ?? 0) * 100;
+    public string ProgressPercentage => ProgressFraction is { } value ? $"{value:P0}" : "";
+    public string ProgressPath { get => progressPath; private set => SetProperty(ref progressPath, value); }
+    public string ProgressFullPath { get => progressFullPath; private set => SetProperty(ref progressFullPath, value); }
+    public bool ProgressVisible { get => progressVisible; private set => SetProperty(ref progressVisible, value); }
     public int SelectedSection { get => selectedSection; set => SetProperty(ref selectedSection, value); }
     public CleanupCompletionRow? Completion { get => completion; private set { if (SetProperty(ref completion, value)) { OnPropertyChanged(nameof(CompletionVisible)); OnPropertyChanged(nameof(CompletionHasIssues)); RefreshCommands(); } } }
     public bool CompletionVisible => Completion is not null;
@@ -130,19 +156,40 @@ public sealed class MainViewModel : ObservableObject
         await LoadConfigurationAsync(); await LoadHistoryAsync();
         Status = "选择一个目录开始扫描。清理前会审阅具体范围；永久删除无法恢复。";
     });
-    private async Task RunAsync(Func<Task> action)
+    private async Task RunAsync(Func<Task> action, bool cleanup = false)
     {
         if (IsBusy) return;
         using var cancellation = new CancellationTokenSource(); active = cancellation;
         idle = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        IsBusy = true;
+        ProgressFraction = null; ProgressPath = ""; ProgressFullPath = ""; ProgressVisible = false; IsBusy = true;
+        OnPropertyChanged(nameof(ProgressIndeterminate));
         try { await action(); }
-        catch (BridgeException error) { Status = error.Code + "：" + error.Message; }
-        catch (Exception error) { Status = "操作未完成：" + error.Message; }
-        finally { active = null; IsBusy = false; idle.TrySetResult(); }
+        catch (BridgeException error) { ReportFailure(error.Code + "：" + error.Message, cleanup); }
+        catch (Exception error) { ReportFailure("操作未完成：" + error.Message, cleanup); }
+        finally { active = null; ProgressVisible = false; IsBusy = false; OnPropertyChanged(nameof(ProgressIndeterminate)); idle.TrySetResult(); }
+    }
+    private void ReportFailure(string message, bool cleanup)
+    {
+        Status = message;
+        if (cleanup) Completion = new("!", "清理未能完成", "", message, "0", "0", "0", "0", true, []);
     }
     private IProgress<JsonObject> Progress() => new Progress<JsonObject>(value =>
-        Status = $"{Text(value, "stage")} · {Text(value, "path")} · {value["entry_count"] ?? value["processed_count"]}");
+    {
+        if (!IsBusy) return;
+        var stage = Text(value, "stage");
+        var title = stage switch { "scanning" => "正在扫描", "analysis" => "正在整理结果", "saving" => "正在保存结果", "loading" or "transferring" or "validating" => "正在读取结果", "moving" => "正在移入回收站", "purging" => "正在永久清理", "restoring" => "正在恢复", "finalizing" => "正在完成清理", _ => "正在核验所选项目" };
+        var completed = value["completed_unit_count"]?.GetValue<long>() ?? value["processed_count"]?.GetValue<long>();
+        var total = value["total_unit_count"]?.GetValue<long>() ?? value["item_count"]?.GetValue<long>();
+        ProgressFraction = completed is >= 0 && total is > 0 && completed <= total ? (double)completed.Value / total.Value : null;
+        var itemDone = value["current_item_processed_count"]?.GetValue<long>();
+        var itemTotal = value["current_item_count"]?.GetValue<long>();
+        if (ProgressFraction is not null && itemDone is >= 0 && itemTotal is > 0 && itemDone <= itemTotal && total is > 0 && completed < total)
+            ProgressFraction = Math.Min(1, (completed!.Value + (double)itemDone.Value / itemTotal.Value) / total.Value);
+        ProgressVisible = true;
+        ProgressFullPath = Text(value, "path");
+        ProgressPath = ProgressPresentation.ShortPath(ProgressFullPath);
+        Status = $"{title} · 已处理 {value["entry_count"] ?? value["processed_count"]} 项";
+    });
     private async Task LoadConfigurationAsync()
     {
         var selected = SelectedWorkspace?.Id;
@@ -214,7 +261,7 @@ public sealed class MainViewModel : ObservableObject
         Completion = BuildCompletion(receipt, action);
         Status = "清理结果：" + Text(receipt, "state") + (action == "permanent" ? "。永久删除无法恢复，可在历史中查看逐项结果。" : "。可在历史中查看或恢复。移入回收站不会立即释放磁盘空间。");
         if (!Token.IsCancellationRequested) await LoadHistoryAsync();
-    });
+    }, cleanup: true);
     private async Task LoadHistoryAsync()
     {
         var result = await client.RequestAsync("history", cancellation: Token);
@@ -225,6 +272,14 @@ public sealed class MainViewModel : ObservableObject
             Array(item?["items"]).Select(value => new HistoryItemRow(Text(value, "path"), Text(value, "state"), value?["error"]?.GetValue<string>(), value?["resulting_path"]?.GetValue<string>())).ToArray()));
         SelectedHistory = History.FirstOrDefault();
     }
+    private Task ClearHistoryAsync(bool selectedOnly) => RunAsync(async () =>
+    {
+        var input = new JsonObject { ["include_recoverable"] = selectedOnly };
+        if (selectedOnly) input["execution_ids"] = Strings([SelectedHistory!.Id]);
+        var result = await client.RequestAsync("history.clear", input, confirm: review => dialogs.ConfirmAsync(review, Token), cancellation: Token);
+        await LoadHistoryAsync();
+        Status = $"已清理 {Array(result["execution_ids"]).Length} 条操作记录。文件保持原位。";
+    });
     private Task FollowUpAsync(string action) => RunAsync(async () =>
     {
         var receipt = SelectedHistory!;
@@ -232,7 +287,7 @@ public sealed class MainViewModel : ObservableObject
         Completion = BuildCompletion(result, action);
         Status = (action == "restore" ? "恢复结果：" : "永久删除结果：") + string.Join("、", Array(result).Select(value => Text(value, "state"))) + (action == "restore" ? "。已有同名目标不会被覆盖。" : "。已永久删除的项目无法恢复。");
         if (!Token.IsCancellationRequested) await LoadHistoryAsync();
-    });
+    }, cleanup: true);
     private async Task ImportRuleAsync()
     {
         var path = dialogs.ChooseRule(); if (path is null) return;
@@ -268,7 +323,10 @@ public sealed class MainViewModel : ObservableObject
     private static CleanupCompletionRow BuildCompletion(JsonNode value, string action)
     {
         var source = value is JsonArray ? Array(value) : Array(value?["items"]);
-        var rows = source.Select(item => new CleanupItemResultRow(Text(item, "path"), Text(item, "state"), item?["error"]?.GetValue<string>())).ToArray();
+        var executionState = value is JsonObject ? Text(value, "state") : "";
+        var rows = source.Select(item => new CleanupItemResultRow(Text(item, "path"),
+            Text(item, "state") == "pending" && (executionState is "partial" or "cancelled" or "completed") ? "skipped" : Text(item, "state"),
+            item?["error"]?.GetValue<string>())).ToArray();
         var processed = rows.Count(item => new[] { "trashed", "purged", "restored" }.Contains(item.State));
         var skipped = rows.Count(item => item.State is "skipped" or "cancelled");
         var failed = rows.Count(item => item.State == "failed");
@@ -290,12 +348,13 @@ public sealed class MainViewModel : ObservableObject
     private async Task AnalyzeAsync()
     {
         var path = dialogs.ChooseFolder(); if (path is null) return;
-        await RunAsync(async () =>
-        {
-            var scan = await client.RequestAsync("storage.scan", new() { ["path"] = path }, Progress(), cancellation: Token);
-            storageScanId = Text(scan, "scan_id"); ShowDirectory(scan["directory"]!);
-            Status = (Text(scan, "status") == "partial" ? "仅完成部分范围，统计不代表全部占用。" : "空间统计按实际分配大小估算。") + "双击目录继续查看。";
-        });
+        await RunAsync(() => ScanStorageAsync(path));
+    }
+    private async Task ScanStorageAsync(string path)
+    {
+        var scan = await client.RequestAsync("storage.scan", new() { ["path"] = path }, Progress(), cancellation: Token);
+        storageScanId = Text(scan, "scan_id"); storageRoot = Text(scan, "root_path");
+        storageCoverage = Array(scan["coverage_notes"]); ShowDirectory(scan["directory"]!);
     }
     public Task OpenStorageNodeAsync() => SelectedStorageNode is { Kind: "directory" } item ? RunAsync(async () => ShowDirectory(await client.RequestAsync("storage.directory", new() { ["scan_id"] = storageScanId, ["path"] = item.Path }, cancellation: Token))) : Task.CompletedTask;
     private Task StorageUpAsync() => RunAsync(async () =>
@@ -307,6 +366,12 @@ public sealed class MainViewModel : ObservableObject
     {
         StoragePath = Text(directory, "path"); StorageNodes.Clear();
         foreach (var item in Array(directory["children"])) StorageNodes.Add(new(Text(item, "path"), Bytes(item?["allocated_bytes"]?.GetValue<long>() ?? 0), Text(item, "kind")));
+        var actionable = storageCoverage.Any(note => note?["system_managed"]?.GetValue<bool>() != true &&
+            (StoragePath == "." || Text(note, "path") is "" or "." || Text(note, "path") == StoragePath ||
+             Text(note, "path").StartsWith(StoragePath + "/", StringComparison.Ordinal) || StoragePath.StartsWith(Text(note, "path") + "/", StringComparison.Ordinal)));
+        Status = directory["complete"]?.GetValue<bool>() == true ? "当前文件夹分析完成。双击目录继续查看。" : actionable ?
+            "当前文件夹部分位置需处理：打开文件夹检查访问权限，处理后重新扫描当前文件夹。其余已完成的目录可继续查看。" :
+            "系统管理的位置不计入分析范围，无需更改权限。双击目录继续查看。";
     }
     private static JsonNode?[] Array(JsonNode? value) => value is JsonArray array ? array.ToArray() : [];
     private static string Text(JsonNode? node, string field) => node?[field]?.GetValue<string>() ?? "";

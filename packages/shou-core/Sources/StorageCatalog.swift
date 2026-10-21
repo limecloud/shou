@@ -53,6 +53,9 @@ public final class StorageCatalog {
                 // Full paths are stored once per directory. File rows keep only
                 // their name and parent ID, avoiding gigabytes of repeated prefixes.
                 try execute("CREATE TABLE entries(id INTEGER PRIMARY KEY,path TEXT,parent INTEGER NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,device INTEGER,inode INTEGER,logical INTEGER,allocated INTEGER,modified INTEGER,changed INTEGER,mode INTEGER,owner INTEGER,links INTEGER,total_logical INTEGER,total_allocated INTEGER,files INTEGER,newest INTEGER,complete INTEGER); CREATE UNIQUE INDEX directories ON entries(path) WHERE path IS NOT NULL;")
+                // Index only substantial files. Tiny build/cache entries dominate
+                // disk inventories; they should not be revisited on every page.
+                try execute("CREATE INDEX large_files ON entries(total_allocated DESC,name,parent) WHERE kind='file' AND total_allocated>=1048576;")
                 try execute("CREATE TABLE hard_links(device INTEGER, inode INTEGER, PRIMARY KEY(device,inode)) WITHOUT ROWID; BEGIN IMMEDIATE;")
                 insert=try prepare("INSERT INTO entries(path,parent,name,kind,device,inode,logical,allocated,modified,changed,mode,owner,links,total_logical,total_allocated,files,newest,complete) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
                 update=try prepare("UPDATE entries SET total_logical=?,total_allocated=?,files=?,newest=?,complete=? WHERE id=?")
@@ -146,7 +149,12 @@ public final class StorageCatalog {
         try finish(update)
     }
     public func seal(checkpoint: () throws -> Void = {}) throws {
+        try seal(progress: { _, _ in }, checkpoint: checkpoint)
+    }
+    public func seal(progress: (Int, Int) -> Void, checkpoint: () throws -> Void = {}) throws {
         try checkpoint()
+        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name);", "DROP TABLE hard_links;", "PRAGMA optimize;"]
+        progress(0, steps.count)
         try withoutActuallyEscaping(checkpoint) { callback in
             let context=CatalogCheckpoint(callback)
             sqlite3_progress_handler(database, 4096, { pointer in
@@ -156,7 +164,14 @@ public final class StorageCatalog {
                 catch { context.error=error; return 1 }
             }, Unmanaged.passUnretained(context).toOpaque())
             defer { sqlite3_progress_handler(database, 0, nil, nil) }
-            do { try execute("COMMIT; CREATE UNIQUE INDEX children ON entries(parent,name); DROP TABLE hard_links; PRAGMA optimize;") }
+            do {
+                for (index, statement) in steps.enumerated() {
+                    try checkpoint()
+                    try execute(statement)
+                    try checkpoint()
+                    progress(index + 1, steps.count)
+                }
+            }
             catch { throw context.error ?? error }
         }
         try checkpoint()
@@ -219,7 +234,11 @@ public final class StorageCatalog {
         }, Unmanaged.passUnretained(context).toOpaque())
         defer { sqlite3_progress_handler(database, 0, nil, nil) }
         do {
-            let condition="WHERE e.kind='file' AND e.total_allocated>=?1 AND (?2='all' OR shou_file_type(e.name)=?2)"
+            // SQLite cannot infer a parameter's lower bound for a partial index.
+            // Keep the literal predicate when it is implied by this query. Older
+            // catalogs remain readable and simply use their existing scan path.
+            let indexedFloor=query.minimumBytes >= 1_048_576 ? " AND e.total_allocated>=1048576" : ""
+            let condition="WHERE e.kind='file'" + indexedFloor + " AND e.total_allocated>=?1 AND (?2='all' OR shou_file_type(e.name)=?2)"
             let totals=try prepare("SELECT COUNT(*),COALESCE(SUM(e.total_allocated),0) FROM entries e " + condition)
             defer { sqlite3_finalize(totals) }
             try bind([query.minimumBytes], startingAt: 1, to: totals)

@@ -2,6 +2,9 @@ import Foundation
 import ShouContracts
 
 public struct CleanupRule: Codable, Sendable, Equatable, Identifiable {
+    private static let bundledSchema: Result<JSONValue, Error> = Result {
+        try JSONDecoder().decode(JSONValue.self, from: ShouContracts.ruleSchema())
+    }
     public struct Scope: Codable, Sendable, Equatable {
         public var rootRef: String
         public var maxDepth: Int
@@ -43,7 +46,7 @@ public struct CleanupRule: Codable, Sendable, Equatable, Identifiable {
         let value: JSONValue
         do { value = try JSONDecoder().decode(JSONValue.self, from: data) }
         catch { throw ShouError("invalid_rule", "Rule must contain a valid JSON object.") }
-        let schema = try JSONDecoder().decode(JSONValue.self, from: ShouContracts.ruleSchema())
+        let schema = try schema()
         var issues: [String] = []
         SchemaValidation.check(value, schema: schema, root: schema, path: "$", issues: &issues)
         guard issues.isEmpty else { throw ShouError("invalid_rule", "Rule does not conform to the bundled schema.", details: ["issues": issues.joined(separator: "\n")]) }
@@ -60,7 +63,24 @@ public struct CleanupRule: Codable, Sendable, Equatable, Identifiable {
         }
         return rule
     }
-    public static func schema() throws -> JSONValue { try JSONDecoder().decode(JSONValue.self, from: ShouContracts.ruleSchema()) }
+    public static func schema() throws -> JSONValue { try bundledSchema.get() }
+
+    /// Bundled templates are validated in full before reuse. Only the new root
+    /// reference changes when binding one of those immutable templates.
+    func rebindingRootReference(_ rootRef: String) throws -> CleanupRule {
+        let schema=try Self.schema()
+        guard let field=schema["properties"]?["scope"]?["properties"]?["root_ref"] else {
+            throw ShouError("invalid_rule", "Bundled root-reference schema is unavailable.")
+        }
+        var issues=[String]()
+        SchemaValidation.check(.string(rootRef), schema: field, root: schema, path: "$.scope.root_ref", issues: &issues)
+        guard issues.isEmpty else {
+            throw ShouError("invalid_rule", "Rule does not conform to the bundled schema.", details: ["issues": issues.joined(separator: "\n")])
+        }
+        var rule=self
+        rule.scope.rootRef=rootRef
+        return rule
+    }
 }
 
 /// Implements only the schema vocabulary used by the bundled, closed rule contract.

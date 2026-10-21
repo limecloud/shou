@@ -30,30 +30,34 @@ public struct BuiltinTemplate: Codable, Sendable, Identifiable {
 
 public enum BuiltinCatalog {
     public static let prefix="shou.builtin."
-    private static let catalog: Result<[BuiltinTemplate], Error> = Result {
+    private struct ValidatedTemplate: Sendable {
+        let template: BuiltinTemplate
+        let rule: CleanupRule
+    }
+    private static let catalog: Result<[ValidatedTemplate], Error> = Result {
         guard let url=CoreResources.bundle.url(forResource: "builtin-rules", withExtension: "json") else { throw ShouError("io_error", "Built-in rule catalog is unavailable.") }
         let templates=try JSONDecoder().decode([BuiltinTemplate].self, from: Data(contentsOf: url))
         guard Set(templates.map(\.id)).count == templates.count else { throw ShouError("invalid_rule", "Built-in rule identifiers must be unique.") }
-        for template in templates {
+        return try templates.map { template in
             guard template.id.hasPrefix(prefix),
                   template.location.range(of: "^[a-z][a-z0-9-]{0,63}$", options: .regularExpression) != nil,
                   Set(template.applicationBundleIdentifiers ?? []).count == (template.applicationBundleIdentifiers ?? []).count,
                   (template.applicationBundleIdentifiers ?? []).allSatisfy({ $0.range(of: "^[A-Za-z0-9][A-Za-z0-9.-]*\\.[A-Za-z0-9.-]+$", options: .regularExpression) != nil }) else {
                 throw ShouError("invalid_rule", "Built-in rule metadata is invalid.")
             }
-            _ = try template.rule(rootRef: "catalog-validation")
+            return ValidatedTemplate(template: template, rule: try template.rule(rootRef: "catalog-validation"))
         }
-        return templates
     }
     public static func templates() throws -> [BuiltinTemplate] {
-        try catalog.get()
+        try catalog.get().map(\.template)
     }
     public static func rules(for workspace: Workspace, homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, platform: String = KnownLocations.currentPlatform) throws -> [CleanupRule] {
         let locations=try KnownLocations.catalog(homeDirectory: homeDirectory, platform: platform)
         let scopedLocations=Set(locations.filter { $0.path == workspace.path }.map(\.id))
-        return try templates().filter { template in
-            template.supportedPlatforms.contains(platform) && (template.location == "projects" ? scopedLocations.isEmpty : scopedLocations.contains(template.location))
-        }.map { try $0.rule(rootRef: workspace.rootRef) }
+        return try catalog.get().filter { item in
+            let template=item.template
+            return template.supportedPlatforms.contains(platform) && (template.location == "projects" ? scopedLocations.isEmpty : scopedLocations.contains(template.location))
+        }.map { try $0.rule.rebindingRootReference(workspace.rootRef) }
     }
     public static func category(ruleIds: [String]) -> String {
         let known=(try? templates()) ?? []

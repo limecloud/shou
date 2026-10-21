@@ -191,15 +191,17 @@ public actor ShouEngine {
         }
         let tree = try inspect(workspace.path, rules: rules, scope: scope, budget: budget, progress: progress)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-        progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count))
+        progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count, completedUnitCount: 0, totalUnitCount: 1))
         let referenceTime=now()
         let installedCaches=discovered.evidence.filter { evidence in rules.contains { $0.id == evidence.ruleId } }
         let blocked=try ApplicationSafety.blockedRules(rules.map(\.id), activity: applicationActivity).merging(
             InstalledApplicationCaches.blocked(installedCaches, workspace: workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
         let snapshot = ScanSnapshot(id: Codec.id("scan"), workspace: workspace, configurationDigest: try Digest.of(config), createdAt: referenceTime, status: (tree.discoveryComplete ?? tree.complete) ? "complete" : "partial", previewOnly: previewRule != nil, caseSensitive: tree.caseSensitive, entries: tree.entries,
             candidates: try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: referenceTime, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds), issues: tree.issues + discovered.issues, budget: budget, completedPaths: tree.completedPaths, treeComplete: tree.complete, scope: scope, installedApplicationCaches: installedCaches.isEmpty ? nil : installedCaches)
-        progress(ScanProgress(stage: "saving", entryCount: tree.entries.count))
+        progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count, completedUnitCount: 1, totalUnitCount: 1))
+        progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, completedUnitCount: 0, totalUnitCount: 1))
         try save(snapshot, collection: "scans", id: snapshot.id)
+        progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, completedUnitCount: 1, totalUnitCount: 1))
         return snapshot
     }
     public func scanSnapshot(_ id: String) throws -> ScanSnapshot { try load(ScanSnapshot.self, collection: "scans", id: id) }
@@ -362,7 +364,8 @@ public actor ShouEngine {
         }
     }
     private func verify(path: String, manifest: [FileEntry], trashReceipt: Bool = false) throws {
-        let current = try filesystem.inspectStorageTarget(path, budget: ScanBudget(maxEntries: max(100_000, manifest.count + 1), maxSeconds: 180), cancelled: { Task.isCancelled })
+        let budget=ScanBudget(maxEntries: max(100_000, manifest.count + 1), maxSeconds: 180)
+        let current = try trashReceipt ? filesystem.inspectTrashTarget(path, budget: budget, cancelled: { Task.isCancelled }) : filesystem.inspectStorageTarget(path, budget: budget, cancelled: { Task.isCancelled })
         guard current.complete, current.entries.count == manifest.count,
               zip(current.entries, manifest).allSatisfy({ observed, saved in
                   observed == saved || (trashReceipt && observed.matchesTrashRoot(as: saved))

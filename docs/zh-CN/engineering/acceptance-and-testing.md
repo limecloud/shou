@@ -4,7 +4,15 @@
 
 状态：验收计划持续执行中。第 11 节记录本机验证范围；隔离夹具的桌面与 CLI 永久移除路径已有通过结果，强制中断覆盖仍待完成。
 
-统一进度验证（2026-10-21）：最新 **192/192 项完整核心回归**、**5/5 项进度专项**、**17/17 项应用卸载回归**及 **6/6 项隐私回归**通过。进度专项覆盖跨位置总数、部分结果边界、隐私事务提交、取消与恢复日志；本机安装包和 Computer Use 验收另行记录。进度架构、流程与时序见[操作进度与反馈](../product/operation-progress.md)。证据：`.build/operation-progress-latest-core-regression.log`、`.build/operation-progress-latest-core.log`、`.build/operation-progress-application-tests.log`、`.build/operation-progress-privacy-tests.log`。
+性能与路径中间省略验证（2026-10-21）：**208/208 项完整 Core 回归**通过，包括 **210 条规则、660 个匹配模式**的生成夹具原生废纸篓 → 恢复 → 废纸篓 → 永久删除。最终进度展示构建通过 **6/6 项进度专项**。最终包内 CLI 通过 **153 项合同检查**、**20 项空间分析检查**、**34 项大文件检查**及废纸篓、恢复、永久删除和历史清理的原生桌面桥接套件；已安装 CLI 独立重跑全部 153 项检查通过。百万行 catalog 检查通过。Release 扫描／查询对照、完整响应一致性、缓存条件和限制见[扫描性能](storage-scan-performance.md)。Windows WPF Release 交叉构建零警告、零错误，12 项进程桥接检查通过；Windows 实机运行仍未验证。
+
+Computer Use 验证 70,001 项生成宽目录结果、全选 70,000 个文件、筛选后取消十项且保留 69,990 项、清空筛选后的混合选择状态及清空全部选择；70,000 个夹具文件均保留。最终安装版界面验证路径只出现一个中间省略号，保留开头及 `zh_CN.cshelpindex` 文件名；停止只读扫描后正常返回入口。未选择或删除真实清理目标。最终 **0.6.0** 覆盖安装核对 138 个包内文件，保留全部 787 个既有记录文件，不保留旧版应用备份。证据：`.build/performance-20261021/verification.json`、`gui-acceptance.json`、`gui-width-fixture-integrity.json`、`installation-middle-path.json` 和同目录日志。保留首次双省略号界面观察和 Windows 回调重写失败记录；最终使用 macOS 原生中间截断与 Windows 实测宽度适配。完整原生清理回归先于纯展示变更，后续进度专项覆盖展示修正；VoiceOver、Windows 原生执行、冷缓存及全盘性能仍为独立验收事项。
+
+操作记录、扫描处理入口与清理返回验证（2026-10-21）：**201/201 项完整核心回归**、**6/6 项空间清理专项**、**4/4 项扫描权限专项**及 **3/3 项记录保留／覆盖说明专项**通过。最终安装包内 CLI 通过 **153 项合同检查**及原生桌面桥接套件，覆盖生成夹具的永久移除、废纸篓／恢复、仅删除历史元数据与已消费计划重复执行拒绝。独立空间分析 CLI 通过 20/20、大文件 CLI 通过 34/34。Windows WPF 交叉构建零警告、零错误，进程桥接检查 11/11 通过；未运行原生 Windows C++ 或 Windows 桌面界面。
+
+Computer Use 验证了精简记录摘要、按需展开详情、**19 条记录／17.1 MB** 的记录清理预览及取消、进度短路径、清理过程中真实的 17% 阶段值、六个生成目录移入原生废纸篓、完成页返回、结果更新与从记录恢复。恢复后 **12,001 个原始文件 SHA-256 全部一致**；六条恢复后续记录完成，原废纸篓路径消失，原始回执保持不变。独立生成文件在扫描后变化时，准备流程在确认前拒绝清理；失败页提供返回和可用的重新扫描入口，重扫后恢复结果列表并清空选择。本机既有历史未被清理。首轮桌面执行发现广泛扫描隐私策略误拦无完全磁盘访问权限下的精确废纸篓回执核验；已保留失败证据，通过独立精确位置核验能力修复，并完成桌面复验。部分完成批次中未开始的项目显示为已跳过。最终直接覆盖 `/Applications/Shou.app` **0.6.0**，核对 138 个包内文件、保留 769 个既有记录文件，不保留旧版应用备份。证据：`.build/cleanup-history-ui-acceptance/run-20261021/verification.json` 及同目录日志、回执和哈希核验记录。该隔离验收不代表受保护磁盘完整覆盖或 Windows 运行时验收。
+
+统一进度基线验证（2026-10-21）：当轮 **192/192 项完整核心回归**、**5/5 项进度专项**、**17/17 项应用卸载回归**及 **6/6 项隐私回归**通过。进度专项覆盖跨位置总数、部分结果边界、隐私事务提交、取消与恢复日志；本机安装包和 Computer Use 验收另行记录。进度架构、流程与时序见[操作进度与反馈](../product/operation-progress.md)。证据：`.build/operation-progress-latest-core-regression.log`、`.build/operation-progress-latest-core.log`、`.build/operation-progress-application-tests.log`、`.build/operation-progress-privacy-tests.log`。
 
 
 v0.5.0 候选验证（2026-10-20）：提交 `b218d1b` 通过 [Apple Silicon 与 Intel CI](https://github.com/limecloud/shou/actions/runs/39440323365)，覆盖原生文件系统、CLI、本地化、文档和包内可执行文件。另有 16 项生成浏览器夹具的隐私 CLI 检查通过，覆盖终端取消、限定删除、脱敏持久回执与重复执行拒绝。本地包内 CLI 的 5 项已安装应用缓存保护检查通过：应用清单不完整时拒绝动态发现与扫描，夹具哈希不变。本机存在不可读取或链接应用，无法执行该功能的正向原生路径；完整清单合同由 7 项生成夹具 Core 测试覆盖。证据：`.build/v0.5.0-privacy-cli-final/`、`.build/v0.5.0-installed-cache-cli-guards/`。

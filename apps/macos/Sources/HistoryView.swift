@@ -3,16 +3,46 @@ import ShouCore
 
 struct HistoryView: View {
     @Bindable var model: AppModel
+    @State private var removal: HistoryCleanupPreview?
+    @State private var includeRecoverable=false
     var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text(model.t("History")).font(.title2.weight(.semibold))
+                Spacer()
+                Button(model.t("Clear Finished Records…")) { prepareRemoval() }
+                    .disabled(model.busy || model.history.isEmpty).accessibilityIdentifier("history.clear-finished")
+            }.padding(24)
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(model.history) { receipt in
                     HistoryReceiptView(model: model, receipt: receipt,
-                        followups: model.followups.filter { $0.executionId == receipt.id })
+                        followups: model.followups.filter { $0.executionId == receipt.id },
+                        remove: { prepareRemoval(ids: [receipt.id], allowRecoveryLoss: true) })
                 }
             }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
         }.overlay {
             if model.history.isEmpty { ContentUnavailableView(model.t("No cleanup history"), systemImage: "clock") }
+        }
+        }
+        .alert(model.t("Clear history records?"), isPresented: Binding(get: { removal != nil }, set: { if !$0 { removal=nil } })) {
+            Button(model.t("Cancel"), role: .cancel) { removal=nil }
+            Button(model.t("Clear Records"), role: .destructive) {
+                if let removal { model.clearHistory(removal.executionIds, includeRecoverable: includeRecoverable) }
+                removal=nil
+            }.disabled(removal?.executionIds.isEmpty != false)
+        } message: {
+            if let removal {
+                Text(String(format: model.t("%lld records · %@ of local data"), locale: model.language.locale, removal.executionIds.count, model.bytes(Int64(removal.recordBytes))) + "\n" +
+                     model.t(includeRecoverable ? "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records." : "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept."))
+            }
+        }
+    }
+    private func prepareRemoval(ids: [String]? = nil, allowRecoveryLoss: Bool = false) {
+        guard let engine=model.engine, !model.busy else { return }
+        Task {
+            do { removal=try await engine.historyCleanupPreview(executionIds: ids, includeRecoverable: allowRecoveryLoss); includeRecoverable=allowRecoveryLoss }
+            catch { model.error=error.localizedDescription }
         }
     }
 }
@@ -21,7 +51,9 @@ private struct HistoryReceiptView: View {
     var model: AppModel
     let receipt: ExecutionReceipt
     let followups: [FollowUpReceipt]
+    let remove: () -> Void
     @State private var selection=Set<String>()
+    @State private var expanded=false
 
     private var availableItems: [ItemReceipt] {
         let blocked=Set(followups.filter { ["completed", "pending"].contains($0.state) }.map(\.itemId))
@@ -35,12 +67,24 @@ private struct HistoryReceiptView: View {
         let itemHistory=Dictionary(grouping: followups, by: \.itemId)
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(model.date(receipt.createdAt))
-                Text(model.t(receipt.state == "executing" ? "Unfinished cleanup" : receipt.state))
-                Text(model.t(receipt.entryPoint == "desktop" ? "Desktop" : "CLI"))
-                if receipt.items.contains(where: { $0.uninstallOrigin != nil }) { Text(model.t("Application uninstall")).foregroundStyle(.secondary) }
+                Image(systemName: receipt.state == "completed" ? "checkmark.circle.fill" : "exclamationmark.circle")
+                    .foregroundStyle(receipt.state == "completed" ? Color.green : Color.orange)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(receipt.items.first.map { URL(fileURLWithPath: $0.originalPath).lastPathComponent } ?? model.t("Cleanup"))
+                        .font(.headline).lineLimit(1)
+                    Text(model.date(receipt.createdAt) + " · " + model.t(receipt.state == "executing" ? "Unfinished cleanup" : receipt.state))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 Spacer()
+                Text(model.bytes(receipt.items.reduce(0) { $0 + (["purged", "trashed"].contains($1.state) ? $1.allocatedBytesEstimate : 0) }))
+                    .monospacedDigit().foregroundStyle(.secondary)
+                Button(model.t(expanded ? "Hide Details" : "Details")) { expanded.toggle() }.buttonStyle(.borderless)
+                    .accessibilityIdentifier("history.details." + receipt.id)
+                Menu { Button(model.t("Remove Record…"), role: .destructive, action: remove) }
+                    label: { Image(systemName: "ellipsis") }.menuStyle(.borderlessButton).frame(width: 24)
+                    .disabled(model.busy || receipt.state == "executing")
             }
+            if expanded {
             Text(receipt.id).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) {
@@ -58,7 +102,7 @@ private struct HistoryReceiptView: View {
                 HStack(spacing: 8) {
                     Button(model.t("Verify Locations…")) { model.historyInspection=HistoryInspectionRequest(id: receipt.id) }
                         .accessibilityIdentifier("history.inspect." + receipt.id)
-                    Button(model.t("View Results")) { model.completion=CleanupCompletion(receipts: [receipt]) }
+                    Button(model.t("View Results")) { model.completion=CleanupCompletion(receipts: [receipt], sourceSection: "history") }
                         .accessibilityIdentifier("history.results." + receipt.id)
                     Spacer(minLength: 8)
                     Button(model.t("Restore…")) { model.review(receipt, items: selected, action: "restore") }
@@ -76,14 +120,16 @@ private struct HistoryReceiptView: View {
                 Text(model.t(receipt.items.contains { $0.state == "purged" } ? "Permanently removed items cannot be restored." : "Moved to Trash; this is not freed space."))
                     .font(.caption).foregroundStyle(.secondary).padding(12)
             }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-        }.onChange(of: availableIDs) { _, ids in selection.formIntersection(ids) }
+            }
+        }.padding(16).background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 12))
+            .onChange(of: availableIDs) { _, ids in selection.formIntersection(ids) }
     }
 
     private func itemRow(_ item: ItemReceipt, followups: [FollowUpReceipt], selectable: Bool) -> some View {
         let completed=followups.first { $0.state == "completed" }
         let pending=followups.contains { $0.state == "pending" }
         let latest=followups.max { $0.createdAt < $1.createdAt }
-        let state=receipt.state == "cancelled" && item.state == "pending" ? "Skipped" :
+        let state=receipt.state != "executing" && item.state == "pending" ? "Skipped" :
             ["moving", "pending"].contains(item.state) ? "Needs verification" : item.state
         return HStack {
             Toggle(isOn: Binding(get: { selection.contains(item.id) }, set: {

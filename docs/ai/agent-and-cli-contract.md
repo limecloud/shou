@@ -55,12 +55,16 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 | `plan show` | R | Paths, action, risk, digest, expiry, next actions |
 | `plan execute` | D | Current-plan interactive confirmation |
 | `history list / show` | R | Batch and item outcomes |
+| `history cleanup-preview` | R | Preview receipt count and local bytes; optional repeated `--execution-id` narrows selection; recoverable and unfinished records are preserved by default |
+| `history clear` | D | Confirm `CLEAR HISTORY` on the current TTY, then remove only the selected local receipts; `--include-recoverable true` explicitly discards recovery links; active operations remain protected |
 | `history inspect` | R | Bounded inspection of exact recorded original/Trash paths; no record changes or operation retries |
 | `history restore` | D | Separately confirm verified receipt items |
 | `history purge` | D | Separately confirm irreversible removal of this batch’s items |
 | `presets list / save / show / scan` | R/W | Reuse logic; scan creates fresh evidence, not permission |
 
 Discover actual availability rather than assuming every documented command exists.
+
+History cleanup never deletes referenced files, empties Trash, or removes consumed-plan evidence. The engine revalidates selected receipt IDs under its mutation lease. Desktop bridge operations `history.cleanup-preview` and `history.clear` share this implementation; clear binds confirmation to the current preview digest and request challenge. Discarding a recoverable receipt removes Shou's restore/verification entry for that receipt and requires an explicit warning.
 
 Skill installation, official client directories, invocation syntax and the Lark CLI research are documented in [Skill distribution](skill-distribution.md). These commands run before cleanup storage is opened and do not enable cleanup rules.
 

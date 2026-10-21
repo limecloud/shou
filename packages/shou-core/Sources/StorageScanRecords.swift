@@ -15,12 +15,15 @@ enum StorageScanRecords {
         let entryCount: Int
         let pages: [Page]
     }
-    static func save(_ scan: StorageScan, store: any RecordStore, checkpoint: () throws -> Void) throws {
+    static func save(_ scan: StorageScan, store: any RecordStore, progress: (Int, Int) -> Void = { _, _ in }, checkpoint: () throws -> Void) throws {
         try checkpoint()
+        let total=scan.tree.entries.count > pageSize ? (scan.tree.entries.count + pageSize - 1) / pageSize + 1 : 1
+        progress(0, total)
         guard scan.tree.entries.count > pageSize else {
             let data=try Codec.encode(scan)
             try checkpoint()
             try store.write("storage-scans", id: scan.id, data: data)
+            progress(1, total)
             return
         }
         var pages=[Page]()
@@ -32,6 +35,7 @@ enum StorageScanRecords {
             let id=scan.id + "_p" + String(pages.count)
             try store.write("storage-scan-entries", id: id, data: data)
             pages.append(Page(id: id, count: end - offset, digest: Digest.sha256(data)))
+            progress(pages.count, total)
         }
         var metadata=scan
         metadata.tree.entries=[]
@@ -39,6 +43,7 @@ enum StorageScanRecords {
         let data=try Codec.encode(record)
         try checkpoint()
         try store.write("storage-scans", id: scan.id, data: data)
+        progress(total, total)
     }
     static func load(_ id: String, store: any RecordStore) throws -> StorageScan {
         guard let data=try store.read("storage-scans", id: id) else { throw ShouError("invalid_argument", "Unknown space analysis.") }

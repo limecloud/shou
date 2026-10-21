@@ -13,7 +13,9 @@ struct StorageLocation: Identifiable {
 
 @MainActor @Observable final class StorageSession {
     var scan: StorageScan?
-    var index=StorageIndex(entries: [])
+    var index=StorageIndex(entries: []) {
+        didSet { indexRevision += 1; directoryChildrenCache=nil; visibleChildrenCache=nil }
+    }
     var entries: [String: FileEntry]=[:]
     var location="/System/Volumes/Data"
     var locations: [StorageLocation]=[]
@@ -29,6 +31,7 @@ struct StorageLocation: Identifiable {
     var scanning=false
     var stopRequested=false
     var reviewing=false
+    var reviewProgress: ExecutionProgress?
     var loadingDirectory=false
     var plan: StorageRemovalPlan?
     var elapsed: TimeInterval=0
@@ -40,7 +43,15 @@ struct StorageLocation: Identifiable {
     private var directoryTask: Task<Void, Never>?
     private var loadedDirectories=Set<String>()
     private var removedNodes=[StorageNode]()
+    @ObservationIgnored private var indexRevision=0
+    @ObservationIgnored private var directoryChildrenCache: (revision: Int, path: String, nodes: [StorageNode])?
+    @ObservationIgnored private var visibleChildrenCache: (revision: Int, path: String, query: String, sort: String, root: String?, nodes: [StorageNode], eligible: [StorageNode])?
+    private let homeDirectory=FileManager.default.homeDirectoryForCurrentUser.path
+    private let recordDirectory=LocalRecordStore.defaultDirectory.path
     var hasChanges: Bool { !removedNodes.isEmpty }
+    var coverageNotes: [StorageCoverageNote] { (scan?.tree.issues ?? []).map { StorageCoverageNote(issue: $0, root: scan?.rootPath ?? location) }.filter { $0.concerns(path) } }
+    var actionableCoverage: [StorageCoverageNote] { coverageNotes.filter { !$0.systemManaged } }
+    var currentFolderIncomplete: Bool { index.nodes[path]?.isComplete == false }
     var progressTitle: String {
         if stopRequested { return "Stopping scan…" }
         switch progress?.stage {
@@ -52,13 +63,32 @@ struct StorageLocation: Identifiable {
         }
     }
     var selectedBytes: Int64 { selected.reduce(0) { $0 + (index.nodes[$1]?.allocatedBytes ?? 0) } }
+    var measuredChildren: [StorageNode] {
+        // Read the observed inputs even on cache hits so SwiftUI still tracks
+        // index replacement and navigation. Hover/selection need no re-sort.
+        let index=index, path=path
+        if let cached=directoryChildrenCache, cached.revision == indexRevision, cached.path == path { return cached.nodes }
+        let nodes=index.children(of: path)
+        directoryChildrenCache=(indexRevision, path, nodes)
+        return nodes
+    }
     var children: [StorageNode] {
-        let nodes=index.children(of: path).filter { query.isEmpty || $0.name.localizedCaseInsensitiveContains(query) }
+        let base=measuredChildren, query=query, sort=sort, path=path, root=scan?.rootPath
+        if let cached=visibleChildrenCache, cached.revision == indexRevision, cached.path == path,
+           cached.query == query, cached.sort == sort, cached.root == root { return cached.nodes }
+        let filtered=query.isEmpty ? base : base.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        let nodes: [StorageNode]
         switch sort {
-        case "name": return nodes.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        case "count": return nodes.sorted { $0.fileCount == $1.fileCount ? $0.path < $1.path : $0.fileCount > $1.fileCount }
-        default: return nodes
+        case "name": nodes=filtered.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        case "count": nodes=filtered.sorted { $0.fileCount == $1.fileCount ? $0.path < $1.path : $0.fileCount > $1.fileCount }
+        default: nodes=filtered
         }
+        visibleChildrenCache=(indexRevision, path, query, sort, root, nodes, nodes.filter { reason($0) == nil })
+        return nodes
+    }
+    var eligibleChildren: [StorageNode] {
+        _ = children
+        return visibleChildrenCache?.eligible ?? []
     }
     func loadLocations() {
         guard locations.isEmpty else { return }
@@ -84,7 +114,7 @@ struct StorageLocation: Identifiable {
     func reason(_ node: StorageNode) -> String? {
         guard let scan, let entry=entries[node.path] else { return "Item is absent from this analysis." }
         if entry.owner != getuid() { return "This item is not owned by the current user." }
-        return StorageRemovalPolicy.reason(root: scan.rootPath, path: node.path, entry: entry, home: FileManager.default.homeDirectoryForCurrentUser.path, protectedPaths: [LocalRecordStore.defaultDirectory.path])
+        return StorageRemovalPolicy.reason(root: scan.rootPath, path: node.path, entry: entry, home: homeDirectory, protectedPaths: [recordDirectory])
     }
     func isSelected(_ path: String) -> Bool { StorageSelection.contains(path, in: selected) }
     func toggle(_ node: StorageNode, app: AppModel) {
@@ -92,11 +122,11 @@ struct StorageLocation: Identifiable {
         selected=StorageSelection.toggle(node.path, selected: !isSelected(node.path), paths: selected, index: index)
         selected=selected.filter { index.nodes[$0].map { reason($0) == nil } ?? false }
     }
-    func selectVisible(app: AppModel) {
+    func selectVisible(app: AppModel, toggle: Bool = true) {
         guard !app.busy, !loadingDirectory else { return }
-        let eligible=children.filter { reason($0) == nil }
-        let all=eligible.allSatisfy { isSelected($0.path) }
-        for node in eligible { selected=StorageSelection.toggle(node.path, selected: !all, paths: selected, index: index) }
+        let eligible=eligibleChildren
+        let all=toggle && eligible.allSatisfy { isSelected($0.path) }
+        selected=StorageSelection.setting(Set(eligible.map(\.path)), selected: !all, in: selected, index: index)
         selected=selected.filter { index.nodes[$0].map { reason($0) == nil } ?? false }
     }
     func navigate(_ next: String) {
@@ -179,22 +209,26 @@ struct StorageLocation: Identifiable {
                     }
                 })
                 try Task.checkCancellation()
-                progress=ScanProgress(stage: "indexing", entryCount: result.entryCount, currentPath: root)
+                let parts=previous == "." ? [] : previous.split(separator: "/")
+                let total=1 + parts.count
+                progress=ScanProgress(stage: "indexing", entryCount: result.entryCount, currentPath: root, completedUnitCount: 0, totalUnitCount: total)
                 let directory=try await engine.storageDirectory(scanId: result.id)
                 try Task.checkCancellation()
                 guard operation == token else { return }
                 scan=result; index=StorageIndex(entries: []); entries=[:]; loadedDirectories=[]; removedNodes=[]
                 merge(directory)
+                progress=ScanProgress(stage: "indexing", entryCount: result.entryCount, currentPath: root, completedUnitCount: 1, totalUnitCount: total)
                 // Refresh restores the previous directory without loading every
                 // file in the volume or building a million-entry UI dictionary.
                 path="."
                 if previous != "." {
-                    let parts=previous.split(separator: "/")
                     for end in parts.indices {
                         try Task.checkCancellation()
                         let next=parts[...end].joined(separator: "/")
                         guard let current=try? await engine.storageDirectory(scanId: result.id, path: next) else { break }
                         merge(current); path=next
+                        progress=ScanProgress(stage: "indexing", entryCount: result.entryCount, currentPath: root + "/" + next,
+                            completedUnitCount: end + 2, totalUnitCount: total)
                     }
                 }
                 focus=nil; hovered=nil; back=[]; forward=[]
@@ -203,12 +237,17 @@ struct StorageLocation: Identifiable {
             } catch { if !Task.isCancelled { app.error=error.localizedDescription }; app.statusKey="Scan stopped." }
         }
     }
-    func stop() { if scanning { stopRequested=true }; task?.cancel() }
+    func stop() { if scanning || reviewing { stopRequested=true }; task?.cancel() }
     func waitForOperation() async { await task?.value }
     func restart(app: AppModel) {
         guard !app.busy else { return }
         directoryTask?.cancel(); loadingDirectory=false
         scan=nil; selected=[]; focus=nil; path="."; back=[]; forward=[]
+    }
+    func rescanCurrentFolder(app: AppModel) {
+        guard !app.busy, let scan else { return }
+        location=StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path)
+        start(app: app)
     }
     func reveal(_ path: String) {
         guard let scan else { return }
@@ -221,17 +260,32 @@ struct StorageLocation: Identifiable {
     }
     func review(app: AppModel, action: String) {
         guard let engine=app.engine, let scan, !selected.isEmpty, !app.busy else { return }
-        let paths=Array(selected)
-        reviewing=true; app.busy=true; app.statusKey="Checking selected files…"
+        let paths=Array(selected), sourceSection=app.section
+        reviewing=true; reviewProgress=nil; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
         task=Task {
-            defer { reviewing=false; app.busy=false }
-            do { plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths, action: action); app.statusKey="Ready to review" }
-            catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+            defer { reviewing=false; app.busy=false; stopRequested=false }
+            do {
+                plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths, action: action, progress: { [weak self] update in
+                    Task { @MainActor in
+                        guard let self, self.reviewing, !self.stopRequested else { return }
+                        self.reviewProgress=update
+                    }
+                })
+                app.statusKey="Ready to review"
+            } catch {
+                if !Task.isCancelled {
+                    let details=(error as? ShouError)?.details ?? [:]
+                    let failure=([error.localizedDescription] + [details["path"], details["reasons"]].compactMap { $0 }).joined(separator: "\n")
+                    app.completion=CleanupCompletion(receipts: [], failures: [failure], sourceSection: sourceSection)
+                    app.statusKey="Some items could not be removed. Review the result."
+                }
+            }
         }
     }
     func execute(app: AppModel, plan: StorageRemovalPlan) {
         guard let engine=app.engine, !app.busy else { return }
         self.plan=nil; app.busy=true
+        let sourceSection=app.section
         let execution=app.beginExecution(total: plan.items.count)
         task=Task {
             do {
@@ -259,10 +313,13 @@ struct StorageLocation: Identifiable {
                     while path != "." && index.nodes[path] == nil { path=StorageIndex.parent(path) }
                 }
                 selected=[]; focus=nil
-                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: "storage")
+                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: sourceSection)
                 app.statusKey=receipt.state == "completed" ? "Selected items processed. Refresh to measure current disk usage." : "Some items could not be removed. Review the result."
                 await app.refresh()
-            } catch { app.operationHadError=true; app.error=error.localizedDescription }
+            } catch {
+                app.operationHadError=true
+                app.completion=CleanupCompletion(receipts: [], failures: [error.localizedDescription], sourceSection: sourceSection)
+            }
             app.busy=false; app.isExecuting=false; app.stopRequested=false
         }
     }

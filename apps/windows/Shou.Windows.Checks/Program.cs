@@ -36,6 +36,34 @@ var prefix = Path.GetFileNameWithoutExtension(executable).Equals("dotnet", Strin
 BridgeProcessClient Fixture(string mode, TimeSpan? timeout = null) => new(executable, prefix.Concat(["--fixture", mode]), timeout: timeout);
 var passed = 0;
 async Task Check(string title, Func<Task> action) { await action(); passed++; Console.WriteLine("PASS " + title); }
+await Check("progress paths shorten only the middle and preserve Unicode text elements", () =>
+{
+    if (ProgressPresentation.ShortPath("C:\\Users\\person\\build\\output.bin") != "C:/Users/person/build/output.bin") throw new Exception("Short Windows paths must be preserved.");
+    if (ProgressPresentation.ShortPath("/Users/person/build/output.bin") != "/Users/person/build/output.bin") throw new Exception("Short POSIX paths must be preserved.");
+    if (ProgressPresentation.ShortPath("/file.bin") != "/file.bin") throw new Exception("Short paths must be preserved.");
+    if (ProgressPresentation.ShortPath("") != "") throw new Exception("Empty paths must be preserved.");
+    if (ProgressPresentation.ShortPath("/a/line\r\n/tab\tfile") != "/a/line /tab file") throw new Exception("Progress paths must remain on one line.");
+    foreach (var path in new[] {
+        "/Users/person/Library/Containers/long.application.identifier/Data/Library/Caches/LINE.lproj/locale.pak",
+        "C:/Users/person/AppData/Local/long.application.identifier/Cache/LINE.lproj/locale.pak",
+        "/Users/测试/" + string.Concat(Enumerable.Repeat("e\u0301👩🏽‍💻中文", 30)) + "/locale.pak" })
+    {
+        var elements = System.Globalization.StringInfo.ParseCombiningCharacters(path);
+        var shortened = ProgressPresentation.ShortPath(path);
+        if (shortened != path[..elements[24]] + "…" + path[elements[^39]..] || System.Globalization.StringInfo.ParseCombiningCharacters(shortened).Length != 64)
+            throw new Exception("Only the middle may be shortened, without splitting a text element.");
+    }
+    if (ProgressPresentation.ShortPath(new string('a', 64)) != new string('a', 64)
+        || ProgressPresentation.ShortPath(new string('a', 65)) != new string('a', 24) + "…" + new string('a', 39))
+        throw new Exception("Progress path length boundary is incorrect.");
+    var longPath = "C:/Users/person/AppData/Local/long.application.identifier/Cache/LINE.lproj/locale.pak";
+    var fitted = ProgressPresentation.FitPath(longPath, value => value.Length <= 21);
+    if (fitted.Length != 21 || !fitted.StartsWith("C:/Users") || !fitted.EndsWith("/locale.pak") || !fitted.Contains('…'))
+        throw new Exception("Narrow layouts must shorten the middle instead of the filename.");
+    if (ProgressPresentation.FitPath(longPath, value => value.Length <= 0) != "")
+        throw new Exception("Zero-width layouts must remain bounded.");
+    return Task.CompletedTask;
+});
 static void Require(bool condition) { if (!condition) throw new Exception("Check failed"); }
 async Task Failure(string code, Func<Task<JsonNode>> action)
 {

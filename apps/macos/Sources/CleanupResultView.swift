@@ -8,7 +8,6 @@ import Accessibility
 struct CleanupResultView: View {
     @Bindable var model: AppModel
     let result: CleanupCompletion
-    @Environment(\.dismiss) private var dismiss
     @ReduceMotion private var reduceMotion
     @State private var appeared=false
     @State private var showDetails=false
@@ -33,7 +32,8 @@ struct CleanupResultView: View {
     private var complete: Bool { result.failures.isEmpty && !items.isEmpty && result.receipts.allSatisfy { $0.state == "completed" } && moved + purged == items.count }
     private var hasIssues: Bool { !complete }
     private var title: String {
-        model.t(complete ? "Cleanup complete" : result.receipts.contains { $0.state == "executing" } ? "Unfinished cleanup" : result.receipts.contains { $0.state == "cancelled" } ? "Cleanup stopped" : "Cleanup finished with issues")
+        if result.receipts.isEmpty { return model.t("Cleanup could not start") }
+        return model.t(complete ? "Cleanup complete" : result.receipts.contains { $0.state == "executing" } ? "Unfinished cleanup" : result.receipts.contains { $0.state == "cancelled" } ? "Cleanup stopped" : "Cleanup finished with issues")
     }
     private var totalBytes: Int64 {
         result.receipts.reduce(0) { $0 + (permanent ? $1.permanentlyRemovedBytesEstimate : $1.trashedBytesEstimate) }
@@ -53,16 +53,18 @@ struct CleanupResultView: View {
                 Text(model.date(date)).font(.caption).foregroundStyle(.secondary).padding(.top, 5)
             }
 
-            Text(model.bytes(totalBytes))
-                .font(.system(size: 42, weight: .semibold, design: .rounded))
-                .monospacedDigit().padding(.top, 28)
+            if !result.receipts.isEmpty {
+                Text(model.bytes(totalBytes))
+                    .font(.system(size: 42, weight: .semibold, design: .rounded))
+                    .monospacedDigit().padding(.top, 28)
+            }
             Text(model.t(complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
                 .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
 
             if hasIssues {
-                issueSummary.padding(.top, 22)
-                if showDetails {
+                if !items.isEmpty { issueSummary.padding(.top, 22) }
+                if showDetails || items.isEmpty {
                     details.padding(.top, 12)
                 } else {
                     Button(model.t("Details")) { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { showDetails=true } }
@@ -78,22 +80,22 @@ struct CleanupResultView: View {
                         .keyboardShortcut("r", modifiers: [.command])
                         .accessibilityIdentifier("cleanup.result.scan-again")
                 }
-                if hasIssues {
-                    Button(model.t("View History")) { model.section="history"; dismiss() }
+                if hasIssues && !result.receipts.isEmpty {
+                    Button(model.t("View History")) { model.completion=nil; model.section="history" }
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("cleanup.result.history")
                 }
                 Spacer(minLength: 8)
-                Button(model.t(complete ? "Done" : "Close")) { dismiss() }
+                Button(model.t("Back")) { model.completion=nil; model.section=result.sourceSection }
                     .buttonStyle(.bordered)
                     .keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("cleanup.result.close")
             }
         }
         .padding(30)
-        .frame(width: 720)
-        .frame(minHeight: hasIssues && showDetails ? 610 : hasIssues ? 500 : 450)
-        .onExitCommand { dismiss() }
+        .frame(maxWidth: 720)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onExitCommand { model.completion=nil; model.section=result.sourceSection }
         .onAppear {
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) { appeared=true }
             AccessibilityNotification.Announcement(title).post()
@@ -102,7 +104,7 @@ struct CleanupResultView: View {
 
     private var issueSummary: some View {
         HStack(spacing: 10) {
-            resultMetric(model.t("Moved"), value: moved, color: .green)
+            resultMetric(model.t(permanent ? "Permanently removed" : "Moved"), value: permanent ? purged : moved, color: .green)
             resultMetric(model.t("Skipped"), value: skipped, color: .secondary)
             resultMetric(model.t("Failed items"), value: failed, color: failed > 0 ? .red : .secondary)
             resultMetric(model.t("Needs verification"), value: unverified, color: unverified > 0 ? .orange : .secondary)
@@ -117,7 +119,7 @@ struct CleanupResultView: View {
                         .font(.caption).foregroundStyle(.orange).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(10)
                 }
-                ForEach(outcomes) { outcome in
+                ForEach(outcomes.filter { $0.state != .moved && $0.state != .purged }) { outcome in
                     resultRow(outcome.item, state: outcome.state)
                     if outcome.id != outcomes.last?.id { Divider().padding(.leading, 34) }
                 }
@@ -162,7 +164,7 @@ struct CleanupResultView: View {
             case "trashed": self = .moved
             case "purged": self = .purged
             case "skipped": self = .skipped
-            case "pending" where executionState == "cancelled": self = .skipped
+            case "pending" where executionState != "executing": self = .skipped
             case "failed": self = .failed
             default: self = .unverified
             }

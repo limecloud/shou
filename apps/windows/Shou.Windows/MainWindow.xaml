@@ -1,4 +1,4 @@
-<Window x:Class="Shou.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+<Window x:Class="Shou.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Shou.Windows"
         Title="Shou · 收拾一下" Width="1120" Height="760" MinWidth="840" MinHeight="580" FontFamily="Segoe UI, Microsoft YaHei UI" FontSize="14">
   <Window.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
@@ -26,7 +26,7 @@
       </TabItem>
       <TabItem Header="空间分析">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-          <StackPanel Orientation="Horizontal"><Button Content="选择目录并分析…" Command="{Binding AnalyzeCommand}" /><Button Content="返回上层" Command="{Binding StorageUpCommand}" /></StackPanel>
+          <WrapPanel><Button Content="选择目录并分析…" Command="{Binding AnalyzeCommand}" /><Button Content="返回上层" Command="{Binding StorageUpCommand}" /><Button Content="重新扫描当前文件夹" Command="{Binding RescanStorageCommand}" /><Button Content="打开当前文件夹" Command="{Binding RevealStorageCommand}" /></WrapPanel>
           <TextBlock Grid.Row="1" Text="{Binding StoragePath}" Margin="0,12" />
           <DataGrid Grid.Row="2" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode">
             <DataGrid.Columns><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="140" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="110" /></DataGrid.Columns>
@@ -43,20 +43,37 @@
         </Grid>
       </TabItem>
       <TabItem Header="历史与恢复">
-        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="180" /></Grid.RowDefinitions>
-          <WrapPanel><Button Content="刷新历史" Command="{Binding HistoryCommand}" /><Button Content="恢复所选记录的可恢复项目…" Command="{Binding RestoreCommand}" /><Button Content="永久删除所选记录的回收站项目…" Command="{Binding PurgeCommand}" /></WrapPanel>
+        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <WrapPanel><Button Content="刷新" Command="{Binding HistoryCommand}" /><Button Content="清理已结束记录…" Command="{Binding ClearHistoryCommand}" /><Button Content="删除所选记录…" Command="{Binding RemoveHistoryCommand}" /><Button Content="恢复…" Command="{Binding RestoreCommand}" /><Button Content="永久删除…" Command="{Binding PurgeCommand}" /></WrapPanel>
           <DataGrid Grid.Row="1" ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,14,0,0">
-            <DataGrid.Columns><DataGridTextColumn Header="时间" Binding="{Binding CreatedAt}" Width="190" /><DataGridTextColumn Header="目录" Binding="{Binding RootPath}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="140" /></DataGrid.Columns>
+            <DataGrid.Columns><DataGridTextColumn Header="时间" Binding="{Binding CreatedAt}" Width="190" /><DataGridTextColumn Header="目录" Binding="{Binding Label}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="140" /></DataGrid.Columns>
           </DataGrid>
-          <DataGrid Grid.Row="2" ItemsSource="{Binding HistoryItems}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,12,0,0" AutomationProperties.Name="所选历史记录的逐项结果">
+          <Expander Grid.Row="2" Header="所选记录的详细结果" Margin="0,12,0,0">
+          <DataGrid ItemsSource="{Binding HistoryItems}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" MaxHeight="180" AutomationProperties.Name="所选历史记录的逐项结果">
             <DataGrid.Columns><DataGridTextColumn Header="原始路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="130" /><DataGridTextColumn Header="实际结果路径" Binding="{Binding ResultingPath}" Width="220" /><DataGridTextColumn Header="原因" Binding="{Binding Error}" Width="220" /></DataGrid.Columns>
           </DataGrid>
+          </Expander>
         </Grid>
       </TabItem>
     </TabControl>
-    <StackPanel Grid.Row="2" Margin="0,16,0,0"><ProgressBar Height="3" IsIndeterminate="{Binding IsBusy}" /><TextBlock Text="{Binding Status}" Margin="0,9,0,0" AutomationProperties.LiveSetting="Polite" /></StackPanel>
+    <StackPanel Grid.Row="2" Margin="0,16,0,0">
+      <TextBlock Text="{Binding ProgressPercentage}" FontSize="26" FontWeight="SemiBold" HorizontalAlignment="Center" />
+      <ProgressBar Height="6" Maximum="100" Value="{Binding ProgressValue}" IsIndeterminate="{Binding ProgressIndeterminate}" />
+      <local:ProgressPathTextBlock FullPath="{Binding ProgressFullPath}" ToolTip="{Binding ProgressFullPath}" MaxWidth="420" TextAlignment="Center" Opacity="0.65" Margin="0,8,0,0" />
+      <TextBlock Text="{Binding Status}" Margin="0,9,0,0" AutomationProperties.LiveSetting="Polite" />
+    </StackPanel>
   </Grid>
-  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="#AA0B172A" Padding="28" AutomationProperties.Name="清理完成结果">
+  <Border Visibility="{Binding ProgressVisible, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Padding="36" Margin="0,95,0,0" AutomationProperties.Name="操作进度">
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="420">
+      <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="68" Foreground="#2779DF" HorizontalAlignment="Center" Margin="0,0,0,28" />
+      <TextBlock Text="{Binding Status}" TextAlignment="Center" FontSize="18" Margin="0,0,0,20" />
+      <TextBlock Text="{Binding ProgressPercentage}" FontSize="38" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,12" />
+      <ProgressBar Height="8" Maximum="100" Value="{Binding ProgressValue}" IsIndeterminate="{Binding ProgressIndeterminate}" />
+      <local:ProgressPathTextBlock FullPath="{Binding ProgressFullPath}" ToolTip="{Binding ProgressFullPath}" TextAlignment="Center" Opacity="0.65" Margin="0,12,0,24" />
+      <Button Content="停止" Command="{Binding CancelCommand}" Width="180" Padding="20,10" HorizontalAlignment="Center" />
+    </StackPanel>
+  </Border>
+  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Padding="28" Margin="0,95,0,0" AutomationProperties.Name="清理完成结果">
     <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CornerRadius="16" Padding="34" MaxWidth="720" MaxHeight="680" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
@@ -86,7 +103,7 @@
         <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,24,0,0">
           <Button Content="重新扫描" Command="{Binding RetryCleanupCommand}" Visibility="{Binding CompletionHasIssues, Converter={StaticResource BoolToVisibility}}" Margin="0,0,8,0" />
           <Button Content="查看操作记录" Command="{Binding ViewHistoryFromCompletionCommand}" Visibility="{Binding CompletionHasIssues, Converter={StaticResource BoolToVisibility}}" Margin="0,0,8,0" />
-          <Button Content="完成" Command="{Binding DismissCompletionCommand}" IsDefault="True" />
+          <Button Content="返回" Command="{Binding DismissCompletionCommand}" IsDefault="True" />
         </StackPanel>
       </Grid>
     </Border>

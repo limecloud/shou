@@ -18,6 +18,7 @@ int shou_win_list(const char *path, size_t limit, char **result);
 int shou_win_read(const char *path, size_t limit, void **bytes, size_t *count);
 int shou_win_private_directory(const char *path);
 int shou_win_write(const char *path, const void *bytes, size_t count);
+int shou_win_remove_record(const char *path);
 int shou_win_lock_acquire(const char *path, shou_win_lock **result);
 void shou_win_lock_release(shou_win_lock *lock);
 int shou_win_recycle(const char *path, const shou_win_info *expected, char **result);

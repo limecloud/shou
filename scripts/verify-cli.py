@@ -438,6 +438,19 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
         fcntl.flock(lock, fcntl.LOCK_UN)
     assert receipt_path.read_bytes() == before_inspection
     assert json.loads(followup_path.read_text())['state'] == 'pending'
+    preview = run('history', 'cleanup-preview')['data']
+    assert inspection_id not in preview['execution_ids'] and preview['retained_count'] == 1
+    run('history', 'cleanup-preview', '--include-recoverable', 'invalid', expected=2)
+    finished_id = 'execution_cli_finished'
+    finished = dict(synthetic, id=finished_id, state='completed', items=[dict(synthetic['items'][0], state='purged')])
+    finished_path = history_directory / f'{finished_id}.json'
+    finished_path.write_text(json.dumps(finished))
+    finished_path.chmod(0o600)
+    preview = run('history', 'cleanup-preview')['data']
+    assert preview['execution_ids'] == [finished_id] and preview['record_bytes'] > 0
+    denied = run('history', 'clear', '--execution-id', finished_id, expected=7)
+    assert denied['error']['code'] == 'confirmation_required' and finished_path.is_file()
+    assert receipt_path.read_bytes() == before_inspection
     assert (artifacts / 'artifact.bin').read_bytes() == b'x' * 8192
     run('workspaces', 'remove', '--workspace', workspace_id)
     assert (artifacts / 'artifact.bin').exists()

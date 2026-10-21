@@ -78,8 +78,18 @@ public struct ScanProgress: Sendable {
     public let entryCount: Int
     public let currentPath: String
     public let limitReached: Bool
-    public init(stage: String, entryCount: Int, currentPath: String = "", limitReached: Bool = false) {
+    public let completedUnitCount: Int?
+    public let totalUnitCount: Int?
+    /// Completion of the current stage's known work, not elapsed time or disk coverage.
+    public var fractionCompleted: Double? {
+        guard let completedUnitCount, let totalUnitCount, totalUnitCount > 0,
+              completedUnitCount >= 0, completedUnitCount <= totalUnitCount else { return nil }
+        return Double(completedUnitCount) / Double(totalUnitCount)
+    }
+    public init(stage: String, entryCount: Int, currentPath: String = "", limitReached: Bool = false,
+                completedUnitCount: Int? = nil, totalUnitCount: Int? = nil) {
         self.stage=stage; self.entryCount=entryCount; self.currentPath=currentPath; self.limitReached=limitReached
+        self.completedUnitCount=completedUnitCount; self.totalUnitCount=totalUnitCount
     }
 }
 
@@ -93,8 +103,19 @@ public struct ExecutionProgress: Sendable {
     public let processedCount: Int
     public let itemCount: Int
     public let path: String
-    public init(stage: String, processedCount: Int, itemCount: Int, path: String = "") {
+    public let currentItemProcessedCount: Int?
+    public let currentItemCount: Int?
+    public var fractionCompleted: Double? {
+        guard itemCount > 0, processedCount >= 0, processedCount <= itemCount else { return nil }
+        var completed=Double(processedCount)
+        if processedCount < itemCount, let done=currentItemProcessedCount, let total=currentItemCount,
+           total > 0, done >= 0, done <= total { completed += Double(done) / Double(total) }
+        return min(1, completed / Double(itemCount))
+    }
+    public init(stage: String, processedCount: Int, itemCount: Int, path: String = "",
+                currentItemProcessedCount: Int? = nil, currentItemCount: Int? = nil) {
         self.stage=stage; self.processedCount=processedCount; self.itemCount=itemCount; self.path=path
+        self.currentItemProcessedCount=currentItemProcessedCount; self.currentItemCount=currentItemCount
     }
 }
 
@@ -262,10 +283,14 @@ public protocol RecordStore: Sendable {
     func storageCatalogURL(id: String) throws -> URL?
     func read(_ collection: String, id: String) throws -> Data?
     func write(_ collection: String, id: String, data: Data) throws
+    func removeHistoryRecord(_ collection: String, id: String) throws
     func ids(_ collection: String) throws -> [String]
     func lock() throws -> any StoreLease
 }
 extension RecordStore {
+    public func removeHistoryRecord(_ collection: String, id: String) throws {
+        throw ShouError("capability_unavailable", "History cleanup is unavailable in this record store.")
+    }
     public var protectedPaths: [String] { [] }
     public func storageCatalogURL(id: String) throws -> URL? { nil }
 }
@@ -292,14 +317,20 @@ public protocol PlatformFileSystem: Sendable {
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
+    func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func availableBytes(_ path: String) -> Int64?
     func isTrashLocation(_ path: String) -> Bool
     func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult
     func restore(_ path: String, to destination: String, expected: [FileEntry]) throws
     func purge(_ path: String, expected: [FileEntry]) throws
+    func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws
 }
 extension PlatformFileSystem {
+    public func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws {
+        try purge(path, expected: expected)
+        progress(expected.count, expected.count, path)
+    }
     public func normalizedPath(_ path: String) throws -> String { path }
     public var caseSensitivePaths: Bool { true }
     public var supportsStorageCatalog: Bool { false }
@@ -309,6 +340,10 @@ extension PlatformFileSystem {
     public func analysisRootIdentity(_ path: String) throws -> FileEntry { try rootIdentity(path) }
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspectTarget(path, budget: budget, cancelled: cancelled)
+    }
+    public func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only an exact system Trash item can be inspected.") }
+        return try inspectStorageTarget(path, budget: budget, cancelled: cancelled)
     }
     public func applicationParentIdentity(_ path: String) throws -> FileEntry {
         throw ShouError("capability_unavailable", "Application removal is unavailable on this filesystem.")
