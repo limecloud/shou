@@ -103,6 +103,16 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
             reader.join(timeout=2)
 
 
+def set_fixture_owner(directory):
+    if os.name == "nt":
+        # Elevated CI accounts can create fixtures owned by Administrators.
+        # Set only these newly generated files to the current user.
+        identity = next(token for token in subprocess.check_output(["whoami", "/user"], text=True).split()
+                        if token.startswith("S-1-"))
+        subprocess.run(["icacls", str(directory), "/setowner", "*" + identity, "/T", "/Q"],
+                       check=True, stdout=subprocess.DEVNULL)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--engine", type=Path, required=True)
@@ -121,13 +131,7 @@ def main():
         environment = dict(os.environ, SHOU_DATA_DIR=str(root / "records"))
         if args.native_trash:
             environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] = "1"
-        if os.name == "nt":
-            # Elevated CI accounts can create fixtures owned by Administrators.
-            # Set only these newly generated files to the current user.
-            identity = next(token for token in subprocess.check_output(["whoami", "/user"], text=True).split()
-                             if token.startswith("S-1-"))
-            subprocess.run(["icacls", str(workspace), "/setowner", "*" + identity, "/T", "/Q"],
-                           check=True, stdout=subprocess.DEVNULL)
+        set_fixture_owner(workspace)
 
         def success(operation, values=None):
             result, _ = request(engine, environment, operation, values)
@@ -263,6 +267,7 @@ def main():
             folder = root / f"batch-root-{index}"
             (folder / "generated-batch").mkdir(parents=True)
             (folder / "generated-batch/fixture.bin").write_bytes(b"generated batch only")
+            set_fixture_owner(folder)
             root_ref = f"desktop-batch-{index}"
             registered = success("workspace.add", dict(path=str(folder), root_ref=root_ref))
             batch_rule = dict(rule, id=f"test.desktop-batch-{index}", scope=dict(rule["scope"], root_ref=root_ref))
