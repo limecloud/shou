@@ -5,6 +5,7 @@ Shou v0.10.0 expands Space Analysis with Simple and Detailed views, nested space
 - Read directory pages directly from the saved catalog and bound multilevel map queries. Small files can appear as extension aggregates, with omitted entries available through directory paging. Synthetic map groups cannot be used as deletion targets.
 - Copy the current analysis, scope, focus, selection and coverage into a local agent request. The new `analysis context` and `analysis map` CLI commands reuse saved evidence; Shou does not upload the report or run a model. Existing validation, disabled rule import, preview and explicit enablement remain the route to reusable cleanup rules.
 - Add corresponding Windows desktop bridge operations and WPF tree, extension table and map views, including reviewed space-removal confirmation and receipts.
+- Review personal cleanup rules independently on macOS and Windows. Each preview shows matches, protections and estimated additional benefit; enable and rescan only the chosen rule before the existing deletion confirmation. Refresh external configuration changes when returning to the app. The agent handoff now asks for investigation of major consumers, separate cleanup decisions and receipt-based verification.
 
 Map sizes are estimates from the saved scan. Parent and child totals overlap, extension detection uses filenames, and partial measurements remain lower bounds. Refresh when current measurements are required. Displayed colors, aggregate tiles and AI context do not authorize deletion. A native directory-read stall observed during full-disk analysis remains under investigation; folder-scan results do not establish full-disk acceptance. Native Windows interaction and complete disk coverage are not established by build and protocol checks. The existing protected-root guard still rejects AppData-based standard cache roots; those scopes are not accepted as working native cleanup coverage in this release.
 
@@ -19,6 +20,7 @@ Permanent removal and owner-tool cleanup cannot be undone through Shou. Moving i
 - 目录分页直接读取已保存的目录索引，多层空间图查询有数量上限；小文件可聚合为扩展名分组，省略项目仍可分页调查。合成分组不能直接成为文件删除目标。
 - 复制当前扫描、范围、焦点、选择与覆盖信息，交给用户已有的 Agent；新增 `analysis context`、`analysis map` CLI 查询，复用扫描证据，不上传报告或内置模型。定制规则仍需校验、禁用导入、预览和明确启用。
 - Windows 同步桌面桥接查询及 WPF 目录树、扩展名表和空间图，并接入空间删除确认与回执。
+- macOS、Windows 支持逐条审阅个人规则，预览命中、保护项和新增收益估计，仅启用并重新扫描选定规则，再进入原有删除确认；返回应用时同步外部配置变化。Agent 交接同步要求调查占用大项、拆分独立清理决策，并依据执行回执核验结果。
 
 图中大小为扫描时的估计，父子大小不能相加，类型依据文件名扩展名，部分测量为下限；需要当前数据时应刷新。整盘分析中观察到的原生目录读取停滞仍在排查，目录扫描结果不代表整盘验收通过。构建及协议检查不代表 Windows 实机交互或完整磁盘覆盖验收。现有保护根目录校验仍拒绝基于 AppData 的标准缓存范围，本版不将其声明为可用的原生清理覆盖。
 

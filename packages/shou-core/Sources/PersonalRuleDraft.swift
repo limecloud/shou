@@ -67,7 +67,7 @@ enum RuleConditions {
     }
 }
 
-public struct PersonalRulePreviewRow: Sendable, Identifiable {
+public struct PersonalRulePreviewRow: Codable, Sendable, Identifiable {
     public var id: String { path }
     public let path: String
     public let allocatedBytes: Int64

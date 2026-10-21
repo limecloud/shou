@@ -188,8 +188,9 @@ sequenceDiagram
 | W03 | macOS Simple/Detailed switching and focus | Implemented; core native interactions verified | Default/memory, no rescan, preserved state/filters/mixed selection; sorting, keyboard, zoom/return, middle truncation, accessibility; readable at 1024×768 and wider |
 | W04 | Same-scan context and Skill loop | Implemented; CLI and Skill checks passed | Exact visual references, unambiguous duplicate names, reused coverage; enabled rule reused in new process/daily cleanup |
 | W05 | Native Windows synchronization | Implemented; cross-build passed; real Windows UI pending | Matching contracts/metrics; Simple/Detailed switching, retained state, selection and handoff on actual Windows |
-| W07 | Dense type colors and layout | Implemented; verification in progress | Deep root-scope files, shared legend/leaf palette, compact tables and native UI inspection |
+| W07 | Dense type colors and layout | Implemented; key macOS presentation and dragging verified | Deep root-scope files, shared legend/leaf palette, compact tables and native UI inspection |
 | W06 | Performance, failures and complete cleanup | Generated cleanup and million-row queries passed; full performance targets pending | Large directories/millions of entries, rapid changes/cancellation, bounded memory; generated-data deletion, retry, return and fresh measurements |
+| W09 | Major-consumer investigation and independent-rule cleanup | Implemented; regression/native acceptance in progress | Investigate large consumers; independent preview, enablement, fresh scan, confirmation, receipt and remaining-space verification |
 | W08 | Full-disk directory read stalls | Open; worker samples retained | Identify stalled directories; isolate timed-out reads; reclaim workers on cancellation; never report unread scope as complete |
 
 Targets: existing-snapshot focus/highlight p95 ≤100 ms; cancellable background scope queries with loading feedback within 100 ms; bounded drawing per frame. Record environment, tree size and cold/warm cache; measure first rendering, queries and scans separately. These are targets, not current measured results. Destructive tests use generated data.
@@ -269,3 +270,56 @@ Evidence: `.build/space-colors-final-tests.log`, `.build/space-colors-app-batch-
 During native full-disk acceptance, the entry counter stopped at 3,066,212. Repeated samples of the actual read worker showed multiple parallel directory threads inside `openDirectory → _fcntl_overlay_open → __open`. The last progress path does not identify the stalled directory, and permissions, filesystem behavior or application ownership have not been established as the cause. The worker currently has an overall deadline without per-directory stall isolation.
 
 That scan was stopped; `.build/space-colors-scan-worker.sample` and `.build/space-colors-sample.log` retain evidence. The stop interaction responded, and a separate real development-directory analysis completed. Neither establishes successful full-disk acceptance. W08 requires precise read diagnostics, bounded stall isolation, explicit incomplete coverage after timeouts, cancellation/worker reclamation, then equivalent cold/warm scans and injected-stall checks. This color/layout correction changes neither the scanner nor system permissions.
+
+
+## W09: Major consumers and independent-rule cleanup
+
+The clipboard request and bundled Skill prioritize major consumers, following large branches to specific ownership, purpose, active use, reproducibility, rebuild cost and retention. Unresolved large areas remain explicit with the next diagnostic. Easy small caches do not substitute for this investigation; names, extensions and size do not establish removability. Shou supplies same-scan evidence and paging, while actual external-agent judgment remains a separate acceptance requirement.
+
+Each rule ID represents an independent cleanup decision. Split different purposes, rebuild costs, active-use restrictions, retention and user preferences, even within the same tool. Equivalent policies may share a pattern. Preview each draft independently, report matches/protected/outside-condition paths and deduplicated additional benefit, and never sum overlapping previews. Draft import remains disabled.
+
+macOS exposes Review AI Rules… after copying. Reactivation checks external configuration revisions, invalidates old cleanup evidence and offers a return prompt. Rules → Personal Rules → Review & Clean… opens one rule with measured preview, conditions, retention and benefits. Keep Current Choice closes without changing enablement. Enable & Scan This Rule checks the preview revision, saves only that ID/version, scans it freshly and prepares an editable selection for existing permanent/Trash confirmation. Other drafts retain their state.
+
+Windows mirrors independent preview, enable/scan, external refresh and return navigation. The `rules.preview` bridge returns rows, conditions, benefits and configuration revision; `scan` accepts explicit `rule_ids` for Core cleanup scanning. Both platforms reuse existing rules and execution, without a model, agent or alternate deletion engine.
+
+```mermaid
+flowchart LR
+    Snapshot[Same scan and directory pages] --> Agent[External Agent investigates largest consumers]
+    Agent --> Findings[Recommended / optional / preserve / investigate]
+    Findings --> Split[Independent rule IDs]
+    Split --> Drafts[Validate, disabled import, separate previews]
+    Drafts --> Return[Return to Shou Personal Rules]
+    Return --> Choice{Choose each rule}
+    Choice -->|Keep| Stay[Keep current state]
+    Choice -->|Enable| Scan[Fresh scan of this rule only]
+    Scan --> Select[Adjust actual file selection]
+    Select --> Confirm[Existing exact deletion confirmation]
+    Confirm --> Receipt[Per-item execution and failure retry]
+    Receipt --> Verify[Verify targets and remaining relevant scope]
+    Verify --> Daily[Enabled rule joins future one-click cleanup]
+```
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Shou native UI
+    participant Agent as Existing external Agent
+    participant Core as Shared CLI / Core
+    User->>UI: Copy for AI
+    UI-->>Agent: Local evidence, investigation and return instructions
+    Agent->>Core: Investigate major areas; separately import disabled rules and preview
+    Agent-->>User: Per-rule benefits, costs, preservation and unknowns
+    User->>UI: Return and review one rule
+    UI->>Core: Single-rule preview and deduplicated benefits
+    User->>UI: Enable & Scan This Rule
+    UI->>Core: Check revision; save this choice; fresh scan
+    Core-->>UI: Current candidates; other drafts unchanged
+    User->>UI: Adjust files and confirm deletion action
+    UI->>Core: Existing plan and execution
+    Core-->>UI: Per-item results and execution receipt
+    User->>Agent: Continue verification when needed
+    Agent->>Core: Read receipt; remeasure relevant locations only
+    Agent-->>User: Actual outcome and subsequent reuse
+```
+
+Acceptance uses two independently previewed rules with different retention needs: enable one, reopen the engine, clean generated data, verify its receipt and absence, preserve the other target, and verify a fresh scan. Native acceptance covers review, close, enable/scan, editable selection and cancellation. Deterministic execution tests require no model call; external-agent judgment accuracy is evaluated separately.

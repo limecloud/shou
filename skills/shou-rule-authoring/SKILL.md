@@ -19,6 +19,12 @@ Respond in the user's language. Ask only the questions needed to resolve ambigui
 
 If the user cannot explain the purpose or recovery path, keep the result as an analysis finding and ask for clarification. Never invent a cleanup rule for `Documents`, the whole `Library`, `.local`, `.colima`, `.nvm`, `.rustup`, or another mixed root.
 
+## Investigate the largest consumers
+
+Treat major disk consumers as the primary investigation, even when they cannot yet be cleaned. Starting from the supplied scope, descend the largest branches to specific tools, projects and data purposes. For each major area report exact paths, allocated space, evidence of ownership/purpose, active use, reproducibility, recovery cost and retention needs. Keep unresolved large areas visible with concrete unknowns and the next diagnostic. Do not replace this investigation with a list of easy small caches, infer purpose from extensions, or claim a large virtual disk is disposable.
+
+Reuse saved directory pages and query omitted descendants. When local project markers or configuration are necessary to establish purpose, explain the targeted read and respect existing authorization; never read credentials or personal content just to classify disk usage. Use existing typed `tools` capabilities for owner-managed resources when supported; unsupported operations remain findings with an actionable next step.
+
 ## Inspect before drafting
 
 Use the installed `shou` executable when available. On macOS the app bundles it at `/Applications/Shou.app/Contents/Helpers/shou`; quote the full path when it is not on `PATH`. A handoff may supply another explicit executable path. Do not silently substitute `rm`, `rm -rf`, `sudo`, shell globs, or a third-party cleaner.
@@ -84,6 +90,8 @@ Create a local JSON file that conforms to the schema returned by `rules schema`.
 
 Use stable IDs such as `personal.go-module-cache` or `personal.project-build-cache`, and bump the semantic version when the meaning changes. Preserve the user's declaration separately from observed scan facts and unresolved questions in the agent's response.
 
+One rule ID represents one independently selectable cleanup decision. Split paths when purpose, rebuild cost, active-use restrictions, retention or the user's preference differs, even within the same tool. Do not bundle disposable build outputs, offline dependencies and preserved project data into one rule. Equivalent targets can share a pattern only when the user wants the same policy. Report recommended, optional, preserved and unresolved findings separately; never import a broad parent as a substitute for unsupported file/tool cleanup.
+
 Validate, import as a disabled draft, and preview it:
 
 ```sh
@@ -109,6 +117,12 @@ shou scan --workspace "<workspace-id>" --rule-id "<rule-id>" --scope cleanup --j
 Create a plan only from returned candidate IDs. Use the default Trash action unless the user explicitly chooses irreversible removal. The controlling terminal must confirm `TRASH <plan-id>` or `PURGE <plan-id>`; a non-interactive agent may inspect a plan but cannot execute it.
 
 Explain that enabling a rule is a saved preference: eligible matches join future desktop Smart Cleanup recommendations after a fresh scan. Importing a disabled draft does not opt it in. Users need not reselect enabled rules on every cleanup; each actual cleanup still confirms its exact current scope.
+
+## Complete the return and verification
+
+Return each draft's rule ID/version, workspace, purpose, matched/protected paths, rebuild conditions and additional benefit. Let the user choose each independently. Do not sum overlapping estimates from separate previews. For desktop continuation, return to Shou → Rules → Review & Clean… on the chosen rule → Enable & Scan This Rule. This enables only that version and prepares a fresh rule-specific selection for the existing deletion confirmation; other drafts remain unchanged. The user can keep a draft disabled or review another rule. Existing explicit choices remain valid; copying an analysis alone is not authorization to enable or delete.
+
+After an authorized cleanup, inspect the execution receipt and per-item states with the discovered history commands. Verify changed target paths and remeasure only the relevant scope. Distinguish estimated processed bytes, actual absence, preserved items and volume free-space change; never claim all estimated bytes were physically freed. Report failures with a concrete retry/remediation and do not replay completed plans. Verify that enabled rules remain available in a new CLI process and future Smart Cleanup scans. If the agent cannot own an interactive confirmation, hand back to the desktop; report “not cleaned yet” until an execution receipt exists.
 
 ## Directory-specific guidance
 

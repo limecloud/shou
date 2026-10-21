@@ -389,6 +389,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Personal draft authoring uses the closed portable contract", { try personalDraftUsesClosedContractAndPortableFields() }),
             ("Exact folder authoring cannot broaden workspace scope", { try exactPersonalRuleSelectionCannotExpandItsScope() }),
             ("Personal draft preview explains conditions and stays disabled", { try await personalDraftPreviewExplainsConditionsAndPreservesDisabledState() }),
+            ("Independent personal rules preserve unselected drafts through cleanup", { try await independentPersonalRulesCompleteCleanupWithoutEnablingOtherDrafts() }),
             ("Personal draft age explanations preserve decision boundaries", { try await personalDraftAgeExplanationUsesCandidateDecisionBoundary() }),
             ("Wildcard semantics", { try wildcardSemantics() }),
             ("Wildcard language equivalence", { try wildcardMatcherPreservesLanguage() }),

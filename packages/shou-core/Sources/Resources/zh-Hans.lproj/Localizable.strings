@@ -24,6 +24,7 @@
 "1. Copy the request to Codex, Claude Code, or WorkBuddy." = "1. 复制请求，交给已有的 Codex、Claude Code 或 WorkBuddy。";
 "2. Answer questions about your projects and what to keep." = "2. 回答项目用途、重建方式和保留项等必要问题。";
 "3. Review the draft in Shou, then enable it when ready." = "3. 确认并启用规则一次，后续清理自动包含。";
+"4. Clean selected rules, then verify the result and retained items." = "4. 清理所选规则，核验结果与保留项。";
 "A built-in scan location has no scoped rules." = "内置扫描位置没有适用的清理规则。";
 "A complete directory manifest is required before moving to Trash." = "移到废纸篓前必须取得完整目录清单。";
 "A file or folder was modified too recently" = "目录或其内部文件近期有修改";
@@ -43,6 +44,7 @@
 "Add Workspace" = "添加工作区";
 "Add Workspace…" = "添加工作区…";
 "Add a project folder to inspect build outputs and project caches." = "添加项目目录，检查构建产物与项目缓存。";
+"Additional Cleanup Estimate" = "预计新增可清理空间";
 "Additional scan notes are summarized here." = "另有扫描说明未逐项列出。";
 "Administrator Required" = "需管理员权限";
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "不会自动请求管理员权限，当前无法卸载需要提权的应用。";
@@ -184,6 +186,7 @@
 "Bundler download caches" = "Bundler 下载缓存";
 "CLI" = "命令行";
 "CLI installed. If shou is not on PATH, use the full path shown below." = "CLI 已安装。如果终端找不到 shou，请使用以下完整路径。";
+"Calculating…" = "正在计算…";
 "Camo caches" = "Camo 缓存";
 "Cancel" = "取消";
 "Candidate analysis exceeded its time budget." = "清理项分析超时。";
@@ -381,6 +384,7 @@
 "Disk access is ready" = "受保护目录可访问";
 "Disk access is required for this location." = "此位置需要磁盘访问权限。";
 "Disk access needs verification" = "磁盘访问权限待确认";
+"Dismiss" = "关闭提示";
 "Docker BuildX caches" = "Docker BuildX 缓存";
 "Docker build cache" = "Docker 构建缓存";
 "Documents" = "文档";
@@ -395,6 +399,7 @@
 "Edit the complete JSON definition. Keep the rule ID and use an unused version." = "编辑完整的 JSON 定义。保留规则 ID，并使用尚未存在的版本号。";
 "Electron runtime download cache" = "Electron 运行时下载缓存";
 "Enable" = "启用";
+"Enable & Scan This Rule" = "启用并扫描此规则";
 "Enable complete scanning" = "开启完整扫描";
 "Enable startup definition?" = "启用启动项定义？";
 "Enabled" = "启用";
@@ -534,6 +539,7 @@
 "Its saved rules and exclusions will be detached. Files in the folder stay untouched." = "将移除该位置的规则绑定和排除设置，文件夹内的文件保持原样。";
 "JetBrains IDE caches" = "JetBrains IDE 缓存";
 "JetBrains IDE logs" = "JetBrains IDE 日志";
+"Keep Current Choice" = "保留当前选择";
 "Keep Open" = "保持打开";
 "Keep Shou in Applications" = "将 Shou 安装到应用程序";
 "Keep alive" = "保持运行";
@@ -693,6 +699,7 @@
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "仅检查列出的应用目录及其下两层文件夹。不枚举内嵌应用、安装包收据或自定义安装位置。";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "仅描述此目录，不能选中工作区本身或工作区外的目录。";
 "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained." = "仅包含与此已安装应用的 Bundle ID 精确匹配的缓存。应用数据与应用本身会被保留。";
+"Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices." = "仅启用并扫描此规则，确认删除前仍可调整文件选择。其他草稿保持原选择。";
 "Only verified trashed items can be restored or permanently removed." = "只有已核验移入废纸篓的项目才能还原或永久删除。";
 "Opam download caches" = "Opam 下载缓存";
 "Open Directory" = "打开目录";
@@ -751,6 +758,7 @@
 "Personal app data is retained." = "保留应用个人数据。";
 "Personal app data selected; work and sign-in information may be lost." = "已选择个人应用数据，可能丢失工作内容与登录信息。";
 "Personal data" = "个人数据";
+"Personal rules changed outside Shou. Review each rule before cleanup." = "个人规则已在外部更新，请逐条审阅后清理。";
 "Plan digest verification failed." = "清理计划摘要校验失败。";
 "Plan expired or workspace/configuration changed; preview again." = "清理计划已过期，或工作区、配置已变化，请重新预览。";
 "Plan workspace does not match its registered binding." = "清理计划的工作区与登记信息不一致。";
@@ -890,10 +898,13 @@
 "Reveal Definition in Finder" = "在访达中显示配置";
 "Reveal in Finder" = "在访达中显示";
 "Review" = "待审阅";
+"Review & Clean…" = "审阅并清理…";
+"Review AI Rules…" = "审阅 AI 规则…";
 "Review Again" = "重新审阅";
 "Review Candidates" = "清理候选";
 "Review Cleanup…" = "预览清理…";
 "Review Permanent Deletion…" = "审阅永久删除…";
+"Review Rules" = "审阅规则";
 "Review This Item" = "审阅此项目";
 "Review Uninstall…" = "审阅卸载…";
 "Review an app and its associated files before moving them to Trash." = "查看应用及其关联文件，确认后移入废纸篓。";
@@ -984,6 +995,7 @@
 "Scanning: %lld entries" = "正在扫描：已检查 %lld 项";
 "Scanning…" = "正在扫描…";
 "Scheduled" = "定时";
+"Scope & Retention" = "范围与保留条件";
 "Scope and retained items" = "范围与保留项目";
 "ScreenFlow caches" = "ScreenFlow 缓存";
 "Search app names, identifiers or paths" = "搜索应用名称、标识或路径";

@@ -154,6 +154,14 @@ def main():
                     risk=dict(declared_level="review", rebuild_note="Generated test fixtures.", limitations=["Test data only."]),
                     action=dict(type="trash"))
         success("rules.import", dict(json=json.dumps(rule)))
+        preview = success("rules.preview", dict(workspace_id=registered["id"], rule_id=rule["id"], version=rule["version"]))
+        assert preview["status"] == "complete" and len(preview["rows"]) == 105
+        assert preview["benefits"]["eligible_match_count"] == 105 and preview["benefits"]["additional_allocated_bytes_estimate"] > 0
+        assert all(row["status"] == "matched" for row in preview["rows"])
+        assert success("configuration")["configuration"]["bindings"] == []
+        rejected, _ = request(engine, environment, "plan", dict(scan_id=preview["scan_id"], candidate_ids=[preview["rows"][0]["path"]]))
+        assert not rejected["ok"], rejected
+        print("PASS independent personal-rule preview remains disabled and non-executable", flush=True)
         draft = success("scan", dict(workspace_id=registered["id"]))
         assert draft["total_count"] == 0, draft
         success("rules.set", dict(workspace_id=registered["id"], rule_id=rule["id"], version=rule["version"], enabled=True))
@@ -161,6 +169,8 @@ def main():
         assert scan["status"] == "complete" and scan["total_count"] == 105 and len(scan["candidates"]) == 100, scan
         page = success("scan.results", dict(scan_id=scan["scan_id"], offset=scan["next_offset"]))
         assert len(page["candidates"]) == 5 and page["next_offset"] is None
+        rule_scan = success("scan", dict(workspace_id=registered["id"], rule_ids=[rule["id"]]))
+        assert rule_scan["total_count"] == 105 and all(item["rule_ids"] == [rule["id"]] for item in rule_scan["candidates"])
         print("PASS registration, disabled import, enablement, scan and pagination", flush=True)
         candidate = next(item for item in scan["candidates"] if item["eligible"])
         for action in ["trash", "permanent"]:

@@ -21,6 +21,7 @@ struct StorageLocation: Identifiable {
     var extensionFilter: String?
     var copyingAnalysis=false
     var analysisCopied=false
+    var analysisHandoffStarted=false
     var directoryOffsets=[String: Int]()
     var directoryTotals=[String: Int]()
     private var presentationCache=[String: StoragePresentation]()
@@ -97,7 +98,7 @@ struct StorageLocation: Identifiable {
                 guard self.scan?.id == scan.id, path == scope else { return }
                 NSPasteboard.general.clearContents()
                 guard NSPasteboard.general.setString(text, forType: .string) else { throw ShouError("clipboard_unavailable", "Could not copy analysis.") }
-                analysisCopied=true
+                analysisCopied=true; analysisHandoffStarted=true
                 Task { try? await Task.sleep(for: .seconds(3)); analysisCopied=false }
             } catch { app.error=error.localizedDescription }
         }

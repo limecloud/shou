@@ -9,6 +9,7 @@ namespace Shou.Windows;
 
 public sealed record WorkspaceRow(string Id, string Path, string RootRef);
 public sealed record RuleRow(string Id, string Version, string Title);
+public sealed record RulePreviewRow(string Path, string Size, string Decision);
 public sealed record HistoryItemRow(string Path, string State, string? Error, string? ResultingPath);
 public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, string[] PurgeableIds, HistoryItemRow[] Items)
 {
@@ -60,6 +61,8 @@ public sealed class MainViewModel : ObservableObject
     private CancellationTokenSource? active;
     private TaskCompletionSource? idle;
     private JsonObject? configuration;
+    private JsonNode? rulePreview;
+    private string rulePreviewSummary="", rulePreviewDetails="";
     private string? scanId, storageScanId;
     private bool standardScan = true;
     private readonly Queue<(string Scan, int Offset)> pendingPages = new();
@@ -142,6 +145,9 @@ public sealed class MainViewModel : ObservableObject
         ViewHistoryFromCompletionCommand = new RelayCommand(() => { Completion = null; SelectedSection = 3; _ = LoadHistoryAsync(); }, () => Completion is not null && !IsBusy);
         RetryCleanupCommand = new AsyncRelayCommand(RetryCleanupAsync, () => !IsBusy && CompletionHasIssues);
         ImportRuleCommand = new AsyncRelayCommand(ImportRuleAsync, () => !IsBusy);
+        PreviewRuleCommand = new AsyncRelayCommand(PreviewRuleAsync, () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null && !SelectedRule.Id.StartsWith("shou.builtin.",StringComparison.Ordinal));
+        EnableAndScanRuleCommand = new AsyncRelayCommand(EnableAndScanRuleAsync, () => !IsBusy && rulePreview is not null);
+        ReviewRulesCommand = new AsyncRelayCommand(() => RunAsync(async () => { await LoadConfigurationAsync(); SelectedSection=2; }), () => !IsBusy);
         EnableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(true), () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null);
         DisableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(false), () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null);
         AddExclusionCommand = new AsyncRelayCommand(AddExclusionAsync, () => !IsBusy && !string.IsNullOrWhiteSpace(ExclusionPattern));
@@ -152,11 +158,18 @@ public sealed class MainViewModel : ObservableObject
         commands.Add(ClearHistoryCommand); commands.Add(RemoveHistoryCommand);
         commands.Add(MoreHistoryCommand); commands.Add(CollectRecordsCommand);
         commands.Add(CopyStorageAnalysisCommand); commands.Add(RemoveStorageCommand); commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
+        commands.Add(PreviewRuleCommand); commands.Add(EnableAndScanRuleCommand); commands.Add(ReviewRulesCommand);
         PropertyChanged += (_, _) => RefreshCommands();
     }
     public ObservableCollection<WorkspaceRow> Workspaces { get; } = [];
     public ObservableCollection<CandidateRow> Candidates { get; } = [];
     public ObservableCollection<RuleRow> Rules { get; } = [];
+    public ObservableCollection<RulePreviewRow> RulePreviewRows { get; } = [];
+    public IAsyncRelayCommand PreviewRuleCommand { get; }
+    public IAsyncRelayCommand EnableAndScanRuleCommand { get; }
+    public IAsyncRelayCommand ReviewRulesCommand { get; }
+    public string RulePreviewSummary { get=>rulePreviewSummary; private set=>SetProperty(ref rulePreviewSummary,value); }
+    public string RulePreviewDetails { get=>rulePreviewDetails; private set=>SetProperty(ref rulePreviewDetails,value); }
     public ObservableCollection<HistoryRow> History { get; } = [];
     public ObservableCollection<HistoryItemRow> HistoryItems { get; } = [];
     public ObservableCollection<StorageRow> StorageTree { get; } = [];
@@ -224,7 +237,7 @@ public sealed class MainViewModel : ObservableObject
         get => selectedWorkspace;
         set { if (SetProperty(ref selectedWorkspace, value)) { Candidates.Clear(); scanId = null; nextOffset = null; LoadRules(); RefreshCommands(); } }
     }
-    public RuleRow? SelectedRule { get => selectedRule; set => SetProperty(ref selectedRule, value); }
+    public RuleRow? SelectedRule { get => selectedRule; set { if(SetProperty(ref selectedRule, value)) { rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=""; RulePreviewDetails=""; } } }
     public HistoryRow? SelectedHistory
     {
         get => selectedHistory;
@@ -282,6 +295,7 @@ public sealed class MainViewModel : ObservableObject
     {
         var selected = SelectedWorkspace?.Id;
         var result = await client.RequestAsync("configuration", cancellation: Token);
+        if(configuration?["configuration"]?["revision"]?.GetValue<string>() == result["configuration"]?["revision"]?.GetValue<string>()) return;
         configuration = result as JsonObject;
         Workspaces.Clear();
         foreach (var item in Array(result["configuration"]?["workspaces"])) Workspaces.Add(new(Text(item, "id"), Text(item, "path"), Text(item, "root_ref")));
@@ -290,6 +304,38 @@ public sealed class MainViewModel : ObservableObject
         SelectedWorkspace = Workspaces.FirstOrDefault(item => item.Id == selected) ?? Workspaces.FirstOrDefault();
         LoadRules();
     }
+    public Task RefreshExternalChangesAsync() => RunAsync(async () => {
+        var revision=configuration?["configuration"]?["revision"]?.GetValue<string>();
+        await LoadConfigurationAsync();
+        if(revision is not null && revision != configuration?["configuration"]?["revision"]?.GetValue<string>()) {
+            Candidates.Clear(); scanId=null; nextOffset=null; pendingPages.Clear();
+            Status="外部规则或配置已更新。到“规则与排除”逐条预览，再启用并扫描所选规则。";
+        }
+    });
+    private Task PreviewRuleAsync() => RunAsync(async () => {
+        rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=""; RulePreviewDetails="";
+        var result=await client.RequestAsync("rules.preview",new() { ["workspace_id"]=SelectedWorkspace!.Id,["rule_id"]=SelectedRule!.Id,["version"]=SelectedRule.Version },Progress(),cancellation:Token);
+        rulePreview=result;
+        RulePreviewSummary=$"{SelectedRule.Title} · 新增可清理估计 {Bytes(result["benefits"]?["additional_allocated_bytes_estimate"]?.GetValue<long>() ?? 0)}";
+        RulePreviewDetails=Text(result["rule"],"description")+"\n"+Text(result["rule"]?["risk"],"rebuild_note")+"\n"+string.Join("；",Array(result["rule"]?["risk"]?["limitations"]).Select(value=>value?.GetValue<string>()))+"\n保留条件："+string.Join("、",Array(result["rule"]?["exclude"]?["relative_patterns"]).Select(value=>value?.GetValue<string>()));
+        foreach(var row in Array(result["rows"]).Take(200)) RulePreviewRows.Add(new(Text(row,"path"),Bytes(row?["allocated_bytes"]?.GetValue<long>() ?? 0),Text(row,"status")=="matched" ? "条件匹配，待确认" : string.Join("、",Array(row?["reasons"]).Select(value=>value?.GetValue<string>()))));
+        Status=Text(result,"status")=="complete" ? "预览完成；仅启用所选规则，其他规则保持原选择。" : "预览部分完成；不可读取的位置不计为完整覆盖。";
+    });
+    private Task EnableAndScanRuleAsync() => RunAsync(async () => {
+        var preview=rulePreview ?? throw new InvalidOperationException("请先预览所选规则。");
+        var current=await client.RequestAsync("configuration",cancellation:Token);
+        if(Text(current["configuration"],"revision") != Text(preview,"configuration_revision")) throw new InvalidOperationException("配置已更新，请重新预览此规则。");
+        var id=Text(preview["rule"],"id");
+        var version=Text(preview["rule"],"version");
+        var workspace=SelectedWorkspace!.Id;
+        await client.RequestAsync("rules.set",new() { ["workspace_id"]=workspace,["rule_id"]=id,["version"]=version,["enabled"]=true },cancellation:Token);
+        Candidates.Clear(); nextOffset=null; pendingPages.Clear();
+        var result=await client.RequestAsync("scan",new() { ["workspace_id"]=workspace,["rule_ids"]=Strings([id]) },Progress(),cancellation:Token);
+        scanId=Text(result,"scan_id"); AddCandidates(result);
+        foreach(var row in Candidates.Where(row=>row.Eligible)) row.IsSelected=true;
+        await LoadConfigurationAsync(); SelectedSection=0;
+        Status="仅所选规则已启用并重新扫描。可调整文件选择，再确认永久删除或移入回收站。";
+    });
     private void LoadRules()
     {
         Rules.Clear(); SelectedRule = null;

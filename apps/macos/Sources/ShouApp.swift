@@ -139,6 +139,9 @@ struct CleanupCompletion: Identifiable {
     private var operationID=UUID()
     private(set) var engine: ShouEngine?
     var initializing=true
+    var externalRulesChanged=false
+    var reviewPersonalRules=false
+    private var refreshingExternalChanges=false
     private var initializationStarted=false
     func initialize() async {
         guard !initializationStarted else { return }
@@ -212,6 +215,19 @@ struct CleanupCompletion: Identifiable {
             builtins=workspaceId.isEmpty ? [] : try await engine.builtinRules(workspaceId: workspaceId)
             knownLocations=try await engine.knownLocations()
             projectLocations=try await engine.projectLocations()
+        } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+    }
+    func refreshExternalChanges() async {
+        guard let engine, !busy, !initializing, !refreshingExternalChanges else { return }
+        refreshingExternalChanges=true
+        defer { refreshingExternalChanges=false }
+        do {
+            let latest=try await engine.configuration()
+            guard latest.revision != configuration.revision else { return }
+            let changed=try Digest.of(latest.rules) != Digest.of(configuration.rules) || Digest.of(latest.bindings) != Digest.of(configuration.bindings)
+            invalidateScanEvidence()
+            await refresh()
+            externalRulesChanged=externalRulesChanged || changed
         } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
     }
     func loadMoreHistory() {
@@ -297,7 +313,7 @@ struct CleanupCompletion: Identifiable {
         updated.subtract(incompatible); updated.formUnion(ids)
         selection=updated
     }
-    func startScan(preset: Preset? = nil, focusAfterScan: String? = nil) {
+    func startScan(preset: Preset? = nil, focusAfterScan: String? = nil, ruleIds: [String] = [], selectEligible: Bool = false) {
         guard let engine, !workspaceId.isEmpty, !busy else { return }
         busy=true; scanning=true; selection=[]; scanProgress=nil; statusKey="Scanning selected workspace…"
         let id=preset?.workspaceId ?? workspaceId
@@ -305,13 +321,14 @@ struct CleanupCompletion: Identifiable {
         task=Task {
             defer { busy=false; scanning=false }
             do {
-                snapshot=try await engine.scan(workspaceId: id, ruleIds: preset?.ruleIds ?? [], scope: section == "storage" ? .full : .cleanup, budget: ScanBudget(maxEntries: 500_000, maxSeconds: 180), progress: { [weak self] update in
+                snapshot=try await engine.scan(workspaceId: id, ruleIds: preset?.ruleIds ?? ruleIds, scope: section == "storage" ? .full : .cleanup, budget: ScanBudget(maxEntries: 500_000, maxSeconds: 180), progress: { [weak self] update in
                     Task { @MainActor in
                         guard let self, self.scanning, self.operationID == operation else { return }
                         self.updateScanProgress(update)
                     }
                 })
                 workspaceId=id
+                if selectEligible { selection=Set(reviewable.filter(\.eligible).map(\.id)) }
                 if let path=focusAfterScan {
                     browsingPath=StorageIndex.parent(path); focusedPath=path
                 }
@@ -479,15 +496,27 @@ struct CleanupCompletion: Identifiable {
             } catch { self.error=error.localizedDescription }
         }
     }
-    func previewRule(_ record: RuleRecord) {
-        guard let engine, !busy, let root=configuration.workspaces.first(where: { $0.rootRef == record.rule.scope.rootRef }) else { return }
-        workspaceId=root.id
-        busy=true; scanning=true; selection=[]; scanProgress=nil
-        task=Task {
-            defer { busy=false; scanning=false }
-            do { snapshot=try await engine.scan(workspaceId: workspaceId, previewRule: record.rule); section="overview"; statusKey="Draft preview only. Enable the rule and rescan before cleanup." }
-            catch { self.error=error.localizedDescription }
+    func enableAndScanRule(_ record: RuleRecord, preview: ScanSnapshot) {
+        guard let engine, !busy else { return }
+        busy=true
+        Task {
+            do {
+                let latest=try await engine.configuration()
+                guard preview.previewOnly, preview.configurationDigest == (try Digest.of(latest)),
+                      latest.rules.contains(where: { $0.id == record.id && $0.digest == record.digest }),
+                      preview.workspace.rootRef == record.rule.scope.rootRef else {
+                    throw ShouError("plan_stale", "Preview the draft again with the current configuration.")
+                }
+                _ = try await engine.setRule(ruleId: record.rule.id, workspaceId: preview.workspace.id, enabled: true, version: record.rule.version)
+                invalidateScanEvidence(); await refresh()
+                workspaceId=preview.workspace.id; section="overview"; externalRulesChanged=false; busy=false
+                startScan(ruleIds: [record.rule.id], selectEligible: true)
+            } catch { busy=false; self.error=error.localizedDescription }
         }
+    }
+    func previewBenefits(scanId: String) async throws -> RulePreviewBenefits {
+        guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }
+        return try await engine.rulePreviewBenefits(scanId: scanId)
     }
     func previewRuleDraft(_ data: Data, workspaceId: String, completion: @escaping (Result<(ScanSnapshot, [PersonalRulePreviewRow]), Error>) -> Void) {
         guard let engine else { completion(.failure(ShouError("io_error", "Local store is unavailable."))); return }
@@ -875,6 +904,18 @@ struct ContentView: View {
                 .navigationSplitViewColumnWidth(min: 190, ideal: 215)
         } detail: {
             VStack(spacing: 0) {
+                if model.externalRulesChanged && !model.busy && model.completion == nil {
+                    HStack {
+                        Label(model.t("Personal rules changed outside Shou. Review each rule before cleanup."), systemImage: "sparkles")
+                            .font(.callout).lineLimit(2)
+                        Spacer()
+                        Button(model.t("Review Rules")) { model.reviewPersonalRules=true; model.section="rules"; model.externalRulesChanged=false }
+                            .accessibilityIdentifier("rules.external.review")
+                        Button { model.externalRulesChanged=false } label: { Image(systemName: "xmark") }
+                            .buttonStyle(.borderless).accessibilityLabel(model.t("Dismiss"))
+                    }.padding(.horizontal, 14).padding(.vertical, 8).background(Color.accentColor.opacity(0.08))
+                    Divider()
+                }
                 presentedContent
                 Divider()
                 HStack {
@@ -927,7 +968,7 @@ struct ContentView: View {
             AccessibilityNotification.Announcement(model.status).post()
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            Task { await model.scanAccess.refresh() }
+            Task { await model.scanAccess.refresh(); await model.refreshExternalChanges() }
         }
         .onChange(of: model.isExecuting) { _, executing in
             if !executing && model.completion == nil && model.error == nil {
@@ -966,6 +1007,7 @@ struct RulesView: View {
     @State private var presetName=""
     @State private var presetAlert=false
     @State private var editingRule: RuleRecord?
+    @State private var reviewingRule: RuleRecord?
     @State private var ruleSource="all"
     @State private var agentSetup=false
     var body: some View {
@@ -1042,7 +1084,7 @@ struct RulesView: View {
                                             Button(model.t("Edit Rule…")) { editingRule=record }.disabled(model.busy)
                                                 .buttonStyle(.bordered)
                                                 .accessibilityIdentifier("rules.edit." + record.id)
-                                            Button(model.t("Preview Draft")) { model.previewRule(record) }.disabled(model.busy || !model.configuration.workspaces.contains { $0.rootRef == record.rule.scope.rootRef })
+                                            Button(model.t("Review & Clean…")) { reviewingRule=record }.disabled(model.busy || !model.configuration.workspaces.contains { $0.rootRef == record.rule.scope.rootRef })
                                                 .buttonStyle(.bordered)
                                                 .accessibilityIdentifier("rules.preview." + record.rule.id)
                                             Button(model.t("Export Rule…")) { model.exportRule(record) }
@@ -1069,8 +1111,12 @@ struct RulesView: View {
             }
         }
         .sheet(item: $editingRule) { RuleRevisionEditor(model: model, original: $0) }
+        .sheet(item: $reviewingRule) { PersonalRuleReviewView(model: model, record: $0) }
         .sheet(isPresented: $agentSetup, onDismiss: { Task { await model.refresh() } }) { AgentRuleSetupView(model: model) }
-        .onAppear { Task { await model.refresh() } }
+        .onAppear {
+            if model.reviewPersonalRules { ruleSource="personal"; model.reviewPersonalRules=false }
+            Task { await model.refresh() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             if !model.busy { Task { await model.refresh() } }
         }

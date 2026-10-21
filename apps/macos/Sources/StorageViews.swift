@@ -125,6 +125,11 @@ private struct StorageAnalysisView: View {
                 Label(model.t(session.copyingAnalysis ? "Preparing…" : session.analysisCopied ? "Copied" : "Copy for AI"), systemImage: session.analysisCopied ? "checkmark" : "doc.on.clipboard")
             }.disabled(session.copyingAnalysis || session.loadingDirectory || model.busy).help(model.t("Copy scan results and a request for your AI agent"))
                 .accessibilityIdentifier("storage.copy-analysis")
+            if session.analysisHandoffStarted {
+                Button(model.t("Review AI Rules…")) {
+                    Task { await model.refreshExternalChanges(); model.reviewPersonalRules=true; model.section="rules"; model.externalRulesChanged=false }
+                }.disabled(model.busy).accessibilityIdentifier("storage.review-ai-rules")
+            }
             if session.currentFolderIncomplete {
                 Button { showingCoverage=true } label: {
                     Label(model.t("Scan Coverage"), systemImage: session.actionableCoverage.isEmpty ? "info.circle" : "exclamationmark.triangle")

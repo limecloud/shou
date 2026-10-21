@@ -179,3 +179,5 @@ shou analysis large-files --scan-id "storage_example" --minimum-bytes 52428800 -
 ```
 
 Pass returned relative paths to `analysis plan`. Query results do not authorize execution; existing CLI confirmation rules still apply. A partial scan returns its measured matches and original coverage issues.
+
+Copy for AI requests serious investigation of major consumers and separate rule IDs for independent decisions. Preview, enable or preserve each separately. After the Agent imports disabled drafts, use Review AI Rules… → Review & Clean… → Enable & Scan This Rule, adjust files, then use existing confirmation. No receipt means no verified cleanup; inspect failures and remaining relevant scope afterwards. See the [space analysis and Agent design](../engineering/space-analysis-agent-design.md).

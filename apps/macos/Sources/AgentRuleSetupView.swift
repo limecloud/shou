@@ -25,7 +25,7 @@ struct AgentRuleSetupView: View {
             使用 Shou CLI：\(executable)
             \(contextPath.map { "请分析这个目录并制定规则：" + $0 } ?? "先查看常用位置、开发项目和现有规则，再定位尚未覆盖的占用大头。")
 
-            请帮我制定适合这台 Mac 的清理规则。先查看目录占用和现有规则；只追问尚不明确的用途、重建方式、活跃项目和必须保留的内容。由你编写规则，校验、导入为禁用草稿并预览，向我说明命中路径、空间估计和清理代价。暂不启用或清理；预览后再由我决定。
+            请按 Skill 认真分析主要占用，沿大目录调查到具体用途，不要只清小缓存。按用途、重建代价和保留条件拆分可独立选择的规则，每条分别校验、导入为禁用草稿并预览，说明命中、保护项和新增收益。对不能处理的大项说明未知点与下一步。只追问证据不能回答的用途、活跃项目与保留要求。预览后由我逐条决定；回到 Shou“规则 → 审阅并清理…”启用并扫描所选规则，再确认实际删除。已有明确授权可继续，未有回执不得称已清理；执行后核验逐项结果与剩余占用。
             """
         }
         return """
@@ -33,7 +33,7 @@ struct AgentRuleSetupView: View {
         Use this Shou CLI: \(executable)
         \(contextPath.map { "Investigate this directory to author a rule: " + $0 } ?? "Inspect common locations, developer projects and existing rules, then find large areas not yet covered.")
 
-        Help me customize cleanup rules for this Mac. Inspect disk usage and existing rules, then ask only about unclear purpose, rebuild steps, active projects, and content to preserve. Write and validate the rules, import disabled drafts, and preview them. Explain exact paths, size estimates, and rebuild costs. Do not enable or clean yet; let me decide after the preview.
+        Follow the Skill to investigate the largest consumers to their actual purpose, including unresolved large areas and next diagnostics. Split independently selectable rules by purpose, rebuild cost and retention. Validate, import disabled and preview each; explain matches, protections and additional benefit. Ask only what evidence cannot resolve. Let me choose each rule, then return to Shou Rules → Review & Clean… → Enable & Scan This Rule and confirm actual deletion. Reuse explicit authorization, never claim cleanup without a receipt, and verify per-item outcomes and remaining space afterwards.
         """
     }
 
@@ -73,6 +73,7 @@ struct AgentRuleSetupView: View {
                 Label(model.t("1. Copy the request to Codex, Claude Code, or WorkBuddy."), systemImage: "doc.on.doc")
                 Label(model.t("2. Answer questions about your projects and what to keep."), systemImage: "text.bubble")
                 Label(model.t("3. Review the draft in Shou, then enable it when ready."), systemImage: "checkmark.circle")
+                Label(model.t("4. Clean selected rules, then verify the result and retained items."), systemImage: "checkmark.seal")
             }.font(.callout)
             ScrollView {
                 Text(prompt).font(.callout.monospaced()).textSelection(.enabled)

@@ -24,6 +24,7 @@
 "1. Copy the request to Codex, Claude Code, or WorkBuddy." = "1. Copy the request to Codex, Claude Code, or WorkBuddy.";
 "2. Answer questions about your projects and what to keep." = "2. Answer questions about your projects and what to keep.";
 "3. Review the draft in Shou, then enable it when ready." = "3. Review and enable the rule once. Future cleanups include it.";
+"4. Clean selected rules, then verify the result and retained items." = "4. Clean selected rules, then verify the result and retained items.";
 "A built-in scan location has no scoped rules." = "A built-in scan location has no scoped rules.";
 "A complete directory manifest is required before moving to Trash." = "A complete directory manifest is required before moving to Trash.";
 "A file or folder was modified too recently" = "A file or folder was modified too recently";
@@ -43,6 +44,7 @@
 "Add Workspace" = "Add Workspace";
 "Add Workspace…" = "Add Workspace…";
 "Add a project folder to inspect build outputs and project caches." = "Add a project folder to inspect build outputs and project caches.";
+"Additional Cleanup Estimate" = "Additional Cleanup Estimate";
 "Additional scan notes are summarized here." = "Additional scan notes are summarized here.";
 "Administrator Required" = "Administrator Required";
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.";
@@ -184,6 +186,7 @@
 "Bundler download caches" = "Bundler download caches";
 "CLI" = "CLI";
 "CLI installed. If shou is not on PATH, use the full path shown below." = "CLI installed. If shou is not on PATH, use the full path shown below.";
+"Calculating…" = "Calculating…";
 "Camo caches" = "Camo caches";
 "Cancel" = "Cancel";
 "Candidate analysis exceeded its time budget." = "Candidate analysis exceeded its time budget.";
@@ -381,6 +384,7 @@
 "Disk access is ready" = "Protected directory access verified";
 "Disk access is required for this location." = "Disk access is required for this location.";
 "Disk access needs verification" = "Disk access needs verification";
+"Dismiss" = "Dismiss";
 "Docker BuildX caches" = "Docker BuildX caches";
 "Docker build cache" = "Docker build cache";
 "Documents" = "Documents";
@@ -395,6 +399,7 @@
 "Edit the complete JSON definition. Keep the rule ID and use an unused version." = "Edit the complete JSON definition. Keep the rule ID and use an unused version.";
 "Electron runtime download cache" = "Electron runtime download cache";
 "Enable" = "Enable";
+"Enable & Scan This Rule" = "Enable & Scan This Rule";
 "Enable complete scanning" = "Enable complete scanning";
 "Enable startup definition?" = "Enable startup definition?";
 "Enabled" = "Enabled";
@@ -534,6 +539,7 @@
 "Its saved rules and exclusions will be detached. Files in the folder stay untouched." = "Its saved rules and exclusions will be detached. Files in the folder stay untouched.";
 "JetBrains IDE caches" = "JetBrains IDE caches";
 "JetBrains IDE logs" = "JetBrains IDE logs";
+"Keep Current Choice" = "Keep Current Choice";
 "Keep Open" = "Keep Open";
 "Keep Shou in Applications" = "Keep Shou in Applications";
 "Keep alive" = "Keep alive";
@@ -693,6 +699,7 @@
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated.";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "Only this folder is described. The workspace itself and folders outside it cannot be selected.";
 "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained." = "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained.";
+"Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices." = "Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices.";
 "Only verified trashed items can be restored or permanently removed." = "Only verified trashed items can be restored or permanently removed.";
 "Opam download caches" = "Opam download caches";
 "Open Directory" = "Open Directory";
@@ -751,6 +758,7 @@
 "Personal app data is retained." = "Personal app data is retained.";
 "Personal app data selected; work and sign-in information may be lost." = "Personal app data selected; work and sign-in information may be lost.";
 "Personal data" = "Personal data";
+"Personal rules changed outside Shou. Review each rule before cleanup." = "Personal rules changed outside Shou. Review each rule before cleanup.";
 "Plan digest verification failed." = "Plan digest verification failed.";
 "Plan expired or workspace/configuration changed; preview again." = "Plan expired or workspace/configuration changed; preview again.";
 "Plan workspace does not match its registered binding." = "Plan workspace does not match its registered binding.";
@@ -890,10 +898,13 @@
 "Reveal Definition in Finder" = "Reveal Definition in Finder";
 "Reveal in Finder" = "Reveal in Finder";
 "Review" = "Review";
+"Review & Clean…" = "Review & Clean…";
+"Review AI Rules…" = "Review AI Rules…";
 "Review Again" = "Review Again";
 "Review Candidates" = "Review Candidates";
 "Review Cleanup…" = "Review Cleanup…";
 "Review Permanent Deletion…" = "Review Permanent Deletion…";
+"Review Rules" = "Review Rules";
 "Review This Item" = "Review This Item";
 "Review Uninstall…" = "Review Uninstall…";
 "Review an app and its associated files before moving them to Trash." = "Review an app and its associated files before moving them to Trash.";
@@ -984,6 +995,7 @@
 "Scanning: %lld entries" = "Scanning: %lld entries";
 "Scanning…" = "Scanning…";
 "Scheduled" = "Scheduled";
+"Scope & Retention" = "Scope & Retention";
 "Scope and retained items" = "Scope and retained items";
 "ScreenFlow caches" = "ScreenFlow caches";
 "Search app names, identifiers or paths" = "Search app names, identifiers or paths";

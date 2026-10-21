@@ -12,6 +12,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         SpaceMap.Inspect += async (path,open) => { if(DataContext is MainViewModel model) await model.FocusStorageAsync(path,open); };
         Loaded += async (_, _) => { if (DataContext is MainViewModel model) await model.InitializeAsync(); };
+        Activated += async (_, _) => { if (IsLoaded && DataContext is MainViewModel { IsBusy: false } model) await model.RefreshExternalChangesAsync(); };
         Closing += ClosingWindow;
     }
     private async void ClosingWindow(object? sender, CancelEventArgs e)

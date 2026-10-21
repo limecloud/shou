@@ -28,6 +28,7 @@
               <RadioButton Content="简洁" GroupName="SpaceView" IsChecked="{Binding StorageSimple}" VerticalAlignment="Center" Margin="4" />
               <RadioButton Content="详细" GroupName="SpaceView" IsChecked="{Binding StorageDetailed}" VerticalAlignment="Center" Margin="4" />
               <Button Content="复制给 AI" Command="{Binding CopyStorageAnalysisCommand}" />
+              <Button Content="审阅 AI 规则…" Command="{Binding ReviewRulesCommand}" />
               <Button Content="刷新" Command="{Binding RescanStorageCommand}" /><Button Content="选择目录…" Command="{Binding AnalyzeCommand}" />
             </StackPanel>
             <Button DockPanel.Dock="Left" Content="↑" Command="{Binding StorageUpCommand}" />
@@ -79,7 +80,20 @@
       <TabItem Header="规则与排除">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="110" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <StackPanel Orientation="Horizontal"><Button Content="导入规则草稿…" Command="{Binding ImportRuleCommand}" /><Button Content="启用所选规则" Command="{Binding EnableRuleCommand}" /><Button Content="停用所选规则" Command="{Binding DisableRuleCommand}" /></StackPanel>
-          <ListBox Grid.Row="1" ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" DisplayMemberPath="Title" Margin="0,14" AutomationProperties.Name="当前目录规则" />
+          <Grid Grid.Row="1" Margin="0,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="2*" /></Grid.ColumnDefinitions>
+            <ListBox ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" DisplayMemberPath="Title" AutomationProperties.Name="当前目录规则" />
+            <DockPanel Grid.Column="1" Margin="14,0,0,0">
+              <StackPanel DockPanel.Dock="Top">
+                <TextBlock Text="每条规则独立选择，未选择的草稿保持停用。" Margin="0,0,0,8" />
+                <WrapPanel><Button Content="预览此规则" Command="{Binding PreviewRuleCommand}" /><Button Content="启用并扫描此规则" Command="{Binding EnableAndScanRuleCommand}" /></WrapPanel>
+                <TextBlock Text="{Binding RulePreviewSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,8" />
+                <TextBlock Text="{Binding RulePreviewDetails}" TextWrapping="Wrap" Margin="0,0,0,8" />
+              </StackPanel>
+              <DataGrid ItemsSource="{Binding RulePreviewRows}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" EnableRowVirtualization="True" AutomationProperties.Name="所选规则预览">
+                <DataGrid.Columns><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="估计占用" Binding="{Binding Size}" Width="100" /><DataGridTextColumn Header="条件与保护" Binding="{Binding Decision}" Width="180" /></DataGrid.Columns>
+              </DataGrid>
+            </DockPanel>
+          </Grid>
           <DockPanel Grid.Row="2"><Button DockPanel.Dock="Right" Content="添加全局排除" Command="{Binding AddExclusionCommand}" /><TextBox Text="{Binding ExclusionPattern, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" AutomationProperties.Name="全局排除模式" /></DockPanel>
           <ListBox Grid.Row="3" ItemsSource="{Binding Exclusions}" SelectedItem="{Binding SelectedExclusion}" Margin="0,12,0,0" AutomationProperties.Name="已配置的全局排除" />
           <Button Grid.Row="4" Content="移除所选排除" Command="{Binding RemoveExclusionCommand}" HorizontalAlignment="Right" Margin="0,8,0,0" />

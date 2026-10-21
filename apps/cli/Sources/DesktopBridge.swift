@@ -153,7 +153,8 @@ enum DesktopBridge {
             }
             return .object(["state": .string(state), "items": .array(rows), "execution_ids": try .from(executionIds)])
         case "scan":
-            let snapshot=try await engine.scan(workspaceId: string("workspace_id"), scope: .full, progress: scanProgress)
+            let ruleIds=input["rule_ids"] == nil ? [] : try strings("rule_ids")
+            let snapshot=try await engine.scan(workspaceId: string("workspace_id"), ruleIds: ruleIds, scope: ruleIds.isEmpty ? .full : .cleanup, progress: scanProgress)
             return try scanPage(snapshot, offset: 0)
         case "scan.results":
             let offset=Int(input["offset"]?.numeric ?? 0)
@@ -194,6 +195,16 @@ enum DesktopBridge {
         case "rules.set":
             guard case .bool(let enabled)=input["enabled"] else { throw ShouError("invalid_argument", "A rule enablement decision is required.") }
             return try .from(await engine.setRule(ruleId: string("rule_id"), workspaceId: string("workspace_id"), enabled: enabled, version: input["version"]?.string))
+        case "rules.preview":
+            let config=try await engine.configuration(), id=try string("rule_id"), version=try string("version"), workspace=try string("workspace_id")
+            guard let record=config.rules.first(where: { $0.rule.id == id && $0.rule.version == version }),
+                  config.workspaces.contains(where: { $0.id == workspace && $0.rootRef == record.rule.scope.rootRef }) else {
+                throw ShouError("invalid_argument", "Select a personal rule in its registered workspace.")
+            }
+            let scan=try await engine.scan(workspaceId: workspace, previewRule: record.rule, scope: .cleanup, progress: scanProgress)
+            return .object(["scan_id": .string(scan.id), "status": .string(scan.status), "configuration_revision": .string(config.revision),
+                "rule": try .from(record.rule), "rows": try .from(PersonalRulePreview.rows(snapshot: scan, rule: record.rule)),
+                "benefits": try .from(await engine.rulePreviewBenefits(scanId: scan.id)), "issues": try .from(scan.issues)])
         case "exclusions.set":
             guard case .bool(let remove)=input["remove"] else { throw ShouError("invalid_argument", "An exclusion action is required.") }
             return try .from(await engine.setGlobalExclusion(pattern: string("pattern"), remove: remove))

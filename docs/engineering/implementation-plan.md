@@ -127,3 +127,5 @@ F03 now has a native three-step authoring flow: bounded scope selection, conditi
 Dense-view correction is tracked as W07 in the [space analysis design](space-analysis-agent-design.md): bounded deep file data, shared type colors, compact linked tables and an adjustable 60:40 initial split. Core 234/234, CLI and generated-fixture checks pass; Windows cross-build and 11 process checks pass, with real Windows interaction pending. The initial application-batch failure and successful isolated rerun are both retained.
 
 W08 tracks a native full-disk directory-read stall with real worker samples. A successful development-directory scan does not establish full-disk acceptance. Read diagnostics, stall isolation, incomplete timeout coverage and cancellation/reclamation need implementation and revalidation; delivering the color/layout correction does not resolve this scan issue.
+
+W09 tracks largest-consumer investigation through independent rule preview, enable/scan, editable selection, existing confirmation, receipts and remaining-scope verification. Both desktops are synchronized; acceptance is recorded in the space analysis design.

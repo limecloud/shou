@@ -179,3 +179,5 @@ shou analysis large-files --scan-id "storage_example" --minimum-bytes 52428800 -
 ```
 
 返回的相对路径可传入 `analysis plan`。查询结果不授予执行权限，CLI 仍遵循既有确认合同。部分扫描返回已测量匹配项，并保留原覆盖问题。
+
+“复制给 AI”要求深入分析主要占用并按独立决策拆规则；每条可单独预览、启用或保留。Agent 完成停用草稿后，点击“审阅 AI 规则…”返回个人规则，逐条“审阅并清理… → 启用并扫描此规则”，调整文件后在既有确认中清理。没有回执不代表已清理；清理后核验结果、失败项与相关范围剩余占用。详细合同与跟踪见[空间分析与 Agent 协作设计](../engineering/space-analysis-agent-design.md)。
