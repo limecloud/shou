@@ -53,8 +53,9 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  Start[开始本次操作] --> Known{总量已知?}
-  Start --> Register[规则扫描：登记位置并固定阶段总数]
+  Start[开始本次操作] --> Kind{规则扫描?}
+  Kind -->|否| Known{总量已知?}
+  Kind -->|是| Register[登记位置并固定阶段总数]
   Register --> ScanLocation[逐位置发现、匹配与保存]
   ScanLocation --> Cumulative[继承累计数量与已完成阶段]
   Cumulative --> NextLocation{还有位置?}

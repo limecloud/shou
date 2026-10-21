@@ -51,8 +51,9 @@ Decorative motion does not drive measured progress. It pauses when stopping, whe
 
 ```mermaid
 flowchart TD
-  Start[Start operation] --> Known{Known total?}
-  Start --> Register[Rule scan: register locations and fix phase denominator]
+  Start[Start operation] --> Kind{Rule scan?}
+  Kind -->|No| Known{Known total?}
+  Kind -->|Yes| Register[Register locations and fix phase denominator]
   Register --> ScanLocation[Discover, match and persist each location]
   ScanLocation --> Cumulative[Carry counts and completed phases forward]
   Cumulative --> NextLocation{More locations?}
