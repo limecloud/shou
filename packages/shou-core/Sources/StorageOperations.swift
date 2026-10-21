@@ -230,8 +230,12 @@ extension ShouEngine {
         return nil
     }
     private func scanOwner() -> UInt32 {
+        // WindowsFileSystem marks current-token ownership as zero and all
+        // other SIDs as UInt32.max. A profile directory may belong to an
+        // administrator group, so its owner cannot identify the current token.
+        if filesystem.platform == "windows" { return 0 }
         // The platform supplies the current home identity without granting a cleanup root.
-        (try? filesystem.analysisRootIdentity(homeDirectory.path).owner) ?? UInt32.max
+        return (try? filesystem.analysisRootIdentity(homeDirectory.path).owner) ?? UInt32.max
     }
     public func createStorageRemovalPlan(scanId: String, paths: [String], action: String = "trash", budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> StorageRemovalPlan {
         try budget.validate()

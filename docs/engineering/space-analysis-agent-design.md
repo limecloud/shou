@@ -190,6 +190,7 @@ sequenceDiagram
 | W05 | Native Windows synchronization | Implemented; cross-build passed; real Windows UI pending | Matching contracts/metrics; Simple/Detailed switching, retained state, selection and handoff on actual Windows |
 | W07 | Dense type colors and layout | Implemented; verification in progress | Deep root-scope files, shared legend/leaf palette, compact tables and native UI inspection |
 | W06 | Performance, failures and complete cleanup | Generated cleanup and million-row queries passed; full performance targets pending | Large directories/millions of entries, rapid changes/cancellation, bounded memory; generated-data deletion, retry, return and fresh measurements |
+| W08 | Full-disk directory read stalls | Open; worker samples retained | Identify stalled directories; isolate timed-out reads; reclaim workers on cancellation; never report unread scope as complete |
 
 Targets: existing-snapshot focus/highlight p95 ≤100 ms; cancellable background scope queries with loading feedback within 100 ms; bounded drawing per frame. Record environment, tree size and cold/warm cache; measure first rendering, queries and scans separately. These are targets, not current measured results. Destructive tests use generated data.
 
@@ -253,3 +254,18 @@ flowchart LR
 Verification of this correction is tracked in W07. Full regression, installation and native visual inspection are recorded after completion; actual Windows interaction remains pending.
 
 Extension legends and aggregate tiles reuse one read-only index aggregation. A recursive directory attribution assigns files to their closest displayed ancestor and produces both map groups and complete extension totals. This avoids a second index traversal and changes neither persistent SQLite data nor filesystem scan evidence. Clipboard reports retain their independent smaller budget.
+
+### W07 regression evidence
+
+- Core 234/234, CLI contracts 158, storage 23, large-file 34 and desktop protocol checks passed. A million-row generated index returned 256 real nodes and an exact extension aggregate; map/full-extension queries took about 1.335 seconds, with the final page about 0.101 seconds. These are Debug index queries, not cold filesystem scan measurements.
+- The first `scripts/test.sh` run stopped in the application-batch check because a generated selection had no components. The isolated rerun passed 19/19. The remaining privacy 16, cache 13 and native TTY cleanup/restore checks passed separately. The original failure is retained; this was not a single all-green suite run.
+- Windows cross-build completed with zero warnings/errors; 11 process bridge checks passed. Real Windows interaction remains pending.
+- A real development-directory analysis measured 122.44 GB of allocated space. Extension highlighting was verified without adding removal selections. The subsequent splitter correction starts at 60:40 and retains native dragging.
+
+Evidence: `.build/space-colors-final-tests.log`, `.build/space-colors-app-batch-retry.log`, `.build/space-colors-privacy-final.log`, `.build/space-colors-cache-final.log`, `.build/space-colors-native-cli-final.log`, `.build/space-colors-million.log`, `.build/space-colors-windows.log` and `.build/space-colors-windows-checks.log`.
+
+### W08 known stall and acceptance work
+
+During native full-disk acceptance, the entry counter stopped at 3,066,212. Repeated samples of the actual read worker showed multiple parallel directory threads inside `openDirectory → _fcntl_overlay_open → __open`. The last progress path does not identify the stalled directory, and permissions, filesystem behavior or application ownership have not been established as the cause. The worker currently has an overall deadline without per-directory stall isolation.
+
+That scan was stopped; `.build/space-colors-scan-worker.sample` and `.build/space-colors-sample.log` retain evidence. The stop interaction responded, and a separate real development-directory analysis completed. Neither establishes successful full-disk acceptance. W08 requires precise read diagnostics, bounded stall isolation, explicit incomplete coverage after timeouts, cancellation/worker reclamation, then equivalent cold/warm scans and injected-stall checks. This color/layout correction changes neither the scanner nor system permissions.

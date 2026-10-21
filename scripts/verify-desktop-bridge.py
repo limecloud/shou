@@ -224,9 +224,9 @@ def main():
         removal_scan = success("storage.scan", dict(path=str(removal_root)))
         removal_input = dict(scan_id=removal_scan["scan_id"], paths=["cache"], action="permanent")
         cancelled, reviewed = request(engine, environment, "storage.remove", removal_input, "cancel")
-        assert reviewed and not cancelled["ok"] and (removal_root / "cache/generated.bin").exists()
+        assert reviewed and not cancelled["ok"] and (removal_root / "cache/generated.bin").exists(), (reviewed, cancelled)
         removed, reviewed = request(engine, environment, "storage.remove", removal_input, "accept")
-        assert reviewed and removed["ok"] and removed["data"]["state"] == "completed"
+        assert reviewed and removed["ok"] and removed["data"]["state"] == "completed", (reviewed, removed)
         assert not (removal_root / "cache").exists() and (removal_root / "keep.txt").read_text() == "retain"
         print("PASS space removal cancellation, confirmed permanent deletion and retained sibling", flush=True)
         if args.native_permanent:
