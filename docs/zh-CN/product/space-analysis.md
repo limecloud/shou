@@ -7,6 +7,7 @@
 - 可选择本地挂载卷、用户主目录或任意文件夹。启动磁盘分析其 APFS 数据卷，避免 firmlink 重复计量；这不代表已测量只读系统卷及其他挂载卷。
 - 扫描仅只读统计，显示当前路径、项目数、耗时和停止操作，不展示虚构百分比。停止会丢弃中断的 worker 结果，并保留此前已有的分析。权限或扫描限额造成的缺口必须显示为部分结果。
 - 左侧为按大小排序的目录列表，右侧为按实际占用比例划分的矩形树图。支持单击查看、双击进入、后退、前进、返回上级、路径导航、当前目录筛选及按大小、名称、文件数排序。浏览时空格打开原生快速查看，⌘A 选中当前可选项目，Escape 清空选择；文本输入保留自身快捷键。
+- 页面标题放在原生工具栏；返回、前进、向上、面包屑、扫描详情图标、刷新与重新开始合并为一条 42 点高的导航栏。扫描详情按需展开；删除后，刷新按钮的提示说明需要重新测量容量。文件列表与空间图填满剩余高度。Windows 同步使用紧凑导航，当前路径按宽度在中间省略，并可通过提示查看全文。
 - 文件与目录均可勾选；列表和树图共用选择状态。全选作用于当前筛选目录中的可选项目，清空选择作用于全部选择。目录右键可通过“通过 AI 定制”把精确目录带入 Agent 请求。跨目录保留选择；父项覆盖子项，取消父项下某个子项时保留其兄弟项。
 - 主操作为“永久删除”，只需一次具体范围与不可恢复确认；菜单保留“移入废纸篓”作为主动选择，后者不会释放空间。确认前重新核验并展示精确路径与容量估计；内部生成计划不成为单独的桌面步骤。
 - 逐项展示成功、失败、取消和未知结果。成功项从列表和树图同步移除；刷新重新获取权威计量，移除已处理项不等于完成新扫描。废纸篓项目可从共享历史恢复且不覆盖已有文件，也可单独确认永久移除。
@@ -15,7 +16,7 @@
 
 ```mermaid
 flowchart LR
-  UI[原生 macOS 浏览器] --> Core[ShouEngine]
+  UI[原生浏览界面：紧凑导航、列表与空间图] --> Core[ShouEngine]
   CLI[analysis 命令] --> Core
   Core --> Worker[只读流式统计]
   Worker --> Catalog[SQLite：条目、子树汇总与完整性]
@@ -39,7 +40,7 @@ flowchart TD
   A[选择磁盘或目录] --> B[流式写入所有可访问条目]
   B --> C[逐目录汇总容量与完整性]
   C --> D[完成索引后发布元数据]
-  D --> E[加载当前目录并绘制空间图]
+  D --> E[紧凑导航下加载目录列表与空间图]
   E --> F[进入目录：查询已保存的直接子项]
   F --> E
   E --> G[选中具体文件或目录]
@@ -76,7 +77,11 @@ sequenceDiagram
   UI->>Engine: storageDirectory(scanId, path)
   Engine->>Store: Query saved totals and direct children
   Engine-->>UI: Directory list and completeness
-  UI-->>User: List and map; partial sizes use ≥
+  UI-->>User: Compact navigation, list and map; partial sizes use ≥
+  opt Inspect incomplete coverage
+    User->>UI: Open coverage icon
+    UI-->>User: Coverage details and available actions
+  end
   User->>UI: Select items; delete
   UI->>Engine: createStorageRemovalPlan(paths, mode)
   Engine->>FS: Fresh complete manifests for selected targets

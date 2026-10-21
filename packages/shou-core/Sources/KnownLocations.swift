@@ -125,7 +125,7 @@ extension ShouEngine {
         return try addWorkspace(path: location.path, rootRef: "shou-location-" + location.id)
     }
 
-    public func scan(locationId: String, ruleIds: [String] = [], scope: ScanScope = .full, budget: ScanBudget = ScanBudget(), progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> ScanSnapshot {
+    public func scan(locationId: String, ruleIds: [String] = [], scope: ScanScope = .full, budget: ScanBudget = ScanBudget(), progress: @escaping @Sendable (ScanProgress) -> Void = { _ in }) throws -> ScanSnapshot {
         try validateKnownLocationBudget(budget)
         let workspace=try workspaceForKnownLocation(locationId)
         return try scan(workspaceId: workspace.id, ruleIds: ruleIds, scope: scope, budget: budget, progress: progress)
@@ -133,7 +133,7 @@ extension ShouEngine {
 
     /// Register all existing roots before capturing evidence so the registrations
     /// themselves cannot invalidate earlier snapshots in this batch.
-    public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), progress: @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) throws -> SystemScanResult {
+    public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), progress: @escaping @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) throws -> SystemScanResult {
         try validateKnownLocationBudget(budget)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         let locations=try knownLocations() + (includeProjects ? projectLocations() : [])
@@ -153,10 +153,20 @@ extension ShouEngine {
             }
         }
         var snapshots: [ScanSnapshot]=[]
-        for (location, workspace) in registered {
+        var entriesBefore=0
+        let totalUnits=registered.count * 3
+        for (index, item) in registered.enumerated() {
+            let (location, workspace)=item
             if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+            let offset=entriesBefore
+            let reporter=ScanProgressReporter(output: { update in
+                progress(location, ScanProgress(stage: update.stage, entryCount: offset + update.entryCount,
+                    currentPath: update.currentPath, limitReached: update.limitReached,
+                    completedUnitCount: index * 3 + (update.completedUnitCount ?? 0), totalUnitCount: totalUnits))
+            })
+            reporter.report(ScanProgress(stage: "scanning", entryCount: 0, currentPath: location.path))
             do {
-                let snapshot=try scan(workspaceId: workspace.id, scope: .cleanup, budget: budget, progress: { progress(location, $0) })
+                let snapshot=try scan(workspaceId: workspace.id, scope: .cleanup, budget: budget, progress: { reporter.report($0) })
                 snapshots.append(snapshot)
                 if snapshot.status != "complete" {
                     issues.append(KnownLocationIssue(locationId: location.id, code: "partial_result", message: "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup."))
@@ -175,7 +185,11 @@ extension ShouEngine {
                 let failure=error as? ShouError ?? ShouError("io_error", error.localizedDescription)
                 if Task.isCancelled || failure.code == "cancelled" { throw ShouError("cancelled", "Scan cancelled.") }
                 issues.append(KnownLocationIssue(locationId: location.id, code: failure.code, message: failure.message))
+                // A failed location has finished processing, with its error retained.
+                reporter.report(ScanProgress(stage: "saving", entryCount: reporter.entryCount, currentPath: location.path,
+                    completedUnitCount: 3, totalUnitCount: 3))
             }
+            entriesBefore += reporter.entryCount
         }
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         return SystemScanResult(locations: locations, snapshots: snapshots, issues: issues, skippedLocationIds: locations.filter { !$0.exists && $0.availabilityIssue == nil }.map(\.id))

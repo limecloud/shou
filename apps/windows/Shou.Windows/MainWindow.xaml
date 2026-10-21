@@ -4,13 +4,9 @@
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
   </Window.Resources>
   <Grid>
-  <Grid Margin="24">
-    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-    <Grid Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-      <StackPanel><TextBlock Text="收拾一下" FontSize="30" FontWeight="SemiBold" /><TextBlock Text="收好，就好。" Opacity="0.65" Margin="0,5,0,0" /></StackPanel>
-      <Button Grid.Column="1" Content="停止当前操作" Command="{Binding CancelCommand}" VerticalAlignment="Center" />
-    </Grid>
-    <TabControl Grid.Row="1" SelectedIndex="{Binding SelectedSection, Mode=TwoWay}">
+  <Grid Margin="16">
+    <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+    <TabControl SelectedIndex="{Binding SelectedSection, Mode=TwoWay}">
       <TabItem Header="清理">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <DockPanel><Button DockPanel.Dock="Right" Content="选择目录…" Command="{Binding ChooseFolderCommand}" /><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" MinWidth="300" AutomationProperties.Name="扫描目录" /></DockPanel>
@@ -25,10 +21,13 @@
         </Grid>
       </TabItem>
       <TabItem Header="空间分析">
-        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-          <WrapPanel><Button Content="选择目录并分析…" Command="{Binding AnalyzeCommand}" /><Button Content="返回上层" Command="{Binding StorageUpCommand}" /><Button Content="重新扫描当前文件夹" Command="{Binding RescanStorageCommand}" /><Button Content="打开当前文件夹" Command="{Binding RevealStorageCommand}" /></WrapPanel>
-          <TextBlock Grid.Row="1" Text="{Binding StoragePath}" Margin="0,12" />
-          <DataGrid Grid.Row="2" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode">
+        <Grid Margin="12"><Grid.RowDefinitions><RowDefinition Height="42" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+          <DockPanel LastChildFill="True" Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="重新扫描" ToolTip="重新扫描当前文件夹" Command="{Binding RescanStorageCommand}" /><Button Content="打开文件夹" Command="{Binding RevealStorageCommand}" /><Button Content="选择目录…" Command="{Binding AnalyzeCommand}" /></StackPanel>
+            <Button DockPanel.Dock="Left" Content="↑" ToolTip="返回上层" AutomationProperties.Name="返回上层" Command="{Binding StorageUpCommand}" Padding="10,4" />
+            <local:ProgressPathTextBlock FullPath="{Binding StorageDisplayPath}" ToolTip="{Binding StorageDisplayPath}" VerticalAlignment="Center" Margin="8,0" AutomationProperties.Name="当前文件夹" />
+          </DockPanel>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode">
             <DataGrid.Columns><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="140" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="110" /></DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -56,14 +55,9 @@
         </Grid>
       </TabItem>
     </TabControl>
-    <StackPanel Grid.Row="2" Margin="0,16,0,0">
-      <TextBlock Text="{Binding ProgressPercentage}" FontSize="26" FontWeight="SemiBold" HorizontalAlignment="Center" />
-      <ProgressBar Height="6" Maximum="100" Value="{Binding ProgressValue}" IsIndeterminate="{Binding ProgressIndeterminate}" />
-      <local:ProgressPathTextBlock FullPath="{Binding ProgressFullPath}" ToolTip="{Binding ProgressFullPath}" MaxWidth="420" TextAlignment="Center" Opacity="0.65" Margin="0,8,0,0" />
-      <TextBlock Text="{Binding Status}" Margin="0,9,0,0" AutomationProperties.LiveSetting="Polite" />
-    </StackPanel>
+    <TextBlock Grid.Row="1" Text="{Binding Status}" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}" AutomationProperties.LiveSetting="Polite" />
   </Grid>
-  <Border Visibility="{Binding ProgressVisible, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Padding="36" Margin="0,95,0,0" AutomationProperties.Name="操作进度">
+  <Border Visibility="{Binding ProgressVisible, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Padding="36" Margin="0,54,0,0" AutomationProperties.Name="操作进度">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="420">
       <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="68" Foreground="#2779DF" HorizontalAlignment="Center" Margin="0,0,0,28" />
       <TextBlock Text="{Binding Status}" TextAlignment="Center" FontSize="18" Margin="0,0,0,20" />
@@ -73,7 +67,7 @@
       <Button Content="停止" Command="{Binding CancelCommand}" Width="180" Padding="20,10" HorizontalAlignment="Center" />
     </StackPanel>
   </Border>
-  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Padding="28" Margin="0,95,0,0" AutomationProperties.Name="清理完成结果">
+  <Border Visibility="{Binding CompletionVisible, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" Padding="28" Margin="0,54,0,0" AutomationProperties.Name="清理完成结果">
     <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" CornerRadius="16" Padding="34" MaxWidth="720" MaxHeight="680" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>

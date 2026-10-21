@@ -13,16 +13,6 @@ struct LargeFilesView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(model.t("Large Files")).font(.title2.weight(.semibold))
-                Spacer()
-                if storage.scan != nil && !storage.scanning {
-                    Button(model.t("Scan Again")) { storage.start(app: model) }.disabled(model.busy || session.loading)
-                    Button(model.t("Start Over")) { storage.restart(app: model) }.disabled(model.busy || session.loading)
-                }
-                DiskCapacityView(model: model, path: storage.location)
-            }.padding(20)
-            Divider()
             if storage.scanning { StorageScanProgressView(model: model, session: storage) }
             else if storage.scan == nil { entry }
             else { results }
@@ -36,6 +26,16 @@ struct LargeFilesView: View {
             if let plan=storage.plan { StorageRemovalConfirmation(model: model, session: storage, plan: plan) }
         }
         .quickLookPreview($previewURL)
+        .toolbar {
+            ToolbarItemGroup {
+                if storage.scan != nil && !storage.scanning {
+                    Button { storage.start(app: model) } label: { Label(model.t("Scan Again"), systemImage: "arrow.clockwise") }
+                        .labelStyle(.iconOnly).help(model.t("Scan Again")).disabled(model.busy || session.loading)
+                    Button(model.t("Start Over")) { storage.restart(app: model) }.disabled(model.busy || session.loading)
+                }
+                DiskCapacityView(model: model, path: storage.location)
+            }
+        }
     }
     private var entry: some View {
         VStack(spacing: 22) {
@@ -79,17 +79,14 @@ struct LargeFilesView: View {
                     Text(storage.scan?.rootPath ?? "").font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                 }
                 Spacer()
-                if !storage.hasChanges && session.hasLoaded { Text(model.bytes(session.totalBytes)).font(.title2.weight(.semibold)).monospacedDigit() }
-            }.padding(20)
-            if storage.scan?.tree.complete == false {
-                HStack {
-                    Label(model.t("Partial analysis: some locations could not be fully measured."), systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    Button(model.t("Details")) { coverage=true }.buttonStyle(.link)
+                if storage.scan?.tree.complete == false {
+                    Button { coverage=true } label: { Label(model.t("Scan Coverage"), systemImage: "exclamationmark.triangle") }
+                        .labelStyle(.iconOnly).buttonStyle(.borderless)
+                        .help(model.t("Partial analysis: some locations could not be fully measured."))
                         .popover(isPresented: $coverage) { StorageCoverageView(model: model, session: storage, dismiss: { coverage=false }) }
-                }.padding(.horizontal, 20).padding(.bottom, 12)
-            }
+                }
+                if !storage.hasChanges && session.hasLoaded { Text(model.bytes(session.totalBytes)).font(.title2.weight(.semibold)).monospacedDigit() }
+            }.padding(.horizontal, 16).padding(.vertical, 10)
             HStack(spacing: 14) {
                 Picker(model.t("Minimum Size"), selection: $session.minimumBytes) {
                     ForEach([50, 100, 500, 1024], id: \.self) { value in Text(value == 1024 ? "1 GiB" : "\(value) MiB").tag(Int64(value) * 1024 * 1024) }

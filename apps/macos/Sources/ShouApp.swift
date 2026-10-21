@@ -95,8 +95,7 @@ struct CleanupCompletion: Identifiable {
     var ruleDraftPattern=""
     var builtins: [CleanupRule]=[]
     var scanProgress: ScanProgress?
-    private var scanEntryCounts=[String: Int]()
-    var scanEntryCount: Int { scanningLocation == nil ? (scanProgress?.entryCount ?? 0) : scanEntryCounts.values.reduce(0, +) }
+    var scanEntryCount: Int { scanProgress?.entryCount ?? 0 }
     var selection=Set<String>()
     var history: [ExecutionReceipt]=[]
     var followups: [FollowUpReceipt]=[]
@@ -286,7 +285,7 @@ struct CleanupCompletion: Identifiable {
                 snapshot=try await engine.scan(workspaceId: id, ruleIds: preset?.ruleIds ?? [], scope: section == "storage" ? .full : .cleanup, budget: ScanBudget(maxEntries: 500_000, maxSeconds: 180), progress: { [weak self] update in
                     Task { @MainActor in
                         guard let self, self.scanning, self.operationID == operation else { return }
-                        self.scanProgress=update
+                        self.updateScanProgress(update)
                     }
                 })
                 workspaceId=id
@@ -348,7 +347,7 @@ struct CleanupCompletion: Identifiable {
             scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(cleanAfterScan: cleanAfterScan, permanentAfterScan: permanentAfterScan, accessChecked: true) }
             return
         }
-        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanEntryCounts=[:]; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
+        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
         statusKey="Preparing common app scan…"
         let operation=UUID(); operationID=operation
         task=Task {
@@ -357,8 +356,8 @@ struct CleanupCompletion: Identifiable {
                 let result=try await engine.scanKnownLocations(includeProjects: true, progress: { [weak self] location, progress in
                     Task { @MainActor in
                         guard let self, self.scanning, self.operationID == operation else { return }
-                        self.scanningLocation=location; self.scanProgress=progress
-                        self.scanEntryCounts[location.id]=max(self.scanEntryCounts[location.id] ?? 0, progress.entryCount)
+                        guard self.updateScanProgress(progress) else { return }
+                        self.scanningLocation=location
                     }
                 })
                 commonReview=try await Task.detached(priority: .userInitiated) { try CleanupReview(snapshots: result.snapshots, locations: result.locations) }.value
@@ -384,6 +383,16 @@ struct CleanupCompletion: Identifiable {
                 statusKey="Scan stopped."; await refresh()
             }
         }
+    }
+    @discardableResult private func updateScanProgress(_ update: ScanProgress) -> Bool {
+        if let current=scanProgress {
+            guard update.entryCount >= current.entryCount else { return false }
+            if let previous=current.fractionCompleted {
+                guard let next=update.fractionCompleted, next >= previous else { return false }
+            }
+        }
+        scanProgress=update
+        return true
     }
     func quickCleanCommon(permanent: Bool = true) {
         if systemResult == nil {
@@ -471,7 +480,7 @@ struct CleanupCompletion: Identifiable {
                 let result=try await engine.scan(workspaceId: workspaceId, previewRule: rule, scope: .cleanup, progress: { [weak self] progress in
                     Task { @MainActor in
                         guard let self, self.scanning, self.operationID == operation else { return }
-                        self.scanProgress=progress
+                        self.updateScanProgress(progress)
                     }
                 })
                 let analysis=Task.detached(priority: .userInitiated) { try PersonalRulePreview.rows(snapshot: result, rule: rule) }
@@ -683,6 +692,20 @@ struct ContentView: View {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var inspector=false
     @State private var ruleEditor=false
+    private var pageTitle: String {
+        switch model.section {
+        case "smart": "Smart Cleanup"
+        case "storage": "Space Analysis"
+        case "large-files": "Large Files"
+        case "rules": "Rules"
+        case "startup": "Startup Items"
+        case "applications": "Application Uninstall"
+        case "privacy": "Privacy"
+        case "history": "History"
+        case "settings": "Settings"
+        default: "Cleanup"
+        }
+    }
     private var navigationSelection: Binding<String> {
         Binding(get: { model.section }, set: { section in
             guard ["smart", "overview", "storage", "large-files", "rules", "startup", "applications", "privacy", "history", "settings"].contains(section) else { return }
@@ -748,7 +771,7 @@ struct ContentView: View {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.8.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {
@@ -757,10 +780,12 @@ struct ContentView: View {
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
                 }
             }
+            .navigationTitle(model.t(pageTitle))
             .toolbar {
                 ToolbarItemGroup {
                     if model.section == "rules" {
-                        Button { model.addWorkspace() } label: { Label(model.t("Include Folder…"), systemImage: "folder.badge.plus") }.disabled(model.busy)
+                        Button { model.addWorkspace() } label: { Label(model.t("Include Folder…"), systemImage: "folder.badge.plus") }
+                            .labelStyle(.iconOnly).help(model.t("Include Folder…")).disabled(model.busy)
                     }
                     if model.section == "overview" { Button { if model.scanning { model.cancel() } else { model.scanCurrentSection() } } label: {
                         Label(model.t(model.scanning ? "Stop" : "Scan"), systemImage: model.scanning ? "stop.fill" : "arrow.clockwise")
@@ -834,32 +859,17 @@ struct RulesView: View {
     @State private var ruleSource="all"
     @State private var agentSetup=false
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(model.t("Rules")).font(.largeTitle)
-                    Text(model.t("Built-in rules for everyday cleanup. Your agent tailors the rest to your Mac.")).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy)
-                Menu(model.t("Advanced")) {
-                    Button(model.t("Import…")) { model.importRule() }
-                    Button(model.t("New Rule…")) { model.ruleDraftPattern=""; editor=true }.disabled(model.workspace == nil)
-                }.disabled(model.busy).fixedSize()
-            }.padding(24)
-            HStack(spacing: 14) {
-                Image(systemName: "sparkles").font(.title2).foregroundStyle(Color.accentColor)
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(model.t("Cleanup rules made for your Mac")).font(.headline)
-                    Text(model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
-                        .font(.callout).foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 16)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 10) {
+                Label(model.t("Cleanup rules made for your Mac"), systemImage: "sparkles").font(.callout.weight(.medium))
+                    .help(model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
+                Spacer(minLength: 8)
                 Button(model.t("Customize with AI…")) { agentSetup=true }
                     .buttonStyle(.borderedProminent).accessibilityIdentifier("rules.agent.setup")
             }
-            .padding(18).background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
-            .padding(.horizontal, 24).padding(.bottom, 12)
+            .padding(.horizontal, 12).frame(height: 44)
+            .background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
+            .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 10)
             HStack {
                 if !model.configuration.workspaces.isEmpty {
                     Picker(model.t("Workspace"), selection: $model.workspaceId) {
@@ -876,12 +886,12 @@ struct RulesView: View {
                         Button(preset.name) { model.section="overview"; model.startScan(preset: preset) }
                     }
                 }.fixedSize().disabled(model.busy)
-            }.padding(.horizontal, 24).padding(.bottom, 10)
+            }.padding(.horizontal, 16).padding(.bottom, 10)
             Picker(model.t("Rule Source"), selection: $ruleSource) {
                 Text(model.t("All Rules")).tag("all")
                 Text(model.t("Built-in Rules")).tag("builtin")
                 Text(model.t("Personal Rules")).tag("personal")
-            }.pickerStyle(.segmented).frame(maxWidth: 440).padding(.horizontal, 24).padding(.bottom, 10)
+            }.pickerStyle(.segmented).frame(maxWidth: 440).padding(.horizontal, 16).padding(.bottom, 10)
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     if ruleSource != "personal" {
@@ -935,7 +945,17 @@ struct RulesView: View {
                             }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
                         }
                     }
-                }.padding(.horizontal, 24).padding(.bottom, 24)
+                }.padding(.horizontal, 16).padding(.bottom, 16)
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup {
+                PageInfoButton(title: model.t("Rules"), message: model.t("Built-in rules for everyday cleanup. Your agent tailors the rest to your Mac.") + "\n\n" + model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
+                Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy)
+                Menu(model.t("Advanced")) {
+                    Button(model.t("Import…")) { model.importRule() }
+                    Button(model.t("New Rule…")) { model.ruleDraftPattern=""; editor=true }.disabled(model.workspace == nil)
+                }.disabled(model.busy)
             }
         }
         .sheet(item: $editingRule) { RuleRevisionEditor(model: model, original: $0) }

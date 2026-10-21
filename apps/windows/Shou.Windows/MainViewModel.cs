@@ -128,7 +128,8 @@ public sealed class MainViewModel : ObservableObject
     public bool CompletionVisible => Completion is not null;
     public bool CompletionHasIssues => Completion?.HasIssues == true;
     public string Status { get => status; private set => SetProperty(ref status, value); }
-    public string StoragePath { get => storagePath; private set => SetProperty(ref storagePath, value); }
+    public string StoragePath { get => storagePath; private set { SetProperty(ref storagePath, value); OnPropertyChanged(nameof(StorageDisplayPath)); } }
+    public string StorageDisplayPath => CurrentStorageFolder ?? "";
     public string ExclusionPattern { get => exclusionPattern; set => SetProperty(ref exclusionPattern, value); }
     public string? SelectedExclusion { get => selectedExclusion; set => SetProperty(ref selectedExclusion, value); }
     public WorkspaceRow? SelectedWorkspace

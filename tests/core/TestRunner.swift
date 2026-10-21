@@ -54,6 +54,18 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL operation progress: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--rule-scan-progress-only"] {
+            do {
+                try await ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages()
+                try await batchScanProgressKeepsCountsAndPercentagesAcrossLocationsAndFailure()
+                try await batchScanProgressCancellationDoesNotReportCompletion()
+                try await systemScanPreparationIsLinearAndReportsRootBeforeIdentity()
+                try await systemScanPreparationCancellationPreventsRegistration()
+                try await systemScanRegistersBeforeEvidenceAndReportsPartial()
+                print("6/6 rule-scan progress, worker phases, multi-location totals, failure and cancellation checks passed; generated fixtures only.")
+            } catch { print("FAIL rule-scan progress: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--privacy-only"] {
             do {
                 try await privacyChromiumRangePreservesUnselectedRelationsAndReceipts()
@@ -346,6 +358,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Read worker caps live children and recovers capacity", { try nativeReadWorkerCapsConcurrentChildrenAndRecoversCapacity() }),
             ("Known location registration probes only its requested root", { try await knownLocationRegistrationUsesOnlyRequestedRoot() }),
             ("Batch preparation probes once and reports its root", { try await systemScanPreparationIsLinearAndReportsRootBeforeIdentity() }),
+            ("Rule-scan progress remains cumulative across worker phases", { try await ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages() }),
+            ("Batch scan progress remains cumulative across locations and failure", { try await batchScanProgressKeepsCountsAndPercentagesAcrossLocationsAndFailure() }),
+            ("Batch scan cancellation does not invent completion", { try await batchScanProgressCancellationDoesNotReportCompletion() }),
             ("Preparation cancellation prevents root registration", { try await systemScanPreparationCancellationPreventsRegistration() }),
             ("Fixed app rules retain personal data", { try await fixedApplicationRulesPreserveUserDataAndSecrets() }),
             ("Known location configuration reuse", { try await knownLocationRegistrationReusesConfiguration() }),

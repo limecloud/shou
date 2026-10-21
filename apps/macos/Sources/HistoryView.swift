@@ -7,12 +7,6 @@ struct HistoryView: View {
     @State private var includeRecoverable=false
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text(model.t("History")).font(.title2.weight(.semibold))
-                Spacer()
-                Button(model.t("Clear Finished Records…")) { prepareRemoval() }
-                    .disabled(model.busy || model.history.isEmpty).accessibilityIdentifier("history.clear-finished")
-            }.padding(24)
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(model.history) { receipt in
@@ -20,10 +14,16 @@ struct HistoryView: View {
                         followups: model.followups.filter { $0.executionId == receipt.id },
                         remove: { prepareRemoval(ids: [receipt.id], allowRecoveryLoss: true) })
                 }
-            }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
+            }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
         }.overlay {
             if model.history.isEmpty { ContentUnavailableView(model.t("No cleanup history"), systemImage: "clock") }
         }
+        }
+        .toolbar {
+            ToolbarItem {
+                Button(model.t("Clear Finished Records…")) { prepareRemoval() }
+                    .disabled(model.busy || model.history.isEmpty).accessibilityIdentifier("history.clear-finished")
+            }
         }
         .alert(model.t("Clear history records?"), isPresented: Binding(get: { removal != nil }, set: { if !$0 { removal=nil } })) {
             Button(model.t("Cancel"), role: .cancel) { removal=nil }

@@ -36,12 +36,10 @@ struct CleanupPageHeader: View {
         HStack {
             Button { model.section="smart" } label: { Label(model.t("Smart Cleanup"), systemImage: "chevron.left") }
                 .buttonStyle(.borderless).padding(.trailing, 12)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(model.t("Cleanup")).font(.system(size: 14, weight: .semibold))
-                Text(model.workspace?.path ?? model.t("Tidy up. That's it.")).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-            }
+            Text(model.workspace?.path ?? model.t("Tidy up. That's it.")).font(.callout).foregroundStyle(.secondary)
+                .lineLimit(1).truncationMode(.middle).help(model.workspace?.path ?? "")
             Spacer()
-        }.padding(.horizontal, 24).padding(.vertical, 12)
+        }.padding(.horizontal, 16).frame(height: 42)
     }
 }
 

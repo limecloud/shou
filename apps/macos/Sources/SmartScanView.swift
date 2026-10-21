@@ -19,9 +19,7 @@ struct SmartScanView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
             if !model.scanning { ScanAccessBanner(model: model) }
-            Divider()
             if model.scanning {
                 VStack(alignment: .leading, spacing: 0) {
                     ScanActivity(model: model)
@@ -38,26 +36,19 @@ struct SmartScanView: View {
         .onChange(of: model.systemResult?.snapshots.count) { _, _ in category="all" }
         .sheet(isPresented: $scanLocations) { ScanLocationsView(model: model) }
         .sheet(isPresented: $agentSetup, onDismiss: { Task { await model.refresh() } }) { AgentRuleSetupView(model: model) }
-    }
-
-    private var header: some View {
-        HStack(spacing: 14) {
-            Image(nsImage: AppIdentity.icon).resizable().frame(width: 32, height: 32).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(model.t("Smart Cleanup")).font(.title2.weight(.semibold)).accessibilityAddTraits(.isHeader)
-                Text(model.t("Tidy up. That's it.")).font(.caption).foregroundStyle(.secondary)
+        .toolbar {
+            ToolbarItemGroup {
+                if !model.scanning && model.systemResult != nil {
+                    Menu {
+                        Button(model.t("Scan Locations…")) { scanLocations=true }
+                        Button(model.t("Scan & Free Space")) { model.quickCleanCommon() }
+                    } label: { Label(model.t("Scan Again"), systemImage: "arrow.clockwise") }
+                        primaryAction: { model.scanCommonLocations() }
+                        .labelStyle(.iconOnly).help(model.t("Scan Again")).fixedSize().disabled(model.busy)
+                }
+                DiskCapacityView(model: model)
             }
-            Spacer(minLength: 8)
-            if !model.scanning && model.systemResult != nil {
-                Menu {
-                    Button(model.t("Scan Locations…")) { scanLocations=true }
-                    Button(model.t("Scan & Free Space")) { model.quickCleanCommon() }
-                } label: { Label(model.t("Scan Again"), systemImage: "arrow.clockwise") }
-                    primaryAction: { model.scanCommonLocations() }
-                    .fixedSize().disabled(model.busy)
-            }
-            DiskCapacityView(model: model)
-        }.padding(.horizontal, 22).padding(.vertical, 16)
+        }
     }
 
     private var resultBrowser: some View {
@@ -103,7 +94,7 @@ struct SmartScanView: View {
                 Text(model.t("Found (estimate)")).font(.caption).foregroundStyle(.secondary)
                 Text(model.bytes(model.commonReview.bytes)).font(.title2.weight(.semibold)).monospacedDigit()
             }
-        }.padding(20)
+        }.padding(.horizontal, 16).padding(.vertical, 10)
     }
 
     private var ruleList: some View {

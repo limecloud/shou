@@ -74,28 +74,6 @@ private struct StorageAnalysisView: View {
     private var results: some View {
         VStack(spacing: 0) {
             navigation
-            if session.hasChanges && session.coverageNotes.isEmpty {
-                HStack(spacing: 8) {
-                    Image(systemName: "info.circle").foregroundStyle(.secondary)
-                    Text(model.t("Selected items processed. Refresh to measure current disk usage.")).font(.caption)
-                    Spacer()
-                    Button(model.t("Refresh")) { session.start(app: model, retainPath: true) }
-                        .buttonStyle(.link).disabled(model.busy)
-                }.padding(.horizontal, 20).padding(.vertical, 9).background(.quaternary.opacity(0.25))
-            } else if session.currentFolderIncomplete {
-                HStack(spacing: 8) {
-                    Image(systemName: session.actionableCoverage.isEmpty ? "info.circle" : "exclamationmark.triangle")
-                        .foregroundStyle(session.actionableCoverage.isEmpty ? Color.secondary : Color.orange)
-                    Text(model.t(session.actionableCoverage.isEmpty ? "System-managed locations are excluded from analysis." : "Some locations in this folder need attention.")).font(.caption)
-                    Spacer()
-                    Button(model.t("Details")) { showingCoverage=true }
-                        .buttonStyle(.link).accessibilityIdentifier("storage.coverage")
-                        .popover(isPresented: $showingCoverage) {
-                            StorageCoverageView(model: model, session: session, dismiss: { showingCoverage=false })
-                        }
-                }.padding(.horizontal, 20).padding(.vertical, 9)
-                    .background(session.actionableCoverage.isEmpty ? Color.secondary.opacity(0.05) : Color.orange.opacity(0.06))
-            }
             Divider()
             HSplitView {
                 directoryList.frame(minWidth: 320, idealWidth: 380, maxWidth: 510)
@@ -106,23 +84,19 @@ private struct StorageAnalysisView: View {
             selectionBar
         }
     }
+    private var coverageDescription: String {
+        model.t(session.actionableCoverage.isEmpty ? "System-managed locations are excluded from analysis." : "Some locations in this folder need attention.")
+    }
     private var navigation: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                HStack(spacing: 5) {
-                    Button { session.goBack() } label: { Image(systemName: "chevron.left") }.disabled(session.back.isEmpty)
-                        .help(model.t("Back")).accessibilityLabel(model.t("Back"))
-                    Button { session.goForward() } label: { Image(systemName: "chevron.right") }.disabled(session.forward.isEmpty)
-                        .help(model.t("Forward")).accessibilityLabel(model.t("Forward"))
-                    Button { session.navigate(StorageIndex.parent(session.path)) } label: { Image(systemName: "arrow.up") }.disabled(session.path == ".")
-                        .help(model.t("Up One Level")).accessibilityLabel(model.t("Up One Level"))
-                }.buttonStyle(.borderless)
-                Text(model.t("Space Analysis")).font(.title2.weight(.semibold)).padding(.leading, 8)
-                Spacer()
-                Button { session.start(app: model, retainPath: true) } label: { Label(model.t("Refresh"), systemImage: "arrow.clockwise") }.disabled(model.busy)
-                    .accessibilityIdentifier("storage.refresh")
-                Button(model.t("Start Over")) { session.restart(app: model) }.disabled(model.busy)
-            }
+        HStack(spacing: 10) {
+            ControlGroup {
+                Button { session.goBack() } label: { Image(systemName: "chevron.left") }.disabled(session.back.isEmpty)
+                    .help(model.t("Back")).accessibilityLabel(model.t("Back"))
+                Button { session.goForward() } label: { Image(systemName: "chevron.right") }.disabled(session.forward.isEmpty)
+                    .help(model.t("Forward")).accessibilityLabel(model.t("Forward"))
+                Button { session.navigate(StorageIndex.parent(session.path)) } label: { Image(systemName: "arrow.up") }.disabled(session.path == ".")
+                    .help(model.t("Up One Level")).accessibilityLabel(model.t("Up One Level"))
+            }.controlSize(.small).fixedSize()
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 7) {
                     Button { session.navigate(".") } label: {
@@ -133,9 +107,26 @@ private struct StorageAnalysisView: View {
                         Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
                         Button(parts[i]) { session.navigate(parts[...i].joined(separator: "/")) }
                     }
-                }.buttonStyle(.borderless).font(.callout)
+                }.buttonStyle(.borderless).font(.callout).fixedSize(horizontal: true, vertical: false)
+            }.frame(maxWidth: .infinity, alignment: .leading)
+            if session.currentFolderIncomplete {
+                Button { showingCoverage=true } label: {
+                    Label(model.t("Scan Coverage"), systemImage: session.actionableCoverage.isEmpty ? "info.circle" : "exclamationmark.triangle")
+                }.labelStyle(.iconOnly).buttonStyle(.borderless)
+                    .foregroundStyle(session.actionableCoverage.isEmpty ? Color.secondary : Color.orange)
+                    .help(coverageDescription).accessibilityLabel(model.t("Scan Coverage") + ": " + coverageDescription)
+                    .accessibilityIdentifier("storage.coverage")
+                    .popover(isPresented: $showingCoverage) {
+                        StorageCoverageView(model: model, session: session, dismiss: { showingCoverage=false })
+                    }
             }
-        }.padding(20)
+            Button { session.start(app: model, retainPath: true) } label: {
+                Label(model.t("Refresh"), systemImage: "arrow.clockwise")
+            }.labelStyle(.iconOnly).buttonStyle(.borderless).disabled(model.busy)
+                .help(model.t(session.hasChanges ? "Selected items processed. Refresh to measure current disk usage." : "Refresh"))
+                .accessibilityIdentifier("storage.refresh")
+            Button(model.t("Start Over")) { session.restart(app: model) }.buttonStyle(.borderless).disabled(model.busy).fixedSize()
+        }.padding(.horizontal, 16).frame(height: 42).background(.bar)
     }
     private var directoryList: some View {
         VStack(spacing: 0) {
@@ -144,7 +135,7 @@ private struct StorageAnalysisView: View {
                 TextField(model.t("Filter this folder"), text: $session.query).textFieldStyle(.plain)
                     .accessibilityIdentifier("storage.filter")
                 if !session.query.isEmpty { Button { session.query="" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain) }
-            }.padding(10).background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 7)).padding(12)
+            }.padding(8).background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 7)).padding(10)
             HStack {
                 let eligible=session.eligibleChildren
                 let count=eligible.filter { session.isSelected($0.path) }.count

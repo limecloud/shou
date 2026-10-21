@@ -72,7 +72,6 @@ struct ApplicationsView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                header
                 VStack(spacing: 0) {
                     summary
                     Divider()
@@ -119,12 +118,11 @@ struct ApplicationsView: View {
         .onChange(of: session.includeSystem) { _, _ in session.scan(app: model) }
         .sheet(isPresented: $showCoverage) { coverage }
         .sheet(item: $session.plan) { plan in ApplicationBatchConfirmation(model: model, session: session, plan: plan) }
+        .toolbar { ToolbarItemGroup { header } }
     }
 
     private var header: some View {
         HStack {
-            Text(model.t("Application Uninstall")).font(.title2.weight(.semibold))
-            Spacer()
             Menu {
                 Toggle(model.t("Include protected system apps"), isOn: $session.includeSystem)
                 Button(model.t("View Coverage…")) { showCoverage=true }
@@ -135,8 +133,9 @@ struct ApplicationsView: View {
                 else { session.scan(app: model) }
             } label: { Label(model.t(session.stopRequested && (session.scanning || session.preparing) ? "Stopping…" : session.scanning || session.preparing ? "Stop" : "Scan Again"), systemImage: session.scanning || session.preparing ? "stop.fill" : "arrow.clockwise") }
                 .disabled((session.stopRequested && (session.scanning || session.preparing)) || (model.busy && !session.scanning && !session.preparing))
+                .labelStyle(.iconOnly).help(model.t(session.scanning || session.preparing ? "Stop" : "Scan Again"))
                 .accessibilityIdentifier("applications.refresh")
-        }.padding(.horizontal, 20).padding(.vertical, 16)
+        }
     }
     private var summary: some View {
         HStack(spacing: 10) {

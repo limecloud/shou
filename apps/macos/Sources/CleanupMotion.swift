@@ -135,7 +135,7 @@ struct ScanActivity: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 22) {
+            if model.scanningLocation == nil { HStack(spacing: 22) {
                 ForEach(stages.indices, id: \.self) { index in
                     HStack(spacing: 7) {
                         Image(systemName: index < stage ? "checkmark.circle.fill" : index == stage ? "circle.inset.filled" : "circle")
@@ -149,7 +149,9 @@ struct ScanActivity: View {
                 .accessibilityLabel(model.t("Scan progress"))
                 .accessibilityValue(model.t(stages[stage]))
                 .accessibilityIdentifier("scan.stage")
-            OperationProgressView(title: model.t(stages[stage]), subtitle: model.scanningLocation.map { model.t($0.title) } ?? "",
+            }
+            OperationProgressView(title: model.t(model.scanningLocation == nil ? stages[stage] : "Scan Common Locations"),
+                subtitle: model.scanningLocation.map { model.t($0.title) + " · " + model.t(stages[stage]) } ?? "",
                 currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningLocation?.path ?? model.workspace?.path ?? "",
                 countText: String(format: model.t("%lld items discovered"), locale: model.language.locale, model.scanEntryCount),
                 fraction: model.scanProgress?.fractionCompleted,

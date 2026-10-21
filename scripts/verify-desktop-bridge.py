@@ -43,6 +43,8 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
     try:
         send(dict(bridge_version=1, request_id=identifier, operation=operation, input=values or {}))
         saw_confirmation = False
+        scan_counts = []
+        scan_fractions = []
         while True:
             event = events.get(timeout=30)
             assert event is not None, f"{operation}: disconnected: {diagnostics.decode(errors='replace')}"
@@ -71,12 +73,21 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
             elif event["kind"] == "result":
                 result = event["value"]
                 assert result["api_version"] == "1.0"
+                if operation == "scan" and result["ok"]:
+                    assert scan_counts and scan_counts == sorted(scan_counts), scan_counts
+                    assert scan_fractions == [1 / 3, 2 / 3, 2 / 3, 1], scan_fractions
                 if not process.stdin.closed:
                     process.stdin.close()
                 assert process.wait(timeout=10) == 0
                 return result, saw_confirmation
             else:
                 assert event["kind"] == "progress", event
+                if operation == "scan":
+                    update = event["value"]
+                    scan_counts.append(update["entry_count"])
+                    if "total_unit_count" in update:
+                        assert update["total_unit_count"] == 3, update
+                        scan_fractions.append(update["completed_unit_count"] / update["total_unit_count"])
     finally:
         if not process.stdin.closed:
             process.stdin.close()

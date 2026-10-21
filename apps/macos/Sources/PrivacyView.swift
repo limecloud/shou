@@ -11,10 +11,10 @@ struct PrivacyView: View {
             .onChange(of: session.range) { _, _ in session.changeRange() }
             .onChange(of: session.allowCookieReview) { _, allowed in cookieReviewChanged(allowed) }
             .sheet(item: $session.plan) { plan in PrivacyConfirmation(app: app, session: session, plan: plan) }
+            .toolbar { ToolbarItemGroup { header } }
     }
     private var pageContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            header
+        VStack(alignment: .leading, spacing: 12) {
             if session.working {
                 OperationProgressView(title: app.t(app.statusKey), symbol: "hand.raised.fill", currentPath: session.progress?.path ?? "",
                     countText: session.progress.map { String(format: app.t("%lld of %lld sources processed"), locale: app.language.locale, $0.processedCount, $0.itemCount) } ?? app.t("Preparing privacy sources…"),
@@ -28,7 +28,7 @@ struct PrivacyView: View {
             historyContent
             coverageFootnote
             }
-        }.padding(24)
+        }.padding(16)
     }
     private var deletionNotice: some View {
         Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically."))
@@ -62,11 +62,7 @@ struct PrivacyView: View {
     }
     private var header: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 5) {
-                Text(app.t("Privacy")).font(.largeTitle.bold())
-                Text(app.t("Review browser activity and account data separately.")).foregroundStyle(.secondary)
-            }
-            Spacer()
+            PageInfoButton(title: app.t("Privacy"), message: app.t("Review browser activity and account data separately."))
             if !session.working { Button(app.t("Scan Privacy Sources")) { session.scan(app: app) }.disabled(app.busy).accessibilityIdentifier("privacy.scan") }
         }
     }

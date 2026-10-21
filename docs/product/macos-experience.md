@@ -17,40 +17,57 @@ Use system windows, semantic colors, materials, typography, SF Symbols, and stan
 
 ```mermaid
 flowchart LR
-    App[Shou window] --> Overview[Categorized cleanup]
-    App --> Common[Common app cleanup]
-    Common --> Inventory[One action scans explicit known locations]
-    Inventory --> Overview
-    App --> Analysis[Space analysis]
+    App[Shou window: native page title and actions] --> Common[Smart Cleanup]
+    Common --> Inventory[One action scans known locations]
+    Inventory --> Overview[Categorized results]
+    App --> Large[Large Files]
+    App --> Analysis[Space Analysis]
     Analysis --> Browse[Directory list and treemap]
     Browse --> Draft[Draft a rule for an unknown folder]
-    App --> Workspaces[Workspaces]
     App --> Rules[Rules]
-    App --> Presets[Presets]
+    App --> Startup[Startup Items]
+    App --> Apps[Application Uninstall]
+    App --> Privacy[Privacy]
     App --> History[History]
-    Workspaces --> Projects[Projects and directories]
-    Projects --> Inspector[Evidence inspector]
     Rules --> Agent[Customize with AI handoff]
     Rules --> Editor[Advanced wizard and editor]
-    Presets --> Preview[Current preview]
-    Preview --> Confirm[Confirmation]
     History --> Receipt[Item results and recovery]
-    App --> Settings[Settings window]
+    App --> Settings[Settings]
 ```
 
-Startup Items now opens the [definition-discovery workflow](startup-items.md), with search, exact-path details, coverage and native Login Items settings guidance. Uninstall navigation remains unavailable until implemented.
+Startup Items opens the [definition-discovery workflow](startup-items.md). Application Uninstall and Privacy have their own native pages and shared operation feedback.
 
 ## 3. Window layout
 
-Use a standard title bar and toolbar, `NavigationSplitView`, a sortable `Table` or verified AppKit table, and an optional inspector. Suggested initial size is approximately 1100 × 760 pt; determine the minimum through usability tests.
+Use a standard title bar and toolbar, `NavigationSplitView`, a sortable `Table` or verified AppKit table, and an optional inspector. The default window is 1160 × 780 pt, with a 900 × 620 pt minimum. Every primary page uses one localized native navigation title; do not repeat it in a large content header. Page actions live in the toolbar and retain accessible names and tooltips when displayed as icons.
 
 | Region | Content |
 | --- | --- |
-| Toolbar | Add workspace, scan/stop, filter, inspector |
-| Sidebar | Overview, workspaces, rules, presets, history |
+| Toolbar | Current page title, contextual actions, language; compact disk capacity in Smart Cleanup and Large Files |
+| Sidebar | Smart Cleanup, Large Files, Space Analysis, Rules, Startup Items, Application Uninstall, Privacy; History and Settings at the bottom |
 | Table | Name, estimate, type, project, status, newest modification |
 | Inspector | Full path, evidence, rule/version, risk, rebuild prerequisites, exclusions |
 | Capacity panel | Selected count, estimated size, action, explicit next step |
+
+Rules keeps Customize with AI in a 44-point inline strip; detailed guidance is available from the information button. Startup descriptions use the same `PageInfoButton` popover. Privacy retains the visible permanent-deletion notice and cookie consent. History puts record cleanup in the toolbar; Settings begins directly with its General group. Space Analysis uses a 42-point navigation row and reveals coverage details on demand. Remaining height belongs to results. Centered entry, operation progress and completion content keep their distinct purpose and do not gain a second top header.
+
+Windows retains native tabs as page labels, removes the repeated brand header and idle progress block, and uses a compact navigation row for Space Analysis. This shared density rule does not imply identical platform widgets.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Sidebar
+    participant Chrome as Native toolbar
+    participant Page
+    User->>Sidebar: Select page
+    Sidebar->>Chrome: Set localized page title
+    Page->>Chrome: Supply contextual actions
+    Page-->>User: Filters and content in remaining space
+    opt Read detailed guidance
+        User->>Chrome: Open information button
+        Chrome-->>User: Contextual popover
+    end
+```
 
 ## 4. Screens and behavior
 

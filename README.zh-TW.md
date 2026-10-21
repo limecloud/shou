@@ -15,9 +15,9 @@
 
 ## 下載與安裝
 
-Shou v0.7.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Silicon 與 Intel Mac。開啟磁碟映像，將 **Shou.app** 拖入 **Applications**。介面提供英文與簡體中文。
+Shou v0.8.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Silicon 與 Intel Mac。開啟磁碟映像，將 **Shou.app** 拖入 **Applications**。介面提供英文與簡體中文。
 
-[**Shou v0.7.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.7.0/Shou-0.7.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.7.0/Shou-0.7.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.7.0/shou-0.7.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.8.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.8.0/Shou-0.8.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.8.0/Shou-0.8.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.8.0/shou-0.8.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 此版本使用 ad-hoc 簽章，未經 Apple 公證。如首次啟動遭阻擋，確認下載來源後，前往**系統設定 → 隱私權與安全性 → 強制打開**。
 

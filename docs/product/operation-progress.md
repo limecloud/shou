@@ -8,7 +8,8 @@ Scanning, rule cleanup, application uninstall, storage analysis, large-file remo
 
 | Workflow | Count source | Presentation |
 | --- | --- | --- |
-| Smart scan | Sum of the highest observed entry count per location | Cumulative count, phase, current path, indeterminate progress |
+| Smart scan | Core accumulates the highest measured count per location | One cumulative count; overall completed discovery/matching/persistence phases across registered locations; current location and phase as context |
+| Single-workspace rule scan | Highest measured discovery count | Unknown discovery stays indeterminate; matching starts at 1/3, persistence at 2/3, and completion follows the saved snapshot |
 | Storage and large-file scan | Measured entries; known work during sealing, transfer and saving | Count, middle-truncated path, elapsed time; percentage for a named stage with a known total |
 | Application scan and component review | Known application set and checked applications | Percentage, processed/total, current application; results stream into the list |
 | Rule cleanup, uninstall, direct removal and restore | Reviewed independent targets and durable outcomes | Central progress screen, percentage, processed/total, path and Stop |
@@ -16,6 +17,8 @@ Scanning, rule cleanup, application uninstall, storage analysis, large-file remo
 | Startup discovery and plan preparation | Total not yet established | Current action, indeterminate progress and Stop |
 
 Percentages describe processed work in a known set, rather than elapsed time, successful cleanup or reclaimed disk space. A selected directory is one reviewed target. Permanent removal can report actual manifest entries inside the current target; this subprogress is combined with the batch position without marking the target durably complete before its receipt is saved. No file-level count is invented when its descendants have no progress events. Unknown discovery totals remain indeterminate. Sealing, transfer and saving may show their named stage's percentage, including 100% when saving a partial scan; coverage remains explicit and is not a percentage.
+
+Rule scanning uses three completed processing phases per registered location: discovery, rule matching and snapshot persistence. Worker sealing and transfer belong to discovery; their local percentages do not overwrite the overall value. A smart batch fixes its denominator after registration, offsets each location's phase count, and carries discovered entries forward across locations, including a location that fails after reading entries. The failure stays in the result and is not counted as successful coverage. Cancellation does not complete unprocessed phases. The desktop rejects regressive callbacks within the current operation. Its footer and central count use the same cumulative evidence; numeric text changes immediately so frequent events cannot overlap rolling digits. The progress bar can still animate.
 
 Progress paths retain their origin and filename and omit only the middle when space is insufficient. Keep a single ellipsis, use Unicode text boundaries and provide the full original value through hover/accessibility; CLI and bridge data keep complete paths.
 
@@ -27,7 +30,8 @@ Multi-location cleanup keeps one denominator throughout the operation. Each subs
 
 ```mermaid
 flowchart LR
-  Scan[Scanning and source discovery] --> Events[ScanProgress / ExecutionProgress]
+  Scan[Scanning and source discovery] --> Normalize[Keep worker discovery counts; aggregate rule-scan phases across locations]
+  Normalize --> Events[ScanProgress / ExecutionProgress]
   Execute[Shared executors and privacy transactions] --> Events
   Events --> Sessions[AppModel and page sessions]
   Sessions --> Aggregate[Batch counts and operation identity checks]
@@ -41,13 +45,19 @@ flowchart LR
   Cancel --> Execute
 ```
 
-Decorative motion does not drive measured progress. It pauses when stopping, when the window is inactive, or when either Reduce Motion preference is enabled. Native typography, controls, accent color and accessibility identifiers accompany monospaced, transitioning numeric values. Short windows use a compact layout that retains percentage, counts, path and Stop. Smart scanning exposes one Stop action and labels its main count as cumulative discovery.
+Decorative motion does not drive measured progress. It pauses when stopping, when the window is inactive, or when either Reduce Motion preference is enabled. Native typography, controls, accent color and accessibility identifiers accompany monospaced numbers that update directly, while the progress bar can animate. Short windows use a compact layout that retains percentage, counts, path and Stop. Smart scanning exposes one Stop action and labels its main count as cumulative discovery.
 
 ## State flow
 
 ```mermaid
 flowchart TD
   Start[Start operation] --> Known{Known total?}
+  Start --> Register[Rule scan: register locations and fix phase denominator]
+  Register --> ScanLocation[Discover, match and persist each location]
+  ScanLocation --> Cumulative[Carry counts and completed phases forward]
+  Cumulative --> NextLocation{More locations?}
+  NextLocation -->|Yes| ScanLocation
+  NextLocation -->|No| Ready
   Known -->|No| Discover[Indeterminate activity and measured counts]
   Discover --> Stage[Known sealing / transfer / saving work]
   Stage --> Ready[Results ready; retain complete or partial coverage]
@@ -61,6 +71,29 @@ flowchart TD
   Stop[Stop requested] --> Boundary[Stop at a safe boundary]
   Boundary --> Partial[Show completed and remaining work]
   Check -->|Verification failure| Error[Preserve diagnostic and selection]
+```
+
+## Rule-scan sequence
+
+```mermaid
+sequenceDiagram
+  participant UI as Desktop session
+  participant Core as Shared Core
+  participant Worker as Discovery worker
+  participant Store as Snapshot store
+  UI->>Core: Start scan with operation identity
+  Core->>Core: Register locations and fix total phase count
+  loop Registered locations
+    Core->>Worker: Discover current location
+    Worker-->>Core: Measured entries and local worker stages
+    Core-->>UI: Cumulative entries and previously completed phases
+    Core->>Core: Match cleanup rules
+    Core-->>UI: Discovery and matching phases completed
+    Core->>Store: Persist snapshot
+    Store-->>Core: Snapshot saved
+    Core-->>UI: Advance cumulative phase count
+  end
+  Core-->>UI: Results with complete or partial coverage
 ```
 
 ## Execution sequence
@@ -108,5 +141,7 @@ The normal successful path is intentionally short: completion icon, measured byt
 ## Verification scope
 
 `shou-tests --operation-progress-only` covers batch totals, partial-plan boundaries, integer limits, privacy source progress, committed transactions, cancellation and durable restore boundaries. The installed desktop also requires checks of scanning, execution, stopping, Reduce Motion and runtime language switching. Automated mutation tests use generated data only.
+
+`shou-tests --rule-scan-progress-only` covers worker-stage resets, cross-location cumulative counts and percentages, failed locations, cancellation before completion, registration ordering and existing partial-result behavior.
 
 Related: [system architecture](../architecture/system-design.md), [unified cleanup](unified-cleanup.md), [acceptance and testing](../engineering/acceptance-and-testing.md). Third-party references belong in [acknowledgments](../../README.md#acknowledgements).

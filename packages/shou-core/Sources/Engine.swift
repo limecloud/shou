@@ -172,7 +172,7 @@ public actor ShouEngine {
         let binding = RuleBinding(workspaceId: workspaceId, ruleId: ruleId, version: rule.version, enabled: enabled)
         config.bindings.append(binding); try saveConfiguration(config); return binding
     }
-    public func scan(workspaceId: String, ruleIds: [String] = [], previewRule: CleanupRule? = nil, scope: ScanScope = .full, budget: ScanBudget = ScanBudget(), progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> ScanSnapshot {
+    public func scan(workspaceId: String, ruleIds: [String] = [], previewRule: CleanupRule? = nil, scope: ScanScope = .full, budget: ScanBudget = ScanBudget(), progress: @escaping @Sendable (ScanProgress) -> Void = { _ in }) throws -> ScanSnapshot {
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         try budget.validate()
         let config = try configuration()
@@ -189,19 +189,24 @@ public actor ShouEngine {
             rules=try activeRules(config, workspaceId: workspaceId, additionalBuiltins: discovered.rules).filter { ruleIds.isEmpty || ruleIds.contains($0.id) }
             if !ruleIds.allSatisfy({ id in rules.contains { $0.id == id } }) { throw ShouError("invalid_argument", "Requested rule is not enabled in this workspace.") }
         }
-        let tree = try inspect(workspace.path, rules: rules, scope: scope, budget: budget, progress: progress)
+        let reporter=ScanProgressReporter(output: progress)
+        let tree = try inspect(workspace.path, rules: rules, scope: scope, budget: budget, progress: { update in
+            // Worker sealing and transport still belong to discovery. Their local
+            // percentages must not be presented as overall rule-scan completion.
+            reporter.report(ScanProgress(stage: "scanning", entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached))
+        })
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-        progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count, completedUnitCount: 0, totalUnitCount: 1))
+        reporter.report(ScanProgress(stage: "analysis", entryCount: tree.entries.count, currentPath: workspace.path, completedUnitCount: 1, totalUnitCount: 3))
         let referenceTime=now()
         let installedCaches=discovered.evidence.filter { evidence in rules.contains { $0.id == evidence.ruleId } }
         let blocked=try ApplicationSafety.blockedRules(rules.map(\.id), activity: applicationActivity).merging(
             InstalledApplicationCaches.blocked(installedCaches, workspace: workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
         let snapshot = ScanSnapshot(id: Codec.id("scan"), workspace: workspace, configurationDigest: try Digest.of(config), createdAt: referenceTime, status: (tree.discoveryComplete ?? tree.complete) ? "complete" : "partial", previewOnly: previewRule != nil, caseSensitive: tree.caseSensitive, entries: tree.entries,
             candidates: try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: referenceTime, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds), issues: tree.issues + discovered.issues, budget: budget, completedPaths: tree.completedPaths, treeComplete: tree.complete, scope: scope, installedApplicationCaches: installedCaches.isEmpty ? nil : installedCaches)
-        progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count, completedUnitCount: 1, totalUnitCount: 1))
-        progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, completedUnitCount: 0, totalUnitCount: 1))
+        reporter.report(ScanProgress(stage: "analysis", entryCount: tree.entries.count, currentPath: workspace.path, completedUnitCount: 2, totalUnitCount: 3))
+        reporter.report(ScanProgress(stage: "saving", entryCount: tree.entries.count, currentPath: workspace.path, completedUnitCount: 2, totalUnitCount: 3))
         try save(snapshot, collection: "scans", id: snapshot.id)
-        progress(ScanProgress(stage: "saving", entryCount: tree.entries.count, completedUnitCount: 1, totalUnitCount: 1))
+        reporter.report(ScanProgress(stage: "saving", entryCount: tree.entries.count, currentPath: workspace.path, completedUnitCount: 3, totalUnitCount: 3))
         return snapshot
     }
     public func scanSnapshot(_ id: String) throws -> ScanSnapshot { try load(ScanSnapshot.self, collection: "scans", id: id) }

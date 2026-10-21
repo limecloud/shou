@@ -80,7 +80,8 @@ public struct ScanProgress: Sendable {
     public let limitReached: Bool
     public let completedUnitCount: Int?
     public let totalUnitCount: Int?
-    /// Completion of the current stage's known work, not elapsed time or disk coverage.
+    /// Completion of the reported known work, not elapsed time or disk coverage.
+    /// Rule scans count discovery, matching and persistence phases across the batch.
     public var fractionCompleted: Double? {
         guard let completedUnitCount, let totalUnitCount, totalUnitCount > 0,
               completedUnitCount >= 0, completedUnitCount <= totalUnitCount else { return nil }

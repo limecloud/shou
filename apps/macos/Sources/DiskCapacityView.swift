@@ -19,19 +19,18 @@ struct DiskCapacityView: View {
     var body: some View {
         HStack(spacing: 0) {
             if let capacity {
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     Image(systemName: "internaldrive").foregroundStyle(.secondary)
-                    VStack(spacing: 5) {
-                        HStack(spacing: 14) {
+                    VStack(spacing: 3) {
+                        HStack(spacing: 8) {
                             Text(capacity.name).lineLimit(1)
                             Spacer(minLength: 4)
                             Text(String(format: model.t("%@ available"), model.bytes(capacity.available))).foregroundStyle(.secondary)
-                        }.font(.caption)
+                        }.font(.caption2)
                         ProgressView(value: Double(max(0, capacity.total - capacity.available)), total: Double(capacity.total))
                             .tint(Color.secondary).accessibilityLabel(model.t("Disk Usage"))
                     }
-                }.padding(.horizontal, 12).padding(.vertical, 9).frame(width: 250)
-                    .background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 9))
+                }.frame(width: 190)
                     .accessibilityElement(children: .combine)
             }
         }

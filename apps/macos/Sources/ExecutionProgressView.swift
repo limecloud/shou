@@ -89,13 +89,13 @@ struct OperationProgressMeter: View {
                 if let value {
                     Text(value, format: .percent.precision(.fractionLength(0)))
                         .font(.system(size: compact ? 17 : 42, weight: .semibold, design: .rounded))
-                        .monospacedDigit().contentTransition(.numericText(value: value * 100))
+                        .monospacedDigit()
                         .accessibilityIdentifier("operation.percentage")
                 }
                 if compact { Spacer(minLength: 10) }
                 if compact || value == nil {
                     Text(countText).font(compact ? .caption : .title3).monospacedDigit().foregroundStyle(.secondary)
-                        .contentTransition(.numericText()).accessibilityIdentifier("operation.count")
+                        .accessibilityIdentifier("operation.count")
                 }
             }.frame(maxWidth: .infinity, alignment: compact ? .leading : .center)
             Group {
@@ -107,10 +107,9 @@ struct OperationProgressMeter: View {
             .accessibilityLabel(countText).accessibilityIdentifier("operation.progress")
             if !compact && value != nil {
                 Text(countText).font(.callout).monospacedDigit().foregroundStyle(.secondary)
-                    .contentTransition(.numericText()).accessibilityIdentifier("operation.count")
+                    .accessibilityIdentifier("operation.count")
             }
         }.animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: value)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: countText)
     }
 }
 

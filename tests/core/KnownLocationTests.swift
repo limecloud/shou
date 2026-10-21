@@ -52,6 +52,8 @@ func nativeAvailabilityDistinguishesDirectoriesWithoutFollowingLinks() throws {
 private struct KnownLocationFileSystem: PlatformFileSystem {
     var incompletePath: String? = nil
     var probe: KnownLocationProbe? = nil
+    var emitStageProgress=false
+    var failurePath: String? = nil
     var platform: String { "macos" }
     var supportsTrash: Bool { false }
     func locationAvailability(_ path: String) -> LocationAvailability {
@@ -70,11 +72,71 @@ private struct KnownLocationFileSystem: PlatformFileSystem {
         return TreeSnapshot(entries: [try rootIdentity(path)], complete: path != incompletePath,
             issues: path == incompletePath ? ["Simulated unreadable subtree."] : [], caseSensitive: true)
     }
+    func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        if emitStageProgress {
+            progress(ScanProgress(stage: "scanning", entryCount: 13, currentPath: path))
+            progress(ScanProgress(stage: "analysis", entryCount: 13, currentPath: path, completedUnitCount: 1, totalUnitCount: 1))
+            progress(ScanProgress(stage: "loading", entryCount: 2, currentPath: path, completedUnitCount: 0, totalUnitCount: 13))
+        }
+        if path == failurePath { throw ShouError("io_error", "Simulated read failure.") }
+        return try inspect(path, budget: budget, cancelled: cancelled)
+    }
     func availableBytes(_ path: String) -> Int64? { nil }
     func isTrashLocation(_ path: String) -> Bool { false }
     func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult { throw ShouError("capability_unavailable", "Not supported by read-only fixture.") }
     func restore(_ path: String, to destination: String, expected: [FileEntry]) throws { throw ShouError("capability_unavailable", "Not supported by read-only fixture.") }
     func purge(_ path: String, expected: [FileEntry]) throws { throw ShouError("capability_unavailable", "Not supported by read-only fixture.") }
+}
+
+private final class RuleScanProgressProbe: @unchecked Sendable {
+    private let lock=NSLock()
+    private var recorded=[ScanProgress]()
+    func record(_ update: ScanProgress) { lock.lock(); defer { lock.unlock() }; recorded.append(update) }
+    var values: [ScanProgress] { lock.lock(); defer { lock.unlock() }; return recorded }
+}
+
+func ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages() async throws {
+    let fixture=try Fixture(), probe=RuleScanProgressProbe()
+    let engine=ShouEngine(store: fixture.store, filesystem: KnownLocationFileSystem(emitStageProgress: true), homeDirectory: fixture.workspace)
+    let root=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "progress-fixture")
+    _ = try await engine.scan(workspaceId: root.id, progress: { probe.record($0) })
+    let values=probe.values
+    try expect(values.map(\.entryCount) == values.map(\.entryCount).sorted())
+    try expect(values.last?.entryCount == 13)
+    try expect(values.filter { $0.stage == "scanning" }.allSatisfy { $0.fractionCompleted == nil })
+    try expect(values.compactMap(\.fractionCompleted) == [1.0 / 3, 2.0 / 3, 2.0 / 3, 1])
+}
+
+func batchScanProgressKeepsCountsAndPercentagesAcrossLocationsAndFailure() async throws {
+    let fixture=try Fixture(), probe=RuleScanProgressProbe()
+    let failed=fixture.workspace.appendingPathComponent(".npm").path
+    let engine=ShouEngine(store: fixture.store, filesystem: KnownLocationFileSystem(emitStageProgress: true, failurePath: failed), homeDirectory: fixture.workspace)
+    let result=try await engine.scanKnownLocations(progress: { _, update in probe.record(update) })
+    let values=probe.values
+    try expect(values.map(\.entryCount) == values.map(\.entryCount).sorted())
+    let fractions=values.compactMap(\.fractionCompleted)
+    try expect(fractions == fractions.sorted() && fractions.first == 0 && fractions.last == 1)
+    try expect(Set(values.compactMap(\.totalUnitCount)) == [result.locations.filter(\.exists).count * 3])
+    try expect(values.last?.entryCount == result.locations.filter(\.exists).count * 13)
+    let failedLocation=try require(result.locations.first { $0.path == failed })
+    try expect(result.issues.contains { $0.code == "io_error" && $0.locationId == failedLocation.id })
+    try expect(!result.snapshots.contains { $0.workspace.path == failed })
+}
+
+func batchScanProgressCancellationDoesNotReportCompletion() async throws {
+    let fixture=try Fixture(), probe=RuleScanProgressProbe()
+    let engine=ShouEngine(store: fixture.store, filesystem: KnownLocationFileSystem(emitStageProgress: true), homeDirectory: fixture.workspace)
+    let operation=Task {
+        do {
+            _ = try await engine.scanKnownLocations(progress: { _, update in
+                probe.record(update)
+                if let fraction=update.fractionCompleted, fraction >= 0.5 { withUnsafeCurrentTask { $0?.cancel() } }
+            })
+            return false
+        } catch let failure as ShouError { return failure.code == "cancelled" }
+    }
+    try expect(try await operation.value)
+    try expect(!probe.values.contains { $0.fractionCompleted == 1 })
 }
 
 func nativeRootIdentityNeedsOnlySearchAccess() throws {

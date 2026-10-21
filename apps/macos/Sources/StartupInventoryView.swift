@@ -31,6 +31,13 @@ struct StartupInventoryView: View {
         .onChange(of: model.startupIncludeSystem) { _, _ in selection=nil; model.scanStartup() }
         .onChange(of: model.startupLoading) { _, loading in if loading { selection=nil } }
         .sheet(isPresented: $showCoverage) { coverage }
+        .toolbar {
+            ToolbarItemGroup {
+                PageInfoButton(title: model.t("Startup Items"), message: model.t("Review background-task definitions and manage login items in macOS Settings.") + "\n\n" + model.t("This list shows launchd definitions. Login Items, background registrations and embedded helpers are available in System Settings. A definition does not prove a task is enabled or running."))
+                Button { openSettings() } label: { Label(model.t("Open Login Items Settings"), systemImage: "arrow.up.forward.app") }
+                    .labelStyle(.iconOnly).help(model.t("Open Login Items Settings")).accessibilityIdentifier("startup.settings")
+            }
+        }
         .confirmationDialog(
             model.t(pendingControl?.action == .enable ? "Enable startup definition?" : "Disable startup definition?"),
             isPresented: Binding(get: { pendingControl != nil }, set: { if !$0 { pendingControl=nil } }),
@@ -50,19 +57,7 @@ struct StartupInventoryView: View {
         }
     }
     private var content: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(model.t("Startup Items")).font(.largeTitle.bold())
-                    Text(model.t("Review background-task definitions and manage login items in macOS Settings."))
-                        .font(.callout).foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 16)
-                Button { openSettings() } label: { Label(model.t("Open Login Items Settings"), systemImage: "arrow.up.forward.app") }
-                    .accessibilityIdentifier("startup.settings")
-            }
-            Text(model.t("This list shows launchd definitions. Login Items, background registrations and embedded helpers are available in System Settings. A definition does not prove a task is enabled or running."))
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
                 TextField(model.t("Search startup names or paths"), text: $search).textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("startup.search")
@@ -123,7 +118,7 @@ struct StartupInventoryView: View {
                 ContentUnavailableView(model.t("Check startup definitions"), systemImage: "power.circle",
                     description: Text(model.t("Checking is read-only. No startup setting or file is changed.")))
             }
-        }.padding(24)
+        }.padding(16)
     }
 
     private func details(_ item: StartupDefinition) -> some View {

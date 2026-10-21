@@ -20,7 +20,6 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                Text(model.t("Settings")).font(.largeTitle.bold())
                 group("General") {
                     row("Interface language", "Choose the language used in Shou.", icon: "character.bubble") {
                         LanguagePicker(model: model).labelsHidden().frame(width: 200)
@@ -46,7 +45,7 @@ struct SettingsView: View {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
                     }
                     Divider().padding(.leading, 58)
-                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.7.0"), "Updates are verified before installation.", icon: "shippingbox") {
+                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.8.0"), "Updates are verified before installation.", icon: "shippingbox") {
                         Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
                 }
@@ -85,7 +84,7 @@ struct SettingsView: View {
                 }
                 Text(model.t("Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space."))
                     .font(.caption).foregroundStyle(.secondary)
-            }.padding(28).frame(maxWidth: 1040, alignment: .leading).frame(maxWidth: .infinity)
+            }.padding(20).frame(maxWidth: 1040, alignment: .leading).frame(maxWidth: .infinity)
         }.background(colorScheme == .dark ? Color(nsColor: .windowBackgroundColor) : Color(red: 1, green: 0.976, blue: 0.945))
             .sheet(isPresented: $scanLocations) { ScanLocationsView(model: model) }
     }

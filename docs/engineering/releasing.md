@@ -19,7 +19,7 @@ Sparkle update signatures are separate from Apple Developer ID signing and notar
 ## Verification and publication
 
 1. Run `sh scripts/test.sh --native-trash-purge` and review the actual logs. This explicitly enables native cleanup, restoration, and permanent removal of generated fixtures only; the default test command restores without purging.
-2. Run `sh scripts/release-macos.sh v0.7.0 /absolute/path/to/private-key-file`. This builds both CPU architectures, tests the release core and packaged CLI, inspects the DMG/ZIP/CLI archives, checks signatures, and rejects modified update archives and feeds.
+2. Run `sh scripts/release-macos.sh v0.8.0 /absolute/path/to/private-key-file`. This builds both CPU architectures, tests the release core and packaged CLI, inspects the DMG/ZIP/CLI archives, checks signatures, and rejects modified update archives and feeds.
 3. Review all source, documentation, runtime resources, and release notes before committing. Obtain any user-required submission approval before commit, push, or publication.
 4. Push the version tag. `.github/workflows/release.yml` runs all tests, including native cleanup and restoration of over 100,000 files, and release packaging on Apple Silicon and Intel, then builds and validates the universal release. Only successful jobs reach publication. Manual reruns require an existing tag.
 5. The publication job checks transferred SHA-256 checksums, stages assets in a draft, and publishes after upload. It refuses to replace a published release. Confirm the final release downloads and check updates from an installed app.

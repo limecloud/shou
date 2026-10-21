@@ -19,44 +19,61 @@ Shou 应像一个熟悉的 Mac 工具：信息密度适中、路径易于检查�
 
 ```mermaid
 flowchart LR
-    App[Shou 主窗口] --> Overview[分类清理]
-    App --> Common[常用软件清理]
+    App[Shou 主窗口：原生页面标题与操作] --> Common[智能清理]
     Common --> Inventory[一键扫描明确的固定位置]
-    Inventory --> Overview
+    Inventory --> Overview[分类结果]
+    App --> Large[大文件清理]
     App --> Analysis[空间分析]
     Analysis --> Browse[目录列表与矩形树图]
     Browse --> Draft[为未知目录创建规则]
-    App --> Workspaces[工作区]
     App --> Rules[清理规则]
-    App --> Plans[清理方案]
+    App --> Startup[启动项]
+    App --> Apps[应用卸载]
+    App --> Privacy[隐私清理]
     App --> History[历史记录]
-    Workspaces --> Projects[项目与目录]
-    Projects --> Inspector[用途与命中详情]
     Rules --> Agent[通过 AI 定制交接]
     Rules --> Editor[高级向导与编辑]
-    Plans --> Preview[本次清理预览]
-    Preview --> Confirmation[执行确认]
     History --> Receipt[逐项结果与恢复]
-    App --> Settings[系统设置窗口]
+    App --> Settings[设置]
 ```
 
-“启动项”现提供[配置发现流程](startup-items.md)，包含搜索、确切路径详情、覆盖说明与原生登录项设置引导。应用卸载在实现前不进入主导航。
+“启动项”提供[配置发现流程](startup-items.md)。应用卸载与隐私清理使用各自原生页面，并共享操作反馈。
 
 ## 3. 主窗口结构
 
-- 标准 macOS 标题栏与工具栏，保留系统窗口控制。
+- 标准 macOS 标题栏与工具栏，保留系统窗口控制。所有主页面只使用一处本地化原生导航标题，不在内容顶部重复堆叠大标题；页面操作放入工具栏，图标按钮保留辅助名称与提示。
 - 侧边栏采用 `NavigationSplitView`，窗口宽度变化时遵循系统折叠行为。
 - 主区域使用 `Table` 或经验证的 AppKit 表格展示可排序列表。
 - 详情检查器展示当前选中项；需要大量路径信息时支持展开。
-- 窗口建议初始尺寸约 1100 × 760 pt，最小尺寸由可用性测试确定；不要求用户全屏使用。
+- 默认窗口为 1160 × 780 点，最小为 900 × 620 点；不要求用户全屏使用。
 
 | 区域 | 主要内容 |
 | --- | --- |
-| 工具栏 | 添加工作区、扫描/停止、筛选、显示检查器 |
-| 侧边栏 | 空间概览、工作区、规则、方案、历史 |
+| 工具栏 | 当前页面标题、上下文操作、语言；智能清理与大文件页显示紧凑磁盘容量 |
+| 侧边栏 | 智能清理、大文件清理、空间分析、清理规则、启动项、应用卸载、隐私清理；底部为操作记录与设置 |
 | 主列表 | 名称、占用估计、类型、所属项目、状态、最新修改 |
 | 检查器 | 完整路径、规则证据、风险、重新生成条件、排除操作 |
 | 容量摘要 | 已选项数、估计占用、处理方式、明确的下一步按钮 |
+
+规则页将“通过 AI 定制”保留在 44 点高的行内入口，完整说明通过信息按钮展开；启动项说明复用 `PageInfoButton`。隐私页保留可见的永久删除提示与 Cookie 退出登录确认。操作记录把清理入口移入工具栏，设置直接从“通用”分组开始。空间分析采用 42 点高的导航行，扫描详情按需展开。列表与空间图获得剩余高度；居中的开始页、操作进度与完成内容保留各自作用，不额外增加顶部标题区。
+
+Windows 使用原生标签作为页面名称，移除重复品牌区与空闲进度区，空间分析采用紧凑导航行。两个平台共享信息密度原则，控件遵循各自系统习惯。
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Sidebar as 侧边栏
+    participant Chrome as 原生工具栏
+    participant Page as 页面
+    User->>Sidebar: 选择页面
+    Sidebar->>Chrome: 更新本地化页面标题
+    Page->>Chrome: 提供上下文操作
+    Page-->>User: 剩余空间展示筛选与内容
+    opt 查看详细说明
+        User->>Chrome: 打开信息按钮
+        Chrome-->>User: 展示上下文说明面板
+    end
+```
 
 ## 4. 关键页面
 
