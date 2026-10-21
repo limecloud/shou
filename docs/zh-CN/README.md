@@ -31,6 +31,7 @@
 | 规划研发与验收 | [实施计划](engineering/implementation-plan.md) → [验收与测试](engineering/acceptance-and-testing.md) |
 | 本地构建与验证 | [开发指南](engineering/development.md) |
 | 理解扫描性能 | [空间扫描性能与并发](engineering/storage-scan-performance.md) |
+| 设计外部 Agent 的空间发现体验 | [空间分析与 Agent 协作设计](engineering/space-analysis-agent-design.md) |
 | 实现 Windows 原生客户端 | [Windows 技术栈、实现与验收](engineering/windows.md) |
 
 ## 下一版本

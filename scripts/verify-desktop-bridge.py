@@ -193,6 +193,17 @@ def main():
             print("PASS confirmed native Trash, history, restoration and replay eligibility", flush=True)
         storage = success("storage.scan", dict(path=str(workspace)))
         assert storage["status"] == "complete" and storage["entry_count"] == 211 and storage["issues"] == [], storage
+        mapped = success("storage.map", dict(scan_id=storage["scan_id"], path="."))
+        assert mapped["presentation"]["scan_id"] == storage["scan_id"] and len(mapped["presentation"]["items"]) <= 8192
+        assert mapped["colors"]["bin"] == "#D23A9D" and all("depth" in tile for tile in mapped["tiles"])
+        assert mapped["tiles"] and all(tile["width"] >= 0 and tile["height"] >= 0 for tile in mapped["tiles"])
+        context = success("storage.context", dict(scan_id=storage["scan_id"], path="generated-000", locale="zh-CN"))
+        assert context["context"]["presentation"]["scope"]["node"]["path"] == "generated-000"
+        assert "analysis children" in context["text"] and storage["scan_id"] in context["text"]
+        paged = success("storage.page", dict(scan_id=storage["scan_id"], path=".", offset=0))
+        assert len(paged["children"]) == 105 and paged.get("next_offset") is None
+        final_page = success("storage.page", dict(scan_id=storage["scan_id"], path=".", offset=100))
+        assert len(final_page["children"]) == 5 and final_page.get("next_offset") is None
         directory = success("storage.directory", dict(scan_id=storage["scan_id"], path="generated-000"))
         assert directory["path"] == "generated-000" and len(directory["children"]) == 1
         print("PASS isolated history and space navigation", flush=True)
@@ -205,6 +216,19 @@ def main():
         success("exclusions.set", dict(pattern="generated-000", remove=True))
         assert all((workspace / f"generated-{index:03}" / "fixture.bin").is_file() for index in range(105))
         print("PASS global exclusion changes preserve generated files", flush=True)
+        removal_root = workspace.parent / "space-removal-fixture"
+        (removal_root / "cache").mkdir(parents=True)
+        (removal_root / "cache/generated.bin").write_bytes(b"disposable space fixture")
+        (removal_root / "keep.txt").write_text("retain")
+        set_fixture_owner(removal_root)
+        removal_scan = success("storage.scan", dict(path=str(removal_root)))
+        removal_input = dict(scan_id=removal_scan["scan_id"], paths=["cache"], action="permanent")
+        cancelled, reviewed = request(engine, environment, "storage.remove", removal_input, "cancel")
+        assert reviewed and not cancelled["ok"] and (removal_root / "cache/generated.bin").exists()
+        removed, reviewed = request(engine, environment, "storage.remove", removal_input, "accept")
+        assert reviewed and removed["ok"] and removed["data"]["state"] == "completed"
+        assert not (removal_root / "cache").exists() and (removal_root / "keep.txt").read_text() == "retain"
+        print("PASS space removal cancellation, confirmed permanent deletion and retained sibling", flush=True)
         if args.native_permanent:
             # Refresh identity evidence after the optional Trash/restore round trip.
             scan = success("scan", dict(workspace_id=registered["id"]))

@@ -279,6 +279,20 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL automatic discovery: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-presentation-million-only"] {
+            do { try await storagePresentationReadsMillionRowCatalog() }
+            catch { print("FAIL million-row presentation: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-presentation-only"] {
+            do {
+                try await storagePresentationReusesSnapshotAndPreservesAccounting()
+                try await storageNestedMapIsBoundedAndPreservesParentArea()
+                try storageSelectionPreservesSiblingsAndDeduplicates()
+                print("3/3 storage presentation, context and selection tests passed.")
+            } catch { print("FAIL storage presentation: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-only"] {
             do {
                 try storageSelectionPreservesSiblingsAndDeduplicates()
@@ -344,6 +358,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Catalog parent IDs preserve nested names and totals", { try storageCatalogParentIDsPreserveNestedNamesAndTotals() }),
             ("Directory workers observe parent task cancellation", { try await storageDirectoryWorkersObserveParentTaskCancellation() }),
             ("Streaming storage catalog measures later siblings", { try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories() }),
+            ("Presentation reads saved scope, paging and agent context", { try await storagePresentationReusesSnapshotAndPreservesAccounting() }),
+            ("Nested map bounds, omissions, area and cancellation", { try await storageNestedMapIsBoundedAndPreservesParentArea() }),
             ("Storage catalog deduplicates hard links without following symlinks", { try await storageCatalogAccountsHardLinksAndOpaqueLinks() }),
             ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),
             ("Cancelled storage catalog is never published", { try await storageCatalogCancellationNeverPublishesAScan() }),

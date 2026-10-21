@@ -1,6 +1,7 @@
 import SwiftUI
 import ShouCore
 import ShouPlatform
+import ShouAgentSupport
 import AppKit
 import Observation
 
@@ -12,6 +13,95 @@ struct StorageLocation: Identifiable {
 }
 
 @MainActor @Observable final class StorageSession {
+    var detailed=UserDefaults.standard.bool(forKey: "ShouStorageDetailed") {
+        didSet { UserDefaults.standard.set(detailed, forKey: "ShouStorageDetailed") }
+    }
+    var presentation: StoragePresentation?
+    var loadingPresentation=false
+    var extensionFilter: String?
+    var copyingAnalysis=false
+    var analysisCopied=false
+    var directoryOffsets=[String: Int]()
+    var directoryTotals=[String: Int]()
+    private var presentationCache=[String: StoragePresentation]()
+    private var presentationTask: Task<Void, Never>?
+    var presentationAggregates: [StorageMapAggregate] {
+        guard let presentation else { return [] }
+        let individualPaths=Set(presentation.items.map { $0.node.path })
+        // An unrepresented directory may span several type groups. Keep its
+        // remainder neutral until refreshed rather than showing stale colors.
+        if removedNodes.contains(where: { $0.kind == "directory" && !individualPaths.contains($0.path) }) { return [] }
+        let directories=Set([presentation.scope.node.path] + presentation.items.filter { $0.node.kind == "directory" }.map { $0.node.path })
+        func parent(_ path: String) -> String {
+            var value=StorageIndex.parent(path)
+            while !directories.contains(value) && value != "." { value=StorageIndex.parent(value) }
+            return value
+        }
+        return presentation.aggregates.compactMap { group in
+            guard index.nodes[group.parentPath] != nil else { return nil }
+            let removed=removedNodes.filter { $0.kind == "file" && !individualPaths.contains($0.path) && parent($0.path) == group.parentPath && StorageExtensionStat.suffix($0.name) == group.suffix }
+            let bytes=max(0,group.allocatedBytes - removed.reduce(0) { $0 + $1.allocatedBytes })
+            guard bytes > 0 else { return nil }
+            return StorageMapAggregate(parentPath: group.parentPath, suffix: group.suffix, allocatedBytes: bytes, logicalBytes: max(0,group.logicalBytes - removed.reduce(0) { $0 + $1.logicalBytes }), fileCount: max(0,group.fileCount - removed.reduce(0) { $0 + $1.fileCount }))
+        }
+    }
+    func loadPresentation(app: AppModel) {
+        presentationTask?.cancel(); loadingPresentation=false
+        guard detailed, let scan, let engine=app.engine else { return }
+        let key=scan.id + ":" + path
+        if let cached=presentationCache[key] { applyPresentation(cached); return }
+        presentation=nil; loadingPresentation=true
+        let scope=path
+        presentationTask=Task {
+            do {
+                let result=try await engine.storagePresentation(scanId: scan.id, path: scope)
+                try Task.checkCancellation()
+                guard self.scan?.id == scan.id, path == scope else { return }
+                if presentationCache.count >= 8 { presentationCache.removeAll() }
+                presentationCache[key]=result; applyPresentation(result); loadingPresentation=false
+            } catch { if !Task.isCancelled { loadingPresentation=false; app.error=error.localizedDescription } }
+        }
+    }
+    private func applyPresentation(_ value: StoragePresentation) {
+        presentation=value; includeItems(value.items)
+        for row in value.omissions {
+            directoryTotals[row.path]=row.childCount
+            directoryOffsets[row.path]=max(directoryOffsets[row.path] ?? 0, row.displayedChildCount)
+            if row.displayedChildCount == row.childCount { loadedDirectories.insert(row.path) }
+        }
+    }
+    func expandDirectory(_ scope: String, app: AppModel, more: Bool = false) async {
+        guard let engine=app.engine, let scan else { return }
+        do {
+            let offset=more ? directoryOffsets[scope] ?? 0 : 0
+            let page=try await engine.storageDirectoryPage(scanId: scan.id, path: scope, offset: offset)
+            guard self.scan?.id == scan.id else { return }
+            includeItems(page.children); directoryTotals[scope]=page.totalCount
+            directoryOffsets[scope]=offset + page.children.count
+            if page.nextOffset == nil && offset == 0 { loadedDirectories.insert(scope) }
+        } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+    }
+    func copyAnalysis(app: AppModel) {
+        guard !copyingAnalysis, let engine=app.engine, let scan else { return }
+        copyingAnalysis=true; analysisCopied=false
+        let scope=path, focus=focus, selection=Array(selected), removed=removedNodes.map(\.path), query=query, filter=extensionFilter
+        let executable=Bundle.main.bundleURL.pathExtension == "app"
+            ? Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/shou").path : "shou"
+        let skill=(try? ShouAgentSkill.directory().appendingPathComponent("SKILL.md").path)
+        Task {
+            defer { copyingAnalysis=false }
+            do {
+                let context=try await engine.storageAnalysisContext(scanId: scan.id, path: scope, focusedPath: focus, selectedPaths: selection,
+                    removedPaths: removed, nameFilter: query, extensionFilter: filter, cliPath: executable, skillPath: skill)
+                let text=try context.text(locale: app.language.rawValue)
+                guard self.scan?.id == scan.id, path == scope else { return }
+                NSPasteboard.general.clearContents()
+                guard NSPasteboard.general.setString(text, forType: .string) else { throw ShouError("clipboard_unavailable", "Could not copy analysis.") }
+                analysisCopied=true
+                Task { try? await Task.sleep(for: .seconds(3)); analysisCopied=false }
+            } catch { app.error=error.localizedDescription }
+        }
+    }
     var scan: StorageScan?
     var index=StorageIndex(entries: []) {
         didSet { indexRevision += 1; directoryChildrenCache=nil; visibleChildrenCache=nil }
@@ -119,6 +209,29 @@ struct StorageLocation: Identifiable {
     func isSelected(_ path: String) -> Bool { StorageSelection.contains(path, in: selected) }
     func toggle(_ node: StorageNode, app: AppModel) {
         guard !app.busy, !loadingDirectory, reason(node) == nil else { return }
+        if isSelected(node.path), let ancestor=selected.first(where: { node.path.hasPrefix($0 + "/") }), let engine, let scan {
+            // A partial map cannot represent the siblings of a deselected child.
+            // Read just its ancestry before expanding the selected parent.
+            app.busy=true
+            Task {
+                defer { app.busy=false }
+                do {
+                    var current=ancestor
+                    while current != node.path {
+                        if !loadedDirectories.contains(current) {
+                            let directory=try await engine.storageDirectory(scanId: scan.id, path: current)
+                            guard self.scan?.id == scan.id else { return }
+                            merge(directory)
+                        }
+                        guard let next=index.children(of: current).first(where: { node.path == $0.path || node.path.hasPrefix($0.path + "/") }) else { return }
+                        current=next.path
+                    }
+                    selected=StorageSelection.toggle(node.path, selected: false, paths: selected, index: index)
+                    selected=selected.filter { index.nodes[$0].map { reason($0) == nil } ?? false }
+                } catch { app.error=error.localizedDescription }
+            }
+            return
+        }
         selected=StorageSelection.toggle(node.path, selected: !isSelected(node.path), paths: selected, index: index)
         selected=selected.filter { index.nodes[$0].map { reason($0) == nil } ?? false }
     }
@@ -166,6 +279,7 @@ struct StorageLocation: Identifiable {
         self.engine=engine; application=app; directoryTask?.cancel()
         loadingDirectory=false; scan=result; location=result.rootPath
         index=StorageIndex(entries: []); entries=[:]; loadedDirectories=[]; removedNodes=[]
+        directoryOffsets=[:]; directoryTotals=[:]; presentation=nil; presentationCache=[:]; extensionFilter=nil
         selected=[]; plan=nil; path="."; back=[]; forward=[]
         merge(directory)
     }
@@ -215,7 +329,7 @@ struct StorageLocation: Identifiable {
                 let directory=try await engine.storageDirectory(scanId: result.id)
                 try Task.checkCancellation()
                 guard operation == token else { return }
-                scan=result; index=StorageIndex(entries: []); entries=[:]; loadedDirectories=[]; removedNodes=[]
+                scan=result; directoryOffsets=[:]; directoryTotals=[:]; presentation=nil; presentationCache=[:]; extensionFilter=nil; index=StorageIndex(entries: []); entries=[:]; loadedDirectories=[]; removedNodes=[]
                 merge(directory)
                 progress=ScanProgress(stage: "indexing", entryCount: result.entryCount, currentPath: root, completedUnitCount: 1, totalUnitCount: total)
                 // Refresh restores the previous directory without loading every

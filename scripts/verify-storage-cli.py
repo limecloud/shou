@@ -38,6 +38,15 @@ with tempfile.TemporaryDirectory(prefix="shou-storage-cli-") as temporary:
     second = run("analysis", "children", "--scan-id", scan_id, "--limit", "1", "--cursor", page["next_cursor"])["data"]
     assert page["entries"][0]["node"]["path"] != second["entries"][0]["node"]["path"]
     run("analysis", "children", "--scan-id", scan_id, "--path", "build", "--cursor", page["next_cursor"], success=False)
+    context = run("analysis", "context", "--scan-id", scan_id, "--path", "build", "--locale", "zh-CN")["data"]
+    assert context["context"]["presentation"]["scan_id"] == scan_id
+    assert "analysis children" in context["text"] and str(workspace / "build/cache") in context["text"]
+    assert context["context"]["selected_paths"] == []
+    nested = run("analysis", "map", "--scan-id", scan_id, "--path", "build")["data"]
+    assert nested["scope"]["node"]["path"] == "build"
+    assert any(item["node"]["path"] == "build/cache/generated.bin" for item in nested["items"])
+    assert nested["extensions"]["items"][0]["suffix"] == "bin"
+    run("analysis", "context", "--scan-id", scan_id, "--path", "../", success=False)
     for mode in ("trash", "permanent"):
         plan = run("analysis", "plan", "--scan-id", scan_id, "--path", "build", "--path", "build/cache", "--path", "personal.txt", "--mode", mode)["data"]
         assert len(plan["items"]) == 2 and plan["action"] == mode

@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.9.0
+        default: v0.10.0
 
 permissions:
   contents: read
@@ -44,6 +44,7 @@ jobs:
         run: |
           SHOU_STORAGE_SCAN_WORKERS=1 .build/debug/shou-tests --storage-performance-only
           SHOU_STORAGE_SCAN_WORKERS=8 .build/debug/shou-tests --storage-performance-only
+          .build/debug/shou-tests --storage-presentation-million-only
       - name: Native cleanup and restoration of more than 100,000 files
         run: .build/debug/shou-tests --native-large-trash-only
       - name: Build and verify release application
@@ -104,12 +105,22 @@ jobs:
         with:
           name: shou-release
           path: release-assets
+      - uses: actions/download-artifact@v4
+        with:
+          name: shou-windows-release
+          path: windows-release-assets
       - name: Publish verified release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           task_asset_dir="$(dirname "$(find release-assets -name SHA256SUMS -print -quit)")"
+          task_windows_dir="$(dirname "$(find windows-release-assets -name SHA256SUMS-windows -print -quit)")"
           test -f "$task_asset_dir/SHA256SUMS"
+          test -f "$task_windows_dir/SHA256SUMS-windows"
+          (cd "$task_asset_dir" && sha256sum -c SHA256SUMS)
+          (cd "$task_windows_dir" && sha256sum -c SHA256SUMS-windows)
+          cp "$task_windows_dir/"*.zip "$task_asset_dir/"
+          cat "$task_windows_dir/SHA256SUMS-windows" >> "$task_asset_dir/SHA256SUMS"
           (cd "$task_asset_dir" && sha256sum -c SHA256SUMS)
           if gh release view "$SHOU_RELEASE_TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/shou-release-state" 2>/dev/null; then
             test "$(cat "$RUNNER_TEMP/shou-release-state")" = true || { echo 'Published releases cannot be replaced'; exit 1; }

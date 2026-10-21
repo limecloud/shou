@@ -179,7 +179,10 @@ func nativeCatalogCleanupAndRestore(includePurge: Bool = false) async throws {
         for item in moved.items { try receiptObjectIsAbsentFromTrash(item) }
         try expect(try fileHashes(home) == original)
         let restoredInspection=try await engine.inspectHistory(executionId: moved.id)
-        try expect(restoredInspection.status == "complete" && restoredInspection.items.allSatisfy { $0.state == "restored" && $0.original.state == "matches" && $0.trash.state == "missing" })
+        // Another process may reuse the Trash basename after restoration. The
+        // identity check above proves our receipt object is absent; a later
+        // unrelated object does not invalidate the verified original.
+        try expect(restoredInspection.status == "complete" && restoredInspection.items.allSatisfy { $0.state == "restored" && $0.original.state == "matches" && $0.trash.state != "matches" })
 
         if includePurge {
             let removed=try await trash()

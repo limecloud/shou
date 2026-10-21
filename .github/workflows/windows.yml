@@ -2,9 +2,9 @@ name: Windows native build
 on:
   push:
     branches: [main]
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   pull_request:
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -21,7 +21,7 @@ jobs:
   windows:
     # Swift 6.2.3 ships Clang 19; newer Visual Studio STL requires Clang 20.
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: 60
     defaults:
       run:
         shell: pwsh
@@ -59,6 +59,17 @@ jobs:
         run: ./scripts/build-windows.ps1 -Stage Build
       - name: Verify WPF and real desktop processes
         run: ./scripts/build-windows.ps1 -Stage Check
+      - name: Package and verify self-contained Windows x64 release
+        run: ./scripts/release-windows.ps1
+      - name: Retain verified Windows release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: shou-windows-release
+          path: |
+            dist/release-windows-*/*.zip
+            dist/release-windows-*/SHA256SUMS-windows
+          if-no-files-found: error
+          compression-level: 0
       - name: Retain build evidence
         uses: actions/upload-artifact@v4
         with:

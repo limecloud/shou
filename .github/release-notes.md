@@ -1,26 +1,25 @@
-Shou v0.9.0 adds concurrent Smart Cleanup, reviewed tool-cache and application-leftover cleanup, and bounded local record maintenance. It also improves large cleanup journals, hard-link removal and scan scheduling.
+Shou v0.10.0 expands Space Analysis with Simple and Detailed views, nested space maps, scoped extension statistics, and local context copying for your existing AI agent.
 
-- Scan up to four independent cleanup locations concurrently, with stable result order, cumulative progress, cancellation and explicit partial results. Storage readers and ready finalizers share at most eight scheduler slots.
-- Maintain derived scan records with a default seven-day/256 MiB policy while protecting active plans, history dependencies and recovery evidence. Add paged history summaries and reviewed record collection in desktop settings and the CLI.
-- Offer identity-bound graceful application closing and scoped retry. Recheck owners and helpers before continuing, while retaining successful results and unrelated selection.
-- Preview and explicitly confirm fixed local Docker build-cache, Homebrew, Conda and unused Rust-toolchain cleanup. Commands have bounded time and output; Rust current/default/override toolchains are protected, and project pins still require review. Tool cleanup uses its own plans and receipts.
-- Review orphan application leftovers using exact bundle associations and fresh absence checks. Unknown or incomplete ownership blocks removal; personal data needs separate consent. Reuse shared deletion journals and Trash recovery.
-- Extend the agent rule workflow from uncovered-directory evidence through measured incremental benefit, disabled import, explicit enablement and persisted desktop reuse. Unknown directories do not become cleanup targets automatically.
-- Add eight fixed Windows cache scopes, project discovery, select all and one-confirmation cleanup across roots, with scoped retry and shared receipts.
-- Store large cleanup manifests as verified immutable receipt dependencies, reducing repeated full-manifest serialization. Preserve legacy inline receipts and recovery checks. Handle hard links across selected targets while continuing to reject unrelated metadata changes.
+- Switch between Simple and Detailed views using the same saved analysis. The remembered display preference does not persist deletion selections or trigger another disk scan.
+- Explore a native directory tree alongside extension totals and a nested map. Allocated and logical bytes remain distinct; parent percentages, extension colors and directory focus help investigate space without implying that files are safe to delete.
+- Read directory pages directly from the saved catalog and bound multilevel map queries. Small files can appear as extension aggregates, with omitted entries available through directory paging. Synthetic map groups cannot be used as deletion targets.
+- Copy the current analysis, scope, focus, selection and coverage into a local agent request. The new `analysis context` and `analysis map` CLI commands reuse saved evidence; Shou does not upload the report or run a model. Existing validation, disabled rule import, preview and explicit enablement remain the route to reusable cleanup rules.
+- Add corresponding Windows desktop bridge operations and WPF tree, extension table and map views, including reviewed space-removal confirmation and receipts.
 
-The source tree records generated-fixture performance comparisons and their limits. Results do not establish a speedup for every disk or complete disk coverage. Incomplete application registration, unsaved-document close dialogs and actual Windows desktop interaction retain separate acceptance limits. Personal owner-tool data was not used for destructive acceptance tests.
+Map sizes are estimates from the saved scan. Parent and child totals overlap, extension detection uses filenames, and partial measurements remain lower bounds. Refresh when current measurements are required. Displayed colors, aggregate tiles and AI context do not authorize deletion. Native Windows interaction and complete disk coverage are not established by build and protocol checks. The existing protected-root guard still rejects AppData-based standard cache roots; those scopes are not accepted as working native cleanup coverage in this release.
 
-Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Download the DMG and drag Shou.app to Applications, or use the ZIP containing the same app. Verify downloads with SHA256SUMS. Existing installations can use Check for Updates; Sparkle verifies signed archives and feeds. Windows source and CI are included; this release does not provide a Windows installer.
+Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. This release provides DMG, ZIP, CLI archive, signed update feed and SHA256SUMS; an unsigned Windows 11 x64 portable ZIP includes the .NET/Swift runtimes. Extract the complete ZIP and run Shou.exe; no developer toolchain is needed. Recycle Bin/restoration stay disabled by default. Windows installation, automatic updates, signing and full native UI acceptance remain separate limits. Existing installations can use Check for Updates; Sparkle verifies signed archives and feeds.
 
 Permanent removal and owner-tool cleanup cannot be undone through Shou. Moving items to Trash does not immediately free disk space. The app is ad-hoc signed and not Apple-notarized; updating may require granting Full Disk Access again.
 
-简体中文：v0.9.0 新增最多四个位置并发的智能清理，保持结果顺序、累计进度、取消和部分结果；空间扫描的读取与就绪汇总任务共用最多八个调度槽，避免汇总线程无界增长。
+简体中文：v0.10.0 扩展空间分析，新增简洁／详细视图、嵌套空间图、当前范围的扩展名统计，以及复制给现有 AI Agent 的本地分析上下文。
 
-新增默认七天／256 MiB 的派生记录维护策略，保护活动计划、历史依赖与恢复证据，提供分页历史摘要以及设置／CLI 维护入口。支持核验应用身份后温和退出、重新检查进程并仅重试相关范围；工具清理可预览并确认本地 Docker 构建缓存、Homebrew、Conda 缓存及闲置 Rust 工具链，使用固定命令、时间／输出上限和独立回执，项目工具链固定配置仍需人工审查。
+- 两种视图复用同一次扫描，记住显示偏好；切换不会重新扫描，也不会持久保存删除选择。
+- 详细视图组合原生目录树、扩展名统计与嵌套空间图，分别显示分配空间和逻辑大小，支持父级占比、类型颜色与目录定位。颜色和大小不代表可以清理。
+- 目录分页直接读取已保存的目录索引，多层空间图查询有数量上限；小文件可聚合为扩展名分组，省略项目仍可分页调查。合成分组不能直接成为文件删除目标。
+- 复制当前扫描、范围、焦点、选择与覆盖信息，交给用户已有的 Agent；新增 `analysis context`、`analysis map` CLI 查询，复用扫描证据，不上传报告或内置模型。定制规则仍需校验、禁用导入、预览和明确启用。
+- Windows 同步桌面桥接查询及 WPF 目录树、扩展名表和空间图，并接入空间删除确认与回执。
 
-应用残留通过精确 bundle 关联及新鲜缺席证据单独审查，未知或不完整归属会阻止清理，个人数据需要额外同意。Agent 规则流程覆盖未覆盖目录发现、增量收益预览、默认禁用导入、明确启用及桌面复用。Windows 同步八类固定缓存、项目发现、全选、跨根单次确认和限定范围重试。
+图中大小为扫描时的估计，父子大小不能相加，类型依据文件名扩展名，部分测量为下限；需要当前数据时应刷新。构建及协议检查不代表 Windows 实机交互或完整磁盘覆盖验收。现有保护根目录校验仍拒绝基于 AppData 的标准缓存范围，本版不将其声明为可用的原生清理覆盖。
 
-大清理清单改为经完整性校验的不可变回执依赖，减少重复序列化，同时保留旧记录与恢复兼容；修复跨目标硬链接永久删除，并继续拒绝外部元数据变化。性能数据及条件见源码文档，不代表所有磁盘加速或完整磁盘覆盖；未保存文档退出交互、应用登记覆盖及 Windows 实机交互仍有独立验收边界，未对个人工具数据执行破坏性验收。
-
-支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅和 SHA256SUMS；Windows 尚无安装包。永久移除及工具清理无法通过 Shou 撤销。此版本未经过 Apple 公证，更新后可能需要重新授予磁盘访问权限。
+支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅和 SHA256SUMS；Windows 11 x64 提供未签名便携 ZIP，内含 .NET／Swift 运行库，完整解压后运行 Shou.exe，无需开发工具；回收站／恢复默认关闭，暂无安装器或 Windows 自动更新，完整原生界面验收仍有独立边界。永久移除及工具清理无法通过 Shou 撤销。此版本未经过 Apple 公证，更新后可能需要重新授予磁盘访问权限。

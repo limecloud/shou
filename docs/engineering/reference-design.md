@@ -4,6 +4,10 @@ English | [简体中文](../zh-CN/engineering/reference-design.md)
 
 Status: design requirements and implementation mapping. A source implementation or visual reference does not establish interaction acceptance, filesystem safety, or release readiness. See [native macOS experience](../product/macos-experience.md) and [system architecture](../architecture/system-design.md) for the current product contract.
 
+## Space discovery for external agents
+
+The [space analysis collaboration design](space-analysis-agent-design.md) distinguishes installed-artifact REA Evidence, observed interactions and proposed Shou changes, including architecture, flow, sequence and Windows acceptance. Existing acknowledgements below apply; no third-party code or assets are adopted.
+
 ## Evidence and conclusions
 
 Four evidence types inform this design:

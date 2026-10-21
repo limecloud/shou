@@ -4,6 +4,10 @@
 
 状态：设计要求与实现映射。源码实现或界面参考不能替代交互验收、文件系统安全验证或发布检查。当前产品合同见[原生 macOS 体验](../product/macos-experience.md)与[系统架构](../architecture/system-design.md)。
 
+## 外部 Agent 空间发现设计
+
+[空间分析协作设计](space-analysis-agent-design.md)区分安装产物 REA 证据、实际界面观察和 Shou 待实现内容，包含架构图、流程图、时序图与 Windows 验收范围。既有鸣谢见下文，不引入第三方代码或资源。
+
 ## 证据与结论
 
 本设计区分四类依据：

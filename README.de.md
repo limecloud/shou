@@ -15,9 +15,9 @@ Ein nativer macOS-Cleaner für App-Caches, Entwicklungsprojekte und wachsende Or
 
 ## Download und Installation
 
-Shou v0.9.0 benötigt **macOS 14 oder neuer**. Die Universal-App läuft auf Apple Silicon und Intel Macs. Ziehe **Shou.app** aus dem Disk-Image nach **Applications**. Die Oberfläche ist auf Englisch und vereinfachtem Chinesisch verfügbar.
+Shou v0.10.0 benötigt **macOS 14 oder neuer**. Die Universal-App läuft auf Apple Silicon und Intel Macs. Ziehe **Shou.app** aus dem Disk-Image nach **Applications**. Die Oberfläche ist auf Englisch und vereinfachtem Chinesisch verfügbar.
 
-[**Shou v0.9.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.9.0/Shou-0.9.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.9.0/Shou-0.9.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.9.0/shou-0.9.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.10.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.10.0/shou-0.10.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-windows-x64.zip)
 
 Diese Version ist ad-hoc signiert und nicht von Apple notarisiert. Bei blockiertem Erststart prüfe die Downloadquelle und anschließend **Systemeinstellungen → Datenschutz & Sicherheit → Dennoch öffnen**.
 

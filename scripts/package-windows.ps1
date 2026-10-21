@@ -1,12 +1,14 @@
 param(
     [Parameter(Mandatory = $true)][string]$EngineExecutable,
     [Parameter(Mandatory = $true)][string[]]$SwiftRuntimeDirectory,
-    [Parameter(Mandatory = $true)][string]$OutputDirectory
+    [Parameter(Mandatory = $true)][string]$OutputDirectory,
+    [string]$RuntimeLicenseDirectory
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 if (-not $IsWindows) { throw "Run packaging in PowerShell 7 on Windows x64." }
 $repo = Split-Path -Parent $PSScriptRoot
+$version = ([xml](Get-Content -LiteralPath (Join-Path $repo "apps/windows/Directory.Build.props") -Raw)).Project.PropertyGroup.Version
 $engine = Get-Item -LiteralPath $EngineExecutable
 if ($engine.Name -ne "shou.exe") { throw "Select the Windows shou.exe built from this repository." }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
@@ -56,11 +58,16 @@ while ($pending.Count -gt 0) {
 }
 Copy-Item -LiteralPath (Join-Path $repo "LICENSE") -Destination $output
 Copy-Item -LiteralPath (Join-Path $repo "apps/windows/README.md") -Destination $output
+if ($RuntimeLicenseDirectory) {
+    Copy-Item -LiteralPath $RuntimeLicenseDirectory -Destination (Join-Path $output "Licenses") -Recurse
+}
 @"
-Shou Windows x64 development build. Start Shou.exe.
+Shou $version for Windows 11 x64. Extract the entire ZIP, then start Shou.exe.
 .NET and the resolved Swift/VC runtime dependencies are bundled. Windows 11 supplies winsqlite3.
 Recycle Bin and restoration are disabled by default; permanent removal is enabled with explicit scope confirmation and cannot be undone.
-This is an unsigned development directory, not an accepted installer or production release.
+AppData standard cache roots remain protected and unavailable. The interface is Simplified Chinese.
+This portable application is unsigned, with no installer or automatic Windows update. It runs without administrator access.
+Keep the Engine directory and resource bundles beside the application. See Licenses for bundled runtime notices.
 "@ | Set-Content -LiteralPath (Join-Path $output "READ-FIRST.txt") -Encoding utf8
 
 $start = [Diagnostics.ProcessStartInfo]::new((Join-Path $engineOutput "shou.exe"))
@@ -73,9 +80,9 @@ $probe = [Diagnostics.Process]::Start($start)
 $stdout = $probe.StandardOutput.ReadToEndAsync(); $stderr = $probe.StandardError.ReadToEndAsync()
 if (-not $probe.WaitForExit(30000)) { $probe.Kill($true); throw "Packaged engine discovery timed out." }
 $contract = $stdout.GetAwaiter().GetResult() | ConvertFrom-Json
-if ($probe.ExitCode -ne 0 -or -not $contract.ok -or $contract.data.platform -ne "windows") { throw "Packaged engine failed with a restricted runtime search path: $($stderr.GetAwaiter().GetResult())" }
+if ($probe.ExitCode -ne 0 -or -not $contract.ok -or $contract.data.platform -ne "windows" -or $contract.data.application_version -ne $version) { throw "Packaged engine failed version/platform validation with a restricted runtime search path: $($stderr.GetAwaiter().GetResult())" }
 $manifest = Get-ChildItem -LiteralPath $output -File -Recurse | ForEach-Object {
     [ordered]@{ path = [IO.Path]::GetRelativePath($output, $_.FullName).Replace('\', '/'); sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
 }
 ConvertTo-Json -InputObject @($manifest) -Depth 4 | Set-Content -LiteralPath (Join-Path $output "files.sha256.json") -Encoding utf8
-Write-Output "Development package created: $output. Native UI, clean installation, signing and upgrades still require acceptance."
+Write-Output "Windows $version portable package created: $output. Native UI, clean installation, signing and upgrades retain separate acceptance limits."

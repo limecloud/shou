@@ -30,6 +30,7 @@ Shou lets an existing coding agent turn a user's needs into inspectable, reusabl
 | Plan implementation | [Milestones](engineering/implementation-plan.md) → [Testing](engineering/acceptance-and-testing.md) |
 | Build and verify locally | [Development guide](engineering/development.md) |
 | Understand scan performance | [Storage scan performance and concurrency](engineering/storage-scan-performance.md) |
+| Design space discovery for external agents | [Space analysis and proposed three-view workflow](engineering/space-analysis-agent-design.md) |
 | Build the native Windows client | [Windows stack, implementation and acceptance](engineering/windows.md) |
 
 ## Next version

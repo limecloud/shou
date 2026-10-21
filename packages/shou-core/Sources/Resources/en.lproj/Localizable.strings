@@ -1,5 +1,7 @@
 // Generated from Localizable.xcstrings by scripts/update-localizations.py.
 " items" = " items";
+"% of Parent" = "% of Parent";
+"% of Scope" = "% of Scope";
 "%@ available" = "%@ available";
 "%lld applications found" = "%lld applications found";
 "%lld applications selected" = "%lld applications selected";
@@ -62,6 +64,7 @@
 "All time" = "All time";
 "All-user agents" = "All-user agents";
 "All-user daemons" = "All-user daemons";
+"Allocated" = "Allocated";
 "Allocated estimate" = "Allocated estimate";
 "Allow access to application caches that macOS protects." = "Allow access to application caches that macOS protects.";
 "Allow selecting personal app data" = "Allow selecting personal app data";
@@ -157,6 +160,7 @@
 "Box caches" = "Box caches";
 "Brave caches" = "Brave caches";
 "Brave download caches" = "Brave download caches";
+"Browse the directory tree for keyboard access to map items." = "Browse the directory tree for keyboard access to map items.";
 "Browser Caches" = "Browser Caches";
 "Browsing history" = "Browsing history";
 "Build Outputs" = "Build Outputs";
@@ -271,6 +275,7 @@
 "Cleanup stopped before any files were moved." = "Cleanup stopped before any files were moved.";
 "Cleanup stopped before this location was processed." = "Cleanup stopped before this location was processed.";
 "Clean…" = "Clean…";
+"Clear" = "Clear";
 "Clear Finished Records…" = "Clear Finished Records…";
 "Clear Records" = "Clear Records";
 "Clear Selection" = "Clear Selection";
@@ -286,6 +291,7 @@
 "Codex application caches" = "Codex application caches";
 "Codex download caches" = "Codex download caches";
 "Codex recreates web-resource, code and graphics caches when needed." = "Codex recreates web-resource, code and graphics caches when needed.";
+"Colors indicate extensions, not cleanup eligibility." = "Colors indicate extensions, not cleanup eligibility.";
 "Comet caches" = "Comet caches";
 "Common App Cleanup" = "Smart Cleanup";
 "Common app scan complete" = "Software and registered project scan complete";
@@ -317,6 +323,9 @@
 "Copied" = "Copied";
 "Copy Path" = "Copy Path";
 "Copy Request" = "Copy Request";
+"Copy for AI" = "Copy for AI";
+"Copy scan results and a request for your AI agent" = "Copy scan results and a request for your AI agent";
+"Could not copy analysis." = "Could not copy analysis.";
 "Could not verify" = "Could not verify";
 "Coverage Issues" = "Coverage Issues";
 "Create Rule for This Folder…" = "Create Rule for This Folder…";
@@ -344,6 +353,7 @@
 "Deselect All" = "Deselect All";
 "Deselect Item" = "Deselect Item";
 "Desktop" = "Desktop";
+"Detailed" = "Detailed";
 "Details" = "Details";
 "Developer Projects" = "Developer Projects";
 "Developer Tool Caches" = "Developer Tool Caches";
@@ -414,6 +424,7 @@
 "Failed items" = "Failed items";
 "Figma caches" = "Figma caches";
 "Figma download caches" = "Figma download caches";
+"File Extensions" = "File Extensions";
 "File Type" = "File Type";
 "Files" = "Files";
 "Files changed. Scan again to update totals." = "Files changed. Scan again to update totals.";
@@ -471,6 +482,7 @@
 "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Every source file must match its retained crate archive and Cargo checksum evidence. Modified, unverified or credential-bearing crates are blocked. Archives, registry indexes, installed tools and configuration are retained." = "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Every source file must match its retained crate archive and Cargo checksum evidence. Modified, unverified or credential-bearing crates are blocked. Archives, registry indexes, installed tools and configuration are retained.";
 "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Generated source is allowed only inside verified build-script OUT_DIR after Git and process checks. Preserve manual edits, custom deliverables and files that cannot be rebuilt." = "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Generated source is allowed only inside verified build-script OUT_DIR after Git and process checks. Preserve manual edits, custom deliverables and files that cannot be rebuilt.";
 "High risk: review and select explicitly. Stop Swift builds first. Only verified debug or release product directories are targeted; source checkouts, repositories, credentials and package configuration are retained. Preserve custom products and manual edits to generated source." = "High risk: review and select explicitly. Stop Swift builds first. Only verified debug or release product directories are targeted; source checkouts, repositories, credentials and package configuration are retained. Preserve custom products and manual edits to generated source.";
+"Highlighted extension" = "Highlighted extension";
 "History" = "History";
 "History verification cancelled." = "History verification cancelled.";
 "History: visit time · Cookies: last access time" = "History: visit time · Cookies: last access time";
@@ -557,6 +569,7 @@
 "Local store is unavailable." = "Local store is unavailable.";
 "Location" = "Location";
 "Locations with issues" = "Locations with issues";
+"Logical Size" = "Logical Size";
 "Logical size" = "Logical size";
 "Login Items, background-task registrations and helpers embedded in applications require System Settings. Apple system definitions are included only when requested. Permission and read-budget gaps remain visible." = "Login Items, background-task registrations and helpers embedded in applications require System Settings. Apple system definitions are included only when requested. Permission and read-budget gaps remain visible.";
 "Logseq caches" = "Logseq caches";
@@ -616,6 +629,7 @@
 "New Rule…" = "New Rule…";
 "Newest modification" = "Newest modification";
 "Newest modification at least %lld days ago" = "Newest modification at least %lld days ago";
+"No Extension" = "No Extension";
 "No access changes are needed for system-managed locations." = "No access changes are needed for system-managed locations.";
 "No allocated data in this folder" = "No allocated data in this folder";
 "No applications found in these directories" = "No applications found in these directories";
@@ -749,6 +763,7 @@
 "Preparing cleanup…" = "Preparing cleanup…";
 "Preparing common app scan…" = "Preparing software and registered project scan…";
 "Preparing privacy sources…" = "Preparing privacy sources…";
+"Preparing…" = "Preparing…";
 "Preset rules must be enabled in this workspace." = "Preset rules must be enabled in this workspace.";
 "Presets" = "Presets";
 "Preview Again" = "Preview Again";
@@ -845,6 +860,7 @@
 "Redis Insight caches" = "Redis Insight caches";
 "Reduce Motion" = "Reduce Motion";
 "Refresh" = "Refresh";
+"Refresh to update extension totals after cleanup." = "Refresh to update extension totals after cleanup.";
 "Registered Projects" = "Registered Projects";
 "Reinstall dependencies with the project's package manager." = "Reinstall dependencies with the project's package manager.";
 "Reinstall to use these projects again" = "Reinstall to use these projects again";
@@ -1032,6 +1048,7 @@
 "Show unavailable locations" = "Show unavailable locations";
 "Showing the first 200 measured folders. Counts include all measured rows." = "Showing the first 200 measured folders. Counts include all measured rows.";
 "Showing the first 50 scan notes." = "Showing the first 50 scan notes.";
+"Simple" = "Simple";
 "Site storage" = "Site storage";
 "Size" = "Size";
 "Size on Disk" = "Size on Disk";
@@ -1068,6 +1085,7 @@
 "Source checkouts and protected files can block whole-directory cleanup. Review custom build products." = "Source checkouts and protected files can block whole-directory cleanup. Review custom build products.";
 "Source could not be read" = "Source could not be read";
 "Space Analysis" = "Space Analysis";
+"Space Map" = "Space Map";
 "Space analysis complete." = "Space analysis complete.";
 "Space analysis entry pages are missing or inconsistent." = "Space analysis entry pages are missing or inconsistent.";
 "Space by Directory" = "Space by Directory";
@@ -1209,6 +1227,7 @@
 "Try a smaller size or another file type." = "Try a smaller size or another file type.";
 "Try another rule name or path." = "Try another rule name or path.";
 "Turbo generated caches" = "Turbo generated caches";
+"Type" = "Type";
 "UTM app caches" = "UTM app caches";
 "Unable to complete the operation" = "Unable to complete the operation";
 "Unable to scan this location" = "Unable to scan this location";
@@ -1248,6 +1267,7 @@
 "Verifying recorded locations…" = "Verifying recorded locations…";
 "Version" = "Version";
 "Videos" = "Videos";
+"View" = "View";
 "View Coverage…" = "View Coverage…";
 "View History" = "View History";
 "View Results" = "View Results";

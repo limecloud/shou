@@ -39,6 +39,7 @@ private struct StorageAnalysisView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { session.loadLocations() }
+        .task(id: "\(session.scan?.id ?? ""):\(session.path):\(session.detailed)") { session.loadPresentation(app: model) }
         .sheet(item: $session.plan) { plan in StorageRemovalConfirmation(model: model, session: session, plan: plan) }
         .sheet(item: $agentContext) { AgentRuleSetupView(model: model, contextPath: $0.path) }
         .quickLookPreview($previewURL)
@@ -75,10 +76,17 @@ private struct StorageAnalysisView: View {
         VStack(spacing: 0) {
             navigation
             Divider()
+            if let suffix=session.extensionFilter {
+                HStack { Text(model.t("Highlighted extension") + ": " + (suffix.isEmpty ? model.t("No Extension") : "." + suffix)); Button(model.t("Clear")) { session.extensionFilter=nil }; Spacer() }.font(.caption).padding(6)
+            }
+            if session.detailed {
+                StorageDetailedView(session: session, model: model)
+            } else {
             HSplitView {
                 directoryList.frame(minWidth: 320, idealWidth: 380, maxWidth: 510)
                     .overlay { if session.loadingDirectory { ProgressView().controlSize(.large) } }
                 chart.frame(minWidth: 280, maxWidth: .infinity, maxHeight: .infinity)
+            }
             }
             Divider()
             selectionBar
@@ -109,6 +117,14 @@ private struct StorageAnalysisView: View {
                     }
                 }.buttonStyle(.borderless).font(.callout).fixedSize(horizontal: true, vertical: false)
             }.frame(maxWidth: .infinity, alignment: .leading)
+            Picker(model.t("View"), selection: $session.detailed) {
+                Text(model.t("Simple")).tag(false)
+                Text(model.t("Detailed")).tag(true)
+            }.pickerStyle(.segmented).frame(width: 130).accessibilityIdentifier("storage.view-mode")
+            Button { session.copyAnalysis(app: model) } label: {
+                Label(model.t(session.copyingAnalysis ? "Preparing…" : session.analysisCopied ? "Copied" : "Copy for AI"), systemImage: session.analysisCopied ? "checkmark" : "doc.on.clipboard")
+            }.disabled(session.copyingAnalysis || session.loadingDirectory || model.busy).help(model.t("Copy scan results and a request for your AI agent"))
+                .accessibilityIdentifier("storage.copy-analysis")
             if session.currentFolderIncomplete {
                 Button { showingCoverage=true } label: {
                     Label(model.t("Scan Coverage"), systemImage: session.actionableCoverage.isEmpty ? "info.circle" : "exclamationmark.triangle")
@@ -255,10 +271,10 @@ private struct StorageAnalysisView: View {
                     Button(model.t("Move to Trash…")) { session.review(app: model, action: "trash") }
                 } label: { Label(model.t("Delete Permanently…"), systemImage: "trash") }
                     primaryAction: { session.review(app: model, action: "permanent") }
-                    .menuStyle(.borderlessButton).fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
+                    .menuStyle(.borderlessButton).fixedSize().buttonStyle(.borderedProminent).controlSize(.regular)
                     .disabled(session.selected.isEmpty || model.busy).accessibilityIdentifier("storage.delete")
             }
-        }.padding(.horizontal, 22).padding(.vertical, 16).background(.bar)
+        }.padding(.horizontal, 14).padding(.vertical, 8).background(.bar)
     }
     @ViewBuilder private func actions(_ node: StorageNode) -> some View {
         Button(model.t("Reveal in Finder")) { session.reveal(node.path) }

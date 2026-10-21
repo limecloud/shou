@@ -7,6 +7,8 @@ private final class CatalogCheckpoint {
     init(_ check: @escaping () throws -> Void) { self.check=check }
 }
 
+private final class CatalogMapDirectories { var ids=Set<Int64>() }
+
 public struct StorageMeasurement: Sendable {
     public let tree: TreeSnapshot
     public let entryCount: Int
@@ -153,7 +155,7 @@ public final class StorageCatalog {
     }
     public func seal(progress: (Int, Int) -> Void, checkpoint: () throws -> Void = {}) throws {
         try checkpoint()
-        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name);", "DROP TABLE hard_links;", "PRAGMA optimize;"]
+        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name); CREATE INDEX child_sizes ON entries(parent,total_allocated DESC,name);", "DROP TABLE hard_links;", "PRAGMA optimize;"]
         progress(0, steps.count)
         try withoutActuallyEscaping(checkpoint) { callback in
             let context=CatalogCheckpoint(callback)
@@ -215,6 +217,142 @@ public final class StorageCatalog {
             if status == SQLITE_DONE { return result }
             guard status == SQLITE_ROW else { throw Self.failure() }
             result.append(try item(statement))
+        }
+    }
+    func directoryPage(path: String, offset: Int, limit: Int) throws -> StorageDirectoryPage {
+        if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
+        let checkpoint=CatalogCheckpoint { if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") } }
+        sqlite3_progress_handler(database, 4096, { pointer in
+            guard let pointer else { return 1 }
+            let context=Unmanaged<CatalogCheckpoint>.fromOpaque(pointer).takeUnretainedValue()
+            do { try context.check(); return 0 } catch { context.error=error; return 1 }
+        }, Unmanaged.passUnretained(checkpoint).toOpaque())
+        defer { sqlite3_progress_handler(database, 0, nil, nil) }
+        do { return try readDirectoryPage(path: path, offset: offset, limit: limit) }
+        catch { throw checkpoint.error ?? error }
+    }
+    private func readDirectoryPage(path: String, offset: Int, limit: Int) throws -> StorageDirectoryPage {
+        guard let root=try entry(at: path), root.node.kind == "directory" else { throw ShouError("invalid_argument", "Directory is absent from this analysis.") }
+        let count=try prepare("SELECT COUNT(*) FROM entries WHERE parent=(SELECT id FROM entries WHERE path=?)")
+        defer { sqlite3_finalize(count) }
+        try bind(path, 1, to: count)
+        guard sqlite3_step(count) == SQLITE_ROW else { throw Self.failure() }
+        let total=Int(sqlite3_column_int64(count, 0))
+        guard offset <= total else { throw ShouError("invalid_argument", "Invalid directory offset.") }
+        let statement=try prepare("SELECT " + Self.columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name LIMIT ? OFFSET ?")
+        defer { sqlite3_finalize(statement) }
+        try bind(path, 1, to: statement); try bind([Int64(limit), Int64(offset)], startingAt: 2, to: statement)
+        var rows=[StorageCatalogItem]()
+        while true {
+            if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
+            let status=sqlite3_step(statement)
+            if status == SQLITE_DONE { break }
+            guard status == SQLITE_ROW else { throw Self.failure() }
+            rows.append(try item(statement))
+        }
+        let end=offset + rows.count
+        return StorageDirectoryPage(item: root, children: rows, totalCount: total, nextOffset: end < total ? end : nil)
+    }
+    private func registerExtensionFunction() throws {
+        guard sqlite3_create_function_v2(database, "shou_extension", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nil, { context, count, values in
+            guard count == 1, let values, let bytes=sqlite3_value_text(values[0]) else { sqlite3_result_null(context); return }
+            let suffix=StorageExtensionStat.suffix(String(cString: bytes))
+            suffix.withCString { sqlite3_result_text(context, $0, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self)) }
+        }, nil, nil, nil) == SQLITE_OK else { throw Self.failure() }
+    }
+    func extensionSummary(under path: String) throws -> StorageExtensionSummary {
+        try registerExtensionFunction()
+        let checkpoint=CatalogCheckpoint { if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") } }
+        sqlite3_progress_handler(database, 4096, { pointer in
+            guard let pointer else { return 1 }
+            let context=Unmanaged<CatalogCheckpoint>.fromOpaque(pointer).takeUnretainedValue()
+            do { try context.check(); return 0 } catch { context.error=error; return 1 }
+        }, Unmanaged.passUnretained(checkpoint).toOpaque())
+        defer { sqlite3_progress_handler(database, 0, nil, nil) }
+        let scope=path == "." ? "" : " AND e.parent IN (SELECT id FROM entries WHERE path=?1 OR (path>=?2 AND path<?3))"
+        let statement=try prepare("SELECT shou_extension(e.name),SUM(e.total_allocated),SUM(e.total_logical),COUNT(*) FROM entries e WHERE e.kind='file'" + scope + " GROUP BY shou_extension(e.name) ORDER BY SUM(e.total_allocated) DESC,shou_extension(e.name)")
+        defer { sqlite3_finalize(statement) }
+        if path != "." { try bind(path, 1, to: statement); try bind(path + "/", 2, to: statement); try bind(path + "0", 3, to: statement) }
+        var rows=[StorageExtensionStat](), omitted=StorageExtensionStat(suffix: "", allocatedBytes: 0, logicalBytes: 0, fileCount: 0)
+        while true {
+            let status=sqlite3_step(statement)
+            if status == SQLITE_DONE { break }
+            guard status == SQLITE_ROW, let text=sqlite3_column_text(statement, 0) else { throw checkpoint.error ?? Self.failure() }
+            let row=StorageExtensionStat(suffix: String(cString: text), allocatedBytes: sqlite3_column_int64(statement, 1), logicalBytes: sqlite3_column_int64(statement, 2), fileCount: Int(sqlite3_column_int64(statement, 3)))
+            if rows.count < 100 { rows.append(row) } else { omitted.allocatedBytes += row.allocatedBytes; omitted.logicalBytes += row.logicalBytes; omitted.fileCount += row.fileCount }
+        }
+        return StorageExtensionSummary(items: rows, omitted: omitted)
+    }
+    /// Assigns files to their closest displayed ancestor with one index traversal.
+    func mapFileExtensionGroups(scope: String, visibleDirectories: [String]) throws -> (groups: [StorageMapAggregate], extensions: StorageExtensionSummary) {
+        guard !visibleDirectories.isEmpty, visibleDirectories.count <= 8193 else { throw Self.failure() }
+        try registerExtensionFunction()
+        let checkpoint=CatalogCheckpoint { if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") } }
+        sqlite3_progress_handler(database, 4096, { pointer in
+            guard let pointer else { return 1 }
+            let context=Unmanaged<CatalogCheckpoint>.fromOpaque(pointer).takeUnretainedValue()
+            do { try context.check(); return 0 } catch { context.error=error; return 1 }
+        }, Unmanaged.passUnretained(checkpoint).toOpaque())
+        defer { sqlite3_progress_handler(database, 0, nil, nil) }
+        let visible=CatalogMapDirectories()
+        for offset in stride(from: 0, to: visibleDirectories.count, by: 256) {
+            let paths=Array(visibleDirectories[offset..<min(offset+256,visibleDirectories.count)])
+            let parameters=Array(repeating: "?",count:paths.count).joined(separator:",")
+            let query=try prepare("SELECT id FROM entries WHERE path IN (" + parameters + ")")
+            defer { sqlite3_finalize(query) }
+            for (index,path) in paths.enumerated() { try bind(path,Int32(index+1),to:query) }
+            while true {
+                let status=sqlite3_step(query)
+                if status == SQLITE_DONE { break }
+                guard status == SQLITE_ROW else { throw checkpoint.error ?? Self.failure() }
+                visible.ids.insert(sqlite3_column_int64(query,0))
+            }
+        }
+        guard sqlite3_create_function_v2(database,"shou_map_visible",1,SQLITE_UTF8 | SQLITE_DETERMINISTIC,Unmanaged.passUnretained(visible).toOpaque(), { context,count,values in
+            guard count == 1, let values, let pointer=sqlite3_user_data(context) else { sqlite3_result_int(context,0); return }
+            let visible=Unmanaged<CatalogMapDirectories>.fromOpaque(pointer).takeUnretainedValue()
+            sqlite3_result_int(context,visible.ids.contains(sqlite3_value_int64(values[0])) ? 1 : 0)
+        },nil,nil,nil) == SQLITE_OK else { throw Self.failure() }
+        defer {
+            withExtendedLifetime(visible) {
+                _ = sqlite3_create_function_v2(database,"shou_map_visible",1,SQLITE_UTF8,nil,nil,nil,nil,nil)
+            }
+        }
+        let statement=try prepare("""
+            WITH RECURSIVE mapped(id,scope) AS (
+                SELECT id,id FROM entries WHERE path=?1
+                UNION ALL
+                SELECT child.id,CASE WHEN shou_map_visible(child.id)=1 THEN child.id ELSE mapped.scope END
+                FROM mapped JOIN entries child ON child.parent=mapped.id
+                WHERE child.kind='directory'
+            )
+            ,grouped AS MATERIALIZED (
+                SELECT mapped.scope,shou_extension(e.name) AS suffix,
+                    SUM(e.total_allocated) AS allocated,SUM(e.total_logical) AS logical,COUNT(*) AS files
+                FROM mapped JOIN entries e ON e.parent=mapped.id WHERE e.kind='file'
+                GROUP BY mapped.scope,shou_extension(e.name)
+            )
+            SELECT 0,g.path,g.suffix,g.allocated,g.logical,g.files FROM (
+                SELECT container.path,grouped.* FROM grouped JOIN entries container ON container.id=grouped.scope
+                ORDER BY allocated DESC,container.path,suffix LIMIT 10240
+            ) g
+            UNION ALL
+            SELECT 1,'',suffix,SUM(allocated),SUM(logical),SUM(files) FROM grouped GROUP BY suffix
+            """)
+        defer { sqlite3_finalize(statement) }
+        try bind(scope,1,to:statement)
+        var rows=[StorageMapAggregate](), types=[StorageExtensionStat]()
+        while true {
+            if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
+            let status=sqlite3_step(statement)
+            if status == SQLITE_DONE { return (rows,ShouEngine.extensionSummary(types)) }
+            guard status == SQLITE_ROW, let path=sqlite3_column_text(statement,1), let suffix=sqlite3_column_text(statement,2) else { throw checkpoint.error ?? Self.failure() }
+            let name=String(cString:suffix), allocated=sqlite3_column_int64(statement,3), logical=sqlite3_column_int64(statement,4), count=Int(sqlite3_column_int64(statement,5))
+            if sqlite3_column_int(statement,0) == 1 {
+                types.append(StorageExtensionStat(suffix:name,allocatedBytes:allocated,logicalBytes:logical,fileCount:count))
+            } else {
+                rows.append(StorageMapAggregate(parentPath:String(cString:path),suffix:name,allocatedBytes:allocated,logicalBytes:logical,fileCount:count))
+            }
         }
     }
     func largeFiles(query: StorageLargeFileQuery) throws -> StorageLargeFilePage {

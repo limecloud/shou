@@ -201,6 +201,27 @@ enum DesktopBridge {
             let scan=try await engine.scanStorage(path: string("path"), progress: scanProgress)
             let notes=scan.tree.issues.map { StorageCoverageNote(issue: $0, root: scan.rootPath) }
             return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) }), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
+        case "storage.map":
+            let result=try await engine.storagePresentation(scanId: string("scan_id"), path: input["path"]?.string ?? ".")
+            let tiles=SpaceMap.nested(result.items.map(\.node), scope: result.scope.node, width: 1000, height: 600, aggregates: result.aggregates)
+            let suffixes=Set(result.extensions.items.map(\.suffix) + result.items.filter { $0.node.kind == "file" }.map { StorageExtensionStat.suffix($0.node.name) } + result.aggregates.map(\.suffix))
+            let colors=Dictionary(uniqueKeysWithValues: suffixes.map { ($0, JSONValue.string(StorageMapPalette.hex(forExtension: $0))) })
+            return .object(["presentation": try .from(result), "colors": .object(colors), "tiles": .array(tiles.map { .object(["path": .string($0.tile.id), "inspect_path": .string($0.aggregate?.parentPath ?? $0.id), "aggregate": $0.aggregate.map { .object(["parent_path": .string($0.parentPath), "suffix": .string($0.suffix), "allocated_bytes": .integer($0.allocatedBytes), "file_count": .integer(Int64($0.fileCount))]) } ?? .null, "depth": .integer(Int64($0.depth)), "x": .number($0.tile.x), "y": .number($0.tile.y), "width": .number($0.tile.width), "height": .number($0.tile.height), "remainder": .bool($0.remainder)]) })])
+        case "storage.remove":
+            let plan=try await engine.createStorageRemovalPlan(scanId: string("scan_id"), paths: strings("paths"), action: input["action"]?.string ?? "permanent")
+            let review: JSONValue = .object(["action": .string(plan.action), "items": .array(plan.items.map { .object(["path": .string(StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path)), "bytes": .integer($0.allocatedBytesEstimate)]) })])
+            try await session.confirm(digest: plan.digest, review: review, operation: plan.action)
+            let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "windows-desktop", progress: executionProgress)
+            return try receiptSummary(receipt, followUps: [])
+
+        case "storage.page":
+            let value=input["offset"]?.numeric ?? 0
+            guard value.isFinite, value.rounded() == value, (0...1_000_000_000).contains(value) else { throw ShouError("invalid_argument", "Invalid directory offset.") }
+            return try .from(await engine.storageDirectoryPage(scanId: string("scan_id"), path: input["path"]?.string ?? ".", offset: Int(value), limit: 200))
+        case "storage.context":
+            let context=try await engine.storageAnalysisContext(scanId: string("scan_id"), path: input["path"]?.string ?? ".", focusedPath: input["focused_path"]?.string, selectedPaths: input["selected_paths"]?.array?.compactMap(\.string) ?? [], removedPaths: input["removed_paths"]?.array?.compactMap(\.string) ?? [],
+                cliPath: CommandLine.arguments[0])
+            return .object(["context": try .from(context), "text": .string(try context.text(locale: input["locale"]?.string ?? "zh-CN"))])
         case "storage.directory": return try directoryValue(await engine.storageDirectory(scanId: string("scan_id"), path: input["path"]?.string ?? "."))
         default: throw ShouError("capability_unavailable", "This desktop operation is not available.")
         }

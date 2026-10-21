@@ -1,5 +1,7 @@
 // Generated from Localizable.xcstrings by scripts/update-localizations.py.
 " items" = " 项";
+"% of Parent" = "父级占比";
+"% of Scope" = "范围占比";
 "%@ available" = "%@ 可用";
 "%lld applications found" = "发现 %lld 个应用";
 "%lld applications selected" = "已选择 %lld 个应用";
@@ -62,6 +64,7 @@
 "All time" = "所有时间";
 "All-user agents" = "所有用户代理任务";
 "All-user daemons" = "所有用户守护任务";
+"Allocated" = "分配空间";
 "Allocated estimate" = "分配容量估计";
 "Allow access to application caches that macOS protects." = "允许访问受 macOS 保护的应用缓存。";
 "Allow selecting personal app data" = "允许选择应用个人数据";
@@ -157,6 +160,7 @@
 "Box caches" = "Box 缓存";
 "Brave caches" = "Brave 缓存";
 "Brave download caches" = "Brave 下载缓存";
+"Browse the directory tree for keyboard access to map items." = "可使用键盘浏览目录树中的相同项目。";
 "Browser Caches" = "浏览器缓存";
 "Browsing history" = "浏览历史";
 "Build Outputs" = "构建产物";
@@ -271,6 +275,7 @@
 "Cleanup stopped before any files were moved." = "清理已停止，尚未移动任何文件。";
 "Cleanup stopped before this location was processed." = "清理已停止，此位置尚未处理。";
 "Clean…" = "清理…";
+"Clear" = "清除";
 "Clear Finished Records…" = "清理已结束记录…";
 "Clear Records" = "清理记录";
 "Clear Selection" = "清空选择";
@@ -286,6 +291,7 @@
 "Codex application caches" = "Codex 应用缓存";
 "Codex download caches" = "Codex 下载缓存";
 "Codex recreates web-resource, code and graphics caches when needed." = "Codex 会按需重建网页资源、代码和图形缓存。";
+"Colors indicate extensions, not cleanup eligibility." = "颜色表示文件扩展名，不代表可以清理。";
 "Comet caches" = "Comet 缓存";
 "Common App Cleanup" = "智能清理";
 "Common app scan complete" = "软件与已登记项目扫描完成";
@@ -317,6 +323,9 @@
 "Copied" = "已复制";
 "Copy Path" = "复制路径";
 "Copy Request" = "复制请求";
+"Copy for AI" = "复制给 AI";
+"Copy scan results and a request for your AI agent" = "复制扫描结果和分析请求给 AI Agent";
+"Could not copy analysis." = "无法复制分析结果。";
 "Could not verify" = "无法核验";
 "Coverage Issues" = "覆盖范围问题";
 "Create Rule for This Folder…" = "为此目录创建规则…";
@@ -344,6 +353,7 @@
 "Deselect All" = "取消全选";
 "Deselect Item" = "取消选择项目";
 "Desktop" = "桌面端";
+"Detailed" = "详细";
 "Details" = "详情";
 "Developer Projects" = "开发项目";
 "Developer Tool Caches" = "开发工具缓存";
@@ -414,6 +424,7 @@
 "Failed items" = "失败项";
 "Figma caches" = "Figma 缓存";
 "Figma download caches" = "Figma 下载缓存";
+"File Extensions" = "文件扩展名";
 "File Type" = "文件类型";
 "Files" = "文件";
 "Files changed. Scan again to update totals." = "文件已变化，重新扫描可更新统计。";
@@ -471,6 +482,7 @@
 "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Every source file must match its retained crate archive and Cargo checksum evidence. Modified, unverified or credential-bearing crates are blocked. Archives, registry indexes, installed tools and configuration are retained." = "高风险：请逐项审阅并明确选择，先停止 Cargo、rustc 和 rust-analyzer。每个源文件都必须与保留的包归档及 Cargo 校验信息一致。已修改、未核验或包含凭据的包会被阻止。保留包归档、软件源索引、已安装工具和配置。";
 "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Generated source is allowed only inside verified build-script OUT_DIR after Git and process checks. Preserve manual edits, custom deliverables and files that cannot be rebuilt." = "高风险：请逐项审阅并明确选择，先停止 Cargo、rustc 和 rust-analyzer。通过 Git 和进程检查后，仅可清理已核验构建脚本 OUT_DIR 内的生成源码。请保留手动修改、自定义交付物和无法重新构建的文件。";
 "High risk: review and select explicitly. Stop Swift builds first. Only verified debug or release product directories are targeted; source checkouts, repositories, credentials and package configuration are retained. Preserve custom products and manual edits to generated source." = "高风险：请逐项审阅并明确选择，先停止 Swift 构建。仅清理已核验的 debug 或 release 产物目录；保留依赖源码、仓库、凭据和包配置。请保留自定义产物及生成源码中的手动修改。";
+"Highlighted extension" = "高亮扩展名";
 "History" = "操作记录";
 "History verification cancelled." = "历史核验已取消。";
 "History: visit time · Cookies: last access time" = "历史：访问时间 · Cookie：最后访问时间";
@@ -557,6 +569,7 @@
 "Local store is unavailable." = "本地数据存储不可用。";
 "Location" = "位置";
 "Locations with issues" = "存在问题的位置";
+"Logical Size" = "逻辑大小";
 "Logical size" = "逻辑大小";
 "Login Items, background-task registrations and helpers embedded in applications require System Settings. Apple system definitions are included only when requested. Permission and read-budget gaps remain visible." = "登录项、后台任务注册和应用内辅助程序需在系统设置中查看。仅在主动选择后包含 Apple 系统配置；权限及读取预算造成的缺口会单独列出。";
 "Logseq caches" = "Logseq 缓存";
@@ -616,6 +629,7 @@
 "New Rule…" = "新建规则…";
 "Newest modification" = "最新修改";
 "Newest modification at least %lld days ago" = "目录及后代至少 %lld 天未修改";
+"No Extension" = "无扩展名";
 "No access changes are needed for system-managed locations." = "系统管理的位置无需更改权限。";
 "No allocated data in this folder" = "此目录没有已分配的数据";
 "No applications found in these directories" = "这些目录中未发现应用";
@@ -749,6 +763,7 @@
 "Preparing cleanup…" = "正在准备清理…";
 "Preparing common app scan…" = "正在准备扫描软件与已登记项目…";
 "Preparing privacy sources…" = "正在发现隐私来源…";
+"Preparing…" = "正在整理…";
 "Preset rules must be enabled in this workspace." = "预设中的规则必须已在此工作区启用。";
 "Presets" = "清理方案";
 "Preview Again" = "重新预览";
@@ -845,6 +860,7 @@
 "Redis Insight caches" = "Redis Insight 缓存";
 "Reduce Motion" = "减少动态效果";
 "Refresh" = "刷新";
+"Refresh to update extension totals after cleanup." = "清理后请刷新，以更新扩展名统计。";
 "Registered Projects" = "已登记项目";
 "Reinstall dependencies with the project's package manager." = "需要使用项目的包管理器重新安装依赖。";
 "Reinstall to use these projects again" = "再次使用项目时需要重新安装依赖";
@@ -1032,6 +1048,7 @@
 "Show unavailable locations" = "显示不可用位置";
 "Showing the first 200 measured folders. Counts include all measured rows." = "显示前 200 个已测量目录，统计包含全部已测量行。";
 "Showing the first 50 scan notes." = "当前显示前 50 条扫描说明。";
+"Simple" = "简洁";
 "Site storage" = "站点存储";
 "Size" = "大小";
 "Size on Disk" = "占用空间";
@@ -1068,6 +1085,7 @@
 "Source checkouts and protected files can block whole-directory cleanup. Review custom build products." = "源码检出和受保护文件会阻止整个目录清理。请审阅自定义构建产物。";
 "Source could not be read" = "无法读取来源";
 "Space Analysis" = "空间分析";
+"Space Map" = "空间图";
 "Space analysis complete." = "空间分析完成。";
 "Space analysis entry pages are missing or inconsistent." = "空间分析记录缺失或不一致，请重新扫描。";
 "Space by Directory" = "目录空间分布";
@@ -1209,6 +1227,7 @@
 "Try a smaller size or another file type." = "试试更小的占用阈值或其他文件类型。";
 "Try another rule name or path." = "请尝试其他规则名称或路径。";
 "Turbo generated caches" = "Turbo 生成缓存";
+"Type" = "类型";
 "UTM app caches" = "UTM app 缓存";
 "Unable to complete the operation" = "无法完成操作";
 "Unable to scan this location" = "无法扫描此位置";
@@ -1248,6 +1267,7 @@
 "Verifying recorded locations…" = "正在核验记录中的位置…";
 "Version" = "版本";
 "Videos" = "视频";
+"View" = "视图";
 "View Coverage…" = "查看覆盖范围…";
 "View History" = "查看操作记录";
 "View Results" = "查看结果";

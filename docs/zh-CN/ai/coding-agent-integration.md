@@ -4,6 +4,8 @@
 
 状态：随包 Skill、桌面交接入口、公开 CLI 与规则预览已有源码实现。本 Codex 会话可调用 CLI 验证；Claude Code、WorkBuddy 的独立客户端验收仍待完成。
 
+空间分析支持简洁／详细切换；两种视图的“复制给 AI”会把本次扫描 ID、范围、完整路径、占用与扩展名统计、覆盖说明、选中／已删除路径，以及本地 CLI／Skill 入口复制到剪贴板。用户直接粘贴给已有 Agent。Shou 不上传、不调用模型；Agent 可以用 analysis context、analysis map 与分页 analysis children 复用同一扫描，再查询已有规则、问询用途并预览草稿。详细合同与验收见 [空间分析协作设计](../engineering/space-analysis-agent-design.md)。
+
 ## 1. 产品边界
 
 **Shou 不接入任何模型，不开发 Agent，也不启动或托管外部 Agent。**

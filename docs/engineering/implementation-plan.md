@@ -6,6 +6,8 @@ Status: active development. Native macOS, independent CLI, shared core, platform
 
 The next delivery is tracked item by item in the [0.9.0 plan and progress](next-version-0.9.0.md).
 
+Further space-analysis changes follow the [agent collaboration implementation checklist and W01–W06 tracking](space-analysis-agent-design.md): shared queries/paging, native Simple/Detailed switching, same-scan agent context, Windows synchronization and complete acceptance. Default to Simple initially, remember the preference and preserve browsing/selection without rescanning on switches. The shared queries, view switch and one-click copy are implemented; acceptance evidence and remaining platform checks are recorded in that design.
+
 ## 1. Product decisions
 
 | ID | Decision | Purpose |
@@ -121,3 +123,5 @@ F14 now has source implementations for bounded application discovery, exact iden
 ## Personal-rule wizard first stage
 
 F03 now has a native three-step authoring flow: bounded scope selection, conditions and preservation, then measured read-only preview. It reuses the closed rule parser and scan engine, exposes exact reasons for size, age, marker and protection decisions, keeps drafts disabled until explicit enablement and a fresh scan, and shares the same CLI rule format. The isolated desktop closure moved only the eligible generated target to Trash and restored it with unchanged hashes. Remaining release gates, third-party client coverage and Windows evidence remain open.
+
+Dense-view correction is tracked as W07 in the space analysis design: replace root-scope gray directory blocks with bounded deep file data, shared type colors and compact linked tables; verify native macOS presentation and synchronize Windows.

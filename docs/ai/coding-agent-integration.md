@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/ai/coding-agent-integration.md)
 
 Status: the bundled Skill, desktop handoff, public CLI, and rule preview have source implementations. This Codex session can exercise the CLI; separate Claude Code and WorkBuddy runtime acceptance remains pending.
 
+Space Analysis offers Simple/Detailed views and a Copy for AI action in both. It copies the existing scan ID, scope, exact paths, size/extension evidence, coverage, selected/removed paths and local CLI/Skill entries. Users paste it into their existing agent; Shou neither uploads it nor calls a model. The agent reuses analysis context/map/children before inspecting rules, resolving purpose and previewing a draft. See the [space-analysis contract and acceptance](../engineering/space-analysis-agent-design.md).
+
 ## 1. Boundary
 
 **Shou integrates no models, develops no agents, and does not start or host external agents.**

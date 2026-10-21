@@ -21,15 +21,59 @@
         </Grid>
       </TabItem>
       <TabItem Header="空间分析">
-        <Grid Margin="12"><Grid.RowDefinitions><RowDefinition Height="42" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-          <DockPanel LastChildFill="True" Margin="0,0,0,8">
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="重新扫描" ToolTip="重新扫描当前文件夹" Command="{Binding RescanStorageCommand}" /><Button Content="打开文件夹" Command="{Binding RevealStorageCommand}" /><Button Content="选择目录…" Command="{Binding AnalyzeCommand}" /></StackPanel>
-            <Button DockPanel.Dock="Left" Content="↑" ToolTip="返回上层" AutomationProperties.Name="返回上层" Command="{Binding StorageUpCommand}" Padding="10,4" />
-            <local:ProgressPathTextBlock FullPath="{Binding StorageDisplayPath}" ToolTip="{Binding StorageDisplayPath}" VerticalAlignment="Center" Margin="8,0" AutomationProperties.Name="当前文件夹" />
+        <Grid Margin="8">
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <DockPanel Margin="0,0,0,8">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+              <RadioButton Content="简洁" GroupName="SpaceView" IsChecked="{Binding StorageSimple}" VerticalAlignment="Center" Margin="4" />
+              <RadioButton Content="详细" GroupName="SpaceView" IsChecked="{Binding StorageDetailed}" VerticalAlignment="Center" Margin="4" />
+              <Button Content="复制给 AI" Command="{Binding CopyStorageAnalysisCommand}" />
+              <Button Content="刷新" Command="{Binding RescanStorageCommand}" /><Button Content="选择目录…" Command="{Binding AnalyzeCommand}" />
+            </StackPanel>
+            <Button DockPanel.Dock="Left" Content="↑" Command="{Binding StorageUpCommand}" />
+            <local:ProgressPathTextBlock FullPath="{Binding StorageDisplayPath}" ToolTip="{Binding StorageDisplayPath}" VerticalAlignment="Center" Margin="8,0" />
           </DockPanel>
-          <DataGrid Grid.Row="1" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode">
-            <DataGrid.Columns><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="140" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="110" /></DataGrid.Columns>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode" Visibility="{Binding StorageSimple, Converter={StaticResource BoolToVisibility}}">
+            <DataGrid.Columns>
+              <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" AutomationProperties.Name="选择项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+              <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="120" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="100" />
+            </DataGrid.Columns>
           </DataGrid>
+          <Grid Grid.Row="1" Visibility="{Binding StorageDetailed, Converter={StaticResource BoolToVisibility}}">
+            <Grid.RowDefinitions><RowDefinition Height="3*" /><RowDefinition Height="4" /><RowDefinition Height="2*" /></Grid.RowDefinitions>
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="2*" /><ColumnDefinition Width="5" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+              <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="22" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                <Grid TextElement.FontSize="11" Margin="6,0">
+                  <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="48" /><ColumnDefinition Width="78" /><ColumnDefinition Width="78" /><ColumnDefinition Width="64" /></Grid.ColumnDefinitions>
+                  <TextBlock Text="名称" /><TextBlock Grid.Column="1" Text="父级 %" /><TextBlock Grid.Column="2" Text="分配空间" HorizontalAlignment="Right" /><TextBlock Grid.Column="3" Text="逻辑大小" HorizontalAlignment="Right" /><TextBlock Grid.Column="4" Text="文件" HorizontalAlignment="Right" />
+                </Grid>
+              <TreeView Grid.Row="1" FontSize="11" ItemsSource="{Binding StorageTree}" TreeViewItem.Expanded="StorageTreeExpanded" SelectedItemChanged="StorageTreeSelection" MouseDoubleClick="OpenStorageNode" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True" AutomationProperties.Name="空间目录树">
+                <TreeView.ItemContainerStyle><Style TargetType="TreeViewItem"><Setter Property="IsSelected" Value="{Binding Focused,Mode=TwoWay}" /><Setter Property="IsExpanded" Value="{Binding Expanded,Mode=TwoWay}" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Padding" Value="0,1" /></Style></TreeView.ItemContainerStyle>
+                <TreeView.ItemTemplate><HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                  <Grid Height="19">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="130" /><ColumnDefinition Width="48" /><ColumnDefinition Width="78" /><ColumnDefinition Width="78" /><ColumnDefinition Width="64" /></Grid.ColumnDefinitions>
+                    <DockPanel><CheckBox DockPanel.Dock="Left" IsChecked="{Binding IsSelected}" IsEnabled="{Binding Eligible}" Margin="0,0,3,0" /><TextBlock DockPanel.Dock="Left" Text="{Binding Icon}" Margin="0,0,3,0" /><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}" /></DockPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding Share}" TextAlignment="Right" Background="#162779DF" /><TextBlock Grid.Column="2" Text="{Binding Size}" TextAlignment="Right" /><TextBlock Grid.Column="3" Text="{Binding LogicalSize}" TextAlignment="Right" /><TextBlock Grid.Column="4" Text="{Binding Files}" TextAlignment="Right" />
+                  </Grid>
+                </HierarchicalDataTemplate></TreeView.ItemTemplate>
+              </TreeView></Grid>
+              <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+              <DataGrid Grid.Column="2" FontSize="11" RowHeight="19" ColumnHeaderHeight="22" GridLinesVisibility="None" HeadersVisibility="Column" AlternatingRowBackground="#08000000" ItemsSource="{Binding StorageExtensions}" SelectedItem="{Binding SelectedStorageExtension}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" EnableRowVirtualization="True" AutomationProperties.Name="文件扩展名">
+                <DataGrid.Columns>
+                  <DataGridTemplateColumn Header="扩展名" Width="*" MinWidth="80"><DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel Orientation="Horizontal"><Rectangle Width="8" Height="8" Fill="{Binding Color}" Margin="3,0,5,0" /><TextBlock Text="{Binding Name}" /></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                  <DataGridTextColumn Header="占比" Binding="{Binding Share}" Width="48" /><DataGridTextColumn Header="分配空间" Binding="{Binding Size}" Width="78" /><DataGridTextColumn Header="文件" Binding="{Binding Files}" Width="64" /><DataGridTextColumn Header="逻辑大小" Binding="{Binding LogicalSize}" Width="78" />
+                </DataGrid.Columns>
+              </DataGrid>
+            </Grid>
+            <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" />
+            <local:StorageSpaceMap x:Name="SpaceMap" Grid.Row="2" Data="{Binding StorageMap}" FocusPath="{Binding StorageFocusPath}" Extension="{Binding StorageExtensionFilter}" AutomationProperties.Name="嵌套空间图" />
+          </Grid>
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <TextBlock Text="颜色表示扩展名，不代表可以清理。" VerticalAlignment="Center" Opacity="0.7" Margin="8" />
+            <Button Content="永久删除所选项目…" Command="{Binding RemoveStorageCommand}" />
+          </StackPanel>
         </Grid>
       </TabItem>
       <TabItem Header="规则与排除">

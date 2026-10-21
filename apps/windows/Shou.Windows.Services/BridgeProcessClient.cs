@@ -18,7 +18,7 @@ public sealed class BridgeProcessClient
     private readonly string[] prefix;
     private readonly string? dataDirectory;
     private readonly TimeSpan timeout;
-    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "scan", "scan.results", "history", "history.cleanup-preview", "storage.scan", "storage.directory"];
+    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "scan", "scan.results", "history", "history.cleanup-preview", "storage.scan", "storage.directory", "storage.map", "storage.context", "storage.page"];
 
     public BridgeProcessClient(string executable, IEnumerable<string>? argumentPrefix = null, string? dataDirectory = null, TimeSpan? timeout = null)
     {

@@ -113,6 +113,8 @@ let commands: [CommandSpec] = [
     .init("analysis remove", "destructive", ["plan-id"], [], "Remove reviewed space-analysis items after terminal confirmation. File evidence is rechecked; results enter shared history."),
     .init("analysis summary", "read", ["scan-id"], [], "Show non-overlapping cleanup categories and measured workspace usage."),
     .init("analysis children", "read", ["scan-id"], ["path", "limit", "cursor"], "Browse allocated space in a saved scan; default path is the workspace root (.)."),
+    .init("analysis context", "read", ["scan-id"], ["path"], "Export bounded space-analysis evidence and a ready-to-paste agent request from the saved scan; does not rescan or upload."),
+    .init("analysis map", "read", ["scan-id"], ["path"], "Read a bounded multilevel space map and scoped extension totals from a saved scan."),
     .init("analysis large-files", "read", ["scan-id"], ["minimum-bytes", "type", "limit", "cursor"], inputSchema: largeFileInputSchema,
           "Query saved space-analysis evidence across all directories without rescanning. Minimum-bytes is nonnegative allocated bytes (default 52428800 = 50 MiB); type is all (default), video, audio, image, archive, document, ai-model or other, inferred only from filename extensions. Limit 1..500 (default 100). Stable order is allocated bytes descending then full path ascending. Hard links follow saved space accounting; byte totals are estimates. Reuse returned paths with analysis plan, then analysis remove for confirmed execution."),
     .init("plan create", "plan", ["scan-id", "candidate"], ["mode"], repeated: ["candidate"], "Create a plan from explicitly selected candidates. Mode is trash (default) or permanent."),
@@ -220,7 +222,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.9.0"
+    static let version = "0.10.0"
     static func main() async {
         if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
         #if canImport(Darwin) || canImport(Glibc)
@@ -475,6 +477,11 @@ enum Terminal {
                 let plan=try await engine.storageRemovalPlan(args.value("plan-id"))
                 try Terminal.confirm(TerminalReviewScope(storage: plan, locale: args.locale), phrase: (plan.action == "permanent" ? "PURGE " : "TRASH ") + plan.id, locale: args.locale)
                 value=try .from(await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "cli"))
+            case "analysis context":
+                let context=try await engine.storageAnalysisContext(scanId: args.value("scan-id"), path: args.values["path"]?.first ?? ".")
+                value = .object(["context": try .from(context), "text": .string(try context.text(locale: args.locale))])
+            case "analysis map":
+                value=try .from(await engine.storagePresentation(scanId: args.value("scan-id"), path: args.values["path"]?.first ?? "."))
             case "analysis large-files":
                 guard let minimum=Int64(args.values["minimum-bytes"]?.first ?? "52428800"),
                       let limit=Int(args.values["limit"]?.first ?? "100"),
@@ -502,21 +509,19 @@ enum Terminal {
             case "analysis children" where args.value("scan-id").hasPrefix("storage_"):
                 let snapshot=try await engine.storageScan(args.value("scan-id"))
                 let path=args.values["path"]?.first ?? "."
-                let directory=try await engine.storageDirectory(scanId: snapshot.id, path: path)
-                let children=directory.children.map(\.node), limit=Int(args.values["limit"]?.first ?? "50") ?? 0
-                guard (1...500).contains(limit) else { throw ShouError("invalid_argument", "Limit must be between 1 and 500.") }
+                let limit=Int(args.values["limit"]?.first ?? "50") ?? 0
                 let prefix=snapshot.id + ":" + String(try Digest.of(path).prefix(16)) + ":"
                 var offset=0
                 if let cursor=args.values["cursor"]?.first {
-                    guard cursor.hasPrefix(prefix), let parsed=Int(cursor.dropFirst(prefix.count)), (0...children.count).contains(parsed) else { throw ShouError("invalid_argument", "Cursor does not belong to this scan and directory.") }
+                    guard cursor.hasPrefix(prefix), let parsed=Int(cursor.dropFirst(prefix.count)), parsed >= 0 else { throw ShouError("invalid_argument", "Cursor does not belong to this scan and directory.") }
                     offset=parsed
                 }
-                let end=min(offset+limit, children.count)
+                let page=try await engine.storageDirectoryPage(scanId: snapshot.id, path: path, offset: offset, limit: limit)
                 var rows=[JSONValue]()
-                for node in children[offset..<end] {
-                    rows.append(.object(["node": try .from(node), "removal_block_reason": try .from(await engine.storageRemovalReason(scan: snapshot, path: node.path))]))
+                for item in page.children {
+                    rows.append(.object(["node": try .from(item.node), "removal_block_reason": try .from(await engine.storageRemovalReason(scan: snapshot, path: item.node.path))]))
                 }
-                value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "path": .string(path), "directory": try .from(directory.item.node), "entries": .array(rows), "total": .integer(Int64(children.count)), "next_cursor": end < children.count ? .string(prefix + String(end)) : .null])
+                value = .object(["scan_id": .string(snapshot.id), "status": .string(snapshot.status), "path": .string(path), "directory": try .from(page.item.node), "entries": .array(rows), "total": .integer(Int64(page.totalCount)), "next_cursor": page.nextOffset.map { .string(prefix + String($0)) } ?? .null])
             case "analysis summary":
                 let snapshot=try await engine.scanSnapshot(args.value("scan-id"))
                 guard snapshot.scope != .cleanup else { throw ShouError("partial_result", "Space analysis requires a full-tree scan. Run scan with --scope full.") }

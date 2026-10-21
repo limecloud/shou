@@ -4,7 +4,11 @@ C# / .NET 10 LTS / WPF Fluent / MVVM。规则、计划、排除与回执复用 S
 
 首版包括目录选择、分页扫描、候选审阅、回收站与永久删除、规则导入与启停、全局排除增删、目录空间分析、历史恢复和记录中回收站项目的永久删除。界面目前为简体中文；大文件专用页面、应用卸载、启动项、隐私清理、Windows 生成源码安全证据与完整语言切换尚未接入。Rust/Swift 产物缺少原生 Git/构建活动证据时保持阻断。
 
-回收站和恢复默认关闭；仅隔离原生验收可显式设置 `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1`。永久删除默认开放，且与回收站项目 purge 均需单独范围确认，无法恢复；Windows 原生运行与正式发布仍需实机验收。
+回收站和恢复默认关闭；仅隔离原生验收可显式设置 `SHOU_WINDOWS_EXPERIMENTAL_RECYCLE=1`。永久删除默认开放，且与回收站项目 purge 均需单独范围确认，无法恢复。AppData 标准缓存根目录仍受保护；完整 Windows 界面、安装升级与无障碍体验仍需实机验收。
+
+## 下载
+
+[Shou v0.10.0 · Windows 11 x64 便携 ZIP](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-windows-x64.zip)。完整解压后运行 `Shou.exe`，保留同目录的 `Engine` 和资源文件。包内包含 .NET、Swift 与所需 VC 运行库，无需安装开发工具；使用 Release 中的 `SHA256SUMS` 校验下载。便携包未签名，暂无安装器及 Windows 自动更新。
 
 ## 构建
 
@@ -47,7 +51,7 @@ python3 -B "scripts/verify-desktop-bridge.py" --engine "/absolute/path/to/shou"
 
 给该集成脚本增加 `--native-trash --native-permanent`，可用新生成的目录验证回收站、历史、恢复、直接永久删除及记录中回收站项目的单独 purge；不会选中真实工作区文件。macOS 上通过此闭环仍不能替代 Windows 原生证据。
 
-## 开发包
+## 便携包
 
 在 Windows 仓库根执行，显式提供官方 Swift 与 VC++ 可再分发 DLL 目录：
 
@@ -66,4 +70,4 @@ Engine/
 files.sha256.json
 ```
 
-该目录是开发产物，尚未提供正式安装器。
+GitHub Windows CI 在编译与原生协议检查后调用 `scripts/release-windows.ps1`，发现官方运行库、打包 ZIP 并在移位后的中文路径下验证文件清单、受限 PATH、版本、资源、WPF 布局加载与原生桌面协议。主干检查保留 ZIP 资产，版本发布将该 ZIP 与 macOS 资产汇总到同一个 Release；统一 `SHA256SUMS` 覆盖两个平台。暂无正式安装器。
