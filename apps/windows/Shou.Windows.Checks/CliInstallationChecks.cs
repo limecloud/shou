@@ -10,8 +10,12 @@ internal static class CliInstallationChecks
         catch (IOException) { return; }
         throw new Exception("Conflicting CLI installation was accepted.");
     }
-    private static string Canonical(DirectoryInfo directory) => directory.ResolveLinkTarget(true) is DirectoryInfo target
-        ? Canonical(target) : directory.Parent is { } parent ? Path.Combine(Canonical(parent), directory.Name) : directory.FullName;
+    private static string Canonical(DirectoryInfo directory)
+    {
+        if (directory.Parent is not { } parent) return directory.FullName;
+        return directory.ResolveLinkTarget(true) is DirectoryInfo target
+            ? Canonical(target) : Path.Combine(Canonical(parent), directory.Name);
+    }
     private static byte[] Image(byte marker = 1)
     {
         var bytes = new byte[256]; bytes[0] = (byte)'M'; bytes[1] = (byte)'Z';

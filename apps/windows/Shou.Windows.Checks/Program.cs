@@ -78,6 +78,7 @@ async Task Check(string title, Func<Task> action) { await action(); passed++; Co
 await DesktopSettingsChecks.Run(Check);
 await CliInstallationChecks.Run(Check);
 await SystemPreviewChecks.Run(Check);
+await StorageCoverageChecks.Run(Check);
 await Check("progress paths shorten only the middle and preserve Unicode text elements", () =>
 {
     if (ProgressPresentation.ShortPath("C:\\Users\\person\\build\\output.bin") != "C:/Users/person/build/output.bin") throw new Exception("Short Windows paths must be preserved.");
@@ -311,8 +312,12 @@ if (args.Length == 2 && args[0] == "--engine")
     {
         var fixture = Directory.CreateTempSubdirectory("shou-record-maintenance-check-");
         // Resolve the generated fixture's ancestors, including macOS /var.
-        static string CanonicalDirectory(DirectoryInfo directory) => directory.ResolveLinkTarget(returnFinalTarget: true) is DirectoryInfo target
-            ? CanonicalDirectory(target) : directory.Parent is { } parent ? Path.Combine(CanonicalDirectory(parent), directory.Name) : directory.FullName;
+        static string CanonicalDirectory(DirectoryInfo directory)
+        {
+            if (directory.Parent is not { } parent) return directory.FullName;
+            return directory.ResolveLinkTarget(returnFinalTarget: true) is DirectoryInfo target
+                ? CanonicalDirectory(target) : Path.Combine(CanonicalDirectory(parent), directory.Name);
+        }
         try
         {
             var client = new BridgeProcessClient(Path.GetFullPath(args[1]), dataDirectory: Path.Combine(CanonicalDirectory(fixture), "data"));

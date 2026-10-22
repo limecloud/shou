@@ -24,6 +24,7 @@ public sealed class WindowsDialogs(Window owner)
     public void PreviewFile(BridgeProcessClient client, string scanId, string path) => new FilePreviewDialog(owner, client, scanId, path).ShowDialog();
     public void ReviewApplicationData(BridgeProcessClient client) => new ApplicationDataDialog(owner,client).ShowDialog();
     public void InspectHistory(BridgeProcessClient client, string executionId) => new HistoryInspectionDialog(owner, client, executionId).ShowDialog();
+    public bool ReviewStorageCoverage(StorageCoverageSummary summary) => new StorageCoverageDialog(owner,summary).ShowDialog()==true;
     public bool ReviewRecordMaintenance(RecordMaintenanceSummary preview, CancellationToken cancellation)
     {
         if (cancellation.IsCancellationRequested) return false;

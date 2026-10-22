@@ -617,12 +617,13 @@ enum DesktopBridge {
             return try .from(await engine.setGlobalExclusion(pattern: string("pattern"), remove: remove))
         case "storage.scan":
             let scan=try await engine.scanStorage(path: string("path"), progress: scanProgress)
-            let notes=scan.tree.issues.map { StorageCoverageNote(issue: $0, root: scan.rootPath) }
             let page=try await engine.storageDirectoryPage(scanId: scan.id)
-            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) }), "directory": .object(["path": .string(page.item.node.path), "complete": .bool(page.item.node.isComplete == true), "children": try .from(page.children.map(\.node)), "total_count": .integer(Int64(page.totalCount)), "next_offset": page.nextOffset.map { .integer(Int64($0)) } ?? .null])])
+            var result=try storageCoverage(scan)
+            result["directory"] = .object(["path": .string(page.item.node.path), "complete": .bool(page.item.node.isComplete == true), "children": try .from(page.children.map(\.node)), "total_count": .integer(Int64(page.totalCount)), "next_offset": page.nextOffset.map { .integer(Int64($0)) } ?? .null])
+            return .object(result)
         case "storage.show":
             let scan=try await engine.storageScan(string("scan_id"))
-            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status)])
+            return .object(try storageCoverage(scan))
         case "storage.map":
             let result=try await engine.storagePresentation(scanId: string("scan_id"), path: input["path"]?.string ?? ".")
             let tiles=SpaceMap.nested(result.items.map(\.node), scope: result.scope.node, width: 1000, height: 600, aggregates: result.aggregates)
@@ -644,8 +645,12 @@ enum DesktopBridge {
             for item in page.items {
                 entries.append(.object(["entry": try .from(item.entry), "node": try .from(item.node), "removal_block_reason": try .from(await engine.storageRemovalReason(scan: scan, path: item.entry.path))]))
             }
-            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entries": .array(entries),
-                "total_count": .integer(Int64(page.totalCount)), "total_allocated_bytes": .integer(page.totalAllocatedBytes), "next_cursor": try .from(page.nextCursor), "issues": try .from(scan.tree.issues)])
+            var result=try storageCoverage(scan)
+            result["entries"] = .array(entries)
+            result["total_count"] = .integer(Int64(page.totalCount))
+            result["total_allocated_bytes"] = .integer(page.totalAllocatedBytes)
+            result["next_cursor"] = try .from(page.nextCursor)
+            return .object(result)
         case "storage.remove":
             let plan=try await engine.createStorageRemovalPlan(scanId: string("scan_id"), paths: strings("paths", maximum: 5000), action: input["action"]?.string ?? "permanent")
             let review: JSONValue = .object(["action": .string(plan.action), "items": .array(plan.items.map { .object(["path": .string(StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path)), "bytes": .integer($0.allocatedBytesEstimate)]) })])
@@ -713,6 +718,12 @@ enum DesktopBridge {
                 let resultingPath=followUp?.state == "completed" && followUp?.action == "purge" ? nil : followUp?.resultingPath ?? item.trashPath
                 return .object(["id": .string(item.id), "path": .string(item.originalPath), "state": .string(state), "bytes": .integer(item.allocatedBytesEstimate), "error": (followUp?.error ?? item.error).map(JSONValue.string) ?? .null, "resulting_path": resultingPath.map(JSONValue.string) ?? .null, "can_restore": .bool(item.state == "trashed" && !followed), "can_purge": .bool(item.state == "trashed" && !followed && purgeAllowed)])
             })])
+    }
+    private static func storageCoverage(_ scan: StorageScan) throws -> [String: JSONValue] {
+        let notes=scan.tree.issues.map { StorageCoverageNote(issue: $0, root: scan.rootPath) }
+        return ["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status),
+            "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues),
+            "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) })]
     }
     private final class LineReader: @unchecked Sendable {
         private var buffer=Data()

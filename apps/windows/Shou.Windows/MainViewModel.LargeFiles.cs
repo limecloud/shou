@@ -98,18 +98,25 @@ public sealed partial class MainViewModel
         finally { largeFilesBatchSelection=false; LargeFilesChanged(); }
     }
     private Task ScanLargeFilesAsync() => RunAsync(async () => {
-        var scan=await client.RequestAsync("storage.scan",new() { ["path"]=LargeFilesFolder },Progress(),cancellation:Token);
-        await LoadLargeFilesAsync(Text(scan,"scan_id"),false);
+        await ScanLargeFilesAtPathAsync(LargeFilesFolder);
     });
+    private async Task ScanLargeFilesAtPathAsync(string path)
+    {
+        var scan=await client.RequestAsync("storage.scan",new() { ["path"]=path },Progress(),cancellation:Token);
+        await LoadLargeFilesAsync(Text(scan,"scan_id"),false);
+    }
     private async Task LoadLargeFilesAsync(string id,bool more)
     {
         var query=more ? largeFilesQuery!.Value : LargeFileQuery;
         var page=await client.RequestAsync("storage.large-files",new() { ["scan_id"]=id,["minimum_bytes"]=(long)query.Minimum*1024*1024,["type"]=query.Type,["cursor"]=more ? largeFilesCursor : null },cancellation:Token);
+        var coverage=StorageCoverageSummary.Read(page);
+        if(coverage.ScanId!=id)throw new BridgeException("invalid_protocol",T("扫描覆盖信息不完整，请重新扫描。"));
         var root=Text(page,"root_path"); LargeFilesCapacityPath=root;
         if(id!=largeFilesScanId) largeFilesRemovedPaths.Clear();
         var rows=Array(page["entries"]).Where(item=>!largeFilesRemovedPaths.Contains(Text(item?["entry"],"path"))).Select(item=>new LargeFileRow(Text(item?["entry"],"path"),root,item?["node"]?["allocated_bytes"]?.GetValue<long>() ?? 0,item?["node"]?["logical_bytes"]?.GetValue<long>() ?? 0,item?["removal_block_reason"]?.GetValue<string>())).ToArray();
         if(!more) LargeFiles.Clear();
         largeFilesScanId=id; largeFilesFolder=root; largeFilesQuery=query; largeFilesCursor=page["next_cursor"]?.GetValue<string>();
+        largeFilesCoverage=coverage;
         largeFilesTotalCount=page["total_count"]?.GetValue<int>() ?? 0; largeFilesTotalBytes=page["total_allocated_bytes"]?.GetValue<long>() ?? 0; largeFilesPartial=Text(page,"status")!="complete";
         foreach(var row in rows) { row.PropertyChanged+=(_,_)=>{ if(!largeFilesBatchSelection) LargeFilesChanged(); }; LargeFiles.Add(row); }
         OnPropertyChanged(nameof(LargeFilesFolder)); LargeFilesChanged();

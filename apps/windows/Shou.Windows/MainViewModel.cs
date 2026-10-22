@@ -107,7 +107,7 @@ public sealed partial class MainViewModel : ObservableObject
     private StorageExtensionRow? selectedStorageExtension;
     private static string StoragePreference => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Shou", "space-view.txt");
     private string? storageRoot;
-    private JsonNode?[] storageCoverage = [];
+    private StorageCoverageSummary? storageCoverage;
     private bool busy, trashAvailable, permanentAvailable;
     private string status = T("正在连接清理核心…"), exclusionPattern = "", storagePath = ".";
     private WorkspaceRow? selectedWorkspace;
@@ -578,9 +578,10 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task ScanStorageAsync(string path)
     {
         var scan = await client.RequestAsync("storage.scan", new() { ["path"] = path }, Progress(), cancellation: Token);
+        var coverage=StorageCoverageSummary.Read(scan);
         var browse = await client.RequestAsync("storage.browse", new() { ["scan_id"] = Text(scan, "scan_id"), ["path"] = "." }, cancellation: Token);
         storageScanId = Text(scan, "scan_id"); storageRoot = Text(scan, "root_path");
-        storageRows.Clear(); storageRemovedPaths.Clear(); storageChildOffsets.Clear(); storageCoverage = Array(scan["coverage_notes"]);
+        storageRows.Clear(); storageRemovedPaths.Clear(); storageChildOffsets.Clear(); storageCoverage = coverage;
         storageNavigation.Reset(); ClearStorageSelection(); StorageQuery=""; SelectedStorageExtension=null; StorageMap=null;
         ShowStoragePage(browse, false); if(StorageDetailed) await LoadStorageMapAsync();
     }

@@ -24,6 +24,7 @@ python3 "scripts/verify-agent-setup.py" --engine ".build/debug/shou"
 python3 "scripts/verify-desktop-bridge.py" --engine ".build/debug/shou"
 python3 "scripts/verify-scan-locations.py" --engine ".build/debug/shou"
 python3 "scripts/verify-storage-browsing.py" --engine ".build/debug/shou"
+python3 "scripts/verify-storage-coverage.py" --engine ".build/debug/shou"
 python3 "scripts/verify-privacy-bridge.py" --engine ".build/debug/shou" --native-fixtures
 python3 "scripts/verify-windows-closing.py" --engine ".build/debug/shou"
 python3 "scripts/verify-tool-cleanup.py" --engine ".build/debug/shou"

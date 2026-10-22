@@ -42,7 +42,7 @@ extension NativeFileSystem {
             var cursor: OpaquePointer?, expected=try WindowsNative.savedInfo(entry)
             let opened=shou_win_directory_open(absolute, &expected, &cursor)
             guard opened == 0, let cursor else {
-                issue("unreadable_directory: " + entry.path + " (" + String(opened) + ")")
+                issue("unreadable_directory: " + entry.path)
                 total.isComplete=false; try database.setTotals(total, id: id); return total
             }
             defer { shou_win_directory_close(cursor) }
@@ -55,7 +55,7 @@ extension NativeFileSystem {
                 if code == 18 { break } // ERROR_NO_MORE_FILES
                 guard code == 0, let pointer, let name=String(validatingCString: pointer),
                       !name.isEmpty, name != ".", name != "..", !name.contains("/"), !name.contains("\\") else {
-                    issue("unreadable_directory_entry: " + entry.path + " (" + String(code) + ")"); break
+                    issue("unreadable_directory_entry: " + entry.path); break
                 }
                 let relative=entry.path == "." ? name : entry.path + "/" + name
                 let item: FileEntry

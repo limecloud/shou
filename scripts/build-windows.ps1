@@ -122,6 +122,8 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Scan location inventory and confirmed configuration removal checks failed." }
             python -B "scripts/verify-storage-browsing.py" --engine (Join-Path $bin "shou.exe")
             if ($LASTEXITCODE -ne 0) { throw "Storage browsing, protection and shared selection checks failed." }
+            python -B "scripts/verify-storage-coverage.py" --engine (Join-Path $bin "shou.exe")
+            if ($LASTEXITCODE -ne 0) { throw "Saved space/large-file coverage and read-only boundaries failed." }
             python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe") --native-permanent
             if ($LASTEXITCODE -ne 0) { throw "Real desktop protocol integration failed." }
         } finally {

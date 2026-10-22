@@ -26,8 +26,6 @@ public sealed partial class MainViewModel
     public string StorageListSummary => F("列表 {0} 项 · {1}已加载 {2} / {3} 项",(StorageDetailed ? StorageTree.Count : StorageNodes.Count) ,(storageAppliedQuery.Length == 0 ? T("目录") : T("匹配")),storageDirectoryRows.Count,storageChildCount) + (StorageQueryCurrent ? "" : T(" · 按搜索更新结果"));
     public string StorageSelectionSummary => F("已选 {0} 项 · 占用估算 {1}",storageSelection.Count,Bytes(storageSelectedBytes));
     public string StorageProtection => SelectedStorageNode?.Protection ?? T("选择项目以查看保护状态。");
-    public string StorageCoverageDetails => storageCoverage.Length == 0 ? T("扫描未报告覆盖缺口。") : string.Join("\n", storageCoverage.Select(note =>
-        F("{0}：{1}（{2}）",Text(note, "path"),(note?["system_managed"]?.GetValue<bool>() == true ? T("系统管理的位置，无需调整权限") : T("未完整读取，可检查访问权限后重新扫描此范围")),Text(note, "code"))));
     public IAsyncRelayCommand StorageBackCommand { get; private set; } = null!;
     public IAsyncRelayCommand StorageForwardCommand { get; private set; } = null!;
     public IAsyncRelayCommand<StorageBreadcrumb> StorageBreadcrumbCommand { get; private set; } = null!;
@@ -62,6 +60,7 @@ public sealed partial class MainViewModel
 
     private void InitializeStorageNavigation()
     {
+        InitializeStorageCoverage();
         StorageBackCommand = new AsyncRelayCommand(() => RunAsync(() => NavigateStorageAsync(storageNavigation.BackTarget!, -1)), () => !IsBusy && storageNavigation.BackTarget is not null);
         StorageForwardCommand = new AsyncRelayCommand(() => RunAsync(() => NavigateStorageAsync(storageNavigation.ForwardTarget!, 1)), () => !IsBusy && storageNavigation.ForwardTarget is not null);
         StorageBreadcrumbCommand = new AsyncRelayCommand<StorageBreadcrumb>(item => RunAsync(() => NavigateStorageAsync(item!.Path)), item => !IsBusy && storageScanId is not null && item is not null && item.Path != StoragePath);
@@ -111,7 +110,7 @@ public sealed partial class MainViewModel
             var parts = StoragePath.Split('/');
             for (var index = 0; index < parts.Length; index++) StorageBreadcrumbs.Add(new(string.Join('/', parts.Take(index + 1)), parts[index]));
         }
-        FilterStorageRows(); OnPropertyChanged(nameof(StorageCoverageDetails));
+        FilterStorageRows();
         Status = page["item"]?["node"]?["is_complete"]?.GetValue<bool>() == true ? T("当前文件夹分析完成。双击目录继续查看。") : T("此范围存在覆盖缺口，可展开“扫描覆盖详情”查看。");
     }
 
