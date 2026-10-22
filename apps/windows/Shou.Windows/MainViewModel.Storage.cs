@@ -23,11 +23,11 @@ public sealed partial class MainViewModel
     public ObservableCollection<StorageBreadcrumb> StorageBreadcrumbs { get; } = [];
     public string StorageQuery { get => storageQuery; set { if (SetProperty(ref storageQuery, value)) { UpdateStorageSelectionEnabled(); OnPropertyChanged(nameof(StorageListSummary)); RefreshCommands(); } } }
     private bool StorageQueryCurrent => StorageQuery.Trim() == storageAppliedQuery;
-    public string StorageListSummary => $"列表 { (StorageDetailed ? StorageTree.Count : StorageNodes.Count) } 项 · {(storageAppliedQuery.Length == 0 ? "目录" : "匹配")}已加载 {storageDirectoryRows.Count} / {storageChildCount} 项" + (StorageQueryCurrent ? "" : " · 按搜索更新结果");
-    public string StorageSelectionSummary => $"已选 {storageSelection.Count} 项 · 占用估算 {Bytes(storageSelectedBytes)}";
-    public string StorageProtection => SelectedStorageNode?.Protection ?? "选择项目以查看保护状态。";
-    public string StorageCoverageDetails => storageCoverage.Length == 0 ? "扫描未报告覆盖缺口。" : string.Join("\n", storageCoverage.Select(note =>
-        $"{Text(note, "path")}：{(note?["system_managed"]?.GetValue<bool>() == true ? "系统管理的位置，无需调整权限" : "未完整读取，可检查访问权限后重新扫描此范围")}（{Text(note, "code")}）"));
+    public string StorageListSummary => F("列表 {0} 项 · {1}已加载 {2} / {3} 项",(StorageDetailed ? StorageTree.Count : StorageNodes.Count) ,(storageAppliedQuery.Length == 0 ? T("目录") : T("匹配")),storageDirectoryRows.Count,storageChildCount) + (StorageQueryCurrent ? "" : T(" · 按搜索更新结果"));
+    public string StorageSelectionSummary => F("已选 {0} 项 · 占用估算 {1}",storageSelection.Count,Bytes(storageSelectedBytes));
+    public string StorageProtection => SelectedStorageNode?.Protection ?? T("选择项目以查看保护状态。");
+    public string StorageCoverageDetails => storageCoverage.Length == 0 ? T("扫描未报告覆盖缺口。") : string.Join("\n", storageCoverage.Select(note =>
+        F("{0}：{1}（{2}）",Text(note, "path"),(note?["system_managed"]?.GetValue<bool>() == true ? T("系统管理的位置，无需调整权限") : T("未完整读取，可检查访问权限后重新扫描此范围")),Text(note, "code"))));
     public IAsyncRelayCommand StorageBackCommand { get; private set; } = null!;
     public IAsyncRelayCommand StorageForwardCommand { get; private set; } = null!;
     public IAsyncRelayCommand<StorageBreadcrumb> StorageBreadcrumbCommand { get; private set; } = null!;
@@ -57,7 +57,7 @@ public sealed partial class MainViewModel
             StorageMap = updated;
         }
         StorageExtensions.Clear(); ClearStorageSelection(); FilterStorageRows();
-        Status = action == "trash" ? "本次处理已结束，视图仅移除成功项；可在历史中恢复回收站项目。移入回收站不会立即释放空间。" : "所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。";
+        Status = action == "trash" ? T("本次处理已结束，视图仅移除成功项；可在历史中恢复回收站项目。移入回收站不会立即释放空间。") : T("所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。");
     });
 
     private void InitializeStorageNavigation()
@@ -106,13 +106,13 @@ public sealed partial class MainViewModel
             if (!storageDirectoryRows.Contains(row)) storageDirectoryRows.Add(row);
             if (!storageTreeRoots.Contains(row)) storageTreeRoots.Add(row);
         }
-        StorageBreadcrumbs.Clear(); StorageBreadcrumbs.Add(new(".", "扫描根目录"));
+        StorageBreadcrumbs.Clear(); StorageBreadcrumbs.Add(new(".", T("扫描根目录")));
         if (StoragePath != ".") {
             var parts = StoragePath.Split('/');
             for (var index = 0; index < parts.Length; index++) StorageBreadcrumbs.Add(new(string.Join('/', parts.Take(index + 1)), parts[index]));
         }
         FilterStorageRows(); OnPropertyChanged(nameof(StorageCoverageDetails));
-        Status = page["item"]?["node"]?["is_complete"]?.GetValue<bool>() == true ? "当前文件夹分析完成。双击目录继续查看。" : "此范围存在覆盖缺口，可展开“扫描覆盖详情”查看。";
+        Status = page["item"]?["node"]?["is_complete"]?.GetValue<bool>() == true ? T("当前文件夹分析完成。双击目录继续查看。") : T("此范围存在覆盖缺口，可展开“扫描覆盖详情”查看。");
     }
 
     private void FilterStorageRows()

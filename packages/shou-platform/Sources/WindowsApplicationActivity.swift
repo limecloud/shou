@@ -8,7 +8,8 @@ public struct WindowsApplicationActivity: ApplicationActivityChecking {
         "com.google.Chrome": "chrome.exe", "org.chromium.Chromium": "chrome.exe", "com.microsoft.edgemac": "msedge.exe",
         "com.microsoft.VSCode": "Code.exe", "com.microsoft.VSCodeInsiders": "Code - Insiders.exe", "com.brave.Browser": "brave.exe",
         "com.vivaldi.Vivaldi": "vivaldi.exe", "org.mozilla.firefox": "firefox.exe", "com.tinyspeck.slackmacgap": "slack.exe",
-        "com.hnc.Discord": "Discord.exe", "notion.id": "Notion.exe", "com.postmanlabs.mac": "Postman.exe", "com.todesktop.230313mzl4w4u92": "Cursor.exe"
+        "com.hnc.Discord": "Discord.exe", "notion.id": "Notion.exe", "com.postmanlabs.mac": "Postman.exe", "com.todesktop.230313mzl4w4u92": "Cursor.exe",
+        "md.obsidian": "Obsidian.exe", "com.github.GitHubClient": "GitHubDesktop.exe", "com.insomnia.app": "Insomnia.exe"
     ]
     private let processRunning: @Sendable (String) throws -> Bool
 

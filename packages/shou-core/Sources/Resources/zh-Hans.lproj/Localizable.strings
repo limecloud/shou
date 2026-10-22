@@ -290,6 +290,7 @@
 "Choose a valid connection name and identifier." = "请填写有效的连接名称和标识。";
 "Choose a workspace to inspect storage." = "选择工作区，查看空间占用。";
 "Choose active, deleted or all as the configuration state." = "配置状态请选择 active、deleted 或 all。";
+"Choose an absolute Skill path without traversal components." = "请选择不包含上级或当前目录跳转的绝对 Skill 路径。";
 "Choose an unused rule version. Existing versions cannot be overwritten." = "请使用尚未存在的版本号，已有版本不能覆盖。";
 "Choose extra folders to remember for future cleanup scans." = "选择额外文件夹，今后的清理扫描会自动包含这些位置。";
 "Choose local storage or system credentials before saving an API key." = "保存 API 密钥前，请选择本地存储或系统凭据。";
@@ -1451,7 +1452,12 @@
 "The Cargo source layout or evidence budget is unsupported." = "Cargo 包源码目录结构不受支持，或超出核验范围。";
 "The Git ownership marker cannot be safely inspected." = "无法安全检查 Git 仓库标记。";
 "The IDE rebuilds indexes and generated caches when needed." = "IDE 会按需重建索引与生成缓存。";
+"The Skill contains an oversized file." = "Skill 中的文件超过大小上限。";
+"The Skill or destination changed. Review the export again." = "Skill 或导出位置已变化，请重新审阅导出。";
+"The Skill or destination changed. Review the installation again." = "Skill 或安装位置已变化，请重新审阅安装。";
+"The Skill package contains an unsupported file." = "Skill 技能包包含不支持的文件。";
 "The Skill package could not be created." = "无法创建 Skill 技能包。";
+"The Skill package exceeds its file limit." = "Skill 技能包的文件数量超过上限。";
 "The Trash target changed before verification." = "废纸篓目标在核验前发生变化。";
 "The Trash target or its parent changed before the system operation." = "目标或其父目录在移到废纸篓前发生变化。";
 "The Unarchiver caches" = "The Unarchiver 缓存";
@@ -1468,6 +1474,9 @@
 "The framework recreates these outputs during development or the next build." = "框架会在开发或下次构建时重新生成这些产物。";
 "The hard-linked file changed before permanent removal." = "硬链接文件在永久删除前发生变化，请重新扫描。";
 "The hard-linked file changed during permanent removal." = "硬链接文件在永久删除期间发生变化，已停止清理。";
+"The installed Skill cannot be inspected." = "无法检查已安装的 Skill，现有文件已保留。";
+"The installed Skill contains a symbolic link. Existing files were preserved." = "已安装的 Skill 包含符号链接，现有文件已保留。";
+"The installed Skill contains unsupported files. Existing files were preserved." = "已安装的 Skill 包含不支持的文件，现有文件已保留。";
 "The installed Skill has local changes or is not managed by Shou. Existing files were preserved." = "现有 Skill 已被修改或由其他工具管理，文件已保留。请另选安装目录或手动备份后处理。";
 "The investigation folder changed. Scan it again before importing a rule." = "调查文件夹已发生变化，请重新扫描后再导入规则。";
 "The investigation reached its 12-step analysis limit. Existing evidence is saved; investigate a specific child folder next." = "达到单次 12 步分析上限。已有证据已保存，可选择具体子目录继续调查。";

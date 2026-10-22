@@ -104,6 +104,12 @@ private final class StorageWorkerCancellationProbe: @unchecked Sendable {
 }
 
 func storageDirectoryWorkersObserveParentTaskCancellation() async throws {
+    // Repeat the final-worker handoff: group completion must also release all
+    // callbacks before their nonescaping and unsafe-task scopes can end.
+    for _ in 0..<16 { try await storageDirectoryWorkerCancellationOnce() }
+}
+
+private func storageDirectoryWorkerCancellationOnce() async throws {
     let fixture=try Fixture(), probe=StorageWorkerCancellationProbe()
     let task=Task.detached {
         probe.begin()

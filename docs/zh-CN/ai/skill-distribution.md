@@ -4,7 +4,7 @@
 
 调研日期：2026-10-20。本地安装、随包读取与 ZIP 导出已有实现；客户端发现与任务执行需分别实测，分发指令本身不代表兼容性验收完成。
 
-验证结果：137 项核心测试、114 项真实 CLI 合同检查、4 项终端确认检查及隔离原生清理／恢复／永久移除检查通过。安装测试覆盖重复安装、受管更新备份、本地修改保留、非法文件、链接与 ZIP 内容，不写入真实客户端目录。Computer Use 验证了安装版中文交接页、Codex／Claude Code 指引和复制请求；独立数据副本验证了 WorkBuddy 原生保存面板导出及英文规则页。ZIP 的三个文件与源码一致。后续 UI 读取返回超时／无窗口错误，因此不计完整英文交接页及本轮切回中文通过。未配置或启动外部客户端进行验收。
+此前 macOS 验证：137 项核心测试、114 项真实 CLI 合同检查、4 项终端确认检查及隔离原生清理／恢复／永久移除检查通过。安装测试覆盖重复安装、受管更新备份、本地修改保留、非法文件、链接与 ZIP 内容，不写入真实客户端目录。Computer Use 验证了安装版中文交接页、Codex／Claude Code 指引和复制请求；独立数据副本验证了 WorkBuddy 原生保存面板导出及英文规则页。ZIP 的三个文件与源码一致。后续 UI 读取返回超时／无窗口错误，因此不计完整英文交接页及本轮切回中文通过。未配置或启动外部客户端进行验收。
 
 ## Lark CLI 的做法
 
@@ -25,6 +25,15 @@ Shou 学习这种分发与发现方式，使用自己的 Swift 实现。当前�
 "/Applications/Shou.app/Contents/Helpers/shou" skills install --agent claude-code --json
 "/Applications/Shou.app/Contents/Helpers/shou" skills export --output "$HOME/Downloads/shou-rule-authoring.zip" --json
 ```
+
+Windows 的**规则页**与**设置页**也提供外部 AI 设置窗口。Codex／Claude Code 安装先预览所选父目录，再明确确认，支持选择项目目录；WorkBuddy 通过保存面板导出 ZIP。归档跨平台生成，无需系统压缩工具。复制请求包含随包程序的完整路径，此交接无需先把 `shou` 加入 `PATH`；“设置 → 安装 CLI 命令”可经审阅安装用户级原生入口，不修改 PATH。请将完整应用保留在审阅位置；Windows 原生命令及界面验收仍待完成。客户端发现与 WorkBuddy 实际上传仍需 Windows 验收。
+
+```powershell
+& "C:/path/to/Shou/Engine/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
+& "C:/path/to/Shou/Engine/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
+```
+
+桌面桥的 `agent.setup`／`skills.preview` 只读，`skills.install`／`skills.export` 使用本次请求确认，并在写入前复核审阅内容和目标。`scripts/verify-agent-setup.py` 只写生成目录，已接入常规测试和 Windows Check。
 
 按需选择一条命令，无需为所有客户端安装。
 

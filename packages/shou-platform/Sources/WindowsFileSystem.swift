@@ -70,7 +70,8 @@ enum WindowsNative {
 }
 
 public struct NativeFileSystem: PlatformFileSystem {
-    public init() {}
+    private let applicationDataAccess: WindowsApplicationDataAccess?
+    public init(applicationDataAccess: WindowsApplicationDataAccess? = nil) { self.applicationDataAccess=applicationDataAccess }
     public var platform: String { "windows" }
     public var caseSensitivePaths: Bool { false }
     public var supportsTrash: Bool { ProcessInfo.processInfo.environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] == "1" }
@@ -89,7 +90,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         catch let error as ShouError where error.code == "not_found" { return .missing }
         catch { return .unavailable(error.localizedDescription) }
     }
-    private func protectedRoot(_ path: String, allowCacheRoot: Bool = false, allowCacheTarget: Bool = false) -> Bool {
+    private func protectedRoot(_ path: String, allowCacheRoot: Bool = false, allowCacheTarget: Bool = false, allowDataParent: Bool = false, allowDataTarget: Bool = false) -> Bool {
         let path=path.lowercased(), env=ProcessInfo.processInfo.environment
         func normalize(_ value: String?) -> String? { value.flatMap { try? normalizedPath($0).lowercased() } }
         let home=normalize(env["USERPROFILE"])
@@ -97,6 +98,8 @@ public struct NativeFileSystem: PlatformFileSystem {
             home.map { $0 + "/.ssh" }, home.map { $0 + "/.gnupg" }].compactMap(normalize)
         if path.count <= 3 || path == home || path.split(separator: "/").contains("$recycle.bin") || protected.contains(where: { path == $0 || path.hasPrefix($0 + "/") }) { return true }
         if let home, path == home + "/appdata" || path.hasPrefix(home + "/appdata/") {
+            if allowDataParent && applicationDataAccess?.permitsParent(path)==true { return false }
+            if allowDataTarget && applicationDataAccess?.permitsTarget(path)==true { return false }
             guard let access=try? WindowsCacheAccess(homeDirectory: URL(fileURLWithPath: home)) else { return true }
             return !((allowCacheRoot && access.permitsRoot(path)) || (allowCacheTarget && access.permitsTarget(path)))
         }
@@ -104,7 +107,7 @@ public struct NativeFileSystem: PlatformFileSystem {
     }
     public func rootIdentity(_ path: String) throws -> FileEntry {
         let path=try normalizedPath(path), raw=try WindowsNative.metadata(path)
-        guard raw.kind == 2, raw.current_user == 1, !protectedRoot(path, allowCacheRoot: true) else { throw ShouError("permission_denied", "Select a local user-owned directory outside protected system and Shou locations.") }
+        guard raw.kind == 2, raw.current_user == 1, !protectedRoot(path, allowCacheRoot: true, allowDataParent: true) else { throw ShouError("permission_denied", "Select a local user-owned directory outside protected system and Shou locations.") }
         return WindowsNative.entry(raw, path: ".")
     }
     public func cleanupTargetIdentity(_ path: String) throws -> FileEntry {
@@ -115,6 +118,12 @@ public struct NativeFileSystem: PlatformFileSystem {
         return WindowsNative.entry(raw, path: ".")
     }
     private func verifyMutationParent(_ path: String) throws {
+        if applicationDataAccess?.permitsTarget(path)==true {
+            guard !protectedRoot(path,allowDataTarget: true) else { throw ShouError("permission_denied", "Application data is outside the reviewed user scope.") }
+            let parent=String(path[..<path.lastIndex(of: "/")!]),raw=try WindowsNative.metadata(parent)
+            guard raw.kind==2,raw.current_user==1 else { throw ShouError("permission_denied", "Application data parent is not owned by the current user.") }
+            return
+        }
         guard !protectedRoot(path, allowCacheTarget: true) else { throw ShouError("permission_denied", "Only declared cache targets may be changed inside AppData.") }
         let parent=URL(fileURLWithPath: path).deletingLastPathComponent().path
         if let home=try? normalizedPath(FileManager.default.homeDirectoryForCurrentUser.path),

@@ -7,18 +7,18 @@ namespace Shou.Windows;
 
 public sealed record HistoryObservation(string? Path, string State, string? Issue)
 {
-    public string DisplayPath => Path ?? "未记录路径";
+    public string DisplayPath => Path ?? T("未记录路径");
     public string Label => State switch
     {
-        "matches" => "内容与记录一致", "missing" => "当前位置不存在", "changed" => "内容已改变",
-        "not_recorded" => "未记录此位置", _ => "无法核验"
+        "matches" => T("内容与记录一致"), "missing" => T("当前位置不存在"), "changed" => T("内容已改变"),
+        "not_recorded" => T("未记录此位置"), _ => T("无法核验")
     };
     public string IssueText => Issue switch
     {
-        null => "", "unverified_location" => "位置身份无法确认。", "resource_limit" => "已达到本次核验的数量或时间上限。",
-        "permission_or_type_unavailable" => "无法读取此位置，或文件类型不受支持。", "incomplete_manifest" => "未能完整读取目录内容。",
-        "manifest_changed" => "项目的身份或内容与记录不一致。", "inspection_failed" => "读取失败，请检查访问权限后重试。",
-        _ => "未能完成核验：" + Issue
+        null => "", "unverified_location" => T("位置身份无法确认。"), "resource_limit" => T("已达到本次核验的数量或时间上限。"),
+        "permission_or_type_unavailable" => T("无法读取此位置，或文件类型不受支持。"), "incomplete_manifest" => T("未能完整读取目录内容。"),
+        "manifest_changed" => T("项目的身份或内容与记录不一致。"), "inspection_failed" => T("读取失败，请检查访问权限后重试。"),
+        _ => T("未能完成核验：") + Issue
     };
 }
 public sealed record HistoryInspectionFollowUp(string State);
@@ -26,11 +26,11 @@ public sealed record HistoryInspectionItem(string Id, string RelativePath, Histo
 {
     public string Label => State switch
     {
-        "verified_trash" => "回收站项目与记录一致", "verified_original" => "项目位于原始路径，且与记录一致",
-        "restore_conflict" => "恢复目标位置已被占用", "restored" => "已恢复，且内容与记录一致",
-        "purged" => "已记录永久删除，原位置或回收站项目已不存在", "missing" => "未找到记录中的项目", _ => "结果需要进一步核实"
+        "verified_trash" => T("回收站项目与记录一致"), "verified_original" => T("项目位于原始路径，且与记录一致"),
+        "restore_conflict" => T("恢复目标位置已被占用"), "restored" => T("已恢复，且内容与记录一致"),
+        "purged" => T("已记录永久删除，原位置或回收站项目已不存在"), "missing" => T("未找到记录中的项目"), _ => T("结果需要进一步核实")
     };
-    public string PendingNotice => FollowUp?.State == "pending" ? "后续操作尚未结束，需要核实结果。" : "";
+    public string PendingNotice => FollowUp?.State == "pending" ? T("后续操作尚未结束，需要核实结果。") : "";
 }
 public sealed record HistoryInspectionReport(string ExecutionId, DateTimeOffset CheckedAt, bool Unfinished, string Status, HistoryInspectionItem[] Items);
 
@@ -57,18 +57,18 @@ public partial class HistoryInspectionDialog : Window
         using var stop = new CancellationTokenSource(); checking = stop;
         CheckAgain.IsEnabled = false; CheckingProgress.Visibility = Visibility.Visible;
         InspectionItems.ItemsSource = null; UnfinishedNotice.Visibility = Visibility.Collapsed;
-        VerificationSummary.Text = "正在核验记录中的具体位置…";
+        VerificationSummary.Text = T("正在核验记录中的具体位置…");
         try
         {
             var result = await client.RequestAsync("history.inspect", new() { ["execution_id"] = executionId }, cancellation: stop.Token);
             var report = result.Deserialize<HistoryInspectionReport>(JsonOptions);
             if (report is null || report.ExecutionId != executionId || report.Items is null)
-                throw new BridgeException("transport_failed", "核验结果与所选记录不一致。");
+                throw new BridgeException("transport_failed", T("核验结果与所选记录不一致。"));
             if (!closed) ShowReport(report);
         }
         catch (Exception error)
         {
-            if (!closed) VerificationSummary.Text = "核验未完成：" + error.Message;
+            if (!closed) VerificationSummary.Text = T("核验未完成：") + error.Message;
         }
         finally
         {
@@ -78,7 +78,7 @@ public partial class HistoryInspectionDialog : Window
     }
     private void ShowReport(HistoryInspectionReport report)
     {
-        VerificationSummary.Text = $"{report.CheckedAt.ToLocalTime():g} · {report.Items.Length} 项 · " + (report.Status == "complete" ? "已核验记录位置" : "部分结果需要核实");
+        VerificationSummary.Text = F("{0:g} · {1} 项 · ",report.CheckedAt.ToLocalTime(),report.Items.Length) + (report.Status == "complete" ? T("已核验记录位置") : T("部分结果需要核实"));
         UnfinishedNotice.Visibility = report.Unfinished ? Visibility.Visible : Visibility.Collapsed;
         InspectionItems.ItemsSource = report.Items;
     }

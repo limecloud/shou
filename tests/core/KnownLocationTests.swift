@@ -465,7 +465,11 @@ func windowsCacheRulesKeepProfilesSourcesAndEnvironments() async throws {
         ("windows-vscode-insiders",["CachedData","Code Cache"],["User/globalStorage","User/workspaceStorage","Backups"]),
         ("windows-cursor",["CachedData","GPUCache"],["User/globalStorage","User/workspaceStorage","Backups"]),
         ("windows-yarn",["Cache"],["config","bin"]),
-        ("windows-uv",["cache"],["python","tools","environments"])
+        ("windows-uv",["cache"],["python","tools","environments"]),
+        ("windows-chromium",["Default/Cache","Profile 2/Code Cache","Profile 2/GPUCache"],["Default/Network","Default/Local Storage","Default/Sessions","Profile 2/Extensions"]),
+        ("windows-obsidian",["Cache","Code Cache","GPUCache"],["IndexedDB","Local Storage","Session Storage","vault/.obsidian","vault/notes","obsidian.json","obsidian.asar"]),
+        ("windows-github-desktop",["Cache","Code Cache","GPUCache"],["IndexedDB","Local Storage","Session Storage","repositories","logs","Preferences"]),
+        ("windows-insomnia",["Cache","Code Cache","GPUCache"],["IndexedDB","Local Storage","Session Storage","insomnia.Project.db","insomnia.Request.db","plugins","git","responses"])
     ]
     try expect(Set(samples.map { $0.0 }) == Set(locations.map(\.id)))
     let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)

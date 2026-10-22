@@ -16,8 +16,8 @@ public sealed partial class MainViewModel
             CleanupCloseResult = "";
             var result = await client.RequestAsync("cleanup.close-owners", new() { ["scan_ids"] = Strings(cleanupScanIds) }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
             var receipt = result["receipt"]!;
-            CleanupCloseResult = string.Join("\n", Array(receipt["items"]).Select(item => Text(item, "name") + "：" + (Text(item, "state") switch {
-                "closed" => "已关闭", "still_running" => "仍在运行，请处理应用内的保存提示或手动退出", "cancelled" => "已停止请求", _ => "未能核验或关闭，请手动退出"
+            CleanupCloseResult = string.Join("\n", Array(receipt["items"]).Select(item => Text(item, "name") + T("：") + (Text(item, "state") switch {
+                "closed" => T("已关闭"), "still_running" => T("仍在运行，请处理应用内的保存提示或手动退出"), "cancelled" => T("已停止请求"), _ => T("未能核验或关闭，请手动退出")
             })));
             var affected = Array(result["affected_workspace_ids"]).Select(item => item!.GetValue<string>()).ToHashSet(StringComparer.Ordinal);
             var paths = cleanupSelection.Items.Select(item => item.AbsolutePath).Concat(Array(result["affected_paths"]).Select(item => item!.GetValue<string>())).ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -36,10 +36,10 @@ public sealed partial class MainViewModel
                     foreach (var row in refreshed.Where(row => paths.Contains(row.AbsolutePath))) cleanupSelection.Set(row.Choice, true);
                 }
             } catch {
-                CleanupCloseResult += "\n刷新未完成。受影响的旧扫描已失效，请重新扫描后审阅；其他目录的选择已保留。";
+                CleanupCloseResult += T("\n刷新未完成。受影响的旧扫描已失效，请重新扫描后审阅；其他目录的选择已保留。");
                 throw;
             } finally { SyncCleanupSelection(); }
-            Status = "受影响目录已重新扫描。请审阅当前选择，再确认清理；仍在运行或无法核验的项目继续受保护。";
+            Status = T("受影响目录已重新扫描。请审阅当前选择，再确认清理；仍在运行或无法核验的项目继续受保护。");
         }), () => !IsBusy && !AiBusy && cleanupClosingAvailable && cleanupScanIds.Count > 0);
         commands.Add(CloseCleanupOwnersCommand);
     }
@@ -53,7 +53,7 @@ public sealed partial class MainViewModel
         cleanupSelection.RemoveWhere(item => affected.Contains(item.WorkspaceId) || previous.Contains(item.ScanId));
         cleanupNextOffset = null; cleanupQueryDigest = "";
         Candidates.Clear(); SelectedCleanupCandidate = null; CleanupGroups.Clear();
-        CleanupResultSummary = "正在刷新受影响目录。旧扫描已失效，清理仍需重新审阅。";
+        CleanupResultSummary = T("正在刷新受影响目录。旧扫描已失效，清理仍需重新审阅。");
         SyncCleanupSelection();
     }
 

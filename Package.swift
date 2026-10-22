@@ -31,13 +31,22 @@ var targets: [Target] = [
     .executableTarget(name: "ShouSelfTests", dependencies: ["ShouCore", "ShouPlatform", "ShouAI", "CSQLite"], path: "tests/core")
 ]
 #if os(Windows)
-targets.append(.target(name: "CShouWindows", path: "packages/windows-native", publicHeadersPath: "include", linkerSettings: [.linkedLibrary("ole32"), .linkedLibrary("oleaut32"), .linkedLibrary("secur32"), .linkedLibrary("shell32"), .linkedLibrary("advapi32"), .linkedLibrary("bcrypt"), .linkedLibrary("uuid"), .linkedLibrary("runtimeobject"), .linkedLibrary("user32")]))
+targets.append(.target(name: "CShouWindows", path: "packages/windows-native", publicHeadersPath: "include", linkerSettings: [.linkedLibrary("ole32"), .linkedLibrary("oleaut32"), .linkedLibrary("secur32"), .linkedLibrary("shell32"), .linkedLibrary("shlwapi"), .linkedLibrary("advapi32"), .linkedLibrary("bcrypt"), .linkedLibrary("uuid"), .linkedLibrary("runtimeobject"), .linkedLibrary("user32"), .linkedLibrary("msi"), .linkedLibrary("wtsapi32"), .linkedLibrary("onecoreuap")]))
 products.removeAll { $0.name == "shou-tests" }
 targets.removeAll { $0.name == "ShouSelfTests" }
 products.append(.executable(name: "shou-windows-tests", targets: ["ShouWindowsTests"]))
 targets.append(.executableTarget(name: "ShouWindowsTests", dependencies: ["ShouCore", "ShouPlatform", "CShouWindows"], path: "tests/windows"))
+// SwiftPM adds swiftrt.obj to Windows C++ executables; resolve its runtime import explicitly.
 products.append(.executable(name: "shou-windows-closing-checks", targets: ["ShouWindowsClosingChecks"]))
-targets.append(.executableTarget(name: "ShouWindowsClosingChecks", dependencies: ["CShouWindows"], path: "tests/windows-closing"))
+targets.append(.executableTarget(name: "ShouWindowsClosingChecks", dependencies: ["CShouWindows"], path: "tests/windows-closing", linkerSettings: [.linkedLibrary("swiftCore")]))
+products.append(.executable(name: "shou-windows-tools-checks", targets: ["ShouWindowsToolsChecks"]))
+targets.append(.executableTarget(name: "ShouWindowsToolsChecks", dependencies: ["CShouWindows"], path: "tests/windows-tools", linkerSettings: [.linkedLibrary("swiftCore")]))
+products.append(.executable(name: "shou-windows-uninstall-checks", targets: ["ShouWindowsUninstallChecks"]))
+targets.append(.executableTarget(name: "ShouWindowsUninstallChecks", dependencies: ["CShouWindows"], path: "tests/windows-uninstall", linkerSettings: [.linkedLibrary("swiftCore")]))
+products.append(.executable(name: "shou-windows-preview-checks", targets: ["ShouWindowsPreviewChecks"]))
+targets.append(.executableTarget(name: "ShouWindowsPreviewChecks", dependencies: ["CShouWindows"], path: "tests/windows-preview", linkerSettings: [.linkedLibrary("swiftCore")]))
+products.append(.executable(name: "shou-windows-package-data-checks", targets: ["ShouWindowsPackageDataChecks"]))
+targets.append(.executableTarget(name: "ShouWindowsPackageDataChecks", dependencies: ["CShouWindows"], path: "tests/windows-package-data", linkerSettings: [.linkedLibrary("swiftCore")]))
 #endif
 #if os(macOS)
 dependencies.append(.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"))

@@ -9,9 +9,15 @@ private final class ToolFixtureRunner: CleanupToolRunning, @unchecked Sendable {
     var remote=false
     var changed=false
     var failMutation=false
+    var platform: CleanupToolPlatform = .macOS
+    var windowsEndpoint="npipe:////./pipe/docker_engine"
+    var replaceBeforeMutation=false
+    var onPreview: (@Sendable () -> Void)?
     var mutationCount: Int { lock.lock(); defer { lock.unlock() }; return mutations.count }
-    func run(_ command: CleanupToolCommand, timeoutSeconds: Double) throws -> CleanupToolOutput {
+    func run(_ command: CleanupToolCommand, timeoutSeconds: Double, expectedExecutableIdentity: String? = nil) throws -> CleanupToolOutput {
         lock.lock(); defer { lock.unlock() }
+        if command.mutating && (replaceBeforeMutation || expectedExecutableIdentity != "generated-" + command.tool) { throw ShouError("tool_changed", "Generated executable identity changed.") }
+        if !command.mutating { onPreview?() }
         if command.mutating {
             mutations.append(command)
             if failMutation { throw ShouError("tool_timeout", "Generated tool timeout.") }
@@ -19,7 +25,7 @@ private final class ToolFixtureRunner: CleanupToolRunning, @unchecked Sendable {
         }
         let text: String
         switch command {
-        case .dockerContext: text=remote ? "\"tcp://remote:2376\"" : "\"unix:///var/run/docker.sock\""
+        case .dockerContext: text=remote ? "\"tcp://remote:2376\"" : platform == .windows ? "\""+windowsEndpoint+"\"" : "\"unix:///var/run/docker.sock\""
         case .dockerPreview: text="{\"Type\":\"Build Cache\",\"Reclaimable\":\"" + (removed.contains("docker") ? "0B" : changed ? "4MB" : "2MB") + "\"}\n"
         case .brewPreview: text=removed.contains("brew") ? "" : "Would remove: /fixture/old (3MB)\n"
         case .condaPreview: text="{\"success\":true,\"tarballs\":{\"total_size\":" + (removed.contains("conda") ? "0" : "4096") + "}}"
@@ -67,22 +73,65 @@ func toolCleanupRejectsRemoteStaleAndUnknownOutcomes() async throws {
     try expect(runner.mutationCount == 0)
     runner.changed=false; runner.failMutation=true
     let outcome=try await service.execute(planId: plan.id, confirmedDigest: plan.digest)
-    try expect(outcome.state == "unknown" && outcome.error != nil)
+    try expect(outcome.state == "unknown" && outcome.error == "tool_timeout")
     try await expectThrows { try await service.execute(planId: plan.id, confirmedDigest: plan.digest) }
     try expect(runner.mutationCount == 1)
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
     try expectThrows { try NativeCleanupTools().run(.rustRemove("--default"), timeoutSeconds: 1) }
 }
 
+func toolCleanupSupportsWindowsScopeAndBindsMutationImage() async throws {
+    let fixture=try Fixture(), runner=ToolFixtureRunner();runner.platform = .windows
+    let service=ToolCleanupService(runner: runner, store: fixture.store)
+    let scan=try await service.scan()
+    try expect(scan.issues.isEmpty && Set(scan.targets.map(\.tool)) == ["docker","conda","rustup"])
+    let target=try require(scan.targets.first { $0.tool == "docker" })
+    let plan=try await service.createPlan(scanId: scan.id, targetId: target.id)
+    for endpoint in ["tcp://remote:2376","unix:///var/run/docker.sock","npipe:////remote/pipe/docker_engine","npipe:////./pipe/other_engine"] {
+        runner.windowsEndpoint=endpoint
+        let refused=try await service.scan()
+        try expect(!refused.targets.contains { $0.tool == "docker" } && refused.issues.contains { $0.code == "remote_context" })
+    }
+    runner.windowsEndpoint="npipe:////./pipe/docker_engine";runner.replaceBeforeMutation=true
+    let receipt=try await service.execute(planId: plan.id, confirmedDigest: plan.digest)
+    try expect(receipt.state == "unknown" && receipt.error == "tool_changed" && runner.mutationCount == 0)
+    try await expectThrows { try await service.execute(planId: plan.id, confirmedDigest: plan.digest) }
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+    try expectThrows { try WindowsCleanupTools().run(.rustRemove("--default"), timeoutSeconds: 1) }
+    try expectThrows { try WindowsCleanupTools().run(.brewPreview, timeoutSeconds: 1) }
+}
+
+private final class ToolCleanupClock: @unchecked Sendable {
+    private let lock=NSLock()
+    private var date=Date()
+    func read() -> Date { lock.lock(); defer { lock.unlock() }; return date }
+    func advance() { lock.lock(); defer { lock.unlock() }; date.addTimeInterval(121) }
+}
+func toolCleanupExpiresDuringOwnerPreview() async throws {
+    let fixture=try Fixture(), runner=ToolFixtureRunner(), clock=ToolCleanupClock()
+    let service=ToolCleanupService(runner: runner, store: fixture.store, now: { clock.read() })
+    let scan=try await service.scan(), target=try require(scan.targets.first { $0.tool == "docker" })
+    let plan=try await service.createPlan(scanId: scan.id, targetId: target.id)
+    runner.onPreview = { clock.advance() }
+    try await expectThrows { try await service.execute(planId: plan.id, confirmedDigest: plan.digest) }
+    try expect(runner.mutationCount == 0 && (try fixture.store.ids("tool-history")).isEmpty)
+}
+
 func nativeToolAdapterBoundsRealFixtureProcesses() throws {
     let fixture=try Fixture()
     let relative=".cargo/bin/rustup", executable=fixture.workspace.appendingPathComponent(relative)
-    try fixture.put(relative, "#!/bin/sh\nprintf 'fixture-工具\\n'\n")
+    try fixture.put(relative, "#!/bin/sh\n[ \"$RUSTUP_AUTO_INSTALL\" = \"0\" ] || exit 4\nprintf 'fixture-工具\\n'\n")
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
     let runner=NativeCleanupTools(homeDirectory: fixture.workspace)
     let result=try runner.run(.rustList, timeoutSeconds: 2)
     try expect(result.text == "fixture-工具\n")
     try expect(result.executableIdentity.hasPrefix(executable.resolvingSymlinksInPath().path + ":"))
+    try fixture.put(relative, "#!/bin/sh\n/usr/bin/touch \"$HOME/unreviewed-tool-started\"\n")
+    do {
+        _ = try runner.run(.rustRemove("1.75.0-fixture"), timeoutSeconds: 2, expectedExecutableIdentity: result.executableIdentity)
+        throw CheckFailure(description: "Expected a changed executable to be refused before mutation")
+    } catch let error as ShouError { try expect(error.code == "tool_changed") }
+    try expect(!FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("unreviewed-tool-started").path))
     // The generated child's delayed write must never survive a timeout, even
     // after its launcher exits. No real tool or user configuration is used.
     try fixture.put(relative, "#!/bin/sh\n(/bin/sleep 2; /usr/bin/touch \"$HOME/escaped-child\") &\nexit 0\n")

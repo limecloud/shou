@@ -13,7 +13,7 @@ public sealed class CleanupGroupRow(string categoryId, string? groupId, string t
     public string Title { get; } = title;
     public int SelectableCount { get; } = selectable;
     public bool HasSelectable => SelectableCount > 0;
-    public string Summary => $"{MainViewModel.Bytes(bytes)} · {count} 个目录 · {SelectableCount} 个可选";
+    public string Summary => F("{0} · {1} 个目录 · {2} 个可选",MainViewModel.Bytes(bytes),count,SelectableCount);
     public ObservableCollection<CleanupGroupRow> Children { get; } = [];
     private bool? selectionState = false;
     public bool? SelectionState { get => selectionState; set => SetProperty(ref selectionState, value); }
@@ -28,8 +28,8 @@ public sealed partial class MainViewModel
     private CleanupGroupRow? cleanupScope;
     private int? cleanupNextOffset;
     private string cleanupQuery = "", appliedCleanupQuery = "", cleanupQueryDigest = "";
-    private string cleanupResultSummary = "扫描后可按分类和规则审阅目录。";
-    private string cleanupSelectionSummary = "尚未选择目录";
+    private string cleanupResultSummary = T("扫描后可按分类和规则审阅目录。");
+    private string cleanupSelectionSummary = T("尚未选择目录");
     private bool updatingCleanupGroups, updatingCleanupSelection;
     private CandidateRow? selectedCleanupCandidate;
     public ObservableCollection<CleanupGroupRow> CleanupGroups { get; } = [];
@@ -37,7 +37,7 @@ public sealed partial class MainViewModel
     public string CleanupQuery { get => cleanupQuery; set => SetProperty(ref cleanupQuery, value); }
     public string CleanupResultSummary { get => cleanupResultSummary; private set => SetProperty(ref cleanupResultSummary, value); }
     public string CleanupSelectionSummary { get => cleanupSelectionSummary; private set => SetProperty(ref cleanupSelectionSummary, value); }
-    public string CleanupScopeTitle => cleanupScope?.Title ?? "全部分类";
+    public string CleanupScopeTitle => cleanupScope?.Title ?? T("全部分类");
     public IAsyncRelayCommand ApplyCleanupSearchCommand { get; private set; } = null!;
     public IAsyncRelayCommand SelectRecommendedCleanupCommand { get; private set; } = null!;
     public IAsyncRelayCommand<CleanupGroupRow> ToggleCleanupGroupCommand { get; private set; } = null!;
@@ -72,7 +72,7 @@ public sealed partial class MainViewModel
             dialogs.RevealItem(row!.AbsolutePath); return Task.CompletedTask;
         }), CanUseCleanupCandidate);
         CopyCleanupCandidatePathCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(() => {
-            System.Windows.Clipboard.SetText(row!.AbsolutePath); Status = "已复制此候选目录的完整路径。"; return Task.CompletedTask;
+            System.Windows.Clipboard.SetText(row!.AbsolutePath); Status = T("已复制此候选目录的完整路径。"); return Task.CompletedTask;
         }), CanUseCleanupCandidate);
         AnalyzeCleanupCandidateCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(async () => {
             await ScanStorageAsync(row!.AbsolutePath); SelectedSection = 1;
@@ -86,7 +86,7 @@ public sealed partial class MainViewModel
             ResetCleanupReview(); await LoadConfigurationAsync();
             SelectedWorkspace = Workspaces.FirstOrDefault(item => item.Id == workspace);
             ExclusionScope = 1; SelectedSection = 2;
-            Status = "已排除此目录及其内容，文件保持原位。重新扫描后生效，可在当前工作区的排除保护中移除。";
+            Status = T("已排除此目录及其内容，文件保持原位。重新扫描后生效，可在当前工作区的排除保护中移除。");
         }), row => CanUseCleanupCandidate(row) && !AiBusy);
         commands.AddRange([ApplyCleanupSearchCommand, SelectRecommendedCleanupCommand, ToggleCleanupGroupCommand,
             ShowAllCleanupCommand, ClearCleanupSelectionCommand, RevealCleanupCandidateCommand, CopyCleanupCandidatePathCommand,
@@ -101,7 +101,7 @@ public sealed partial class MainViewModel
         cleanupScope = null; cleanupNextOffset = null; cleanupQueryDigest = "";
         appliedCleanupQuery = ""; CleanupQuery = "";
         SelectedCleanupCandidate = null; Candidates.Clear(); CleanupGroups.Clear();
-        CleanupResultSummary = "扫描后可按分类和规则审阅目录。";
+        CleanupResultSummary = T("扫描后可按分类和规则审阅目录。");
         SyncCleanupSelection(); OnPropertyChanged(nameof(CleanupScopeTitle));
     }
     private void RememberCleanupScan(JsonNode page)
@@ -134,9 +134,9 @@ public sealed partial class MainViewModel
             };
             Candidates.Add(row);
         }
-        CleanupResultSummary = $"{CleanupScopeTitle} · 已加载 {Candidates.Count} / {page["total_count"]} 个目录 · 全部分类占用估算 {Bytes(page["bytes"]?.GetValue<long>() ?? 0)}";
+        CleanupResultSummary = F("{0} · 已加载 {1} / {2} 个目录 · 全部分类占用估算 {3}",CleanupScopeTitle,Candidates.Count,page["total_count"],Bytes(page["bytes"]?.GetValue<long>() ?? 0));
         UpdateCleanupSelectionSummary();
-        Status = "结果已按分类、规则和目录整理；搜索与分页保留已有选择。";
+        Status = T("结果已按分类、规则和目录整理；搜索与分页保留已有选择。");
     }
     private static CandidateRow CleanupCandidate(JsonNode? source)
     {
@@ -144,7 +144,7 @@ public sealed partial class MainViewModel
         var reasons = Array(candidate?["reasons"]).Select(value => value?.GetValue<string>()).ToArray();
         return new(Text(candidate, "id"), Text(candidate, "relative_path"), candidate?["allocated_bytes_estimate"]?.GetValue<long>() ?? 0,
             source?["selectable"]?.GetValue<bool>() == true,
-            Text(candidate, "risk") + (reasons.Length == 0 ? "" : " · " + string.Join("、", reasons)),
+            T(Text(candidate, "risk")) + (reasons.Length == 0 ? "" : " · " + string.Join(T("、"), reasons.Select(reason => T(reason ?? "")))),
             Text(source, "scan_id"), Text(source, "workspace_id"), Text(source, "root_path"), reasons.Contains("incomplete_scan"),
             Text(source, "category_id"), Text(source, "group_id"), source?["recommended"]?.GetValue<bool>() == true,
             source?["file_count"]?.GetValue<int>() ?? 0);
@@ -158,11 +158,12 @@ public sealed partial class MainViewModel
                 var id = Text(category, "id");
                 var groups = Array(category?["groups"]);
                 var root = new CleanupGroupRow(id, null, id switch {
-                    "userCache" => "用户缓存", "application" => "应用缓存", "browser" => "浏览器缓存",
-                    "developer" => "开发工具", "build" => "项目构建产物", "personal" => "个人规则", _ => id
+                    "userCache" => T("用户缓存"), "application" => T("应用缓存"), "browser" => T("浏览器缓存"),
+                    "developer" => T("开发工具"), "build" => T("项目构建产物"), "personal" => T("个人规则"), _ => id
                 }, category?["bytes"]?.GetValue<long>() ?? 0, groups.Sum(value => value?["count"]?.GetValue<int>() ?? 0),
                     groups.Sum(value => value?["selectable_count"]?.GetValue<int>() ?? 0));
-                foreach (var group in groups) root.Children.Add(new CleanupGroupRow(id, Text(group, "id"), Text(group, "title"),
+                foreach (var group in groups) root.Children.Add(new CleanupGroupRow(id, Text(group, "id"),
+                    id == "personal" ? T("个人规则") : Text(group, "id").StartsWith("shou.builtin.", StringComparison.Ordinal) ? T(Text(group, "title")) : Text(group, "title"),
                     group?["bytes"]?.GetValue<long>() ?? 0, group?["count"]?.GetValue<int>() ?? 0, group?["selectable_count"]?.GetValue<int>() ?? 0));
                 CleanupGroups.Add(root);
             }
@@ -182,7 +183,7 @@ public sealed partial class MainViewModel
             category.SelectionState = cleanupSelection.State(category.SelectableCount, category.CategoryId);
             foreach (var group in category.Children) group.SelectionState = cleanupSelection.State(group.SelectableCount, group.CategoryId, group.GroupId);
         }
-        CleanupSelectionSummary = $"已选择 {cleanupSelection.Count} 个目录 · 占用估算 {Bytes(cleanupSelection.Bytes)}（包括其他页面与分类中的选择）";
+        CleanupSelectionSummary = F("已选择 {0} 个目录 · 占用估算 {1}（包括其他页面与分类中的选择）",cleanupSelection.Count,Bytes(cleanupSelection.Bytes));
         RefreshCommands();
     }
     private void SyncCleanupSelection()
@@ -214,6 +215,6 @@ public sealed partial class MainViewModel
         var rows = await FetchCleanupSourcesAsync(cleanupScope?.CategoryId, cleanupScope?.GroupId, appliedCleanupQuery, recommended);
         var selected = recommended || rows.Any(row => !cleanupSelection.Contains(row.Choice.Key));
         await SetCleanupChoicesAsync(rows, selected);
-        Status = recommended ? "已选择当前范围内的推荐项目；高风险或未完整测量项目不会自动选中。" : selected ? "已选择当前搜索范围的全部可清理目录，包括其他页面。" : "已取消当前搜索范围的选择。";
+        Status = recommended ? T("已选择当前范围内的推荐项目；高风险或未完整测量项目不会自动选中。") : selected ? T("已选择当前搜索范围的全部可清理目录，包括其他页面。") : T("已取消当前搜索范围的选择。");
     });
 }

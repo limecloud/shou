@@ -95,12 +95,25 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL personal rule authoring: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--registered-uninstall-only"] {
+            do {
+                try await registeredUninstallVerifiesAllInstallerRoutesAndConsumesConsent()
+                try await registeredUninstallRefusesStaleBatchesAndExpiredReviews()
+                try await registeredUninstallKeepsUnknownAndUnstartedOutcomesSeparate()
+                try await registeredUninstallRequiresDurableIntentBeforeEveryInstaller()
+                try await registeredUninstallMaintenancePreservesActivePlansAndReceipts()
+                print("5/5 registered installer, batch preflight, expiry, cancellation, journal and retention checks passed; simulated installers and isolated records only.")
+            } catch { print("FAIL registered uninstall: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--tool-cleanup-only"] {
             do {
                 try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes()
                 try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes()
+                try await toolCleanupSupportsWindowsScopeAndBindsMutationImage()
+                try await toolCleanupExpiresDuringOwnerPreview()
                 try nativeToolAdapterBoundsRealFixtureProcesses()
-                print("3/3 tool cleanup and native bounded-process checks passed; generated tools only.")
+                print("5/5 tool cleanup, Windows scope, executable binding, expiry and native bounded-process checks passed; generated tools only.")
             } catch { print("FAIL tool cleanup: \(error)"); Foundation.exit(1) }
             return
         }
@@ -403,11 +416,33 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL storage browsing: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--windows-package-data-only"] {
+            do {
+                try await windowsPackageDataRequiresCurrentMSIXScopeAndSeparateConsent()
+                try await windowsPackageDataConsumesConsentAndRetainsOwnerResults()
+                try await windowsPackageDataRechecksWholeBatchActivityAndExpiry()
+                try await windowsPackageDataPreservesUncertainOutcomesAndDurableIntent()
+                print("4/4 MSIX package-data scope, consent, owner invocation, expiry, receipts and durable-intent checks passed; generated owner/file fixtures only, no Windows package changed.")
+            } catch { print("FAIL MSIX package data: \(error)");Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--windows-app-data-only"] {
+            do {
+                try await windowsApplicationDataReviewsInstalledAndAbsentOwnersWithSeparateConsent()
+                try await windowsApplicationDataExecutesExactReviewedManifestAndPreservesReceipts()
+                try await windowsApplicationDataRechecksRegistrationActivityContentAndExclusions()
+                try await windowsApplicationDataScopeRejectsInstallationsSharedParentsAndForgedPlans()
+                print("4/4 Windows application-data scope, separate consent, exact removal, shared receipts and stale-evidence checks passed; generated fixtures only, simulated Windows identities and registrations.")
+            } catch { print("FAIL Windows application data: \(error)");Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-search-preview-only"] {
             do {
                 try await storageNameSearchReadsEveryImmediateChildAndBindsContinuation()
                 try await storagePreviewIsBoundedReadOnlyAndRejectsChangedObjects()
-                print("2/2 full-directory search, continuation, bounded preview, encoding, changed object and cancellation checks passed; generated fixtures only.")
+                try await systemPreviewBindsScanEvidenceWithoutCreatingMutationAuthority()
+                try systemPreviewRejectsForgedHostPathsAndExecutableFormats()
+                print("4/4 full-directory search, bounded and system preview, scan identities, host/path/format boundaries and cancellation checks passed; generated fixtures only, no Windows provider executed.")
             } catch { print("FAIL storage search/preview: \(error)"); Foundation.exit(1) }
             return
         }
@@ -623,6 +658,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Windows registered applications preserve identity and unknown facts", { try windowsRegisteredApplicationsPreserveSourcesIdentityAndUnknownFacts() }),
             ("Windows registered applications reject forged coverage and unsafe paths", { try windowsRegisteredApplicationsRejectForgedCoverageAndUnsafePaths() }),
             ("Windows registered applications retain partial and system coverage", { try windowsRegisteredApplicationsRetainPartialAndSystemCoverage() }),
+            ("Registered uninstall verifies all installer routes and consumes consent", { try await registeredUninstallVerifiesAllInstallerRoutesAndConsumesConsent() }),
+            ("Registered uninstall refuses stale batches and expired reviews", { try await registeredUninstallRefusesStaleBatchesAndExpiredReviews() }),
+            ("Registered uninstall preserves unknown and unstarted outcomes", { try await registeredUninstallKeepsUnknownAndUnstartedOutcomesSeparate() }),
+            ("Registered uninstall requires durable intent before each installer", { try await registeredUninstallRequiresDurableIntentBeforeEveryInstaller() }),
+            ("Registered uninstall retention preserves active plans and receipts", { try await registeredUninstallMaintenancePreservesActivePlansAndReceipts() }),
             ("Built-in binding validation, isolation and benchmark", { try await builtinCatalogBindingPreservesValidationAndIsolation() }),
             ("Built-in protected descendants", { try await builtinRulesPreserveProtectedDescendants() }),
             ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
@@ -630,6 +670,16 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage browsing pages and selection expansion retain exact scope", { try await storageBrowsingPagesAreBoundedAndExpandedSelectionsNeverTruncate() }),
             ("Storage name search covers unloaded children and binds continuation", { try await storageNameSearchReadsEveryImmediateChildAndBindsContinuation() }),
             ("Storage preview is bounded, read-only and identity-bound", { try await storagePreviewIsBoundedReadOnlyAndRejectsChangedObjects() }),
+            ("System preview binds scans without mutation authority", { try await systemPreviewBindsScanEvidenceWithoutCreatingMutationAuthority() }),
+            ("Windows data reviews installed/absent owners with separate consent", { try await windowsApplicationDataReviewsInstalledAndAbsentOwnersWithSeparateConsent() }),
+            ("Windows data removes exact manifests with shared receipts", { try await windowsApplicationDataExecutesExactReviewedManifestAndPreservesReceipts() }),
+            ("Windows data rechecks registration activity content and exclusions", { try await windowsApplicationDataRechecksRegistrationActivityContentAndExclusions() }),
+            ("Windows data rejects shared parents installations and forged plans", { try await windowsApplicationDataScopeRejectsInstallationsSharedParentsAndForgedPlans() }),
+            ("MSIX data requires exact package scope and separate consent", { try await windowsPackageDataRequiresCurrentMSIXScopeAndSeparateConsent() }),
+            ("MSIX data consumes consent and retains owner outcomes", { try await windowsPackageDataConsumesConsentAndRetainsOwnerResults() }),
+            ("MSIX data rechecks the batch, activity and expiry", { try await windowsPackageDataRechecksWholeBatchActivityAndExpiry() }),
+            ("MSIX data preserves unknown outcomes and durable intent", { try await windowsPackageDataPreservesUncertainOutcomesAndDurableIntent() }),
+            ("System preview rejects forged hosts, paths and executables", { try systemPreviewRejectsForgedHostPathsAndExecutableFormats() }),
             ("Storage analysis separates read scope and stale removal", { try await storageAnalysisProtectsRootsAndDetectsChanges() }),
             ("Storage removal rechecks exclusions and new descendants", { try await storageRemovalRechecksCurrentExclusionsAndNewDescendants() }),
             ("Native space analysis large-file Trash restore and permanent removal", { try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: CommandLine.arguments.contains("--native-trash-purge")) }),
@@ -673,6 +723,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Cleanup owner closing retains refusal and sanitizes failures", { try await cleanupOwnerClosingRetainsRefusalAndSanitizesFailures() }),
             ("Tool cleanup uses fixed owner operations and verifies outcomes", { try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes() }),
             ("Tool cleanup rejects remote, stale and unknown outcomes", { try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes() }),
+            ("Windows tool cleanup scope and executable binding", { try await toolCleanupSupportsWindowsScopeAndBindsMutationImage() }),
+            ("Tool cleanup review expires during owner preview", { try await toolCleanupExpiresDuringOwnerPreview() }),
             ("Native tool adapter bounds generated process groups and output", { try nativeToolAdapterBoundsRealFixtureProcesses() }),
             ("Record retention groups publications and rejects changed evidence", { try await recordRetentionPreservesDependenciesAndRejectsChangedRecords() }),
             ("History summaries page and reject stale caches", { try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence() }),

@@ -1,45 +1,45 @@
-<UserControl x:Class="Shou.Windows.AIWorkspaceView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<UserControl x:Class="Shou.Windows.AIWorkspaceView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Shou.Windows">
   <UserControl.Resources><BooleanToVisibilityConverter x:Key="VisibleWhen" /></UserControl.Resources>
   <Grid Margin="16"><Grid.ColumnDefinitions><ColumnDefinition Width="320" MinWidth="260" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" MinWidth="300" /></Grid.ColumnDefinitions>
     <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
-      <TextBlock Text="AI 调查" FontSize="24" FontWeight="SemiBold" />
-      <CheckBox Content="启用 AI 调查" IsChecked="{Binding AiEnabled}" Margin="0,16,0,8" AutomationProperties.Name="启用 AI 调查" />
-      <TextBlock Text="开启后仍需点击开始。关闭会停止后续请求。空间占用解释使用本地索引。" Opacity="0.75" />
-      <TextBlock Text="AI 配置方案" Margin="0,20,0,6" />
-      <ComboBox ItemsSource="{Binding AiConnections}" SelectedItem="{Binding SelectedAiConnection}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AiCanEdit}" AutomationProperties.Name="AI 配置方案" />
-      <WrapPanel Margin="0,8,0,0"><Button Content="添加…" Command="{Binding AiNewConnectionCommand}" /><Button Content="编辑…" Command="{Binding AiEditConnectionCommand}" /><Button Content="删除…" Command="{Binding AiDeleteConnectionCommand}" /><Button Content="测试" Command="{Binding AiTestCommand}" ToolTip="仅发送合成数据，不读取文件。" /></WrapPanel>
-      <CheckBox Content="启用决策服务（Jev 协助主模型）" IsChecked="{Binding AiDecisionEnabled}" IsEnabled="{Binding AiCanEdit}" Margin="0,12,0,0" AutomationProperties.Name="启用决策服务" />
-      <TextBlock Text="主模型为必需配置。关闭决策服务后由主模型接管，保留决策配置和密钥。" Opacity="0.75" Margin="0,6,0,0" />
-      <Expander Header="已删除配置" Margin="0,10,0,0"><StackPanel><ComboBox ItemsSource="{Binding AiDeletedConnections}" SelectedItem="{Binding SelectedAiDeletedConnection}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AiCanEdit}" AutomationProperties.Name="已删除配置" /><Button Content="恢复所选配置" Command="{Binding AiRestoreConnectionCommand}" HorizontalAlignment="Left" Margin="0,6,0,0" /></StackPanel></Expander>
+      <TextBlock Text="{local:Text te958978f74f554a9}" FontSize="24" FontWeight="SemiBold" />
+      <CheckBox Content="{local:Text t4750949b5998f3df}" IsChecked="{Binding AiEnabled}" Margin="0,16,0,8" AutomationProperties.Name="{local:Text t4750949b5998f3df}" />
+      <TextBlock Text="{local:Text t316425e458f4a032}" Opacity="0.75" />
+      <TextBlock Text="{local:Text t7954d78e2d6e2800}" Margin="0,20,0,6" />
+      <ComboBox ItemsSource="{Binding AiConnections}" SelectedItem="{Binding SelectedAiConnection}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AiCanEdit}" AutomationProperties.Name="{local:Text t7954d78e2d6e2800}" />
+      <WrapPanel Margin="0,8,0,0"><Button Content="{local:Text t16242928cc42a717}" Command="{Binding AiNewConnectionCommand}" /><Button Content="{local:Text t71fc0d7bb2297a2d}" Command="{Binding AiEditConnectionCommand}" /><Button Content="{local:Text t0552e329ccf875fb}" Command="{Binding AiDeleteConnectionCommand}" /><Button Content="{local:Text t6aa8f49cc992dfd7}" Command="{Binding AiTestCommand}" ToolTip="{local:Text t4e055fced6a30f17}" /></WrapPanel>
+      <CheckBox Content="{local:Text tac52ac2305cc3872}" IsChecked="{Binding AiDecisionEnabled}" IsEnabled="{Binding AiCanEdit}" Margin="0,12,0,0" AutomationProperties.Name="{local:Text tbfcc3b65c720592b}" />
+      <TextBlock Text="{local:Text t49875cba6218656b}" Opacity="0.75" Margin="0,6,0,0" />
+      <Expander Header="{local:Text t61e42ed220644728}" Margin="0,10,0,0"><StackPanel><ComboBox ItemsSource="{Binding AiDeletedConnections}" SelectedItem="{Binding SelectedAiDeletedConnection}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AiCanEdit}" AutomationProperties.Name="{local:Text t61e42ed220644728}" /><Button Content="{local:Text tb8f4f60d3776629f}" Command="{Binding AiRestoreConnectionCommand}" HorizontalAlignment="Left" Margin="0,6,0,0" /></StackPanel></Expander>
       <TextBlock Text="{Binding AiConnectionDisclosure}" Margin="0,12,0,0" TextWrapping="Wrap" />
       <StackPanel IsEnabled="{Binding AiCanEdit}">
-        <TextBlock Text="目标" Margin="0,20,0,6" /><ComboBox ItemsSource="{Binding AiGoals}" SelectedItem="{Binding SelectedAiGoal}" DisplayMemberPath="Name" AutomationProperties.Name="AI 调查目标" />
-        <TextBlock Text="调查范围" Margin="0,14,0,6" /><TextBox Text="{Binding AiFolder,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="AI 调查目录" />
-        <WrapPanel Margin="0,8,0,0"><Button Content="全部已扫描范围" Command="{Binding AiAllScannedCommand}" /><Button Content="选择单个目录…" Command="{Binding AiChooseFolderCommand}" /></WrapPanel>
+        <TextBlock Text="{local:Text t57060c88a36bf3d0}" Margin="0,20,0,6" /><ComboBox ItemsSource="{Binding AiGoals}" SelectedItem="{Binding SelectedAiGoal}" DisplayMemberPath="Name" AutomationProperties.Name="{local:Text t4b9d698e46a55437}" />
+        <TextBlock Text="{local:Text t4180a9a256449a19}" Margin="0,14,0,6" /><TextBox Text="{Binding AiFolder,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="{local:Text tdf6297bc5588e1c2}" />
+        <WrapPanel Margin="0,8,0,0"><Button Content="{local:Text t175b9e6f7e16c9ad}" Command="{Binding AiAllScannedCommand}" /><Button Content="{local:Text ta9af68d6216c1ad1}" Command="{Binding AiChooseFolderCommand}" /></WrapPanel>
         <TextBlock Text="{Binding AiScopeLabel}" Margin="0,8,0,0" Opacity="0.75" />
         <TextBlock Text="{Binding AiMeasurement}" Margin="0,8,0,0" Opacity="0.75" />
-        <TextBlock Text="保留条件与调查要求（可选）" Margin="0,16,0,6" /><TextBox Text="{Binding AiRequest,UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" MaxLength="2000" AutomationProperties.Name="保留条件与调查要求" />
+        <TextBlock Text="{local:Text t6acbbd66df830553}" Margin="0,16,0,6" /><TextBox Text="{Binding AiRequest,UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" MaxLength="2000" AutomationProperties.Name="{local:Text te8ce616f749ed907}" />
       </StackPanel>
-      <WrapPanel Margin="0,16,0,0"><Button Content="开始调查" Command="{Binding AiStartCommand}" /><Button Content="停止" Command="{Binding AiStopCommand}" /><Button Content="新建调查" Command="{Binding AiNewCommand}" ToolTip="停止等待中的调查，并清空本次输入与结果。" /></WrapPanel>
-      <TextBlock Text="本地调查记录" Margin="0,24,0,6" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding AiHistory}" SelectedItem="{Binding SelectedAiHistory}" DisplayMemberPath="Label" AutomationProperties.Name="已保存的 AI 调查" /><Button Content="打开所选记录" Command="{Binding AiLoadCommand}" HorizontalAlignment="Left" Margin="0,8,0,16" />
+      <WrapPanel Margin="0,16,0,0"><Button Content="{local:Text tb8c5e85929807e3c}" Command="{Binding AiStartCommand}" /><Button Content="{local:Text tca4d973c0b006b75}" Command="{Binding AiStopCommand}" /><Button Content="{local:Text t568f04645b62eb9e}" Command="{Binding AiNewCommand}" ToolTip="{local:Text t4724eb86cb0bf565}" /></WrapPanel>
+      <TextBlock Text="{local:Text t2ec3937a85930272}" Margin="0,24,0,6" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding AiHistory}" SelectedItem="{Binding SelectedAiHistory}" DisplayMemberPath="Label" AutomationProperties.Name="{local:Text tfba3f0d33d691c8f}" /><Button Content="{local:Text tcad44a79e923950b}" Command="{Binding AiLoadCommand}" HorizontalAlignment="Left" Margin="0,8,0,16" />
     </StackPanel></ScrollViewer>
     <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto"><StackPanel>
-      <ProgressBar IsIndeterminate="True" Height="3" Visibility="{Binding AiBusy,Converter={StaticResource VisibleWhen}}" Margin="0,0,0,12" />
+      <ProgressBar IsIndeterminate="{Binding AnimateIndicators,Source={x:Static local:DesktopPresentation.Current}}" Height="3" Visibility="{Binding AiBusy,Converter={StaticResource VisibleWhen}}" Margin="0,0,0,12" />
       <TextBlock Text="{Binding AiStatus}" FontWeight="SemiBold" AutomationProperties.LiveSetting="Polite" />
       <TextBlock Text="{Binding AiSummary}" Margin="0,16,0,0" TextWrapping="Wrap" />
       <ItemsControl ItemsSource="{Binding AiQuestions}" Margin="0,16,0,0"><ItemsControl.ItemTemplate><DataTemplate><StackPanel Margin="0,0,0,16">
-        <TextBlock Text="{Binding Text}" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding Answer,Mode=TwoWay}" AutomationProperties.Name="建议的回答" Margin="0,8,0,6" />
-        <TextBox Text="{Binding Answer,UpdateSourceTrigger=PropertyChanged}" MaxLength="2000" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" AutomationProperties.Name="补充或修改调查回答" />
+        <TextBlock Text="{Binding Text}" FontWeight="SemiBold" /><ComboBox ItemsSource="{Binding Choices}" SelectedItem="{Binding Answer,Mode=TwoWay}" AutomationProperties.Name="{local:Text t64991331f366ead9}" Margin="0,8,0,6" />
+        <TextBox Text="{Binding Answer,UpdateSourceTrigger=PropertyChanged}" MaxLength="2000" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" AutomationProperties.Name="{local:Text tfad36ca353acdc1c}" />
       </StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-      <Button Content="提交回答并继续" Command="{Binding AiResumeCommand}" HorizontalAlignment="Left" />
-      <TextBlock Text="建议逐条导入为停用草稿。预览、启用并重新扫描后，仍需确认具体文件才能清理。" Margin="0,24,0,8" Opacity="0.75" />
+      <Button Content="{local:Text t8a25b483acb2dc3b}" Command="{Binding AiResumeCommand}" HorizontalAlignment="Left" />
+      <TextBlock Text="{local:Text t368f8ad4c00d4cae}" Margin="0,24,0,8" Opacity="0.75" />
       <ItemsControl ItemsSource="{Binding AiAdvice}"><ItemsControl.ItemTemplate><DataTemplate><Border BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="1" CornerRadius="6" Padding="14" Margin="0,0,0,12"><StackPanel>
         <TextBlock Text="{Binding Path}" FontWeight="SemiBold" /><TextBlock Text="{Binding Explanation}" Margin="0,6,0,0" /><TextBlock Text="{Binding Conditions}" Margin="0,6,0,12" Opacity="0.8" />
-        <Button Content="导入这一条并预览" Command="{Binding DataContext.AiPreviewCommand,RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" HorizontalAlignment="Left" />
+        <Button Content="{local:Text t202125a686de0195}" Command="{Binding DataContext.AiPreviewCommand,RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" HorizontalAlignment="Left" />
       </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
-      <Expander Header="结构化决策结果" Margin="0,14,0,0"><TextBox Text="{Binding AiDecisions,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,8" /></Expander>
-      <Expander Header="服务用量与升级原因" Margin="0,14,0,0"><TextBox Text="{Binding AiUsage,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,8" /></Expander>
-      <Expander Header="原调查范围与已观察证据" Margin="0,12,0,20"><TextBox Text="{Binding AiEvidence,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,8" /></Expander>
+      <Expander Header="{local:Text tb2bcfaf3183cf6cb}" Margin="0,14,0,0"><TextBox Text="{Binding AiDecisions,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,8" /></Expander>
+      <Expander Header="{local:Text t8874331d08d8f4b9}" Margin="0,14,0,0"><TextBox Text="{Binding AiUsage,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,8" /></Expander>
+      <Expander Header="{local:Text t5ca49a965f4a32b8}" Margin="0,12,0,20"><TextBox Text="{Binding AiEvidence,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,8" /></Expander>
     </StackPanel></ScrollViewer>
   </Grid>
 </UserControl>

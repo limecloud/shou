@@ -1,0 +1,44 @@
+<UserControl x:Class="Shou.Windows.SettingsView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Shou.Windows">
+  <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <StackPanel Margin="20" MaxWidth="1040" HorizontalAlignment="Stretch">
+      <TextBlock Text="{local:Text tdf3d58c7d84b85f2}" FontSize="26" FontWeight="SemiBold" Margin="0,0,0,18" />
+      <GroupBox Header="{local:Text t835b700e028c9b20}" Padding="16" Margin="0,0,0,18">
+        <StackPanel IsEnabled="{Binding CanChangeDesktopSettings}">
+          <TextBlock Text="{local:Text t3d13868593ae4eeb}" FontWeight="SemiBold" /><TextBlock Text="{local:Text t9ca33cd2e013dc03}" Opacity="0.75" Margin="0,4,0,8" />
+          <ComboBox ItemsSource="{Binding SettingsLanguages}" DisplayMemberPath="Name" SelectedItem="{Binding SettingsLanguage}" MaxWidth="260" HorizontalAlignment="Left" MinWidth="200" AutomationProperties.Name="{local:Text t3d13868593ae4eeb}" />
+          <TextBlock Text="{local:Text t86a63f23a076b11e}" FontWeight="SemiBold" Margin="0,18,0,4" /><TextBlock Text="{local:Text tb75ced06df1be2d8}" Opacity="0.75" Margin="0,0,0,8" />
+          <ComboBox ItemsSource="{Binding SettingsAppearances}" DisplayMemberPath="Name" SelectedItem="{Binding SettingsAppearance}" MaxWidth="260" HorizontalAlignment="Left" MinWidth="200" AutomationProperties.Name="{local:Text t86a63f23a076b11e}" />
+          <CheckBox Content="{local:Text t7a56d47cadcb6a5f}" IsChecked="{Binding SettingsReduceMotion}" Margin="0,18,0,4" /><TextBlock Text="{local:Text t7593f77e3b9ab610}" Opacity="0.75" />
+          <WrapPanel Margin="0,18,0,0"><Button Content="{local:Text tc8550237ba701f64}" Command="{Binding SaveDesktopSettingsCommand}" /><Button Content="{local:Text t60474cb62407a606}" Command="{Binding RestartDesktopCommand}" /></WrapPanel>
+          <TextBlock Text="{Binding SettingsStatus}" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+      </GroupBox>
+      <GroupBox Header="{local:Text tc2a8b6c170fcb2f3}" Padding="16" Margin="0,0,0,18"><StackPanel>
+        <TextBlock Text="{local:Text t8187d54dbbf5469e}" Opacity="0.75" Margin="0,0,0,10" />
+        <WrapPanel><Button Content="{local:Text te3bf7fe3f95f8e12}" Command="{Binding ShowScanLocationsCommand}" /><Button Content="{local:Text t30d549a8fc7e0f32}" Command="{Binding ReviewRulesCommand}" /><Button Content="{local:Text t550630e891942194}" Command="{Binding ShowAiSettingsCommand}" /></WrapPanel>
+        <TextBlock Text="{local:Text tc14e6cb7c1ab32bd}" Opacity="0.75" Margin="0,12,0,0" />
+      </StackPanel></GroupBox>
+      <GroupBox Header="{local:Text tcb6c4f771fa92727}" Padding="16" Margin="0,0,0,18"><StackPanel>
+        <TextBlock Text="{local:Text t7cb4778356c1fe9e}" Opacity="0.75" Margin="0,0,0,10" />
+        <TextBox Text="{Binding SettingsDataDirectory,Mode=OneWay}" IsReadOnly="True" BorderThickness="0" AutomationProperties.Name="{local:Text t0a5c9bad2bb94ff4}" />
+        <WrapPanel Margin="0,10,0,0"><Button Content="{local:Text t65ab8ce23e7e5c74}" Command="{Binding OpenDesktopDataCommand}" /><Button Content="{local:Text t7940b72c08937f68}" Command="{Binding CollectRecordsCommand}" /></WrapPanel>
+        <TextBlock Text="{Binding RecordMaintenanceStatus}" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite" />
+      </StackPanel></GroupBox>
+      <GroupBox Header="{local:Text t622a04ef84942025}" Padding="16" Margin="0,0,0,18"><StackPanel>
+        <TextBlock Text="{local:Text td6998d7e76e7e577}" Opacity="0.75" Margin="0,0,0,10" />
+        <TextBox Text="{Binding SettingsEnginePath,Mode=OneWay}" IsReadOnly="True" BorderThickness="0" AutomationProperties.Name="{local:Text t508513987e9ed139}" />
+        <WrapPanel Margin="0,10,0,0"><Button Content="{local:Text t9be612164501ec5d}" Command="{Binding InstallDesktopCliCommand}" /><Button Content="{local:Text t6f435a535c7e7a52}" Command="{Binding OpenAgentSetupCommand}" /><Button Content="{local:Text tfd530d6ee870bfdc}" Command="{Binding CopyDesktopCliCommand}" /><Button Content="{local:Text ta413bc241c0146d5}" Command="{Binding OpenDesktopGuideCommand}" /></WrapPanel>
+        <TextBox Text="{Binding SettingsCliStatus,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite" />
+      </StackPanel></GroupBox>
+      <GroupBox Header="{local:Text t651f274470153a05}" Padding="16" Margin="0,0,0,18"><StackPanel>
+        <TextBlock Text="{Binding SettingsVersion}" FontWeight="SemiBold" /><TextBlock Text="{local:Text tf99c6bdb469d62f2}" Opacity="0.75" Margin="0,6,0,10" />
+        <Button Content="{local:Text t9b2a2f1213fb4fc8}" Command="{Binding OpenDesktopReleasesCommand}" HorizontalAlignment="Left" />
+      </StackPanel></GroupBox>
+      <GroupBox Header="{local:Text td93373f81363e3cc}" Padding="16" Margin="0,0,0,18"><StackPanel>
+        <TextBlock Text="{local:Text t6fe23d5ae1740804}" Opacity="0.75" Margin="0,0,0,10" />
+        <WrapPanel><Button Content="{local:Text t0572f0d56683586a}" Command="{Binding OpenDesktopFeedbackCommand}" /><Button Content="{local:Text t1b19af07ae80d0f1}" Command="{Binding OpenDesktopSourceCommand}" /></WrapPanel>
+      </StackPanel></GroupBox>
+      <TextBlock Text="{local:Text t697e1c60d9b7a3c2}" Opacity="0.7" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

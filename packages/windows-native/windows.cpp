@@ -22,6 +22,8 @@
 #include <new>
 #include <string>
 #include <vector>
+#include <memory>
+#include <mutex>
 using Microsoft::WRL::ComPtr;
 
 extern "C" int shou_win_process_running(const char *name, int *running) {
@@ -173,6 +175,88 @@ bool same(const shou_win_info &a,const shou_win_info &b,bool directoryMutation=f
         a.kind==b.kind && ((directoryMutation && a.kind==2) || a.links==b.links) && a.attributes==b.attributes && (directoryMutation ||
         (a.logical_bytes==b.logical_bytes && a.allocated_bytes==b.allocated_bytes && a.modified_ns==b.modified_ns && a.changed_ns==b.changed_ns));
 }
+
+struct PreviewFile {
+    Handles pins;
+    HANDLE handle=INVALID_HANDLE_VALUE;
+    shou_win_info expected{};
+    std::wstring name;
+    std::mutex mutex;
+};
+// Prefer this stream at the COM boundary. Older file-based handlers also keep
+// these pins alive, so the reviewed file cannot be replaced or opened for write.
+class PreviewStream final:public IStream {
+    LONG references=1;
+    std::shared_ptr<PreviewFile> file;
+    uint64_t position=0;
+public:
+    explicit PreviewStream(std::shared_ptr<PreviewFile> value,uint64_t offset=0):file(std::move(value)),position(offset){}
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID id,void **out) override {
+        if(!out)return E_POINTER;*out=nullptr;
+        if(id==IID_IUnknown || id==IID_ISequentialStream || id==IID_IStream){*out=static_cast<IStream *>(this);AddRef();return S_OK;}
+        return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override{return static_cast<ULONG>(InterlockedIncrement(&references));}
+    ULONG STDMETHODCALLTYPE Release() override{const auto count=InterlockedDecrement(&references);if(!count)delete this;return static_cast<ULONG>(count);}
+    HRESULT STDMETHODCALLTYPE Read(void *buffer,ULONG requested,ULONG *read) override {
+        if(read)*read=0;if(requested && !buffer)return STG_E_INVALIDPOINTER;
+        if(requested>1048576)return STG_E_INVALIDPARAMETER;
+        std::lock_guard<std::mutex> lock(file->mutex);
+        shou_win_info before{};auto code=info(file->handle,&before);
+        if(code)return HRESULT_FROM_WIN32(code);
+        if(!same(before,file->expected))return STG_E_REVERTED;
+        const auto available=position>=static_cast<uint64_t>(before.logical_bytes)?0:static_cast<uint64_t>(before.logical_bytes)-position;
+        const auto wanted=static_cast<DWORD>(std::min<uint64_t>(requested,available));
+        LARGE_INTEGER offset{};offset.QuadPart=static_cast<LONGLONG>(position);DWORD count=0;
+        if(wanted && (!SetFilePointerEx(file->handle,offset,nullptr,FILE_BEGIN) || !ReadFile(file->handle,buffer,wanted,&count,nullptr)))return HRESULT_FROM_WIN32(GetLastError());
+        shou_win_info after{};code=info(file->handle,&after);
+        if(code)return HRESULT_FROM_WIN32(code);if(!same(after,file->expected))return STG_E_REVERTED;
+        position+=count;if(read)*read=count;return count==requested?S_OK:S_FALSE;
+    }
+    HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER offset,DWORD origin,ULARGE_INTEGER *result) override {
+        std::lock_guard<std::mutex> lock(file->mutex);
+        uint64_t base=0;
+        if(origin==STREAM_SEEK_CUR)base=position;
+        else if(origin==STREAM_SEEK_END)base=static_cast<uint64_t>(file->expected.logical_bytes);
+        else if(origin!=STREAM_SEEK_SET)return STG_E_INVALIDFUNCTION;
+        const auto negative=offset.QuadPart<0;
+        const auto magnitude=negative?static_cast<uint64_t>(-(offset.QuadPart+1))+1:static_cast<uint64_t>(offset.QuadPart);
+        if((negative && magnitude>base) || (!negative && magnitude>static_cast<uint64_t>(INT64_MAX)-base))return STG_E_INVALIDFUNCTION;
+        position=negative?base-magnitude:base+magnitude;if(result)result->QuadPart=position;return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Stat(STATSTG *result,DWORD flags) override {
+        if(!result)return STG_E_INVALIDPOINTER;if(flags!=STATFLAG_DEFAULT && flags!=STATFLAG_NONAME)return STG_E_INVALIDFLAG;
+        *result={};result->type=STGTY_STREAM;result->cbSize.QuadPart=static_cast<uint64_t>(file->expected.logical_bytes);result->grfMode=STGM_READ;
+        if(flags==STATFLAG_DEFAULT){
+            const auto size=(file->name.size()+1)*sizeof(wchar_t);result->pwcsName=static_cast<LPOLESTR>(CoTaskMemAlloc(size));
+            if(!result->pwcsName)return E_OUTOFMEMORY;memcpy(result->pwcsName,file->name.c_str(),size);
+        }
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Clone(IStream **result) override {
+        if(!result)return E_POINTER;std::lock_guard<std::mutex> lock(file->mutex);
+        *result=new(std::nothrow) PreviewStream(file,position);return *result?S_OK:E_OUTOFMEMORY;
+    }
+    HRESULT STDMETHODCALLTYPE CopyTo(IStream *target,ULARGE_INTEGER bytes,ULARGE_INTEGER *read,ULARGE_INTEGER *written) override {
+        if(read)read->QuadPart=0;if(written)written->QuadPart=0;if(!target)return E_POINTER;
+        BYTE buffer[65536];uint64_t total=0;
+        while(total<bytes.QuadPart){
+            ULONG count=0,output=0;const auto wanted=static_cast<ULONG>(std::min<uint64_t>(sizeof(buffer),bytes.QuadPart-total));
+            const auto status=Read(buffer,wanted,&count);if(FAILED(status))return status;
+            if(read)read->QuadPart+=count;
+            const auto sent=target->Write(buffer,count,&output);if(written)written->QuadPart+=output;
+            if(FAILED(sent))return sent;if(output!=count)return STG_E_MEDIUMFULL;
+            total+=count;if(status==S_FALSE)return S_FALSE;
+        }
+        return S_OK;
+    }
+    HRESULT STDMETHODCALLTYPE Write(const void *,ULONG,ULONG *written) override{if(written)*written=0;return STG_E_ACCESSDENIED;}
+    HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER) override{return STG_E_ACCESSDENIED;}
+    HRESULT STDMETHODCALLTYPE Commit(DWORD) override{return S_OK;}
+    HRESULT STDMETHODCALLTYPE Revert() override{return STG_E_ACCESSDENIED;}
+    HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER,ULARGE_INTEGER,DWORD) override{return STG_E_ACCESSDENIED;}
+    HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER,ULARGE_INTEGER,DWORD) override{return STG_E_ACCESSDENIED;}
+};
 DWORD expected(const std::wstring &path,const shou_win_info *saved) {
     Handles handles;HANDLE h;DWORD code=open(path,handles,h);if(code)return code;
     shou_win_info current{};if((code=info(h,&current)))return code;
@@ -501,6 +585,26 @@ int shou_win_preview_read(const char *input,const shou_win_info *saved,size_t li
     if(code){free(data);return code;}
     *bytes=data;*count=total;return 0;
 }
+int shou_win_preview_stream(const char *rootInput,const shou_win_info *rootSaved,const char *input,const shou_win_info *saved,void **result){
+    if(!result)return ERROR_INVALID_PARAMETER;*result=nullptr;
+    if(!rootInput || !input || !rootSaved || !saved || rootSaved->kind!=2 || saved->kind!=1)return ERROR_INVALID_PARAMETER;
+    std::wstring root,path;auto code=normalized(rootInput,root);if(code)return code;if((code=normalized(input,path)))return code;
+    const auto prefix=root.back()==L'\\'?root:root+L'\\';
+    if(path.size()<=prefix.size() || _wcsnicmp(path.c_str(),prefix.c_str(),prefix.size()))return ERROR_ACCESS_DENIED;
+    try {
+        auto file=std::make_shared<PreviewFile>();HANDLE rootHandle;
+        if((code=open(root,file->pins,rootHandle)))return code;
+        shou_win_info current{};if((code=info(rootHandle,&current)))return code;
+        if(!same(current,*rootSaved,true))return ERROR_FILE_INVALID;
+        if((code=open(path,file->pins,file->handle,GENERIC_READ|READ_CONTROL,FILE_SHARE_READ)))return code;
+        if((code=info(file->handle,&current)))return code;
+        if(!same(current,*saved))return ERROR_FILE_INVALID;
+        file->expected=current;file->name=path.substr(path.find_last_of(L'\\')+1);
+        *result=static_cast<IStream *>(new(std::nothrow) PreviewStream(std::move(file)));
+        return *result?0:ERROR_NOT_ENOUGH_MEMORY;
+    } catch(const std::bad_alloc &){return ERROR_NOT_ENOUGH_MEMORY;}
+}
+void shou_win_preview_stream_release(void *stream){if(stream)static_cast<IStream *>(stream)->Release();}
 int shou_win_private_directory(const char *input){std::wstring path;auto code=normalized(input,path);return code?code:private_acl(path,true);}
 int shou_win_create_private_catalog(const char *input){
     std::wstring path;auto code=normalized(input,path);if(code)return code;

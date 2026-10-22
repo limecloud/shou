@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-23",
+  "scope": "Four additional default Windows user cache locations. Source review and generated host fixtures do not establish Windows native acceptance. Paths below are relative to the current user profile; custom, portable and alternate-channel data locations are not inferred.",
+  "locations": [
+    {
+      "locationId": "windows-chromium",
+      "ruleId": "shou.builtin.windows-chromium",
+      "relativePath": "AppData/Local/Chromium/User Data",
+      "activityIdentifier": "org.chromium.Chromium",
+      "executableName": "chrome.exe",
+      "sources": [
+        {
+          "url": "https://github.com/chromium/chromium/blob/1f2119bcdef6eab9d9224394519ffe012280064e/docs/user_data_dir.md#L41",
+          "fact": "The official Windows default Chromium user-data directory is LocalAppData/Chromium/User Data; on Windows cache storage shares the profile directory."
+        },
+        {
+          "url": "https://github.com/bleachbit/bleachbit/blob/6d91e19590fe6ba3c4234e7d2174f85f3113ff6e/cleaners/chromium.xml#L14",
+          "fact": "The reviewed Windows declaration uses chrome.exe for activity and names Cache, Code Cache and GPUCache beneath profiles. Shou selects only those directories beneath Default and Profile *; profile databases, extensions and sessions are retained."
+        }
+      ]
+    },
+    {
+      "locationId": "windows-obsidian",
+      "ruleId": "shou.builtin.windows-obsidian",
+      "relativePath": "AppData/Roaming/obsidian",
+      "activityIdentifier": "md.obsidian",
+      "executableName": "Obsidian.exe",
+      "sources": [
+        {
+          "url": "https://github.com/obsidianmd/obsidian-help/blob/cd6c9f3c7d5492bbbec94e8f403572b84eeb325b/en/Files%20and%20folders/How%20Obsidian%20stores%20data.md#L33",
+          "fact": "The official Windows global-settings directory is AppData/Obsidian. IndexedDB preserves sync state and metadata; it is outside the selected cache directories. Windows path comparison is case insensitive."
+        },
+        {
+          "url": "https://github.com/MoscaDotTo/Winapp2/blob/53ae41946c3d3c8bb348d81081c34b6050f0b561/Winapp2.ini#L12955",
+          "fact": "The reviewed Windows declaration identifies Obsidian and its top-level *cache directories. Shou narrows this to Cache, Code Cache and GPUCache, retaining logs, settings, application archives, vaults, local/session storage and IndexedDB."
+        }
+      ]
+    },
+    {
+      "locationId": "windows-github-desktop",
+      "ruleId": "shou.builtin.windows-github-desktop",
+      "relativePath": "AppData/Roaming/GitHub Desktop",
+      "activityIdentifier": "com.github.GitHubClient",
+      "executableName": "GitHubDesktop.exe",
+      "sources": [
+        {
+          "url": "https://github.com/desktop/desktop/blob/a966fbcd2e1369cdcb4d77b53e482dd124355cf0/app/package.json#L3",
+          "fact": "The current desktop product name is GitHub Desktop."
+        },
+        {
+          "url": "https://github.com/bleachbit/cleanerml/blob/f28fbdaec0e8264c38e00c6c6463d39c081cadf6/pending/github_desktop.xml#L44",
+          "fact": "The historical Windows cleaner records Cache and GPUCache under Roaming/GitHub Desktop and broader *Cache declarations. Shou narrows the default directory to Cache, Code Cache and GPUCache. Repositories, accounts, logs and application updates are retained. This source is a historical pending cleaner, not proof of current native execution."
+        }
+      ]
+    },
+    {
+      "locationId": "windows-insomnia",
+      "ruleId": "shou.builtin.windows-insomnia",
+      "relativePath": "AppData/Roaming/Insomnia",
+      "activityIdentifier": "com.insomnia.app",
+      "executableName": "Insomnia.exe",
+      "sources": [
+        {
+          "url": "https://github.com/Kong/insomnia/blob/61922aea77b109d4f479224e38922ea6ee260a4a/packages/insomnia/config/config.json#L2",
+          "fact": "The product declares the com.insomnia.app identity, Insomnia product name and Insomnia userDataFolder."
+        },
+        {
+          "url": "https://github.com/Kong/insomnia/blob/61922aea77b109d4f479224e38922ea6ee260a4a/packages/insomnia/src/entry.main.ts#L50",
+          "fact": "Production Electron userData is its normal app-data parent plus userDataFolder, unless INSOMNIA_DATA_PATH overrides it. Shou includes only the default directory and top-level rendering/network Cache, Code Cache and GPUCache; request/project databases, responses, plugins, Git data and partitioned stores are retained."
+        }
+      ]
+    }
+  ],
+  "deferred": [
+    {
+      "application": "Figma",
+      "sourceURL": "https://help.figma.com/hc/en-us/articles/360040328553-What-if-Figma-isn-t-working-as-expected",
+      "reason": "The reviewed official instructions locate Windows state beneath Roaming/Figma/DesktopProfile and warn that clearing cache or browsing data before reconnecting can lose offline changes. A safe cache-only boundary and pending-change check have not been established; do not reuse the macOS root layout or target DesktopProfile as a cache."
+    }
+  ]
+}

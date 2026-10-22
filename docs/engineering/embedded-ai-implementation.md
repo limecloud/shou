@@ -28,6 +28,8 @@ Existing Windows workflow [39810987069](https://github.com/limecloud/shou/action
 
 Subsequent run [39813400240](https://github.com/limecloud/shou/actions/runs/39813400240), at `d9c55d17b48a9b227bb18f852a224419dcd63006`, fails SwiftPM validation because a newly added C++ fixture is included in the Swift target under `tests/windows`; AI checks and packaging do not run. The fixture now lives in the independent `ShouWindowsClosingChecks` C++ target under `tests/windows-closing`; this correction needs its own remote rerun. The earlier 115 checks establish only the stated revision's AI contracts.
 
+Final query: existing workflow [39815266909](https://github.com/limecloud/shou/actions/runs/39815266909), at subsequent commit `996d72f496bdf2062f30afcdec16b015348c72c9` containing the separate C++ target, is still queued with no executed steps. Runner queueing is not a pass; local changes cannot substitute for its result.
+
 Local details are under `.build/ai-complete-acceptance/evidence/`: `live-main-only-investigation.json`, `restart-restoration.json`, `waiting-cancellation.json`, `test-cancellation.json`, `immediate-native-roundtrip.json` and `ui-immediate-restore.json`. Contract logs: `/tmp/shou-ai-complete-fixed-{sdk,portable}.log`; Windows failure: `/tmp/shou-ai-full-windows-64e.log`. Older counts/packages/Keychain observations below are historical. Full VoiceOver/appearance combinations, macOS 14, quality/cost comparisons, additional live protocols, distribution signing/notarization and Windows packaging remain unverified.
 
 ## Native workflow

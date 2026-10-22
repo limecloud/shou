@@ -4874,6 +4874,93 @@
     ]
   },
   {
+    "id": "shou.builtin.windows-chromium",
+    "version": "1.0.0",
+    "name": "Chromium caches",
+    "category": "browser",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "risk": "review",
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-chromium",
+    "applicationBundleIdentifiers": [
+      "org.chromium.Chromium"
+    ],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-obsidian",
+    "version": "1.0.0",
+    "name": "Obsidian caches",
+    "category": "application",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "risk": "review",
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-obsidian",
+    "applicationBundleIdentifiers": [
+      "md.obsidian"
+    ],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-github-desktop",
+    "version": "1.0.0",
+    "name": "GitHub Desktop caches",
+    "category": "developer",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "risk": "review",
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-github-desktop",
+    "applicationBundleIdentifiers": [
+      "com.github.GitHubClient"
+    ],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
+    "id": "shou.builtin.windows-insomnia",
+    "version": "1.0.0",
+    "name": "Insomnia caches",
+    "category": "developer",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "risk": "review",
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-insomnia",
+    "applicationBundleIdentifiers": [
+      "com.insomnia.app"
+    ],
+    "platforms": [
+      "windows"
+    ]
+  },
+  {
     "id": "shou.builtin.pnpm-user-caches",
     "name": "pnpm download caches",
     "category": "packages",

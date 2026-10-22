@@ -4,7 +4,7 @@ English | [简体中文](../zh-CN/ai/skill-distribution.md)
 
 Reviewed: 2026-10-20. Local installation, bundled reads and ZIP export are implemented. Client discovery and task execution need separate runtime acceptance; distributing instructions alone does not establish compatibility.
 
-Validation: 137 core tests, 114 real CLI contract checks, four terminal-confirmation checks, and isolated native cleanup/restoration/permanent-removal checks passed. Installation tests cover repeated installs, managed-update backups, preservation of local changes, invalid files, links and ZIP contents without writing real client directories. Computer Use verified the installed Chinese handoff, Codex/Claude Code guidance and Copy Request; a separate-data application copy verified WorkBuddy export through the native save panel and the English Rules page. The exported ZIP matched all three source files. Later UI observation returned timeout/no-window errors, so a complete English handoff and a new return-to-Chinese pass are not counted. No external client was configured or launched for acceptance.
+Earlier macOS validation: 137 core tests, 114 real CLI contract checks, four terminal-confirmation checks, and isolated native cleanup/restoration/permanent-removal checks passed. Installation tests cover repeated installs, managed-update backups, preservation of local changes, invalid files, links and ZIP contents without writing real client directories. Computer Use verified the installed Chinese handoff, Codex/Claude Code guidance and Copy Request; a separate-data application copy verified WorkBuddy export through the native save panel and the English Rules page. The exported ZIP matched all three source files. Later UI observation returned timeout/no-window errors, so a complete English handoff and a new return-to-Chinese pass are not counted. No external client was configured or launched for acceptance.
 
 ## What Lark CLI does
 
@@ -25,6 +25,15 @@ The same operations are available in the app's independent CLI. Examples elsewhe
 "/Applications/Shou.app/Contents/Helpers/shou" skills install --agent claude-code --json
 "/Applications/Shou.app/Contents/Helpers/shou" skills export --output "$HOME/Downloads/shou-rule-authoring.zip" --json
 ```
+
+On Windows, **Rules** and **Settings** also open the external AI setup window. Codex/Claude Code installation previews the selected parent directory and asks for confirmation; project directories can be chosen explicitly. WorkBuddy exports through a save panel. ZIP generation is portable and requires no system archiver. The request includes the bundled executable path, so installing `shou` on `PATH` is optional for this handoff; Settings → Install CLI Command can create a reviewed user-level native entry without changing PATH. Keep the complete application at its reviewed location; Windows native command/UI acceptance remains pending. Client discovery and actual WorkBuddy upload still need Windows acceptance.
+
+```powershell
+& "C:/path/to/Shou/Engine/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
+& "C:/path/to/Shou/Engine/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
+```
+
+The desktop bridge uses read-only `agent.setup`/`skills.preview` and request-scoped `skills.install`/`skills.export` confirmations. The reviewed content and destination are rechecked before writing. `scripts/verify-agent-setup.py` exercises these contracts only in generated directories and is included in regular tests and Windows Check.
 
 Choose the relevant command; installing every client is unnecessary.
 

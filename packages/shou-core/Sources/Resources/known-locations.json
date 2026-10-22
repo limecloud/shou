@@ -588,6 +588,34 @@
     "platform": "windows"
   },
   {
+    "id": "windows-chromium",
+    "title": "Chromium caches",
+    "category": "browser",
+    "relativePath": "AppData/Local/Chromium/User Data",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-obsidian",
+    "title": "Obsidian caches",
+    "category": "application",
+    "relativePath": "AppData/Roaming/obsidian",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-github-desktop",
+    "title": "GitHub Desktop caches",
+    "category": "developer",
+    "relativePath": "AppData/Roaming/GitHub Desktop",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-insomnia",
+    "title": "Insomnia caches",
+    "category": "developer",
+    "relativePath": "AppData/Roaming/Insomnia",
+    "platform": "windows"
+  },
+  {
     "id": "pnpm",
     "title": "pnpm package store",
     "category": "developer",

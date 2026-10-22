@@ -2,6 +2,7 @@ import Foundation
 import ShouCore
 import ShouPlatform
 import ShouAI
+import ShouAgentSupport
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
@@ -91,8 +92,39 @@ enum DesktopBridge {
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform)), "close_cleanup_owners": .bool(fs.platform == "windows")]),
+                "features": .object(["external_agent_setup": .bool(true), "scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "application_uninstall": .bool(fs.platform == "windows"), "application_data": .bool(fs.platform == "windows"), "application_package_data": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform)), "close_cleanup_owners": .bool(fs.platform == "windows"), "tool_cleanup": .bool(["windows", "macos"].contains(fs.platform))]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
+        }
+        if request.operation == "agent.setup" {
+            guard input.object?.isEmpty == true else { throw ShouError("invalid_argument", "Agent setup does not accept configuration fields.") }
+            return .object(["skill": try .from(ShouAgentSkill.descriptor()), "clients": .array(AgentSkillInstallation.Client.allCases.map { client in
+                .object(["id": .string(client.rawValue), "directory": .string(client.skillsDirectory().path)])
+            })])
+        }
+        if ["skills.preview", "skills.install", "skills.export"].contains(request.operation) {
+            let keys=Set(input.object?.keys.map { $0 } ?? [])
+            if request.operation == "skills.export" {
+                guard keys == ["output"] else { throw ShouError("invalid_argument", "Choose one Skill ZIP destination.") }
+                let output=URL(fileURLWithPath: try string("output"))
+                let preview=try AgentSkillInstallation.previewExport(to: output)
+                let review: JSONValue = .object(["action": .string("skills.export"), "items": .array([.object(["path": .string(preview.path)])])])
+                try await session.confirm(digest: preview.digest, review: review, operation: "skills.export")
+                try Task.checkCancellation()
+                try AgentSkillInstallation.exportArchive(to: output, reviewedDigest: preview.digest)
+                return .object(["name": .string(ShouAgentSkill.name), "path": .string(output.path), "state": .string("exported")])
+            }
+            let allowed: Set<String>=request.operation == "skills.preview" ? ["agent", "directory"] : ["agent", "directory", "review_digest"]
+            guard keys.isSubset(of: allowed), let client=AgentSkillInstallation.Client(rawValue: try string("agent")) else {
+                throw ShouError("invalid_argument", "Choose agent codex or claude-code. Export a ZIP and use Upload Skill for WorkBuddy.")
+            }
+            let directory=try input["directory"].map { _ in URL(fileURLWithPath: try string("directory")) }
+            let preview=try AgentSkillInstallation.preview(client: client, skillsDirectory: directory)
+            if request.operation == "skills.preview" { return try .from(preview) }
+            guard try string("review_digest") == preview.digest else { throw ShouError("plan_stale", "The Skill or destination changed. Review the installation again.") }
+            let review: JSONValue = .object(["action": .string("skills.install"), "items": .array([.object(["path": .string(preview.directory), "agent": .string(client.rawValue), "state": .string(preview.state)])])])
+            try await session.confirm(digest: preview.digest, review: review, operation: "skills.install")
+            try Task.checkCancellation()
+            return try .from(AgentSkillInstallation.install(client: client, skillsDirectory: directory, reviewedDigest: preview.digest))
         }
         if ["startup.scan", "startup.control"].contains(request.operation) {
             let includeSystem: Bool
@@ -116,6 +148,22 @@ enum DesktopBridge {
             try Task.checkCancellation()
             return try .from(await StartupControlService(controller: NativeStartupControl()).apply(definition: definition, action: action))
         }
+        @Sendable func scanProgress(_ progress: ScanProgress) {
+            var fields: [String: JSONValue]=["stage": .string(progress.stage), "entry_count": .integer(Int64(progress.entryCount)), "path": .string(progress.currentPath)]
+            if progress.fractionCompleted != nil, let completed=progress.completedUnitCount, let total=progress.totalUnitCount {
+                fields["completed_unit_count"] = .integer(Int64(completed))
+                fields["total_unit_count"] = .integer(Int64(total))
+            }
+            try? session.send(kind: "progress", value: .object(fields))
+        }
+        @Sendable func executionProgress(_ progress: ExecutionProgress) {
+            var fields: [String: JSONValue]=["stage": .string(progress.stage), "processed_count": .integer(Int64(progress.processedCount)), "item_count": .integer(Int64(progress.itemCount)), "path": .string(progress.path)]
+            if let completed=progress.currentItemProcessedCount, let total=progress.currentItemCount {
+                fields["current_item_processed_count"] = .integer(Int64(completed))
+                fields["current_item_count"] = .integer(Int64(total))
+            }
+            try? session.send(kind: "progress", value: .object(fields))
+        }
         if request.operation == "applications.scan" {
             guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["include_system", "max_entries", "max_seconds"]) else { throw ShouError("invalid_argument", "Unknown application inventory field.") }
             let include: Bool
@@ -130,6 +178,81 @@ enum DesktopBridge {
             }
             return try .from(WindowsRegisteredApplications().read(options: ApplicationCatalogOptions(includeSystem: include,
                 maxEntries: integer("max_entries", fallback: 4000, maximum: 20000), maxSeconds: Double(integer("max_seconds", fallback: 10, maximum: 30)))))
+        }
+        if ["applications.prepare-scan", "applications.uninstall", "applications.uninstall-history"].contains(request.operation) {
+            let allowed: Set<String>=request.operation == "applications.uninstall" ? ["scan_id", "application_ids"] : request.operation == "applications.prepare-scan" ? ["include_system"] : []
+            let keys=Set(input.object?.keys.map { $0 } ?? [])
+            guard request.operation == "applications.prepare-scan" ? keys.isSubset(of: allowed) : keys == allowed else { throw ShouError("invalid_argument", "Select applications from a current installer scan; executable paths and arguments are not accepted.") }
+            let include: Bool
+            if let value=input["include_system"] { guard case .bool(let selected)=value else { throw ShouError("invalid_argument", "Choose whether to show system components.") }; include=selected } else { include=false }
+            guard fs.platform == "windows" else { throw ShouError("unsupported_platform", "Registered installer operations require Windows.") }
+            let service=RegisteredApplicationUninstallService(runner: WindowsRegisteredApplicationUninstall(), store: try LocalRecordStore())
+            if request.operation == "applications.prepare-scan" { return try .from(await service.scan(options: .init(includeSystem: include))) }
+            if request.operation == "applications.uninstall-history" {
+                let history=try await service.history()
+                return .object(["entries": try .from(Array(history.prefix(50))), "total_count": .integer(Int64(history.count))])
+            }
+            let plan=try await service.createPlan(scanId: string("scan_id"), applicationIds: strings("application_ids", maximum: RegisteredApplicationUninstallService.maximumApplications))
+            let review: JSONValue = .object(["action": .string("applications.uninstall"), "items": .array(plan.actions.map { action in
+                .object(["path": .string(action.application.name), "version": .string(action.application.version ?? ""),
+                    "publisher": .string(action.application.publisher ?? ""), "installer": .string(action.executablePath ?? "Windows Package Manager (MSIX)"),
+                    "registration": .string(action.application.registration), "route": .string(action.route),
+                    "risk": .string("Official installer operation; may remove application data; no Shou restore.")])
+            })])
+            try await session.confirm(digest: plan.digest, review: review, operation: "applications.uninstall")
+            try Task.checkCancellation()
+            return try .from(await service.execute(planId: plan.id, confirmedDigest: plan.digest))
+        }
+        if ["applications.package-data-clear", "applications.package-data-history"].contains(request.operation) {
+            let cleaning=request.operation=="applications.package-data-clear"
+            let keys=Set(input.object?.keys.map { $0 } ?? [])
+            guard cleaning ? keys==["scan_id","application_ids","include_user_data"] : keys.isEmpty else {
+                throw ShouError("invalid_argument", "Select MSIX applications from a current registration scan; paths and executable arguments are not accepted.")
+            }
+            if cleaning { guard case .bool(true)=input["include_user_data"] else { throw ShouError("confirmation_required", "Separately consent to clearing all selected MSIX application data.") } }
+            guard fs.platform=="windows" else { throw ShouError("unsupported_platform", "MSIX application data requires Windows.") }
+            let service=WindowsPackageDataService(runner: WindowsPackageData(),store: try LocalRecordStore())
+            if !cleaning {
+                let history=try await service.history()
+                return .object(["entries": try .from(Array(history.prefix(50))),"total_count": .integer(Int64(history.count))])
+            }
+            let plan=try await service.createPlan(scanId: string("scan_id"),applicationIds: strings("application_ids",maximum: 20),includeUserData: true)
+            let review: JSONValue = .object(["action": .string("applications.package-data-clear"),"items": .array(plan.actions.map { action in
+                .object(["path": .string(action.dataPath),"application": .string(action.application.name),"version": .string(action.application.version ?? ""),
+                    "package_family": .string(action.application.packageFamilyName ?? ""),"risk": .string("personal_data"),
+                    "impact": .string("Windows clears all local, roaming and temporary app data and settings. No restore. This is a whole-package operation; file cleanup exclusions do not limit it. Stopping ends waiting; an initiated operation may continue. No automatic retry.")])
+            })])
+            try await session.confirm(digest: plan.digest,review: review,operation: "applications.package-data-clear")
+            try Task.checkCancellation()
+            return try .from(await service.execute(planId: plan.id,confirmedDigest: plan.digest))
+        }
+        if ["applications.data-scan", "applications.data-clean"].contains(request.operation) {
+            let keys=Set(input.object?.keys.map { $0 } ?? [])
+            let scanning=request.operation == "applications.data-scan"
+            guard scanning ? keys.isSubset(of: ["leftovers_only"]) : keys == ["review_id","component_ids","include_user_data"] else {
+                throw ShouError("invalid_argument", "Select application data from a current review; arbitrary paths are not accepted.")
+            }
+            var leftoversOnly=true
+            if let value=input["leftovers_only"] { guard case .bool(let selected)=value else { throw ShouError("invalid_argument", "Leftovers-only must be a boolean.") };leftoversOnly=selected }
+            if !scanning { guard case .bool(true)=input["include_user_data"] else { throw ShouError("confirmation_required", "Separately consent to personal application data removal.") } }
+            let dataEngine=try WindowsApplicationDataEvidence.makeEngine(store: LocalRecordStore())
+            let evidence=WindowsApplicationDataEvidence()
+            if scanning {
+                let review=try await dataEngine.reviewWindowsApplicationData(presence: evidence,leftoversOnly: leftoversOnly,progress: scanProgress)
+                // Full manifests stay in the private review store. The UI needs
+                // bounded rows, never a multi-megabyte execution manifest.
+                return .object(["id": .string(review.id),"limitations": try .from(review.limitations),"components": .array(review.components.map { item in
+                    .object(["id": .string(item.id),"name": .string(item.name),"path": .string(item.path),"registered": .bool(item.registered),
+                        "eligible": .bool(item.eligible),"allocated_bytes_estimate": .integer(item.allocatedBytesEstimate),"reasons": .array(item.reasons.map(JSONValue.string))])
+                })])
+            }
+            let plan=try await dataEngine.createWindowsApplicationDataPlan(reviewId: string("review_id"),componentIds: strings("component_ids",maximum: 32),includeUserData: true)
+            let review: JSONValue = .object(["action": .string("applications.data-clean"),"items": .array(plan.components.map { component in
+                .object(["path": .string(component.path),"application": .string(component.name),"allocated_bytes_estimate": .integer(component.allocatedBytesEstimate),
+                    "risk": .string("personal_data"),"limitations": .array([.string("Permanently removes the selected application data, including settings, profiles, sign-ins and local databases. No restore. Unregistered portable installations may still use this data.")])])
+            })])
+            try await session.confirm(digest: plan.digest,review: review,operation: "applications.data-clean")
+            return try .from(await dataEngine.executeWindowsApplicationData(planId: plan.id,confirmedDigest: plan.digest,presence: evidence,entryPoint: "windows-desktop",progress: executionProgress))
         }
         let store=try LocalRecordStore()
         let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
@@ -202,23 +325,20 @@ enum DesktopBridge {
             default: throw ShouError("invalid_argument", "Unknown AI desktop operation.")
             }
         }
-        @Sendable func scanProgress(_ progress: ScanProgress) {
-            var fields: [String: JSONValue]=["stage": .string(progress.stage), "entry_count": .integer(Int64(progress.entryCount)), "path": .string(progress.currentPath)]
-            if progress.fractionCompleted != nil, let completed=progress.completedUnitCount, let total=progress.totalUnitCount {
-                fields["completed_unit_count"] = .integer(Int64(completed))
-                fields["total_unit_count"] = .integer(Int64(total))
-            }
-            try? session.send(kind: "progress", value: .object(fields))
-        }
-        @Sendable func executionProgress(_ progress: ExecutionProgress) {
-            var fields: [String: JSONValue]=["stage": .string(progress.stage), "processed_count": .integer(Int64(progress.processedCount)), "item_count": .integer(Int64(progress.itemCount)), "path": .string(progress.path)]
-            if let completed=progress.currentItemProcessedCount, let total=progress.currentItemCount {
-                fields["current_item_processed_count"] = .integer(Int64(completed))
-                fields["current_item_count"] = .integer(Int64(total))
-            }
-            try? session.send(kind: "progress", value: .object(fields))
-        }
         switch request.operation {
+        case "tools.scan", "tools.history", "tools.clean":
+            let fields=Set(input.object?.keys.map { $0 } ?? [])
+            guard fields == (request.operation == "tools.clean" ? ["scan_id", "target_id"] : []) else { throw ShouError("invalid_argument", "Tool cleanup accepts only an exact scan and target selection.") }
+            guard ["macos", "windows"].contains(fs.platform) else { throw ShouError("capability_unavailable", "Tool cleanup requires a supported desktop platform.") }
+            let service=ToolCleanupService(runner: NativeCleanupTools(), store: store)
+            if request.operation == "tools.scan" { return try .from(await service.scan()) }
+            if request.operation == "tools.history" { return try .from(await service.history()) }
+            let plan=try await service.createPlan(scanId: string("scan_id"), targetId: string("target_id"))
+            let review: JSONValue = .object(["action": .string("tools.clean"), "tool": .string(plan.target.tool), "items": .array([
+                .object(["path": .string(plan.target.title), "limitations": .array([.string(plan.target.impact), .string("Tool-managed removal is permanent. Review the tool's current state after cancellation or failure; it may already have changed data.")])])
+            ])])
+            try await session.confirm(digest: plan.digest, review: review, operation: "tools.clean")
+            return try .from(await service.execute(planId: plan.id, confirmedDigest: plan.digest))
         case "cleanup.close-owners":
             guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_ids"] else { throw ShouError("invalid_argument", "Application closing accepts only current cleanup scan IDs.") }
             let ids=try strings("scan_ids", maximum: 200)
@@ -273,7 +393,7 @@ enum DesktopBridge {
             }
             return try .from(preview)
         case "configuration":
-            return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) }), "locations": try .from(await engine.knownLocations())])
+            return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) }), "locations": try .from(await engine.knownLocations()), "data_directory": .string(store.directory.path)])
         case "workspace.add": return try .from(await engine.addWorkspace(path: string("path"), rootRef: string("root_ref")))
         case "locations.scan":
             guard input.object?.isEmpty == true else { throw ShouError("invalid_argument", "Scan location discovery does not accept extra fields.") }

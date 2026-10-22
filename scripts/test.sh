@@ -13,19 +13,26 @@ esac
 TASK_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TASK_ROOT"
 python3 "scripts/update-localizations.py" --check
+python3 "scripts/verify-windows-localization.py"
 python3 "scripts/verify-mole-coverage.py" --self-test
 python3 "scripts/verify-docs.py"
 swift build --jobs 4
 python3 "scripts/verify-products.py"
 ".build/debug/shou-tests" "$TASK_NATIVE_MODE"
 python3 "scripts/verify-cli.py"
+python3 "scripts/verify-agent-setup.py" --engine ".build/debug/shou"
 python3 "scripts/verify-desktop-bridge.py" --engine ".build/debug/shou"
 python3 "scripts/verify-scan-locations.py" --engine ".build/debug/shou"
 python3 "scripts/verify-storage-browsing.py" --engine ".build/debug/shou"
 python3 "scripts/verify-privacy-bridge.py" --engine ".build/debug/shou" --native-fixtures
 python3 "scripts/verify-windows-closing.py" --engine ".build/debug/shou"
+python3 "scripts/verify-tool-cleanup.py" --engine ".build/debug/shou"
 python3 "scripts/verify-rule-authoring.py" ".build/debug/shou"
 python3 "scripts/verify-windows-applications.py" ".build/debug/shou"
+python3 "scripts/verify-windows-uninstall.py" --engine ".build/debug/shou"
+python3 "scripts/verify-windows-app-data.py" --engine ".build/debug/shou"
+python3 "scripts/verify-windows-package-data.py" --engine ".build/debug/shou"
+python3 "scripts/verify-windows-preview.py" --engine ".build/debug/shou"
 python3 "scripts/verify-storage-cli.py"
 python3 "scripts/verify-ai-investigation.py"
 python3 "scripts/verify-large-files-cli.py" ".build/debug/shou"

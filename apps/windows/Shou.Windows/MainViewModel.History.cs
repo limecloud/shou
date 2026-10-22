@@ -15,7 +15,7 @@ public sealed class HistoryItemRow(string id, string path, string state, long by
     public string? Error { get; } = error;
     public string? ResultingPath { get; } = resultingPath;
     public bool Eligible => Choice.CanRestore || Choice.CanPurge;
-    public string Actions => Choice.CanRestore && Choice.CanPurge ? "恢复 / 永久删除" : Choice.CanRestore ? "恢复" : Choice.CanPurge ? "永久删除" : "无可执行操作";
+    public string Actions => Choice.CanRestore && Choice.CanPurge ? T("恢复 / 永久删除") : Choice.CanRestore ? T("恢复") : Choice.CanPurge ? T("永久删除") : T("无可执行操作");
     private bool selected;
     public bool IsSelected { get => selected; set => SetProperty(ref selected, value && Eligible); }
 }
@@ -29,8 +29,8 @@ public sealed partial class MainViewModel
         get
         {
             var selected = HistoryItems.Where(item => item.IsSelected).ToArray();
-            return $"已选择 {selected.Length} 项 · {Bytes(selected.Sum(item => item.AllocatedBytes))}" +
-                (selected.Length > HistoryFollowUpSelection.MaximumItems ? " · 每次最多 500 项，请减少选择" : "");
+            return F("已选择 {0} 项 · {1}",selected.Length,Bytes(selected.Sum(item => item.AllocatedBytes))) +
+                (selected.Length > HistoryFollowUpSelection.MaximumItems ? T(" · 每次最多 500 项，请减少选择") : "");
         }
     }
     public IRelayCommand SelectHistoryItemsCommand { get; private set; } = null!;

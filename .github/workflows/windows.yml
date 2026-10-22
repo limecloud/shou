@@ -2,9 +2,9 @@ name: Windows native build
 on:
   push:
     branches: [main]
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "tests/windows-closing/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "tests/windows-closing/**", "tests/windows-tools/**", "tests/windows-uninstall/**", "tests/windows-package-data/**", "tests/windows-preview/**", "tests/windows-cli-launcher/**", "scripts/verify-tool-cleanup.py", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-storage-browsing.py", "scripts/verify-agent-setup.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   pull_request:
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "tests/windows-closing/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "tests/windows-closing/**", "tests/windows-tools/**", "tests/windows-uninstall/**", "tests/windows-package-data/**", "tests/windows-preview/**", "tests/windows-cli-launcher/**", "scripts/verify-tool-cleanup.py", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-storage-browsing.py", "scripts/verify-agent-setup.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -51,6 +51,8 @@ jobs:
         run: |
           python scripts/update-localizations.py --check
           if ($LASTEXITCODE -ne 0) { throw "Localization verification failed." }
+          python scripts/verify-windows-localization.py
+          if ($LASTEXITCODE -ne 0) { throw "Windows interface localization verification failed." }
           python scripts/verify-docs.py
           if ($LASTEXITCODE -ne 0) { throw "Documentation verification failed." }
           python scripts/verify-mole-coverage.py --self-test

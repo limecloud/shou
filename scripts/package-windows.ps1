@@ -26,6 +26,16 @@ Copy-Item -LiteralPath $engine.FullName -Destination $engineOutput
 $resources = @(Get-ChildItem -LiteralPath $engine.DirectoryName -Directory | Where-Object { $_.Name -match '\.(resources|bundle)$' })
 if ($resources.Count -lt 3) { throw "Missing SwiftPM core, contracts or bundled Skill resources." }
 $resources | Copy-Item -Destination $engineOutput -Recurse
+$launcher = Join-Path $engine.DirectoryName "shou-cli-launcher.exe"
+if (-not (Test-Path -LiteralPath $launcher -PathType Leaf)) { throw "Build the native shou-cli-launcher product before packaging." }
+$launcherImports = & $inspector --coff-imports $launcher
+if ($LASTEXITCODE -ne 0) { throw "Cannot inspect the native CLI launcher." }
+foreach ($line in $launcherImports) {
+    if ($line -match '^\s*Name:\s*(\S+\.dll)\s*$' -and $Matches[1] -ine "kernel32.dll") { throw "The user CLI launcher must depend only on Kernel32: $($Matches[1])" }
+}
+$cliOutput = Join-Path $output "CLI"
+New-Item -ItemType Directory -Path $cliOutput | Out-Null
+Copy-Item -LiteralPath $launcher -Destination $cliOutput
 
 # Resolve the PE import closure from declared runtime roots. Never silently
 # depend on the developer's PATH for Swift or VC runtime dependencies.
@@ -65,9 +75,10 @@ if ($RuntimeLicenseDirectory) {
 Shou $version for Windows 11 x64. Extract the entire ZIP, then start Shou.exe.
 .NET and the resolved Swift/VC runtime dependencies are bundled. Windows 11 supplies winsqlite3.
 Recycle Bin and restoration are disabled by default; permanent removal is enabled with explicit scope confirmation and cannot be undone.
-Only bundled AppData cache roots can be registered; changes stay inside their declared cache subtrees. Profiles and other AppData locations remain protected. The interface is Simplified Chinese.
+Only bundled AppData cache roots can be registered; changes stay inside their declared cache subtrees. Profiles and other AppData locations remain protected. The interface follows Windows or your selected Chinese/English setting.
 This portable application is unsigned, with no installer or automatic Windows update. It runs without administrator access.
-Keep the Engine directory and resource bundles beside the application. See Licenses for bundled runtime notices.
+Settings can install a user CLI command without changing PATH; keep the complete application at its reviewed location. Use the full command path if your terminal cannot find shou.
+Keep the Engine, CLI and resource directories beside the application. See Licenses for bundled runtime notices.
 "@ | Set-Content -LiteralPath (Join-Path $output "READ-FIRST.txt") -Encoding utf8
 
 $start = [Diagnostics.ProcessStartInfo]::new((Join-Path $engineOutput "shou.exe"))

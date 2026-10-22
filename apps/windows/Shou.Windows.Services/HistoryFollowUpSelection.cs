@@ -14,7 +14,7 @@ public static class HistoryFollowUpSelection
 
     public static string[] ItemIds(string action, IReadOnlyCollection<HistoryFollowUpChoice> items)
     {
-        if (!CanSubmit(action, items)) throw new BridgeException("invalid_argument", "请选择 1–500 个均支持此操作的历史项目。");
+        if (!CanSubmit(action, items)) throw new BridgeException("invalid_argument", T("请选择 1–500 个均支持此操作的历史项目。"));
         return items.Select(item => item.Id).ToArray();
     }
 }

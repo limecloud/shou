@@ -28,6 +28,8 @@
 
 后续 [39813400240](https://github.com/limecloud/shou/actions/runs/39813400240)（`d9c55d17b48a9b227bb18f852a224419dcd63006`）在 SwiftPM 检查 `tests/windows` 时因新增 C++ 夹具混入 Swift 目标而失败，AI 检查与打包均未执行。夹具现已移到 `tests/windows-closing` 下的独立 `ShouWindowsClosingChecks` C++ 目标；未经对应远程复验不能算通过。此前的 115 项仅证明前述提交上的 AI 合同。
 
+最终查询：包含独立 C++ 目标的后续提交 `996d72f496bdf2062f30afcdec16b015348c72c9` 对应现有工作流 [39815266909](https://github.com/limecloud/shou/actions/runs/39815266909) 仍为 queued，尚未执行步骤。运行器排队不是通过；本地修改不替代远程结果。
+
 本地详细证据在 `.build/ai-complete-acceptance/evidence/`，包括 `live-main-only-investigation.json`、`restart-restoration.json`、`waiting-cancellation.json`、`test-cancellation.json`、`immediate-native-roundtrip.json` 和 `ui-immediate-restore.json`。合同日志为 `/tmp/shou-ai-complete-fixed-{sdk,portable}.log`，Windows 失败日志为 `/tmp/shou-ai-full-windows-64e.log`。后文的更早版本／计数／钥匙串观察仅作历史记录。完整 VoiceOver／外观组合、macOS 14、质量／成本对照、额外真实协议、正式签名／公证和 Windows 包验证仍没有据此算通过。
 
 ## 使用方式

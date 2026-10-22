@@ -5,7 +5,7 @@ func windowsCacheAccessNeverAuthorizesProfilesOrBroaderRoots() throws {
     let home=URL(fileURLWithPath: "/Users/cache-access-fixture")
     let access=try WindowsCacheAccess(homeDirectory: home)
     let locations=try KnownLocations.catalog(homeDirectory: home, platform: "windows")
-    try expect(Set(locations.map(\.id)).count == locations.count && locations.count >= 19)
+    try expect(Set(locations.map(\.id)).count == locations.count && locations.count >= 23)
     for location in locations {
         try expect(access.permitsRoot(location.path))
         try expect(access.permitsRoot(location.path.uppercased()))
@@ -27,7 +27,14 @@ func windowsCacheAccessNeverAuthorizesProfilesOrBroaderRoots() throws {
         "AppData/Roaming/Slack/Cache", "AppData/Roaming/discord/Code Cache",
         "AppData/Roaming/Notion/GPUCache", "AppData/Roaming/Postman/Partitions/generated/Cache",
         "AppData/Roaming/Code - Insiders/CachedData/generated", "AppData/Roaming/Cursor/CachedData",
-        "AppData/Local/Yarn/Cache/v6", "AppData/Local/uv/cache/wheels-v5"
+        "AppData/Local/Yarn/Cache/v6", "AppData/Local/uv/cache/wheels-v5",
+        "AppData/Local/Chromium/User Data/Default/Cache/data_0",
+        "AppData/Local/Chromium/User Data/Profile 2/Code Cache/js",
+        "AppData/Roaming/obsidian/Cache/Cache_Data/data_0",
+        "AppData/Roaming/obsidian/Code Cache/js", "AppData/Roaming/obsidian/GPUCache/data_0",
+        "AppData/Roaming/GitHub Desktop/Cache", "AppData/Roaming/GitHub Desktop/Code Cache/js",
+        "AppData/Roaming/GitHub Desktop/GPUCache/data_0",
+        "AppData/Roaming/Insomnia/Cache", "AppData/Roaming/Insomnia/Code Cache/js", "AppData/Roaming/Insomnia/GPUCache/data_0"
     ]
     for relative in allowed {
         let path=home.path + "/" + relative
@@ -50,6 +57,14 @@ func windowsCacheAccessNeverAuthorizesProfilesOrBroaderRoots() throws {
         "AppData/Roaming/Postman/Partitions/generated/Storage",
         "AppData/Roaming/Code - Insiders/User/globalStorage", "AppData/Roaming/Cursor/Backups",
         "AppData/Local/Yarn/config", "AppData/Local/uv/python",
+        "AppData/Local/Chromium/User Data/Default/IndexedDB", "AppData/Local/Chromium/User Data/Profile 2/Sessions",
+        "AppData/Roaming/obsidian/IndexedDB", "AppData/Roaming/obsidian/Local Storage",
+        "AppData/Roaming/obsidian/vault/Cache", "AppData/Roaming/obsidian/obsidian.json",
+        "AppData/Roaming/GitHub Desktop/IndexedDB", "AppData/Roaming/GitHub Desktop/Local Storage",
+        "AppData/Roaming/GitHub Desktop/repositories/project/Cache", "AppData/Roaming/GitHub Desktop/Cache-old",
+        "AppData/Roaming/Insomnia/insomnia.Request.db", "AppData/Roaming/Insomnia/responses",
+        "AppData/Roaming/Insomnia/plugins/plugin/Cache", "AppData/Roaming/Insomnia/git",
+        "AppData/Roaming/Insomnia/Partitions/account/Cache",
         "AppData/Roaming/Slack/CacheStorage", "AppData/Roaming/discord/Cache-old",
         "AppData/Local/npm-cache/_cacache/../credentials", "AppData/Local/npm-cache/_cacache./payload",
         "AppData/Local/npm-cache/_cacache /payload", "AppData/Local/npm-cache/_cacache/file:stream",

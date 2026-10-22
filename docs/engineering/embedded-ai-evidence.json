@@ -216,19 +216,21 @@
     "localization_keys": 1750,
     "ui_languages": 2,
     "mermaid_diagrams": 30,
-    "all_passed": true
+    "all_passed": true,
+    "story_references": 20,
+    "use_case_references": 11,
+    "unique_acceptance_rows": 33
   },
   "latest_windows_ci": {
+    "conclusion": null,
+    "head_sha": "996d72f496bdf2062f30afcdec16b015348c72c9",
+    "run_id": 39815266909,
+    "status": "queued",
+    "url": "https://github.com/limecloud/shou/actions/runs/39815266909",
     "workflow": ".github/workflows/windows.yml",
-    "run_id": 39813400240,
-    "url": "https://github.com/limecloud/shou/actions/runs/39813400240",
-    "head_sha": "d9c55d17b48a9b227bb18f852a224419dcd63006",
-    "conclusion": "failure",
-    "stage": "SwiftPM source validation before compilation",
-    "reason": "New C++ fixture included in a Swift target: mixed language source files unsupported",
-    "ai_checks": "skipped",
-    "packaging": "skipped",
-    "workspace_fix": "C++ fixture moved to independent ShouWindowsClosingChecks target under tests/windows-closing; remote rerun not established"
+    "steps_started": 0,
+    "separate_cpp_fixture_target_in_commit": true,
+    "observed_at_utc": "2026-10-22T16:42:34.699242+00:00"
   },
   "acceptance_processes": {
     "isolated_ui_closed": true,
@@ -236,7 +238,21 @@
     "user_application_terminated_by_this_review": false
   },
   "secret_pattern_scan": {
-    "files": 9,
+    "files": 11,
     "matches": 0
-  }
+  },
+  "windows_ci_history": [
+    {
+      "workflow": ".github/workflows/windows.yml",
+      "run_id": 39813400240,
+      "url": "https://github.com/limecloud/shou/actions/runs/39813400240",
+      "head_sha": "d9c55d17b48a9b227bb18f852a224419dcd63006",
+      "conclusion": "failure",
+      "stage": "SwiftPM source validation before compilation",
+      "reason": "New C++ fixture included in a Swift target: mixed language source files unsupported",
+      "ai_checks": "skipped",
+      "packaging": "skipped",
+      "workspace_fix": "C++ fixture moved to independent ShouWindowsClosingChecks target under tests/windows-closing; remote rerun not established"
+    }
+  ]
 }

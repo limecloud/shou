@@ -38,7 +38,7 @@ public sealed class StorageSpaceMap : FrameworkElement
                 drawing.DrawRectangle(new LinearGradientBrush { StartPoint=new Point(0,0.5),EndPoint=new Point(1,0.5),GradientStops=[new(Color.FromArgb(115,0,0,0),0),new(Colors.Transparent,0.5),new(Color.FromArgb(115,0,0,0),1)] },null,rect);
             }
             if (rect.Width > 64 && rect.Height > 15) {
-                var name=remainder ? "其他项目" : aggregate is not null ? (suffix.Length==0 ? "无扩展名" : "."+suffix)+" × "+(aggregate["file_count"]?.GetValue<int>() ?? 0).ToString("N0") : path.Split('/').Last();
+                var name=remainder ? T("其他项目") : aggregate is not null ? (suffix.Length==0 ? T("无扩展名") : "."+suffix)+" × "+(aggregate["file_count"]?.GetValue<int>() ?? 0).ToString("N0") : path.Split('/').Last();
                 var size=MainViewModel.Bytes(aggregate?["allocated_bytes"]?.GetValue<long>() ?? node?["allocated_bytes"]?.GetValue<long>() ?? 0);
                 var label=new FormattedText(directory ? name+" ("+size+")" : name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface("Segoe UI"),9, Brushes.White, VisualTreeHelper.GetDpi(this).PixelsPerDip) { MaxTextWidth=Math.Max(1,rect.Width-6), MaxTextHeight=12, Trimming=TextTrimming.CharacterEllipsis };
                 drawing.DrawText(label,new Point(rect.X+3,rect.Y));

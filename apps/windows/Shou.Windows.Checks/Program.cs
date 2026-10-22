@@ -2,6 +2,38 @@ using System.Reflection;
 using System.Text.Json.Nodes;
 using Shou.Windows.Services;
 
+if (args.FirstOrDefault() == "--preview-fixture")
+{
+    var mode = args[1];
+    if (args.Last() != "--native-preview-worker") return 2;
+    var input = JsonNode.Parse(await Console.In.ReadToEndAsync())!;
+    if (input["version"]!.GetValue<int>() != 1 || input["host_window"]!.GetValue<ulong>() != 123 || input["parent_pid"]!.GetValue<int>() <= 0) return 2;
+    if (mode == "timeout") { await Task.Delay(30000); return 0; }
+    if (mode == "missing-ready") return 0;
+    if (mode == "overflow") { await Console.Out.WriteAsync(new string('x', 20000)); await Task.Delay(30000); return 0; }
+    if (mode == "error") { await Console.Out.WriteLineAsync("{\"version\":1,\"kind\":\"error\",\"code\":\"plan_stale\"}"); return 1; }
+    await Console.Out.WriteLineAsync("{\"version\":1,\"kind\":\"ready\"}");
+    if (mode == "stderr-overflow") { await Console.Error.WriteAsync(new string('x', 20000)); await Task.Delay(30000); return 0; }
+    if (mode == "hang") { await Task.Delay(30000); return 0; }
+    if (mode == "duplicate") { await Console.Out.WriteLineAsync("{\"version\":1,\"kind\":\"ready\"}"); await Task.Delay(30000); return 0; }
+    if (mode == "partial") { await Console.Out.WriteAsync("{\"version\":1"); return 0; }
+    if (mode == "delayed-close") await Task.Delay(2300);
+    await Console.Out.WriteLineAsync("{\"version\":1,\"kind\":\"closed\"}");
+    return mode == "badexit" ? 3 : 0;
+}
+
+if (args.Length == 4 && args[0] == "--install-cli-fixture")
+{
+    try
+    {
+        var installer = new WindowsCliInstallation(args[1], args[2], args[3]);
+        var preview = installer.Preview();
+        Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(installer.Install(preview.Digest), new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.SnakeCaseLower }));
+        return 0;
+    }
+    catch (IOException error) { Console.Error.WriteLine(error.Message); return 1; }
+}
+
 if (args.FirstOrDefault() == "--fixture")
 {
     var mode = args[1];
@@ -43,6 +75,9 @@ var prefix = Path.GetFileNameWithoutExtension(executable).Equals("dotnet", Strin
 BridgeProcessClient Fixture(string mode, TimeSpan? timeout = null) => new(executable, prefix.Concat(["--fixture", mode]), timeout: timeout);
 var passed = 0;
 async Task Check(string title, Func<Task> action) { await action(); passed++; Console.WriteLine("PASS " + title); }
+await DesktopSettingsChecks.Run(Check);
+await CliInstallationChecks.Run(Check);
+await SystemPreviewChecks.Run(Check);
 await Check("progress paths shorten only the middle and preserve Unicode text elements", () =>
 {
     if (ProgressPresentation.ShortPath("C:\\Users\\person\\build\\output.bin") != "C:/Users/person/build/output.bin") throw new Exception("Short Windows paths must be preserved.");
@@ -72,6 +107,41 @@ await Check("progress paths shorten only the middle and preserve Unicode text el
     return Task.CompletedTask;
 });
 static void Require(bool condition) { if (!condition) throw new Exception("Check failed"); }
+await Check("扫描记录预览区分可回收、空记录和核验受阻", () =>
+{
+    var eligible = RecordMaintenanceSummary.Read(JsonNode.Parse("""
+        {"records":[{"byte_count":4096},{"byte_count":1024}],"total_bytes":8192,"removable_bytes":5120,"retained_count":3,"issues":[]}
+        """)!);
+    Require(eligible.CanCollect && eligible.RemovableCount == 2 && eligible.RemovableBytes == 5120 && eligible.TotalBytes == 8192 && eligible.RetainedCount == 3);
+    var empty = RecordMaintenanceSummary.Read(JsonNode.Parse("""
+        {"records":[],"total_bytes":8192,"removable_bytes":0,"retained_count":3,"issues":[]}
+        """)!);
+    Require(!empty.CanCollect && empty.RemovableCount == 0 && empty.IssueCount == 0);
+    var blocked = RecordMaintenanceSummary.Read(JsonNode.Parse("""
+        {"records":[],"total_bytes":8192,"removable_bytes":0,"retained_count":3,"issues":["unreadable_plan:fixture"]}
+        """)!);
+    Require(!blocked.CanCollect && blocked.IssueCount == 1 && blocked.RetainedCount == 3);
+    return Task.CompletedTask;
+});
+await Check("扫描记录预览拒绝缺失、负数、矛盾、溢出和核验未知的容量", () =>
+{
+    foreach (var json in new[] {
+        "[]", "{}",
+        """{"records":[],"total_bytes":0,"removable_bytes":-1,"retained_count":0,"issues":[]}""",
+        """{"records":[{"byte_count":2}],"total_bytes":1,"removable_bytes":2,"retained_count":0,"issues":[]}""",
+        """{"records":[{"byte_count":2}],"total_bytes":4,"removable_bytes":1,"retained_count":0,"issues":[]}""",
+        """{"records":[{"byte_count":9223372036854775807},{"byte_count":1}],"total_bytes":9223372036854775807,"removable_bytes":0,"retained_count":0,"issues":[]}""",
+        """{"records":[{"byte_count":1}],"total_bytes":1,"removable_bytes":1,"retained_count":0,"issues":["unknown"]}""",
+        """{"records":[null],"total_bytes":0,"removable_bytes":0,"retained_count":0,"issues":[]}""",
+        """{"records":[],"total_bytes":0,"removable_bytes":0,"retained_count":2147483648,"issues":[]}""",
+        """{"records":[],"total_bytes":0,"removable_bytes":0,"retained_count":0,"issues":[null]}"""
+    })
+    {
+        try { RecordMaintenanceSummary.Read(JsonNode.Parse(json)!); throw new Exception("Invalid record preview accepted."); }
+        catch (BridgeException error) when (error.Code == "invalid_protocol") { }
+    }
+    return Task.CompletedTask;
+});
 await Check("空间导航仅在目录加载成功后提交，分支跳转清空前进记录", () =>
 {
     var history = new StorageNavigationHistory();
@@ -153,7 +223,7 @@ await Check("输出超限立即结束只读生产者", () => Failure("output_lim
 await Check("只读请求期限", () => Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("scan")));
 await Check("补扫、跨目录扫描和大文件查询遵守只读请求期限", async () =>
 {
-    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "storage.browse", "storage.selection", "storage.preview", "cleanup.review", "startup.scan", "applications.scan", "privacy.scan", "privacy.history", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
+    foreach(var operation in new[] { "agent.setup", "skills.preview", "scan.target", "system.scan", "storage.large-files", "storage.browse", "storage.selection", "storage.preview", "cleanup.review", "startup.scan", "applications.scan", "applications.prepare-scan", "applications.uninstall-history", "privacy.scan", "privacy.history", "tools.scan", "tools.history", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview", "records.preview" })
         await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync(operation));
 });
 await Check("历史位置核验支持取消并拒绝任何变更确认", async () =>
@@ -179,18 +249,34 @@ await Check("文件预览取消立即终止只读生产者", async () =>
     using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
     await Failure("cancelled", () => Fixture("timeout").RequestAsync("storage.preview", cancellation: stop.Token));
 });
-await Check("隐私统计和回执只读且不能请求变更确认", async () =>
+await Check("隐私统计、回执与扫描记录预览只读且不能请求变更确认", async () =>
 {
-    foreach (var operation in new[] { "privacy.scan", "privacy.history" })
+    foreach (var operation in new[] { "agent.setup", "skills.preview", "privacy.scan", "privacy.history", "records.preview", "applications.prepare-scan", "applications.uninstall-history" })
         await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync(operation, confirm: _ => throw new Exception("Read-only privacy requested consent.")));
 });
 await Check("缺少确认处理器时取消", async () =>
 {
     var result = await Fixture("confirm").RequestAsync("plan.execute"); Require(result["kind"]?.GetValue<string>() == "cancel");
 });
+await Check("应用数据检查只读且清理取消等待独立回执", async () =>
+{
+    await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("applications.data-scan", confirm: _ => throw new Exception("Read-only data review requested consent.")));
+    await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("applications.data-scan"));
+    using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+    var result = await Fixture("mutation-cancel").RequestAsync("applications.data-clean", cancellation: stop.Token);
+    Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);
+});
+await Check("MSIX 数据历史只读且清理取消等待独立回执", async () =>
+{
+    await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("applications.package-data-history", confirm: _ => throw new Exception("Read-only package history requested consent.")));
+    await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("applications.package-data-history"));
+    using var stop=new CancellationTokenSource(500);
+    var receipt=await Fixture("mutation-cancel").RequestAsync("applications.package-data-clear",cancellation: stop.Token);
+    Require(receipt["kind"]?.GetValue<string>()=="cancel" && receipt["receipt_saved"]?.GetValue<bool>()==true);
+});
 await Check("变更请求协作取消并等待回执", async () =>
 {
-    foreach(var operation in new[] { "plan.execute", "startup.control", "workspace.remove", "privacy.clean", "cleanup.close-owners" }) {
+    foreach(var operation in new[] { "skills.install", "skills.export", "plan.execute", "startup.control", "workspace.remove", "privacy.clean", "cleanup.close-owners", "applications.uninstall", "tools.clean", "records.collect" }) {
         using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
         var result = await Fixture("mutation-cancel").RequestAsync(operation, cancellation: stop.Token);
         Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);
@@ -213,6 +299,23 @@ if (args.Length == 2 && args[0] == "--engine")
     {
         var result = await new BridgeProcessClient(Path.GetFullPath(args[1])).RequestAsync("capabilities");
         Require(result["api_version"]?.GetValue<string>() == "1.0" && result["bridge_version"]?.GetValue<int>() == 1);
+    });
+    await Check("真实共享扫描记录预览及回收仅使用独占空数据目录", async () =>
+    {
+        var fixture = Directory.CreateTempSubdirectory("shou-record-maintenance-check-");
+        // Resolve the generated fixture's ancestors, including macOS /var.
+        static string CanonicalDirectory(DirectoryInfo directory) => directory.ResolveLinkTarget(returnFinalTarget: true) is DirectoryInfo target
+            ? CanonicalDirectory(target) : directory.Parent is { } parent ? Path.Combine(CanonicalDirectory(parent), directory.Name) : directory.FullName;
+        try
+        {
+            var client = new BridgeProcessClient(Path.GetFullPath(args[1]), dataDirectory: Path.Combine(CanonicalDirectory(fixture), "data"));
+            foreach (var operation in new[] { "records.preview", "records.collect" })
+            {
+                var summary = RecordMaintenanceSummary.Read(await client.RequestAsync(operation));
+                Require(!summary.CanCollect && summary.TotalBytes == 0 && summary.RemovableCount == 0 && summary.RetainedCount == 0 && summary.IssueCount == 0);
+            }
+        }
+        finally { fixture.Delete(recursive: true); }
     });
 }
 Console.WriteLine($"{passed} process bridge checks passed; no user files changed.");

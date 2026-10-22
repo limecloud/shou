@@ -31,7 +31,7 @@ public struct RecordRetentionPreview: Codable, Sendable {
 /// Reproducible evidence and detached journal dependencies. Manifest files with
 /// a live history parent are always protected, including unfinished operations.
 public enum DerivedRecords {
-    public static let collections=["scans", "plans", "storage-scans", "storage-scan-entries", "storage-plans", "storage-catalogs", "history-summaries", "history-manifests", "application-close-plans", "tool-scans", "tool-plans", "orphan-reviews", "orphan-plans"]
+    public static let collections=["scans", "plans", "storage-scans", "storage-scan-entries", "storage-plans", "storage-catalogs", "history-summaries", "history-manifests", "application-close-plans", "tool-scans", "tool-plans", "orphan-reviews", "orphan-plans", "registered-app-scans", "registered-uninstall-plans", "windows-app-data-reviews", "windows-app-data-plans", "windows-package-data-plans"]
 }
 
 extension ShouEngine {
@@ -71,7 +71,7 @@ extension ShouEngine {
                 }
             }
         }
-        for record in records where ["tool-plans", "orphan-plans"].contains(record.collection) {
+        for record in records where ["tool-plans", "orphan-plans", "registered-uninstall-plans", "windows-app-data-plans", "windows-package-data-plans"].contains(record.collection) {
             guard let data=try store.read(record.collection, id: record.id), let plan=try? Codec.decode(ToolPlanReference.self, from: data) else {
                 issues.append("unreadable_tool_plan:" + record.id); continue
             }
@@ -80,7 +80,7 @@ extension ShouEngine {
         // Recent scans can still be in a desktop selection or an unpublished worker.
         for record in records where record.modifiedAt >= grace { protected.insert(key(record.collection, record.id)) }
         // Keep the latest result in each scan family for later inspection.
-        for collection in ["scans", "storage-scans", "tool-scans"] {
+        for collection in ["scans", "storage-scans", "tool-scans", "registered-app-scans"] {
             if let latest=records.filter({ $0.collection == collection }).max(by: { $0.modifiedAt < $1.modifiedAt }) {
                 protected.insert(key(collection, latest.id))
             }

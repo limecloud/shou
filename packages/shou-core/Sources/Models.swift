@@ -246,6 +246,7 @@ public struct ItemReceipt: Codable, Sendable, Identifiable {
     public var allocatedBytesEstimate: Int64
     public var error: String?
     public var uninstallOrigin: UninstallReceiptOrigin? = nil
+    public var windowsApplicationDataOrigin: WindowsApplicationDataOrigin? = nil
 }
 public struct ExecutionReceipt: Codable, Sendable, Identifiable {
     public var id: String

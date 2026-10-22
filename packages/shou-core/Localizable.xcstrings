@@ -4657,6 +4657,22 @@
         }
       }
     },
+    "Choose an absolute Skill path without traversal components.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an absolute Skill path without traversal components."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择不包含上级或当前目录跳转的绝对 Skill 路径。"
+          }
+        }
+      }
+    },
     "Choose an unused rule version. Existing versions cannot be overwritten.": {
       "localizations": {
         "en": {
@@ -23233,6 +23249,70 @@
         }
       }
     },
+    "The Skill contains an oversized file.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Skill contains an oversized file."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill 中的文件超过大小上限。"
+          }
+        }
+      }
+    },
+    "The Skill or destination changed. Review the export again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Skill or destination changed. Review the export again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill 或导出位置已变化，请重新审阅导出。"
+          }
+        }
+      }
+    },
+    "The Skill or destination changed. Review the installation again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Skill or destination changed. Review the installation again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill 或安装位置已变化，请重新审阅安装。"
+          }
+        }
+      }
+    },
+    "The Skill package contains an unsupported file.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Skill package contains an unsupported file."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill 技能包包含不支持的文件。"
+          }
+        }
+      }
+    },
     "The Skill package could not be created.": {
       "localizations": {
         "en": {
@@ -23245,6 +23325,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法创建 Skill 技能包。"
+          }
+        }
+      }
+    },
+    "The Skill package exceeds its file limit.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Skill package exceeds its file limit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill 技能包的文件数量超过上限。"
           }
         }
       }
@@ -23501,6 +23597,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "硬链接文件在永久删除期间发生变化，已停止清理。"
+          }
+        }
+      }
+    },
+    "The installed Skill cannot be inspected.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The installed Skill cannot be inspected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查已安装的 Skill，现有文件已保留。"
+          }
+        }
+      }
+    },
+    "The installed Skill contains a symbolic link. Existing files were preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The installed Skill contains a symbolic link. Existing files were preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装的 Skill 包含符号链接，现有文件已保留。"
+          }
+        }
+      }
+    },
+    "The installed Skill contains unsupported files. Existing files were preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The installed Skill contains unsupported files. Existing files were preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装的 Skill 包含不支持的文件，现有文件已保留。"
           }
         }
       }

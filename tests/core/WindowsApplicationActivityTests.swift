@@ -26,7 +26,9 @@ func windowsCacheApplicationsRequireMappedProcessEvidence() throws {
         "windows-chrome": "chrome.exe", "windows-edge": "msedge.exe", "windows-vscode": "Code.exe",
         "windows-brave": "brave.exe", "windows-vivaldi": "vivaldi.exe", "windows-firefox": "firefox.exe",
         "windows-slack": "slack.exe", "windows-discord": "Discord.exe", "windows-notion": "Notion.exe",
-        "windows-postman": "Postman.exe", "windows-vscode-insiders": "Code - Insiders.exe", "windows-cursor": "Cursor.exe"
+        "windows-postman": "Postman.exe", "windows-vscode-insiders": "Code - Insiders.exe", "windows-cursor": "Cursor.exe",
+        "windows-chromium": "chrome.exe", "windows-obsidian": "Obsidian.exe",
+        "windows-github-desktop": "GitHubDesktop.exe", "windows-insomnia": "Insomnia.exe"
     ]
     try expect(Set(guarded.map(\.location)) == Set(expected.keys))
     let fixture=WindowsProcessFixture()
@@ -36,7 +38,10 @@ func windowsCacheApplicationsRequireMappedProcessEvidence() throws {
         let process=try require(expected[template.location])
         fixture.setRunning([process])
         let blocked=ApplicationSafety.blockedRules(ids + ["personal.cache"], activity: activity)
-        try expect(blocked == [template.id: "application_running"])
+        // Chrome and Chromium share the executable name. Both cache scopes
+        // remain blocked when either process is present.
+        let affected=guarded.filter { expected[$0.location] == process }.map { ($0.id, "application_running") }
+        try expect(blocked == Dictionary(uniqueKeysWithValues: affected))
         try expect(fixture.inspected() == Set(expected.values))
     }
     fixture.setRunning(["unrelated.exe"])

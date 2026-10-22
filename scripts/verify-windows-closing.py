@@ -24,7 +24,7 @@ def main():
         capabilities, confirmed = bridge.request(engine, environment, "capabilities")
         windows = capabilities["data"]["platform"] == "windows"
         assert capabilities["data"]["features"]["close_cleanup_owners"] is windows and not confirmed
-        for values in [dict(scan_ids=[]), dict(scan_ids="missing"), dict(scan_ids=[False]), dict(scan_ids=["missing"], yes=True), dict(scan_ids=["missing"], pid=123), dict(path=temporary)]:
+        for values in [dict(scan_ids=[]), dict(scan_ids="missing"), dict(scan_ids=[False]), dict(scan_ids=["missing"] * 201), dict(scan_ids=["missing"], yes=True), dict(scan_ids=["missing"], pid=123), dict(path=temporary)]:
             result, confirmed = bridge.request(engine, environment, "cleanup.close-owners", values)
             assert not confirmed and not result["ok"] and result["error"]["code"] == "invalid_argument", result
         result, confirmed = bridge.request(engine, environment, "cleanup.close-owners", dict(scan_ids=["missing"]))

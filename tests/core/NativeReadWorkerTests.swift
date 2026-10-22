@@ -180,7 +180,9 @@ private final class WorkerCancellationProbe: @unchecked Sendable {
     private var timestamp: TimeInterval?
     init(marker: URL) { self.marker=marker }
     func requested() -> Bool {
-        guard FileManager.default.fileExists(atPath: marker.path) else { return false }
+        // File creation precedes printf's PID write. Request cancellation only
+        // once the owned child has published a complete, usable handshake.
+        guard let text=try? String(contentsOf: marker, encoding: .utf8), let pid=Int32(text), pid > 0 else { return false }
         lock.lock(); defer { lock.unlock() }
         if timestamp == nil { timestamp=ProcessInfo.processInfo.systemUptime }
         return true

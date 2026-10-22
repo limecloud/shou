@@ -34,6 +34,8 @@ def main():
         (workspace / "blocked/image.png").write_bytes(image)
         (workspace / "blocked/data.bin").write_bytes(b"\0binary\x01")
         (workspace / "blocked/not-run.exe").write_bytes(b"MZ generated fixture only")
+        for name in ("report.pdf", "notes.docx", "movie.mp4"):
+            (workspace / "blocked" / name).write_bytes(b"Generated scan fixture only; never sent to a system preview provider.")
         bridge.set_fixture_owner(workspace)
         environment = dict(os.environ, SHOU_DATA_DIR=str(root / "records"))
 
@@ -95,6 +97,22 @@ def main():
             assert not rejected["ok"] and not reviewed, rejected
         assert snapshot() == before
         print("PASS local read-only text, UTF-16, bounded prefix, image and metadata previews without mutation authority", flush=True)
+        windows = success("capabilities")["platform"] == "windows"
+        for name in ("report.pdf", "notes.docx", "movie.mp4"):
+            path = "blocked/" + name
+            preview = success("storage.preview", dict(scan_id=identifier, path=path))
+            if windows:
+                assert preview["format"] == "system" and preview["notice"] == "system_preview", preview
+                capability = preview["system_preview"]
+                assert capability["file"]["path"] == path and capability["file"]["kind"] == "file", capability
+                for entry in (capability["root_identity"], capability["file"]):
+                    assert len(entry["windows_identity"]["file_id"]) == 32, entry
+                    assert entry["windows_identity"]["owner_sid"].startswith("S-1-"), entry
+                assert capability["root_path"].replace("\\", "/").lower() == str(workspace).replace("\\", "/").lower()
+            else:
+                assert preview.get("system_preview") is None and preview["format"] in ("text", "metadata"), preview
+        assert snapshot() == before
+        print("PASS scanned document/media preview platform contract and full Windows identities; no installed provider activated", flush=True)
 
         def selection(paths, targets, selected):
             return success("storage.selection", dict(scan_id=identifier, paths=paths, targets=targets, selected=selected))

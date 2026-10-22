@@ -4,6 +4,49 @@ public protocol StoragePreviewReading: Sendable {
     func read(_ path: String, expected: FileEntry, maximumBytes: Int, cancelled: @Sendable () -> Bool) throws -> Data
 }
 
+/// A scan-bound read capability. Native hosts must pin and revalidate both
+/// identities before handing a read-only stream to a system preview handler.
+public struct StorageSystemPreview: Codable, Sendable {
+    public let rootPath: String
+    public let rootIdentity: FileEntry
+    public let file: FileEntry
+    public init(rootPath: String, rootIdentity: FileEntry, file: FileEntry) {
+        self.rootPath=rootPath; self.rootIdentity=rootIdentity; self.file=file
+    }
+    public static let extensions: Set<String> = [
+        "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "ods", "odp", "rtf",
+        "mp3", "wav", "flac", "aac", "m4a", "wma", "ogg", "mp4", "m4v", "mov", "wmv", "avi", "mkv", "webm",
+        "tif", "tiff", "webp", "heic"
+    ]
+    public var absolutePath: String { StorageRemovalPolicy.absolute(root: rootPath, relative: file.path) }
+    public func validate() throws {
+        guard rootIdentity.kind == "directory", file.kind == "file", file.logicalBytes >= 0,
+              rootIdentity.windowsIdentity != nil, file.windowsIdentity != nil,
+              rootPath.range(of: "^/?[A-Za-z]:[/\\\\]", options: .regularExpression) != nil,
+              rootPath.rangeOfCharacter(from: .controlCharacters) == nil,
+              !rootPath.replacingOccurrences(of: "\\", with: "/").split(separator: "/").contains(where: { $0 == "." || $0 == ".." }),
+              StorageRemovalPolicy.validRelative(file.path),
+              !file.path.contains("\\"), !file.path.contains(":"), file.path.rangeOfCharacter(from: .controlCharacters) == nil,
+              Self.extensions.contains(StorageExtensionStat.suffix(file.path)) else {
+            throw ShouError("invalid_preview", "Choose one supported file from a current Windows analysis.")
+        }
+    }
+}
+
+public struct SystemPreviewRequest: Codable, Sendable {
+    public let version: Int
+    public let parentPid: UInt32
+    public let hostWindow: UInt64
+    public let preview: StorageSystemPreview
+    public init(version: Int = 1, parentPid: UInt32, hostWindow: UInt64, preview: StorageSystemPreview) {
+        self.version=version; self.parentPid=parentPid; self.hostWindow=hostWindow; self.preview=preview
+    }
+    public func validate() throws {
+        guard version == 1, parentPid > 0, hostWindow > 0 else { throw ShouError("invalid_preview", "System preview host identity is invalid.") }
+        try preview.validate()
+    }
+}
+
 public struct StorageFilePreview: Codable, Sendable {
     public let path: String
     public let absolutePath: String
@@ -15,6 +58,7 @@ public struct StorageFilePreview: Codable, Sendable {
     public let text: String?
     public let image: Data?
     public let notice: String?
+    public var systemPreview: StorageSystemPreview? = nil
 }
 
 extension ShouEngine {
@@ -36,6 +80,15 @@ extension ShouEngine {
         }
         guard entry.kind == "file" else { return result("metadata", notice: "snapshot_metadata") }
         let suffix=StorageExtensionStat.suffix(node.name)
+        if filesystem.platform == "windows", StorageSystemPreview.extensions.contains(suffix) {
+            let capability=StorageSystemPreview(rootPath: scan.rootPath, rootIdentity: scan.identity, file: entry)
+            try capability.validate()
+            let root=try filesystem.analysisRootIdentity(scan.rootPath)
+            guard root.sameObject(as: scan.identity), root.hasSameOwner(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
+            var preview=result("system", notice: "system_preview")
+            preview.systemPreview=capability
+            return preview
+        }
         if ["exe", "dll", "com", "msi", "lnk", "url", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"].contains(suffix) {
             return result("metadata", notice: "format_unavailable")
         }

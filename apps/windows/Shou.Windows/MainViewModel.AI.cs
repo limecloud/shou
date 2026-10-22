@@ -37,8 +37,8 @@ public sealed class AiQuestionRow(string id, string text, string[] choices) : Ob
 public sealed partial class MainViewModel
 {
     private bool aiEnabled, aiBusy, aiAvailable;
-    private string aiFolder = "", aiRequest = "", aiStatus = "AI 默认关闭。启用并选择连接后，点击开始才会发送所选目录的相对元数据。";
-    private string aiSummary = "", aiUsage = "", aiEvidence = "", aiDecisions = "", aiConnectionDisclosure = "尚未选择连接。";
+    private string aiFolder = "", aiRequest = "", aiStatus = T("AI 默认关闭。启用并选择连接后，点击开始才会发送所选目录的相对元数据。");
+    private string aiSummary = "", aiUsage = "", aiEvidence = "", aiDecisions = "", aiConnectionDisclosure = T("尚未选择连接。");
     private string? aiId, aiSavedScan, aiSavedScope, aiRoot;
     private JsonObject? aiState;
     private AiConnectionRow? selectedAiConnection;
@@ -55,7 +55,7 @@ public sealed partial class MainViewModel
     public ObservableCollection<AiConnectionRow> AiDeletedConnections { get; } = [];
     private AiConnectionRow? selectedAiDeletedConnection;
     public AiConnectionRow? SelectedAiDeletedConnection { get => selectedAiDeletedConnection; set => SetProperty(ref selectedAiDeletedConnection,value); }
-    public ObservableCollection<AiGoalRow> AiGoals { get; } = [new("investigate", "调查所选目录"), new("space", "解释空间占用（仅本地）"), new("rules", "生成规则草稿")];
+    public ObservableCollection<AiGoalRow> AiGoals { get; } = [new("investigate", T("调查所选目录")), new("space", T("解释空间占用（仅本地）")), new("rules", T("生成规则草稿"))];
     public ObservableCollection<AiQuestionRow> AiQuestions { get; } = [];
     public ObservableCollection<AiAdviceRow> AiAdvice { get; } = [];
     public ObservableCollection<AiHistoryRow> AiHistory { get; } = [];
@@ -82,15 +82,15 @@ public sealed partial class MainViewModel
         set {
             if (!SetProperty(ref aiEnabled, value)) return;
             try { Directory.CreateDirectory(Path.GetDirectoryName(AiPreference)!); File.WriteAllText(AiPreference, value ? "enabled" : "disabled"); }
-            catch (Exception error) when (error is IOException or UnauthorizedAccessException) { AiStatus = "AI 开关未能保存；重启后请检查设置。"; }
-            if (!value) { aiCancellation?.Cancel(); _ = StopWaitingAiAsync(); AiStatus = "AI 已关闭，正在停止请求；已有证据与草稿保留。"; }
-            else AiStatus = "AI 已启用。选择范围并点击开始；连接测试只发送合成数据。";
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException) { AiStatus = T("AI 开关未能保存；重启后请检查设置。"); }
+            if (!value) { aiCancellation?.Cancel(); _ = StopWaitingAiAsync(); AiStatus = T("AI 已关闭，正在停止请求；已有证据与草稿保留。"); }
+            else AiStatus = T("AI 已启用。选择范围并点击开始；连接测试只发送合成数据。");
         }
     }
     public bool AiBusy { get => aiBusy; private set { SetProperty(ref aiBusy, value); OnPropertyChanged(nameof(AiCanEdit)); } }
     public bool AiCanEdit => !AiBusy && !IsBusy && !AiPending;
     public string AiFolder { get => aiFolder; private set { SetProperty(ref aiFolder, value); OnPropertyChanged(nameof(AiMeasurement)); OnPropertyChanged(nameof(AiScopeLabel)); } }
-    public string AiScopeLabel => storageRoot is not null && !string.IsNullOrEmpty(AiFolder) && SamePath(storageRoot,AiFolder) ? "全部已扫描范围：当前索引根及子目录，不包含其他卷。" : "单个目录：仅此目录及其子目录。调查范围不改变清理勾选。";
+    public string AiScopeLabel => storageRoot is not null && !string.IsNullOrEmpty(AiFolder) && SamePath(storageRoot,AiFolder) ? T("全部已扫描范围：当前索引根及子目录，不包含其他卷。") : T("单个目录：仅此目录及其子目录。调查范围不改变清理勾选。");
     public string AiRequest { get => aiRequest; set => SetProperty(ref aiRequest, value); }
     public string AiStatus { get => aiStatus; private set => SetProperty(ref aiStatus, value); }
     public string AiSummary { get => aiSummary; private set => SetProperty(ref aiSummary, value); }
@@ -98,14 +98,14 @@ public sealed partial class MainViewModel
     public string AiDecisions { get => aiDecisions; private set => SetProperty(ref aiDecisions, value); }
     public string AiEvidence { get => aiEvidence; private set => SetProperty(ref aiEvidence, value); }
     public string AiConnectionDisclosure { get => aiConnectionDisclosure; private set => SetProperty(ref aiConnectionDisclosure, value); }
-    public string AiMeasurement => AiReusableScope() is not null ? "将复用现有空间索引；开始前不发送网络请求。" : "开始时先在本地测量此目录，再发送有界的相对元数据。";
+    public string AiMeasurement => AiReusableScope() is not null ? T("将复用现有空间索引；开始前不发送网络请求。") : T("开始时先在本地测量此目录，再发送有界的相对元数据。");
     public AiConnectionRow? SelectedAiConnection { get => selectedAiConnection; set {
         if (!SetProperty(ref selectedAiConnection, value)) return;
         OnPropertyChanged(nameof(AiDecisionEnabled));
         if(!AiPending) UpdateAiDisclosure(value?.Profile);
         if(value is null) return;
         try { Directory.CreateDirectory(Path.GetDirectoryName(AiConnectionPreference)!); File.WriteAllText(AiConnectionPreference,value.Id); }
-        catch(Exception error) when(error is IOException or UnauthorizedAccessException) { AiStatus="默认 AI 配置未能保存；重启后请重新选择。"; }
+        catch(Exception error) when(error is IOException or UnauthorizedAccessException) { AiStatus=T("默认 AI 配置未能保存；重启后请重新选择。"); }
     } }
     public bool AiDecisionEnabled { get => SelectedAiConnection?.UsesDecision==true; set {
         if(SelectedAiConnection is { } connection && AiCanEdit && value!=connection.UsesDecision) {
@@ -123,7 +123,7 @@ public sealed partial class MainViewModel
 
     private void InitializeAI()
     {
-        try { aiEnabled = File.Exists(AiPreference) && File.ReadAllText(AiPreference) == "enabled"; } catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
+        try { aiEnabled = persistUserPreferences && File.Exists(AiPreference) && File.ReadAllText(AiPreference) == "enabled"; } catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
         selectedAiGoal = AiGoals[0];
         bool Ready() => aiAvailable && AiEnabled && !AiBusy && !IsBusy;
         AiChooseFolderCommand = new AsyncRelayCommand(() => { var path=dialogs.ChooseFolder(); if(path is not null) AiFolder=path; return Task.CompletedTask; }, () => AiCanEdit);
@@ -132,11 +132,11 @@ public sealed partial class MainViewModel
         AiEditConnectionCommand = new AsyncRelayCommand(() => EditAiConnectionAsync(true), () => AiCanEdit && SelectedAiConnection is not null);
         AiDeleteConnectionCommand = new AsyncRelayCommand(async () => {
             if(SelectedAiConnection is not { } connection || !dialogs.ConfirmAIConfigurationDeletion(connection.Name)) return;
-            await RunAiAsync(async token => { await client.RequestAsync("ai.connections.delete",new() { ["connection_id"]=connection.Id },cancellation:token); await LoadAiConnectionsAsync(token); AiStatus="配置已移至已删除配置，可随时恢复。已有调查记录和密钥已保留。"; });
+            await RunAiAsync(async token => { await client.RequestAsync("ai.connections.delete",new() { ["connection_id"]=connection.Id },cancellation:token); await LoadAiConnectionsAsync(token); AiStatus=T("配置已移至已删除配置，可随时恢复。已有调查记录和密钥已保留。"); });
         }, () => AiCanEdit && SelectedAiConnection is not null);
         AiRestoreConnectionCommand = new AsyncRelayCommand(async () => {
             if(SelectedAiDeletedConnection is not { } connection) return;
-            await RunAiAsync(async token => { await client.RequestAsync("ai.connections.restore",new() { ["connection_id"]=connection.Id },cancellation:token); await LoadAiConnectionsAsync(token); SelectedAiConnection=AiConnections.FirstOrDefault(row=>row.Id==connection.Id); AiStatus="配置已恢复。"; });
+            await RunAiAsync(async token => { await client.RequestAsync("ai.connections.restore",new() { ["connection_id"]=connection.Id },cancellation:token); await LoadAiConnectionsAsync(token); SelectedAiConnection=AiConnections.FirstOrDefault(row=>row.Id==connection.Id); AiStatus=T("配置已恢复。"); });
         }, () => AiCanEdit && SelectedAiDeletedConnection is not null);
         AiTestCommand = new AsyncRelayCommand(() => RunAiAsync(async token => {
             var connection=SelectedAiConnection!;
@@ -145,7 +145,7 @@ public sealed partial class MainViewModel
                 token.ThrowIfCancellationRequested();
             }
             if (connection.UsesDecision) await client.RequestAsync("ai.decision.test", new() { ["connection_id"]=connection.Id }, cancellation: token);
-            AiStatus="所选连接的合成数据测试通过。";
+            AiStatus=T("所选连接的合成数据测试通过。");
         }), () => Ready() && SelectedAiConnection?.HasMainModel==true);
         AiStartCommand = new AsyncRelayCommand(StartAiAsync, () => Ready() && !AiPending && SelectedAiConnection?.HasMainModel==true && !string.IsNullOrEmpty(AiFolder));
         AiResumeCommand = new AsyncRelayCommand(() => RunAiAsync(async token => {
@@ -173,7 +173,7 @@ public sealed partial class MainViewModel
     private void OpenAi(string? path)
     {
         SelectedSection=5;
-        if(AiBusy || AiPending) { AiStatus="已有调查正在运行或等待回答。请先完成或停止，再开始新范围；原范围和未提交回答已保留。"; return; }
+        if(AiBusy || AiPending) { AiStatus=T("已有调查正在运行或等待回答。请先完成或停止，再开始新范围；原范围和未提交回答已保留。"); return; }
         if(path is not null) AiFolder=Path.GetFullPath(path);
     }
     private string? AiReusableScope()
@@ -190,15 +190,15 @@ public sealed partial class MainViewModel
         aiProviders=Array(await client.RequestAsync("ai.providers",cancellation:Token));
         await LoadAiConnectionsAsync(Token);
         await LoadAiHistoryAsync(Token);
-        if(!aiAvailable) AiStatus="此清理核心尚不支持 AI，请更新完整应用。";
-        else if(AiEnabled) AiStatus="AI 已启用。选择范围并点击开始；连接测试只发送合成数据。";
+        if(!aiAvailable) AiStatus=T("此清理核心尚不支持 AI，请更新完整应用。");
+        else if(AiEnabled) AiStatus=T("AI 已启用。选择范围并点击开始；连接测试只发送合成数据。");
     }
     private async Task LoadAiConnectionsAsync(CancellationToken token)
     {
         var selected=SelectedAiConnection?.Id;
         if(selected is null) {
             try { if(File.Exists(AiConnectionPreference)) selected=File.ReadAllText(AiConnectionPreference); }
-            catch(Exception error) when(error is IOException or UnauthorizedAccessException) { AiStatus="无法读取默认 AI 配置。"; }
+            catch(Exception error) when(error is IOException or UnauthorizedAccessException) { AiStatus=T("无法读取默认 AI 配置。"); }
         }
         var rows=await client.RequestAsync("ai.connections",cancellation:token);
         AiConnections.Clear();
@@ -214,14 +214,14 @@ public sealed partial class MainViewModel
         var profile=(JsonObject)connection.Profile.DeepClone();
         if(enabled && profile["decision"] is null) {
             var provider=aiProviders.OfType<JsonObject>().FirstOrDefault();
-            if(provider?["default_connection"] is not JsonObject defaults) throw new InvalidOperationException("请先在编辑配置中选择可用的决策服务。");
+            if(provider?["default_connection"] is not JsonObject defaults) throw new InvalidOperationException(T("请先在编辑配置中选择可用的决策服务。"));
             profile["decision"]=defaults.DeepClone();
         }
         profile["routing_strategy"]=enabled ? "decision_first" : "main_only";
         try { await client.RequestAsync("ai.connections.save",new() { ["profile"]=profile },cancellation:token); }
         finally { OnPropertyChanged(nameof(AiDecisionEnabled)); }
         await LoadAiConnectionsAsync(token);
-        AiStatus=enabled ? "决策服务已开启，将协助主模型节省 token。" : "决策服务已关闭，由主模型接管；决策配置和密钥已保留。";
+        AiStatus=enabled ? T("决策服务已开启，将协助主模型节省 token。") : T("决策服务已关闭，由主模型接管；决策配置和密钥已保留。");
     });
     private async Task LoadAiHistoryAsync(CancellationToken token)
     {
@@ -241,8 +241,8 @@ public sealed partial class MainViewModel
             var saved=await client.RequestAsync("ai.connections.save",input);
             await LoadAiConnectionsAsync(CancellationToken.None);
             SelectedAiConnection=AiConnections.FirstOrDefault(row=>row.Id==Text(saved,"id"));
-            AiStatus="AI 配置已保存，密钥按各服务所选方式保存。点击测试验证；保存不会发起模型请求。";
-        } catch(BridgeException error) { AiStatus=error.Code+"："+error.Message; }
+            AiStatus=T("AI 配置已保存，密钥按各服务所选方式保存。点击测试验证；保存不会发起模型请求。");
+        } catch(BridgeException error) { AiStatus=error.Code+T("：")+error.Message; }
         finally { input["model_key"]=null; input["decision_key"]=null; }
     }
     private Task StartAiAsync() => RunAiAsync(async token => {
@@ -250,7 +250,7 @@ public sealed partial class MainViewModel
         aiState=null; aiId=null; AiQuestions.Clear(); AiAdvice.Clear(); AiSummary=""; AiUsage=""; AiEvidence=""; AiDecisions="";
         aiSavedScope=AiReusableScope(); aiSavedScan=storageScanId;
         if(aiSavedScope is null) {
-            AiStatus="正在本地测量所选目录…";
+            AiStatus=T("正在本地测量所选目录…");
             var scan=await client.RequestAsync("storage.scan",new() { ["path"]=folder },cancellation:token);
             aiSavedScan=Text(scan,"scan_id"); aiSavedScope=".";
         }
@@ -258,7 +258,7 @@ public sealed partial class MainViewModel
         aiRoot=Text(scopeInfo,"root_path");
         token.ThrowIfCancellationRequested();
         if(!AiEnabled) return;
-        ApplyAi(await client.RequestAsync("ai.investigate",new() { ["scan_id"]=aiSavedScan,["path"]=aiSavedScope,["connection_id"]=connection.Id,["request"]=request,["goal"]=goal,["locale"]="zh-CN" },AiProgress(),cancellation:token));
+        ApplyAi(await client.RequestAsync("ai.investigate",new() { ["scan_id"]=aiSavedScan,["path"]=aiSavedScope,["connection_id"]=connection.Id,["request"]=request,["goal"]=goal,["locale"]=UiText.Language },AiProgress(),cancellation:token));
     });
     private IProgress<JsonObject> AiProgress() { var generation=aiGeneration; return new Progress<JsonObject>(value => { if(AiBusy && generation==aiGeneration && value["id"] is not null) ApplyAi(value); }); }
     private async Task RunAiAsync(Func<CancellationToken,Task> action)
@@ -267,9 +267,9 @@ public sealed partial class MainViewModel
         using var cancellation=new CancellationTokenSource(); aiCancellation=cancellation;
         aiIdle=new(TaskCreationOptions.RunContinuationsAsynchronously); aiGeneration++; AiBusy=true;
         try { await action(cancellation.Token); }
-        catch(BridgeException error) { AiStatus=error.Code+"："+error.Message; }
-        catch(OperationCanceledException) { AiStatus="AI 已停止。已有证据与草稿保留。"; }
-        catch(Exception error) { AiStatus="AI 操作未完成："+error.Message; }
+        catch(BridgeException error) { AiStatus=error.Code+T("：")+error.Message; }
+        catch(OperationCanceledException) { AiStatus=T("AI 已停止。已有证据与草稿保留。"); }
+        catch(Exception error) { AiStatus=T("AI 操作未完成：")+error.Message; }
         finally {
             aiGeneration++;
             if(aiId is not null && Text(aiState,"status")=="running") {
@@ -293,30 +293,30 @@ public sealed partial class MainViewModel
         await WhenAiIdleAsync();
         await StopWaitingAiAsync();
     }
-    private static string AiStateName(string value) => value switch { "running"=>"调查中", "waiting"=>"等待回答", "complete"=>"已完成", "cancelled"=>"已停止", "limited"=>"已达到本次调查上限", "failed"=>"未完成", _=>value };
+    private static string AiStateName(string value) => value switch { "running"=>T("调查中"), "waiting"=>T("等待回答"), "complete"=>T("已完成"), "cancelled"=>T("已停止"), "limited"=>T("已达到本次调查上限"), "failed"=>T("未完成"), _=>value };
     private static string AiLimitMessage(JsonNode state) => Text(state,"limit_reason") switch {
-        "time"=>"达到单次 3 分钟处理时限。已有证据已保存，可缩小目录重新调查；这不代表 API 账户余额不足。",
-        "tokens"=>"达到单次 32,000 个报告 token 上限。已有证据已保存，可缩小目录重新调查。",
-        "steps"=>"达到单次 12 步分析上限。已有证据已保存，可选择具体子目录继续调查。",
-        "decisions"=>"达到单次 8 次决策请求上限。已有证据已保存，可选择具体子目录继续调查。",
-        "tools"=>"达到单次 32 次工具调用上限。已有证据已保存，可缩小目录重新调查。",
-        "evidence"=>"达到本次证据大小上限。已有证据已保存，可缩小目录重新调查。",
-        "response"=>"服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。",
-        "directories"=>"本次概览已分析 8 个目录。请审阅已有发现，再选择具体子目录继续调查。",
+        "time"=>T("达到单次 3 分钟处理时限。已有证据已保存，可缩小目录重新调查；这不代表 API 账户余额不足。"),
+        "tokens"=>T("达到单次 32,000 个报告 token 上限。已有证据已保存，可缩小目录重新调查。"),
+        "steps"=>T("达到单次 12 步分析上限。已有证据已保存，可选择具体子目录继续调查。"),
+        "decisions"=>T("达到单次 8 次决策请求上限。已有证据已保存，可选择具体子目录继续调查。"),
+        "tools"=>T("达到单次 32 次工具调用上限。已有证据已保存，可缩小目录重新调查。"),
+        "evidence"=>T("达到本次证据大小上限。已有证据已保存，可缩小目录重新调查。"),
+        "response"=>T("服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。"),
+        "directories"=>T("本次概览已分析 8 个目录。请审阅已有发现，再选择具体子目录继续调查。"),
         _=>Text(state,"issue")
     };
     private void UpdateAiDisclosure(JsonObject? connection)
     {
-        if(connection is null) { AiConnectionDisclosure="尚未选择 AI 配置。"; return; }
+        if(connection is null) { AiConnectionDisclosure=T("尚未选择 AI 配置。"); return; }
         var main=connection["main_model_enabled"]?.GetValue<bool>()!=false;
         var decision=connection["decision"];
         var usesDecision=decision is not null && Text(connection,"routing_strategy")!="main_only";
         var provider=Text(decision,"provider") is { Length:>0 } configured ? configured : "jev";
         var lines=new List<string>();
-        if(usesDecision) lines.Add("决策服务（优先）："+(provider=="jev" ? "Jev" : provider)+" · "+Text(decision,"model")+" · "+Text(decision,"base_url"));
-        if(main) lines.Add((usesDecision ? "主模型（按需）：" : "主模型：")+Text(connection,"model")+" · "+Text(connection,"base_url"));
-        lines.Add(!main ? "旧配置缺少主模型，请编辑补全后使用。" : usesDecision ? "本地分析 → 结构化决策 → 必要时主模型。同一配置中的两项服务协作，按需调用。" : "本地分析 → 主模型。当前策略不使用结构化决策。");
-        lines.Add("只发送相对路径、统计及您提交的回答。");
+        if(usesDecision) lines.Add(T("决策服务（优先）：")+(provider=="jev" ? "Jev" : provider)+" · "+Text(decision,"model")+" · "+Text(decision,"base_url"));
+        if(main) lines.Add((usesDecision ? T("主模型（按需）：") : T("主模型："))+Text(connection,"model")+" · "+Text(connection,"base_url"));
+        lines.Add(!main ? T("旧配置缺少主模型，请编辑补全后使用。") : usesDecision ? T("本地分析 → 结构化决策 → 必要时主模型。同一配置中的两项服务协作，按需调用。") : T("本地分析 → 主模型。当前策略不使用结构化决策。"));
+        lines.Add(T("只发送相对路径、统计及您提交的回答。"));
         AiConnectionDisclosure=string.Join("\n",lines);
     }
     private void ApplyAi(JsonNode value)
@@ -325,12 +325,12 @@ public sealed partial class MainViewModel
         aiState=(JsonObject)value.DeepClone(); aiId=Text(value,"id");
         UpdateAiDisclosure(aiState["connection"] as JsonObject);
         AiSummary=Text(value,"summary");
-        AiStatus=AiStateName(Text(value,"status"))+" · "+Text(value,"activity")+(AiStale ? " · 索引已变化或调查超过 24 小时，请新建。" : "")+
+        AiStatus=AiStateName(Text(value,"status"))+" · "+Text(value,"activity")+(AiStale ? T(" · 索引已变化或调查超过 24 小时，请新建。") : "")+
             (AiLimitMessage(value) is { Length:>0 } issue ? "\n"+issue : "");
-        AiUsage=string.Join("\n",Array(value["service_usage"]).Select(item=>Text(item,"service")+"："+(item?["requests"]?.ToString() ?? "0")+" 次请求，报告 "+(item?["reported_tokens"]?.ToString() ?? "0")+" token"))+
+        AiUsage=string.Join("\n",Array(value["service_usage"]).Select(item=>Text(item,"service")+T("：")+(item?["requests"]?.ToString() ?? "0")+T(" 次请求，报告 ")+(item?["reported_tokens"]?.ToString() ?? "0")+" token"))+
             "\n"+string.Join("\n",Array(value["escalation_reasons"]).Select(item=>item?.GetValue<string>()));
-        AiDecisions=string.Join("\n",Array(value["decision_reviews"]).Select(item=>Text(item,"path")+" · "+Text(item,"model")+" · "+Text(item,"verdict")))+"\n判断仅支持草稿审阅，置信度不代表安全删除概率。";
-        AiEvidence="原调查目录："+AiFolder+"\n调查范围："+Text(value,"scope")+" · 索引 "+Text(value,"scan_id")+"\n"+string.Join("\n",Array(value["evidence"]).Select(item=>Text(item,"path")+" · "+Bytes(item?["allocated_bytes"]?.GetValue<long>() ?? 0)+(item?["complete"]?.GetValue<bool>()==false ? "（部分测量）" : "")));
+        AiDecisions=string.Join("\n",Array(value["decision_reviews"]).Select(item=>Text(item,"path")+" · "+Text(item,"model")+" · "+Text(item,"verdict")))+T("\n判断仅支持草稿审阅，置信度不代表安全删除概率。");
+        AiEvidence=T("原调查目录：")+AiFolder+T("\n调查范围：")+Text(value,"scope")+T(" · 索引 ")+Text(value,"scan_id")+"\n"+string.Join("\n",Array(value["evidence"]).Select(item=>Text(item,"path")+" · "+Bytes(item?["allocated_bytes"]?.GetValue<long>() ?? 0)+(item?["complete"]?.GetValue<bool>()==false ? T("（部分测量）") : "")));
         AiQuestions.Clear();
         foreach(var q in Array(value["questions"])) {
             var row=new AiQuestionRow(Text(q,"id"),Text(q,"text"),Array(q?["choices"]).Select(c=>c!.GetValue<string>()).ToArray());
@@ -338,8 +338,8 @@ public sealed partial class MainViewModel
             row.PropertyChanged+=(_,_)=>AiResumeCommand.NotifyCanExecuteChanged(); AiQuestions.Add(row);
         }
         AiAdvice.Clear();
-        foreach(var advice in Array(value["advice"])) AiAdvice.Add(new(Text(advice,"id"),Text(advice,"path"),Text(advice,"explanation"),Text(advice?["rule"]?["risk"],"rebuild_note")+"\n"+string.Join("；",Array(advice?["rule"]?["risk"]?["limitations"]).Select(x=>x?.GetValue<string>()))));
-        if(Text(value,"status")=="complete" && AiAdvice.Count==0) AiStatus+="\n本次没有可导入的规则建议。您可以保留结果或更换范围重新调查。";
+        foreach(var advice in Array(value["advice"])) AiAdvice.Add(new(Text(advice,"id"),Text(advice,"path"),Text(advice,"explanation"),Text(advice?["rule"]?["risk"],"rebuild_note")+"\n"+string.Join(T("；"),Array(advice?["rule"]?["risk"]?["limitations"]).Select(x=>x?.GetValue<string>()))));
+        if(Text(value,"status")=="complete" && AiAdvice.Count==0) AiStatus+=T("\n本次没有可导入的规则建议。您可以保留结果或更换范围重新调查。");
         OnPropertyChanged(nameof(AiCanEdit)); RefreshCommands();
     }
     private async Task PreviewAiAdviceAsync(AiAdviceRow? advice)
@@ -351,8 +351,8 @@ public sealed partial class MainViewModel
             var rootRef=Text(record["rule"]?["scope"],"root_ref");
             SelectedWorkspace=Workspaces.FirstOrDefault(row=>row.RootRef==rootRef);
             SelectedRule=Rules.FirstOrDefault(row=>row.Id==Text(record["rule"],"id"));
-            if(SelectedRule is null) throw new BridgeException("not_found","草稿已导入，请在对应工作区逐条预览。");
-            SelectedSection=2; Status="已导入这一条停用草稿。请预览，再启用并扫描。";
+            if(SelectedRule is null) throw new BridgeException("not_found",T("草稿已导入，请在对应工作区逐条预览。"));
+            SelectedSection=2; Status=T("已导入这一条停用草稿。请预览，再启用并扫描。");
         });
         if(SelectedRule is not null) await PreviewRuleAsync();
     }

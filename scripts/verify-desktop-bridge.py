@@ -172,7 +172,9 @@ def main():
         assert preview["status"] == "complete" and len(preview["rows"]) == 105
         assert preview["benefits"]["eligible_match_count"] == 105 and preview["benefits"]["additional_allocated_bytes_estimate"] > 0
         assert all(row["status"] == "matched" for row in preview["rows"])
-        assert success("configuration")["configuration"]["bindings"] == []
+        configuration = success("configuration")
+        assert configuration["configuration"]["bindings"] == []
+        assert Path(configuration["data_directory"]).resolve() == root / "records", "Configuration must expose the actual engine data directory."
         rejected, _ = request(engine, environment, "plan", dict(scan_id=preview["scan_id"], candidate_ids=[preview["rows"][0]["path"]]))
         assert not rejected["ok"], rejected
         print("PASS independent personal-rule preview remains disabled and non-executable", flush=True)

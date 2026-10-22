@@ -290,6 +290,7 @@
 "Choose a valid connection name and identifier." = "Choose a valid connection name and identifier.";
 "Choose a workspace to inspect storage." = "Choose a workspace to inspect storage.";
 "Choose active, deleted or all as the configuration state." = "Choose active, deleted or all as the configuration state.";
+"Choose an absolute Skill path without traversal components." = "Choose an absolute Skill path without traversal components.";
 "Choose an unused rule version. Existing versions cannot be overwritten." = "Choose an unused rule version. Existing versions cannot be overwritten.";
 "Choose extra folders to remember for future cleanup scans." = "Choose extra folders to remember for future cleanup scans.";
 "Choose local storage or system credentials before saving an API key." = "Choose local storage or system credentials before saving an API key.";
@@ -1451,7 +1452,12 @@
 "The Cargo source layout or evidence budget is unsupported." = "The Cargo source layout or evidence budget is unsupported.";
 "The Git ownership marker cannot be safely inspected." = "The Git ownership marker cannot be safely inspected.";
 "The IDE rebuilds indexes and generated caches when needed." = "The IDE rebuilds indexes and generated caches when needed.";
+"The Skill contains an oversized file." = "The Skill contains an oversized file.";
+"The Skill or destination changed. Review the export again." = "The Skill or destination changed. Review the export again.";
+"The Skill or destination changed. Review the installation again." = "The Skill or destination changed. Review the installation again.";
+"The Skill package contains an unsupported file." = "The Skill package contains an unsupported file.";
 "The Skill package could not be created." = "The Skill package could not be created.";
+"The Skill package exceeds its file limit." = "The Skill package exceeds its file limit.";
 "The Trash target changed before verification." = "The Trash target changed before verification.";
 "The Trash target or its parent changed before the system operation." = "The Trash target or its parent changed before the system operation.";
 "The Unarchiver caches" = "The Unarchiver caches";
@@ -1468,6 +1474,9 @@
 "The framework recreates these outputs during development or the next build." = "The framework recreates these outputs during development or the next build.";
 "The hard-linked file changed before permanent removal." = "The hard-linked file changed before permanent removal.";
 "The hard-linked file changed during permanent removal." = "The hard-linked file changed during permanent removal.";
+"The installed Skill cannot be inspected." = "The installed Skill cannot be inspected.";
+"The installed Skill contains a symbolic link. Existing files were preserved." = "The installed Skill contains a symbolic link. Existing files were preserved.";
+"The installed Skill contains unsupported files. Existing files were preserved." = "The installed Skill contains unsupported files. Existing files were preserved.";
 "The installed Skill has local changes or is not managed by Shou. Existing files were preserved." = "The installed Skill has local changes or is not managed by Shou. Existing files were preserved.";
 "The investigation folder changed. Scan it again before importing a rule." = "The investigation folder changed. Scan it again before importing a rule.";
 "The investigation reached its 12-step analysis limit. Existing evidence is saved; investigate a specific child folder next." = "The investigation reached its 12-step analysis limit. Existing evidence is saved; investigate a specific child folder next.";

@@ -23,7 +23,7 @@ public partial class DiskCapacityView : UserControl
     private static void PathChanged(DependencyObject owner, DependencyPropertyChangedEventArgs args)
     {
         var view = (DiskCapacityView)owner;
-        view.generation++; view.CapacityLabel.Text = "正在读取磁盘容量…"; view.UsageBar.Visibility = Visibility.Collapsed;
+        view.generation++; view.CapacityLabel.Text = T("正在读取磁盘容量…"); view.UsageBar.Visibility = Visibility.Collapsed;
         view.ToolTip = args.NewValue as string;
         view.Refresh();
     }
@@ -52,10 +52,10 @@ public partial class DiskCapacityView : UserControl
 
     private void ShowCapacity(DiskCapacity? capacity)
     {
-        CapacityLabel.Text = capacity is null ? "磁盘容量暂不可用，可稍后刷新。" : $"磁盘空间 · 可用 {MainViewModel.Bytes(capacity.AvailableBytes)} / 总计 {MainViewModel.Bytes(capacity.TotalBytes)}";
+        CapacityLabel.Text = capacity is null ? T("磁盘容量暂不可用，可稍后刷新。") : F("磁盘空间 · 可用 {0} / 总计 {1}",MainViewModel.Bytes(capacity.AvailableBytes),MainViewModel.Bytes(capacity.TotalBytes));
         UsageBar.Visibility = capacity is null ? Visibility.Collapsed : Visibility.Visible;
         UsageBar.Value = capacity?.UsedPercentage ?? 0;
-        ToolTip = DirectoryPath + "\n容量以当前用户可用空间为准，可能随其他应用写入而变化。移入回收站不会立即释放空间。";
+        ToolTip = DirectoryPath + T("\n容量以当前用户可用空间为准，可能随其他应用写入而变化。移入回收站不会立即释放空间。");
     }
 
     internal void VerifyLayout()

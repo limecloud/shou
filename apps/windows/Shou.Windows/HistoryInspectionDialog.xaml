@@ -1,39 +1,39 @@
-<Window x:Class="Shou.Windows.HistoryInspectionDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="核验清理位置" Width="780" Height="680" MinWidth="560" MinHeight="480" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+<Window x:Class="Shou.Windows.HistoryInspectionDialog" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Shou.Windows"
+        Title="{local:Text tf4f94fb9d020898a}" Width="780" Height="680" MinWidth="560" MinHeight="480" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
   <Grid Margin="24">
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
     <StackPanel>
-      <TextBlock Text="核验清理位置" FontSize="22" FontWeight="SemiBold" />
-      <TextBlock Text="检查记录中的原始位置和回收站位置，确认项目是否仍在原处、已恢复或存在冲突。" TextWrapping="Wrap" Margin="0,10,0,0" />
+      <TextBlock Text="{local:Text tf4f94fb9d020898a}" FontSize="22" FontWeight="SemiBold" />
+      <TextBlock Text="{local:Text t2eb19c5d76008dd2}" TextWrapping="Wrap" Margin="0,10,0,0" />
       <TextBlock x:Name="ExecutionId" Opacity="0.65" TextWrapping="Wrap" FontSize="12" Margin="0,6,0,0" />
     </StackPanel>
     <StackPanel Grid.Row="1" Margin="0,14,0,0" AutomationProperties.LiveSetting="Polite">
       <TextBlock x:Name="VerificationSummary" TextWrapping="Wrap" />
-      <TextBlock x:Name="UnfinishedNotice" Text="此记录包含未结束的操作，结果需要人工核实。核验不会重试操作，也不会解除操作限制。" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed" />
+      <TextBlock x:Name="UnfinishedNotice" Text="{local:Text t4942075dc39e5480}" TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed" />
     </StackPanel>
-    <ProgressBar x:Name="CheckingProgress" Grid.Row="2" Height="5" IsIndeterminate="True" Margin="0,12,0,0" Visibility="Collapsed" AutomationProperties.Name="正在核验记录位置" />
-    <ListBox x:Name="InspectionItems" Grid.Row="3" Margin="0,14,0,0" BorderThickness="0" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" AutomationProperties.Name="逐项位置核验结果">
+    <ProgressBar x:Name="CheckingProgress" Grid.Row="2" Height="5" IsIndeterminate="{Binding AnimateIndicators,Source={x:Static local:DesktopPresentation.Current}}" Margin="0,12,0,0" Visibility="Collapsed" AutomationProperties.Name="{local:Text t68285a939ff15413}" />
+    <ListBox x:Name="InspectionItems" Grid.Row="3" Margin="0,14,0,0" BorderThickness="0" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" AutomationProperties.Name="{local:Text t6d9cb2b01cfaa19c}">
       <ListBox.ItemTemplate><DataTemplate>
         <Border BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" BorderThickness="0,0,0,1" Padding="4,12">
           <StackPanel>
             <TextBlock Text="{Binding RelativePath}" TextWrapping="Wrap" FontWeight="SemiBold" />
             <TextBlock Text="{Binding Label}" TextWrapping="Wrap" Margin="0,6,0,0" />
             <TextBlock Text="{Binding PendingNotice}" TextWrapping="Wrap" />
-            <TextBlock Text="原始位置" FontWeight="SemiBold" FontSize="12" Margin="0,10,0,0" />
+            <TextBlock Text="{local:Text t2d07014313633f6e}" FontWeight="SemiBold" FontSize="12" Margin="0,10,0,0" />
             <TextBlock Text="{Binding Original.Label}" TextWrapping="Wrap" />
-            <TextBox Text="{Binding Original.DisplayPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Padding="0" FontSize="12" AutomationProperties.Name="已记录的原始路径" />
+            <TextBox Text="{Binding Original.DisplayPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Padding="0" FontSize="12" AutomationProperties.Name="{local:Text t40e9c6ff523cebdb}" />
             <TextBlock Text="{Binding Original.IssueText}" TextWrapping="Wrap" FontSize="12" Opacity="0.7" />
-            <TextBlock Text="已记录的回收站位置" FontWeight="SemiBold" FontSize="12" Margin="0,10,0,0" />
+            <TextBlock Text="{local:Text t079a92389adf36d3}" FontWeight="SemiBold" FontSize="12" Margin="0,10,0,0" />
             <TextBlock Text="{Binding Trash.Label}" TextWrapping="Wrap" />
-            <TextBox Text="{Binding Trash.DisplayPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Padding="0" FontSize="12" AutomationProperties.Name="已记录的回收站路径" />
+            <TextBox Text="{Binding Trash.DisplayPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Padding="0" FontSize="12" AutomationProperties.Name="{local:Text t228bb6f36c963406}" />
             <TextBlock Text="{Binding Trash.IssueText}" TextWrapping="Wrap" FontSize="12" Opacity="0.7" />
           </StackPanel>
         </Border>
       </DataTemplate></ListBox.ItemTemplate>
     </ListBox>
     <DockPanel Grid.Row="4" Margin="0,18,0,0">
-      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="CheckAgain" Content="重新检查" Click="CheckAgainClicked" /><Button Content="关闭" IsCancel="True" IsDefault="True" /></StackPanel>
-      <TextBlock Text="核验只读取文件，不更改文件或操作记录。" TextWrapping="Wrap" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Margin="0,0,12,0" />
+      <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="CheckAgain" Content="{local:Text tc25fb86b1e96e063}" Click="CheckAgainClicked" /><Button Content="{local:Text t3fd47edce45b3603}" IsCancel="True" IsDefault="True" /></StackPanel>
+      <TextBlock Text="{local:Text t29789c2bbb1963e0}" TextWrapping="Wrap" FontSize="12" Opacity="0.7" VerticalAlignment="Center" Margin="0,0,12,0" />
     </DockPanel>
   </Grid>
 </Window>

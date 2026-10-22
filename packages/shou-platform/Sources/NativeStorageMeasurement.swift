@@ -217,6 +217,7 @@ private final class StorageDirectoryScheduler: @unchecked Sendable {
     private var active=0, head=0
     private var pending=[(@Sendable () -> Void)?]()
     init(limit: Int) { self.limit=limit }
+    func drain() { queue.sync(flags: .barrier) {} }
     func submit(_ operation: @escaping @Sendable () -> Void) {
         lock.lock()
         if active >= limit {
@@ -503,6 +504,11 @@ extension NativeFileSystem {
             } catch { state.fail(error) }
         }
         work.wait()
+        // A group's last leave can precede release of its dispatch closure.
+        // Join the finalizer queue and readers before nonescaping callbacks
+        // and the parent's unsafe task handle leave their synchronous scope.
+        queue.sync {}
+        scheduler.drain()
         try state.throwIfFailed()
         guard let total=rootResult.snapshot()["."] else { throw ShouError("io_error", "Space analysis did not produce a root measurement.") }
         try state.throwIfFailed()

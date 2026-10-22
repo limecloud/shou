@@ -37,8 +37,16 @@ public struct CleanupToolOutput: Sendable {
     public let executableIdentity: String
     public init(text: String, executableIdentity: String) { self.text=text; self.executableIdentity=executableIdentity }
 }
+public enum CleanupToolPlatform: String, Sendable { case macOS, windows, unsupported }
 public protocol CleanupToolRunning: Sendable {
-    func run(_ command: CleanupToolCommand, timeoutSeconds: Double) throws -> CleanupToolOutput
+    var platform: CleanupToolPlatform { get }
+    func run(_ command: CleanupToolCommand, timeoutSeconds: Double, expectedExecutableIdentity: String?) throws -> CleanupToolOutput
+}
+public extension CleanupToolRunning {
+    var platform: CleanupToolPlatform { .macOS }
+    func run(_ command: CleanupToolCommand, timeoutSeconds: Double) throws -> CleanupToolOutput {
+        try run(command, timeoutSeconds: timeoutSeconds, expectedExecutableIdentity: nil)
+    }
 }
 public struct ToolCleanupTarget: Codable, Sendable, Identifiable, Equatable {
     public let id: String
@@ -48,6 +56,7 @@ public struct ToolCleanupTarget: Codable, Sendable, Identifiable, Equatable {
     public let fingerprint: String
     public let impact: String
     public let toolchain: String?
+    public let executableIdentity: String?
 }
 public struct ToolCleanupIssue: Codable, Sendable { public let tool: String; public let code: String }
 public struct ToolCleanupScan: Codable, Sendable, Identifiable {
@@ -83,7 +92,8 @@ public actor ToolCleanupService {
     }
     public func scan() throws -> ToolCleanupScan {
         var targets=[ToolCleanupTarget](), issues=[ToolCleanupIssue]()
-        for tool in ["docker","brew","conda","rustup"] {
+        let tools=runner.platform == .windows ? ["docker","conda","rustup"] : runner.platform == .macOS ? ["docker","brew","conda","rustup"] : []
+        for tool in tools {
             if Task.isCancelled { throw ShouError("cancelled", "Tool scan cancelled.") }
             do { targets += try preview(tool) }
             catch {
@@ -116,6 +126,7 @@ public actor ToolCleanupService {
         var plan=try plan(planId)
         guard plan.state == "ready", plan.expiresAt > now(), plan.digest == confirmedDigest else { throw ShouError("confirmation_required", "Tool cleanup confirmation expired or was already used.") }
         guard try preview(plan.target.tool).contains(plan.target) else { throw ShouError("plan_stale", "Tool data or executable changed. Scan again.") }
+        guard plan.expiresAt > now(), let executableIdentity=plan.target.executableIdentity else { throw ShouError("confirmation_required", "Tool cleanup review expired or needs a fresh executable identity.") }
         let command: CleanupToolCommand
         switch plan.target.tool {
         case "docker": command = .dockerPrune
@@ -131,14 +142,14 @@ public actor ToolCleanupService {
         try store.write("tool-history", id: receipt.id, data: Codec.encode(receipt))
         plan.state="executing"; try store.write("tool-plans", id: plan.id, data: Codec.encode(plan))
         do {
-            _ = try runner.run(command, timeoutSeconds: 300)
+            _ = try runner.run(command, timeoutSeconds: 300, expectedExecutableIdentity: executableIdentity)
             let remaining=try preview(plan.target.tool).first { $0.id == plan.target.id }
             receipt.remainingBytesEstimate=remaining?.estimatedBytes
             // A successful owner command plus a fresh preview is the available
             // verification signal. Estimates are never reported as physical freed bytes.
             receipt.state=remaining != nil ? "partial" : "completed"
         } catch {
-            receipt.state="unknown"; receipt.error=error.localizedDescription
+            receipt.state="unknown"; receipt.error=(error as? ShouError)?.code ?? (Task.isCancelled ? "cancelled" : "tool_failed")
         }
         try store.write("tool-history", id: receipt.id, data: Codec.encode(receipt))
         plan.state=receipt.state; try store.write("tool-plans", id: plan.id, data: Codec.encode(plan))
@@ -156,16 +167,18 @@ public actor ToolCleanupService {
         let timeout: Double = command.tool == "brew" ? 30 : command.tool == "conda" ? 15 : command.tool == "docker" ? 10 : 5
         return try runner.run(command, timeoutSeconds: timeout)
     }
-    private func target(id: String, tool: String, title: String, bytes: Int64?, outputs: [CleanupToolOutput], impact: String, toolchain: String? = nil) -> ToolCleanupTarget {
+    private func target(id: String, tool: String, title: String, bytes: Int64?, outputs: [CleanupToolOutput], impact: String, toolchain: String? = nil) throws -> ToolCleanupTarget {
+        guard let identity=outputs.first?.executableIdentity, !identity.isEmpty, outputs.allSatisfy({ $0.executableIdentity == identity }) else { throw ShouError("tool_changed", "The cleanup tool changed during preview.") }
         let evidence=outputs.map { $0.executableIdentity + "\0" + $0.text }.joined(separator: "\0")
-        return .init(id: id, tool: tool, title: title, estimatedBytes: bytes, fingerprint: Digest.sha256(Data(evidence.utf8)), impact: impact, toolchain: toolchain)
+        return .init(id: id, tool: tool, title: title, estimatedBytes: bytes, fingerprint: Digest.sha256(Data(evidence.utf8)), impact: impact, toolchain: toolchain, executableIdentity: identity)
     }
     private func preview(_ tool: String) throws -> [ToolCleanupTarget] {
         switch tool {
         case "docker":
             let context=try output(.dockerContext)
             let endpoint=try JSONDecoder().decode(String.self, from: Data(context.text.utf8))
-            guard endpoint.hasPrefix("unix:///"), !endpoint.contains("\n") else { throw ShouError("remote_context", "Only the local Docker default context is supported.") }
+            let local=runner.platform == .windows ? endpoint == "npipe:////./pipe/docker_engine" : endpoint.hasPrefix("unix:///")
+            guard local, !endpoint.contains("\n"), !endpoint.contains("\0") else { throw ShouError("remote_context", "Only the supported local Docker default context is supported.") }
             let value=try output(.dockerPreview)
             var bytes: Int64?
             for line in value.text.split(separator: "\n") {
@@ -173,11 +186,11 @@ public actor ToolCleanupService {
                 if row["Type"] as? String == "Build Cache", let size=row["Reclaimable"] as? String { bytes=Self.bytes(String(size.split(separator: " ").first ?? "")) }
             }
             guard let bytes else { throw ShouError("unsupported_schema", "Docker build-cache estimate is unavailable.") }
-            return bytes > 0 ? [target(id: "docker.build-cache", tool: tool, title: "Docker build cache", bytes: bytes, outputs: [context,value], impact: "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.")] : []
+            return bytes > 0 ? [try target(id: "docker.build-cache", tool: tool, title: "Docker build cache", bytes: bytes, outputs: [context,value], impact: "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.")] : []
         case "brew":
             let value=try output(.brewPreview)
             guard value.text.contains("Would remove:") || value.text.contains("Would free") else { return [] }
-            return [target(id: "brew.cleanup", tool: tool, title: "Homebrew old versions and downloads", bytes: nil, outputs: [value], impact: "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download.")]
+            return [try target(id: "brew.cleanup", tool: tool, title: "Homebrew old versions and downloads", bytes: nil, outputs: [value], impact: "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download.")]
         case "conda":
             let value=try output(.condaPreview)
             guard let json=try JSONSerialization.jsonObject(with: Data(value.text.utf8)) as? [String: Any], json["success"] as? Bool != false else { throw ShouError("unsupported_schema", "Conda returned an unsupported cleanup preview.") }
@@ -189,14 +202,14 @@ public actor ToolCleanupService {
                 guard !sum.overflow else { throw ShouError("unsupported_schema", "Conda size exceeds supported limits.") }
                 bytes=sum.partialValue
             }
-            return bytes > 0 ? [target(id: "conda.cache", tool: tool, title: "Conda package caches", bytes: bytes, outputs: [value], impact: "Conda removes unused packages, archives, index and logs. Environments using symlinks into package caches can be affected. Review your environments before cleaning.")] : []
+            return bytes > 0 ? [try target(id: "conda.cache", tool: tool, title: "Conda package caches", bytes: bytes, outputs: [value], impact: "Conda removes unused packages, archives, index and logs. Environments using symlinks into package caches can be affected. Review your environments before cleaning.")] : []
         case "rustup":
             let list=try output(.rustList), overrides=try output(.rustOverrides), active=try output(.rustDefault)
             let protected=Set(overrides.text.split(whereSeparator: \.isWhitespace).map(String.init) + active.text.split(whereSeparator: \.isWhitespace).prefix(1).map(String.init))
-            return list.text.split(separator: "\n").compactMap { line in
+            return try list.text.split(separator: "\n").compactMap { line in
                 guard let name=line.split(whereSeparator: \.isWhitespace).first.map(String.init), Self.validToolchain(name),
                       !line.contains("(default"), !line.contains("default)"), !line.contains("active"), !protected.contains(name) else { return nil }
-                return target(id: "rustup." + name, tool: tool, title: name, bytes: nil, outputs: [list,overrides,active], impact: "This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download.", toolchain: name)
+                return try target(id: "rustup." + name, tool: tool, title: name, bytes: nil, outputs: [list,overrides,active], impact: "This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download.", toolchain: name)
             }
         default: throw ShouError("capability_unavailable", "Unsupported cleanup tool.")
         }

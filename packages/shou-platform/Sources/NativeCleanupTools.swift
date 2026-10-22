@@ -7,7 +7,16 @@ import Darwin
 public struct NativeCleanupTools: CleanupToolRunning {
     private let homeDirectory: URL
     public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) { self.homeDirectory=homeDirectory }
-    public func run(_ command: CleanupToolCommand, timeoutSeconds: Double) throws -> CleanupToolOutput {
+    public var platform: CleanupToolPlatform {
+        #if os(Windows)
+        .windows
+        #elseif os(macOS)
+        .macOS
+        #else
+        .unsupported
+        #endif
+    }
+    public func run(_ command: CleanupToolCommand, timeoutSeconds: Double, expectedExecutableIdentity: String? = nil) throws -> CleanupToolOutput {
         #if os(macOS)
         guard timeoutSeconds.isFinite, (1...300).contains(timeoutSeconds),
               command.arguments.allSatisfy({ !$0.contains("\0") }) else { throw ShouError("invalid_argument", "Invalid tool operation budget.") }
@@ -16,10 +25,14 @@ public struct NativeCleanupTools: CleanupToolRunning {
         }
         let executable=try locate(command.tool)
         let before=try identity(executable)
+        guard expectedExecutableIdentity == nil || expectedExecutableIdentity == executable + ":" + before else { throw ShouError("tool_changed", "The cleanup tool changed after review.") }
+        guard !command.mutating || expectedExecutableIdentity != nil else { throw ShouError("confirmation_required", "Mutating tool operations require a reviewed executable identity.") }
         let output=try spawn(executable, arguments: command.arguments, timeout: timeoutSeconds)
         guard try identity(executable) == before else { throw ShouError("tool_changed", "The cleanup tool changed while running.") }
         guard let text=String(data: output, encoding: .utf8) else { throw ShouError("unsupported_schema", "The tool returned invalid UTF-8 output.") }
         return .init(text: text, executableIdentity: executable + ":" + before)
+        #elseif os(Windows)
+        return try WindowsCleanupTools(homeDirectory: homeDirectory).run(command, timeoutSeconds: timeoutSeconds, expectedExecutableIdentity: expectedExecutableIdentity)
         #else
         throw ShouError("capability_unavailable", "Tool-managed cleanup is currently available on macOS.")
         #endif
@@ -70,7 +83,7 @@ public struct NativeCleanupTools: CleanupToolRunning {
             guard posix_spawn_file_actions_addclose(&actions, fd) == 0 else { throw ShouError("io_error", "Cannot configure cleanup tool descriptors.") }
         }
         let original=ProcessInfo.processInfo.environment
-        var environment=["HOME":homeDirectory.path,"PATH":"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin","LC_ALL":"C","HOMEBREW_NO_AUTO_UPDATE":"1","HOMEBREW_NO_ANALYTICS":"1","HOMEBREW_NO_INSTALL_CLEANUP":"1"]
+        var environment=["HOME":homeDirectory.path,"PATH":"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin","LC_ALL":"C","HOMEBREW_NO_AUTO_UPDATE":"1","HOMEBREW_NO_ANALYTICS":"1","HOMEBREW_NO_INSTALL_CLEANUP":"1","RUSTUP_AUTO_INSTALL":"0"]
         for name in ["USER","LOGNAME","TMPDIR","RUSTUP_HOME","CARGO_HOME"] { if let value=original[name] { environment[name]=value } }
         let argv=([executable]+arguments).map { strdup($0) } + [nil]
         let envp=environment.sorted { $0.key < $1.key }.map { strdup($0.key + "=" + $0.value) } + [nil]

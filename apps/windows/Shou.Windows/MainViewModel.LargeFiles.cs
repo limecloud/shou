@@ -16,7 +16,7 @@ public sealed class LargeFileRow(string path,string root,long allocatedBytes,lon
     public long LogicalBytes { get; }=logicalBytes;
     public string Size => MainViewModel.Bytes(AllocatedBytes);
     public string LogicalSize => MainViewModel.Bytes(LogicalBytes);
-    public string Protection => reason ?? "可选择";
+    public string Protection => reason is null ? T("可选择") : T(reason);
     public bool Eligible => reason is null;
     private bool selected;
     public bool IsSelected { get=>selected; set=>SetProperty(ref selected,value && Eligible); }
@@ -36,14 +36,14 @@ public sealed partial class MainViewModel
     private readonly HashSet<string> largeFilesRemovedPaths=new(StringComparer.OrdinalIgnoreCase);
 
     public ObservableCollection<LargeFileRow> LargeFiles { get; }=[];
-    public LargeFileTypeRow[] LargeFileTypes { get; }=[new("all","全部类型"),new("video","视频"),new("audio","音频"),new("image","图片"),new("archive","压缩包"),new("document","文档"),new("ai-model","AI 模型"),new("other","其他")];
+    public LargeFileTypeRow[] LargeFileTypes { get; }=[new("all",T("全部类型")),new("video",T("视频")),new("audio",T("音频")),new("image",T("图片")),new("archive",T("压缩包")),new("document",T("文档")),new("ai-model",T("AI 模型")),new("other",T("其他"))];
     public string LargeFilesFolder { get=>largeFilesFolder; set { if(!IsBusy) SetProperty(ref largeFilesFolder,value); } }
     public int LargeFilesMinimumMiB { get=>largeFilesMinimumMiB; set { if(!IsBusy && value>=0 && SetProperty(ref largeFilesMinimumMiB,value)) LargeFilesChanged(); } }
     public LargeFileTypeRow? SelectedLargeFileType { get=>selectedLargeFileType; set { if(!IsBusy && SetProperty(ref selectedLargeFileType,value)) LargeFilesChanged(); } }
     private (int Minimum,string Type) LargeFileQuery => (LargeFilesMinimumMiB,SelectedLargeFileType?.Id ?? "all");
     private bool LargeFileResultsCurrent => largeFilesScanId is not null && largeFilesQuery==LargeFileQuery;
-    public string LargeFilesSummary => $"{(largeFilesPartial ? "部分扫描 · " : "")}扫描时共 {largeFilesTotalCount} 个文件 · {Bytes(largeFilesTotalBytes)} · 已加载 {LargeFiles.Count} 个"+(largeFilesRemovedPaths.Count>0 ? $" · 已处理 {largeFilesRemovedPaths.Count} 个，请重新扫描更新统计" : "")+(LargeFileResultsCurrent ? "" : " · 应用筛选后更新结果");
-    public string LargeFilesSelection => $"已选择 {LargeFiles.Count(row=>row.IsSelected)} 个 · {Bytes(LargeFiles.Where(row=>row.IsSelected).Sum(row=>row.AllocatedBytes))}";
+    public string LargeFilesSummary => F("{0}扫描时共 {1} 个文件 · {2} · 已加载 {3} 个",(largeFilesPartial ? T("部分扫描 · ") : ""),largeFilesTotalCount,Bytes(largeFilesTotalBytes),LargeFiles.Count)+(largeFilesRemovedPaths.Count>0 ? F(" · 已处理 {0} 个，请重新扫描更新统计",largeFilesRemovedPaths.Count) : "")+(LargeFileResultsCurrent ? "" : T(" · 应用筛选后更新结果"));
+    public string LargeFilesSelection => F("已选择 {0} 个 · {1}",LargeFiles.Count(row=>row.IsSelected),Bytes(LargeFiles.Where(row=>row.IsSelected).Sum(row=>row.AllocatedBytes)));
     public IAsyncRelayCommand ChooseLargeFilesFolderCommand { get; private set; }=null!;
     public IAsyncRelayCommand ScanLargeFilesCommand { get; private set; }=null!;
     public IAsyncRelayCommand FilterLargeFilesCommand { get; private set; }=null!;
@@ -113,7 +113,7 @@ public sealed partial class MainViewModel
         largeFilesTotalCount=page["total_count"]?.GetValue<int>() ?? 0; largeFilesTotalBytes=page["total_allocated_bytes"]?.GetValue<long>() ?? 0; largeFilesPartial=Text(page,"status")!="complete";
         foreach(var row in rows) { row.PropertyChanged+=(_,_)=>{ if(!largeFilesBatchSelection) LargeFilesChanged(); }; LargeFiles.Add(row); }
         OnPropertyChanged(nameof(LargeFilesFolder)); LargeFilesChanged();
-        Status=largeFilesPartial ? "已列出当前已测量范围内的大文件；部分位置未能扫描。" : "大文件按占用空间排序；类型按扩展名识别，请审阅后选择。";
+        Status=largeFilesPartial ? T("已列出当前已测量范围内的大文件；部分位置未能扫描。") : T("大文件按占用空间排序；类型按扩展名识别，请审阅后选择。");
     }
     private Task RemoveLargeFilesAsync(string action) => RunAsync(async () => {
         var chosen=LargeFiles.Where(row=>row.IsSelected && row.Eligible).ToArray();
@@ -121,7 +121,7 @@ public sealed partial class MainViewModel
         var successful=Array(receipt["items"]).Where(item=>Text(item,"state") is "purged" or "trashed").Select(item=>Text(item,"path")).ToArray();
         foreach(var row in chosen.Where(row=>successful.Any(path=>SamePath(path,row.AbsolutePath)))) { largeFilesRemovedPaths.Add(row.Path); LargeFiles.Remove(row); }
         Completion=BuildCompletion(receipt,action); LargeFilesChanged();
-        Status="所选大文件已处理，请查看逐项结果。重新扫描可更新总占用。";
+        Status=T("所选大文件已处理，请查看逐项结果。重新扫描可更新总占用。");
         if(!Token.IsCancellationRequested) await LoadHistoryAsync();
     },cleanup:true);
 }

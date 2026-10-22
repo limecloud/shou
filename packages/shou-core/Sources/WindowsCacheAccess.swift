@@ -34,7 +34,7 @@ public struct WindowsCacheAccess: Sendable {
         return false
     }
 
-    private static func comparisonPath(_ value: String) -> String? {
+    static func comparisonPath(_ value: String) -> String? {
         var path=value.replacingOccurrences(of: "\\", with: "/")
         if path.hasPrefix("/"), path.count > 3, path.dropFirst(2).hasPrefix(":/") { path.removeFirst() }
         guard path.rangeOfCharacter(from: .controlCharacters) == nil, !path.hasPrefix("//"),
