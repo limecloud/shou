@@ -33,6 +33,8 @@ Chromium sources are exact `Default` or `Profile N` history and Cookie databases
 
 Native Windows access holds no-delete-sharing handles for the database, its ancestors and existing SQLite sidecars through each SQLite operation. It retains full File IDs and owner SIDs and rejects reparse points, placeholders, hard links, unexpected owners and untrusted write ACLs. Inherited read rights are allowed; write/delete/ACL rights must belong to the current user, SYSTEM or Administrators. Existing ACLs are inspected without modification. This explicit privacy access does not broaden ordinary cache rules' AppData grants. Windows SDK/runtime and WPF interaction acceptance remain outstanding.
 
+Directory owners may be the current user, SYSTEM or Administrators, with the same ACL checks and pinned identities. Database and sidecar file owners must match the current user exactly. Elevated fixture checks exercise an administrator-owned generated directory and reject an administrator-owned database; no existing user directory ownership is changed.
+
 ## Scope and execution
 
 Ranges are the last rolling hour, rolling 24 hours, rolling seven days, or all time. Finite ranges include both their fixed scan-time start and end. Chromium uses integer microseconds since 1601, Firefox integer microseconds since Unix epoch, and Safari seconds since 2001. Integer bounds round the lower bound upward and upper bound downward; the Chromium epoch offset is added as an integer to avoid losing microsecond precision. Cookies use last access; history uses visit time. Unknown or zero cookie timestamps are not guessed into recent ranges. All-time means all matching records, including undated cookies. Firefox visit type 7 is download history and is preserved.

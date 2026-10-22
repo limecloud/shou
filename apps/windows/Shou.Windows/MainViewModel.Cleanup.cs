@@ -46,6 +46,7 @@ public sealed partial class MainViewModel
     public IAsyncRelayCommand<CandidateRow> CopyCleanupCandidatePathCommand { get; private set; } = null!;
     public IAsyncRelayCommand<CandidateRow> AnalyzeCleanupCandidateCommand { get; private set; } = null!;
     public IAsyncRelayCommand<CandidateRow> ExcludeCleanupCandidateCommand { get; private set; } = null!;
+    public IRelayCommand<CandidateRow> AiFromCleanupCandidateCommand { get; private set; } = null!;
 
     private void InitializeCleanupReview()
     {
@@ -75,6 +76,7 @@ public sealed partial class MainViewModel
         AnalyzeCleanupCandidateCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(async () => {
             await ScanStorageAsync(row!.AbsolutePath); SelectedSection = 1;
         }), CanUseCleanupCandidate);
+        AiFromCleanupCandidateCommand = new RelayCommand<CandidateRow>(row => OpenAi(row!.AbsolutePath), CanUseCleanupCandidate);
         ExcludeCleanupCandidateCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(async () => {
             // Scope the literal directory to its source workspace, independent
             // of the workspace currently selected in the page header.
@@ -87,7 +89,7 @@ public sealed partial class MainViewModel
         }), row => CanUseCleanupCandidate(row) && !AiBusy);
         commands.AddRange([ApplyCleanupSearchCommand, SelectRecommendedCleanupCommand, ToggleCleanupGroupCommand,
             ShowAllCleanupCommand, ClearCleanupSelectionCommand, RevealCleanupCandidateCommand, CopyCleanupCandidatePathCommand,
-            AnalyzeCleanupCandidateCommand, ExcludeCleanupCandidateCommand]);
+            AnalyzeCleanupCandidateCommand, ExcludeCleanupCandidateCommand, AiFromCleanupCandidateCommand]);
     }
 
     private bool CanUseCleanupCandidate(CandidateRow? row) => !IsBusy && row is not null && Candidates.Contains(row);

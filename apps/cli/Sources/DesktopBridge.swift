@@ -92,6 +92,7 @@ enum DesktopBridge {
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
                 "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform))]),
+                "close_cleanup_owners": .bool(fs.platform == "windows"),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
         }
         if ["startup.scan", "startup.control"].contains(request.operation) {
@@ -219,6 +220,19 @@ enum DesktopBridge {
             try? session.send(kind: "progress", value: .object(fields))
         }
         switch request.operation {
+        case "cleanup.close-owners":
+            guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_ids"] else { throw ShouError("invalid_argument", "Application closing accepts only current cleanup scan IDs.") }
+            let ids=try strings("scan_ids", maximum: 200)
+            guard fs.platform == "windows" else { throw ShouError("capability_unavailable", "This process closing adapter requires Windows.") }
+            let controller=WindowsCleanupOwnerClosing()
+            let plan=try await engine.cleanupOwnerCloseReview(scanIds: ids, controller: controller)
+            guard !plan.targets.isEmpty else { throw ShouError("application_not_running", "No supported running application was found for these cleanup results. Scan again to refresh activity.") }
+            let review: JSONValue = .object(["action": .string("applications.close"), "items": .array(plan.targets.map { target in
+                .object(["path": .string(target.name), "limitations": .array(target.processes.map { .string("PID \($0.pid) · \($0.executablePath)") })])
+            })])
+            try await session.confirm(digest: plan.digest, review: review, operation: "applications.close")
+            let receipt=try await engine.closeCleanupOwners(review: plan, confirmedDigest: plan.digest, controller: controller)
+            return .object(["receipt": try .from(receipt), "affected_workspace_ids": try .from(plan.affectedWorkspaceIds), "affected_paths": try .from(plan.affectedPaths)])
         case "privacy.scan":
             guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["range"]) else { throw ShouError("invalid_argument", "Unknown privacy scan field.") }
             let range=try input["range"] == nil ? PrivacyTimeRange.lastHour : PrivacyTimeRange(rawValue: string("range"))

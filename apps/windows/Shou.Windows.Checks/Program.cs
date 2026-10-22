@@ -190,7 +190,7 @@ await Check("缺少确认处理器时取消", async () =>
 });
 await Check("变更请求协作取消并等待回执", async () =>
 {
-    foreach(var operation in new[] { "plan.execute", "startup.control", "workspace.remove", "privacy.clean" }) {
+    foreach(var operation in new[] { "plan.execute", "startup.control", "workspace.remove", "privacy.clean", "cleanup.close-owners" }) {
         using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
         var result = await Fixture("mutation-cancel").RequestAsync(operation, cancellation: stop.Token);
         Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);

@@ -31,7 +31,7 @@ var targets: [Target] = [
     .executableTarget(name: "ShouSelfTests", dependencies: ["ShouCore", "ShouPlatform", "ShouAI", "CSQLite"], path: "tests/core")
 ]
 #if os(Windows)
-targets.append(.target(name: "CShouWindows", path: "packages/windows-native", publicHeadersPath: "include", linkerSettings: [.linkedLibrary("ole32"), .linkedLibrary("oleaut32"), .linkedLibrary("secur32"), .linkedLibrary("shell32"), .linkedLibrary("advapi32"), .linkedLibrary("bcrypt"), .linkedLibrary("uuid"), .linkedLibrary("runtimeobject")]))
+targets.append(.target(name: "CShouWindows", path: "packages/windows-native", publicHeadersPath: "include", linkerSettings: [.linkedLibrary("ole32"), .linkedLibrary("oleaut32"), .linkedLibrary("secur32"), .linkedLibrary("shell32"), .linkedLibrary("advapi32"), .linkedLibrary("bcrypt"), .linkedLibrary("uuid"), .linkedLibrary("runtimeobject"), .linkedLibrary("user32")]))
 products.removeAll { $0.name == "shou-tests" }
 targets.removeAll { $0.name == "ShouSelfTests" }
 products.append(.executable(name: "shou-windows-tests", targets: ["ShouWindowsTests"]))

@@ -71,13 +71,17 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
         try Task.checkCancellation()
         guard try exists(path) else { return [] }
         let metadata=try WindowsNative.metadata(path)
-        guard metadata.kind == 2, metadata.current_user == 1 else { throw ShouError("privacy_identity_unavailable", "The browser profiles directory could not be verified.") }
+        guard metadata.kind == 2 else { throw ShouError("privacy_identity_unavailable", "The browser profiles directory could not be verified.") }
+        try WindowsNative.check(shou_win_privacy_directory(path), path: "browser profiles")
         let names=try WindowsNative.string({ shou_win_list(path, 256, $0) }, path: "browser profiles")
         var result=[String]()
         for name in names.split(separator: "\n").map(String.init).sorted() {
             try Task.checkCancellation()
             let item=try WindowsNative.metadata(path + "/" + name)
-            if item.kind == 2, item.current_user == 1 { result.append(name) }
+            if item.kind == 2 {
+                try WindowsNative.check(shou_win_privacy_directory(path + "/" + name), path: "browser profile")
+                result.append(name)
+            }
         }
         guard WindowsNative.entry(try WindowsNative.metadata(path), path: ".") == WindowsNative.entry(metadata, path: ".") else { throw ShouError("plan_stale", "Browser profiles changed during discovery.") }
         return result

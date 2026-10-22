@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Verify privacy transport; optional cleanup touches one exclusively created profile only."""
 import argparse
+import ctypes
 from contextlib import closing
 import importlib.util
 import json
@@ -79,6 +80,11 @@ def main():
             directory(profile.parent)
             profile.mkdir(mode=0o700)
             bridge.set_fixture_owner(profile)
+            elevated = os.name == "nt" and bool(ctypes.windll.shell32.IsUserAnAdmin())
+            if elevated:
+                # Exercise elevated Windows directory ownership without changing
+                # any pre-existing profile directory or database file owner.
+                subprocess.run(["icacls", str(profile), "/setowner", "*S-1-5-32-544", "/Q"], check=True, stdout=subprocess.DEVNULL)
             profile_identity = identity(profile)
             directory(profile / "Network")
             history_path, cookie_path = profile / "History", profile / "Network/Cookies"
@@ -150,6 +156,14 @@ def main():
             assert linked_source["status"] not in {"ready", "empty"} and linked_source.get("record_count") is None
             hardlink.unlink()
             if os.name == "nt":
+                if elevated:
+                    subprocess.run(["icacls", str(history_path), "/setowner", "*S-1-5-32-544", "/Q"], check=True, stdout=subprocess.DEVNULL)
+                    foreign, confirmed = request("privacy.scan", {"range": "all-time"})
+                    assert foreign["ok"] and not confirmed
+                    foreign_source = next(row for row in foreign["data"]["sources"] if row["definition"]["relative_path"] == prefix + "History")
+                    assert foreign_source["status"] == "permission-required" and foreign_source.get("record_count") is None
+                    bridge.set_fixture_owner(profile)
+                    print("PASS trusted administrator-owned directory accepted while administrator-owned database remains blocked")
                 subprocess.run(["icacls", str(cookie_path), "/grant", "*S-1-1-0:(W)", "/Q"], check=True, stdout=subprocess.DEVNULL)
                 unsafe, confirmed = request("privacy.scan", {"range": "all-time"})
                 assert unsafe["ok"] and not confirmed

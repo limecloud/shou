@@ -57,7 +57,7 @@ public sealed partial class MainViewModel
             StorageMap = updated;
         }
         StorageExtensions.Clear(); ClearStorageSelection(); FilterStorageRows();
-        Status = action == "trash" ? "已从视图移除成功移入回收站的项目，可在历史中恢复；移入回收站不会立即释放空间。" : "所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。";
+        Status = action == "trash" ? "本次处理已结束，视图仅移除成功项；可在历史中恢复回收站项目。移入回收站不会立即释放空间。" : "所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。";
     });
 
     private void InitializeStorageNavigation()

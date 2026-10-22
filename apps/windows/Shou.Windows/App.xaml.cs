@@ -34,6 +34,11 @@ public partial class App : Application
                 window.Arrange(new Rect(0, 0, 1280, 800));
                 window.UpdateLayout();
                 var model=(MainViewModel)window.DataContext;
+                model.Candidates.Add(new("layout-candidate", "项目 中文/build/cache", 8192, true, "生成布局夹具", "layout-scan", "layout-workspace", "C:/layout-fixture", false, "build", "layout-rule", true, 2));
+                model.SelectedCleanupCandidate = model.Candidates[0];
+                foreach (var size in new[] { new Size(1280,800), new Size(840,580) }) {
+                    window.Measure(size);window.Arrange(new Rect(new Point(0,0),size));window.UpdateLayout();
+                }
                 model.SelectedSection=2;
                 foreach(var scope in new[] { 0,1,2 }) {
                     model.ExclusionScope=scope;

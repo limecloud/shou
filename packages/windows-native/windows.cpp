@@ -238,16 +238,19 @@ DWORD private_acl(const std::wstring &path,bool create) {
 
 // Browser data may inherit read permissions. Mutation rights must remain with
 // this user, SYSTEM or Administrators; discovery never rewrites an existing ACL.
-DWORD privacy_acl(HANDLE file){
+// Trusted directory owners are allowed; database and sidecar owners stay exact.
+DWORD privacy_acl(HANDLE file,bool trustedDirectoryOwner=false){
     auto user=user_sid();if(user.empty())return ERROR_INVALID_SID;
     PSID owner=nullptr;PACL acl=nullptr;PSECURITY_DESCRIPTOR descriptor=nullptr;
     auto code=GetSecurityInfo(file,SE_FILE_OBJECT,OWNER_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION,&owner,nullptr,&acl,nullptr,&descriptor);
     if(code)return code;
     BYTE system[SECURITY_MAX_SID_SIZE],administrators[SECURITY_MAX_SID_SIZE];
     DWORD systemSize=sizeof(system),adminSize=sizeof(administrators);
-    bool valid=owner && EqualSid(owner,user.data()) && acl &&
+    bool valid=owner && acl &&
         CreateWellKnownSid(WinLocalSystemSid,nullptr,system,&systemSize) &&
         CreateWellKnownSid(WinBuiltinAdministratorsSid,nullptr,administrators,&adminSize);
+    valid=valid && (EqualSid(owner,user.data()) || (trustedDirectoryOwner &&
+        (EqualSid(owner,system) || EqualSid(owner,administrators))));
     constexpr DWORD mutations=GENERIC_ALL|GENERIC_WRITE|DELETE|WRITE_DAC|WRITE_OWNER|FILE_WRITE_DATA|FILE_APPEND_DATA|FILE_WRITE_EA|FILE_WRITE_ATTRIBUTES|FILE_DELETE_CHILD;
     for(DWORD i=0;valid && i<acl->AceCount;i++){
         void *raw=nullptr;if(!GetAce(acl,i,&raw)){valid=false;break;}
@@ -341,6 +344,12 @@ struct shou_win_privacy_access { Handles pins; };
 
 extern "C" {
 void shou_win_free(void *value){free(value);}
+int shou_win_privacy_directory(const char *input){
+    std::wstring path;auto code=normalized(input,path);if(code)return code;
+    Handles pins;HANDLE directory;if((code=open(path,pins,directory)))return code;
+    shou_win_info metadata{};if((code=info(directory,&metadata)))return code;
+    return metadata.kind==2?privacy_acl(directory,true):ERROR_DIRECTORY;
+}
 void shou_win_privacy_release(shou_win_privacy_access *access){delete access;}
 int shou_win_privacy_acquire(const char *homeInput,const char *input,int writable,shou_win_privacy_access **result){
     if(!homeInput || !input || !result || (writable!=0 && writable!=1))return ERROR_INVALID_PARAMETER;
@@ -358,8 +367,9 @@ int shou_win_privacy_acquire(const char *homeInput,const char *input,int writabl
             if(end>=home.size()){
                 shou_win_info metadata{};
                 if(auto failure=info(access->pins.values[index],&metadata))return failure;
-                if(!metadata.current_user || (end==path.size() && (metadata.kind!=1 || metadata.links!=1)))return ERROR_ACCESS_DENIED;
-                if(auto failure=privacy_acl(access->pins.values[index]))return failure;
+                const bool directory=end!=path.size();
+                if(directory ? metadata.kind!=2 : (metadata.kind!=1 || metadata.links!=1 || !metadata.current_user))return ERROR_ACCESS_DENIED;
+                if(auto failure=privacy_acl(access->pins.values[index],directory))return failure;
             }
             if(end==path.size())break;
             end=path.find(L'\\',end==3?3:end+1);if(end==std::wstring::npos)end=path.size();index++;

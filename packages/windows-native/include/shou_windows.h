@@ -14,6 +14,7 @@ typedef struct {
 typedef struct shou_win_lock shou_win_lock;
 typedef struct shou_win_directory shou_win_directory;
 typedef struct shou_win_privacy_access shou_win_privacy_access;
+int shou_win_privacy_directory(const char *path);
 int shou_win_privacy_acquire(const char *home, const char *path, int writable, shou_win_privacy_access **result);
 void shou_win_privacy_release(shou_win_privacy_access *access);
 int shou_win_normalize(const char *path, char **result);
@@ -40,6 +41,14 @@ int shou_win_list_bounded(const char *path, size_t limit, uint32_t milliseconds,
 int shou_win_purge(const char *path, const char *const *relative_paths, const char *const *content_digests, const shou_win_info *expected, size_t count, shou_win_cancelled cancelled, size_t *removed);
 int shou_win_available(const char *path, uint64_t *result);
 int shou_win_process_running(const char *name, int *running);
+typedef struct {
+    uint32_t pid, session;
+    uint64_t created;
+    char owner_sid[192], executable_path[4096];
+    shou_win_info executable_identity;
+} shou_win_close_process;
+int shou_win_close_process_inventory(const char *name, shou_win_close_process **result, size_t *count);
+int shou_win_request_process_close(const char *name, const shou_win_close_process *expected, size_t count, shou_win_read_cancelled cancelled, void *context);
 int shou_win_build_processes(const char *names, const char *project, char **result);
 int shou_win_git_tracked(const char *path, int *tracked);
 int shou_win_console_confirm(const char *review, const char *prompt, const char *phrase);

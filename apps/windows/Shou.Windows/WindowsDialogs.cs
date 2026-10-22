@@ -58,11 +58,12 @@ public sealed class WindowsDialogs(Window owner)
     {
         if (cancellation.IsCancellationRequested || challenge["review"]?["items"] is not JsonArray { Count: > 0 } ||
             !DateTimeOffset.TryParse(challenge["expires_at"]?.GetValue<string>(), out var expiry) || expiry <= DateTimeOffset.UtcNow ||
-            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "workspace.remove" or "startup.enable" or "startup.disable" or "privacy.delete")) return Task.FromResult(false);
+            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "workspace.remove" or "startup.enable" or "startup.disable" or "privacy.delete" or "applications.close")) return Task.FromResult(false);
         var operation = challenge["operation"]!.GetValue<string>();
         if (challenge["review"]?["action"]?.GetValue<string>() != operation) return Task.FromResult(false);
         var (caption, heading, warning) = operation switch
         {
+            "applications.close" => ("正常关闭并刷新", "请求正常关闭以下应用？", "请先保存工作。应用可能显示保存提示或拒绝退出。只向本次核验的当前用户、当前登录会话中的窗口发送正常关闭请求，不会强制结束进程。随后复核活动并刷新受影响目录；清理文件仍需另行审阅确认。"),
             "privacy.delete" => ("永久清理隐私记录", "永久删除以下浏览器记录？", "此操作只处理本次扫描中选定的来源和时间范围。记录不会进入回收站，无法通过历史恢复。Cookie 清理可能使你退出网站登录。请先关闭相关浏览器。"),
             "workspace.remove" => ("停止包含文件夹", "停止在一键扫描中包含以下额外文件夹？", "已保存的规则绑定、规则选择和该工作区的排除将解除。文件与清理历史保留。如需再次扫描，可以重新包含此文件夹。"),
             "startup.enable" => ("确认启用启动项", "启用以下计划任务？", "仅修改所选当前用户任务的启用配置。不会立即启动任务。执行前重新核验完整定义，执行后读取配置确认结果。"),

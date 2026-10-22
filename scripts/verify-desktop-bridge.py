@@ -356,6 +356,25 @@ def main():
         assert reviewed and removed["ok"] and removed["data"]["state"] == "completed", (reviewed, removed)
         assert not (removal_root / "cache").exists() and (removal_root / "keep.txt").read_text() == "retain"
         print("PASS space removal cancellation, confirmed permanent deletion and retained sibling", flush=True)
+        if args.native_trash:
+            recycled = removal_root / "recyclable-cache"
+            recycled.mkdir()
+            (recycled / "fixture.bin").write_bytes(b"disposable storage recycle fixture")
+            set_fixture_owner(recycled)
+            recycle_scan = success("storage.scan", dict(path=str(removal_root)))
+            recycle_input = dict(scan_id=recycle_scan["scan_id"], paths=[recycled.name], action="trash")
+            for decision in ["cancel", "wrong-digest"]:
+                result, reviewed = request(engine, environment, "storage.remove", recycle_input, decision)
+                assert reviewed and not result["ok"] and (recycled / "fixture.bin").is_file(), result
+            result, reviewed = request(engine, environment, "storage.remove", recycle_input, "accept")
+            assert reviewed and result["ok"] and result["data"]["state"] == "completed", result
+            receipt = result["data"]
+            assert len(receipt["items"]) == 1 and receipt["items"][0]["state"] == "trashed" and not recycled.exists(), receipt
+            restored, reviewed = request(engine, environment, "history.restore", dict(execution_id=receipt["id"], item_ids=[receipt["items"][0]["id"]]), "accept")
+            assert reviewed and restored["ok"] and all(item["state"] == "completed" for item in restored["data"]), restored
+            assert (recycled / "fixture.bin").read_bytes() == b"disposable storage recycle fixture"
+            assert (removal_root / "keep.txt").read_text() == "retain"
+            print("PASS storage Recycle Bin confirmation/cancellation, exact receipt restoration and retained sibling", flush=True)
         if args.native_permanent:
             # Refresh identity evidence after the optional Trash/restore round trip.
             scan = success("scan", dict(workspace_id=registered["id"]))
