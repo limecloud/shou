@@ -21,8 +21,14 @@ public sealed class RegisteredApplicationRow(string id,string name,string versio
     public bool CanUninstall { get; }=canUninstall;
     private long? measuredBytes;
     private bool measurementPartial;
+    private string measurementSummary="";
+    public string MeasurementSummary { get=>measurementSummary;set=>SetProperty(ref measurementSummary,value); }
     public long? MeasuredBytes => measuredBytes;
     public string MeasuredSize => measuredBytes is { } bytes ? (measurementPartial ? T("部分：") : "")+MainViewModel.Bytes(bytes) : T("未测量");
+    public void BeginMeasurement(string summary) {
+        measuredBytes=null;measurementPartial=false;MeasurementSummary=summary;
+        OnPropertyChanged(nameof(MeasuredBytes));OnPropertyChanged(nameof(MeasuredSize));
+    }
     public void SetMeasurement(long bytes,bool partial) {
         measuredBytes=bytes;measurementPartial=partial;OnPropertyChanged(nameof(MeasuredBytes));OnPropertyChanged(nameof(MeasuredSize));
     }
@@ -103,7 +109,6 @@ public sealed partial class MainViewModel
     private async Task ScanRegisteredApplicationsAsync()
     {
         registeredApplicationScanId=null;
-        ApplicationUsageSummary="";
         allRegisteredApplications.Clear();RegisteredApplications.Clear();ApplicationCoverage.Clear();SelectedRegisteredApplication=null;
         ApplicationInventorySummary=T("正在读取已安装的应用…");ApplicationCoverageSummary="";
         ProgressVisible=true;

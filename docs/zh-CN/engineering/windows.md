@@ -109,6 +109,7 @@ WPF 完成遮罩遵循共享桌面合同。成功清理只显示完成图标、�
 | 内置 AI | WPF 调查、连接、系统凭据、问答、停止、历史与规则预览已连接；Windows 原生旅程待验收 |
 | 启动项盘点和受控启停 | 注册表、启动文件夹、登录／开机任务及可选全机服务已接入；确切当前用户任务启停需确认和定义回读，其他来源在系统中管理；原生旅程待验收 |
 | 应用盘点、卸载及独立残留 | 已接入登记盘点、1–20 个所属安装器审阅及回执，另支持 16 类应用的 17 个默认数据根清理，以及当前用户已登记 MSIX 整包数据清空；未登记 MSIX 残留、自定义／便携安装、其他账户和未声明应用仍未覆盖；Windows 原生验收待完成 |
+| 安装目录占用 | 已接入明确单行测量、分配／逻辑大小、数值排序、有界遍历及不完整覆盖；登记目录可能重叠，不证明归属或可释放空间；Windows 原生验收待完成 |
 | 隐私清理 | 标准 Chromium／Firefox 配置、汇总计数、明确来源选择、Cookie 单独同意、时间范围删除与脱敏回执已接入；Windows 原生夹具／界面验收待完成 |
 | 关闭应用并刷新受影响清理证据 | 扫描范围审阅、正常窗口关闭、活动复核、单次回执及 WPF 局部刷新已接入；Windows 原生验收待完成 |
 | Windows 工具存储清理 | Docker 本机构建缓存、Conda 缓存、非当前 Rust 工具链、审阅的工具身份、确认与回执已接入；Windows 原生待验收，Homebrew 保持 macOS 专属 |
@@ -128,7 +129,7 @@ WPF 完成遮罩遵循共享桌面合同。成功清理只显示完成图标、�
 
 界面偏好使用 `%LOCALAPPDATA%/Shou.Desktop/preferences.json`，与引擎记录分开。文件有大小上限和版本化闭合 schema；缺失时使用默认值，无效时提示并允许通过保存替换。保存使用独占临时文件、刷盘和原子替换。设置页显示引擎 `configuration.data_directory` 返回的真实目录，尊重 `SHOU_DATA_DIR`，并提供扫描范围、规则、AI、记录回收、随包 CLI 帮助、文档、发布页、问题反馈与源码入口。复制 CLI 帮助不会启动终端或修改 PATH。Windows 更新仍需手动下载完整发行版。
 
-`UiText` 通过内嵌的 1062 条中英文目录解析应用文案及 XAML 键，并复用共享中英文目录翻译内置引擎提示。路径、用户输入和个人规则定义保留原文。AI 认证使用与显示文案无关的固定标识；AI 调查及空间分析复制请求使用当前界面语言。`scripts/verify-windows-localization.py` 校验文案引用、XAML 键、目录完整性和格式参数，已接入常规与 Windows 检查。.NET 检查验证独占夹具中的偏好往返、错误 schema、保存失败、辅助功能优先级、目录解析、格式化及认证标识。
+`UiText` 通过内嵌的 1081 条中英文目录解析应用文案及 XAML 键，并复用共享中英文目录翻译内置引擎提示。路径、用户输入和个人规则定义保留原文。AI 认证使用与显示文案无关的固定标识；AI 调查及空间分析复制请求使用当前界面语言。`scripts/verify-windows-localization.py` 校验文案引用、XAML 键、目录完整性和格式参数，已接入常规与 Windows 检查。.NET 检查验证独占夹具中的偏好往返、错误 schema、保存失败、辅助功能优先级、目录解析、格式化及认证标识。
 
 发行验证分别以中英文启动新的包探针，在两种窗口大小加载设置页，并应用全部外观与动态效果组合。探针不读写已保存的桌面、AI 或空间视图偏好。相关代码已在 macOS 宿主编译；本阶段尚未在 Windows 执行布局、截断、键盘、屏幕阅读器、高对比度和重新打开旅程。构建与目录检查通过不代表视觉验收完成。
 
@@ -188,13 +189,13 @@ Docker 只接受默认本机端点 `npipe:////./pipe/docker_engine`，预览和 
 
 应用盘点由 `WindowsRegisteredApplications` 复核 `applications.cpp` 的有界源合同。四个注册表来源覆盖当前用户／全机及 32／64 位视图；普通全机安装不需要勾选系统组件或提权。当前用户 MSIX 包使用公开 WinRT `PackageManager`，不读取内部 AppModel 注册表。相同注册项及相同证据的视图别名去重，同名但不同注册身份保留。注册表父源和逐项元数据读取前后复核，变化时保留覆盖问题。条目、时间、输出及问题数量均有上限，停止支持协作取消；桌面请求按只读进程处理。
 
-`applications.scan` 和 Windows CLI `applications list` 在打开清理存储之前读取，不注册工作区，不扫描安装内容，不输出卸载命令。登记的安装位置仅展示，不作为归属证据。`EstimatedSize` 明确为安装程序报告的大小，MSIX 实测大小和可卸载状态保留未知；框架／资源／bundle 组件默认隐藏，系统包可移除性仍交给 Windows 判断。WPF 提供搜索、来源筛选、列排序、详情、覆盖及固定 Windows“已安装的应用”入口。`application_inventory`、`application_uninstall` 与完整 `applications` 能力分开；应用数据归属及独立残留尚未完成，后者继续为 false。
+`applications.scan` 和 Windows CLI `applications list` 在打开清理存储之前读取，不注册工作区，不扫描安装内容，不输出卸载命令。登记的安装位置仅展示，不作为归属证据。`EstimatedSize` 明确为安装程序报告的大小；盘点不测量 MSIX 安装内容，也不确认可卸载状态，独立按需目录测量见下节。框架／资源／bundle 组件默认隐藏，系统包可移除性仍交给 Windows 判断。WPF 提供搜索、来源筛选、列排序、详情、覆盖及固定 Windows“已安装的应用”入口。`application_inventory`、`application_usage`、`application_uninstall` 与完整 `applications` 能力分开；应用数据归属及独立残留尚未完成，后者继续为 false。
 
 `scripts/verify-windows-applications.py` 已加入 Windows Check，原生分支只读取当前注册表／包源、检查条目预算和 CLI，不创建虚假注册项、不执行卸载、不接受变更确认。macOS 只执行输入拒绝和平台边界检查。包校验新增应用页布局及 `application_inventory_layout_loaded` 断言；这些检查源码尚不代表 Windows 已运行验收。
 
 ### 安装目录占用
 
-选择一个应用行，点击“测量安装占用”，即可按需测量当前登记的安装目录。独立列同时保留安装器登记大小和实测占用，按原始字节排序；详情展示确切目录、逻辑大小、去重文件数及不完整覆盖。重新盘点会清空这些观察结果。部分数值只描述遍历时已观察到的条目，不能保证是正在变化目录的当前容量下限。
+选择一个应用行，点击“测量安装占用”，即可按需测量当前登记的安装目录。独立列同时保留安装器登记大小和实测占用，按原始字节排序；可展开详情随当前行切换，展示应用名、确切目录、逻辑大小、去重文件数及不完整覆盖。重新测量先清除该行旧值，取消或失败保留明确状态；重新盘点会清空这些观察结果。部分数值只描述遍历时已观察到的条目，不能保证是正在变化目录的当前容量下限。
 
 独立 `application_usage` 能力与只读 `applications.usage` 桥操作只接受当前已存储的 `scan_id`、一个 `application_id` 和可选条目／时间预算。Windows CLI 提供 `applications usage scan/measure`，默认 100,000 项和 30 秒，上限 1,000,000 项和 120 秒。服务要求原登记来源完整，并在测量前后复核登记未变。原生适配按确切注册表来源／视图读取桌面或 MSI 的 `InstallLocation`，MSIX 使用 PackageManager 的 `InstalledLocation`；只测量本地固定磁盘目录，缺失或不可访问的位置保持不可用。
 
@@ -266,6 +267,8 @@ Windows GitHub 工作流分别检查静态资源、Swift/WPF 原生构建和生�
 - [LockFileEx](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-lockfileex)
 
 ## 验证状态
+
+- 2026-10-23 安装占用阶段通过 4/4 专项、159 项 CLI、44 项 C#、23 项测量拒绝／平台检查、原有 25 项 MSIX 协议及共享桌面协议。完整复跑含额外四项原生回收站／恢复，322/322 通过；227 条 Mac 规则／691 个模式的生成文件恢复后哈希一致。此前取消与原生活动断言失败保留；后者未复现，根因仍未确定。最终 WPF Release 0 警告／0 错误，1081 条文案、793 个 C#／469 个 XAML 引用；x64／ARM64 严格原生编译链接、Windows 分支补充宿主类型检查及 manifest 校验通过。Windows CI [39862193441](https://github.com/limecloud/shou/actions/runs/39862193441) 在 `be7fc0d` 构建 Swift／原生产品／WPF 通过，随后夹具只接受 `IOException`，而 Windows 返回 `UnauthorizedAccessException`，导致 Check 失败；现断言接受这两种预期文件系统错误并保留文件保全检查，其 Windows 复跑及最终按行详情 UI 修改仍待验收。原生测量门禁／正向夹具、真实安装目录／MSIX／ACL、WPF 旅程及包探针仍 NOT RUN，完整对齐尚未完成。
 
 - 2026-10-23 MSIX 包数据阶段通过 314/314 共享 Core、4/4 范围／同意／期限／日志专项、159 项 CLI、43 项 C#、25 项 MSIX 严格输入／平台检查、原有 31 项应用数据检查及共享桌面协议。宿主 Swift 和 WPF Release 构建通过，WPF 0 警告／0 错误；显式 Windows Swift 分支补充主机类型检查通过。原生生产源码与输入夹具通过 x64、ARM64 严格警告编译／链接；已修正初次遗漏的 `onecoreuap` 链接依赖并保留失败日志。目录现有 1062 条文案。全部变更只作用于生成的隔离文件或模拟进程；Windows SDK、原生夹具执行、真实包 API／进程／ACL、WPF 旅程及发行包探针仍为 NOT RUN，完整对齐尚未完成。
 

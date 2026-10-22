@@ -82,7 +82,7 @@ internal static class DesktopSettingsChecks
                 Directory.CreateDirectory(occupied);
                 File.WriteAllText(Path.Combine(occupied, "keep.txt"), "generated fixture");
                 try { new DesktopPreferenceStore(occupied).Save(new()); throw new Exception("Occupied destination accepted."); }
-                catch (IOException) { }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
                 Require(File.ReadAllBytes(path).SequenceEqual(original));
                 Require(File.ReadAllText(Path.Combine(occupied, "keep.txt")) == "generated fixture");
                 Require(!Directory.EnumerateFiles(fixture.FullName, ".preferences-*.tmp").Any());
