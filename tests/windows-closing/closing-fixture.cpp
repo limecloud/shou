@@ -15,9 +15,11 @@
 namespace {
 void require(bool value,const char *message){if(!value)throw std::runtime_error(message);}
 HANDLE received=nullptr;
+HANDLE drained=nullptr;
 bool refuses=false;
 LRESULT CALLBACK fixtureWindow(HWND window,UINT message,WPARAM wparam,LPARAM lparam){
     if(message==WM_CLOSE){SetEvent(received);if(refuses)return 0;}
+    if(message==WM_APP){SetEvent(drained);return 0;}
     if(message==WM_DESTROY){PostQuitMessage(0);return 0;}
     return DefWindowProcW(window,message,wparam,lparam);
 }
@@ -26,7 +28,8 @@ int windowMain(wchar_t **args){
     auto stop=OpenEventW(SYNCHRONIZE,FALSE,args[3]);
     auto ready=OpenEventW(EVENT_MODIFY_STATE,FALSE,args[4]);
     received=OpenEventW(EVENT_MODIFY_STATE,FALSE,args[5]);
-    if(!stop || !ready || !received)return 10;
+    drained=OpenEventW(EVENT_MODIFY_STATE,FALSE,args[6]);
+    if(!stop || !ready || !received || !drained)return 10;
     WNDCLASSW type{};type.lpfnWndProc=fixtureWindow;type.hInstance=GetModuleHandleW(nullptr);type.lpszClassName=L"ShouGeneratedCloseFixture";
     if(!RegisterClassW(&type))return 11;
     auto window=CreateWindowW(type.lpszClassName,L"Generated Shou close fixture; no user documents",WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,400,200,nullptr,nullptr,type.hInstance,nullptr);
@@ -43,26 +46,39 @@ int windowMain(wchar_t **args){
         }
     }
     if(IsWindow(window))DestroyWindow(window);
-    CloseHandle(stop);CloseHandle(ready);CloseHandle(received);return 0;
+    CloseHandle(stop);CloseHandle(ready);CloseHandle(received);CloseHandle(drained);return 0;
 }
 struct Child {
-    HANDLE stop=nullptr,ready=nullptr,notice=nullptr,process=nullptr;
+    HANDLE stop=nullptr,ready=nullptr,notice=nullptr,barrier=nullptr,process=nullptr;
     DWORD pid=0;
     Child(const std::wstring &executable,bool refusal){
         try {
-        const auto prefix=L"Local\\ShouCloseFixture-"+std::to_wstring(GetCurrentProcessId())+L"-"+std::to_wstring(GetTickCount64());
-        stop=CreateEventW(nullptr,TRUE,FALSE,(prefix+L"-stop").c_str());ready=CreateEventW(nullptr,TRUE,FALSE,(prefix+L"-ready").c_str());notice=CreateEventW(nullptr,TRUE,FALSE,(prefix+L"-notice").c_str());
-        require(stop && ready && notice,"Could not create owned fixture events");
-        auto command=L"\""+executable+L"\" --window "+(refusal?L"refuse":L"close")+L" \""+prefix+L"-stop\" \""+prefix+L"-ready\" \""+prefix+L"-notice\"";
-        STARTUPINFOW startup{};startup.cb=sizeof(startup);PROCESS_INFORMATION child{};
-        require(CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,0,nullptr,nullptr,&startup,&child),"Could not launch generated fixture");
-        process=child.hProcess;pid=child.dwProcessId;CloseHandle(child.hThread);
-        require(WaitForSingleObject(ready,10000)==WAIT_OBJECT_0,"Generated fixture did not create a window");
+            static uint64_t sequence=0;
+            const auto prefix=L"Local\\ShouCloseFixture-"+std::to_wstring(GetCurrentProcessId())+L"-"+std::to_wstring(GetTickCount64())+L"-"+std::to_wstring(++sequence);
+            auto event=[&](const wchar_t *suffix){auto handle=CreateEventW(nullptr,TRUE,FALSE,(prefix+suffix).c_str());if(handle && GetLastError()==ERROR_ALREADY_EXISTS){CloseHandle(handle);return HANDLE(nullptr);}return handle;};
+            stop=event(L"-stop");ready=event(L"-ready");notice=event(L"-notice");barrier=event(L"-barrier");
+            require(stop && ready && notice && barrier,"Could not exclusively create owned fixture events");
+            auto command=L"\""+executable+L"\" --window "+(refusal?L"refuse":L"close")+L" \""+prefix+L"-stop\" \""+prefix+L"-ready\" \""+prefix+L"-notice\" \""+prefix+L"-barrier\"";
+            STARTUPINFOW startup{};startup.cb=sizeof(startup);PROCESS_INFORMATION child{};
+            require(CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,0,nullptr,nullptr,&startup,&child),"Could not launch generated fixture");
+            process=child.hProcess;pid=child.dwProcessId;CloseHandle(child.hThread);
+            require(WaitForSingleObject(ready,10000)==WAIT_OBJECT_0,"Generated fixture did not create a window");
         }catch(...){release();throw;}
     }
-    void release(){if(stop)SetEvent(stop);if(process){WaitForSingleObject(process,10000);CloseHandle(process);}for(auto event:{stop,ready,notice})if(event)CloseHandle(event);}
+    void release(){if(stop)SetEvent(stop);if(process){WaitForSingleObject(process,10000);CloseHandle(process);}for(auto event:{stop,ready,notice,barrier})if(event)CloseHandle(event);}
     ~Child(){release();}
 };
+struct OwnedWindow { DWORD pid; HWND window=nullptr; };
+BOOL CALLBACK findOwnedWindow(HWND window,LPARAM context){
+    auto &owned=*reinterpret_cast<OwnedWindow *>(context);DWORD pid=0;GetWindowThreadProcessId(window,&pid);
+    if(pid==owned.pid && IsWindowVisible(window)){owned.window=window;return FALSE;}return TRUE;
+}
+void requireNoClose(const Child &child){
+    OwnedWindow owned{child.pid};EnumWindows(findOwnedWindow,reinterpret_cast<LPARAM>(&owned));
+    require(owned.window && ResetEvent(child.barrier) && PostMessageW(owned.window,WM_APP,0,0),"Generated window queue barrier could not be posted");
+    require(WaitForSingleObject(child.barrier,10000)==WAIT_OBJECT_0,"Generated window did not drain earlier messages");
+    require(WaitForSingleObject(child.notice,0)==WAIT_TIMEOUT,"Refused request sent a close message");
+}
 shou_win_close_process selected(DWORD pid){
     shou_win_close_process *rows=nullptr;size_t count=0;
     const auto code=shou_win_close_process_inventory("Code.exe",&rows,&count);
@@ -74,7 +90,7 @@ shou_win_close_process selected(DWORD pid){
 }
 
 int runChecks(int argc,wchar_t **argv){
-    if(argc==6 && std::wstring(argv[1])==L"--window")return windowMain(argv);
+    if(argc==7 && std::wstring(argv[1])==L"--window")return windowMain(argv);
     HANDLE token=nullptr;TOKEN_ELEVATION elevation{};DWORD size=0;
     if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&token))return 1;
     const bool inspected=GetTokenInformation(token,TokenElevation,&elevation,sizeof(elevation),&size);CloseHandle(token);
@@ -99,10 +115,10 @@ int runChecks(int argc,wchar_t **argv){
                 if(change==4)stale.executable_path[0]='X';
                 if(change==5)stale.executable_identity.modified_ns++;
                 require(shou_win_request_process_close("Code.exe",&stale,1,nullptr,nullptr)!=0,"Changed process identity accepted");
-                require(WaitForSingleObject(child.notice,0)==WAIT_TIMEOUT,"Stale identity sent a close message");
+                requireNoClose(child);
             }
             require(shou_win_request_process_close("Code.exe",&saved,1,[](void *){return 1;},nullptr)==ERROR_CANCELLED,"Cancelled request was not refused");
-            require(WaitForSingleObject(child.notice,0)==WAIT_TIMEOUT,"Cancelled request sent a close message");
+            requireNoClose(child);
             require(shou_win_request_process_close("Code.exe",&saved,1,nullptr,nullptr)==0,"Exact normal-close request failed");
             require(WaitForSingleObject(child.notice,10000)==WAIT_OBJECT_0 && WaitForSingleObject(child.process,10000)==WAIT_OBJECT_0,"Generated window did not close normally");
         }
@@ -111,7 +127,7 @@ int runChecks(int argc,wchar_t **argv){
             shou_win_close_process selection[2]={selected(first.pid),selected(second.pid)};
             selection[1].created++;
             require(shou_win_request_process_close("Code.exe",selection,2,nullptr,nullptr)!=0,"Partially stale selection accepted");
-            require(WaitForSingleObject(first.notice,0)==WAIT_TIMEOUT && WaitForSingleObject(second.notice,0)==WAIT_TIMEOUT,"Preflight sent a close before validating all selected processes");
+            requireNoClose(first);requireNoClose(second);
         }
         {
             Child child(executable,true);const auto saved=selected(child.pid);

@@ -211,7 +211,7 @@
   "secrets_included": false,
   "documentation_checks": {
     "markdown_files": 97,
-    "local_links": 837,
+    "local_links": 839,
     "readme_languages": 11,
     "localization_keys": 1750,
     "ui_languages": 2,
@@ -228,6 +228,15 @@
     "reason": "New C++ fixture included in a Swift target: mixed language source files unsupported",
     "ai_checks": "skipped",
     "packaging": "skipped",
-    "workspace_fix": "Package.swift excludes closing-fixture.cpp from ShouWindowsTests; remote rerun not established"
+    "workspace_fix": "C++ fixture moved to independent ShouWindowsClosingChecks target under tests/windows-closing; remote rerun not established"
+  },
+  "acceptance_processes": {
+    "isolated_ui_closed": true,
+    "loopback_provider_stopped": true,
+    "user_application_terminated_by_this_review": false
+  },
+  "secret_pattern_scan": {
+    "files": 9,
+    "matches": 0
   }
 }

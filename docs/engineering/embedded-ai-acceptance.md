@@ -87,7 +87,7 @@ Record package/version/signature, OS, fixture manifest, actions, observations an
 
 ## 5. Evidence and limits
 
-Latest 2026-10-23 results are in the [implementation record](embedded-ai-implementation.md) and [sanitized evidence](embedded-ai-evidence.json). The region restriction is resolved; live main takeover and Jev investigations complete. SDK/portable each pass 114 and Windows 115 AI contracts. Generated fixtures cover folder selection, waiting-record restart, waiting/test cancellation, offline rule cleanup and independent native restoration. Two earlier missing delayed-restoration targets remain separate failures; the full Windows workflow fails on a subsequent privacy fixture.
+Latest 2026-10-23 results are in the [implementation record](embedded-ai-implementation.md) and [sanitized evidence](embedded-ai-evidence.json). The region restriction is resolved; live main takeover and Jev investigations complete. SDK/portable each pass 114 and the stated Windows revision passes 115 AI contracts. Generated fixtures cover folder selection, waiting-record restart, waiting/test cancellation, offline rule cleanup and independent native restoration. Two earlier missing delayed-restoration targets remain separate failures. The full Windows workflow has not passed; the workspace fix for the latest fixture-compilation failure needs remote verification.
 
 The following historical package evidence does not replace current per-scenario results:
 

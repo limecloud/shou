@@ -338,7 +338,7 @@ sequenceDiagram
 3. 已接入共享启动面板及四类 P0 页面入口，复用扫描和调查检查器。
 4. 已提供空状态、停止中、失败／过期、无建议及预览后下一步；完整交互组合继续验收。
 5. 用生成夹具验证范围和数据披露、两种语言、键盘及深浅色；再进行指定服务真实桌面验证。
-6. 保留未过验收项：中断 running 任务恢复、领域解释适配、内容工具、质量校准、Windows 本轮原生 CI 与界面验收。
+6. 保留未过验收项：中断 running 任务恢复、领域解释适配、内容工具、质量校准、Windows 整包 CI 与完整界面验收；已有 Windows AI 合同证据单独记录。
 
 具体通过条件与证据位置统一见[验收矩阵](../engineering/embedded-ai-acceptance.md)，运行事实统一见[实现记录](../engineering/embedded-ai-implementation.md)。
 

@@ -87,7 +87,7 @@
 
 ## 5. 证据及明确边界
 
-2026-10-23 最新结果见[实现记录](embedded-ai-implementation.md)及[脱敏证据](../../engineering/embedded-ai-evidence.json)。地区限制已解除，真实主模型接管和 Jev 调查完成；SDK／portable 各 114 项及 Windows 115 项 AI 合同通过。目录选择、问答重启、等待取消、测试取消、AI 关闭后的本地规则清理及独立原生恢复均有生成夹具证据。两次延迟恢复的缺失目标仍单独保留，Windows 整包 CI 因后续隐私夹具失败而未通过。
+2026-10-23 最新结果见[实现记录](embedded-ai-implementation.md)及[脱敏证据](../../engineering/embedded-ai-evidence.json)。地区限制已解除，真实主模型接管和 Jev 调查完成；SDK／portable 各 114 项及所述 Windows 提交的 115 项 AI 合同通过。目录选择、问答重启、等待取消、测试取消、AI 关闭后的本地规则清理及独立原生恢复均有生成夹具证据。两次延迟恢复的缺失目标仍单独保留；Windows 整包 CI 尚未通过，最新夹具编译问题的工作区修正待远程复验。
 
 以下为更早包的历史证据，不能替代最新包的逐项结果：
 

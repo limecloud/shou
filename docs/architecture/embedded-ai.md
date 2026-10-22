@@ -338,7 +338,7 @@ No file/configuration contents, Shell, web fetches, arbitrary plugins or project
 3. Implemented shared launch panel and four P0 page entries reusing scans/inspector.
 4. Empty, stopping, stale/error/no-advice states and post-preview next actions are implemented; full interaction combinations remain under acceptance.
 5. Generated fixtures for scope/disclosure, languages, keyboard/appearance, then the selected providers' live desktop flow.
-6. Keep interrupted-running recovery, domain adapters, content tools, quality, native Windows CI for this revision and UI acceptance as explicit open gates.
+6. Keep interrupted-running recovery, domain adapters, content tools, quality, full Windows package CI and complete UI acceptance as open gates; record existing native Windows AI contracts separately.
 
 Acceptance conditions/evidence belong to the [matrix](../engineering/embedded-ai-acceptance.md); runtime observations belong to the [implementation record](../engineering/embedded-ai-implementation.md).
 
