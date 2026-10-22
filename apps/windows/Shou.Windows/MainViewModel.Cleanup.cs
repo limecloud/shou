@@ -30,7 +30,9 @@ public sealed partial class MainViewModel
     private string cleanupResultSummary = "扫描后可按分类和规则审阅目录。";
     private string cleanupSelectionSummary = "尚未选择目录";
     private bool updatingCleanupGroups, updatingCleanupSelection;
+    private CandidateRow? selectedCleanupCandidate;
     public ObservableCollection<CleanupGroupRow> CleanupGroups { get; } = [];
+    public CandidateRow? SelectedCleanupCandidate { get => selectedCleanupCandidate; set { if (SetProperty(ref selectedCleanupCandidate, value)) RefreshCommands(); } }
     public string CleanupQuery { get => cleanupQuery; set => SetProperty(ref cleanupQuery, value); }
     public string CleanupResultSummary { get => cleanupResultSummary; private set => SetProperty(ref cleanupResultSummary, value); }
     public string CleanupSelectionSummary { get => cleanupSelectionSummary; private set => SetProperty(ref cleanupSelectionSummary, value); }
@@ -40,6 +42,10 @@ public sealed partial class MainViewModel
     public IAsyncRelayCommand<CleanupGroupRow> ToggleCleanupGroupCommand { get; private set; } = null!;
     public IAsyncRelayCommand ShowAllCleanupCommand { get; private set; } = null!;
     public IRelayCommand ClearCleanupSelectionCommand { get; private set; } = null!;
+    public IAsyncRelayCommand<CandidateRow> RevealCleanupCandidateCommand { get; private set; } = null!;
+    public IAsyncRelayCommand<CandidateRow> CopyCleanupCandidatePathCommand { get; private set; } = null!;
+    public IAsyncRelayCommand<CandidateRow> AnalyzeCleanupCandidateCommand { get; private set; } = null!;
+    public IAsyncRelayCommand<CandidateRow> ExcludeCleanupCandidateCommand { get; private set; } = null!;
 
     private void InitializeCleanupReview()
     {
@@ -60,16 +66,38 @@ public sealed partial class MainViewModel
         ClearCleanupSelectionCommand = new RelayCommand(() => {
             cleanupSelection.Clear(); SyncCleanupSelection();
         }, () => !IsBusy && cleanupSelection.Count > 0);
+        RevealCleanupCandidateCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(() => {
+            dialogs.RevealItem(row!.AbsolutePath); return Task.CompletedTask;
+        }), CanUseCleanupCandidate);
+        CopyCleanupCandidatePathCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(() => {
+            System.Windows.Clipboard.SetText(row!.AbsolutePath); Status = "已复制此候选目录的完整路径。"; return Task.CompletedTask;
+        }), CanUseCleanupCandidate);
+        AnalyzeCleanupCandidateCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(async () => {
+            await ScanStorageAsync(row!.AbsolutePath); SelectedSection = 1;
+        }), CanUseCleanupCandidate);
+        ExcludeCleanupCandidateCommand = new AsyncRelayCommand<CandidateRow>(row => RunAsync(async () => {
+            // Scope the literal directory to its source workspace, independent
+            // of the workspace currently selected in the page header.
+            await client.RequestAsync("exclusions.set", new() { ["workspace_id"] = row!.WorkspaceId, ["project"] = row.Path, ["pattern"] = "**", ["remove"] = false }, cancellation: Token);
+            var workspace = row.WorkspaceId;
+            ResetCleanupReview(); await LoadConfigurationAsync();
+            SelectedWorkspace = Workspaces.FirstOrDefault(item => item.Id == workspace);
+            ExclusionScope = 1; SelectedSection = 2;
+            Status = "已排除此目录及其内容，文件保持原位。重新扫描后生效，可在当前工作区的排除保护中移除。";
+        }), row => CanUseCleanupCandidate(row) && !AiBusy);
         commands.AddRange([ApplyCleanupSearchCommand, SelectRecommendedCleanupCommand, ToggleCleanupGroupCommand,
-            ShowAllCleanupCommand, ClearCleanupSelectionCommand]);
+            ShowAllCleanupCommand, ClearCleanupSelectionCommand, RevealCleanupCandidateCommand, CopyCleanupCandidatePathCommand,
+            AnalyzeCleanupCandidateCommand, ExcludeCleanupCandidateCommand]);
     }
+
+    private bool CanUseCleanupCandidate(CandidateRow? row) => !IsBusy && row is not null && Candidates.Contains(row);
 
     private void ResetCleanupReview()
     {
         cleanupScanIds.Clear(); cleanupRefinements.Clear(); cleanupSelection.Clear();
         cleanupScope = null; cleanupNextOffset = null; cleanupQueryDigest = "";
         appliedCleanupQuery = ""; CleanupQuery = "";
-        Candidates.Clear(); CleanupGroups.Clear();
+        SelectedCleanupCandidate = null; Candidates.Clear(); CleanupGroups.Clear();
         CleanupResultSummary = "扫描后可按分类和规则审阅目录。";
         SyncCleanupSelection(); OnPropertyChanged(nameof(CleanupScopeTitle));
     }
@@ -89,7 +117,7 @@ public sealed partial class MainViewModel
         var page = await client.RequestAsync("cleanup.review", input, cancellation: Token);
         // Replace the displayed rows only after a successful query. Selections
         // retain their immutable source keys when another group or page opens.
-        if (first) Candidates.Clear();
+        if (first) { SelectedCleanupCandidate = null; Candidates.Clear(); }
         cleanupNextOffset = page["next_offset"]?.GetValue<int>();
         cleanupQueryDigest = Text(page, "query_digest");
         if (CleanupGroups.Count == 0 || rebuildGroups) BuildCleanupGroups(page);

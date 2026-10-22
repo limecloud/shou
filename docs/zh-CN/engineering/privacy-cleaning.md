@@ -17,6 +17,22 @@
 
 本次不支持自定义配置位置、Firefox 外部配置、标识符不同的测试版或渠道版、站点存储、权限、扩展、会话恢复、密码管理器、应用活动、剪贴板、最近项目和云端副本。关闭的浏览器以后可能通过同步恢复历史；Shou 不修改云端服务。运行中的浏览器来源不可选，Shou 不会自动终止浏览器。
 
+### Windows 来源适配
+
+Windows 在以下用户目录内的标准位置发现配置，并应用上表相同的数据库结构限制；Safari 仅适用 macOS。
+
+| 浏览器 | 相对当前用户目录的根路径 |
+| --- | --- |
+| Chrome | `AppData/Local/Google/Chrome/User Data` |
+| Chromium | `AppData/Local/Chromium/User Data` |
+| Edge | `AppData/Local/Microsoft/Edge/User Data` |
+| Brave | `AppData/Local/BraveSoftware/Brave-Browser/User Data` |
+| Firefox | `AppData/Roaming/Mozilla/Firefox/Profiles` |
+
+Chromium 来源仅限 `Default` 或 `Profile N` 中确切的历史及 Cookie 数据库；Firefox 为发现的配置目录中的 `places.sqlite` 与 `cookies.sqlite`。来源新增可选 `platform` 字段，保留旧 macOS 扫描／计划元数据兼容性；Windows 要求 `windows` 及自身的闭合路径策略。发现入口不接受调用方自选根目录。
+
+Windows 原生访问在每次 SQLite 操作期间持有数据库、祖先目录及现有辅助文件的句柄，禁止共享删除。证据保留完整 File ID 与所有者 SID，拒绝重解析点、占位文件、硬链接、非预期所有者及不安全写入 ACL。允许继承的读取权限，写入／删除／修改 ACL 的权限仅允许当前用户、SYSTEM 或 Administrators。只检查现有 ACL，不改写权限。这项独立隐私授权不扩大普通缓存规则的 AppData 范围。Windows SDK／原生运行及 WPF 交互仍待验收。
+
 ## 范围与执行
 
 时间范围包括最近一小时、滚动24小时、滚动七天和所有时间。有限范围包含扫描时固定的起止边界。Chromium 使用自1601年以来的整数微秒，Firefox 使用 Unix 整数微秒，Safari 使用自2001年以来的秒。整数时间下界向上取整、上界向下取整，Chromium 纪元差值以整数相加，避免损失微秒精度。Cookie 依据最后访问，历史依据访问时间。未知或为零的 Cookie 时间不会被猜测为近期记录；所有时间则包括这些未定年 Cookie。Firefox 的访问类型7表示下载历史，予以保留。
@@ -115,7 +131,9 @@ sequenceDiagram
 
 ## 入口与验证
 
-Core 由 `PrivacyModels.swift`、`PrivacyService.swift`、`PrivacyDatabase.swift` 负责，原生来源适配器为 `NativePrivacySources.swift`。GUI 由 `PrivacySession.swift` 和 `PrivacyView.swift` 负责；CLI 由 `PrivacyCLI.swift` 负责。两者使用同一个服务。
+Core 由 `PrivacyModels.swift`、`PrivacyService.swift`、`PrivacyDatabase.swift` 负责。macOS 原生发现使用 `NativePrivacySources.swift`；Windows 使用 `WindowsPrivacySources.swift` 和 `shou_win_privacy_acquire`。macOS GUI 由 `PrivacySession.swift`、`PrivacyView.swift` 负责；WPF 使用 `MainViewModel.Privacy.cs`、`PrivacyView.xaml`；`PrivacyCLI.swift` 和桌面桥使用同一个服务。
+
+桌面桥提供只读 `privacy.scan`、`privacy.history`，以及严格要求 `scan_id`、`source_ids` 和布尔 `sign_out` 的 `privacy.clean`。清理在同一进程生成新计划，并将确认绑定到计划摘要和一次性挑战。WPF 默认不选来源，撤回退出登录同意会清空 Cookie 选择；最终审阅还要求独立勾选永久删除及适用的退出登录确认。完成、失败或取消一次操作后清空扫描，下一次操作需要重新扫描。近期回执展示脱敏的逐来源结果。
 
 ```text
 shou privacy scan --range last-hour --json
@@ -128,5 +146,7 @@ shou privacy history --json
 ```
 
 `tests/core/PrivacyTests.swift` 在生成的夹具用户目录下创建一次性数据库，覆盖时间纪元与有限范围、选中关联与无关孤立行、Cookie 确认、书签/下载保留、浏览器运行、证据过期、排除规则、事务回滚、不支持触发器及脱敏回执。这些测试验证受支持的结构合同，不证明所有已安装浏览器版本或私人配置的访问权限。执行结果见[验收与测试](acceptance-and-testing.md)。
+
+`WindowsPrivacyTests.swift` 使用生成证据补充 Windows 闭合来源策略、旧数据编码兼容、访问租约生命周期及大小写不敏感的保护检查。`scripts/verify-privacy-bridge.py --native-fixtures` 独占创建一个一次性配置，仅选择其两个生成来源，验证严格输入、拒绝／取消确认、Cookie 同意、近期记录删除时保留旧记录和下载、过期重放拒绝及脱敏回执；同时检查生成数据库硬链接，Windows 分支再检查不安全写入 ACL。原生租约／重命名检查位于 `tests/windows/PrivacySourceTests.swift`，但专项 target 因已记录的 Swift SIL 编译崩溃被跳过，不能计为已执行。在 macOS 主机上，隐私聚焦测试 8/8、完整核心 294/294、进程合同 24 项、CLI 合同 159 项通过；WPF 和原生 C++ 交叉编译属于补充证据，不代表 Windows 运行通过。
 
 来源模型及策略参考了 [MangoDisk](https://github.com/harry0703/MangoDisk)，主要源码为 `src-tauri/crates/mangodisk-core/src/privacy/browser_database.rs`、`privacy/browser_database/schema.rs`、`privacy/service/policy.rs` 及 macOS 隐私适配器。Shou 实现的范围更小，并保留明确的不支持状态。

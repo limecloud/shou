@@ -142,29 +142,8 @@ public sealed partial class MainViewModel : ObservableObject
             var context=await client.RequestAsync("storage.context", new() { ["scan_id"]=storageScanId,["path"]=StoragePath,["focused_path"]=SelectedStorageNode?.Path,["selected_paths"]=Strings(storageSelection),["removed_paths"]=Strings(storageRemovedPaths),["name_filter"]=storageAppliedQuery,["extension_filter"]=StorageExtensionFilter,["locale"]="zh-CN" }, cancellation:Token);
             System.Windows.Clipboard.SetText(Text(context,"text")); Status="已复制分析结果，可粘贴给 AI Agent。";
         }), () => !IsBusy && storageScanId is not null);
-        RemoveStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => {
-            var paths=storageSelection.ToArray();
-            var result=await client.RequestAsync("storage.remove",new() { ["scan_id"]=storageScanId,["paths"]=Strings(paths),["action"]="permanent" },Progress(), review => dialogs.ConfirmAsync(review, Token),Token);
-            Completion=BuildCompletion(result,"permanent");
-            var removed=Array(result["items"]).Where(item=>Text(item,"state")=="purged").Select(item=>Text(item,"path").Replace('\\','/')).ToArray();
-            var root=storageRoot!.Replace('\\','/').TrimEnd('/')+"/";
-            foreach(var absolute in removed.Where(path=>path.StartsWith(root,StringComparison.OrdinalIgnoreCase))) storageRemovedPaths.Add(absolute[root.Length..]);
-            bool Gone(string relative) => StorageGone(relative);
-            foreach(var row in storageRows.Values) {
-                foreach(var child in row.Children.Where(child=>Gone(child.Path)).ToArray()) row.Children.Remove(child);
-            }
-            foreach(var row in StorageNodes.Where(row=>Gone(row.Path)).ToArray()) StorageNodes.Remove(row);
-            foreach(var row in StorageTree.Where(row=>Gone(row.Path)).ToArray()) StorageTree.Remove(row);
-            if(StorageMap?["tiles"] is JsonArray tiles) {
-                var updated=StorageMap.DeepClone();
-                updated["tiles"]=new JsonArray(tiles.Where(tile=>!Gone(Text(tile,"path"))).Select(tile=>tile!.DeepClone()).ToArray());
-                StorageMap=updated;
-            }
-            StorageExtensions.Clear();
-            ClearStorageSelection();
-            FilterStorageRows();
-            Status="所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。";
-        }), () => !IsBusy && permanentAvailable && storageScanId is not null && storageSelection.Count > 0);
+        RemoveStorageCommand = new AsyncRelayCommand(() => RemoveStorageAsync("permanent"), () => !IsBusy && permanentAvailable && storageScanId is not null && storageSelection.Count > 0);
+        TrashStorageCommand = new AsyncRelayCommand(() => RemoveStorageAsync("trash"), () => !IsBusy && trashAvailable && storageScanId is not null && storageSelection.Count > 0);
         HistoryCommand = new AsyncRelayCommand(() => RunAsync(LoadHistoryAsync), () => !IsBusy);
         MoreHistoryCommand = new AsyncRelayCommand(() => RunAsync(() => LoadHistoryPageAsync(true)), () => !IsBusy && historyNextOffset is not null);
         CollectRecordsCommand = new AsyncRelayCommand(() => RunAsync(async () => {
@@ -192,7 +171,7 @@ public sealed partial class MainViewModel : ObservableObject
         commands.Add(ContinueScanCommand);
         commands.Add(ClearHistoryCommand); commands.Add(RemoveHistoryCommand);
         commands.Add(MoreHistoryCommand); commands.Add(CollectRecordsCommand);
-        commands.Add(CopyStorageAnalysisCommand); commands.Add(RemoveStorageCommand); commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
+        commands.Add(CopyStorageAnalysisCommand); commands.Add(RemoveStorageCommand); commands.Add(TrashStorageCommand); commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
         InitializeHistory();
         InitializeLocations();
         InitializeLargeFiles();

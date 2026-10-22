@@ -38,6 +38,27 @@ public sealed partial class MainViewModel
     public IRelayCommand RevealStorageItemCommand { get; private set; } = null!;
     public IRelayCommand CopyStorageItemPathCommand { get; private set; } = null!;
     public IRelayCommand PreviewStorageItemCommand { get; private set; } = null!;
+    public IAsyncRelayCommand TrashStorageCommand { get; }
+
+    private Task RemoveStorageAsync(string action) => RunAsync(async () => {
+        var result = await client.RequestAsync("storage.remove", new() { ["scan_id"] = storageScanId, ["paths"] = Strings(storageSelection), ["action"] = action }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
+        Completion = BuildCompletion(result, action);
+        var completedState = action == "trash" ? "trashed" : "purged";
+        var removed = Array(result["items"]).Where(item => Text(item, "state") == completedState).Select(item => Text(item, "path").Replace('\\', '/'));
+        var root = storageRoot!.Replace('\\', '/').TrimEnd('/') + "/";
+        foreach (var absolute in removed.Where(path => path.StartsWith(root, StringComparison.OrdinalIgnoreCase))) storageRemovedPaths.Add(absolute[root.Length..]);
+        foreach (var row in storageRows.Values)
+            foreach (var child in row.Children.Where(child => StorageGone(child.Path)).ToArray()) row.Children.Remove(child);
+        foreach (var row in StorageNodes.Where(row => StorageGone(row.Path)).ToArray()) StorageNodes.Remove(row);
+        foreach (var row in StorageTree.Where(row => StorageGone(row.Path)).ToArray()) StorageTree.Remove(row);
+        if (StorageMap?["tiles"] is JsonArray tiles) {
+            var updated = StorageMap.DeepClone();
+            updated["tiles"] = new JsonArray(tiles.Where(tile => !StorageGone(Text(tile, "path"))).Select(tile => tile!.DeepClone()).ToArray());
+            StorageMap = updated;
+        }
+        StorageExtensions.Clear(); ClearStorageSelection(); FilterStorageRows();
+        Status = action == "trash" ? "已从视图移除成功移入回收站的项目，可在历史中恢复；移入回收站不会立即释放空间。" : "所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。";
+    });
 
     private void InitializeStorageNavigation()
     {

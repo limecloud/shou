@@ -17,6 +17,22 @@ Privacy cleaning is a separate, manual domain. It queries aggregate counts and t
 
 Custom profile locations, Firefox external profiles, beta/channel variants with different identifiers, site storage, permissions, browser extensions, session restore, password managers, application activity, clipboard, recent items and cloud copies are outside this implementation. A closed browser can later restore synced history; Shou does not alter the browser's cloud service. Running browsers remain unavailable; Shou never terminates them automatically.
 
+### Windows source adapter
+
+Windows discovers standard profiles under the following home-relative roots. The same schema restrictions above apply; Safari is macOS-only.
+
+| Browser | Root below the current user's home |
+| --- | --- |
+| Chrome | `AppData/Local/Google/Chrome/User Data` |
+| Chromium | `AppData/Local/Chromium/User Data` |
+| Edge | `AppData/Local/Microsoft/Edge/User Data` |
+| Brave | `AppData/Local/BraveSoftware/Brave-Browser/User Data` |
+| Firefox | `AppData/Roaming/Mozilla/Firefox/Profiles` |
+
+Chromium sources are exact `Default` or `Profile N` history and Cookie databases. Firefox sources are `places.sqlite` and `cookies.sqlite` in discovered profile directories. The optional source `platform` field keeps older macOS scan/plan metadata readable; Windows requires `windows` and its own closed path policy. Discovery accepts no caller-supplied root.
+
+Native Windows access holds no-delete-sharing handles for the database, its ancestors and existing SQLite sidecars through each SQLite operation. It retains full File IDs and owner SIDs and rejects reparse points, placeholders, hard links, unexpected owners and untrusted write ACLs. Inherited read rights are allowed; write/delete/ACL rights must belong to the current user, SYSTEM or Administrators. Existing ACLs are inspected without modification. This explicit privacy access does not broaden ordinary cache rules' AppData grants. Windows SDK/runtime and WPF interaction acceptance remain outstanding.
+
 ## Scope and execution
 
 Ranges are the last rolling hour, rolling 24 hours, rolling seven days, or all time. Finite ranges include both their fixed scan-time start and end. Chromium uses integer microseconds since 1601, Firefox integer microseconds since Unix epoch, and Safari seconds since 2001. Integer bounds round the lower bound upward and upper bound downward; the Chromium epoch offset is added as an integer to avoid losing microsecond precision. Cookies use last access; history uses visit time. Unknown or zero cookie timestamps are not guessed into recent ranges. All-time means all matching records, including undated cookies. Firefox visit type 7 is download history and is preserved.
@@ -115,7 +131,9 @@ sequenceDiagram
 
 ## Entry points and verification
 
-Core owners are `PrivacyModels.swift`, `PrivacyService.swift` and `PrivacyDatabase.swift`; the native source adapter is `NativePrivacySources.swift`. GUI owners are `PrivacySession.swift` and `PrivacyView.swift`; CLI uses `PrivacyCLI.swift`. Both call the same service.
+Core owners are `PrivacyModels.swift`, `PrivacyService.swift` and `PrivacyDatabase.swift`. Native discovery uses `NativePrivacySources.swift` on macOS and `WindowsPrivacySources.swift` with `shou_win_privacy_acquire` on Windows. The macOS GUI uses `PrivacySession.swift` and `PrivacyView.swift`; WPF uses `MainViewModel.Privacy.cs` and `PrivacyView.xaml`. `PrivacyCLI.swift` and the desktop bridge call the same service.
+
+The bridge exposes read-only `privacy.scan` and `privacy.history`, plus `privacy.clean` with exact `scan_id`, `source_ids` and Boolean `sign_out` fields. Cleaning creates a fresh plan in the same process and binds confirmation to its digest and a one-use challenge. WPF starts with no selection, clears Cookie selection when sign-out acknowledgement is withdrawn, and requires independent permanent-deletion and applicable sign-out checkboxes in the final review. A completed, failed or cancelled attempt clears the scan; a fresh scan is required for another attempt. Recent receipts show sanitized per-source outcomes.
 
 ```text
 shou privacy scan --range last-hour --json
@@ -128,5 +146,7 @@ shou privacy history --json
 ```
 
 `tests/core/PrivacyTests.swift` builds disposable databases under the generated fixture home. It covers timestamp epochs and finite ranges, selected associations versus unrelated orphan rows, cookie consent, bookmark/download preservation, running browsers, stale evidence, exclusions, transaction rollback, unsupported triggers and sanitized receipts. These generated tests establish the supported schema contract; they do not prove compatibility with every installed browser build or private-profile access. See [acceptance and testing](acceptance-and-testing.md) for executed results.
+
+`WindowsPrivacyTests.swift` adds closed Windows source policies, legacy encoding compatibility, source-access lifetime and case-insensitive protection checks using generated evidence. `scripts/verify-privacy-bridge.py --native-fixtures` creates one exclusive disposable profile and selects only its two generated sources: it checks strict inputs, rejected/cancelled confirmations, Cookie consent, recent-record deletion with old/download records retained, stale replay and sanitized receipts. It also checks generated database hard links and, on Windows, an untrusted-write ACL. Windows-specific lease/rename checks are in `tests/windows/PrivacySourceTests.swift`; the specialized target is currently skipped for the recorded Swift SIL compiler crash, so those checks have not executed. On the macOS host, the focused privacy suite passes 8/8, the full core suite 294/294, process checks 24 and CLI contracts 159; WPF and native C++ cross-compilation are supplementary evidence, not Windows execution.
 
 The source-specific model and policy were informed by [MangoDisk](https://github.com/harry0703/MangoDisk), especially its `src-tauri/crates/mangodisk-core/src/privacy/browser_database.rs`, `privacy/browser_database/schema.rs`, `privacy/service/policy.rs` and macOS privacy adapter. Shou implements a narrower capability set and retains explicit unsupported states.

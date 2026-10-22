@@ -95,9 +95,17 @@ def main():
             bridge.set_fixture_owner(profile)
             prefix = relative_root + "/" + profile_name + "/"
             scan, confirmed = request("privacy.scan", {"range": "last-hour"})
-            assert scan["ok"] and not confirmed, "Generated privacy fixture could not be scanned."
+            error = scan.get("error") or {}
+            assert scan["ok"] and not confirmed, {
+                "message": "Generated privacy fixture could not be scanned.",
+                "code": error.get("code"), "reason": error.get("message"),
+                "win32_code": (error.get("details") or {}).get("win32_code"),
+            }
             sources = [row for row in scan["data"]["sources"] if row["definition"]["relative_path"] in {prefix + "History", prefix + "Network/Cookies"}]
-            assert len(sources) == 2 and all(row["status"] == "ready" and row["record_count"] == 1 for row in sources), "Generated sources were unavailable; no privacy deletion was attempted. Close Chromium/Chrome and retry the isolated check."
+            assert len(sources) == 2 and all(row["status"] == "ready" and row["record_count"] == 1 for row in sources), {
+                "message": "Generated sources were unavailable; no privacy deletion was attempted.",
+                "sources": [{"kind": row["definition"]["kind"], "status": row["status"], "record_count": row.get("record_count"), "reason": row.get("reason")} for row in sources],
+            }
             values = dict(scan_id=scan["data"]["id"], source_ids=[row["id"] for row in sources], sign_out=False)
             result, confirmed = request("privacy.clean", values)
             assert not result["ok"] and result["error"]["code"] == "privacy_sign_out_consent_required" and not confirmed
