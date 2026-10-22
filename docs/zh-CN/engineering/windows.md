@@ -257,7 +257,7 @@ Windows CLI 帮助和定向 capabilities 已展示实现的 `startup list`、`st
 
 普通用户运行不应依赖开发工具链。开发目录、交叉编译成功、macOS 桥测试和 Windows CI 配置不能代替干净系统安装证据；运行库再分发许可、签名、安装器、升级与卸载仍需验收。
 
-Windows GitHub 工作流分别检查静态资源、Swift/WPF 原生构建和生成夹具及真实进程合同。`scripts/build-windows.ps1 -Stage Build` 与 `-Stage Check` 对应构建和验证，省略 `-Stage` 时两者都会执行。.NET SDK 以 `apps/windows/global.json` 为准，Swift 与 Python 版本在工作流中声明。任一检查失败都不会上传开发产物，同一引用的新运行会取消旧运行。
+Windows 编译与发行已暂停，准备重构。Windows 构建工作流已移除。v0.11.0 仅验证和发布 macOS，不依赖 Windows 构建，也不提供 Windows 发行包。现有脚本和源码保留供重构参考，不代表已完成发行验收；`scripts/build-windows.ps1 -Stage Build` 与 `-Stage Check` 仍保留原有开发阶段划分。
 
 ## 官方依据
 

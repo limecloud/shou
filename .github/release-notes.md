@@ -1,43 +1,33 @@
-Shou v0.11.0 adds optional built-in AI investigation, application-grouped startup management, expanded cleanup rules and Windows cleanup refinements.
+Shou v0.11.0 for macOS adds optional built-in AI investigation, application-grouped startup management and expanded cleanup rules.
 
 - Built-in AI investigation is off by default. Configure compatible Responses, Chat Completions or Anthropic Messages connections independently from structured decisions. Local answers and Jev decisions run before disclosed main-model escalation. The native inspector retains scope, questions, cancellation, findings and per-service request/token usage.
-- Start an investigation from Smart Cleanup, Space Analysis, Large Files or Rules. Tools read bounded saved-index metadata; they cannot run Shell commands or delete files. Suggestions import as independent disabled rules and reuse existing preview, explicit enablement, fresh scan and cleanup confirmation.
-- Group macOS startup registrations by verified application identity, filter enabled/disabled/leftover states, and inspect registrations inline. Eligible agents, third-party system daemons and native login items have confirmed controls; system daemons require macOS administrator authorization. Unsupported or uncertain registrations remain explicit.
+- Start an investigation from Smart Cleanup, Space Analysis, Large Files or Rules. Tools read bounded saved-index metadata; they cannot run Shell commands or delete files. Suggestions import as independent disabled rules and reuse preview, explicit enablement, fresh scans and cleanup confirmation. Interrupted investigations retain findings and pending questions; connection removal is recoverable.
+- Group macOS startup registrations by verified application identity, filter enabled/disabled/leftover states and inspect registrations inline. Eligible agents, third-party system daemons and native login items have confirmed controls; system daemons require macOS administrator authorization. Unsupported or uncertain registrations remain explicit.
 - Expand developer cleanup to Gradle, Flutter/Dart, CMake, Maven, Node.js outputs, Python analysis caches, pnpm and browser-automation runtimes. Add an inspectable built-in rule catalog and targeted rule scans. Project markers, source/credential protection, activity checks and high-risk selection still apply.
-- Improve application Trash handling and cross-volume selection, and carry reviewed large-file and cache cleanup through the Windows desktop bridge. Windows AppData access is limited to validated standard cache children; profile roots, credentials, source and environments remain protected. Add directory measurement, hashing and native artifact-evidence checks, plus a portable AI runtime, Windows Credential Manager storage and a WPF investigation workspace.
-- Add Windows startup inventory and confirmation for eligible current-user scheduled tasks, read-only registered-application inventory, personal-rule authoring and revision, and exact history-item inspection and follow-up selection. Keep inventory separate from application uninstall capability. Create Windows space indexes with explicit private ownership, including under elevated build accounts.
-- Add Windows browser privacy controls for standard Chromium and Firefox profiles. Show aggregate counts, keep every source unselected, require separate Cookie sign-out consent and confirm exact sources and time bounds before irreversible deletion. Recheck browser activity, database identity, permissions and schema, and retain per-source receipts without browsing contents.
-- Show automatic, built-in and extra scan locations separately; removing an extra folder requires confirmation and only detaches saved scan configuration. Add Windows directory navigation, paged browsing, full-directory name search and explicit storage selection through the shared engine. Local read-only previews show bounded UTF-8/UTF-16 text, supported images or snapshot metadata and reject changed file identities. Cleanup, space analysis and large files show native disk capacity for the selected directory, including space available to the current user.
-- Extend the Windows desktop with bounded installation-directory usage measurement, application uninstall review, separately confirmed application/package data, fixed tool-managed cleanup, system previews, record maintenance, and Chinese/English settings with appearance and text-size controls. Add reviewed external-agent Skill setup and a standalone user CLI launcher; inputs, identities and confirmations remain bound to each operation. Native fixture and UI acceptance limits remain documented.
-- Preserve AI findings and pending questions on interruption, make connection removal recoverable, and support private local credential storage independently for model and decision services. macOS CI and universal packaging explicitly select Swift 6.2.3 for the bundled AI SDK.
+- Improve application Trash handling and cross-volume selection. Add reviewed external-agent Skill setup and preserve separate confirmation for cleanup and configuration changes.
 
 Ordinary scans and cleanup remain local and require no model connection. Starting AI investigation sends only the disclosed bounded metadata and user answers to the selected services; file contents are not exposed by these tools. Credentials use macOS Keychain or an explicitly selected authentication source. AI output and confidence never authorize cleanup.
 
-AI evidence includes synthetic protocol/routing/cancellation checks and selected macOS 15.8.1 Apple Silicon fixture/live-provider observations. It does not establish decision accuracy, broad provider compatibility, macOS 14 hardware, Windows AI, complete accessibility coverage or desktop recovery after restart. Startup state-changing checks use isolated fixtures and injected executors; real administrator-authorized changes to installed registrations remain a separate acceptance task. Full-disk analysis coverage and native Windows UI/clean-system acceptance remain bounded by the documented evidence.
-
-Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Assets include DMG, ZIP, CLI archive, signed update feed and SHA256SUMS. The unsigned Windows 11 x64 portable ZIP bundles .NET/Swift runtimes: extract the complete ZIP and run Shou.exe. Windows Recycle Bin/restoration remain disabled by default; Windows native AI/UI acceptance, installation and upgrades remain separate checks; there is no installer or automatic update.
+Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Assets include DMG, ZIP, CLI archive, signed update feed and SHA256SUMS. Windows compilation and release packages are paused for reconstruction; v0.11.0 publishes macOS only.
 
 Permanent removal and owner-tool cleanup cannot be undone through Shou. Moving items to Trash does not immediately free disk space. The macOS app is ad-hoc signed and not Apple-notarized; updating may require granting Full Disk Access again. Existing macOS installations can use Check for Updates with signed archive/feed verification.
 
+AI evidence includes synthetic protocol/routing/cancellation checks and selected macOS 15.8.1 Apple Silicon fixture/live-provider observations. It does not establish decision accuracy, broad provider compatibility, macOS 14 hardware, complete accessibility coverage or desktop recovery after restart. Startup mutation checks use isolated fixtures and injected executors; changes to real installed registrations remain a separate acceptance task.
+
 The separately published npm package `@limecloud/shou@0.11.0` is an immutable macOS CLI build from commit `7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc`. It predates these release repairs; the repaired GitHub artifacts include the later changes. npm does not permit replacing an existing version.
 
-简体中文：v0.11.0 新增可选内置 AI 调查、按应用分组的启动项管理，扩展清理规则并改进 Windows 清理。
+简体中文：Shou v0.11.0 为 macOS 新增可选内置 AI 调查、按应用分组的启动项管理，并扩展清理规则。
 
 - 内置 AI 默认关闭；兼容 Responses、Chat Completions、Anthropic Messages 的主模型与结构化决策可独立配置。本地处理与 Jev 决策优先，确需主模型时说明原因。原生检查器保留固定范围、追问、取消状态、已有发现与分服务请求／Token 用量。
-- 从智能清理、空间分析、大文件或规则进入调查。工具仅查询有上限的已有索引元数据，不执行 Shell 或删除文件；建议逐条导入为禁用规则，继续复用预览、明确启用、重新扫描和清理确认。
+- 从智能清理、空间分析、大文件或规则进入调查。工具仅查询有上限的已有索引元数据，不执行 Shell 或删除文件；建议逐条导入为禁用规则，继续复用预览、明确启用、重新扫描和清理确认。AI 中断时保留已有发现与待回答问题，连接配置支持可恢复删除。
 - macOS 启动项按已验证的应用身份分组，支持启用／停用／残留筛选与行内详情。符合条件的代理、第三方系统守护项和原生登录项提供确认后的控制；系统守护项需要 macOS 管理员授权，不支持或不确定的注册项明确显示边界。
 - 扩展 Gradle、Flutter/Dart、CMake、Maven、Node.js 产物、Python 分析缓存、pnpm 及浏览器自动化运行库，新增内置规则浏览和指定规则扫描；保留项目标记、源文件／凭据保护、活动检查和高风险选择要求。
-- 改进应用移入废纸篓及跨卷选择，Windows 桌面桥接同步大文件与缓存清理审阅，并补充目录计量、哈希及原生产物证据。AppData 仅允许经验证的标准缓存子目录，配置根目录、凭据、源文件和环境仍受保护；新增可移植 AI 运行时、Windows 凭据管理器存储和 WPF 调查界面。
-- 补充 Windows 启动项盘点与符合条件的当前用户计划任务确认控制、已注册应用只读盘点、个人规则创建与修订，以及精确历史项检查和后续选择。应用盘点不代表已支持卸载。Windows 空间索引显式设置私有所有权，覆盖提升权限的构建账号场景。
-- 补充标准 Chromium 与 Firefox 配置的 Windows 浏览器隐私控制，仅显示汇总数量，默认不选择来源。Cookie 需要单独的退出登录同意，永久删除前确认确切来源与时间范围，重新核验浏览器活动、数据库身份、权限和格式，保存不含浏览内容的逐项回执。
-- 区分自动发现、内置位置与额外包含的扫描位置；停止包含额外文件夹需要确认，仅解除保存的扫描配置。Windows 通过共享引擎提供目录导航、分页浏览、完整目录名称搜索与明确的空间清理选择。本地只读预览支持有上限的 UTF-8／UTF-16 文本、受支持图片或扫描快照元数据，并拒绝身份已变化的文件。清理、空间分析和大文件页显示所选目录的原生磁盘容量与当前用户可用空间。
-- Windows 补充有上限的安装目录占用计量、应用卸载审阅、独立确认的应用／软件包数据、固定工具清理、系统预览、记录维护，以及中英文、外观和文字大小设置；新增经审阅的外部 Agent Skill 配置与独立用户 CLI 启动器，各操作继续绑定输入、身份和确认。原生夹具与界面验收边界保留在文档中。
-- AI 中断时保留已有发现与待回答问题，连接配置支持可恢复删除，主模型与决策服务独立支持私有本地凭据。macOS CI 与通用包构建显式选择 Swift 6.2.3，以支持内置 AI SDK。
+- 改进应用移入废纸篓及跨卷选择，新增经审阅的外部 Agent Skill 配置；清理与配置变更继续分别确认。
 
 常规扫描、清理无需模型连接且在本地执行；启动 AI 调查才会向所选服务发送已披露的有限元数据与用户回答，工具不读取文件内容。凭据通过 macOS 钥匙串或明确指定的认证来源读取；模型输出和置信度不构成删除授权。
 
-AI 证据包含模拟协议／路由／取消检查，以及 macOS 15.8.1 Apple Silicon 上指定服务和生成夹具的观察，不代表决策准确性、所有服务、macOS 14 硬件、Windows AI、完整无障碍或重启后桌面恢复验收。启动项变更自动化使用隔离夹具和注入执行器，真实管理员授权及修改已安装注册项仍需独立验收；整盘覆盖和 Windows 实机／全新系统交互保留文档中的边界。
+支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅和 SHA256SUMS。Windows 编译与发行包暂停，准备重构；v0.11.0 仅发布 macOS 版本。永久移除及工具清理无法通过 Shou 撤销，移入废纸篓不立即释放空间。macOS 版本使用 ad-hoc 签名、未经 Apple 公证，更新后可能需要重新授予磁盘访问权限。
 
-支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅和 SHA256SUMS。Windows 11 x64 为未签名便携 ZIP，内含 .NET／Swift 运行库，完整解压后运行 Shou.exe；回收站／恢复默认关闭，Windows 原生 AI／界面、安装升级仍需独立验收，暂无安装器或自动更新。永久移除及工具清理无法通过 Shou 撤销，移入废纸篓不立即释放空间。macOS 版本使用 ad-hoc 签名、未经 Apple 公证，更新后可能需要重新授予磁盘访问权限。
+AI 证据包含模拟协议／路由／取消检查，以及 macOS 15.8.1 Apple Silicon 上指定服务和生成夹具的观察，不代表决策准确性、所有服务、macOS 14 硬件、完整无障碍或重启后桌面恢复验收。启动项变更自动化使用隔离夹具和注入执行器，真实已安装注册项的变更仍需独立验收。
 
 独立发布的 npm 包 `@limecloud/shou@0.11.0` 固定来自提交 `7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc`，是本轮发布修复之前的 macOS CLI。修复后的 GitHub 产物包含后续更新；npm 不允许覆盖已存在版本。

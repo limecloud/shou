@@ -32,12 +32,6 @@ jobs:
       - id: resolve
         run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  verify-windows:
-    needs: source
-    uses: ./.github/workflows/windows.yml
-    with:
-      ref: ${{ needs.source.outputs.commit }}
-
   verify:
     needs: source
     name: All tests (${{ matrix.runner }})
@@ -81,7 +75,7 @@ jobs:
         run: python3 scripts/verify-read-worker-lifecycle.py --bin dist/Shou.app/Contents/Helpers/shou --evidence "$RUNNER_TEMP/shou-read-worker-lifecycle"
 
   package:
-    needs: [source, verify, verify-windows]
+    needs: [source, verify]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     runs-on: macos-15
@@ -126,10 +120,6 @@ jobs:
         with:
           name: shou-release
           path: release-assets
-      - uses: actions/download-artifact@v4
-        with:
-          name: shou-windows-release
-          path: windows-release-assets
       - name: Publish verified release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -137,13 +127,7 @@ jobs:
         run: |
           test "$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHOU_RELEASE_TAG" --jq .sha)" = "$SHOU_SOURCE_COMMIT" || { echo 'Release tag moved; publish the new verified source instead'; exit 1; }
           task_asset_dir="$(dirname "$(find release-assets -name SHA256SUMS -print -quit)")"
-          task_windows_dir="$(dirname "$(find windows-release-assets -name SHA256SUMS-windows -print -quit)")"
           test -f "$task_asset_dir/SHA256SUMS"
-          test -f "$task_windows_dir/SHA256SUMS-windows"
-          (cd "$task_asset_dir" && sha256sum -c SHA256SUMS)
-          (cd "$task_windows_dir" && sha256sum -c SHA256SUMS-windows)
-          cp "$task_windows_dir/"*.zip "$task_asset_dir/"
-          cat "$task_windows_dir/SHA256SUMS-windows" >> "$task_asset_dir/SHA256SUMS"
           (cd "$task_asset_dir" && sha256sum -c SHA256SUMS)
           if gh release view "$SHOU_RELEASE_TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/shou-release-state" 2>/dev/null; then
             test "$(cat "$RUNNER_TEMP/shou-release-state")" = true || { echo 'Published releases cannot be replaced'; exit 1; }

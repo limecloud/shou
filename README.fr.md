@@ -17,7 +17,7 @@ Un nettoyeur macOS natif pour les caches, les projets de développement et les d
 
 Shou v0.11.0 nécessite **macOS 14 ou ultérieur**. L’app universelle fonctionne sur Apple Silicon et Intel. Glissez **Shou.app** de l’image disque vers **Applications**. L’interface est en anglais et chinois simplifié.
 
-[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Cette version est signée ad-hoc et non notariée par Apple. Si le premier lancement est bloqué, vérifiez la source puis consultez **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**.
 

@@ -148,7 +148,7 @@ Windows WPF 使用系统 Fluent 主题，提供默认关闭开关、配置新增
 
 Windows 使用有界非流式 HTTP 传输，接收期间限制正文大小、拒绝重定向与重试，保留协议原生的工具调用和续接消息。Responses 请求使用 `store: false` 并保留后续工具调用需要的响应项目。macOS 可用进程级 `SHOU_AI_RUNTIME=portable` 验证同一运行适配；这不能代替 Windows 本机验证。
 
-仓库现有 `.github/workflows/windows.yml` 的 Check 阶段已接入 `verify-ai-investigation.py <shou.exe>`，使用本机合成服务和仓库内生成目录，不使用真实密钥。它与原有 WPF 子进程检查、真实桌面协议、打包检查一同执行。最新 16 项 .NET 进程检查已在开发机通过；WPF 交叉构建零警告零错误，Windows 凭据 C++ 交叉语法检查通过。远程 CI 必须检出含本轮改动的提交；旧 HEAD 的成功不能作为本轮证据。Windows 原生 CI、WPF 按钮旅程和 Credential Manager 运行结果待单独记录。
+`scripts/build-windows.ps1 -Stage Check` 已接入 `verify-ai-investigation.py <shou.exe>`，使用本机合成服务和仓库内生成目录，不使用真实密钥，与 WPF 子进程及真实桌面协议检查一同执行。Windows 编译与发行现已暂停重构，构建工作流已移除；v0.11.0 仅发布 macOS。此前 16 项 .NET 进程检查在开发机通过，WPF 交叉构建零警告零错误，Windows 凭据 C++ 交叉语法检查通过；这些宿主结果不代表 Windows 原生 CI、WPF 按钮旅程或 Credential Manager 运行验收。
 
 本轮新增验证：默认 SDK 与 `SHOU_AI_RUNTIME=portable` 两种运行方式各通过 94 项 AI CLI 检查，包含三协议完整问答／预览、Jev 零主模型、跨进程在途取消与状态核验；159 项通用 CLI 回归通过。此为 macOS 开发机证据，Windows CI 还需验证原生网络与凭据 API。新增 `storage.show` bridge 与已有 `analysis show` 对齐，只读返回原索引根和状态，供 Windows 重启后恢复精确范围。
 

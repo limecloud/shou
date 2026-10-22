@@ -13,15 +13,15 @@
 
 A native macOS cleaner with cleanup rules tailored by your existing AI agent. Tell Codex, Claude Code, or WorkBuddy what takes space and what to keep; it asks the missing questions and drafts reusable rules. Shou scans, validates, previews, and cleans locally.
 
-Shou v0.11.0 adds optional built-in AI investigation, grouped startup controls, broader developer-cache rules and Windows cleanup refinements. See the [AI implementation](docs/engineering/embedded-ai-implementation.md) and [acceptance matrix](docs/engineering/embedded-ai-acceptance.md) for supported workflows and remaining limits.
+Shou v0.11.0 adds optional built-in AI investigation, grouped startup controls and broader developer-cache rules for macOS. See the [AI implementation](docs/engineering/embedded-ai-implementation.md) and [acceptance matrix](docs/engineering/embedded-ai-acceptance.md) for supported workflows and remaining limits.
 
 ## Download and install
 
 Download Shou v0.11.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-Windows: extract the complete ZIP and run **Shou.exe**. The portable x64 package includes its .NET and Swift runtimes; no developer tools are required. The interface is Simplified Chinese. Only validated standard cache children can be cleaned under AppData; profile roots remain protected. Recycle Bin/restoration are disabled by default. Windows packages are unsigned; there is no installer or automatic Windows update.
+v0.11.0 is a macOS release. Windows builds and release packages are paused for reconstruction.
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 

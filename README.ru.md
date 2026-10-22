@@ -17,7 +17,7 @@
 
 Shou v0.11.0 требует **macOS 14 или новее**. Универсальная версия работает на Apple Silicon и Intel. Перетащите **Shou.app** из образа диска в **Applications**. Интерфейс доступен на английском и упрощённом китайском.
 
-[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
 Версия подписана ad-hoc и не нотарифицирована Apple. При блокировке запуска проверьте источник и откройте **Системные настройки → Конфиденциальность и безопасность** для разрешения запуска.
 

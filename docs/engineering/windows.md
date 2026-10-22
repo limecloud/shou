@@ -257,7 +257,7 @@ Browser privacy now uses the shared scan, plan, explicit confirmation and per-so
 
 End users must not need a developer toolchain. Development output, cross-compilation, macOS bridge tests and configured Windows CI are separate from clean-system installation evidence. Runtime redistribution licenses, signing, an installer, upgrades and uninstall still require acceptance.
 
-The Windows GitHub workflow runs static resource checks, native Swift/WPF builds, and generated-fixture/process checks as separate gates. `scripts/build-windows.ps1 -Stage Build` and `-Stage Check` expose those gates; omitting `-Stage` runs both. The .NET SDK follows `apps/windows/global.json`, while Swift and Python versions are declared in the workflow. A failed gate prevents development artifact upload, and a newer run cancels an older run for the same ref.
+Windows compilation and distribution are paused for reconstruction. The Windows build workflow has been removed. v0.11.0 verifies and publishes macOS only, without Windows assets or a Windows build dependency. The existing scripts and source remain available for reconstruction; their presence does not establish release acceptance. `scripts/build-windows.ps1 -Stage Build` and `-Stage Check` retain the separate development gates.
 
 ## Official references
 

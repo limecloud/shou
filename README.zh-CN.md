@@ -13,15 +13,15 @@
 
 让现有 AI Agent 为你定制清理规则的原生 macOS 清理工具。告诉 Codex、Claude Code 或 WorkBuddy 哪些目录占空间、哪些内容要保留，由它追问、分析并编写可复用规则；Shou 在本地完成扫描、校验、预览与清理。
 
-Shou v0.11.0 新增可选内置 AI 调查、按应用分组的启动项控制，扩展开发缓存规则并改进 Windows 清理。支持流程与验收边界见 [AI 实现记录](docs/zh-CN/engineering/embedded-ai-implementation.md)和[验收矩阵](docs/zh-CN/engineering/embedded-ai-acceptance.md)。
+Shou v0.11.0 为 macOS 新增可选内置 AI 调查、按应用分组的启动项控制，并扩展开发缓存规则。支持流程与验收边界见 [AI 实现记录](docs/zh-CN/engineering/embedded-ai-implementation.md)和[验收矩阵](docs/zh-CN/engineering/embedded-ai-acceptance.md)。
 
 ## 下载与安装
 
 下载 Shou v0.11.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
 
-[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-Windows：完整解压 ZIP 后运行 **Shou.exe**。x64 便携包包含 .NET、Swift 运行库，无需开发工具，界面为简体中文。AppData 下仅经校验的标准缓存子目录可清理，用户配置根目录仍受保护；回收站／恢复默认关闭，Windows 包未签名，暂无安装器和自动更新。
+v0.11.0 仅发布 macOS 版本。Windows 编译与发行包暂停，准备重构。
 
 此版本使用 ad-hoc 签名，尚未经过 Apple 公证。如 macOS 阻止首次打开，请先确认下载来源，再查看**系统设置 → 隐私与安全性 → 仍要打开**。
 
