@@ -10,14 +10,25 @@
       <TabItem Header="清理">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
           <DockPanel><Button DockPanel.Dock="Right" Content="选择目录…" Command="{Binding ChooseFolderCommand}" /><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" MinWidth="300" AutomationProperties.Name="扫描目录" /></DockPanel>
-          <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,14"><Button Content="一键扫描" Command="{Binding ScanCommand}" /><Button Content="扫描所选目录" Command="{Binding ScanFolderCommand}" /><Button Content="全选 / 取消" Command="{Binding SelectAllCommand}" /><Button Content="加载更多" Command="{Binding MoreCommand}" /><TextBlock Text="勾选项目，选择清理方式并审阅。永久删除无法恢复。" VerticalAlignment="Center" /></StackPanel>
-          <DataGrid Grid.Row="2" ItemsSource="{Binding Candidates}" AutoGenerateColumns="False" CanUserAddRows="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" IsReadOnly="False" SelectionMode="Extended" AutomationProperties.Name="清理候选项目">
+          <StackPanel Grid.Row="1" Margin="0,12">
+            <WrapPanel><Button Content="一键扫描" Command="{Binding ScanCommand}" /><Button Content="AI 调查…" Command="{Binding AiFromCleanupCommand}" /><Button Content="扫描所选目录" Command="{Binding ScanFolderCommand}" /><Button Content="选择推荐项" Command="{Binding SelectRecommendedCleanupCommand}" /><Button Content="全选当前范围 / 取消" Command="{Binding SelectAllCommand}" /><Button Content="清空选择" Command="{Binding ClearCleanupSelectionCommand}" /></WrapPanel>
+            <DockPanel Margin="0,8,0,0"><Button DockPanel.Dock="Right" Content="搜索" Command="{Binding ApplyCleanupSearchCommand}" /><TextBox Text="{Binding CleanupQuery,UpdateSourceTrigger=PropertyChanged}" MaxLength="256" AutomationProperties.Name="搜索清理目录、规则和保护原因"><TextBox.InputBindings><KeyBinding Key="Enter" Command="{Binding ApplyCleanupSearchCommand}" /></TextBox.InputBindings></TextBox></DockPanel>
+            <TextBlock Text="{Binding CleanupResultSummary}" Margin="0,8,0,0" TextWrapping="Wrap" />
+          </StackPanel>
+          <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="260" MinWidth="190" /><ColumnDefinition Width="5" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <DockPanel><Button DockPanel.Dock="Top" Content="显示全部分类" Command="{Binding ShowAllCleanupCommand}" /><TreeView ItemsSource="{Binding CleanupGroups}" SelectedItemChanged="CleanupGroupSelected" AutomationProperties.Name="清理分类与规则" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True">
+              <TreeView.ItemContainerStyle><Style TargetType="TreeViewItem"><Setter Property="IsExpanded" Value="True" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /></Style></TreeView.ItemContainerStyle>
+              <TreeView.ItemTemplate><HierarchicalDataTemplate ItemsSource="{Binding Children}"><DockPanel Margin="0,5" ToolTip="分类和规则复选框选择整组目录；可包含未加载的页面。"><CheckBox DockPanel.Dock="Left" IsChecked="{Binding SelectionState,Mode=OneWay}" IsThreeState="True" IsEnabled="{Binding HasSelectable}" Command="{Binding DataContext.ToggleCleanupGroupCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Margin="0,2,6,0" AutomationProperties.Name="选择整个分类或规则" /><StackPanel><TextBlock Text="{Binding Title}" TextWrapping="Wrap" /><TextBlock Text="{Binding Summary}" FontSize="11" Opacity="0.7" TextWrapping="Wrap" /></StackPanel></DockPanel></HierarchicalDataTemplate></TreeView.ItemTemplate>
+            </TreeView></DockPanel>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+          <DataGrid Grid.Column="2" ItemsSource="{Binding Candidates}" AutoGenerateColumns="False" CanUserAddRows="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" IsReadOnly="False" SelectionMode="Extended" AutomationProperties.Name="清理候选目录">
             <DataGrid.Columns>
               <DataGridTemplateColumn Width="48"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="选择清理项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-              <DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="110" IsReadOnly="True" /><DataGridTextColumn Header="风险与原因" Binding="{Binding Description}" Width="260" IsReadOnly="True" />
+              <DataGridTextColumn Header="目录" Binding="{Binding AbsolutePath}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="文件数" Binding="{Binding Files}" Width="65" IsReadOnly="True" /><DataGridTextColumn Header="风险与原因" Binding="{Binding Description}" Width="160" IsReadOnly="True" />
+              <DataGridTemplateColumn Header="测量" Width="110"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="继续扫描" Command="{Binding DataContext.ContinueScanCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding CanContinue,Converter={StaticResource BoolToVisibility}}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
             </DataGrid.Columns>
-          </DataGrid>
-          <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0"><Button Content="移入回收站…" Command="{Binding CleanCommand}" /><Button Content="永久删除…" Command="{Binding PermanentDeleteCommand}" /></StackPanel>
+          </DataGrid></Grid>
+          <DockPanel Grid.Row="3" Margin="0,12,0,0"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="加载更多目录" Command="{Binding MoreCommand}" /><Button Content="移入回收站…" Command="{Binding CleanCommand}" /><Button Content="永久删除…" Command="{Binding PermanentDeleteCommand}" /></StackPanel><TextBlock Text="{Binding CleanupSelectionSummary}" VerticalAlignment="Center" TextWrapping="Wrap" /></DockPanel>
         </Grid>
       </TabItem>
       <TabItem Header="空间分析">
@@ -27,7 +38,7 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
               <RadioButton Content="简洁" GroupName="SpaceView" IsChecked="{Binding StorageSimple}" VerticalAlignment="Center" Margin="4" />
               <RadioButton Content="详细" GroupName="SpaceView" IsChecked="{Binding StorageDetailed}" VerticalAlignment="Center" Margin="4" />
-              <Button Content="复制给 AI" Command="{Binding CopyStorageAnalysisCommand}" />
+              <Button Content="AI 调查此目录…" Command="{Binding AiFromStorageCommand}" /><Button Content="复制给 AI" Command="{Binding CopyStorageAnalysisCommand}" />
               <Button Content="审阅 AI 规则…" Command="{Binding ReviewRulesCommand}" />
               <Button Content="刷新" Command="{Binding RescanStorageCommand}" /><Button Content="选择目录…" Command="{Binding AnalyzeCommand}" />
             </StackPanel>
@@ -79,12 +90,12 @@
       </TabItem>
       <TabItem Header="规则与排除">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="110" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <StackPanel Orientation="Horizontal"><Button Content="导入规则草稿…" Command="{Binding ImportRuleCommand}" /><Button Content="启用所选规则" Command="{Binding EnableRuleCommand}" /><Button Content="停用所选规则" Command="{Binding DisableRuleCommand}" /></StackPanel>
+          <StackPanel Orientation="Horizontal"><Button Content="AI 生成规则…" Command="{Binding AiFromRulesCommand}" /><Button Content="导入规则草稿…" Command="{Binding ImportRuleCommand}" /><Button Content="启用所选规则" Command="{Binding EnableRuleCommand}" /><Button Content="停用所选规则" Command="{Binding DisableRuleCommand}" /></StackPanel>
           <Grid Grid.Row="1" Margin="0,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="2*" /></Grid.ColumnDefinitions>
             <ListBox ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" DisplayMemberPath="Title" AutomationProperties.Name="当前目录规则" />
             <DockPanel Grid.Column="1" Margin="14,0,0,0">
               <StackPanel DockPanel.Dock="Top">
-                <TextBlock Text="每条规则独立选择，未选择的草稿保持停用。" Margin="0,0,0,8" />
+                <TextBlock Text="内置规则由系统提供；个人规则需逐条预览和启用。项目规则可在选择目录后配置。" TextWrapping="Wrap" Margin="0,0,0,8" />
                 <WrapPanel><Button Content="预览此规则" Command="{Binding PreviewRuleCommand}" /><Button Content="启用并扫描此规则" Command="{Binding EnableAndScanRuleCommand}" /></WrapPanel>
                 <TextBlock Text="{Binding RulePreviewSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,8" />
                 <TextBlock Text="{Binding RulePreviewDetails}" TextWrapping="Wrap" Margin="0,0,0,8" />
@@ -112,6 +123,23 @@
           </Expander>
         </Grid>
       </TabItem>
+      <TabItem Header="大文件">
+        <Grid Margin="16">
+          <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <DockPanel><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="选择目录并扫描…" Command="{Binding ChooseLargeFilesFolderCommand}" /><Button Content="开始扫描" Command="{Binding ScanLargeFilesCommand}" /><Button Content="使用空间分析结果" Command="{Binding UseStorageForLargeFilesCommand}" /></StackPanel><TextBox Text="{Binding LargeFilesFolder,UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="大文件扫描目录" MinWidth="180" /></DockPanel>
+          <WrapPanel Grid.Row="1" Margin="0,12"><TextBlock Text="最小大小（MiB）" VerticalAlignment="Center" /><TextBox Text="{Binding LargeFilesMinimumMiB,UpdateSourceTrigger=PropertyChanged,ValidatesOnExceptions=True}" Width="85" Margin="8,0,16,0" AutomationProperties.Name="大文件最小大小" /><ComboBox ItemsSource="{Binding LargeFileTypes}" SelectedItem="{Binding SelectedLargeFileType}" DisplayMemberPath="Name" Width="120" AutomationProperties.Name="大文件类型" /><Button Content="应用筛选" Command="{Binding FilterLargeFilesCommand}" /><Button Content="全选已加载 / 取消" Command="{Binding SelectLoadedLargeFilesCommand}" /><Button Content="选择全部匹配文件" Command="{Binding SelectAllLargeFilesCommand}" /><Button Content="加载更多" Command="{Binding MoreLargeFilesCommand}" /></WrapPanel>
+          <TextBlock Grid.Row="2" Text="{Binding LargeFilesSummary}" Margin="0,0,0,10" TextWrapping="Wrap" />
+          <DataGrid Grid.Row="3" ItemsSource="{Binding LargeFiles}" AutoGenerateColumns="False" CanUserAddRows="False" EnableRowVirtualization="True" AutomationProperties.Name="大文件结果">
+            <DataGrid.Columns><DataGridTemplateColumn Header="AI" Width="110"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="调查父目录" Command="{Binding DataContext.AiFromLargeFileCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+              <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" HorizontalAlignment="Center" AutomationProperties.Name="选择大文件" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+              <DataGridTextColumn Header="文件" Binding="{Binding Name}" Width="180" IsReadOnly="True" /><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用空间" Binding="{Binding Size}" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="逻辑大小" Binding="{Binding LogicalSize}" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="保护条件" Binding="{Binding Protection}" Width="160" IsReadOnly="True" />
+              <DataGridTemplateColumn Width="90"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="所在目录" Command="{Binding DataContext.RevealLargeFileCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+          <DockPanel Grid.Row="4" Margin="0,14,0,0"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="移入回收站…" Command="{Binding TrashLargeFilesCommand}" /><Button Content="永久删除…" Command="{Binding PurgeLargeFilesCommand}" /></StackPanel><TextBlock Text="{Binding LargeFilesSelection}" VerticalAlignment="Center" /></DockPanel>
+        </Grid>
+      </TabItem>
+    <TabItem Header="AI 调查"><local:AIWorkspaceView /></TabItem>
     </TabControl>
     <TextBlock Grid.Row="1" Text="{Binding Status}" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}" AutomationProperties.LiveSetting="Polite" />
   </Grid>

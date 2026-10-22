@@ -160,8 +160,8 @@ extension ShouEngine {
         let status: String
         if app.source.systemOwned || app.bundleIdentifier?.hasPrefix("com.apple.") == true || activity?.currentApplication == true { status="protected" }
         else if activity?.running == true { status="running" }
-        else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true { status="admin-required" }
         else if activity == nil || measurement == nil || !issues.isEmpty || app.infoDigest == nil || app.bundleIdentifier == nil { status="unavailable" }
+        else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true { status="admin-required" }
         else { status="ready" }
         return ApplicationSummary(application: app, allocatedBytesEstimate: measurement?.allocatedBytesEstimate, status: status,
             lastUsed: measurement?.lastUsed, issues: Array(Set(issues)).sorted())

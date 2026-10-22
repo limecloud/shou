@@ -126,7 +126,10 @@ private struct StorageNestedMap: View {
                     Button(model.t("Copy Path")) { session.copy(path) }
                     Button(model.t("Reveal in Finder")) { session.reveal(path) }
                     Button(model.t(session.isSelected(path) ? "Deselect Item" : "Select Item")) { session.toggle(node, app: model) }.disabled(model.busy || session.reason(node) != nil)
-                    if node.kind == "directory" { Button(model.t("Open Directory")) { session.navigate(path) } }
+                    if node.kind == "directory" {
+                        Button(model.t("Open Directory")) { session.navigate(path) }
+                        Button(model.t("Investigate This Folder")) { model.ai.requestLaunch(app: model, path: StorageRemovalPolicy.absolute(root: session.scan?.rootPath ?? session.location, relative: path)) }.disabled(model.busy)
+                    }
                 }
             }
             .accessibilityLabel(model.t("Space Map"))

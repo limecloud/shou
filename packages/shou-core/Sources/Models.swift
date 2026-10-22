@@ -320,11 +320,15 @@ public protocol PlatformFileSystem: Sendable {
     func normalizedPath(_ path: String) throws -> String
     var caseSensitivePaths: Bool { get }
     var platform: String { get }
+    /// Batch discovery must stay within the platform's bounded read capacity.
+    var maximumConcurrentReadOperations: Int { get }
     var supportsTrash: Bool { get }
+    var supportsAuthorizedApplicationTrash: Bool { get }
     var trashUnavailableReason: String? { get }
     func locationAvailability(_ path: String) -> LocationAvailability
     func targetAvailability(_ path: String) -> LocationAvailability
     func rootIdentity(_ path: String) throws -> FileEntry
+    func cleanupTargetIdentity(_ path: String) throws -> FileEntry
     func applicationParentIdentity(_ path: String) throws -> FileEntry
     func analysisRootIdentity(_ path: String) throws -> FileEntry
     var supportsStorageCatalog: Bool { get }
@@ -338,12 +342,18 @@ public protocol PlatformFileSystem: Sendable {
     func availableBytes(_ path: String) -> Int64?
     func isTrashLocation(_ path: String) -> Bool
     func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult
+    func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult
     func restore(_ path: String, to destination: String, expected: [FileEntry]) throws
     func purge(_ path: String, expected: [FileEntry]) throws
     func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws
     func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws
 }
 extension PlatformFileSystem {
+    public var maximumConcurrentReadOperations: Int { 4 }
+    public var supportsAuthorizedApplicationTrash: Bool { false }
+    public func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
+        try moveToTrash(path, expected: expected)
+    }
     public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws {
         try purge(path, expected: context.reconciled(expected), progress: progress)
     }
@@ -358,6 +368,7 @@ extension PlatformFileSystem {
         throw ShouError("capability_unavailable", "Streaming space analysis is unavailable on this filesystem.")
     }
     public func analysisRootIdentity(_ path: String) throws -> FileEntry { try rootIdentity(path) }
+    public func cleanupTargetIdentity(_ path: String) throws -> FileEntry { try rootIdentity(path) }
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspectTarget(path, budget: budget, cancelled: cancelled)
     }

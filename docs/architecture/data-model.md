@@ -1,5 +1,7 @@
 # Domain data model
 
+See [AI data/persistence contracts](embedded-ai.md) for existing connections, investigations, evidence, Jev reviews/checkpoints and proposed switches/routing/service metrics. Investigation state is distinct from cleanup-plan/receipt state; model results grant no deletion permission.
+
 English | [简体中文](../zh-CN/architecture/data-model.md)
 
 Status: development contract. [Swift models](../../packages/shou-core/Sources/Models.swift) implement the current entities; complete state and interruption acceptance remain pending.
@@ -200,6 +202,8 @@ Configuration version `1` remains readable when global protection is absent or e
 Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
 
 Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
+
+New catalogs use SQLite `user_version=2`, preserving nullable Windows volume, full File ID and owner SID alongside the POSIX fields. Version 1 catalogs remain read-only compatible without an in-place migration. Windows hard links deduplicate by volume and all 128 File ID bits; POSIX files use device/inode. Partial or malformed Windows identities are rejected instead of falling back to the compatibility inode.
 
 ## Large-file query state
 

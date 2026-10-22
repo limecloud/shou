@@ -77,6 +77,8 @@ struct CleanupCompletion: Identifiable {
     var systemResult: SystemScanResult?
     var commonReview=CleanupReview()
     var commonSelection=Set<String>()
+    private var commonRefinements: [CleanupTargetRefinement]=[]
+    var scanningCleanupPath: String?
     var scanningLocation: KnownLocation?
     var snapshot: ScanSnapshot? {
         didSet {
@@ -91,6 +93,7 @@ struct CleanupCompletion: Identifiable {
     }
     var storage=StorageIndex(entries: [])
     var space=StorageSession()
+    var ai=AIWorkspaceSession()
     var largeFiles=LargeFilesSession()
     var applicationsSession=ApplicationsSession()
     var showApplicationOrphans=false
@@ -100,6 +103,7 @@ struct CleanupCompletion: Identifiable {
     var focusedPath: String?
     var ruleDraftPattern=""
     var builtins: [CleanupRule]=[]
+    var builtinTemplates: [BuiltinTemplate]=[]
     var scanProgress: ScanProgress?
     var scanEntryCount: Int { scanProgress?.entryCount ?? 0 }
     var selection=Set<String>()
@@ -207,6 +211,7 @@ struct CleanupCompletion: Identifiable {
     func refresh() async {
         guard let engine else { return }
         do {
+            builtinTemplates=try BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(KnownLocations.currentPlatform) }
             configuration=try await engine.configuration()
             if !configuration.workspaces.contains(where: { $0.id == workspaceId }) { workspaceId=configuration.workspaces.first?.id ?? "" }
             let page=try await engine.historySummaries(limit: 50)
@@ -348,7 +353,7 @@ struct CleanupCompletion: Identifiable {
     }
     func scanStartup() {
         guard !busy else { return }
-        busy=true; startupLoading=true; stopRequested=false; startupInventory=nil
+        busy=true; startupLoading=true; stopRequested=false
         statusKey="Reading startup definitions…"
         let options=StartupInventoryOptions(includeSystem: startupIncludeSystem)
         task=Task {
@@ -363,19 +368,31 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func controlStartup(_ definition: StartupDefinition, action: StartupControlAction) {
+        controlStartup([definition], action: action)
+    }
+    func controlStartup(_ definitions: [StartupDefinition], action: StartupControlAction) {
         guard !busy else { return }
-        busy=true; startupControlLoading=true; error=nil
+        guard !definitions.isEmpty, let inventory=startupInventory,
+              definitions.allSatisfy({ inventory.items.contains($0) }) else {
+            error=t("Startup items changed. Scan again before continuing.")
+            return
+        }
+        busy=true; startupControlLoading=true; stopRequested=false; error=nil
         task=Task {
-            do {
-                let result=try await startupControlService.apply(definition: definition, action: action)
-                startupControlResult=result; statusKey=action == .enable ? "Startup definition enabled." : "Startup definition disabled."
-                busy=false; startupControlLoading=false
-                scanStartup()
-            } catch {
-                busy=false; startupControlLoading=false
-                if !Task.isCancelled { self.error=error.localizedDescription }
-                statusKey="Startup control failed."
+            var failures: [String]=[]
+            for definition in definitions {
+                if Task.isCancelled { break }
+                do {
+                    startupControlResult=try await startupControlService.apply(definition: definition, action: action)
+                } catch {
+                    failures.append(definition.label + ": " + error.localizedDescription)
+                }
             }
+            busy=false; startupControlLoading=false
+            if !failures.isEmpty { self.error=failures.joined(separator: "\n") }
+            // Read back the catalog even after a partial failure; the previous
+            // snapshot can no longer describe the whole reviewed selection.
+            scanStartup()
         }
     }
     func scanApplications() {
@@ -387,7 +404,7 @@ struct CleanupCompletion: Identifiable {
             scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(cleanAfterScan: cleanAfterScan, permanentAfterScan: permanentAfterScan, accessChecked: true) }
             return
         }
-        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
+        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonRefinements=[]
         statusKey="Preparing common app scan…"
         let operation=UUID(); operationID=operation
         task=Task {
@@ -452,6 +469,44 @@ struct CleanupCompletion: Identifiable {
         let ids=Set(sources.filter(\.selectable).map(\.id))
         if selected { commonSelection.formUnion(ids) } else { commonSelection.subtract(ids) }
     }
+    func continueCleanupScan(_ source: CleanupSource) {
+        guard let engine, !busy, let previous=systemResult,
+              source.candidate.reasons.contains("incomplete_scan"),
+              commonReview.sources.contains(where: { $0.id == source.id }) else { return }
+        let selected=commonSelection
+        let refinements=commonRefinements
+        let operation=UUID(); operationID=operation
+        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; scanningCleanupPath=source.path
+        statusKey="Scanning this directory…"
+        task=Task {
+            defer { busy=false; scanning=false; scanningCleanupPath=nil }
+            do {
+                let updated=try await engine.scanCleanupTarget(scanId: source.snapshotId, candidateId: source.candidate.id, progress: { [weak self] progress in
+                    Task { @MainActor in
+                        guard let self, self.scanning, self.operationID == operation else { return }
+                        self.updateScanProgress(progress)
+                    }
+                })
+                try Task.checkCancellation()
+                let snapshots=previous.snapshots + [updated]
+                let replacements=refinements + [CleanupTargetRefinement(originalSnapshotId: source.snapshotId, candidateId: source.candidate.id, snapshotId: updated.id)]
+                let review=try await Task.detached(priority: .userInitiated) {
+                    try CleanupReview(snapshots: snapshots, locations: previous.locations, refinements: replacements)
+                }.value
+                try Task.checkCancellation()
+                commonReview=review
+                commonRefinements=replacements
+                systemResult=SystemScanResult(locations: previous.locations, snapshots: snapshots, issues: previous.issues, skippedLocationIds: previous.skippedLocationIds)
+                // New evidence always requires a fresh selection; unrelated choices keep their original IDs.
+                commonSelection=selected.intersection(Set(review.sources.filter(\.selectable).map(\.id)))
+                statusKey=review.sources.contains { $0.snapshotId == updated.id && $0.candidate.reasons.contains("incomplete_scan") }
+                    ? "This directory still exceeds the scan limit." : "Directory scanned. Review it before selecting."
+            } catch {
+                if !Task.isCancelled { self.error=error.localizedDescription }
+                statusKey=Task.isCancelled ? "Scan stopped." : "Directory scan failed. Previous results were kept."
+            }
+        }
+    }
     func previewCommonCleanup(permanent: Bool = true) {
         guard let engine, !busy, !commonSelected.isEmpty else { return }
         let sources=commonSelected
@@ -473,7 +528,7 @@ struct CleanupCompletion: Identifiable {
             } catch { self.error=error.localizedDescription }
         }
     }
-    func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
+    func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); ai.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
     func stopAndWaitForExecution() async -> Bool {
         guard isExecuting else { return !operationHadError && error == nil }
         let running=task
@@ -672,12 +727,16 @@ struct CleanupCompletion: Identifiable {
     }
     private func updateScopedCleanup(engine: ShouEngine, roots: [Workspace], selectedPaths: Set<String>, previous: SystemScanResult?) async throws {
         var snapshots=previous?.snapshots.filter { old in !roots.contains { $0.id == old.workspace.id } } ?? []
-        for root in roots { snapshots.append(try await engine.scan(workspaceId: root.id, scope: .cleanup)) }
+        var scanned=Set<String>()
+        for root in roots where scanned.insert(root.id).inserted { snapshots.append(try await engine.scan(workspaceId: root.id, scope: .cleanup)) }
         let locations=previous?.locations ?? knownLocations
         let affectedLocations=Set(locations.filter { location in roots.contains { $0.path == location.path } }.map(\.id))
         let issues=(previous?.issues ?? []).filter { !affectedLocations.contains($0.locationId) }
         let refreshed=SystemScanResult(locations: locations, snapshots: snapshots, issues: issues, skippedLocationIds: previous?.skippedLocationIds ?? [])
-        commonReview=try CleanupReview(snapshots: snapshots, locations: refreshed.locations)
+        let retained=Set(snapshots.map(\.id))
+        let refinements=commonRefinements.filter { retained.contains($0.originalSnapshotId) && retained.contains($0.snapshotId) }
+        commonReview=try CleanupReview(snapshots: snapshots, locations: refreshed.locations, refinements: refinements)
+        commonRefinements=refinements
         systemResult=refreshed
         commonSelection=Set(commonReview.sources.filter { $0.selectable && selectedPaths.contains($0.path) }.map(\.id))
         statusKey="Affected items refreshed. Review your selection to continue."
@@ -917,12 +976,13 @@ struct ContentView: View {
                     Divider()
                 }
                 presentedContent
+                    .sheet(item: $model.ai.launch) { target in AILaunchView(model: model, session: model.ai, target: target) }
                 Divider()
                 HStack {
                     Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
                         .accessibilityIdentifier("operation.status")
                     Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.10.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
+                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.11.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
                 }.padding(10)
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .overlay {
@@ -1014,10 +1074,11 @@ struct RulesView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
                 Label(model.t("Cleanup rules made for your Mac"), systemImage: "sparkles").font(.callout.weight(.medium))
-                    .help(model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
+                    .help(model.t("Investigate a folder with built-in AI, or use your external AI tool to create personal rules."))
                 Spacer(minLength: 8)
-                Button(model.t("Customize with AI…")) { agentSetup=true }
-                    .buttonStyle(.borderedProminent).accessibilityIdentifier("rules.agent.setup")
+                Button(model.t("Create Rules with AI…")) { model.ai.goal = .rules; model.ai.requestLaunch(app: model) }
+                    .buttonStyle(.borderedProminent).accessibilityIdentifier("rules.ai.investigate")
+                Button(model.t("External AI Tools…")) { agentSetup=true }.accessibilityIdentifier("rules.agent.setup")
             }
             .padding(.horizontal, 12).frame(height: 44)
             .background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
@@ -1047,19 +1108,7 @@ struct RulesView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     if ruleSource != "personal" {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(model.t("Built-in Rules")).font(.headline)
-                            VStack(alignment: .leading, spacing: 0) {
-                                ForEach(model.builtins) { rule in
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        Toggle(model.t(rule.name), isOn: Binding(get: { !model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == rule.id && !$0.enabled } }, set: { model.setEnabled(rule, enabled: $0) })).toggleStyle(.switch).disabled(model.busy)
-                                        Text(model.t(rule.risk.rebuildNote)).font(.callout).foregroundStyle(.secondary)
-                                        Text(model.t(rule.risk.limitations.first ?? "")).font(.caption).foregroundStyle(.secondary)
-                                    }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                                    if rule.id != model.builtins.last?.id { Divider() }
-                                }
-                            }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-                        }
+                        BuiltinRulesCatalogView(model: model)
                     }
                     if ruleSource != "builtin" {
                         VStack(alignment: .leading, spacing: 8) {
@@ -1102,7 +1151,7 @@ struct RulesView: View {
         }
         .toolbar {
             ToolbarItemGroup {
-                PageInfoButton(title: model.t("Rules"), message: model.t("Built-in rules for everyday cleanup. Your agent tailors the rest to your Mac.") + "\n\n" + model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
+                PageInfoButton(title: model.t("Rules"), message: model.t("Built-in rules cover everyday cleanup. Review personal rules created with built-in AI or external tools.") + "\n\n" + model.t("Investigate a folder with built-in AI, or use your external AI tool to create personal rules."))
                 Button(model.t("Exclusions…")) { model.showingExclusions=true }.disabled(model.busy)
                 Menu(model.t("Advanced")) {
                     Button(model.t("Import…")) { model.importRule() }

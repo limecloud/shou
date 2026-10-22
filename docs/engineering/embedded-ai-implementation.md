@@ -1,0 +1,81 @@
+# Built-in AI investigation: first implementation and acceptance
+
+English | [简体中文](../zh-CN/engineering/embedded-ai-implementation.md)
+
+Date: 2026-10-22. This records the working-tree implementation, not a published release or production acceptance.
+
+The contract covers [19 stories and 10 use cases](../product/embedded-ai.md), [architecture/states/flows/sequences](../architecture/embedded-ai.md) and [30 acceptance checks](embedded-ai-acceptance.md). Default-off desktop gating, decision-first routing, Jev-only configuration, on-demand main models, per-service usage and contextual native entries are implemented. Implementation, synthetic checks and live evidence remain distinct.
+
+## Native workflow
+
+Add a connection in Settings → AI Investigation. Protocol, API base URL, model and authentication are independent. Responses, Chat Completions and Anthropic Messages support compatible gateways. Include the gateway prefix but omit the protocol endpoint suffix. Remote endpoints require HTTPS; HTTP is restricted to loopback.
+
+macOS stores API keys in Keychain and persists only a reference. Explicit environment variables and unauthenticated local services are supported; SDK provider environment defaults are never used. Connection tests send a generated token and require tool execution followed by another model turn.
+
+Connections enable Structured Decisions and select Jev, the only bundled provider, with an independent TypeSafe root/model/authentication; the main model can be disabled. Local storage goals run first, then bounded classification/questions/rebuild review and local rule templates. Open-ended understanding records a reason before main-model escalation; technical decision failures never trigger paid fallback. A fixed `POST /systemone` Choice question receives proposed relative metadata, model hypotheses, rebuild conditions and explicit user answers. Only `supported` can produce a disabled draft; `needs_information` requests more evidence and `retain` keeps content. Invalid or failed decision responses fail the investigation rather than being hidden by SDK tool-error handling. Reviews appear separately in the inspector; confidence does not authorize deletion.
+
+After scanning, choose Investigate to open a resizable native inspector. It shows the fixed investigation folder, destination and disclosure before the user starts. Browsing does not change an active scope. Changed scans and cleanup invalidate suggestion preview. Questions pause the investigation; answers resume it. Each suggestion opens its own existing rule preview, importing a disabled high-risk draft. Enabling, rescanning and confirmed cleanup remain separate user choices. No investigation tool can delete.
+
+## Shared implementation
+
+| Layer | Responsibility |
+| --- | --- |
+| ShouCore | Connection/task/question/advice DTOs, evidence scope policy, closed rule parser and disabled import |
+| ShouPlatform | Local records, macOS Keychain, Windows Credential Manager, explicit environment credentials |
+| ShouAI | macOS SDK `0.20.0`, bounded Windows protocol runtime; shared routing, index tools, budgets and checkpoints |
+| macOS | Native Form/SecureField connection editor, inspector, cancellation and independent rule previews |
+| CLI/desktop bridge | The same investigation service, progress events and SDK/URLSession cancellation |
+
+The SDK is pinned to `4e0230a06092583c4dd541071b1ce8e181821bf9`; its Apache-2.0 license ships in the app. SDK types/messages stay inside ShouAI and never enter cleanup rules, plans or execution. The SDK owns the macOS tool loop. Windows uses a bounded runtime adapter for the same evidence tools without importing Apple-only SDK APIs or duplicating the rule engine.
+
+Evidence consists only of saved index metadata: relative paths, kinds, allocated bytes, counts, newest modification and coverage. Pages contain at most 30 rows, with 300 rows/64 KiB per investigation. Credential locations, links and special files are filtered. No file contents, Shell, automatic web access or targeted configuration reads are exposed. Purpose and rebuildability remain uncertain unless established through the investigation and user answers.
+
+Budgets are 12 model steps, 32 tool executions, 8 suggestions and 3 questions; each turn has a 180-second timeout and 3072 output-token limit. Reported usage of 32000 tokens stops subsequent steps; a response may cross this threshold, so it is not a precise spending cap. Waiting does not consume a turn timeout; investigations cannot resume after 24 hours.
+
+Provider response bodies are additionally limited to 1 MiB. The inspector exposes observed index evidence and each suggested directory’s measured size.
+
+Jev is limited to 8 reviews, 24 KiB inputs and 64 KiB responses; reported usage counts toward the investigation token threshold. Neither service retries automatically or follows redirects. New credentials trust the current executable and a validly signed companion inside the same app bundle. First access or local ad-hoc rebuilds may still require macOS Keychain approval in the system UI; connection tests wait for that system response. Saving runs in the background with progress and duplicate-save/dismissal protection. Cancelling a connection test prevents starting the subsequent Jev test. The synchronous system Keychain call itself cannot be interrupted by task cancellation.
+
+Private local checkpoints contain the chosen connection, scope, questions, SDK continuation messages and validated suggestions, without keys. Resume keeps the original provider. States distinguish waiting, complete, limited, cancelled and failed. Provider error bodies are not persisted or displayed, redirects are refused and requests are not automatically retried.
+
+## Public contract
+
+`shou capabilities --command ai --json` discovers twelve operations, including `ai providers`, `ai list`, `ai cancel --investigation-id` and: `ai connections list`, `ai connections save --file`, `ai connections test --connection-id`, `ai connections credential save --connection-id [--service model|decision|jev]`, `ai connections decision test --connection-id`, `ai investigate --scan-id --connection-id [--path] [--request] [--goal investigate|space|rules]`, `ai show --investigation-id`, `ai resume --investigation-id --file`, and `ai advice import --investigation-id --advice-id`. Credential save reads standard input directly into the system credential store, accepting no key argument or profile-file secret. Decision tests send synthetic evidence. The `network` side effect explicitly identifies inference requests. Final JSON uses the existing envelope; failed/cancelled/limited investigations return partial with exit code 6 and retain available findings.
+
+Profiles contain `id`, `name`, `api_protocol` (`responses`, `chat_completions`, `anthropic`), `base_url`, `model`, `authentication` (`keychain`, `environment`, `none`) and `environment_variable`. Profile/answer files are limited to 16 KiB, raw-key fields are rejected, and answers map current question IDs to strings. Import registers the scan root as a workspace if necessary and keeps the rule disabled. See the [Chinese examples](../zh-CN/engineering/embedded-ai-implementation.md).
+
+An optional `decision` profile contains only `base_url`, `model`, `authentication` and `environment_variable`; its credential is stored separately. Bridge `ai.decision.test` verifies it.
+
+Bridge v1 adds `ai.connections`, `ai.test`, `ai.investigate`, `ai.show`, `ai.resume` and `ai.advice.import`. Resume takes an `answers` object. Existing `kind: progress`/`value` and `kind: cancel` messages are reused; no cleanup confirmation bypass is added. SDK dependencies remain macOS-only. A bounded portable runtime supports the same three protocols on Windows and reuses the investigation, decision and rule service. Capability discovery reports the installed runtime. Legacy SDK checkpoints are not silently converted; incompatible runtimes require a new investigation.
+
+## Verification and remaining scope
+
+Earlier shared-runtime checks passed 87 AI contracts, 159 CLI contracts and 274 Core/platform checks. The generated native fixture completed disabled import, 14.7 MB preview, single-rule enable/rescan, confirmed Trash, receipt and restoration with three identical SHA-256 hashes. Slow decision disable retained results and stopped at two requests. The full test script remained non-green because the separate native Rust/node fixture was refused with `plan_stale`; no safety check was bypassed. The async folder-picker fix and latest packages require their own evidence. These earlier counts do not certify subsequent Windows edits.
+
+`python3 scripts/verify-ai-investigation.py` runs the real SDK against synthetic local providers and generated files. It covers all three protocols, tool round trips, gateway prefixes, multiple steps, cross-process question/resume, disabled import, existing rule preview, path escape and wildcard refusal, private-name/content omission, step/token stopping, redacted errors, absent authentication headers, redirect refusal and bridge cancellation. Files and cleanup history are checked for unintended changes.
+
+The previous version passed 78 AI CLI checks plus bridge cancellation, including oversized-response stopping, separate rule rationale/rebuild requirements and Jev supported/uncertain/retain/malformed outcomes, redirect refusal and error-body redaction. Native UI acceptance on macOS 15.8.1 (Apple Silicon) covered the connection form and synthetic tool-call test, generated-folder selection and scanning, inspector setup, retention instructions, question/answer/resume, observed evidence, individual advice and a 14 MB rule-match preview. Drafts remained disabled; no cleanup was executed.
+
+Live acceptance against the user-selected `https://sub2api.bugu.run/v1` Responses endpoint with `gpt-6.1-sol`, and TypeSafe `jev-1.13.0`, used only generated fixtures. Tool round trips and a fixed Choice probe passed. One investigation queried the index, asked a retention question, received Jev support, imported one disabled suggestion and previewed it. Its 33,613 reported tokens correctly produced a limited state. A second investigation completed normally at 16,689 tokens in about 60.8 seconds; Jev requested more evidence, so no draft was created. These establish transport/workflow behavior, not decision accuracy or calibration. Credentials are stored only in Keychain.
+
+The test app saves live profiles and both bundled CLI tests pass. Desktop previously waited in Keychain; the user subsequently completed system approval. Reopening the natively saved profile in `.build/ai-ready/Shou.app` with both key fields blank showed successful model tool calling and Jev structured decisions, establishing credential reads and live connection for that package. A sampled stack had confirmed synchronous save blocking; background saving and cancellation checks preventing subsequent Jev were built separately. `.build/ai-keychain-responsive/Shou.app` still needs its own system-wait/live-investigation/full-UI observations; the old package's evidence cannot substitute. Automation did not operate SecurityAgent and no cleanup occurred in this round.
+
+Folder selection preserves physical paths: Foundation otherwise folds `/private/var` into the `/var` alias, which no-follow scanning correctly rejects. Generated-directory and selected-link regression checks cover this boundary.
+
+Development-machine Swift 6.2.3 builds, native app packaging/signature validation, CLI/bridge/storage regressions, localization and documentation checks passed. Other real OpenAI/Anthropic/gateway services, macOS 14 hardware, Windows, token streaming, configuration-content tools, investigation quality and comparison with external-agent effort/cost remain open. The UI retains the current window session; cross-process question resume is available through the CLI. macOS and Windows now list completed/waiting local investigations and resume waiting tasks on their original connection within 24 hours. Interrupted running checkpoints are not offered as resumable; crash recovery remains open. Offline scanning and cleanup retain their existing contract.
+
+## Windows and CLI parity
+
+`ai providers`, `ai list` and `ai cancel --investigation-id <id>` complete twelve discoverable AI commands. Lists return at most the latest 100 records within a 2 MiB aggregate response budget. Running workers observe a persisted cancellation marker, cancel in-flight transport and block subsequent steps; the cancel command acknowledges the request, while `ai show` reports the resulting task state. Waiting tasks save their cancelled state immediately. Explicit CLI network operations remain independent of desktop preferences.
+
+Bridge operations also include `ai.providers`, `ai.list`, `ai.cancel` and `ai.connections.save`. Saving accepts a strictly validated `profile` plus optional `model_key`/`decision_key` over request-scoped stdin only. Keys are never profile fields, process arguments or results. The compatible `authentication: keychain` value maps to the current user’s Windows Credential Manager. Provider accounts remain isolated.
+
+The Fluent WPF UI implements default-off gating, connection add/edit/synthetic tests, independent main/decision services, installed-provider discovery, goals/exact folders/disclosure, local measurement or index reuse, actual status, choices/free answers, continuation/cancellation, evidence/service usage/escalation, local history and individual disabled imports into the existing rule preview. Cleanup, storage, large-file parents and rules expose contextual entries. Page changes retain the original scope and unsent answers; closing explains cancellation and loss of unsent text.
+
+Windows transport is bounded while receiving, non-streaming, without redirects or retries. Protocol-native tool continuation is preserved; Responses uses `store: false` and retains required response items. macOS can exercise the same runtime with the process-scoped `SHOU_AI_RUNTIME=portable`; this is supplemental evidence, not Windows execution.
+
+The existing `.github/workflows/windows.yml` Check stage now runs `verify-ai-investigation.py <shou.exe>` against synthetic loopback providers and repository-generated fixtures, alongside existing WPF subprocess, real bridge and packaging checks. Fifteen .NET process checks pass on the development machine; WPF cross-builds with zero warnings/errors and the Credential Manager C++ adapter passes cross-syntax checks. Remote CI must check out the commit containing these edits: old-HEAD success cannot validate this working tree. Native Windows CI, WPF button journeys and Credential Manager runtime evidence remain separate gates.
+
+Current additional evidence: default SDK and `SHOU_AI_RUNTIME=portable` each pass 94 AI CLI checks covering three-protocol questions/previews, Jev zero-main routing, cross-process in-flight cancellation and persisted states. All 159 general CLI contracts pass. These are development-machine results; Windows CI still needs to validate native networking/credential APIs. Read-only bridge `storage.show` matches existing `analysis show`, returning the original index root/status for exact Windows restart scope.
+
+The current full desktop-bridge regression passes, including cross-root consent, storage navigation, large files, rule previews, history and stale-target refusal. An initial run hit an outdated storage-fixture assertion; after the independent task updated it, the rerun passed, with the failed log retained. Sixteen .NET checks including the real shared CLI pass. All 1690 localization keys, 96 documents/823 local links and 26 bilingual Mermaid diagrams parse successfully.

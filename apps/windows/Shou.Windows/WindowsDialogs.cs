@@ -9,6 +9,10 @@ namespace Shou.Windows;
 
 public sealed class WindowsDialogs(Window owner)
 {
+    public JsonObject? EditAIConnection(JsonObject? existing, JsonNode?[] providers) {
+        var dialog=new AIConnectionDialog(owner,existing,providers);
+        return dialog.ShowDialog()==true ? dialog.Request : null;
+    }
     public void RevealFolder(string path) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
     public string? ChooseFolder()
     {

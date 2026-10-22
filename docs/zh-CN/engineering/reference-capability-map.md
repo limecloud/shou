@@ -6,6 +6,8 @@
 
 以下矩阵及分阶段门槛保留 **0.9.0 实现前基线**，不是当前功能清单。N01–N09 的现状、实际检查与原生／发布门槛以 [0.9.0 跟踪文档](next-version-0.9.0.md)为准。
 
+2026-10-22 产品方向修订：内置清理专用 AI 已成为下一阶段主线，按[AI01–AI06](implementation-plan.md)实施；本文原有优先级不再排除模型接入。源码对照和历史验收仍保留原始时间与范围。
+
 ## 证据约定
 
 | 证据 | 能够支持的结论 | 边界 |
@@ -53,7 +55,7 @@ MangoDisk 导航覆盖存储、隐私和系统任务，源码入口为 `src/lib/
 | 系统维护 | `src-tauri/crates/mangodisk-core/src/system_maintenance/catalog.rs` 与 `src-tauri/crates/mangodisk-platform/src/macos/system_maintenance.rs` 定义十项 macOS 任务 | 未实现。工具可用不代表诊断出必须执行的维护 |
 | 资源监控／菜单栏 | `src/pages/tray-panel/index.vue` 与平台资源提供者展示 CPU、GPU、内存、磁盘、网络与进程信息 | 未实现。磁盘容量摘要不等于持续资源监控 |
 | 历史与恢复 | `src-tauri/crates/mangodisk-core/src/history/` 支持多个操作领域 | 已实现清理／卸载回执、检查与独立恢复，见 `apps/macos/Sources/HistoryView.swift`、`apps/macos/Sources/HistoryInspectionView.swift` 及 Core 记录。新增变更领域必须明确历史和恢复语义 |
-| AI 辅助 | 参考界面存在带模块上下文的 `MdAiWorkspace` 集成 | Shou 通过 `apps/macos/Sources/AgentRuleSetupView.swift` 接入外部编码 Agent 的规则工作流，自身不托管模型会话或 Agent。内置 AI 不属于 Shou 的产品范围 |
+| AI 辅助 | 参考界面存在带模块上下文的 `MdAiWorkspace` 集成 | Shou 通过 `apps/macos/Sources/AgentRuleSetupView.swift` 接入外部编码 Agent 的规则工作流，当前版本尚未实现内置模型会话；内置清理专用 Agent 已纳入下一阶段，见[接入设计](embedded-ai-investigation.md) |
 | 设置、排除与更新 | 独立设置、语言、主题与更新流程 | 已实现设置／排除及 `apps/macos/Sources/AppUpdater.swift` 中的 Sparkle；本轮完善安装与访问引导。引导可见不会授予访问权限 |
 
 ## 实现前日常清理差距
@@ -68,7 +70,7 @@ MangoDisk 导航覆盖存储、隐私和系统任务，源码入口为 `src/lib/
 | 工具管理的大空间来源 — P1 | MangoDisk 的 `cleanup/cleaners/` 包含 Docker 构建缓存、Conda 缓存、闲置 Rust 工具链、模型存储、Codex 归档会话和 Xcode 专属处理；Mole 的 `lib/clean/brew.sh` 预览并执行参数一致的 `brew cleanup --prune=30` | Shou 规则只匹配目录，不能调用所属工具或选择单个磁盘映像文件。声明 BuildX 路径不等于回收 Docker 引擎构建缓存。目录仍用声明式个人规则；依赖工具／版本／引用知识的来源增加类型明确、操作固定的适配器 |
 | 失败后的继续操作 — P0 | MangoDisk 的 `src/pages/cleanup/cleanup-application-close.ts` 按应用归并规则，并将重试限制在剩余失败目标 | Shou 已有卸载“请求退出”和完成页“重新扫描”，但退出请求不会等待确认关闭并恢复受影响选择，结果重试会重新扫描当前模块。智能清理需补齐归并关闭 → 验证 → 刷新受影响目标 → 审阅重试，保留其他选择和成功结果 |
 | 孤儿残留与隐私深度 — P1/P2 | MangoDisk 有独立 `applications/leftovers/` 与逐来源 `privacy/`；Mole 的 `clean` 包含已卸载应用残留 | Shou 卸载时能关联组件，但没有独立孤儿清单；隐私覆盖部分历史／Cookie schema，未覆盖参考的完整活动／账号状态集合。需要精确的所属应用缺失证据，逐来源补能力，避免删除宽泛父目录 |
-| 外部 Agent 定制 — P1 | 最新 Mole 已有 `skills/mole/SKILL.md`、`llms.txt`、Codex／Claude 插件入口及 `npx skills add` 分发；MangoDisk 的 `clean` 提供 human／JSON／JSONL、apply、dry-run 与明确的非交互确认选项 | CLI 或 Skill 本身已经不是独有差异。Shou 已有更细的发现／schema 合同，以及桌面复用的版本化个人规则导入／预览／启用。应完成未覆盖占用发现 → 外部 Agent 制定规则 → 验证收益 → 后续复用，减少反复交接；模型与 Agent 执行保持在 Shou 外部 |
+| 外部 Agent 定制 — P1 | 最新 Mole 已有 `skills/mole/SKILL.md`、`llms.txt`、Codex／Claude 插件入口及 `npx skills add` 分发；MangoDisk 的 `clean` 提供 human／JSON／JSONL、apply、dry-run 与明确的非交互确认选项 | CLI 或 Skill 本身已经不是独有差异。Shou 已有更细的发现／schema 合同，以及桌面复用的版本化个人规则导入／预览／启用。应完成未覆盖占用发现 → 外部 Agent 制定规则 → 验证收益 → 后续复用，减少反复交接；下一阶段由内置清理专用 Agent 复用同一规则与执行闭环，外部接口继续支持 |
 | Windows 产品覆盖 — P1 | MangoDisk 有 93 份 Windows 文件系统 TOML，另有 128 份 macOS 与 31 份项目产物定义；不同规则模型不能按数量直接比较 | 按 `BuiltinTemplate.supportedPlatforms` 实际计算，macOS 有 210 个模板，Windows 只有六个项目模板，没有固定 Windows 缓存位置模板。`DesktopBridge` 将 applications／startup／privacy 声明为 false。交叉编译与桥接检查不能代表真实 Windows 文件系统／GUI 验收 |
 | 界面语言 — P2 | MangoDisk 包含 11 份 UI locale 目录 | Shou 的 `Localization.swift` 仅开放中文和英文。11 种 README 不代表软件支持 11 种语言；需补齐共享 Core／macOS／Windows 消息和各端切换验收后再扩大支持声明 |
 | 发行身份 — P1 | Shou 自身打包与安装合同 | 未显式提供 Developer ID 时，本地包使用 ad-hoc 签名。已有 Sparkle，但 Developer ID 签名、公证、干净机器更新／权限验收仍需独立完成；本地签名身份变化可能令隐私授权失效 |
@@ -83,7 +85,7 @@ MangoDisk 导航覆盖存储、隐私和系统任务，源码入口为 `src/lib/
 
 日常桌面操作应是一个任务、适当确认和可见结果；内部 scan／plan／execute 合同不要求用户经过多个独立页面。外部 Agent 的确认传递是单独的体验决策：Shou 公共 CLI 当前要求控制终端确认破坏性操作，Windows bridge 使用单次请求 challenge，本轮对照不改变这两个合同。
 
-精确重复文件和孤儿残留对释放空间的价值比偏好开关或资源仪表盘更直接。通用二进制瘦身、广泛系统优化和监控保持可选；托管模型或 Agent 不属于 Shou 的产品范围。
+精确重复文件和孤儿残留对释放空间的价值比偏好开关或资源仪表盘更直接。通用二进制瘦身、广泛系统优化和监控保持可选；内置清理专用 Agent 按新实施计划推进，产品托管推理后端和通用 Agent 平台不在首期范围。
 
 ## 隐私：必须保留来源粒度
 
@@ -138,7 +140,7 @@ Owner：`src-tauri/crates/mangodisk-core/src/system_maintenance/catalog.rs`、`s
 | P0：日常清理可靠性与成本 | 智能清理调度、记录回收、轻量历史、关闭应用／失败目标恢复与已有删除回归 | 相同夹具覆盖及优化前后冷／热耗时；有界并发与取消；配额测试保留活跃计划和恢复事实；关闭 → 验证 → 限定重试；部分失败时计数／选择／结果一致；保留原生永久删除和支持范围内恢复回归 |
 | P1：有效回收与定制 | 选定工具适配器、持久化 Agent 规则、独立孤儿发现、可验证扫描复用、Windows 缓存覆盖与发行身份 | 每个适配器预览／执行一致、本机所属范围、时间／输出预算与验证；外部 Agent → 禁用草稿 → 预览 → 授权启用 → 桌面复用；精确孤儿关联和所属应用缺失；变更历史失效；真实 Windows 夹具删除／GUI；签名公证后的干净安装和更新／权限验收 |
 | P2：存储与隐私广度 | 精确重复、选定隐私来源和更多界面语言，保持已有大文件合同 | 重复文件完整内容一致、替换检测和保留选择；大文件身份／分页／计量回归；逐来源隐私 schema／时间范围与影响同意、原生变更验证；各端完整翻译与切换 |
-| P3：可选扩展 | 经产品选择后实现资源监控／菜单栏、通用二进制优化、可恢复系统偏好与选定维护 | 监控要求指标来源、采样周期、不可用状态和资源开销；二进制变更要求架构／签名身份、中断处理、写后验证和恢复策略；偏好要求恢复基线与恢复验证，提权维护要求真实不可取消状态。内置 AI 保持在产品范围之外 |
+| P3：可选扩展 | 经产品选择后实现资源监控／菜单栏、通用二进制优化、可恢复系统偏好与选定维护 | 监控要求指标来源、采样周期、不可用状态和资源开销；二进制变更要求架构／签名身份、中断处理、写后验证和恢复策略；偏好要求恢复基线与恢复验证，提权维护要求真实不可取消状态。内置清理 AI 单独按 AI01–AI06 主线推进，不归入本项可选系统扩展 |
 
 每项选定能力均需正反例，覆盖权限、运行中应用、身份变化、受保护后代、不支持 schema、时间／输出预算、变更前后取消、部分失败与验证未知。破坏性验收使用可丢弃的生成夹具。成功构建、目录计数、包清单或可见页面均不能替代原生端到端证据。
 

@@ -15,9 +15,9 @@ Un limpiador nativo de macOS para cachés, proyectos de desarrollo y carpetas qu
 
 ## Descarga e instalación
 
-Shou v0.10.0 requiere **macOS 14 o posterior**. La app universal funciona en Apple Silicon e Intel. Arrastra **Shou.app** de la imagen de disco a **Applications**. La interfaz está en inglés y chino simplificado.
+Shou v0.11.0 requiere **macOS 14 o posterior**. La app universal funciona en Apple Silicon e Intel. Arrastra **Shou.app** de la imagen de disco a **Applications**. La interfaz está en inglés y chino simplificado.
 
-[**Shou v0.10.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.10.0/shou-0.10.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
 
 Esta versión tiene firma ad-hoc y no está notarizada por Apple. Si macOS bloquea el inicio, comprueba la fuente y consulta **Ajustes del Sistema → Privacidad y seguridad → Abrir igualmente**.
 

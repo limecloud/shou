@@ -6,14 +6,14 @@
 
 当前桌面导航、自动发现及个人规则复用以此为准：[统一日常清理](../product/unified-cleanup.md)。
 
-状态：当前开发架构。共享扫描、计划、记录、废纸篓执行与有界永久移除已有源代码；Windows、分发与文件竞态验收尚未完成。
+状态：当前开发架构与下一阶段设计。共享扫描、计划、记录、废纸篓执行与有界永久移除已有源代码；Windows、分发与文件竞态验收尚未完成。2026-10-22 将内置清理专用 AI 纳入产品，首版共享调查服务、SDK 适配和原生连接配置已实现；具体能力与剩余验收见[实现记录](../engineering/embedded-ai-implementation.md)。
 
 ## 1. 设计约束
 
 1. macOS SwiftUI 桌面端与 Swift CLI 共享领域核心；Windows WPF 桌面端通过带版本的进程桥复用同一引擎，其原生运行验收单独跟踪。
 2. 核心任务能在任一入口独立完成，CLI 不依赖 GUI 进程。
 3. 用户自定义规则与 AI 生成规则使用同一种声明式格式。
-4. 不接入任何模型，不开发 Agent，不引入模型 SDK；首版也不需要账号、网络服务、常驻服务或特权 helper。
+4. 内置清理专用 Agent 使用可替换 Swift 模型 SDK；调查、问询和规则意图与确定性清理执行分离。常规扫描与清理无需模型、账号或网络；首期 AI 使用用户自带凭据，不依赖产品托管后端、常驻服务或特权 helper。
 5. 以少量模块形成闭环，不为尚未支持的生态引入通用插件运行时。
 6. 采用原生多平台 monorepo；共享核心不依赖 AppKit、SwiftUI、Darwin 或 Win32，系统细节位于平台适配层。
 
@@ -32,6 +32,11 @@ flowchart TB
     Drafts --> CLI
     GUI --> Core[ShouCore 共享核心]
     CLI --> Core
+    GUI --> AI[ShouAI 元数据调查]
+    CLI --> AI
+    AI --> Core
+    AI --> SDK[Swift AI SDK 与所选模型]
+    AI --> Jev[当前可选 Jev 复核]
     Windows[Windows WPF 桌面端] -->|带版本的结构化进程桥| CLI
     Core --> Policy[授权与安全策略]
     Core --> Store[本地版本化存储]
@@ -42,7 +47,7 @@ flowchart TB
     Results --> CLI
 ```
 
-Agent 是外部调用者；模型输出、项目内容和导入文件都位于信任边界之外。原型阶段不假定不同 Agent 的命令权限与 TTY 行为相同。
+上图包含现有内置与外部路径。下一轮将内置流程调整为本地确定性处理、Jev 优先判断、主模型按需升级；总开关和路由仍待实现，完整[AI 架构与时序](embedded-ai.md)区分当前调用链与目标。内置与外部模型输出、项目内容和导入文件均是不可信输入。
 
 ## 3. 模块与依赖
 
@@ -96,6 +101,7 @@ apps/macos/                 # SwiftUI / AppKit 原生应用与应用工程
 apps/cli/                   # Swift CLI；产品命令 shou / shou.exe
 apps/windows/               # Windows WPF 桌面端与进程桥
 packages/shou-core/         # 可移植 Swift 领域模型、规则、扫描编排与计划
+packages/shou-ai/           # 清理调查、SDK 适配、证据工具与 Jev
 packages/shou-platform/     # 平台接口的具体实现，当前为 macOS
 packages/shou-contracts/    # 语言无关 JSON Schema 与公开合同
 tests/fixtures/            # 虚构项目、规则与跨入口合同用例
@@ -233,13 +239,19 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 
 未授予完全磁盘访问权限时，广泛扫描跳过受保护的废纸篓位置。移入后的核验与后续操作通过 `inspectTrashTarget` 尝试读取系统返回并写入回执的精确直接子项。适配器验证当前用户的废纸篓父目录，并保留系统权限、不跟随链接与完整清单核验；不枚举无关废纸篓项目。部分完成或取消批次中未开始的 `pending` 项显示为已跳过，已开始但结果不确定的操作继续标记为需要核实。
 
-## 9. AI Agent 接入方式
+## 9. 内置清理专用 AI 与外部 Agent
 
 首版提供公开规则格式、命令发现、JSON 结果与可持久化计划，供 Codex、Claude Code、WorkBuddy 等在用户许可下调用 CLI。无需为每个 Agent 编写不同的清理引擎。
 
-`ShouAgentSupport` 独立于 `ShouCore` 打包规则制定 Skill 与问询参考，桌面和 CLI 都依赖该资源模块。规则页复制带本地路径的请求；`agent skill --json` 不打开清理存储即可返回同一入口与指令。外部 Agent 追问未明确的信息并编写声明式草稿；校验、禁用导入、预览与后续确认清理继续复用已有核心，不新增 Agent 进程、模型 SDK 或推理服务。
+`ShouAgentSupport` 独立于 `ShouCore` 打包规则制定 Skill 与问询参考，桌面和 CLI 都依赖该资源模块。规则页复制带本地路径的请求；`agent skill --json` 不打开清理存储即可返回同一入口与指令。该外部 Agent 路径继续提供声明式草稿、校验、禁用导入和预览。
 
-当前通过 CLI 与本地规则文件建立操作合同，不开发 Agent、不调用模型、不提供聊天服务。MCP 不纳入当前范围；只有明确接入障碍出现时才评估额外工具协议。具体合同见 [Agent 操作指南](../ai/coding-agent-integration.md)。
+当前 `ShouAI` 已提供共享 Swift 调查服务和薄 SDK 适配，维护范围、保留回答、预算、问询续接及逐条建议。下一轮在此增加有界任务路由：代码／本地模板优先，固定判断使用 Jev，开放式理解才升级主模型。SDK 继续负责生成模型的工具循环；Jev 用受控问题和状态机，不另建通用 Agent 框架。门禁、路由、独立 Jev 配置及按服务用量的具体变化见[专项架构](embedded-ai.md)。
+
+当前调查只开放已有索引的分页／检查、问询与精确规则建议；不读取配置正文或工具运行状态。配置读取和领域工具需要后续独立适配与验收。模型提出的意图通过范围策略、`PersonalRuleDraft` 和闭合解析器校验；实际启用、新扫描、确认及回执沿用 Core，调查工具集不暴露删除能力。
+
+模型连接按协议、地址、模型和凭据引用配置，支持 Responses、Chat Completions、Messages；敏感值由平台凭据库保存。用户主动启用调查后才向所选连接发送最小证据，不静默跨服务商重发。首版元数据调查、三协议适配及原生连接配置已实现，见[实现与验收范围](../engineering/embedded-ai-implementation.md)；SDK 的 macOS 14、Windows、流式多轮、暂停／恢复及取消须先验证，具体设计见[清理调查与多协议接入](../engineering/embedded-ai-investigation.md)，实施门槛见[实施计划](../engineering/implementation-plan.md)。
+
+本阶段不引入通用聊天、任意 Shell／插件或外部编码 Agent 托管。MCP 仍只在明确接入需求出现时评估。外部调用合同见 [Agent 操作指南](../ai/coding-agent-integration.md)。
 
 ## 启动项发现边界
 
@@ -249,7 +261,7 @@ GUI 能访问的路径不保证 CLI 能访问，反之亦然。首版不引入�
 
 - **KISS**：一套核心、有限的声明式匹配能力和明确的平台边界。
 - **DRY**：规则校验、保护策略、计划与执行逻辑复用。
-- **YAGNI**：暂不引入云服务、动态脚本、模型编排和特权守护进程。
+- **YAGNI**：仅增加清理调查所需的模型循环与连接；暂不引入产品托管推理后端、动态脚本、通用 Agent 平台或特权守护进程。
 - **SOLID**：展示、规则、扫描、计划、执行与平台适配各自负责明确职责；仅对实际外部依赖建立可替换接口。
 
 
@@ -407,4 +419,4 @@ flowchart TB
     Execute --> Verify[相关范围核验与后续日常复用]
 ```
 
-Shou 不增加模型接入或 Agent 服务。完整流程、时序和逐项验收见[空间分析与 Agent 协作设计 W09](../engineering/space-analysis-agent-design.md)。
+以上 W09 是当前外部 Agent 与本地 Core 的已实现闭环；内置调查将复用该闭环，首版模型适配和任务服务已接入，剩余验收范围见[实现记录](../engineering/embedded-ai-implementation.md)。完整流程、时序和逐项验收见[空间分析与 Agent 协作设计 W09](../engineering/space-analysis-agent-design.md)。

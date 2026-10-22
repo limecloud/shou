@@ -51,9 +51,19 @@ public enum BuiltinCatalog {
     public static func templates() throws -> [BuiltinTemplate] {
         try catalog.get().map(\.template)
     }
+    /// Source exceptions require the complete bundled definition. Reuse the
+    /// validated catalog instead of parsing its JSON for each candidate.
+    static func trustedTemplates(matching rules: [CleanupRule]) throws -> [BuiltinTemplate] {
+        try catalog.get().compactMap { item in
+            guard let rule=rules.first(where: { $0.id == item.template.id }),
+                  try item.rule.rebindingRootReference(rule.scope.rootRef) == rule else { return nil }
+            return item.template
+        }
+    }
     public static func rules(for workspace: Workspace, homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, platform: String = KnownLocations.currentPlatform) throws -> [CleanupRule] {
         let locations=try KnownLocations.catalog(homeDirectory: homeDirectory, platform: platform)
-        let scopedLocations=Set(locations.filter { $0.path == workspace.path }.map(\.id))
+        let key=KnownLocations.pathKey(workspace.path, platform: platform)
+        let scopedLocations=Set(locations.filter { KnownLocations.pathKey($0.path, platform: platform) == key }.map(\.id))
         return try catalog.get().filter { item in
             let template=item.template
             return template.supportedPlatforms.contains(platform) && (template.location == "projects" ? scopedLocations.isEmpty : scopedLocations.contains(template.location))

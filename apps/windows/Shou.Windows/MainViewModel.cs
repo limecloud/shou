@@ -8,7 +8,10 @@ using Shou.Windows.Services;
 namespace Shou.Windows;
 
 public sealed record WorkspaceRow(string Id, string Path, string RootRef);
-public sealed record RuleRow(string Id, string Version, string Title);
+public sealed record RuleRow(string Id, string Version, string Title, string Location = "projects", string? WorkspaceId = null, string Details = "", bool IsBuiltin = false, bool Available = true)
+{
+    public bool CanToggle => WorkspaceId is not null || (IsBuiltin && Location != "projects" && Available);
+}
 public sealed record RulePreviewRow(string Path, string Size, string Decision);
 public sealed record HistoryItemRow(string Path, string State, string? Error, string? ResultingPath);
 public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, string[] PurgeableIds, HistoryItemRow[] Items)
@@ -39,21 +42,26 @@ public sealed record StorageExtensionRow(string Suffix, string Size, int Files, 
 
 public sealed record CleanupItemResultRow(string Path, string State, string? Error);
 public sealed record CleanupCompletionRow(string Icon, string Title, string SuccessText, string Message, string Processed, string Skipped, string Failed, string NeedsVerification, bool HasIssues, CleanupItemResultRow[] Items);
-public sealed class CandidateRow(string id, string path, long bytes, bool eligible, string description, string scan = "", string workspace = "", string root = "") : ObservableObject
+public sealed class CandidateRow(string id, string path, long bytes, bool eligible, string description, string scan, string workspace, string root,
+    bool incomplete, string category, string group, bool recommended, int files) : ObservableObject
 {
     public string Id { get; } = id;
     public string ScanId { get; } = scan;
     public string WorkspaceId { get; } = workspace;
     public string AbsolutePath { get; } = root.TrimEnd('/', '\\') + "/" + path;
     public string Path { get; } = path;
+    public CleanupChoice Choice { get; } = new(scan + ":" + id, scan, id, workspace, root.TrimEnd('/', '\\') + "/" + path, category, group, bytes);
+    public bool Recommended { get; } = recommended;
+    public int Files { get; } = files;
     public string Size { get; } = MainViewModel.Bytes(bytes);
     public bool Eligible { get; } = eligible;
     public string Description { get; } = description;
+    public bool CanContinue { get; } = incomplete;
     private bool selected;
     public bool IsSelected { get => selected; set => SetProperty(ref selected, value && Eligible); }
 }
 
-public sealed class MainViewModel : ObservableObject
+public sealed partial class MainViewModel : ObservableObject
 {
     private readonly BridgeProcessClient client;
     private readonly WindowsDialogs dialogs;
@@ -63,9 +71,8 @@ public sealed class MainViewModel : ObservableObject
     private JsonObject? configuration;
     private JsonNode? rulePreview;
     private string rulePreviewSummary="", rulePreviewDetails="";
-    private string? scanId, storageScanId;
+    private string? storageScanId;
     private bool standardScan = true;
-    private readonly Queue<(string Scan, int Offset)> pendingPages = new();
     private readonly List<(string Workspace, string Path)> retryTargets = new();
     private readonly Dictionary<string,StorageRow> storageRows = new();
     private readonly List<string> storageRemovedPaths = new();
@@ -75,7 +82,6 @@ public sealed class MainViewModel : ObservableObject
     private static string StoragePreference => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Shou", "space-view.txt");
     private string? storageRoot;
     private JsonNode?[] storageCoverage = [];
-    private int? nextOffset;
     private bool busy, trashAvailable, permanentAvailable;
     private string status = "正在连接清理核心…", exclusionPattern = "", storagePath = ".";
     private WorkspaceRow? selectedWorkspace;
@@ -96,10 +102,11 @@ public sealed class MainViewModel : ObservableObject
         ChooseFolderCommand = new AsyncRelayCommand(ChooseFolderAsync, () => !IsBusy);
         ScanCommand = new AsyncRelayCommand(() => { standardScan = true; return ScanAsync(); }, () => !IsBusy);
         ScanFolderCommand = new AsyncRelayCommand(() => { standardScan = false; return ScanAsync(); }, () => !IsBusy && SelectedWorkspace is not null);
-        SelectAllCommand = new RelayCommand(() => { var select = Candidates.Any(item => item.Eligible && !item.IsSelected); foreach (var item in Candidates) item.IsSelected = select; }, () => !IsBusy && Candidates.Any(item => item.Eligible));
-        MoreCommand = new AsyncRelayCommand(MoreAsync, () => !IsBusy && (nextOffset is not null || pendingPages.Count > 0));
-        CleanCommand = new AsyncRelayCommand(() => CleanAsync("trash"), () => !IsBusy && trashAvailable && Candidates.Any(item => item.IsSelected));
-        PermanentDeleteCommand = new AsyncRelayCommand(() => CleanAsync("permanent"), () => !IsBusy && permanentAvailable && Candidates.Any(item => item.IsSelected));
+        SelectAllCommand = new AsyncRelayCommand(() => SelectCleanupRangeAsync(false), () => !IsBusy && cleanupScanIds.Count > 0);
+        MoreCommand = new AsyncRelayCommand(() => RunAsync(() => LoadCleanupReviewAsync(false)), () => !IsBusy && cleanupNextOffset is not null);
+        ContinueScanCommand = new AsyncRelayCommand<CandidateRow>(row => ContinueScanAsync(row!), row => !IsBusy && row?.CanContinue == true);
+        CleanCommand = new AsyncRelayCommand(() => CleanAsync("trash"), () => !IsBusy && trashAvailable && cleanupSelection.Count > 0);
+        PermanentDeleteCommand = new AsyncRelayCommand(() => CleanAsync("permanent"), () => !IsBusy && permanentAvailable && cleanupSelection.Count > 0);
         AnalyzeCommand = new AsyncRelayCommand(AnalyzeAsync, () => !IsBusy);
         StorageUpCommand = new AsyncRelayCommand(StorageUpAsync, () => !IsBusy && storageScanId is not null && StoragePath != ".");
         RescanStorageCommand = new AsyncRelayCommand(() => RunAsync(() => ScanStorageAsync(CurrentStorageFolder!)), () => !IsBusy && CurrentStorageFolder is not null);
@@ -145,19 +152,23 @@ public sealed class MainViewModel : ObservableObject
         ViewHistoryFromCompletionCommand = new RelayCommand(() => { Completion = null; SelectedSection = 3; _ = LoadHistoryAsync(); }, () => Completion is not null && !IsBusy);
         RetryCleanupCommand = new AsyncRelayCommand(RetryCleanupAsync, () => !IsBusy && CompletionHasIssues);
         ImportRuleCommand = new AsyncRelayCommand(ImportRuleAsync, () => !IsBusy);
-        PreviewRuleCommand = new AsyncRelayCommand(PreviewRuleAsync, () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null && !SelectedRule.Id.StartsWith("shou.builtin.",StringComparison.Ordinal));
+        PreviewRuleCommand = new AsyncRelayCommand(PreviewRuleAsync, () => !IsBusy && SelectedRule is { IsBuiltin: false, WorkspaceId: not null });
         EnableAndScanRuleCommand = new AsyncRelayCommand(EnableAndScanRuleAsync, () => !IsBusy && rulePreview is not null);
         ReviewRulesCommand = new AsyncRelayCommand(() => RunAsync(async () => { await LoadConfigurationAsync(); SelectedSection=2; }), () => !IsBusy);
-        EnableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(true), () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null);
-        DisableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(false), () => !IsBusy && SelectedWorkspace is not null && SelectedRule is not null);
+        EnableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(true), () => !IsBusy && SelectedRule?.CanToggle == true);
+        DisableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(false), () => !IsBusy && SelectedRule?.CanToggle == true);
         AddExclusionCommand = new AsyncRelayCommand(AddExclusionAsync, () => !IsBusy && !string.IsNullOrWhiteSpace(ExclusionPattern));
         RemoveExclusionCommand = new AsyncRelayCommand(RemoveExclusionAsync, () => !IsBusy && SelectedExclusion is not null);
         CancelCommand = new RelayCommand(() => { active?.Cancel(); Status = "正在停止；请等待当前项目写回回执。"; }, () => IsBusy);
         commands = [ChooseFolderCommand, ScanCommand, MoreCommand, CleanCommand, PermanentDeleteCommand, AnalyzeCommand, StorageUpCommand, HistoryCommand, RestoreCommand, PurgeCommand, ImportRuleCommand, EnableRuleCommand, DisableRuleCommand, AddExclusionCommand, RemoveExclusionCommand, CancelCommand, DismissCompletionCommand, ViewHistoryFromCompletionCommand, RetryCleanupCommand];
         commands.Add(ScanFolderCommand); commands.Add(SelectAllCommand);
+        commands.Add(ContinueScanCommand);
         commands.Add(ClearHistoryCommand); commands.Add(RemoveHistoryCommand);
         commands.Add(MoreHistoryCommand); commands.Add(CollectRecordsCommand);
         commands.Add(CopyStorageAnalysisCommand); commands.Add(RemoveStorageCommand); commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
+        InitializeLargeFiles();
+        InitializeAI();
+        InitializeCleanupReview();
         commands.Add(PreviewRuleCommand); commands.Add(EnableAndScanRuleCommand); commands.Add(ReviewRulesCommand);
         PropertyChanged += (_, _) => RefreshCommands();
     }
@@ -190,8 +201,9 @@ public sealed class MainViewModel : ObservableObject
     public IAsyncRelayCommand ChooseFolderCommand { get; }
     public IAsyncRelayCommand ScanCommand { get; }
     public IAsyncRelayCommand ScanFolderCommand { get; }
-    public IRelayCommand SelectAllCommand { get; }
+    public IAsyncRelayCommand SelectAllCommand { get; }
     public IAsyncRelayCommand MoreCommand { get; }
+    public IAsyncRelayCommand<CandidateRow> ContinueScanCommand { get; }
     public IAsyncRelayCommand CleanCommand { get; }
     public IAsyncRelayCommand PermanentDeleteCommand { get; }
     public IAsyncRelayCommand AnalyzeCommand { get; }
@@ -235,9 +247,9 @@ public sealed class MainViewModel : ObservableObject
     public WorkspaceRow? SelectedWorkspace
     {
         get => selectedWorkspace;
-        set { if (SetProperty(ref selectedWorkspace, value)) { Candidates.Clear(); scanId = null; nextOffset = null; LoadRules(); RefreshCommands(); } }
+        set { if (SetProperty(ref selectedWorkspace, value)) { ResetCleanupReview(); LoadRules(); RefreshCommands(); } }
     }
-    public RuleRow? SelectedRule { get => selectedRule; set { if(SetProperty(ref selectedRule, value)) { rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=""; RulePreviewDetails=""; } } }
+    public RuleRow? SelectedRule { get => selectedRule; set { if(SetProperty(ref selectedRule, value)) { rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=value?.Title ?? ""; RulePreviewDetails=value?.Details ?? ""; RefreshCommands(); } } }
     public HistoryRow? SelectedHistory
     {
         get => selectedHistory;
@@ -254,7 +266,7 @@ public sealed class MainViewModel : ObservableObject
             throw new BridgeException("incompatible_engine", "请选择与 Windows 客户端匹配的 Shou 清理核心。");
         trashAvailable = capabilities["features"]?["trash"]?.GetValue<bool>() == true;
         permanentAvailable = capabilities["features"]?["permanent"]?.GetValue<bool>() == true;
-        await LoadConfigurationAsync(); await LoadHistoryAsync();
+        await LoadConfigurationAsync(); await LoadHistoryAsync(); await LoadAIAsync(capabilities);
         Status = "一键扫描常用缓存和开发项目，也可以选择自定义目录。";
     });
     private async Task RunAsync(Func<Task> action, bool cleanup = false)
@@ -308,13 +320,13 @@ public sealed class MainViewModel : ObservableObject
         var revision=configuration?["configuration"]?["revision"]?.GetValue<string>();
         await LoadConfigurationAsync();
         if(revision is not null && revision != configuration?["configuration"]?["revision"]?.GetValue<string>()) {
-            Candidates.Clear(); scanId=null; nextOffset=null; pendingPages.Clear();
+            ResetCleanupReview();
             Status="外部规则或配置已更新。到“规则与排除”逐条预览，再启用并扫描所选规则。";
         }
     });
     private Task PreviewRuleAsync() => RunAsync(async () => {
         rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=""; RulePreviewDetails="";
-        var result=await client.RequestAsync("rules.preview",new() { ["workspace_id"]=SelectedWorkspace!.Id,["rule_id"]=SelectedRule!.Id,["version"]=SelectedRule.Version },Progress(),cancellation:Token);
+        var result=await client.RequestAsync("rules.preview",new() { ["workspace_id"]=SelectedRule!.WorkspaceId,["rule_id"]=SelectedRule.Id,["version"]=SelectedRule.Version },Progress(),cancellation:Token);
         rulePreview=result;
         RulePreviewSummary=$"{SelectedRule.Title} · 新增可清理估计 {Bytes(result["benefits"]?["additional_allocated_bytes_estimate"]?.GetValue<long>() ?? 0)}";
         RulePreviewDetails=Text(result["rule"],"description")+"\n"+Text(result["rule"]?["risk"],"rebuild_note")+"\n"+string.Join("；",Array(result["rule"]?["risk"]?["limitations"]).Select(value=>value?.GetValue<string>()))+"\n保留条件："+string.Join("、",Array(result["rule"]?["exclude"]?["relative_patterns"]).Select(value=>value?.GetValue<string>()));
@@ -327,33 +339,46 @@ public sealed class MainViewModel : ObservableObject
         if(Text(current["configuration"],"revision") != Text(preview,"configuration_revision")) throw new InvalidOperationException("配置已更新，请重新预览此规则。");
         var id=Text(preview["rule"],"id");
         var version=Text(preview["rule"],"version");
-        var workspace=SelectedWorkspace!.Id;
+        var workspace=SelectedRule!.WorkspaceId;
         await client.RequestAsync("rules.set",new() { ["workspace_id"]=workspace,["rule_id"]=id,["version"]=version,["enabled"]=true },cancellation:Token);
-        Candidates.Clear(); nextOffset=null; pendingPages.Clear();
+        ResetCleanupReview();
         var result=await client.RequestAsync("scan",new() { ["workspace_id"]=workspace,["rule_ids"]=Strings([id]) },Progress(),cancellation:Token);
-        scanId=Text(result,"scan_id"); AddCandidates(result);
-        foreach(var row in Candidates.Where(row=>row.Eligible)) row.IsSelected=true;
         await LoadConfigurationAsync(); SelectedSection=0;
+        RememberCleanupScan(result);
+        await LoadCleanupReviewAsync(true);
+        await SetCleanupChoicesAsync(await FetchCleanupSourcesAsync(), true);
         Status="仅所选规则已启用并重新扫描。可调整文件选择，再确认永久删除或移入回收站。";
     });
     private void LoadRules()
     {
         Rules.Clear(); SelectedRule = null;
-        if (configuration is null || SelectedWorkspace is null) return;
+        if (configuration is null) return;
         var bindings = Array(configuration["configuration"]?["bindings"]);
+        var locations = Array(configuration["locations"]);
         foreach (var item in Array(configuration["templates"]).Concat(Array(configuration["configuration"]?["rules"]).Select(item => item?["rule"])))
         {
             if (item is null) continue;
-            if (item["location"] is JsonValue location && location.GetValue<string>() != "projects") continue;
-            if (item["scope"] is JsonObject scope && Text(scope, "root_ref") != SelectedWorkspace.RootRef) continue;
             if (item["platforms"] is JsonArray platforms && !platforms.Any(value => value?.GetValue<string>() == "windows")) continue;
             var id = Text(item, "id"); var version = item["version"]?.GetValue<string>() ?? "1.0.0";
             var builtin = id.StartsWith("shou.builtin.", StringComparison.Ordinal);
-            var binding = bindings.FirstOrDefault(value => Text(value, "rule_id") == id && Text(value, "workspace_id") == SelectedWorkspace.Id && (builtin || Text(value, "version") == version));
+            var location = Text(item, "location");
+            var knownLocation = locations.FirstOrDefault(value => Text(value,"id") == location);
+            WorkspaceRow? workspace;
+            if(builtin && location != "projects") workspace=Workspaces.FirstOrDefault(value => SamePath(value.Path,Text(knownLocation,"path")));
+            else if(builtin) workspace=SelectedWorkspace is { } selected && !locations.Any(value=>SamePath(selected.Path,Text(value,"path"))) ? selected : null;
+            else workspace=Workspaces.FirstOrDefault(value => value.RootRef==Text(item["scope"],"root_ref"));
+            if(!builtin && SelectedWorkspace is not null && workspace?.Id != SelectedWorkspace.Id) continue;
+            var binding = bindings.FirstOrDefault(value => Text(value, "rule_id") == id && Text(value, "workspace_id") == workspace?.Id && (builtin || Text(value, "version") == version));
             var enabled = binding?["enabled"]?.GetValue<bool>() ?? builtin;
-            Rules.Add(new(id, version, $"{Text(item, "name")} · {version} · {(enabled ? "已启用" : "已停用 / 草稿")}"));
+            var available = location == "projects" || !builtin || knownLocation?["exists"]?.GetValue<bool>() == true;
+            var scopeLabel = builtin ? location == "projects" ? workspace is null ? "选择项目目录后配置" : "项目内置" : "缓存内置" : "个人规则";
+            var state = !available ? "位置不存在或不可访问" : enabled ? "已启用" : "已停用 / 草稿";
+            var patterns = string.Join("\n",Array(item["patterns"] ?? item["match"]?["relative_patterns"]).Select(value=>value?.GetValue<string>()));
+            var details = (builtin ? Text(item,"rebuild_note") : Text(item,"description"))+"\n"+(builtin ? Text(item,"limitation") : "个人规则默认停用；预览并审阅后启用。")+"\n\n匹配目录：\n"+patterns;
+            Rules.Add(new(id, version, $"{Text(item, "name")} · {scopeLabel} · {state}", location, workspace?.Id, details, builtin, available));
         }
     }
+    private static bool SamePath(string first,string second) => first.Replace('\\','/').TrimEnd('/').Equals(second.Replace('\\','/').TrimEnd('/'),StringComparison.OrdinalIgnoreCase);
     private async Task ChooseFolderAsync()
     {
         var folder = dialogs.ChooseFolder(); if (folder is null) return;
@@ -368,7 +393,7 @@ public sealed class MainViewModel : ObservableObject
     }
     private Task ScanAsync() => RunAsync(async () =>
     {
-        Candidates.Clear(); nextOffset = null; pendingPages.Clear();
+        ResetCleanupReview();
         if (standardScan)
         {
             var batch = await client.RequestAsync("system.scan", progress: Progress(), cancellation: Token);
@@ -376,48 +401,42 @@ public sealed class MainViewModel : ObservableObject
             foreach (var page in Array(batch["scans"]))
             {
                 if (page is null) continue;
-                AddCandidates(page);
-                if (page["next_offset"]?.GetValue<int>() is { } offset) pendingPages.Enqueue((Text(page, "scan_id"), offset));
+                RememberCleanupScan(page);
             }
-            nextOffset = null;
+            if (cleanupScanIds.Count > 0) await LoadCleanupReviewAsync(true);
             Status = $"标准扫描{(Text(batch, "status") == "complete" ? "完成" : "部分完成")}，已发现 {Candidates.Count} 个清理项目。";
             if (Array(batch["issues"]).Length > 0) Status += " 部分目录未完成；已验证的项目可继续清理。";
             return;
         }
         var result = await client.RequestAsync("scan", new() { ["workspace_id"] = SelectedWorkspace!.Id }, Progress(), cancellation: Token);
-        scanId = Text(result, "scan_id"); AddCandidates(result);
+        RememberCleanupScan(result);
+        await LoadCleanupReviewAsync(true);
     });
-    private Task MoreAsync() => RunAsync(async () => {
-        if (pendingPages.TryDequeue(out var page)) {
-            var result = await client.RequestAsync("scan.results", new() { ["scan_id"] = page.Scan, ["offset"] = page.Offset }, cancellation: Token);
-            AddCandidates(result);
-            if (nextOffset is { } offset) pendingPages.Enqueue((page.Scan, offset));
-            nextOffset = null;
-        } else AddCandidates(await client.RequestAsync("scan.results", new() { ["scan_id"] = scanId, ["offset"] = nextOffset }, cancellation: Token));
-    });
-    private void AddCandidates(JsonNode result)
+    private Task ContinueScanAsync(CandidateRow row) => RunAsync(async () =>
     {
-        foreach (var item in Array(result["candidates"]))
-        {
-            var reasons = string.Join("、", Array(item?["reasons"]).Select(value => value?.GetValue<string>()));
-            var row = new CandidateRow(Text(item, "id"), Text(item, "relative_path"), item?["allocated_bytes_estimate"]?.GetValue<long>() ?? 0, item?["eligible"]?.GetValue<bool>() == true, Text(result, "root_ref").Replace("shou-location-", "") + " · " + Text(item, "risk") + (reasons.Length == 0 ? "" : " · " + reasons), Text(result, "scan_id"), Text(result, "workspace_id"), Text(result, "root_path"));
-            row.PropertyChanged += (_, _) => RefreshCommands(); Candidates.Add(row);
-        }
-        nextOffset = result["next_offset"]?.GetValue<int>();
-        Status = $"扫描{(Text(result, "status") == "complete" ? "完成" : "仅完成部分范围")}，显示 {Candidates.Count} / {result["total_count"]} 个规则命中。";
-        if (Array(result["issues"]).Length > 0) Status += " " + string.Join("；", Array(result["issues"]).Take(3).Select(value => value?.GetValue<string>()));
+        var result=await client.RequestAsync("scan.target",new() { ["scan_id"]=row.ScanId,["candidate_id"]=row.Id },Progress(),cancellation:Token);
+        var updated=Array(result["candidates"]).SingleOrDefault(item=>Text(item,"relative_path")==row.Path)
+            ?? throw new BridgeException("invalid_protocol","补扫结果缺少所选目录；请重新扫描。");
+        RememberCleanupScan(result);
+        var previous=cleanupRefinements.OfType<JsonObject>().FirstOrDefault(value=>Text(value,"scan_id")==row.ScanId);
+        if (previous is not null) {
+            previous["scan_id"]=Text(result,"scan_id"); cleanupScanIds.Remove(row.ScanId);
+        } else cleanupRefinements.Add(new JsonObject { ["original_scan_id"]=row.ScanId,["candidate_id"]=row.Id,["scan_id"]=Text(result,"scan_id") });
+        cleanupSelection.RemoveWhere(choice => choice.AbsolutePath.Equals(row.AbsolutePath,StringComparison.OrdinalIgnoreCase) || choice.AbsolutePath.StartsWith(row.AbsolutePath+"/",StringComparison.OrdinalIgnoreCase));
+        await LoadCleanupReviewAsync(true, rebuildGroups:true);
+        Status=Array(updated["reasons"]).Any(value=>value?.GetValue<string>()=="incomplete_scan") ? "此目录仍未完整测量，可再次继续扫描。" : updated["eligible"]?.GetValue<bool>()==true ? "所选目录测量完成，可以勾选后清理。" : "所选目录测量完成，请查看保护条件。";
         RefreshCommands();
-    }
+    });
     private Task CleanAsync(string action) => RunAsync(async () =>
     {
-        var chosen = Candidates.Where(item => item.IsSelected && item.Eligible).ToArray();
+        var chosen = cleanupSelection.Items.ToArray();
         var selected = chosen.GroupBy(item => item.ScanId);
-        var selections = new JsonArray(selected.Select(group => (JsonNode?)new JsonObject { ["scan_id"] = group.Key, ["candidate_ids"] = Strings(group.Select(item => item.Id)) }).ToArray());
+        var selections = new JsonArray(selected.Select(group => (JsonNode?)new JsonObject { ["scan_id"] = group.Key, ["candidate_ids"] = Strings(group.Select(item => item.CandidateId)) }).ToArray());
         var receipt = await client.RequestAsync("system.clean", new() { ["selections"] = selections, ["action"] = action }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
         var successful = Array(receipt["items"]).Where(item => Text(item, "state") is "purged" or "trashed").Select(item => Text(item, "path").Replace('\\', '/')).ToHashSet(StringComparer.OrdinalIgnoreCase);
         retryTargets.Clear();
         retryTargets.AddRange(chosen.Where(item => !successful.Contains(item.AbsolutePath.Replace('\\', '/'))).Select(item => (item.WorkspaceId, item.AbsolutePath)));
-        Candidates.Clear(); scanId = null; nextOffset = null; pendingPages.Clear();
+        ResetCleanupReview();
         Completion = BuildCompletion(receipt, action);
         Status = "清理结果：" + Text(receipt, "state") + (action == "permanent" ? "。永久删除无法恢复，可在历史中查看逐项结果。" : "。可在历史中查看或恢复。移入回收站不会立即释放磁盘空间。");
         if (!Token.IsCancellationRequested) await LoadHistoryAsync();
@@ -465,37 +484,37 @@ public sealed class MainViewModel : ObservableObject
     }
     private Task SetRuleAsync(bool enabled) => RunAsync(async () =>
     {
-        await client.RequestAsync("rules.set", new() { ["workspace_id"] = SelectedWorkspace!.Id, ["rule_id"] = SelectedRule!.Id, ["version"] = SelectedRule.Version, ["enabled"] = enabled }, cancellation: Token);
-        Candidates.Clear(); scanId = null; nextOffset = null; await LoadConfigurationAsync(); Status = "规则设置已保存，请重新扫描。";
+        var rule=SelectedRule ?? throw new InvalidOperationException("请选择规则。");
+        if(rule.IsBuiltin && rule.Location != "projects" && rule.WorkspaceId is null)
+            await client.RequestAsync("rules.location-set",new() { ["location_id"]=rule.Location,["rule_id"]=rule.Id,["enabled"]=enabled },cancellation:Token);
+        else
+            await client.RequestAsync("rules.set", new() { ["workspace_id"] = rule.WorkspaceId, ["rule_id"] = rule.Id, ["version"] = rule.Version, ["enabled"] = enabled }, cancellation: Token);
+        ResetCleanupReview(); await LoadConfigurationAsync(); Status = "规则设置已保存，请重新扫描。";
     });
     private Task AddExclusionAsync() => RunAsync(async () =>
     {
         await client.RequestAsync("exclusions.set", new() { ["pattern"] = ExclusionPattern, ["remove"] = false }, cancellation: Token);
-        Candidates.Clear(); scanId = null; nextOffset = null; await LoadConfigurationAsync(); Status = "全局排除已保存，请重新扫描。";
+        ResetCleanupReview(); await LoadConfigurationAsync(); Status = "全局排除已保存，请重新扫描。";
     });
     private Task RemoveExclusionAsync() => RunAsync(async () =>
     {
         await client.RequestAsync("exclusions.set", new() { ["pattern"] = SelectedExclusion, ["remove"] = true }, cancellation: Token);
-        Candidates.Clear(); scanId = null; nextOffset = null; await LoadConfigurationAsync(); Status = "全局排除已移除，请重新扫描。";
+        ResetCleanupReview(); await LoadConfigurationAsync(); Status = "全局排除已移除，请重新扫描。";
     });
     private Task RetryCleanupAsync()
     {
         Completion = null;
-        Candidates.Clear(); scanId = null; nextOffset = null; pendingPages.Clear();
+        ResetCleanupReview();
         if (retryTargets.Count == 0) return ScanAsync();
         var affected = retryTargets.ToArray();
         return RunAsync(async () => {
             foreach (var group in affected.GroupBy(item => item.Workspace)) {
                 var page = await client.RequestAsync("scan", new() { ["workspace_id"] = group.Key }, Progress(), cancellation: Token);
-                AddCandidates(page);
-                var currentScan = Text(page, "scan_id");
-                while (nextOffset is { } offset) {
-                    page = await client.RequestAsync("scan.results", new() { ["scan_id"] = currentScan, ["offset"] = offset }, cancellation: Token);
-                    AddCandidates(page);
-                }
+                RememberCleanupScan(page);
             }
+            await LoadCleanupReviewAsync(true);
             var paths = affected.Select(item => item.Path.Replace('\\', '/')).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            foreach (var row in Candidates) row.IsSelected = row.Eligible && paths.Contains(row.AbsolutePath.Replace('\\', '/'));
+            await SetCleanupChoicesAsync((await FetchCleanupSourcesAsync()).Where(row => paths.Contains(row.AbsolutePath.Replace('\\', '/'))), true);
             Status = "已刷新未完成的清理范围；成功项目保持完成，请检查选择后继续。";
         });
     }

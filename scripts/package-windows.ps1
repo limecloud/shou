@@ -65,7 +65,7 @@ if ($RuntimeLicenseDirectory) {
 Shou $version for Windows 11 x64. Extract the entire ZIP, then start Shou.exe.
 .NET and the resolved Swift/VC runtime dependencies are bundled. Windows 11 supplies winsqlite3.
 Recycle Bin and restoration are disabled by default; permanent removal is enabled with explicit scope confirmation and cannot be undone.
-AppData standard cache roots remain protected and unavailable. The interface is Simplified Chinese.
+Only bundled AppData cache roots can be registered; changes stay inside their declared cache subtrees. Profiles and other AppData locations remain protected. The interface is Simplified Chinese.
 This portable application is unsigned, with no installer or automatic Windows update. It runs without administrator access.
 Keep the Engine directory and resource bundles beside the application. See Licenses for bundled runtime notices.
 "@ | Set-Content -LiteralPath (Join-Path $output "READ-FIRST.txt") -Encoding utf8

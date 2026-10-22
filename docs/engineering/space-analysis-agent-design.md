@@ -10,7 +10,7 @@ Space Analysis offers switchable Simple and Detailed views. First use defaults t
 
 In local interaction, clicking a large tile expanded the tree to a Colima `datadisk` file displaying approximately **107.4 GB** logical and **52.8 GB** allocated. Zoom Treemap focused its parent. The map quickly identifies a large area; the agent then investigates its owner tool and cleanable contents before authoring a rule. These are displayed measurements, not independently verified accounting.
 
-Visual discovery complements structured evidence from the same scan. Shou integrates no model, builds no agent and uploads no files automatically. Existing Smart Cleanup retains scan, Clean Recommended and appropriate confirmation; discovery does not require users to process daily cleanup directory by directory.
+Visual discovery complements structured evidence from the same scan. The current Copy for AI action only writes to the local clipboard. Next-stage built-in cleanup AI will reuse the same scan, rule previews and confirmed execution; see [integration design](embedded-ai-investigation.md). Existing Smart Cleanup retains scan, Clean Recommended and appropriate confirmation; discovery does not require users to process daily cleanup directory by directory.
 
 ## Evidence and boundaries
 

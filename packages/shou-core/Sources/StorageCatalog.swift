@@ -35,6 +35,7 @@ public final class StorageCatalog {
     private var hardLink: OpaquePointer?
     private var parentLookup: OpaquePointer?
     private let writable: Bool
+    private var schemaVersion: Int32 = 2
     private var cachedParent: (path: String, id: Int64)?
     private let transient=unsafeBitCast(-1, to: sqlite3_destructor_type.self)
     public init(url: URL, create: Bool = false) throws {
@@ -48,26 +49,31 @@ public final class StorageCatalog {
         do {
             try execute("PRAGMA trusted_schema=OFF; PRAGMA cache_size=-8192; PRAGMA mmap_size=0;")
             if create {
+                #if !os(Windows)
                 try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+                #endif
                 // A killed scan is never published. The final transaction and
                 // metadata are durable before the engine publishes its record.
-                try execute("PRAGMA journal_mode=OFF; PRAGMA synchronous=FULL; PRAGMA page_size=4096; PRAGMA max_page_count=1048576; PRAGMA user_version=1;")
+                try execute("PRAGMA journal_mode=OFF; PRAGMA synchronous=FULL; PRAGMA page_size=4096; PRAGMA max_page_count=1048576; PRAGMA user_version=2;")
                 // Full paths are stored once per directory. File rows keep only
                 // their name and parent ID, avoiding gigabytes of repeated prefixes.
-                try execute("CREATE TABLE entries(id INTEGER PRIMARY KEY,path TEXT,parent INTEGER NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,device INTEGER,inode INTEGER,logical INTEGER,allocated INTEGER,modified INTEGER,changed INTEGER,mode INTEGER,owner INTEGER,links INTEGER,total_logical INTEGER,total_allocated INTEGER,files INTEGER,newest INTEGER,complete INTEGER); CREATE UNIQUE INDEX directories ON entries(path) WHERE path IS NOT NULL;")
+                try execute("CREATE TABLE entries(id INTEGER PRIMARY KEY,path TEXT,parent INTEGER NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,device INTEGER,inode INTEGER,logical INTEGER,allocated INTEGER,modified INTEGER,changed INTEGER,mode INTEGER,owner INTEGER,links INTEGER,total_logical INTEGER,total_allocated INTEGER,files INTEGER,newest INTEGER,complete INTEGER,windows_volume INTEGER,windows_file_id TEXT,windows_owner_sid TEXT); CREATE UNIQUE INDEX directories ON entries(path) WHERE path IS NOT NULL;")
                 // Index only substantial files. Tiny build/cache entries dominate
                 // disk inventories; they should not be revisited on every page.
                 try execute("CREATE INDEX large_files ON entries(total_allocated DESC,name,parent) WHERE kind='file' AND total_allocated>=1048576;")
-                try execute("CREATE TABLE hard_links(device INTEGER, inode INTEGER, PRIMARY KEY(device,inode)) WITHOUT ROWID; BEGIN IMMEDIATE;")
-                insert=try prepare("INSERT INTO entries(path,parent,name,kind,device,inode,logical,allocated,modified,changed,mode,owner,links,total_logical,total_allocated,files,newest,complete) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
+                try execute("CREATE INDEX measurement_directories ON entries(parent,name) WHERE kind='directory';")
+                try execute("CREATE TABLE hard_links(identity TEXT PRIMARY KEY) WITHOUT ROWID; BEGIN IMMEDIATE;")
+                insert=try prepare("INSERT INTO entries(path,parent,name,kind,device,inode,logical,allocated,modified,changed,mode,owner,links,total_logical,total_allocated,files,newest,complete,windows_volume,windows_file_id,windows_owner_sid) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
                 update=try prepare("UPDATE entries SET total_logical=?,total_allocated=?,files=?,newest=?,complete=? WHERE id=?")
-                hardLink=try prepare("INSERT OR IGNORE INTO hard_links VALUES(?,?)")
+                hardLink=try prepare("INSERT OR IGNORE INTO hard_links VALUES(?)")
                 parentLookup=try prepare("SELECT id FROM entries WHERE path=?")
             } else {
                 try execute("PRAGMA query_only=ON;")
                 let version=try prepare("PRAGMA user_version")
                 defer { sqlite3_finalize(version) }
-                guard sqlite3_step(version) == SQLITE_ROW, sqlite3_column_int(version, 0) == 1 else { throw Self.failure() }
+                guard sqlite3_step(version) == SQLITE_ROW else { throw Self.failure() }
+                schemaVersion=sqlite3_column_int(version, 0)
+                guard [1, 2].contains(schemaVersion) else { throw Self.failure() }
             }
         } catch { close(); throw error }
     }
@@ -120,9 +126,10 @@ public final class StorageCatalog {
     /// splitting every full path and resolving its parent through SQLite.
     public func append(_ entry: FileEntry, name: String, parentID: Int64, complete: Bool? = nil) throws -> (id: Int64, node: StorageNode) {
         guard writable, let insert else { throw Self.failure() }
+        if let identity=entry.windowsIdentity { try Self.validate(identity) }
         var charged=entry.kind != "symlink" && entry.kind != "special"
         if charged && entry.kind == "file" && entry.links > 1, let hardLink {
-            try bind([Int64(bitPattern: entry.device), Int64(bitPattern: entry.inode)], startingAt: 1, to: hardLink)
+            try bind(entry.objectIdentityKey, 1, to: hardLink)
             try finish(hardLink)
             charged=sqlite3_changes(database) == 1
         }
@@ -138,6 +145,13 @@ public final class StorageCatalog {
         try bind([Int64(bitPattern: entry.device), Int64(bitPattern: entry.inode), entry.logicalBytes, entry.allocatedBytes,
                   entry.modifiedNanoseconds, entry.changedNanoseconds, Int64(entry.mode), Int64(entry.owner), Int64(bitPattern: entry.links),
                   node.logicalBytes, node.allocatedBytes, Int64(node.fileCount), node.newestModifiedNanoseconds, node.isComplete == true ? 1 : 0], startingAt: 5, to: insert)
+        if let identity=entry.windowsIdentity {
+            try bind([Int64(bitPattern: identity.volume)], startingAt: 19, to: insert)
+            try bind(identity.fileId, 20, to: insert)
+            try bind(identity.ownerSid, 21, to: insert)
+        } else {
+            for column: Int32 in 19...21 { sqlite3_bind_null(insert, column) }
+        }
         try finish(insert)
         return (sqlite3_last_insert_rowid(database), node)
     }
@@ -155,7 +169,7 @@ public final class StorageCatalog {
     }
     public func seal(progress: (Int, Int) -> Void, checkpoint: () throws -> Void = {}) throws {
         try checkpoint()
-        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name); CREATE INDEX child_sizes ON entries(parent,total_allocated DESC,name);", "DROP TABLE hard_links;", "PRAGMA optimize;"]
+        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name); CREATE INDEX child_sizes ON entries(parent,total_allocated DESC,name);", "DROP TABLE hard_links; DROP INDEX measurement_directories;", "PRAGMA optimize;"]
         progress(0, steps.count)
         try withoutActuallyEscaping(checkpoint) { callback in
             let context=CatalogCheckpoint(callback)
@@ -180,7 +194,13 @@ public final class StorageCatalog {
     }
     private static let pathColumn="COALESCE(e.path,CASE WHEN d.path='.' THEN e.name ELSE d.path||'/'||e.name END)"
     private static let columns=pathColumn + ",e.kind,e.device,e.inode,e.logical,e.allocated,e.modified,e.changed,e.mode,e.owner,e.links,e.total_logical,e.total_allocated,e.files,e.newest,e.complete"
+    private var columns: String { Self.columns + (schemaVersion == 2 ? ",e.windows_volume,e.windows_file_id,e.windows_owner_sid" : ",NULL,NULL,NULL") }
     private static let source=" FROM entries e LEFT JOIN entries d ON d.id=e.parent "
+    private static func validate(_ identity: WindowsFileIdentity) throws {
+        guard identity.fileId.range(of: "^[0-9a-f]{32}$", options: .regularExpression) != nil,
+              identity.ownerSid.utf8.count < 192,
+              identity.ownerSid.range(of: "^S-1-[0-9]+(-[0-9]+)+$", options: .regularExpression) != nil else { throw failure() }
+    }
     private func item(_ statement: OpaquePointer) throws -> StorageCatalogItem {
         guard let pathBytes=sqlite3_column_text(statement, 0), let kindBytes=sqlite3_column_text(statement, 1) else { throw Self.failure() }
         let path=String(cString: pathBytes), kind=String(cString: kindBytes)
@@ -188,15 +208,21 @@ public final class StorageCatalog {
         func integer(_ index: Int32) -> Int64 { sqlite3_column_int64(statement, index) }
         guard (4...5).allSatisfy({ integer(Int32($0)) >= 0 }), (11...13).allSatisfy({ integer(Int32($0)) >= 0 }),
               (0...Int64(UInt32.max)).contains(integer(8)), (0...Int64(UInt32.max)).contains(integer(9)) else { throw Self.failure() }
-        let entry=FileEntry(path: path, kind: kind, device: UInt64(bitPattern: integer(2)), inode: UInt64(bitPattern: integer(3)),
+        var entry=FileEntry(path: path, kind: kind, device: UInt64(bitPattern: integer(2)), inode: UInt64(bitPattern: integer(3)),
             logicalBytes: integer(4), allocatedBytes: integer(5), modifiedNanoseconds: integer(6), changedNanoseconds: integer(7),
             mode: UInt32(integer(8)), owner: UInt32(integer(9)), links: UInt64(bitPattern: integer(10)))
+        let windowsColumns=(16...18).map { sqlite3_column_type(statement, Int32($0)) != SQLITE_NULL }
+        if windowsColumns.contains(true) {
+            guard windowsColumns.allSatisfy({ $0 }), let fileID=sqlite3_column_text(statement, 17), let sid=sqlite3_column_text(statement, 18) else { throw Self.failure() }
+            let identity=WindowsFileIdentity(volume: UInt64(bitPattern: integer(16)), fileId: String(cString: fileID), ownerSid: String(cString: sid))
+            try Self.validate(identity); entry.windowsIdentity=identity
+        }
         var node=StorageNode(path: path, kind: kind, logicalBytes: integer(11), allocatedBytes: integer(12), fileCount: Int(integer(13)), newestModifiedNanoseconds: integer(14))
         node.isComplete=integer(15) == 1
         return StorageCatalogItem(entry: entry, node: node)
     }
     public func entry(at path: String) throws -> StorageCatalogItem? {
-        let statement=try prepare("SELECT " + Self.columns + Self.source + "WHERE e.path=? OR (e.parent=(SELECT id FROM entries WHERE path=?) AND e.name=?)")
+        let statement=try prepare("SELECT " + columns + Self.source + "WHERE e.path=? OR (e.parent=(SELECT id FROM entries WHERE path=?) AND e.name=?)")
         defer { sqlite3_finalize(statement) }
         try bind(path, 1, to: statement)
         try bind(StorageIndex.parent(path), 2, to: statement)
@@ -206,8 +232,31 @@ public final class StorageCatalog {
         guard status == SQLITE_ROW else { throw Self.failure() }
         return try item(statement)
     }
+    /// Immediate directories have already been discovered. Page by immutable
+    /// names so descendant inserts and aggregate updates cannot shift offsets.
+    public func forEachChildDirectory(parentID: Int64, _ consume: (Int64, StorageCatalogItem) throws -> Void) throws {
+        guard writable else { throw Self.failure() }
+        var after=""
+        while true {
+            var rows=[(Int64, StorageCatalogItem)]()
+            do {
+                let statement=try prepare("SELECT " + columns + ",e.id" + Self.source + "WHERE e.parent=? AND e.kind='directory' AND e.name>? ORDER BY e.name LIMIT 256")
+                defer { sqlite3_finalize(statement) }
+                try bind([parentID], startingAt: 1, to: statement); try bind(after, 2, to: statement)
+                while true {
+                    let status=sqlite3_step(statement)
+                    if status == SQLITE_DONE { break }
+                    guard status == SQLITE_ROW else { throw Self.failure() }
+                    rows.append((sqlite3_column_int64(statement, 19), try item(statement)))
+                }
+            }
+            guard !rows.isEmpty else { return }
+            for (id, row) in rows { try consume(id, row) }
+            after=rows.last!.1.node.name
+        }
+    }
     public func children(of path: String) throws -> [StorageCatalogItem] {
-        let statement=try prepare("SELECT " + Self.columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name")
+        let statement=try prepare("SELECT " + columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name")
         defer { sqlite3_finalize(statement) }
         try bind(path, 1, to: statement)
         var result=[StorageCatalogItem]()
@@ -239,7 +288,7 @@ public final class StorageCatalog {
         guard sqlite3_step(count) == SQLITE_ROW else { throw Self.failure() }
         let total=Int(sqlite3_column_int64(count, 0))
         guard offset <= total else { throw ShouError("invalid_argument", "Invalid directory offset.") }
-        let statement=try prepare("SELECT " + Self.columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name LIMIT ? OFFSET ?")
+        let statement=try prepare("SELECT " + columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name LIMIT ? OFFSET ?")
         defer { sqlite3_finalize(statement) }
         try bind(path, 1, to: statement); try bind([Int64(limit), Int64(offset)], startingAt: 2, to: statement)
         var rows=[StorageCatalogItem]()
@@ -385,7 +434,7 @@ public final class StorageCatalog {
             let count=sqlite3_column_int64(totals, 0), allocated=sqlite3_column_int64(totals, 1)
             guard count >= 0, count <= Int64(Int.max), allocated >= 0 else { throw Self.failure() }
             let after=" AND (?3 IS NULL OR e.total_allocated<?3 OR (e.total_allocated=?3 AND " + Self.pathColumn + " COLLATE BINARY>?4 COLLATE BINARY))"
-            let statement=try prepare("SELECT " + Self.columns + Self.source + condition + after +
+            let statement=try prepare("SELECT " + columns + Self.source + condition + after +
                 " ORDER BY e.total_allocated DESC," + Self.pathColumn + " COLLATE BINARY ASC LIMIT ?5")
             defer { sqlite3_finalize(statement) }
             try bind([query.minimumBytes], startingAt: 1, to: statement)
@@ -411,7 +460,7 @@ public final class StorageCatalog {
     public func forEachEntry(under path: String = ".", _ body: (FileEntry) throws -> Void) throws {
         if path != ".", let item=try entry(at: path), item.entry.kind != "directory" { try body(item.entry); return }
         let condition=path == "." ? "" : "WHERE e.path=? OR e.parent IN (SELECT id FROM entries WHERE path=? OR (path>=? AND path<?))"
-        let statement=try prepare("SELECT " + Self.columns + Self.source + condition)
+        let statement=try prepare("SELECT " + columns + Self.source + condition)
         defer { sqlite3_finalize(statement) }
         if path != "." {
             try bind(path, 1, to: statement); try bind(path, 2, to: statement)

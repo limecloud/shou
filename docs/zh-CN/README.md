@@ -2,13 +2,13 @@
 
 [English](../README.md) | 简体中文
 
-本文档集建立 Shou 的产品、设计与工程基线：**让现有 AI Agent 通过必要问询，把用户的清理需求变成可审阅、可复用的规则，Shou 在本地完成验证与执行。** 用户无需手写规则。
+本文档集建立 Shou 的产品、设计与工程基线：**通过 AI 调查主要占用，把用户的清理需求变成可审阅、可复用的规则，Shou 在本地完成确定性验证与执行。** 当前工作区已有内置调查首版，外部 Agent 和 CLI／Skill 继续可用；下一轮优先完善 AI 开关、Jev 优先路由和原生交互。
 
 ## 状态与约定
 
-- 更新日期：2026-10-21。
+- 更新日期：2026-10-22。
 - 当前状态：开发阶段，已提供原生应用、规则引擎与 CLI 源码，尚未完成完整发布验收。
-- macOS 使用 Swift 原生界面，Windows 使用 C#/WPF 原生界面；CLI 与桌面双入口、monorepo，以及不接入模型、不开发 Agent 是已确认约束。Windows 当前为开发实现，原生验收待完成。
+- macOS 使用 Swift 原生界面，Windows 使用 C#/WPF 原生界面；CLI 与桌面双入口、monorepo 和共享确定性 Core 是已确认约束。内置 AI 首版已接入 SDK 和指定真实服务，总开关、Jev 优先路由及多页面体验尚待实施；Windows 原生验收单独跟踪。
 - macOS 14+、模块拆分、规则字段、命令名和里程碑是首版设计基线，允许通过记录决策调整。
 - 所有性能、兼容性与安全指标均为验收目标，不能作为已完成能力对外宣传。
 - 文档中的示例项目与路径均为虚构。
@@ -32,17 +32,20 @@
 | 本地构建与验证 | [开发指南](engineering/development.md) |
 | 理解扫描性能 | [空间扫描性能与并发](engineering/storage-scan-performance.md) |
 | 设计外部 Agent 的空间发现体验 | [空间分析与 Agent 协作设计](engineering/space-analysis-agent-design.md) |
+| 设计 AI 用户体验 | [用户故事、用例与开关／界面合同](product/embedded-ai.md) → [架构、路由、流程与时序](architecture/embedded-ai.md) → [验收矩阵](engineering/embedded-ai-acceptance.md) |
+| 核对 AI 实施状态 | [首版实现与真实服务证据](engineering/embedded-ai-implementation.md) → [接入调研及协议设计](engineering/embedded-ai-investigation.md) |
+| 选择清理专用 Agent Core | [同类软件、Swift SDK 对比与原型验收](engineering/agent-core-selection.md)（保留选型证据，当前使用 Swift AI SDK） |
 | 实现 Windows 原生客户端 | [Windows 技术栈、实现与验收](engineering/windows.md) |
 
 ## 下一版本
 
-[0.9.0 交付计划与进度](engineering/next-version-0.9.0.md)逐项记录实现、验证与剩余交付门槛。
+内置清理专用 AI 按[实施计划 AI01–AI10](engineering/implementation-plan.md)推进，其中 AI07–AI10 覆盖总开关、Jev 优先、页面交互和专项验收。[0.9.0 交付计划与进度](engineering/next-version-0.9.0.md)继续记录既有实现、验证与剩余交付门槛。
 
 ## 核心共识
 
-1. **Agent 定制清理优先**：内置规则提供起点，随包 Skill 引导现有 Agent 询问、分析并制定个人规则，可复用个人规则与自动发现是产品核心，用户无需管理工作区；启用后的规则参与后续智能清理。
+1. **AI 调查与个人规则优先**：内置规则提供起点，下一阶段内置 Agent 承接大占用调查、必要问询和独立规则建议；外部 Agent／Skill 路径继续支持，启用后的规则参与后续智能清理。
 2. **规则独立更新**：在现有格式与匹配能力内，修改规则不要求应用发版；引擎新增能力仍需升级应用。
-3. **对现有 Agent 友好**：Codex、Claude Code、WorkBuddy 等可通过 CLI 和公开格式协助添加规则；Shou 不接入任何模型、不开发 Agent、不自动上传数据。
+3. **清理专用 AI 与开放接口**：内置 Agent 接入用户选择的模型，仅使用受限调查工具；Codex、Claude Code、WorkBuddy 等继续通过 CLI 和公开格式添加规则。用户主动启用内置调查并了解提供方与发送范围，普通扫描与清理可离线工作。
 4. **用户掌握执行权**：固定规则可以一键进入清理确认；规则通过校验不等于获得清理授权，核心仍绑定具体计划和确认。
 5. **原生优先**：SwiftUI、AppKit、系统文件选择器、菜单、快捷键与辅助功能形成一致体验。
 6. **数据口径诚实**：占用、移到废纸篓与可用容量变化分开呈现；扫描不完整时明确说明。

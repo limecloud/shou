@@ -17,13 +17,21 @@ public partial class MainWindow : Window
     }
     private async void ClosingWindow(object? sender, CancelEventArgs e)
     {
-        if (closing || DataContext is not MainViewModel { IsBusy: true } model) return;
-        e.Cancel = true; model.CancelCommand.Execute(null);
+        if (closing || DataContext is not MainViewModel model) return;
+        if (!model.IsBusy && !model.HasAiWork) return;
+        e.Cancel = true;
+        if(model.HasAiWork && MessageBox.Show(this,"退出将停止 AI 调查，未提交的回答不会保存。已有证据与规则草稿会保留。是否退出？","停止调查并退出",MessageBoxButton.OKCancel,MessageBoxImage.Question,MessageBoxResult.Cancel)!=MessageBoxResult.OK) return;
+        await model.StopAiAsync();
+        if(model.IsBusy) model.CancelCommand.Execute(null);
         await model.WhenIdleAsync(); closing = true; Close();
     }
     private async void StorageTreeExpanded(object sender,RoutedEventArgs e)
     {
         if(DataContext is MainViewModel model && e.OriginalSource is System.Windows.Controls.TreeViewItem { DataContext: StorageRow row }) await model.LoadStorageChildrenAsync(row);
+    }
+    private async void CleanupGroupSelected(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        if (DataContext is MainViewModel model && e.NewValue is CleanupGroupRow group) await model.SelectCleanupGroupAsync(group);
     }
     private async void StorageTreeSelection(object sender, RoutedPropertyChangedEventArgs<object> e)
     {

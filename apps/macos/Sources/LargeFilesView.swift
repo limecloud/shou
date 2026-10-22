@@ -165,6 +165,7 @@ struct LargeFilesView: View {
             .background(storage.isSelected(node.path) ? Color.accentColor.opacity(0.06) : .clear)
             .contentShape(Rectangle()).onTapGesture(count: 2) { previewURL=URL(fileURLWithPath: absolute(node.path)) }
             .contextMenu {
+                Button(model.t("Investigate Containing Folder")) { model.ai.requestLaunch(app: model, path: (absolute(node.path) as NSString).deletingLastPathComponent) }.disabled(model.busy)
                 Button(model.t("Reveal in Finder")) { storage.reveal(node.path) }
                 Button(model.t("Copy Path")) { storage.copy(node.path) }
                 Button(model.t("Quick Look")) { previewURL=URL(fileURLWithPath: absolute(node.path)) }

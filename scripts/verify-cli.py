@@ -54,20 +54,30 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
     run('unknown', '--help', expected=2, env_override=startup_environment)
     assert not (base / 'store').exists()
     startup = run('startup', 'list', expected=(0, 6), env_override=startup_environment)['data']
-    assert startup['scope'] == 'launchd_definitions' and startup['include_system'] is False
-    assert len(startup['sources']) == 3
+    assert startup['scope'] == 'macos_startup_items' and startup['include_system'] is False
+    assert {source['location']['id'] for source in startup['sources']} == {
+        'macos.user_agents', 'macos.local_agents', 'macos.local_daemons', 'macos.login_items', 'macos.background_tasks'}
     assert all(not source['location']['system_owned'] for source in startup['sources'])
-    assert startup['unavailable_sources'] == ['login_items', 'background_task_registrations', 'embedded_helpers']
+    assert 'embedded_helpers' in startup['unavailable_sources']
+    for source_id, unavailable in (('macos.login_items', 'login_items'), ('macos.background_tasks', 'background_task_registrations')):
+        coverage = next(source for source in startup['sources'] if source['location']['id'] == source_id)
+        assert (unavailable in startup['unavailable_sources']) == (coverage['status'] == 'unavailable')
     assert all(item['configured_state'] in {'unknown', 'enabled', 'disabled'}
                and item['runtime_state'] in {'unknown', 'loaded', 'running', 'not_loaded'}
-               and item['control_capability'] == ('launchctl_user_agent' if item['source_id'] == 'macos.user_agents' else 'system_settings')
+               and item['control_capability'] in {'launchctl_user_agent', 'launchctl_system_daemon', 'login_item', 'system_settings'}
+               and (item['control_capability'] != 'launchctl_user_agent' or item['source_id'] in {'macos.user_agents', 'macos.local_agents'})
+               and (item['control_capability'] != 'launchctl_system_daemon' or item['source_id'] == 'macos.local_daemons')
+               and (item['control_capability'] != 'login_item' or item['source_id'] in {'macos.login_items', 'macos.background_tasks'})
+               and (not item['removable'] or item['source_id'] == 'macos.user_agents')
+               and item['target_state'] in {'exists', 'missing', 'unknown'}
                and 'program_arguments' not in item and 'environment_variables' not in item for item in startup['items'])
     system_startup = run('startup', 'list', '--include-system', 'true', expected=(0, 6), env_override=startup_environment)['data']
-    assert system_startup['include_system'] is True and len(system_startup['sources']) == 5
+    assert system_startup['include_system'] is True and len(system_startup['sources']) == 7
     assert sum(source['location']['system_owned'] for source in system_startup['sources']) == 2
     run('startup', 'list', '--include-system', 'yes', expected=2)
     run('startup', 'list', '--enable', 'true', expected=2)
-    user_agent = next((item for item in startup['items'] if item['control_capability'] == 'launchctl_user_agent'), None)
+    run('startup', 'control', '--path', str(base / 'missing.plist'), '--action', 'remove', expected=2)
+    user_agent = next((item for item in startup['items'] if item['control_capability'] == 'launchctl_user_agent' and item['source_id'] == 'macos.user_agents'), None)
     if user_agent:
         denied = run('startup', 'control', '--path', user_agent['path'], '--action', 'disable', expected=(2, 7))
         assert denied['error']['code'] == 'confirmation_required'

@@ -2,7 +2,7 @@
 set -eu
 TASK_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TASK_ROOT"
-TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.10.0 private-key-file}
+TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.11.0 private-key-file}
 TASK_KEY=${2:?Pass the update signing key file; never pass the key itself}
 TASK_VERSION=${TASK_TAG#v}
 python3 - "$TASK_TAG" <<'PY'
@@ -40,7 +40,8 @@ ditto "dist/Shou.app/Contents/Helpers/Shou_ShouCore.bundle" "$TASK_OUTPUT/cli/Sh
 ditto "dist/Shou.app/Contents/Helpers/Shou_ShouContracts.bundle" "$TASK_OUTPUT/cli/Shou_ShouContracts.bundle"
 ditto "dist/Shou.app/Contents/Helpers/Shou_ShouAgentSupport.bundle" "$TASK_OUTPUT/cli/Shou_ShouAgentSupport.bundle"
 cp "LICENSE" "$TASK_OUTPUT/cli/LICENSE"
-tar -czf "$TASK_OUTPUT/$TASK_CLI_NAME.tar.gz" -C "$TASK_OUTPUT/cli" "shou" "Shou_ShouCore.bundle" "Shou_ShouContracts.bundle" "Shou_ShouAgentSupport.bundle" "LICENSE"
+cp ".build/checkouts/swift-ai-sdk/LICENSE" "$TASK_OUTPUT/cli/SwiftAISDK-LICENSE.txt"
+tar -czf "$TASK_OUTPUT/$TASK_CLI_NAME.tar.gz" -C "$TASK_OUTPUT/cli" "shou" "Shou_ShouCore.bundle" "Shou_ShouContracts.bundle" "Shou_ShouAgentSupport.bundle" "LICENSE" "SwiftAISDK-LICENSE.txt"
 TASK_UPDATES=$(mktemp -d "$TASK_ROOT/dist/update-feed.XXXXXX")
 cp "$TASK_OUTPUT/$TASK_APP_NAME.zip" "$TASK_UPDATES/"
 ".build/artifacts/sparkle/Sparkle/bin/generate_appcast" --ed-key-file "$TASK_KEY" --download-url-prefix "https://github.com/limecloud/shou/releases/download/$TASK_TAG/" --maximum-versions 1 --maximum-deltas 0 -o "$TASK_OUTPUT/appcast.xml" "$TASK_UPDATES"

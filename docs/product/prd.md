@@ -4,11 +4,11 @@ English | [简体中文](../zh-CN/product/prd.md)
 
 Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
 
-Status: active product contract · Version: 0.1 · Updated: 2026-10-20.
+Status: active product contract · Version: 0.3 · Updated: 2026-10-22. Initial built-in investigation and selected live providers are integrated. Next work completes the master switch, Jev-first routing and native workflow, retaining external-agent access. See the [AI product contract](embedded-ai.md) and [acceptance matrix](../engineering/embedded-ai-acceptance.md).
 
 ## 1. Product definition
 
-**Shou · 收拾一下** is a native macOS cleanup tool built with Swift, centered on cleanup rules tailored by an existing coding agent. Users describe their needs and answer focused questions; the agent investigates and writes reusable rules, and Shou validates, previews, and executes them locally.
+**Shou · 收拾一下** is a native cleanup tool built with Swift, centered on AI investigation of major storage consumers and personal rules. Initial built-in investigation, questions and proposals exist; this iteration completes switches, Jev-first routing and contextual interaction. Existing agents retain CLI/Skill access. Shou performs deterministic validation, previews and confirmed cleanup locally.
 
 **Tidy up. That’s it. / 收好，就好。**
 
@@ -30,7 +30,7 @@ Fixed catalogs cannot capture every personal tool or project layout. Repeated ma
 
 Codex, Claude Code, WorkBuddy, and similar existing products can help describe directories and draft rules, but need stable contracts for discovery, validation, previews, and state queries.
 
-Shou supplies that deterministic local interface. It integrates no models and develops, launches, or hosts no agents. External products own inference, authentication, conversations, and tool authorization.
+Shou supplies that deterministic local interface and brings cleanup-specific AI investigation into the product. Users can resolve purpose, answer necessary questions and select independent rules within the application. Codex, Claude Code, WorkBuddy and other external agents retain public CLI access; built-in investigation avoids requiring a handoff between products.
 
 ## 3. Objectives and benefits
 
@@ -58,7 +58,7 @@ Core job: when storage runs low, find meaningful project-level opportunities, sa
 2. Rules cannot override engine protection or operating-system permissions.
 3. Size and naming do not prove disposability.
 4. Built-in, handwritten, and agent-generated rules follow the same validation path.
-5. GUI users need neither JSON editing nor a model account.
+5. Users need not edit JSON. Ordinary scans and cleanup need no model; optional built-in AI initially uses a user-configured model connection.
 6. Scans are cancellable; the desktop quick-clean path hides internal planning steps while keeping one native confirmation. Unattended destructive execution is outside the initial scope.
 7. CLI is independent, not a desktop launcher.
 8. Native interfaces share contracts while following platform conventions.
@@ -89,12 +89,13 @@ P0 is required for the initial usable release; P1 extends the validated loop; P2
 | F18 | Native Windows and CLI | P2 | Actual Windows build/runtime, paths, ACLs, links, Recycle Bin, distribution |
 | F19 | Internationalization | P0 | English default docs, multilingual READMEs, initial English/Simplified Chinese UI and CLI targets |
 | F20 | Privacy cleaning | P1 | Browser/source/time-bounded history and cookies; separate sign-out consent, schema-aware transactions and irreversible aggregate receipts. Unsupported private scoring/trigger schemas remain preserved; see [privacy cleaning](../engineering/privacy-cleaning.md) |
+| F21 | Built-in cleanup AI investigation | P0 for AI iteration | Default off with explicit destinations; local deterministic handling, Jev-first fixed decisions and main-model escalation; contextual Smart Cleanup/Space/Large Files/Personal Rules entries, complete states and individual-rule closure; actual service usage. Reuse existing protocols/service; Windows runtime remains unavailable. See [product contract](embedded-ai.md) and [matrix](../engineering/embedded-ai-acceptance.md) |
 
 ### Exclusions
 
 No mandatory account, cloud scanning, default telemetry, executable rule scripts, root cleanup, SIP bypass, memory cleaning, automatic global Trash emptying, or unattended permanent deletion. No direct generic deletion of database, container, or virtual-machine storage. No name-based automatic selection of `node_modules`, `dist`, Downloads, or entire workspaces.
 
-**Long-term boundary:** no model integration, agent development, chat assistant, or model orchestration platform.
+**Product boundary, revised 2026-10-22:** Shou integrates user-selected models and develops and runs a cleanup-specific Agent for storage investigation, purpose/rebuild analysis, focused questions and rule proposals. Core owns measurements, rule validation, plans, user confirmation, execution and receipts. Models receive bounded investigation/draft capabilities; cleanup remains bound to the user's selection and current confirmation. General chat, code modification, arbitrary Shell/plugins, hosting external coding agents and unattended deletion are outside this stage. Initially use user-provided credentials without a product-hosted inference backend. Ordinary scans, enabled rules and cleanup work offline. External-agent CLI/Skill access remains supported.
 
 ## 7. Functional behavior
 
@@ -102,7 +103,7 @@ No mandatory account, cloud scanning, default telemetry, executable rule scripts
 
 Scan selected workspaces, not the entire home directory by default. Show unclassified large directories even without a matching rule. Permission failures, cancellation, limits, and incomplete statistics remain visible.
 
-Merge multiple matches for the same object and resolve parent/child conflicts before counting or executing. **Rules → Customize with AI** hands the shipped Skill, local CLI path and workspace to the user's existing agent. The Skill guides questions about purpose, rebuild steps, active projects, retention and keep paths, then drives validation, disabled import and preview. The wizard and manual import remain under Advanced. Shareable rules contain logical roots rather than personal absolute paths. New or changed rules remain drafts until reviewed; new engine predicates or native adapters still require upgrades.
+Merge multiple matches for the same object and resolve parent/child conflicts before counting or executing. The current **Rules → Customize with AI** hands the shipped Skill, local CLI path and workspace to the user's existing agent. The next stage adds built-in investigation using the same purpose, rebuild, activity, retention and keep-path requirements, disabled drafts and independent preview contract. The wizard and manual import remain under Advanced. Shareable rules contain logical roots rather than personal absolute paths. New or changed rules remain drafts until reviewed; new engine predicates or native adapters still require upgrades.
 
 ### Cleanup and recovery
 
@@ -112,7 +113,11 @@ Desktop cleanup defaults to permanent removal after one exact-scope irreversible
 
 ### Existing agents
 
-Noninteractive calls may discover capabilities, query data, validate/import disabled rule drafts, and preview. Destructive CLI execution requires explicit interactive confirmation; there is no `--yes` or `--force` bypass in the initial scope. Project text and model output remain untrusted data. Shou uploads nothing automatically.
+Noninteractive calls may discover capabilities, query data, validate/import disabled rule drafts, and preview. Destructive CLI execution requires explicit interactive confirmation; there is no `--yes` or `--force` bypass in the initial scope. Project text and model output remain untrusted data. Built-in metadata investigation and selected live providers are implemented using the same deterministic core as external agents. Copy for AI remains a local clipboard action. Users explicitly enable built-in investigation after seeing providers/evidence; exclude full indexes, personal content and credentials by default. Never silently resend context to another provider.
+
+### AI switch, routing and complete interaction
+
+The master switch is independent of profile saving, Jev strategy and rule enablement. Disabling blocks new desktop AI requests and stops work while local rules remain usable. Sufficient local/Jev cases do not invoke the main model; semantic escalation explains why and service failures never silently use a costly fallback. Page scopes, 16 stories, eight use cases, complete states and cost behavior belong to the [AI product contract](embedded-ai.md); diagrams belong to [AI architecture](../architecture/embedded-ai.md). These new contracts remain implementation work.
 
 ## 8. Experience and internationalization
 

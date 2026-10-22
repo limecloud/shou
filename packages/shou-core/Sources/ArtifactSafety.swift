@@ -38,25 +38,21 @@ enum ArtifactSafety {
         var reasons: [String]=[]
     }
 
-    /// Only an exact bundled definition may use an exception. An ID prefix,
-    /// user-declared risk, or familiar directory name is insufficient.
-    private static func trustedRule(_ id: String, in rules: [CleanupRule]) -> Bool {
-        guard let rule=rules.first(where: { $0.id == id }), let template=(try? BuiltinCatalog.templates())?.first(where: { $0.id == id }),
-              let canonical=try? template.rule(rootRef: rule.scope.rootRef) else { return false }
-        return rule == canonical
-    }
-
     static func sourcePolicy(path: String, manifest: [FileEntry], entries: [String: FileEntry], workspace: Workspace,
                              rules: [CleanupRule], homeDirectory: URL, evidence: any ArtifactEvidenceChecking) -> SourcePolicy {
         let sources=manifest.filter { sourceLike($0) }
-        let cargo=trustedRule("shou.builtin.cargo-extracted-sources", in: rules)
-        let swift=trustedRule("shou.builtin.swift-build", in: rules)
-        let rust=trustedRule("shou.builtin.rust-target", in: rules)
-        guard cargo || swift || rust else { return SourcePolicy() }
+        let trusted=(try? BuiltinCatalog.trustedTemplates(matching: rules)) ?? []
+        let cargo=trusted.contains { $0.id == "shou.builtin.cargo-extracted-sources" }
+        let swift=trusted.contains { $0.id == "shou.builtin.swift-build" }
+        let rust=trusted.contains { $0.id == "shou.builtin.rust-target" }
+        let browser=trusted.contains { $0.id == "shou.builtin.browser-automation-caches" }
+        let projects=trusted.filter { $0.location == "projects" }
+        guard cargo || browser || !projects.isEmpty else { return SourcePolicy() }
         var policy=SourcePolicy()
         let processes: Set<String>
         if cargo || rust { processes=["cargo", "rustc", "rust-analyzer", "clippy-driver", "cargo-clippy", "cargo-nextest"] }
-        else { processes=["swift", "swift-build", "swift-test", "swiftc", "swift-frontend", "sourcekit-lsp"] }
+        else if browser { processes=["node", "playwright", "Cypress"] }
+        else { processes=projects.reduce(into:Set<String>()) { $0.formUnion(buildProcesses(ruleId:$1.id)) } }
         let fullPath=workspace.path + "/" + path
         let projectPath: String
         if rust {
@@ -64,9 +60,19 @@ enum ArtifactSafety {
         } else if swift, let buildIndex=path.split(separator: "/").lastIndex(of: ".build") {
             let project=path.split(separator: "/")[..<buildIndex].joined(separator: "/")
             projectPath=project.isEmpty ? workspace.path : workspace.path + "/" + project
-        } else { projectPath=workspace.path }
+        } else if cargo { projectPath=workspace.path }
+        else {
+            var parent=StorageIndex.parent(path)
+            if projects.contains(where:{ $0.id == "shou.builtin.python-bytecode" }) {
+                while parent != "." {
+                    if ["pyproject.toml","setup.py","setup.cfg","requirements.txt","Pipfile"].contains(where:{ entries[parent + "/" + $0]?.kind == "file" }) { break }
+                    parent=StorageIndex.parent(parent)
+                }
+            }
+            projectPath=parent == "." ? workspace.path : workspace.path + "/" + parent
+        }
         do {
-            let running=try (cargo ? evidence.runningBuildProcesses(in: processes) : evidence.runningBuildProcesses(in: processes, affecting: projectPath))
+            let running=try (cargo || browser ? evidence.runningBuildProcesses(in: processes) : evidence.runningBuildProcesses(in: processes, affecting: projectPath))
             if !running.isEmpty {
                 policy.reasons.append("build_process_running"); return policy
             }
@@ -115,6 +121,17 @@ enum ArtifactSafety {
             return policy
         }
 
+        if !swift {
+            let parent=StorageIndex.parent(path)
+            let hasMarker: (String) -> Bool = { entries[parent == "." ? $0 : parent + "/" + $0]?.kind == "file" }
+            for source in sources where !projectManifest(source.path) {
+                if projects.contains(where:{ generatedProjectSource(source.path, candidate:path, ruleId:$0.id, hasMarker:hasMarker, entries:entries) }) {
+                    policy.allowedPaths.insert(source.path)
+                }
+            }
+            return policy
+        }
+
         let parts=path.split(separator: "/").map(String.init)
         guard let buildIndex=parts.lastIndex(of: ".build"), (1...2).contains(parts.count - buildIndex - 1),
               ["debug", "release"].contains(parts.last ?? "") else {
@@ -133,8 +150,68 @@ enum ArtifactSafety {
     static func sourceLike(_ entry: FileEntry) -> Bool {
         guard entry.kind == "file" else { return false }
         let name=(entry.path as NSString).lastPathComponent
-        return ["Cargo.toml", "Cargo.lock", "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "Package.swift"].contains(name)
-            || ["swift", "rs", "c", "cpp", "h", "py", "tsx", "jsx"].contains((name as NSString).pathExtension.lowercased())
+        return projectManifest(name)
+            || ["swift", "rs", "c", "cc", "cpp", "cxx", "h", "hpp", "m", "mm", "py", "tsx", "jsx", "ts", "js", "mjs", "cjs", "java", "kt", "kts", "dart", "go", "cs", "fs", "vb", "rb", "php", "scala", "vue", "svelte"].contains((name as NSString).pathExtension.lowercased())
+    }
+
+    private static func projectManifest(_ path: String) -> Bool {
+        let name=(path as NSString).lastPathComponent.lowercased()
+        return ["cargo.toml", "cargo.lock", "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "package.swift", "pyproject.toml", "setup.cfg", "requirements.txt", "pipfile", "poetry.lock", "uv.lock", "pubspec.yaml", "pubspec.lock", "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "local.properties", "pom.xml", "cmakelists.txt"].contains(name)
+            || ["csproj", "fsproj", "vbproj", "vcxproj", "sln"].contains((name as NSString).pathExtension.lowercased())
+    }
+
+    private static func buildProcesses(ruleId: String) -> Set<String> {
+        if ruleId.contains("swift") { return ["swift", "swift-build", "swift-test", "swiftc", "swift-frontend", "sourcekit-lsp"] }
+        if ruleId.contains("node") { return ["node","npm","npx","pnpm","yarn","bun","deno","esbuild","vite","webpack","next","nuxt","turbo","parcel"] }
+        if ruleId.contains("python") || ruleId.contains("pytest") {
+            return Set(["python","python2","python3","pytest","mypy","ruff","uv","poetry","pip","pip3","tox","nox"] + (8...15).map { "python3.\($0)" })
+        }
+        if ruleId.contains("gradle") { return ["gradle","gradlew","java","javac","kotlin","kotlinc","kapt"] }
+        if ruleId.contains("flutter") { return ["flutter","dart","dartaotruntime","frontend_server","gen_snapshot","java","gradle","xcodebuild"] }
+        if ruleId.contains("maven") { return ["mvn","mvnw","java","javac","kotlin","kotlinc"] }
+        if ruleId.contains("cmake") { return ["cmake","ctest","cpack","ninja","make","gmake","clang","clang++","gcc","g++","cc","c++","ld","ld.lld","lld"] }
+        return []
+    }
+
+    private static func generatedProjectSource(_ source: String, candidate: String, ruleId: String, hasMarker: (String) -> Bool, entries: [String:FileEntry]) -> Bool {
+        let target=(candidate as NSString).lastPathComponent
+        if ruleId.contains("gradle"), target == "build", (hasMarker("build.gradle") || hasMarker("build.gradle.kts")),
+           entries[candidate + "/tmp"]?.kind == "directory",
+           ["classes", "intermediates", "outputs"].contains(where: { entries[candidate + "/" + $0]?.kind == "directory" }) {
+            return ["generated/sources/annotationProcessor/", "generated/source/kapt/", "generated/source/kaptKotlin/", "generated/ksp/", "generated/data_binding_base_class_source_out/"].contains { source.hasPrefix($0) }
+        }
+        if ruleId.contains("maven"), target == "target", hasMarker("pom.xml"), entries[candidate + "/maven-status"]?.kind == "directory" {
+            return source.hasPrefix("generated-sources/") || source.hasPrefix("generated-test-sources/")
+        }
+        if ruleId.contains("flutter"), hasMarker("pubspec.yaml") {
+            if target == ".dart_tool", entries[candidate + "/package_config.json"]?.kind == "file" {
+                return source.range(of:"^flutter_build/([a-fA-F0-9]{8,64}/)?dart_plugin_registrant[.]dart$", options:.regularExpression) != nil
+            }
+            if target == "build" {
+                if entries[candidate + "/app/intermediates"]?.kind == "directory",
+                   ["app/generated/source/flutter/", "app/generated/source/buildConfig/"].contains(where: { source.hasPrefix($0) }) { return true }
+                return entries[candidate + "/web/version.json"]?.kind == "file" && ["web/main.dart.js","web/flutter.js","web/flutter_bootstrap.js"].contains(source)
+            }
+        }
+        if ruleId.contains("cmake"), hasMarker("CMakeLists.txt"), entries[candidate + "/CMakeCache.txt"]?.kind == "file", entries[candidate + "/CMakeFiles"]?.kind == "directory" {
+            let parts=source.split(separator:"/")
+            return parts.count == 4 && parts[0] == "CMakeFiles"
+                && parts[1].range(of:"^[0-9]+([.][0-9]+){1,3}$",options:.regularExpression) != nil
+                && ["CompilerIdC", "CompilerIdCXX"].contains(String(parts[2]))
+                && ["CMakeCCompilerId.c","CMakeCXXCompilerId.cpp"].contains(String(parts[3]))
+        }
+        if ruleId == "shou.builtin.node-build-cache", hasMarker("package.json") {
+            if target == ".next", entries[candidate + "/build-manifest.json"]?.kind == "file", entries[candidate + "/server"]?.kind == "directory" {
+                return source.hasPrefix("server/") || source.hasPrefix("static/") || source.hasPrefix("types/")
+            }
+            if target == ".nuxt", entries[candidate + "/tsconfig.json"]?.kind == "file", entries[candidate + "/nuxt.d.ts"]?.kind == "file" {
+                return ["nuxt.d.ts", "imports.d.ts", "components.d.ts"].contains(source) || source.hasPrefix("types/") || source.hasPrefix("dist/")
+            }
+        }
+        if ruleId == "shou.builtin.node-build-outputs", hasMarker("package.json") {
+            return source.range(of:"^(assets/[^/]+-[A-Za-z0-9_-]{8,}|static/js/[^/]+[.][a-fA-F0-9]{8,})[.]js$",options:.regularExpression) != nil
+        }
+        return false
     }
 
     private static func generatedRustSource(_ path: String) -> Bool {
@@ -144,12 +221,12 @@ enum ArtifactSafety {
               parts[offset+2].range(of: "^[A-Za-z0-9_-]+-[0-9a-fA-F]{8,}$", options: .regularExpression) != nil,
               parts[offset+3] == "out" else { return false }
         // Generated source is confined to build-script OUT_DIR, never a copied project tree.
-        return !["Cargo.toml", "Cargo.lock", "Package.swift", "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"].contains(parts.last ?? "")
+        return !projectManifest(path)
     }
 
     private static func generatedSwiftSource(_ path: String) -> Bool {
         let parts=path.split(separator: "/").map(String.init)
-        guard parts.count >= 2, !["Cargo.toml", "Cargo.lock", "Package.swift", "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"].contains(parts.last ?? "") else { return false }
+        guard parts.count >= 2, !projectManifest(path) else { return false }
         if parts[0].hasSuffix(".build") && parts.count >= 3 && parts[1] == "DerivedSources" { return true }
         return parts[0].hasSuffix("PackageDiscoveredTests.derived") || parts[0].hasSuffix("PackageTests.derived")
     }

@@ -4,7 +4,7 @@ English | [简体中文](../zh-CN/engineering/implementation-plan.md)
 
 Status: active development. Native macOS, independent CLI, shared core, platform adapter, and isolated verification sources exist. Complete platform-safety and release acceptance remain pending. See [local development](development.md).
 
-The next delivery is tracked item by item in the [0.9.0 plan and progress](next-version-0.9.0.md).
+Product direction revised 2026-10-22: built-in cleanup AI is the next-stage mainline, tracked by AI01–AI06 below; the first SDK-backed implementation is recorded in [implementation and acceptance](embedded-ai-implementation.md). Existing delivery and release gates remain in the [0.9.0 plan and progress](next-version-0.9.0.md). Historical acceptance does not establish AI implementation.
 
 Further space-analysis changes follow the [agent collaboration implementation checklist and W01–W06 tracking](space-analysis-agent-design.md): shared queries/paging, native Simple/Detailed switching, same-scan agent context, Windows synchronization and complete acceptance. Default to Simple initially, remember the preference and preserve browsing/selection without rescanning on switches. The shared queries, view switch and one-click copy are implemented; acceptance evidence and remaining platform checks are recorded in that design.
 
@@ -15,7 +15,7 @@ Further space-analysis changes follow the [agent collaboration implementation ch
 | DEC01 | Shou · 收拾一下; “Tidy up. That’s it.” | Consistent identity |
 | DEC02 | Native macOS Swift, SwiftUI, AppKit | Platform conventions and integration |
 | DEC03 | Independent desktop and CLI with shared core | Equivalent workflows and semantics |
-| DEC04 | No model integration or agent development | Local-tool scope and independence |
+| DEC04 (revised 2026-10-22) | Built-in cleanup Agent with user-selected models; deterministic Core owns validation, confirmation and execution | Complete investigation and rules within Shou, retaining external-agent interfaces and offline cleanup |
 | DEC05 | Existing agents add rules through public CLI | Discoverable, verifiable operations |
 | DEC06 | Native multi-platform monorepo; Windows uses C#/.NET 10/WPF | Shared contracts and isolated adapters |
 | DEC07 | Prioritize project artifacts, Node.js data, inactive projects | Reduce repeated developer cleanup work |
@@ -34,6 +34,7 @@ flowchart LR
     M2 --> M3[Confirmed execution in both entry points]
     M3 --> M4[macOS MVP acceptance]
     M4 --> M5[Windows prototype and delivery]
+    M3 --> M6[Built-in cleanup AI: AI01–AI06]
     M4 --> Later[Remaining uninstall scope, more templates]
 ```
 
@@ -64,7 +65,7 @@ Create core/platform/CLI projects. Implement validation, workspaces, exclusions,
 
 Create the native macOS application, navigation, tables/inspector, access flow, rule wizard/import/export/enablement, previews, presets, and equivalent CLI operations. Implement classification and tested developer templates. Add treemaps only after shared accounting/performance/accessibility validation.
 
-**Exit:** the primary personal-rule entry hands the bundled Skill to an existing agent; users answer focused questions while the agent writes, imports and previews disabled drafts through CLI. GUI and CLI agree without internal model integration; the manual wizard remains an advanced option.
+**Exit:** the existing stage hands the bundled Skill to an external agent, which writes, imports and previews disabled drafts through CLI with consistent GUI results; the manual wizard remains an advanced option. Next-stage built-in investigation reuses these contracts with separate AI01–AI06 acceptance.
 
 ### M3: Controlled execution
 
@@ -88,11 +89,33 @@ The WPF solution, request-scoped JSON confirmation bridge, full Windows identiti
 
 **Exit:** native Windows evidence, not macOS simulations or cross-compilation alone.
 
+### M6: Built-in cleanup AI — next-stage mainline
+
+2026-10-22 update: complete [stories/use cases/UI](../product/embedded-ai.md), [Jev-first architecture/flows/sequences](../architecture/embedded-ai.md) and the [acceptance matrix](embedded-ai-acceptance.md) before AI07–AI10. Local-first routing, replaceable structured decision providers and necessary main-model escalation are implemented; Jev is the current adapter. Acceptance remains evidence-specific.
+
+Scope belongs to [PRD F21](../product/prd.md); see [integration design](embedded-ai-investigation.md) and [Agent Core research](agent-core-selection.md). Initially use user-provided credentials without a hosted inference backend, Pi/Node runtime or mandatory Clef/Jev dependency.
+
+| Work item | Status | Implementation and exit criteria |
+| --- | --- | --- |
+| AI01: Cases and existing-workflow baseline | Generated fixtures verified; quality baseline pending | Sanitized/generated cases cover unfamiliar outputs, modified dependencies, offline needs, release retention, mixed/Chinese directories and incomplete scans. Label exact scope, preservation and necessary questions; record external-agent steps, time and outcomes for comparison |
+| AI02: Minimal Swift SDK comparison | SDK pinned; macOS 14/Windows pending | Prioritize Swift AI SDK `v0.20.0`, compare Tachikoma and record exact versions/commits. First prove one protocol with multiple tool rounds, question pause/resume, cancellation and budget exhaustion; verify macOS 14 and an actual Windows minimal build/network stream early. Review licenses and actual dependencies before adoption |
+| AI03: Shared investigation and bounded evidence tools | Index metadata and resume implemented; config-content tools pending | Own evidence, allowed scope, retention answers and task state; reuse the SDK loop through a thin adapter, saved index pages, `PersonalRuleDraft`, disabled import and independent previews. Implement targeted configuration reads/tool-state evidence separately, testing replacement, path escape, injection, sensitive-content filtering and content budgets |
+| AI04: Connections and three protocols | Synthetic protocols, selected live Responses/Jev and desktop connection passed; other services/streaming pending | Independent protocol/root/model/references with synthetic tests; verify each endpoint without generalizing one gateway to official services/all protocols |
+| AI05: Native investigation and shared task contract | macOS inspector/CLI/bridge exist; switch/contextual experience/Windows incomplete | Shared evidence/questions/advice, offline rules and complete native states; no silent active-context forwarding |
+| AI06: Rule cleanup and quality acceptance | Independent draft/preview passed; quality/release acceptance pending | Disposable fixtures cover independent previews, user selection, enablement, fresh scans, existing confirmation, receipts and relevant-scope verification. Compare attribution byte coverage, erroneous suggestions, unsupported claims, question burden, completion, p50/p95 and cost on identical cases. Builds/mock protocols do not replace actual model/platform acceptance |
+| AI07: Master switch and request gate | Implemented; automated and native slow-cancellation checks pass; combinations pending | Default off; no new desktop requests after disabling during run/wait/test/credential waits; preserve keys and enabled local rules |
+| AI08: Decision-first routing and cost visibility | Implemented; 87 checks cover zero-main and necessary escalation; live quality pending | Local templates first; bounded Jev decisions; on-demand main model; independent setup, deduplication, service usage/reasons; zero main calls for sufficient cases |
+| AI09: Shared launch and contextual UI | Implemented; native fixture chain passes; full context/accessibility acceptance pending | Smart Cleanup/Space/large-file parent/Rules entries with exact scope, index reuse, conflicts and complete off/unconfigured/no-scan/error/no-advice/stale/preview states |
+| AI10: Native state and quality/cost comparison | Acceptance pending | Specialist matrix with generated/live evidence, languages/appearance/narrow windows/paths/keyboard/VoiceOver; actual usage/quality, no fabricated rates |
+| AI11: CLI/Windows parity | Integrated; native CI for this revision pending | Twelve operations, cross-process cancellation, local records, Credential Manager and four WPF entries/questions/previews; reuse existing Windows CI and verify the commit containing these changes |
+
+Track W08 blocked reads, cancellation/reaping and incomplete scope independently; inference does not fix scanning. Retain the generative protocols. Jev now implements priority routing through the common provider interface without impersonating a generative protocol or text-action fallback. Future Clef adapters reuse `StructuredDecisionProvider`; none is implemented today.
+
 ## 4. Later candidates
 
 Broader templates, orphan/shared-data ownership and external-registration handling, complete startup-registration coverage, safe sharing, project archival, and worktree workflows. Evaluate additional protocols only when a demonstrated need exceeds CLI capabilities.
 
-Model integration and agent development are not roadmap candidates.
+Built-in cleanup AI is now the M6 mainline. General chat, code modification, arbitrary Shell/plugins and hosting external coding agents remain outside this stage.
 
 ## 5. Open decisions
 

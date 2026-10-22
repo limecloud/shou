@@ -30,6 +30,7 @@ import ShouPlatform
         selectedAppIDs.sorted().flatMap { id in reviews[id]?.components.filter { selection[id]?.contains($0.id) == true } ?? [] }
     }
     var selectedBytes: Int64 { selectedComponents.reduce(0) { $0 + $1.allocatedBytesEstimate } }
+    var selectionRequiresAdministrator: Bool { selectedComponents.contains(where: \.requiresAdministrator) }
 
     func scan(app: AppModel) {
         guard let engine=app.engine, !app.busy else { return }
@@ -73,7 +74,7 @@ import ShouPlatform
     }
 
     func selectable(_ summary: ApplicationSummary) -> Bool {
-        !hasChanges && summary.status == "ready"
+        !hasChanges && ["ready", "admin-required"].contains(summary.status)
     }
     func isSelected(_ id: String) -> Bool { !(selection[id] ?? []).isEmpty }
     func toggle(_ summary: ApplicationSummary, app: AppModel) {
@@ -109,8 +110,13 @@ import ShouPlatform
                     let value: ApplicationUninstallReview
                     if let cached=reviews[id] { value=cached }
                     else { value=try await engine.reviewApplication(path: summary.application.path); reviews[id]=value }
-                    if select, value.components.contains(where: { $0.kind == .application && $0.eligible }) {
-                        selection[id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent && ($0.kind == .application || $0.warnings.isEmpty) }.map(\.id))
+                    if select {
+                        if value.components.contains(where: { $0.kind == .application && $0.eligible }) {
+                            selection[id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent &&
+                                (value.requiresAdministrator ? $0.kind == .application : ($0.kind == .application || $0.warnings.isEmpty)) }.map(\.id))
+                        } else {
+                            failures.append(summary.application.name + "\n" + app.t("This application cannot be safely removed. Review its component details."))
+                        }
                     }
                 } catch { if !Task.isCancelled { failures.append(summary.application.name + "\n" + error.localizedDescription) } }
                 processedCount += 1
@@ -129,7 +135,8 @@ import ShouPlatform
         }
     }
     func componentSelectable(_ component: UninstallComponent, appID: String) -> Bool {
-        !hasChanges && component.eligible && (!component.requiresUserDataConsent || personalDataConsent.contains(appID))
+        !hasChanges && component.eligible && (reviews[appID]?.requiresAdministrator != true || component.kind == .application) &&
+            (!component.requiresUserDataConsent || personalDataConsent.contains(appID))
     }
     func toggleComponent(_ component: UninstallComponent, appID: String, app: AppModel) {
         guard !app.busy, componentSelectable(component, appID: appID) else { return }
@@ -173,6 +180,11 @@ import ShouPlatform
                     }
                 })
                 app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
+                if receipt.state == "cancelled", receipt.items.allSatisfy({ ["skipped", "pending"].contains($0.state) }) {
+                    app.statusKey="Removal cancelled. Your selection is kept."
+                    await app.refresh()
+                    return
+                }
                 let remaining=receipt.items.filter { !["trashed","purged"].contains($0.state) }
                 let remainingApps=Set(remaining.compactMap { $0.uninstallOrigin?.applicationPath })
                 let installed=Set(reviewed.plans.filter { plan in !receipt.items.contains { $0.originalPath == plan.application.path && ["trashed","purged"].contains($0.state) } }.map { $0.application.path })
@@ -181,7 +193,7 @@ import ShouPlatform
                 let removed=Set(receipt.items.filter { $0.uninstallOrigin?.kind == .application && ["trashed", "purged"].contains($0.state) }.map(\.originalPath))
                 for summary in items where removed.contains(summary.application.path) { summaries[summary.application.id]=nil }
                 selection=[:]; reviews=[:]; personalDataConsent=[]; expandedID=nil; hasChanges=true
-                app.statusKey=receipt.state == "completed" ? (reviewed.action == "permanent" ? "Selected applications permanently uninstalled." : "Application components moved to Trash. Restore them from History.") : "Some items were not moved. Inspect history."
+                app.statusKey=receipt.state == "cancelled" ? "Removal cancelled. Review History for any items already moved." : receipt.state == "completed" ? (reviewed.action == "permanent" ? "Selected applications permanently uninstalled." : "Application components moved to Trash. Restore them from History.") : "Some items were not moved. Inspect history."
                 await app.refresh()
             } catch {
                 app.operationHadError=true

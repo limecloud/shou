@@ -132,7 +132,7 @@ Keep scan/verify/Trash/restore/permanent-removal budgets consistent for large ta
 
 ## Safety and completion semantics
 
-Fixed application rules target verified disposable leaves, not entire application-support roots. Project rules require project evidence and must preserve source, credentials, databases and authored data. Personal or agent-authored rules remain untrusted drafts until validated and explicitly enabled. Shou neither connects to models nor develops or hosts an agent.
+Fixed application rules target verified disposable leaves, not entire application-support roots. Project rules require project evidence and must preserve source, credentials, databases and authored data. Personal or agent-authored rules remain untrusted drafts until validated and explicitly enabled. Next-stage built-in cleanup AI reuses the same rules and confirmed-execution contracts; model proposals still require local deterministic validation.
 
 Permission limits, incomplete measurement, changed identities and unavailable activity checks remain typed limitations. Recheck identified running applications immediately before mutation; skip affected candidates with reasons while preserving independent outcomes. The present application does not quit software. A future close-application feature would need a separately authorized native capability and explicit user interaction.
 

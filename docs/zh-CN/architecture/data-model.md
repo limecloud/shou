@@ -1,5 +1,7 @@
 # 领域数据模型
 
+AI 连接、调查、证据、Jev 判断及检查点的已有字段，以及总开关、Jev 优先路由／分服务统计的待实施扩展，统一见[AI 数据与持久化合同](embedded-ai.md)。AI 调查状态不等同清理计划或执行回执状态，模型结果不会生成删除许可。
+
 [English](../../architecture/data-model.md) | 简体中文
 
 状态：开发合同。[Swift 模型](../../../packages/shou-core/Sources/Models.swift)已实现当前实体；完整状态流转与中断验收仍待完成。
@@ -227,6 +229,8 @@ stateDiagram-v2
 空间分析支持本地卷或目录发现，以及明确选中文件和目录后的直接删除，独立于清理规则工作区。桌面列表和树图共用导航与去重选择；确认及执行时核验当前完整清单和排除配置，复用既有执行日志与历史。详见[空间分析架构、流程与时序](../product/space-analysis.md)。
 
 默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。
+
+新索引使用 SQLite `user_version=2`，在 POSIX 字段之外完整保存可空的 Windows 卷、File ID 和 owner SID。版本 1 索引保持只读兼容，不原地迁移。Windows 硬链接按卷和完整 128 位 File ID 去重，POSIX 文件按 device/inode 去重；Windows 身份缺字段或格式错误时拒绝读取，不能回退到兼容 inode。
 
 ## 大文件查询状态
 

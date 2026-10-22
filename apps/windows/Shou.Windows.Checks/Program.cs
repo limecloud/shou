@@ -14,6 +14,13 @@ if (args.FirstOrDefault() == "--fixture")
     if (mode == "duplicate") { await Console.Out.WriteLineAsync("{\"bridge_version\":1,\"bridge_version\":2}"); return 0; }
     if (mode == "invalid") { await Console.Out.WriteLineAsync("not a protocol"); return 0; }
     if (mode == "error") { await Emit("result", new() { ["api_version"] = "1.0", ["ok"] = false, ["error"] = new JsonObject { ["code"] = "plan_stale", ["message"] = "Changed evidence" } }); return 0; }
+    if (mode == "ai-partial") {
+        await Emit("result",new() { ["api_version"]="1.0",["ok"]=false,["status"]="partial",["data"]=new JsonObject { ["id"]="investigation_fixture",["status"]="cancelled",["evidence"]=new JsonArray(new JsonObject { ["path"]="build/cache" }) } }); return 0;
+    }
+    if (mode == "ai-cancel") {
+        var control=JsonNode.Parse((await Console.In.ReadLineAsync())!)!;
+        await Emit("result",new() { ["api_version"]="1.0",["ok"]=false,["status"]="partial",["data"]=new JsonObject { ["id"]="investigation_fixture",["status"]="cancelled",["control"]=control["kind"]!.DeepClone() } }); return 0;
+    }
     if (mode == "confirm")
     {
         await Emit("confirmation", new() { ["challenge"] = "one-use", ["digest"] = "scope-digest", ["operation"] = "trash", ["review"] = new JsonObject { ["items"] = new JsonArray() } });
@@ -65,6 +72,28 @@ await Check("progress paths shorten only the middle and preserve Unicode text el
     return Task.CompletedTask;
 });
 static void Require(bool condition) { if (!condition) throw new Exception("Check failed"); }
+await Check("清理选择跨页保留、三态聚合与容量去重", () =>
+{
+    var selection = new CleanupSelection();
+    var first = new CleanupChoice("scan:a", "scan", "a", "root", "C:/projects/a/target", "build", "cargo", 100);
+    var second = first with { Key = "scan:b", CandidateId = "b", AbsolutePath = "C:/projects/b/target", Bytes = 200 };
+    var cache = first with { Key = "cache:c", ScanId = "cache", CategoryId = "browser", GroupId = "edge", Bytes = 300 };
+    Require(selection.State(2, "build", "cargo") == false);
+    selection.Set(first, true);
+    Require(selection.State(2, "build", "cargo") is null && selection.Bytes == 100);
+    selection.Set(first, true); // Loading another page must not charge a source twice.
+    selection.Set(second, true); selection.Set(cache, true);
+    Require(selection.Count == 3 && selection.Bytes == 600 && selection.State(2, "build") == true);
+    Require(selection.State(1, "browser", "edge") == true);
+    selection.RemoveWhere(choice => choice.AbsolutePath.StartsWith("C:/projects/b/", StringComparison.Ordinal));
+    Require(selection.Count == 2 && selection.Bytes == 400 && selection.Contains(first.Key) && selection.Contains(cache.Key));
+    Require(selection.State(2, "build") is null && selection.State(1, "browser") == true);
+    selection.Set(cache, false);
+    Require(selection.State(1, "browser") == false && selection.Bytes == 100);
+    selection.Clear();
+    Require(selection.Count == 0 && selection.Bytes == 0 && selection.State(2, "build") == false);
+    return Task.CompletedTask;
+});
 async Task Failure(string code, Func<Task<JsonNode>> action)
 {
     try { await action(); } catch (BridgeException error) when (error.Code == code) { return; }
@@ -81,6 +110,11 @@ await Check("非法 JSON 拒绝", () => Failure("transport_failed", () => Fixtur
 await Check("重复字段拒绝", () => Failure("transport_failed", () => Fixture("duplicate").RequestAsync("scan")));
 await Check("输出超限立即结束只读生产者", () => Failure("output_limit", () => Fixture("overflow").RequestAsync("scan")));
 await Check("只读请求期限", () => Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("scan")));
+await Check("补扫、跨目录扫描和大文件查询遵守只读请求期限", async () =>
+{
+    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "cleanup.review" })
+        await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync(operation));
+});
 await Check("确认绑定本次挑战和摘要", async () =>
 {
     var result = await Fixture("confirm").RequestAsync("plan.execute", confirm: _ => Task.FromResult(true));
@@ -95,6 +129,16 @@ await Check("变更请求协作取消并等待回执", async () =>
     using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
     var result = await Fixture("mutation-cancel").RequestAsync("plan.execute", cancellation: stop.Token);
     Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);
+});
+await Check("AI 部分结果保留证据，普通业务错误仍拒绝", async () => {
+    var result=await Fixture("ai-partial").RequestAsync("ai.investigate");
+    Require(result["status"]?.GetValue<string>()=="cancelled" && result["evidence"] is JsonArray { Count:1 });
+    await Failure("engine_error",()=>Fixture("ai-partial").RequestAsync("plan.execute"));
+});
+await Check("AI 请求协作取消并保留检查点", async () => {
+    using var stop=new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+    var result=await Fixture("ai-cancel").RequestAsync("ai.investigate",cancellation:stop.Token);
+    Require(result["status"]?.GetValue<string>()=="cancelled" && result["control"]?.GetValue<string>()=="cancel");
 });
 await Check("过大输入在启动前拒绝", () => Failure("input_limit", () => Fixture("echo").RequestAsync("configuration", new() { ["value"] = new string('x', 1024 * 1024) })));
 if (args.Length == 2 && args[0] == "--engine")

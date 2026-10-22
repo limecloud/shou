@@ -35,6 +35,7 @@ def verify_app(app):
     assert info['SURequireSignedFeed'] and info['SUVerifyUpdateBeforeExtraction']
     assert (app / 'Contents/Resources/LICENSE.txt').read_bytes() == Path('LICENSE').read_bytes()
     assert (app / 'Contents/Resources/Sparkle-LICENSE.txt').read_bytes() == Path('.build/artifacts/sparkle/Sparkle/LICENSE').read_bytes()
+    assert (app / 'Contents/Resources/SwiftAISDK-LICENSE.txt').read_bytes() == Path('.build/checkouts/swift-ai-sdk/LICENSE').read_bytes()
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
     for relative in ('Contents/MacOS/Shou', 'Contents/Helpers/shou', 'Contents/Frameworks/Sparkle.framework/Sparkle'):
         architectures = subprocess.check_output(['lipo', '-archs', str(app / relative)], text=True).split()
@@ -85,6 +86,7 @@ with tempfile.TemporaryDirectory(prefix='shou-distribution-') as directory:
         assert all(not p.name.startswith('/') and '..' not in Path(p.name).parts for p in package)
         package.extractall(base / 'cli', filter='data')
     executable = base / 'cli/shou'
+    assert (base / 'cli/SwiftAISDK-LICENSE.txt').read_bytes() == Path('.build/checkouts/swift-ai-sdk/LICENSE').read_bytes()
     assert set(subprocess.check_output(['lipo', '-archs', str(executable)], text=True).split()) == {'arm64', 'x86_64'}
     assert subprocess.check_output([str(executable), '--version'], text=True).startswith(f'shou {version} ')
     environment = os.environ | {'SHOU_DATA_DIR': str(base / 'store')}

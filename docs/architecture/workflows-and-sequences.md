@@ -1,5 +1,7 @@
 # Workflows and sequence diagrams
 
+See [AI architecture, flows and sequences](embedded-ai.md) for Jev-first routing, contextual launch, switches/cancellation, connection tests, questions and rule closure. [AI use cases](../product/embedded-ai.md) define the user interactions; existing cleanup flows below remain shared.
+
 English | [简体中文](../zh-CN/architecture/workflows-and-sequences.md)
 
 Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).

@@ -40,12 +40,23 @@ enum TrashExecution {
             receipt.items[index].state="moving"
             try save()
             do {
-                let moved=try filesystem.moveToTrash(path, expected: receipt.items[index].manifest)
+                let item=receipt.items[index]
+                let moved=try item.uninstallOrigin?.kind == .application
+                    ? filesystem.moveApplicationToTrash(path, expected: item.manifest)
+                    : filesystem.moveToTrash(path, expected: item.manifest)
                 receipt.items[index].trashPath=moved.path; receipt.items[index].manifest=moved.manifest
                 receipt.items[index].state=moved.verified ? "trashed" : "unknown"
                 if !moved.verified { receipt.items[index].error="Moved identity or contents could not be verified." }
             } catch {
-                receipt.items[index].state=(error as? ShouError)?.code == "trash_outcome_unknown" ? "unknown" : "failed"
+                let nativeError=error as NSError
+                let cancelled=(nativeError.domain == NSCocoaErrorDomain && nativeError.code == NSUserCancelledError) ||
+                    (nativeError.domain == NSOSStatusErrorDomain && nativeError.code == -128)
+                if cancelled {
+                    receipt.items[index].state="skipped"
+                    receipt.state="cancelled"
+                } else {
+                    receipt.items[index].state=(error as? ShouError)?.code == "trash_outcome_unknown" ? "unknown" : "failed"
+                }
                 if let observed=(error as? ShouError)?.details["resulting_path"], !observed.isEmpty {
                     receipt.items[index].trashPath=observed
                 }

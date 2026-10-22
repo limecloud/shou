@@ -9,7 +9,7 @@ private enum ApplicationFilter: String, CaseIterable {
         case .all: "All Applications"
         case .ready: "Ready to Uninstall"
         case .running: "Running"
-        case .administrator: "Administrator Required"
+        case .administrator: "Authentication Required"
         case .protected: "Unavailable"
         }
     }
@@ -221,8 +221,9 @@ struct ApplicationsView: View {
             Menu {
                 Button(model.t("Move Selected to Trash…")) { session.prepare(app: model, action: "trash") }
                 Button(model.t("Permanently Uninstall Selected…"), role: .destructive) { session.prepare(app: model, action: "permanent") }
+                    .disabled(session.selectionRequiresAdministrator)
             } label: { Label(model.t("Uninstall Selected…"), systemImage: "shippingbox") }
-                primaryAction: { session.prepare(app: model, action: "permanent") }
+                primaryAction: { session.prepare(app: model, action: "trash") }
                 .fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(model.busy || session.selectedAppIDs.isEmpty || session.hasChanges).accessibilityIdentifier("applications.uninstall")
         }.padding(.horizontal, 20).padding(.vertical, 12).background(.bar)
@@ -232,7 +233,7 @@ struct ApplicationsView: View {
             Text(model.t("Application Discovery Coverage")).font(.title2.bold())
             Text(model.t("Application sizes describe the app bundle. Associated files are measured when you expand or select an application. System usage records can be unavailable."))
                 .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Text(model.t("Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal."))
+            Text(model.t("For applications requiring administrator access, macOS handles authentication when you move the app to Trash. Associated app data is kept."))
                 .font(.callout).foregroundStyle(.secondary)
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
@@ -315,11 +316,21 @@ private struct ApplicationUninstallRow: View {
                 Button(model.t("Copy Path")) { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(app.path, forType: .string) }
             }
     }
-    private var status: some View {
+    @ViewBuilder private var status: some View {
+        if summary.status == "admin-required" {
+            Button { session.toggle(summary, app: model) } label: {
+                Label(model.t("Authentication Required"), systemImage: "lock.fill").font(.caption).foregroundStyle(.secondary)
+            }.buttonStyle(.plain).disabled(model.busy || session.hasChanges)
+                .help(model.t("Select this application to review removal. macOS may ask you to authenticate after confirmation."))
+                .accessibilityIdentifier("applications.authentication." + app.id)
+        } else {
+            statusLabel
+        }
+    }
+    private var statusLabel: some View {
         let title: String=switch summary.status {
         case "ready": "Ready to Uninstall"
         case "running": "Quit Application First"
-        case "admin-required": "Administrator Required"
         case "protected": "Protected"
         default: "Unavailable"
         }
@@ -343,16 +354,26 @@ private struct ApplicationUninstallRow: View {
                 }
             }
             if summary.status == "admin-required" {
-                Text(model.t("This application requires elevated access. Automatic administrator removal is not supported.")).font(.caption).foregroundStyle(.orange)
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "lock.fill").foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(model.t("macOS handles authentication")).font(.callout.weight(.medium))
+                        Text(model.t("After you confirm Move to Trash, macOS may ask for Touch ID or an administrator password. Associated app data is kept. Cancelling authentication leaves this application in place."))
+                            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 12)
+                    Button(model.t(session.isSelected(app.id) ? "Deselect" : "Select for Removal")) { session.toggle(summary, app: model) }
+                        .disabled(model.busy || session.hasChanges).accessibilityIdentifier("applications.selectForRemoval." + app.id)
+                }.padding(12).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             }
             if session.reviewingID == app.id {
                 HStack { ProgressView().controlSize(.small); Text(model.t("Reviewing application components…")).font(.caption) }.padding(.vertical, 12)
             } else {
-                if components.contains(where: \.requiresUserDataConsent) {
+                if session.reviews[app.id]?.requiresAdministrator != true && components.contains(where: \.requiresUserDataConsent) {
                     Toggle(model.t("Allow selecting personal app data"), isOn: Binding(get: { session.personalDataConsent.contains(app.id) }, set: { session.allowPersonalData(app.id, allowed: $0, app: model) }))
                         .toggleStyle(.checkbox).font(.caption).disabled(model.busy).accessibilityIdentifier("applications.personalData." + app.id)
                 }
-                ForEach(components) { component in componentRow(component) }
+                ForEach(components.filter { session.reviews[app.id]?.requiresAdministrator != true || $0.kind == .application }) { component in componentRow(component) }
                 if components.isEmpty {
                     Text(model.t("No verified components available. Scan again or review access notices.")).font(.caption).foregroundStyle(.secondary)
                 }
@@ -405,6 +426,10 @@ private struct ApplicationBatchConfirmation: View {
             Text(String(format: model.t("%lld applications selected"), plan.plans.count) + " · " + model.bytes(plan.allocatedBytesEstimate)).foregroundStyle(.secondary)
             Text(model.t(plan.action == "permanent" ? "The selected applications and components will be permanently removed. This action cannot be undone." : "You can restore these items from History. Moving to Trash does not free disk space."))
                 .font(.callout).foregroundStyle(plan.action == "permanent" ? Color.red : Color.secondary)
+            if plan.plans.contains(where: { $0.components.contains(where: \.requiresAdministrator) }) {
+                Label(model.t("macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept."), systemImage: "lock.fill")
+                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     ForEach(plan.plans) { application in

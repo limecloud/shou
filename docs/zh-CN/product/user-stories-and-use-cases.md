@@ -4,6 +4,8 @@
 
 状态：设计草案。需求编号对应 [PRD](prd.md)。
 
+内置 AI 的开关、Jev 优先路由、跨页面入口和完整交互另见[AI 用户故事与用例](embedded-ai.md)：US-AI01–US-AI16、UC-AI01–UC-AI08。该专项补充下表的通用故事；外部 Agent 用例继续保留，不能代替内置体验。对应图示见[AI 架构、状态、流程及时序](../architecture/embedded-ai.md)。
+
 ## 用户故事
 
 | 编号 | 用户故事 | 验收要点 | 需求 |

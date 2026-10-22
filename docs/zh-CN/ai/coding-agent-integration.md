@@ -4,17 +4,17 @@
 
 状态：随包 Skill、桌面交接入口、公开 CLI 与规则预览已有源码实现。本 Codex 会话可调用 CLI 验证；Claude Code、WorkBuddy 的独立客户端验收仍待完成。
 
-空间分析支持简洁／详细切换；两种视图的“复制给 AI”会把本次扫描 ID、范围、完整路径、占用与扩展名统计、覆盖说明、选中／已删除路径，以及本地 CLI／Skill 入口复制到剪贴板。用户直接粘贴给已有 Agent。Shou 不上传、不调用模型；Agent 可以用 analysis context、analysis map 与分页 analysis children 复用同一扫描，再查询已有规则、问询用途并预览草稿。详细合同与验收见 [空间分析协作设计](../engineering/space-analysis-agent-design.md)。
+空间分析支持简洁／详细切换；两种视图的“复制给 AI”会把本次扫描 ID、范围、完整路径、占用与扩展名统计、覆盖说明、选中／已删除路径，以及本地 CLI／Skill 入口复制到剪贴板。用户直接粘贴给已有 Agent。此复制流程由用户交给外部 Agent；Agent 可以用 analysis context、analysis map 与分页 analysis children 复用同一扫描，再查询已有规则、问询用途并预览草稿。详细合同与验收见 [空间分析协作设计](../engineering/space-analysis-agent-design.md)。
 
 ## 1. 产品边界
 
-**Shou 不接入任何模型，不开发 Agent，也不启动或托管外部 Agent。**
+**Shou 下一阶段内置清理专用 Agent，外部编码 Agent 的 CLI／Skill 路径继续支持。** 内置调查首版已实现，使用和验收见[实现记录](../engineering/embedded-ai-implementation.md)；范围以 [PRD](../product/prd.md) 和[接入设计](../engineering/embedded-ai-investigation.md)为准；本文说明现有外部 Agent 的操作合同。
 
 用户已经在使用的 Agent 可以操作 Shou，正如操作其他具有稳定 CLI 的本地工具。Shou 提供确定性的扫描、规则校验、预览与执行；外部 Agent 负责理解用户意图和起草规则。
 
-不在 Shou 中增加 API Key、模型选择、聊天框、推理服务、Agent runner、自动登录或供应商 SDK。
+内置调查将增加用户自带凭据、模型连接和可替换 Swift SDK；不托管外部编码 Agent 或管理其登录、会话及权限，不把随包 Skill 安装扩展成外部客户端配置管理。
 
-**通过现有 Agent 定制是个人规则的主要路径。** 用户只需描述问题并回答必要问题，由 Agent 分析并写规则；手工向导和 JSON 导入作为高级备选入口。
+**当前发布版本通过现有 Agent 定制个人规则。** 下一阶段内置调查复用同一草稿、校验和逐条预览合同；用户描述问题并回答必要问题，手工向导和 JSON 导入继续作为高级备选。
 
 ### 随包 Skill 与桌面交接
 

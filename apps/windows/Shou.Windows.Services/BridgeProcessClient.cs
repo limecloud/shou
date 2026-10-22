@@ -18,7 +18,7 @@ public sealed class BridgeProcessClient
     private readonly string[] prefix;
     private readonly string? dataDirectory;
     private readonly TimeSpan timeout;
-    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "scan", "scan.results", "history", "history.cleanup-preview", "storage.scan", "storage.directory", "storage.map", "storage.context", "storage.page"];
+    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "system.scan", "scan", "scan.target", "scan.results", "cleanup.review", "history", "history.page", "history.cleanup-preview", "rules.preview", "records.preview", "storage.scan", "storage.show", "storage.directory", "storage.map", "storage.context", "storage.page", "storage.large-files"];
 
     public BridgeProcessClient(string executable, IEnumerable<string>? argumentPrefix = null, string? dataDirectory = null, TimeSpan? timeout = null)
     {
@@ -113,7 +113,13 @@ public sealed class BridgeProcessClient
                         await process.WaitForExitAsync();
                         if (process.ExitCode != 0) throw new BridgeException("engine_failed", "清理核心异常退出；请查询历史确认实际状态。");
                         await diagnostics;
-                        if (!ok)
+                        // AI failures carry a checkpoint, evidence and a resumable
+                        // user-facing status. Preserve that bounded partial result.
+                        var aiPartial = operation.StartsWith("ai.", StringComparison.Ordinal) &&
+                            result["status"]?.GetValue<string>() == "partial" &&
+                            result["data"] is JsonObject checkpoint &&
+                            checkpoint["status"]?.GetValue<string>() is "failed" or "cancelled" or "limited";
+                        if (!ok && !aiPartial)
                         {
                             var error = result["error"] as JsonObject;
                             throw new BridgeException(error?["code"]?.GetValue<string>() ?? "engine_error", error?["message"]?.GetValue<string>() ?? "操作未完成，请查询实际状态。");

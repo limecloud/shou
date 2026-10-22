@@ -8,7 +8,7 @@ Status: active implementation. macOS ships first; the native Windows development
 
 Organize native entry points, shared business logic, platform adapters, contracts, scripts, documentation, examples, and assets separately. Native interfaces consume shared behavior rather than reimplement rules. A structured process bridge can cross language boundaries.
 
-Mobile projects, model integrations, and agent hosting are outside scope. Build success, native runtime success, and complete distribution acceptance are separate evidence.
+Next-stage built-in cleanup AI separates investigation, model adaptation and credentials according to the [architecture](system-design.md); SDK types stay outside rules/execution. Mobile projects and general agent hosting are outside this stage. Build success, native runtime success and complete distribution acceptance remain separate evidence.
 
 ## 2. Target layout
 

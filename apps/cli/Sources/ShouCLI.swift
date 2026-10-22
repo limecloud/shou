@@ -140,7 +140,7 @@ let commands: [CommandSpec] = [
     .init("presets show", "read", ["preset-id"], [], "Show preset configuration."),
     .init("presets save", "configuration", ["name", "workspace", "rule-id"], [], repeated: ["rule-id"], "Save selection logic, never deletion permission."),
     .init("presets scan", "snapshot", ["preset-id"], [], "Generate a fresh scan using a saved preset.")
-] + PrivacyCLI.commands
+] + PrivacyCLI.commands + AICLI.commands
 
 struct Arguments {
     var command: String
@@ -222,7 +222,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.10.0"
+    static let version = "0.11.0"
     static func main() async {
         if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
         #if canImport(Darwin) || canImport(Glibc)
@@ -265,7 +265,7 @@ enum Terminal {
             if args.command == "capabilities" {
                 let fs=NativeFileSystem()
                 let selected=try CLICommandDiscovery.matching(args.value("command"))
-                let value: JSONValue = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(selected), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("No model integration, agent hosting, or unattended destructive execution.")])])
+                let value: JSONValue = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(selected), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("AI investigation uses an explicitly selected model connection and bounded metadata. Cleanup always requires current-scope confirmation.")])])
                 var discovery=value
                 #if os(Windows)
                 if case .object(var fields)=discovery {
@@ -316,14 +316,14 @@ enum Terminal {
                 let includeSystem=args.values["include-system"]?.first ?? "false"
                 guard ["true", "false"].contains(includeSystem) else { throw ShouError("invalid_argument", "Include-system must be true or false.") }
                 let inventory=try await StartupInventoryService(source: NativeStartupInventory()).scan(options: StartupInventoryOptions(includeSystem: includeSystem == "true"))
-                try result(try .from(inventory), warnings: ["Only launchd definitions were inspected. Login Items, background-task registrations and embedded helpers require System Settings. Configured/runtime state is a best-effort read and may change immediately after inspection."], json: args.json)
+                try result(try .from(inventory), warnings: ["Review source coverage and unavailable_sources before drawing conclusions. Configured/runtime state is a best-effort read and may change immediately after inspection."], json: args.json)
                 return
             }
             if args.command == "startup control" {
                 let actionValue=args.value("action").lowercased()
-                guard let action=StartupControlAction(rawValue: actionValue) else { throw ShouError("invalid_argument", "Startup action must be enable or disable.") }
+                guard let action=StartupControlAction(rawValue: actionValue), action == .enable || action == .disable else { throw ShouError("invalid_argument", "Startup action must be enable or disable.") }
                 let inventory=try NativeStartupInventory().read(options: StartupInventoryOptions(includeSystem: false))
-                guard let definition=inventory.items.first(where: { $0.path == args.value("path") }) else {
+                guard let definition=inventory.items.first(where: { $0.path == args.value("path") && $0.sourceId == "macos.user_agents" }) else {
                     throw ShouError("invalid_argument", "The startup definition is not a current-user LaunchAgent in the inspected sources.")
                 }
                 let phrase="STARTUP \(action.rawValue.uppercased()) \(definition.label)"
@@ -338,6 +338,7 @@ enum Terminal {
             let store=try LocalRecordStore(directory: directory)
             let fs=NativeFileSystem()
             let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+            if try await AICLI.run(args, engine: engine, store: store) { return }
             if try await PrivacyCLI.run(args, engine: engine) { return }
             var value: JSONValue = .null
             var warnings: [String] = []

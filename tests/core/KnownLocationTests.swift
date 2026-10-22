@@ -61,6 +61,7 @@ private struct KnownLocationFileSystem: PlatformFileSystem {
     var failurePath: String? = nil
     var readDelay: Double = 0
     var platformName="macos"
+    var maximumConcurrentReadOperations=4
     var platform: String { platformName }
     var supportsTrash: Bool { false }
     func locationAvailability(_ path: String) -> LocationAvailability {
@@ -121,6 +122,20 @@ func cleanupScanUsesBoundedWorkersAndPreservesSerialResults() async throws {
     try expect(one.issues.map(\.code) == four.issues.map(\.code))
     try await expectThrows { try await a.scanKnownLocations(maxConcurrentLocations: 5) }
     print(String(format: "Cleanup scheduler fixture: serial %.3fs, bounded concurrent %.3fs, peak %d readers; simulated 20ms/root latency, not a real-disk speed ratio.", serialTime, parallelTime, parallel.maxActive))
+}
+
+func systemScanHonorsPlatformReadConcurrency() async throws {
+    for capacity in [0, 1, 2, 4, 8] {
+        let fixture=try Fixture(), probe=KnownLocationProbe()
+        let filesystem=KnownLocationFileSystem(probe: probe, readDelay: 0.01, maximumConcurrentReadOperations: capacity)
+        let engine=ShouEngine(store: fixture.store, filesystem: filesystem, homeDirectory: fixture.workspace)
+        let result=try await engine.scanKnownLocations(maxConcurrentLocations: 4)
+        let expected=min(4, max(1, capacity), max(1, ProcessInfo.processInfo.activeProcessorCount))
+        try expect(probe.maxActive <= expected)
+        if expected > 1 { try expect(probe.maxActive > 1) }
+        try expect(result.snapshots.count == result.locations.filter(\.exists).count)
+        try expect(!result.issues.contains { $0.code == "resource_limit" })
+    }
 }
 
 private struct EmptyCleanupCatalog: ApplicationCatalogReading {
@@ -291,7 +306,7 @@ func knownLocationsAreExplicitAndPlatformScoped() throws {
     try expect(locations.first { $0.id == "chrome" }?.applicationBundleIdentifiers.contains("com.google.Chrome") == true)
     try expect(!locations.contains { $0.path == fixture.workspace.path || $0.path == fixture.workspace.path + "/Library/Application Support" })
     let windows=try KnownLocations.catalog(homeDirectory: fixture.workspace, platform: "windows")
-    try expect(windows.count == 8 && windows.allSatisfy { !$0.ruleIds.isEmpty && $0.id.hasPrefix("windows-") })
+    try expect(windows.count >= 19 && windows.allSatisfy { !$0.ruleIds.isEmpty && $0.id.hasPrefix("windows-") })
     try expect(!windows.contains { $0.path.hasSuffix("AppData/Local") || $0.path.hasSuffix("AppData/Roaming") })
 }
 
@@ -439,8 +454,20 @@ func windowsCacheRulesKeepProfilesSourcesAndEnvironments() async throws {
         ("windows-gradle",["caches"],["init.d","gradle.properties"]),
         ("windows-nuget",["v3-cache"],["NuGet.Config","packages"]),
         ("windows-cargo",["registry/cache"],["registry/src","bin","credentials.toml"]),
-        ("windows-vscode",["CachedData","GPUCache"],["User/globalStorage","User/workspaceStorage","Backups"])
+        ("windows-vscode",["CachedData","GPUCache"],["User/globalStorage","User/workspaceStorage","Backups"]),
+        ("windows-brave",["Default/Cache","Profile 2/Code Cache"],["Default/Network","Default/Extensions","Profile 2/Sessions"]),
+        ("windows-vivaldi",["Default/GPUCache","Profile 2/Cache"],["Default/Local Storage","Default/IndexedDB","Default/Sessions"]),
+        ("windows-firefox",["generated.default/cache2","generated.default/startupCache"],["generated.default/bookmarkbackups","generated.default/sessionstore-backups","generated.default/storage"]),
+        ("windows-slack",["Cache","Code Cache"],["IndexedDB","Local Storage","Service Worker/Database"]),
+        ("windows-discord",["Cache","GPUCache"],["Local Storage","Session Storage","settings.json"]),
+        ("windows-notion",["Cache","GPUCache"],["IndexedDB","Partitions/account/IndexedDB","Local Storage"]),
+        ("windows-postman",["Code Cache","Partitions/account/Cache","Partitions/account/GPUCache"],["Partitions/account/IndexedDB","Partitions/account/Storage","workspaces"]),
+        ("windows-vscode-insiders",["CachedData","Code Cache"],["User/globalStorage","User/workspaceStorage","Backups"]),
+        ("windows-cursor",["CachedData","GPUCache"],["User/globalStorage","User/workspaceStorage","Backups"]),
+        ("windows-yarn",["Cache"],["config","bin"]),
+        ("windows-uv",["cache"],["python","tools","environments"])
     ]
+    try expect(Set(samples.map { $0.0 }) == Set(locations.map(\.id)))
     let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
     for (id,caches,kept) in samples {
         let location=try require(locations.first { $0.id == id })
@@ -449,6 +476,9 @@ func windowsCacheRulesKeepProfilesSourcesAndEnvironments() async throws {
         let workspace=try await engine.addWorkspace(path: location.path, rootRef: id)
         let rules=try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "windows")
         try expect(!rules.isEmpty && rules.allSatisfy { $0.platforms == ["windows"] })
+        var alias=workspace
+        alias.path=workspace.path.uppercased().replacingOccurrences(of: "/", with: "\\")
+        try expect(try BuiltinCatalog.rules(for: alias, homeDirectory: fixture.workspace, platform: "windows") == rules)
         let tree=try fixture.fs.inspect(location.path, budget: .init(), cancelled: { false })
         let candidates=try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: Date())
         for path in caches { try expect(candidates.first { $0.relativePath == path }?.eligible == true) }
@@ -459,4 +489,18 @@ func windowsCacheRulesKeepProfilesSourcesAndEnvironments() async throws {
     try expect(projects.contains { $0.path == fixture.workspace.path + "/Projects" })
     try expect(projects.filter { $0.path.lowercased() == fixture.workspace.path.lowercased() + "/code" }.count == 1)
     try expect(!projects.contains { item in locations.contains { $0.path == item.path } })
+}
+
+func windowsKnownCacheAliasesReuseRuleBindings() async throws {
+    let fixture=try Fixture()
+    let engine=ShouEngine(store: fixture.store, filesystem: KnownLocationFileSystem(platformName: "windows"), homeDirectory: fixture.workspace)
+    let location=try require(KnownLocations.catalog(homeDirectory: fixture.workspace, platform: "windows").first { $0.id == "windows-npm" })
+    let registered=try await engine.addWorkspace(path: location.path.uppercased().replacingOccurrences(of: "/", with: "\\"), rootRef: "recased-windows-cache")
+    let rule=try require(BuiltinCatalog.rules(for: registered, homeDirectory: fixture.workspace, platform: "windows").first)
+    _=try await engine.setRule(ruleId: rule.id, workspaceId: registered.id, enabled: false)
+    let reused=try await engine.workspaceForKnownLocation(location.id)
+    try expect(reused.id == registered.id)
+    let config=try await engine.configuration()
+    try expect(config.workspaces.count == 1)
+    try expect(config.bindings.first { $0.workspaceId == registered.id && $0.ruleId == rule.id }?.enabled == false)
 }

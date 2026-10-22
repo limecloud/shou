@@ -19,6 +19,7 @@
 #include <limits>
 #include <map>
 #include <numeric>
+#include <new>
 #include <string>
 #include <vector>
 using Microsoft::WRL::ComPtr;
@@ -80,6 +81,34 @@ DWORD normalized(const char *input, std::wstring &path) {
     return 0;
 }
 std::wstring extended(const std::wstring &path) { return L"\\\\?\\"+path; }
+// Expand existing DOS 8.3 aliases before Swift applies protected-root policy.
+// New destinations inherit the canonical spelling of their nearest existing
+// ancestor. This does not resolve reparse points; open() still rejects them.
+DWORD canonicalSpelling(std::wstring &path){
+    std::vector<std::wstring> missing;
+    auto parent=path;
+    while(true){
+        const auto input=extended(parent);
+        const auto count=GetLongPathNameW(input.c_str(),nullptr,0);
+        if(count){
+            if(count>32768)return ERROR_FILENAME_EXCED_RANGE;
+            std::wstring value(count,0);
+            const auto written=GetLongPathNameW(input.c_str(),value.data(),count);
+            if(!written)return GetLastError();
+            if(written>=count)return ERROR_MORE_DATA;
+            value.resize(written);
+            if(value.rfind(L"\\\\?\\",0)!=0)return ERROR_INVALID_NAME;
+            value.erase(0,4);
+            for(auto item=missing.rbegin();item!=missing.rend();++item){if(value.back()!=L'\\')value+=L'\\';value+=*item;}
+            auto encoded=utf8(value);if(!encoded)return ERROR_NO_UNICODE_TRANSLATION;
+            const auto code=normalized(encoded,path);free(encoded);return code;
+        }
+        const auto code=GetLastError();
+        if((code!=ERROR_FILE_NOT_FOUND && code!=ERROR_PATH_NOT_FOUND) || parent.size()<=3)return code;
+        const auto split=parent.find_last_of(L'\\');
+        missing.push_back(parent.substr(split+1));parent.resize(split==2?3:split);
+    }
+}
 struct Handles {
     std::vector<HANDLE> values;
     ~Handles(){for(auto h:values)if(h!=INVALID_HANDLE_VALUE)CloseHandle(h);}
@@ -141,7 +170,7 @@ DWORD info(HANDLE h, shou_win_info *out) {
 }
 bool same(const shou_win_info &a,const shou_win_info &b,bool directoryMutation=false) {
     return a.volume==b.volume && !memcmp(a.file_id,b.file_id,16) && !strcmp(a.owner_sid,b.owner_sid) &&
-        a.kind==b.kind && (directoryMutation && a.kind==2 || a.links==b.links) && a.attributes==b.attributes && (directoryMutation ||
+        a.kind==b.kind && ((directoryMutation && a.kind==2) || a.links==b.links) && a.attributes==b.attributes && (directoryMutation ||
         (a.logical_bytes==b.logical_bytes && a.allocated_bytes==b.allocated_bytes && a.modified_ns==b.modified_ns && a.changed_ns==b.changed_ns));
 }
 DWORD expected(const std::wstring &path,const shou_win_info *saved) {
@@ -149,22 +178,33 @@ DWORD expected(const std::wstring &path,const shou_win_info *saved) {
     shou_win_info current{};if((code=info(h,&current)))return code;
     return same(current,*saved)?0:ERROR_FILE_INVALID;
 }
-bool digest(HANDLE h,const char *expectedDigest) {
+DWORD hashFile(HANDLE file,char result[65],uint32_t milliseconds,shou_win_read_cancelled cancelled,void *context){
+    BCRYPT_ALG_HANDLE algorithm=nullptr;BCRYPT_HASH_HANDLE hash=nullptr;PUCHAR object=nullptr;
+    DWORD objectSize=0,bytes=0,read=0,code=ERROR_INVALID_DATA;BYTE hashBytes[32]{};BYTE buffer[65536];
+    const auto deadline=GetTickCount64()+milliseconds;
+    if(BCryptOpenAlgorithmProvider(&algorithm,BCRYPT_SHA256_ALGORITHM,nullptr,0)!=0)goto done;
+    if(BCryptGetProperty(algorithm,BCRYPT_OBJECT_LENGTH,reinterpret_cast<PUCHAR>(&objectSize),sizeof(objectSize),&bytes,0)!=0 || !objectSize)goto done;
+    object=static_cast<PUCHAR>(malloc(objectSize));if(!object){code=ERROR_NOT_ENOUGH_MEMORY;goto done;}
+    if(BCryptCreateHash(algorithm,&hash,object,objectSize,nullptr,0,0)!=0)goto done;
+    while(true){
+        if(cancelled && cancelled(context)){code=ERROR_CANCELLED;goto done;}
+        if(GetTickCount64()>=deadline){code=ERROR_TIMEOUT;goto done;}
+        if(!ReadFile(file,buffer,sizeof(buffer),&read,nullptr)){code=GetLastError();goto done;}
+        if(!read)break;
+        if(BCryptHashData(hash,buffer,read,0)!=0)goto done;
+    }
+    if(BCryptFinishHash(hash,hashBytes,sizeof(hashBytes),0)!=0)goto done;
+    for(size_t i=0;i<32;++i)sprintf_s(result+i*2,3,"%02x",hashBytes[i]);
+    result[64]='\0';code=0;
+done:
+    if(hash)BCryptDestroyHash(hash);if(algorithm)BCryptCloseAlgorithmProvider(algorithm,0);free(object);return code;
+}
+bool digest(HANDLE file,const char *expectedDigest){
     if(!expectedDigest || !*expectedDigest)return true;
     if(strlen(expectedDigest)!=64)return false;
     for(size_t i=0;i<64;++i)if(!isxdigit(static_cast<unsigned char>(expectedDigest[i])))return false;
-    BCRYPT_ALG_HANDLE algorithm=nullptr;BCRYPT_HASH_HANDLE hash=nullptr;PUCHAR object=nullptr;DWORD objectSize=0,bytes=0,read=0;bool ok=false;BYTE result[32]{};char buffer[65536];
-    if(BCryptOpenAlgorithmProvider(&algorithm,BCRYPT_SHA256_ALGORITHM,nullptr,0)!=0)goto done;
-    if(BCryptGetProperty(algorithm,BCRYPT_OBJECT_LENGTH,reinterpret_cast<PUCHAR>(&objectSize),sizeof(objectSize),&bytes,0)!=0 || !objectSize)goto done;
-    object=static_cast<PUCHAR>(malloc(objectSize));if(!object)goto done;
-    if(BCryptCreateHash(algorithm,&hash,object,objectSize,nullptr,0,0)!=0)goto done;
-    LARGE_INTEGER origin{};if(!SetFilePointerEx(h,origin,nullptr,FILE_BEGIN))goto done;
-    while(ReadFile(h,buffer,sizeof(buffer),&read,nullptr) && read){if(BCryptHashData(hash,reinterpret_cast<PUCHAR>(buffer),read,0)!=0)goto done;}
-    if(BCryptFinishHash(hash,result,sizeof(result),0)!=0)goto done;
-    for(size_t i=0;i<32;++i){char pair[3];sprintf_s(pair,"%02x",result[i]);if(tolower(expectedDigest[i*2])!=pair[0] || tolower(expectedDigest[i*2+1])!=pair[1])goto done;}
-    ok=expectedDigest[64]=='\0';
-done:
-    if(hash)BCryptDestroyHash(hash);if(algorithm)BCryptCloseAlgorithmProvider(algorithm,0);free(object);return ok;
+    LARGE_INTEGER origin{};char observed[65]{};
+    return SetFilePointerEx(file,origin,nullptr,FILE_BEGIN) && hashFile(file,observed,180000,nullptr,nullptr)==0 && _stricmp(observed,expectedDigest)==0;
 }
 DWORD private_descriptor(const std::vector<BYTE> &user,PSECURITY_DESCRIPTOR &descriptor) {
     if(user.empty())return ERROR_INVALID_SID;
@@ -262,9 +302,68 @@ int shell_move(const char *input,const char *target,const shou_win_info *saved,c
 }
 }
 
+// The cursor pins the directory and all ancestors against rename. It returns
+// one name at a time, keeping wide-directory memory independent of entry count.
+struct shou_win_directory {
+    Handles pins;
+    HANDLE directory=INVALID_HANDLE_VALUE, search=INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATAW data{};
+    DWORD nextError=0;
+    bool first=true;
+    ~shou_win_directory(){if(search!=INVALID_HANDLE_VALUE)FindClose(search);}
+};
+
 extern "C" {
 void shou_win_free(void *value){free(value);}
-int shou_win_normalize(const char *input,char **result){*result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;std::replace(path.begin(),path.end(),L'\\',L'/');*result=utf8(path);return *result?0:ERROR_NOT_ENOUGH_MEMORY;}
+int shou_win_hash(const char *input,const shou_win_info *saved,uint32_t milliseconds,shou_win_read_cancelled cancelled,void *context,char **result){
+    if(!input || !saved || !result || !milliseconds || milliseconds>600000 || saved->kind!=1)return ERROR_INVALID_PARAMETER;
+    *result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;
+    Handles pins;HANDLE file;if((code=open(path,pins,file,GENERIC_READ|READ_CONTROL,FILE_SHARE_READ)))return code;
+    shou_win_info before{},after{};char value[65]{};
+    if((code=info(file,&before)))return code;
+    if(!same(before,*saved))return ERROR_FILE_INVALID;
+    if((code=hashFile(file,value,milliseconds,cancelled,context)))return code;
+    if((code=info(file,&after)))return code;
+    if(!same(before,after))return ERROR_FILE_INVALID;
+    *result=static_cast<char *>(malloc(sizeof(value)));if(!*result)return ERROR_NOT_ENOUGH_MEMORY;
+    memcpy(*result,value,sizeof(value));return 0;
+}
+void shou_win_directory_close(shou_win_directory *directory){delete directory;}
+int shou_win_directory_open(const char *input,const shou_win_info *saved,shou_win_directory **result){
+    if(!input || !saved || !result || saved->kind!=2)return ERROR_INVALID_PARAMETER;
+    *result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;
+    auto cursor=new(std::nothrow) shou_win_directory();if(!cursor)return ERROR_NOT_ENOUGH_MEMORY;
+    shou_win_info current{};
+    if((code=open(path,cursor->pins,cursor->directory,FILE_LIST_DIRECTORY|FILE_READ_ATTRIBUTES|READ_CONTROL)) ||
+       (code=info(cursor->directory,&current))){delete cursor;return code;}
+    if(!same(current,*saved)){delete cursor;return ERROR_FILE_INVALID;}
+    const auto pattern=extended(path)+(path.back()==L'\\'?L"*":L"\\*");
+    cursor->search=FindFirstFileExW(pattern.c_str(),FindExInfoBasic,&cursor->data,FindExSearchNameMatch,nullptr,FIND_FIRST_EX_LARGE_FETCH);
+    if(cursor->search==INVALID_HANDLE_VALUE){
+        code=GetLastError();
+        if(code!=ERROR_FILE_NOT_FOUND){delete cursor;return code;}
+        cursor->nextError=ERROR_NO_MORE_FILES;
+    }
+    *result=cursor;return 0;
+}
+int shou_win_directory_next(shou_win_directory *cursor,char **name){
+    if(!cursor || !name)return ERROR_INVALID_PARAMETER;
+    *name=nullptr;
+    if(cursor->nextError)return cursor->nextError;
+    while(true){
+        if(cursor->first)cursor->first=false;
+        else if(!FindNextFileW(cursor->search,&cursor->data)){cursor->nextError=GetLastError();return cursor->nextError;}
+        const std::wstring value=cursor->data.cFileName;
+        if(value==L"." || value==L"..")continue;
+        *name=utf8(value);return *name?0:ERROR_NO_UNICODE_TRANSLATION;
+    }
+}
+int shou_win_directory_verify(shou_win_directory *cursor,const shou_win_info *saved){
+    if(!cursor || !saved)return ERROR_INVALID_PARAMETER;
+    shou_win_info current{};const auto code=info(cursor->directory,&current);
+    return code?code:same(current,*saved)?0:ERROR_FILE_INVALID;
+}
+int shou_win_normalize(const char *input,char **result){*result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;if((code=canonicalSpelling(path)))return code;std::replace(path.begin(),path.end(),L'\\',L'/');*result=utf8(path);return *result?0:ERROR_NOT_ENOUGH_MEMORY;}
 int shou_win_stat(const char *input,shou_win_info *out){std::wstring path;auto code=normalized(input,path);if(code)return code;Handles pins;HANDLE h;if((code=open(path,pins,h)))return code;return info(h,out);}
 int shou_win_list(const char *input,size_t limit,char **result){
     *result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;Handles pins;HANDLE directory;
@@ -278,6 +377,24 @@ int shou_win_list(const char *input,size_t limit,char **result){
        if(++count>limit || names.size()>8*1024*1024){code=ERROR_MORE_DATA;break;}names+=data.cFileName;names+=L'\n';
     }while(FindNextFileW(search,&data));
     if(!code && GetLastError()!=ERROR_NO_MORE_FILES)code=GetLastError();FindClose(search);
+    if(code)return code;*result=utf8(names);return *result?0:ERROR_NOT_ENOUGH_MEMORY;
+}
+int shou_win_list_bounded(const char *input,size_t limit,uint32_t milliseconds,char **result,int *truncated,shou_win_cancelled cancelled){
+    if(!result || !truncated || !limit || limit>1000000 || !milliseconds || milliseconds>600000)return ERROR_INVALID_PARAMETER;
+    *result=nullptr;*truncated=0;std::wstring path;auto code=normalized(input,path);if(code)return code;
+    Handles pins;HANDLE directory;if((code=open(path,pins,directory)))return code;
+    WIN32_FIND_DATAW data{};HANDLE search=FindFirstFileExW((extended(path)+L"\\*").c_str(),FindExInfoBasic,&data,FindExSearchNameMatch,nullptr,FIND_FIRST_EX_LARGE_FETCH);
+    if(search==INVALID_HANDLE_VALUE){code=GetLastError();if(code==ERROR_FILE_NOT_FOUND){*result=utf8(L"");return *result?0:ERROR_NOT_ENOUGH_MEMORY;}return code;}
+    std::wstring names;size_t count=0;ULONGLONG deadline=GetTickCount64()+milliseconds;
+    do {
+        if(cancelled && cancelled()){code=ERROR_CANCELLED;break;}
+        if(!wcscmp(data.cFileName,L".") || !wcscmp(data.cFileName,L".."))continue;
+        if(count>=limit || GetTickCount64()>=deadline || names.size()+wcslen(data.cFileName)+1>8*1024*1024){*truncated=1;break;}
+        for(auto ch:std::wstring(data.cFileName))if(ch<32){code=ERROR_INVALID_NAME;break;}
+        if(code)break;
+        names+=data.cFileName;names+=L'\n';++count;
+    }while(FindNextFileW(search,&data));
+    if(!code && !*truncated && GetLastError()!=ERROR_NO_MORE_FILES)code=GetLastError();FindClose(search);
     if(code)return code;*result=utf8(names);return *result?0:ERROR_NOT_ENOUGH_MEMORY;
 }
 int shou_win_read(const char *input,size_t limit,void **bytes,size_t *count){

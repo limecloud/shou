@@ -8,7 +8,7 @@ Status: format `1.0` development contract with a Swift engine implementation. Fi
 
 Rules describe where to look, what directories to match, what retention conditions apply, and why processing may be appropriate. They grant no access or execution approval and contain no scripts or direct permanent-delete action.
 
-Existing coding agents may generate and import drafts through CLI. Generated text is not trusted evidence. New paths/conditions expressible by the current format need no app release; new predicates, adapters, or platform capabilities do.
+Existing coding agents may generate and import drafts through CLI; next-stage built-in investigation constructs disabled drafts using the same format. Neither route treats generated text as trusted evidence, and model integration does not change the rule format. New paths/conditions expressible by the current format need no app release; new predicates, adapters, or platform capabilities do.
 
 ## 2. Validation layers
 

@@ -120,7 +120,9 @@ def main():
     parser.add_argument("--native-permanent", action="store_true", help="Permanently remove newly generated fixtures; also verifies purge after Trash when --native-trash is set")
     args = parser.parse_args()
     engine = args.engine.resolve(strict=True)
-    with tempfile.TemporaryDirectory(prefix="shou-desktop-") as temporary:
+    # AppData remains protected even for test roots. A new private fixture below
+    # the user profile exercises normal project policy without a cache exception.
+    with tempfile.TemporaryDirectory(prefix="shou-desktop-", dir=Path.home() if os.name == "nt" else None) as temporary:
         root = Path(temporary).resolve()
         workspace = root / "中文 project & literal"
         workspace.mkdir()
@@ -128,6 +130,8 @@ def main():
             directory = workspace / f"generated-{index:03}"
             directory.mkdir()
             (directory / "fixture.bin").write_bytes(b"isolated desktop fixture" * 32)
+            (directory / "nested").mkdir()
+            (directory / "nested/child.bin").write_bytes(b"isolated nested fixture")
         environment = dict(os.environ, SHOU_DATA_DIR=str(root / "records"))
         if args.native_trash:
             environment["SHOU_WINDOWS_EXPERIMENTAL_RECYCLE"] = "1"
@@ -172,6 +176,43 @@ def main():
         rule_scan = success("scan", dict(workspace_id=registered["id"], rule_ids=[rule["id"]]))
         assert rule_scan["total_count"] == 105 and all(item["rule_ids"] == [rule["id"]] for item in rule_scan["candidates"])
         print("PASS registration, disabled import, enablement, scan and pagination", flush=True)
+        partial = success("scan", dict(workspace_id=registered["id"], budget=dict(max_entries=64)))
+        incomplete = next(item for item in partial["candidates"] if "incomplete_scan" in item["reasons"])
+        refined = success("scan.target", dict(scan_id=partial["scan_id"], candidate_id=incomplete["id"]))
+        assert refined["scan_id"] != partial["scan_id"] and refined["workspace_id"] == partial["workspace_id"]
+        assert refined["total_count"] == 1 and refined["candidates"][0]["relative_path"] == incomplete["relative_path"]
+        assert refined["candidates"][0]["eligible"] and refined["status"] == "complete", refined
+        rejected, reviewed = request(engine, environment, "scan.target", dict(scan_id=partial["scan_id"], candidate_id="foreign-candidate"))
+        assert not reviewed and not rejected["ok"]
+        rejected, _ = request(engine, environment, "scan", dict(workspace_id=registered["id"], budget=dict(max_entries=0)))
+        assert not rejected["ok"] and rejected["error"]["code"] == "invalid_argument"
+        print("PASS bounded partial discovery, single-directory continuation and invalid-scope refusal", flush=True)
+        review = success("cleanup.review", dict(scan_ids=[scan["scan_id"], rule_scan["scan_id"]]))
+        assert review["total_count"] == 105 and len(review["sources"]) == 105 and review["next_offset"] is None, review
+        assert [category["id"] for category in review["categories"]] == ["personal"]
+        assert review["bytes"] == sum(source["candidate"]["allocated_bytes_estimate"] for source in review["sources"])
+        assert all(source["selectable"] and source["file_count"] == 2 for source in review["sources"])
+        refined_review = success("cleanup.review", dict(scan_ids=[partial["scan_id"], refined["scan_id"]],
+            refinements=[dict(original_scan_id=partial["scan_id"], candidate_id=incomplete["id"], scan_id=refined["scan_id"])],
+            query=incomplete["relative_path"]))
+        assert refined_review["total_count"] == 1 and refined_review["sources"][0]["scan_id"] == refined["scan_id"]
+        assert refined_review["sources"][0]["selectable"]
+        repeated_partial = success("scan.target", dict(scan_id=partial["scan_id"], candidate_id=incomplete["id"], budget=dict(max_depth=1)))
+        repeated_target = next(item for item in repeated_partial["candidates"] if item["relative_path"] == incomplete["relative_path"])
+        assert "incomplete_scan" in repeated_target["reasons"]
+        repeated_complete = success("scan.target", dict(scan_id=repeated_partial["scan_id"], candidate_id=repeated_target["id"]))
+        compacted = success("cleanup.review", dict(scan_ids=[partial["scan_id"], repeated_complete["scan_id"]],
+            refinements=[dict(original_scan_id=partial["scan_id"], candidate_id=incomplete["id"], scan_id=repeated_complete["scan_id"])],
+            query=incomplete["relative_path"]))
+        assert compacted["total_count"] == 1 and compacted["sources"][0]["selectable"]
+        assert compacted["sources"][0]["scan_id"] == repeated_complete["scan_id"]
+        for invalid in [dict(scan_ids=[scan["scan_id"], scan["scan_id"]]),
+                        dict(scan_ids=[scan["scan_id"]], offset=-1), dict(scan_ids=[scan["scan_id"]], offset=0.5),
+                        dict(scan_ids=[scan["scan_id"]], category_id="foreign"), dict(scan_ids=[scan["scan_id"]], group_id="foreign"),
+                        dict(scan_ids=[scan["scan_id"]], recommended_only="true"), dict(scan_ids=[scan["scan_id"]], query=3)]:
+            rejected, confirmed = request(engine, environment, "cleanup.review", invalid)
+            assert not confirmed and not rejected["ok"] and rejected["error"]["code"] == "invalid_argument", rejected
+        print("PASS shared cleanup grouping, cross-scan deduplication, capacities and refined evidence", flush=True)
         candidate = next(item for item in scan["candidates"] if item["eligible"])
         for action in ["trash", "permanent"]:
             if not capabilities["features"][action]:
@@ -202,7 +243,7 @@ def main():
             assert (workspace / candidate["relative_path"] / "fixture.bin").read_bytes() == b"isolated desktop fixture" * 32
             print("PASS confirmed native Trash, history, restoration and replay eligibility", flush=True)
         storage = success("storage.scan", dict(path=str(workspace)))
-        assert storage["status"] == "complete" and storage["entry_count"] == 211 and storage["issues"] == [], storage
+        assert storage["status"] == "complete" and storage["entry_count"] == 421 and storage["issues"] == [], storage
         mapped = success("storage.map", dict(scan_id=storage["scan_id"], path="."))
         assert mapped["presentation"]["scan_id"] == storage["scan_id"] and len(mapped["presentation"]["items"]) <= 8192
         assert mapped["colors"]["bin"] == "#D23A9D" and all("depth" in tile for tile in mapped["tiles"])
@@ -215,8 +256,33 @@ def main():
         final_page = success("storage.page", dict(scan_id=storage["scan_id"], path=".", offset=100))
         assert len(final_page["children"]) == 5 and final_page.get("next_offset") is None
         directory = success("storage.directory", dict(scan_id=storage["scan_id"], path="generated-000"))
-        assert directory["path"] == "generated-000" and len(directory["children"]) == 1
+        assert directory["path"] == "generated-000" and {child["path"] for child in directory["children"]} == {"generated-000/fixture.bin", "generated-000/nested"}
         print("PASS isolated history and space navigation", flush=True)
+        large_root = root / "large-files-fixture"
+        large_root.mkdir()
+        for index in range(501):
+            (large_root / f"small-{index:03}.bin").write_bytes(b"generated large-file paging fixture")
+        video = large_root / "isolated-video.mp4"
+        video.write_bytes(b"generated extension-based video fixture" * 256)
+        (large_root / "isolated-document.pdf").write_bytes(b"generated document fixture" * 1024)
+        large_scan = success("storage.scan", dict(path=str(large_root)))
+        large = success("storage.large-files", dict(scan_id=large_scan["scan_id"], minimum_bytes=0))
+        assert large["total_count"] == 503 and len(large["entries"]) == 500 and large["next_cursor"], large
+        last = success("storage.large-files", dict(scan_id=large_scan["scan_id"], minimum_bytes=0, cursor=large["next_cursor"]))
+        assert len(last["entries"]) == 3 and last["next_cursor"] is None
+        assert len({item["entry"]["path"] for item in large["entries"] + last["entries"]}) == 503
+        videos = success("storage.large-files", dict(scan_id=large_scan["scan_id"], minimum_bytes=0, type="video"))
+        assert videos["total_count"] == 1 and videos["entries"][0]["entry"]["path"] == video.name
+        assert videos["entries"][0]["removal_block_reason"] is None
+        for values in [dict(minimum_bytes=-1), dict(type=True), dict(type="unsupported"), dict(cursor=True), dict(minimum_bytes=0, type="video", cursor=large["next_cursor"])]:
+            rejected, reviewed = request(engine, environment, "storage.large-files", dict(scan_id=large_scan["scan_id"], **values))
+            assert not rejected["ok"] and not reviewed, rejected
+        result, reviewed = request(engine, environment, "storage.remove", dict(scan_id=large_scan["scan_id"], paths=[video.name], action="permanent"))
+        assert reviewed and not result["ok"] and video.is_file()
+        result, reviewed = request(engine, environment, "storage.remove", dict(scan_id=large_scan["scan_id"], paths=[video.name], action="permanent"), "accept")
+        assert reviewed and result["ok"] and result["data"]["state"] == "completed", result
+        assert not video.exists() and (large_root / "small-000.bin").is_file()
+        print("PASS large-file pagination, filename filters, query-bound cursors and confirmed file removal", flush=True)
         success("exclusions.set", dict(pattern="generated-000", remove=False))
         excluded = success("scan", dict(workspace_id=registered["id"]))
         excluded_items = excluded["candidates"]
@@ -322,6 +388,51 @@ def main():
         assert reviewed and result["ok"] and result["data"]["state"] == "partial" and result["data"]["execution_ids"] == [], result
         assert all(not (folder / "generated-batch").exists() for folder, _ in roots)
         print("PASS cross-root single confirmation, cancellation, permanent cleanup, journals and stale-target refusal", flush=True)
+        # Exercise review paging and overlapping roots independently from the
+        # mutation fixtures above. Only newly created test directories are used.
+        review_root = root / "review-paging"
+        for index in range(503):
+            directory = review_root / f"generated-{index:03}"
+            directory.mkdir(parents=True)
+            (directory / "fixture.bin").write_bytes(b"review fixture")
+        for name in ["high-risk", "nested/generated-child"]:
+            directory = review_root / name
+            directory.mkdir(parents=True)
+            (directory / "fixture.bin").write_bytes(b"review fixture")
+        set_fixture_owner(review_root)
+        review_workspace = success("workspace.add", dict(path=str(review_root), root_ref="review-paging"))
+        nested_workspace = success("workspace.add", dict(path=str(review_root / "nested"), root_ref="review-nested"))
+        for identifier, root_ref, patterns, risk, workspace_id in [
+            ("test.review-main", "review-paging", ["generated-*", "nested/generated-*"], "review", review_workspace["id"]),
+            ("test.review-high", "review-paging", ["high-risk"], "high", review_workspace["id"]),
+            ("test.review-nested", "review-nested", ["generated-*"], "review", nested_workspace["id"])]:
+            review_rule = dict(rule, id=identifier, scope=dict(rule["scope"], root_ref=root_ref),
+                               match=dict(kind="directory", relative_patterns=patterns), risk=dict(rule["risk"], declared_level=risk))
+            success("rules.import", dict(json=json.dumps(review_rule)))
+            success("rules.set", dict(workspace_id=workspace_id, rule_id=identifier, version=rule["version"], enabled=True))
+        review_ids = [success("scan", dict(workspace_id=workspace_id))["scan_id"]
+                      for workspace_id in [review_workspace["id"], nested_workspace["id"]]]
+        first = success("cleanup.review", dict(scan_ids=review_ids))
+        assert first["total_count"] == 505 and len(first["sources"]) == 500 and first["next_offset"] == 500, first
+        last = success("cleanup.review", dict(scan_ids=review_ids, offset=500, query_digest=first["query_digest"]))
+        assert len(last["sources"]) == 5 and last["next_offset"] is None
+        combined = first["sources"] + last["sources"]
+        paths = [source["root_path"] + "/" + source["candidate"]["relative_path"] for source in combined]
+        assert len(set(paths)) == 505 and sum(source["file_count"] for source in combined) == 505
+        assert first["bytes"] == sum(source["candidate"]["allocated_bytes_estimate"] for source in combined)
+        filtered = success("cleanup.review", dict(scan_ids=review_ids, query="GENERATED-502"))
+        assert filtered["total_count"] == 1 and filtered["sources"][0]["candidate"]["relative_path"] == "generated-502"
+        recommended = success("cleanup.review", dict(scan_ids=review_ids, query="high-risk", recommended_only=True))
+        assert recommended["total_count"] == 0
+        high_group = next(group for category in first["categories"] for group in category["groups"] if group["id"] == "test.review-high")
+        assert high_group["count"] == 1 and high_group["selectable_count"] == 1 and high_group["recommended_count"] == 0
+        scoped = success("cleanup.review", dict(scan_ids=review_ids, category_id="personal", group_id=high_group["id"]))
+        assert scoped["total_count"] == 1 and scoped["sources"][0]["candidate"]["relative_path"] == "high-risk"
+        for changed in [dict(scan_ids=review_ids, offset=500),
+                        dict(scan_ids=review_ids, offset=500, query_digest=first["query_digest"], query="changed")]:
+            rejected, confirmed = request(engine, environment, "cleanup.review", changed)
+            assert not confirmed and not rejected["ok"] and rejected["error"]["code"] == "plan_stale", rejected
+        print("PASS cleanup review paging, nested-root deduplication, search, group scope and high-risk recommendations", flush=True)
     print("Desktop protocol integration passed; no user files changed.")
 
 

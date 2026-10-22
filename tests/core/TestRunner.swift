@@ -23,6 +23,14 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 
 @main enum TestRunner {
     static func main() async {
+        if Array(CommandLine.arguments.dropFirst()) == ["--ai-safety-only"] {
+            do {
+                try aiInvestigationPreservesConnectionAndPhysicalSelectionBoundaries()
+                try await aiDecisionProvidersAreReplaceableAndRevokedCredentialsCannotSend()
+                print("2/2 AI connection, scope, provider substitution and request-revocation checks passed; generated fixtures only.")
+            } catch { print("FAIL AI boundaries: \(error)"); Foundation.exit(1) }
+            return
+        }
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         if Array(CommandLine.arguments.dropFirst()) == ["--receipt-journal-only"] {
             do {
@@ -41,8 +49,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--windows-caches-only"] {
             do {
+                try windowsCacheAccessNeverAuthorizesProfilesOrBroaderRoots()
                 try await windowsCacheRulesKeepProfilesSourcesAndEnvironments()
-                print("1/1 Windows cache positive/negative boundary checks passed; native Windows execution remains separate.")
+                try await windowsKnownCacheAliasesReuseRuleBindings()
+                try windowsCacheApplicationsRequireMappedProcessEvidence()
+                print("4/4 Windows cache access, path aliases, bindings, positive/negative rule boundaries and application process gates passed; native Windows execution remains separate.")
             } catch { print("FAIL Windows cache boundaries: \(error)"); Foundation.exit(1) }
             return
         }
@@ -132,13 +143,15 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         if Array(CommandLine.arguments.dropFirst()) == ["--rule-scan-progress-only"] {
             do {
                 try await cleanupScanUsesBoundedWorkersAndPreservesSerialResults()
+                try await systemScanHonorsPlatformReadConcurrency()
+                try await workerBackedSystemScanBoundsConcurrentReadsWithoutLosingRoots()
                 try await ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages()
                 try await batchScanProgressKeepsCountsAndPercentagesAcrossLocationsAndFailure()
                 try await batchScanProgressCancellationDoesNotReportCompletion()
                 try await systemScanPreparationIsLinearAndReportsRootBeforeIdentity()
                 try await systemScanPreparationCancellationPreventsRegistration()
                 try await systemScanRegistersBeforeEvidenceAndReportsPartial()
-                print("7/7 cleanup concurrency, progress, worker phases, multi-location totals, failure and cancellation checks passed; generated fixtures only.")
+                print("9/9 cleanup concurrency, platform capacity, isolated workers, progress, multi-location totals, failure and cancellation checks passed; generated fixtures only.")
             } catch { print("FAIL rule-scan progress: \(error)"); Foundation.exit(1) }
             return
         }
@@ -174,7 +187,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await nativeApplicationActivityKeepsLiveHelpersBlocked()
                 try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked()
                 try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation()
-                print("18/18 application summary, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+                try await administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation()
+                try await nativeApplicationTrashUsesRecyclerAndVerifiesFixtureOutcomes()
+                try await nativeApplicationTrashRejectsLinksStaleAndForeignOwnerManifests()
+                print("21/21 application summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
             } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
             return
         }
@@ -200,11 +216,14 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-catalog-only"] {
             do {
+                try storageCatalogPreservesWindowsIdentitiesAndHardLinks()
+                try storageCatalogRetainsLegacySchemaAndRejectsCorruptWindowsIdentity()
+                try storageCatalogPagesDirectoryWorkWhileDescendantsAreInserted()
                 try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories()
                 try await storageCatalogAccountsHardLinksAndOpaqueLinks()
                 try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings()
                 try await storageCatalogCancellationNeverPublishesAScan()
-                print("4/4 streaming storage catalog, sibling coverage, hard-link accounting, permissions and cancellation tests passed; generated fixtures only.")
+                print("7/7 streaming storage catalog, Windows identity, legacy schemas, directory paging, sibling coverage, hard links, permissions and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage catalog: \(error)"); Foundation.exit(1) }
             return
         }
@@ -275,8 +294,52 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await projectDiscoveryRespectsExplicitNestedScopeAndDisabledRules()
                 try await projectDiscoveryCancellationStopsBeforeRegistration()
                 try await enabledPersonalRulesJoinRepeatedCleanupWithoutReselecting()
-                print("4/4 automatic discovery and repeated-cleanup tests passed; only generated fixtures were used.")
+                try await commonReviewSeparatesUserCachesAndCrossProjectArtifacts()
+                try await projectDiscoveryFindsAdditionalCollectionsAndToolchains()
+                try await projectArtifactRulesRequireExactLocalMarkers()
+                try await additionalProjectSourcesStayInsideVerifiedGeneratedLayouts()
+                try await additionalProjectArtifactsBlockAuthoredAndProtectedContent()
+                try await projectArtifactActivityIsScopedAndUnknownFactsRemainBlocked()
+                try await browserAutomationCachesRequireGlobalActivityFactsAndProtectSource()
+                print("11/11 discovery, project/cache boundaries, category grouping and repeated-cleanup tests passed; only generated fixtures were used.")
             } catch { print("FAIL automatic discovery: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--cleanup-discovery-only"] {
+            do {
+                try selectiveDiscoveryPrunesProtectedTreesWithinBudget()
+                try fixedSelectivePatternsAvoidUnreachableSubtrees()
+                try await matchedSelectiveTargetsRetainFullManifestsAndMarkers()
+                try await selectiveEngineEvidencePlansOnlyMeasuredTargetsAndRestores()
+                try await selectiveDiscoverySharesFiniteBudgetAcrossLargeAndLaterProjects()
+                try await selectiveFairDiscoveryPreservesRulesMarkersAndExclusions()
+                try await selectiveDiscoveryRejectsReplacedTargetsAndMarkers()
+                try selectiveDiscoveryCancellationKeepsPartialTargetsUnauthorized()
+                try await isolatedCleanupDiscoveryKeepsLaterProjectsWithinSharedBudget()
+                print("9/9 bounded cleanup discovery, later-project coverage, rule policy, replacement, cancellation and isolated-worker checks passed; generated fixtures only.")
+            } catch { print("FAIL bounded cleanup discovery: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--cleanup-refinement-only"] {
+            do {
+                try await commonReviewRefinesOnlyOneTargetAndRetainsOriginalEvidence()
+                try await commonReviewRefinementRejectsStaleEvidenceAndSupportsRepeatedPartialScans()
+                print("2/2 cleanup refinement projection, retained selection, stale evidence and repeated-target checks passed; generated fixtures only.")
+            } catch { print("FAIL cleanup refinement: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--cleanup-target-only"] {
+            do {
+                try await cleanupTargetRescanCompletesOnlyOriginalTargetAndExecutes()
+                try await cleanupTargetRescanRejectsPreviewCompleteAndChangedConfiguration()
+                try await cleanupTargetRescanRejectsReplacedBindingsAndMissingMarkers()
+                try await cleanupTargetRescanRechecksSourceGitAndBuildActivity()
+                try await cleanupTargetRescanProtectsLimitsCancellationAndMidScanChanges()
+                try await cleanupTargetRescanRejectsChangesDuringMeasurement()
+                try await cleanupTargetRescanRetainsCanonicalGeneratedSourceRules()
+                try await isolatedCleanupTargetRescanMatchesNativeNarrowEvidence()
+                print("8/8 cleanup target scope, policy, cancellation, changed evidence, isolated-worker and Trash/restore checks passed; generated fixtures only.")
+            } catch { print("FAIL cleanup target scan: \(error)"); Foundation.exit(1) }
             return
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-presentation-million-only"] {
@@ -361,6 +424,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Presentation reads saved scope, paging and agent context", { try await storagePresentationReusesSnapshotAndPreservesAccounting() }),
             ("Nested map bounds, omissions, area and cancellation", { try await storageNestedMapIsBoundedAndPreservesParentArea() }),
             ("Storage catalog deduplicates hard links without following symlinks", { try await storageCatalogAccountsHardLinksAndOpaqueLinks() }),
+            ("Storage catalog preserves full Windows identities and hard links", { try storageCatalogPreservesWindowsIdentitiesAndHardLinks() }),
+            ("Storage catalog reads legacy schemas and rejects incomplete Windows identity", { try storageCatalogRetainsLegacySchemaAndRejectsCorruptWindowsIdentity() }),
+            ("Storage catalog pages directory work during descendant inserts", { try storageCatalogPagesDirectoryWorkWhileDescendantsAreInserted() }),
             ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),
             ("Cancelled storage catalog is never published", { try await storageCatalogCancellationNeverPublishesAScan() }),
             ("Large-file filters reuse saved evidence without rescanning", { try await storageLargeFilesFilterSavedEvidenceWithoutRescanning() }),
@@ -431,8 +497,19 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Native application activity preserves live helper protection", { try await nativeApplicationActivityKeepsLiveHelpersBlocked() }),
             ("Native application activity preserves unlinked helper protection", { try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked() }),
             ("Uninstall activity failures preserve their cause and allow a clean retry", { try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation() }),
+            ("Administrator uninstall requires native Trash and preserves app data on cancellation", { try await administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation() }),
+            ("Native application Trash preserves cancellation and verifies moved contents", { try await nativeApplicationTrashUsesRecyclerAndVerifiesFixtureOutcomes() }),
+            ("Native application Trash rejects stale linked and foreign-owned targets", { try await nativeApplicationTrashRejectsLinksStaleAndForeignOwnerManifests() }),
             ("Startup discovery validates before read and cancellation", { try await startupInventoryValidatesBeforeReadingAndHonorsCancellation() }),
             ("Startup control requires explicit capability and action", { try await startupControlRequiresPlatformCapabilityAndForwardsExplicitAction() }),
+            ("Startup groups use exact identity and retain mixed states", { try startupGroupsUseExactApplicationIdentityAndPreserveMixedStates() }),
+            ("Startup filters distinguish unknown and missing targets", { try startupFiltersKeepUnknownAndMissingTargetsDistinct() }),
+            ("Startup legacy payloads decode and configured defaults remain explicit", { try startupDefinitionsDecodeLegacyDataAndResolveConfiguredDefaults() }),
+            ("Startup discovery resolves applications without false leftovers", { try nativeStartupInventoryFindsAppIdentityWithoutFalseResiduals() }),
+            ("Startup control verifies readback and preflighted fixture removal", { try nativeStartupControlReadbackAndRemovalUseOnlyPreflightedFixtures() }),
+            ("Startup background archives enforce bounded data-only parsing", { try startupBackgroundArchiveIsBoundedVersionedAndNeverUnarchivesClasses() }),
+            ("System startup toggles use fixed authorization and verified readback", { try nativeStartupDaemonControlUsesFixedAuthorizationAndReadback() }),
+            ("Login startup control revalidates native registration identity", { try nativeStartupLoginControlRevalidatesIdentityAndNativeState() }),
             ("Launchctl state parsing stays bounded and explicit", { try launchctlStateParsersKeepOnlyDocumentedStates() }),
             ("Native startup control refuses system and out-of-scope definitions", { try nativeStartupControlRefusesSystemAndOutOfScopeDefinitions() }),
             ("Startup definitions keep state unknown and omit credentials", { try nativeStartupInventoryKeepsStateUnknownAndOmitsSecrets() }),
@@ -442,10 +519,13 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Automatic project discovery reuses scope and exclusions", { try await projectDiscoveryFindsCollectionsWithoutRegistrationAndReusesPolicy() }),
             ("Project discovery respects explicit nested policy", { try await projectDiscoveryRespectsExplicitNestedScopeAndDisabledRules() }),
             ("Project discovery cancels before registration", { try await projectDiscoveryCancellationStopsBeforeRegistration() }),
+            ("Project discovery covers additional collections and toolchains", { try await projectDiscoveryFindsAdditionalCollectionsAndToolchains() }),
+            ("Project artifacts require exact local markers", { try await projectArtifactRulesRequireExactLocalMarkers() }),
             ("Enabled personal rules join repeated cleanup", { try await enabledPersonalRulesJoinRepeatedCleanupWithoutReselecting() }),
             ("Native location availability uses directory metadata", { try nativeAvailabilityDistinguishesDirectoriesWithoutFollowingLinks() }),
             ("Native root identity requires search without enumeration", { try nativeRootIdentityNeedsOnlySearchAccess() }),
             ("Read worker preserves direct evidence without a store", { try nativeReadWorkerMatchesDirectEvidenceWithoutOpeningStore() }),
+            ("Isolated worker batch preserves every cache and project root within capacity", { try await workerBackedSystemScanBoundsConcurrentReadsWithoutLosingRoots() }),
             ("Read worker accepts snake-case protocol fields", { try nativeReadWorkerAcceptsSnakeCaseWireRequest() }),
             ("Read worker cancellation terminates only its child", { try nativeReadWorkerCancellationStopsOwnedChild() }),
             ("Read worker wall timeout returns no evidence", { try nativeReadWorkerTimeoutStopsOwnedChildWithoutEvidence() }),
@@ -469,6 +549,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Generated Rust requires trusted rule facts", { try await generatedRustSourcesRequireTrustedRulesAndFacts() }),
             ("Generated Rust retains authored sources", { try await generatedRustSourcesPreserveAuthoredFilesAndRequireLayout() }),
             ("Artifacts block tracked and active content", { try await generatedArtifactsBlockTrackedContentActiveBuildsAndUnknownFacts() }),
+            ("Additional project sources require verified generated layouts", { try await additionalProjectSourcesStayInsideVerifiedGeneratedLayouts() }),
+            ("Additional project artifacts protect authored content", { try await additionalProjectArtifactsBlockAuthoredAndProtectedContent() }),
+            ("Project artifact activity stays scoped and verified", { try await projectArtifactActivityIsScopedAndUnknownFactsRemainBlocked() }),
+            ("Browser runtimes require global activity and source checks", { try await browserAutomationCachesRequireGlobalActivityFactsAndProtectSource() }),
             ("Artifact changes immediately before moving preserve files", { try await artifactFactsChangingImmediatelyBeforeMovePreserveFiles() }),
             ("Binary-only Rust still checks activity and ownership", { try await binaryOnlyRustTargetsStillRequireActivityAndOwnershipFacts() }),
             ("Project build activity stays scoped; Cargo remains global", { try await projectScopedActivityDoesNotBlockUnrelatedRustOrSwiftProjects() }),
@@ -488,6 +572,17 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage and treemap accounting", { try storageAccountingAndTreemapConserveArea() }),
             ("Non-overlapping cleanup overview", { try await cleanupOverviewDoesNotDoubleCount() }),
             ("Unified review evidence and eligibility", { try await commonReviewGroupsEvidenceWithoutGrantingAuthority() }),
+            ("Unified review separates user caches and cross-project artifacts", { try await commonReviewSeparatesUserCachesAndCrossProjectArtifacts() }),
+            ("Unified review replaces only the refined target", { try await commonReviewRefinesOnlyOneTargetAndRetainsOriginalEvidence() }),
+            ("Unified review rejects stale and repeated refinement conflicts", { try await commonReviewRefinementRejectsStaleEvidenceAndSupportsRepeatedPartialScans() }),
+            ("Cleanup target rescan and isolated execution", { try await cleanupTargetRescanCompletesOnlyOriginalTargetAndExecutes() }),
+            ("Cleanup target rescan requires current enabled evidence", { try await cleanupTargetRescanRejectsPreviewCompleteAndChangedConfiguration() }),
+            ("Cleanup target rescan rejects replaced bindings and markers", { try await cleanupTargetRescanRejectsReplacedBindingsAndMissingMarkers() }),
+            ("Cleanup target rescan rechecks sources and build activity", { try await cleanupTargetRescanRechecksSourceGitAndBuildActivity() }),
+            ("Cleanup target rescan retains finite limits and cancellation", { try await cleanupTargetRescanProtectsLimitsCancellationAndMidScanChanges() }),
+            ("Cleanup target rescan rejects changes during measurement", { try await cleanupTargetRescanRejectsChangesDuringMeasurement() }),
+            ("Cleanup target rescan retains canonical generated-source policy", { try await cleanupTargetRescanRetainsCanonicalGeneratedSourceRules() }),
+            ("Cleanup target rescan matches isolated-worker evidence", { try await isolatedCleanupTargetRescanMatchesNativeNarrowEvidence() }),
             ("Disabled imports and non-executable previews", { try await importIsDisabledAndPreviewCannotExecute() }),
             ("Trash and restore loop; replay refusal", { try await completeTrashRestoreLoopAndRepeatRefusal() }),
             ("Trash root comparison allows only directory ctime", { try trashRootComparisonAllowsOnlyDirectoryCTime() }),
@@ -495,12 +590,18 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Trash root ctime exception never authorizes cleanup", { try await trashRootCTimeExceptionNeverAuthorizesPlanExecution() }),
             ("Changed Trash metadata, identity and descendants stay blocked", { try await changedTrashMetadataIdentityAndDescendantsStillRefuseRestore() }),
             ("Cleanup scan uses bounded workers with serial parity", { try await cleanupScanUsesBoundedWorkersAndPreservesSerialResults() }),
+            ("System scan honors platform read capacity", { try await systemScanHonorsPlatformReadConcurrency() }),
+            ("Windows cache access retains broader roots and browser profile data", { try windowsCacheAccessNeverAuthorizesProfilesOrBroaderRoots() }),
             ("Windows cache rules retain profiles, credentials and environments", { try await windowsCacheRulesKeepProfilesSourcesAndEnvironments() }),
+            ("Windows cache root aliases reuse saved rule bindings", { try await windowsKnownCacheAliasesReuseRuleBindings() }),
+            ("Windows cache applications require mapped process evidence", { try windowsCacheApplicationsRequireMappedProcessEvidence() }),
             ("Native cleanup concurrency preserves generated filesystem evidence", { try await nativeCleanupConcurrencyPreservesRealFilesystemEvidence() }),
             ("Derived record retention preserves active plans and recovery", { try await recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() }),
             ("Orphan cleanup verifies absence, consent and shared recovery", { try await applicationOrphansRequireAbsenceConsentAndReuseDeletionJournals() }),
             ("Orphan cleanup retains unknown owners and changed or excluded targets", { try await applicationOrphansRespectUnknownOwnersExclusionsAndChangedContents() }),
             ("Agent rules measure new coverage and persist opt-in reuse", { try await agentRuleLoopMeasuresAdditionalCoverageAndPersistsReuse() }),
+            ("AI connections, private scope and physical folder selections", { try aiInvestigationPreservesConnectionAndPhysicalSelectionBoundaries() }),
+            ("Replaceable AI decisions and credential-wait revocation", { try await aiDecisionProvidersAreReplaceableAndRevokedCredentialsCannotSend() }),
             ("Application closing binds identity and verifies remaining owners", { try await applicationClosingVerifiesIdentityAndReportsRemainingOwners() }),
             ("Tool cleanup uses fixed owner operations and verifies outcomes", { try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes() }),
             ("Tool cleanup rejects remote, stale and unknown outcomes", { try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes() }),
@@ -532,6 +633,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Selective fixed patterns skip unreachable subtrees", { try fixedSelectivePatternsAvoidUnreachableSubtrees() }),
             ("Selective targets retain manifests and markers", { try await matchedSelectiveTargetsRetainFullManifestsAndMarkers() }),
             ("Selective cleanup and restore use measured evidence", { try await selectiveEngineEvidencePlansOnlyMeasuredTargetsAndRestores() }),
+            ("Cleanup discovery shares finite budgets across large and later projects", { try await selectiveDiscoverySharesFiniteBudgetAcrossLargeAndLaterProjects() }),
+            ("Fair discovery retains rule markers, exclusions and disabled bindings", { try await selectiveFairDiscoveryPreservesRulesMarkersAndExclusions() }),
+            ("Cleanup discovery rejects replaced targets and project markers", { try await selectiveDiscoveryRejectsReplacedTargetsAndMarkers() }),
+            ("Cancelled cleanup discovery never returns authorized targets", { try selectiveDiscoveryCancellationKeepsPartialTargetsUnauthorized() }),
+            ("Isolated cleanup discovery preserves later projects within shared budgets", { try await isolatedCleanupDiscoveryKeepsLaterProjectsWithinSharedBudget() }),
             ("Native read-only artifact and retained archive facts", { try nativeArtifactFactsVerifyRetainedCargoSources() }),
             ("Cross-process mutation lock", { try crossProcessLockCannotBeAcquiredTwice() }),
             ("Restore conflict and Trash expansion", { try await restoreNeverOverwritesAndTrashExpansionBlocksPurge() }),

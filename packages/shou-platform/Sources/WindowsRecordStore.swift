@@ -24,7 +24,15 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         try WindowsNative.check(shou_win_private_directory(base), path: base)
         let folder=base + "/" + collection
         try WindowsNative.check(shou_win_private_directory(folder), path: folder)
-        return id.map { folder + "/" + $0 + ".json" } ?? folder
+        return id.map { folder + "/" + $0 + (collection == "storage-catalogs" ? ".sqlite" : ".json") } ?? folder
+    }
+    public func storageCatalogURL(id: String) throws -> URL? {
+        let path=try location("storage-catalogs", id: id)
+        do {
+            let info=try WindowsNative.metadata(path)
+            guard info.kind == 1, info.current_user == 1, info.links == 1 else { throw ShouError("store_corrupt", "Space analysis index has an invalid identity.") }
+        } catch let error as ShouError where error.code == "not_found" { }
+        return URL(fileURLWithPath: path)
     }
     public func read(_ collection: String, id: String) throws -> Data? {
         let path=try location(collection, id: id)
@@ -47,14 +55,15 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         try WindowsNative.check(shou_win_remove_record(path), path: path)
     }
     public func records(_ collection: String) throws -> [StoredRecord] {
-        // Windows currently persists JSON evidence rather than SQLite catalogs.
-        if collection == "storage-catalogs" { return [] }
-        return try ids(collection).compactMap { id in
-            try recordMetadata(collection, id: id)
+        let suffix=collection == "storage-catalogs" ? ".sqlite" : ".json"
+        let path=try location(collection)
+        let names=try WindowsNative.string({ shou_win_list(path, 100_000, $0) }, path: path)
+        return try names.split(separator: "\n").map(String.init).filter { $0.hasSuffix(suffix) && !$0.hasPrefix(".") }.compactMap { name in
+            let id=String(name.dropLast(suffix.count))
+            return try recordMetadata(collection, id: id)
         }
     }
     public func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? {
-        if collection == "storage-catalogs" { return nil }
         let path=try location(collection, id: id)
         let raw: shou_win_info
         do { raw=try WindowsNative.metadata(path) }
@@ -65,7 +74,7 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
             modifiedAt: Date(timeIntervalSince1970: Double(info.modifiedNanoseconds)/1e9), revision: try Digest.of(info))
     }
     public func removeDerivedRecord(_ record: StoredRecord) throws {
-        guard DerivedRecords.collections.contains(record.collection), record.collection != "storage-catalogs" else { throw ShouError("invalid_argument", "Only derived Shou records can be collected.") }
+        guard DerivedRecords.collections.contains(record.collection) else { throw ShouError("invalid_argument", "Only derived Shou records can be collected.") }
         guard try recordMetadata(record.collection, id: record.id) == record else { throw ShouError("plan_stale", "The derived record changed before collection.") }
         try WindowsNative.check(shou_win_remove_record(try location(record.collection, id: record.id)), path: record.id)
     }

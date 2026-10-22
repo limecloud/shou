@@ -12,13 +12,27 @@ Shou saves the user time by discovering cleanup targets together. Project Cleanu
 
 The first page presents one central scan action, the current disk capacity, and optional Agent customization. Scan Locations is an optional view in Smart Cleanup and Settings. Include Folder supports several extra folders at once and remembers them for later scans. Advanced rule previews can still open one folder's detail view, with a return action to Smart Cleanup.
 
+The result browser separates User Cache Files, Application Caches, Browser Data, Developer Tools and Project Build Outputs, adding Personal Rules when they match. Categories and the footer count rule groups; expanding a group reveals every matching directory across projects, its file count, size, warnings and individual selection. Category and group checkboxes support mixed selection. Search matches rule names and full paths; large groups initially show ten locations and expose the remainder in batches. The selection menu applies across all categories, while the detail header selects only the visible results. High-risk outputs and dependencies require explicit selection and stay outside the recommended selection.
+
+User cache groups include the maintained app/tool caches, pnpm, browser automation downloads and named macOS service caches. Homebrew, Node.js toolchain and SwiftPM cache groups retain the original shared rule binding. pnpm store discovery targets only `~/Library/pnpm/store`, preserving global executables and configuration. Unknown cache directories are not made removable merely because they reside inside a cache root.
+
 Large Files lists matching files across folders; Space Analysis provides directory navigation and a treemap. Both support direct removal of explicit selections. Startup, Applications, Rules and History retain their separate purposes.
 
 ## Automatic discovery
 
 `ProjectLocations` probes a fixed list of conventional project collections under the current user's home: `Developer`, `Projects`, `Code`, `code`, `dev`, `src`, `repos`, `GitHub`, and the `Developer`, `Projects`, `Code`, `dev`, `GitHub` children of `Documents`. This is directory metadata discovery, not recursive enumeration of the entire home folder. Windows discovery awaits a verified platform adapter.
 
+Additional hints include Workspace/Workspaces, Development, Source/Sources, Git/Repos, corresponding supported collections under Documents and Projects/Code/dev under Desktop. Projects in other locations, including external volumes, participate after Include Folder. A collection is scanned recursively, so its nested repositories do not need individual registration.
+
+The shipped project catalog covers Rust targets, Node dependencies and framework caches, Node build/dist outputs, Swift debug/release products, Python bytecode/test/type-checker caches, Gradle build/cache directories, Maven targets, Flutter build/.dart_tool directories and CMake build directories. Exact local manifests are required for generic build/cache names. All trusted project rules check Git tracking and project activity, including binary-only targets. Generated-source exceptions require the matching tool's verified output layout; handwritten sources, project manifests, credentials and tracked contents remain protected. Unsupported layouts remain visible with blocking reasons instead of acquiring deletion authority from their names.
+
 Only existing local directories with a valid root identity are prepared for scanning. Missing directories are ignored; inaccessible directories and symbolic links produce explicit coverage issues. Aliases to the same identity are deduplicated. Discovery never treats a folder's name as deletion evidence: cleanup still requires matching rules, project markers, activity checks, exclusions and complete target manifests.
+
+Batch scanning also respects the platform's read capacity. Native isolated readers permit at most two concurrent roots; direct readers retain the requested limit of up to four. Every prepared root receives a result or a reported issue, so scheduler capacity cannot silently omit cache or project collections.
+
+Within a root, cleanup discovery visits directories before measuring candidate contents. Each remaining candidate receives a share of the remaining entry and time budgets, allowing later projects to produce independently complete results even when an earlier artifact directory is too large. The original root, rule bindings and exclusions stay in force. Incomplete directories remain visible and blocked; discovery alone never grants cleanup eligibility.
+
+An incomplete directory offers Continue Scanning This Directory in its details and context menu. This read-only operation measures that exact target with a separate finite budget, under the original root, enabled rules, exclusions and safety checks. Progress identifies the directory and supports Stop. A successful result replaces only that directory's displayed evidence; other results and selections remain, and the refreshed target requires a new selection. Cancellation or failure keeps the previous result. Configuration or identity changes require a fresh scan. Completing one directory does not mark its parent collection complete, and a target that still exceeds the limit remains blocked.
 
 Previously registered roots are reused with their exact logical references, rule bindings and exclusions. A conventional suggestion overlapping a registered root is skipped, preserving that root's policy instead of introducing a broader overlapping scope. Consequently, an explicitly registered child can limit automatic discovery of its parent collection. Users can include another nonoverlapping collection when needed.
 
@@ -38,7 +52,7 @@ The optional partial-coverage flag is saved with owner evidence and bound into t
 
 An existing Agent investigates uncovered large directories, asks about unclear purpose or rebuilding, writes a rule and previews a disabled draft. After the user approves enablement once, eligible matches participate in subsequent Smart Cleanup recommendations automatically. Disabled imports, draft previews, incomplete targets and blocked candidates stay outside recommendations. Each actual cleanup still requires confirmation of its current concrete scope.
 
-Personal-rule enable/preview controls resolve the rule's own root reference; they do not depend on a separately selected location. Shou provides the Skill and CLI, without integrating a model or hosting an Agent.
+Personal-rule enable/preview controls resolve the rule's own root reference; they do not depend on a separately selected location. The released version uses external agents/Skill/CLI for customization. Next-stage built-in cleanup AI shares the same rule, preview, enablement and confirmed-execution contracts; ordinary daily cleanup needs neither network access nor repeated inference.
 
 ## Architecture
 

@@ -363,6 +363,134 @@ func projectScopedActivityDoesNotBlockUnrelatedRustOrSwiftProjects() async throw
     try expect(!blocked.eligible && blocked.reasons.contains("build_process_running"))
 }
 
+private struct GeneratedProjectFixture {
+    let project: String
+    let marker: String
+    let output: String
+    let source: String
+    let rule: String
+    let metadata: [String]
+    let requiredMetadata: String?
+    var target: String { project + "/" + output }
+}
+
+private func addGeneratedProjectFixtures(_ fixture: Fixture) throws -> [GeneratedProjectFixture] {
+    let cases: [GeneratedProjectFixture]=[
+        .init(project: "gradle", marker: "build.gradle", output: "build", source: "generated/sources/annotationProcessor/java/main/Demo.java", rule: "gradle-build", metadata: ["tmp/compile/state.bin", "classes/Demo.class"], requiredMetadata: "tmp"),
+        .init(project: "kotlin", marker: "build.gradle.kts", output: "build", source: "generated/ksp/main/kotlin/Demo.kt", rule: "gradle-kotlin-build", metadata: ["tmp/compile/state.bin", "classes/Demo.class"], requiredMetadata: "tmp"),
+        .init(project: "flutter-tools", marker: "pubspec.yaml", output: ".dart_tool", source: "flutter_build/0123456789abcdef/dart_plugin_registrant.dart", rule: "flutter-build", metadata: ["package_config.json"], requiredMetadata: "package_config.json"),
+        .init(project: "flutter-web", marker: "pubspec.yaml", output: "build", source: "web/main.dart.js", rule: "flutter-build", metadata: ["web/version.json"], requiredMetadata: "web/version.json"),
+        .init(project: "cmake", marker: "CMakeLists.txt", output: "cmake-build-release", source: "CMakeFiles/3.31.0/CompilerIdC/CMakeCCompilerId.c", rule: "cmake-build", metadata: ["CMakeCache.txt"], requiredMetadata: "CMakeCache.txt"),
+        .init(project: "maven", marker: "pom.xml", output: "target", source: "generated-sources/annotations/Demo.java", rule: "maven-build", metadata: ["maven-status/compiler/inputs.lst"], requiredMetadata: "maven-status"),
+        .init(project: "node-dist", marker: "package.json", output: "dist", source: "assets/app-abcdefgh.js", rule: "node-build-outputs", metadata: [], requiredMetadata: nil),
+        .init(project: "next", marker: "package.json", output: ".next", source: "server/app/page.js", rule: "node-build-cache", metadata: ["build-manifest.json"], requiredMetadata: "build-manifest.json"),
+        .init(project: "nuxt", marker: "package.json", output: ".nuxt", source: "types/generated.d.ts", rule: "node-build-cache", metadata: ["tsconfig.json", "nuxt.d.ts"], requiredMetadata: "tsconfig.json")
+    ]
+    for item in cases {
+        try fixture.put(item.project + "/" + item.marker, "fixture project marker")
+        try fixture.put(item.target + "/" + item.source, "fixture generated source")
+        for metadata in item.metadata { try fixture.put(item.target + "/" + metadata, "fixture build metadata") }
+    }
+    return cases
+}
+
+func additionalProjectSourcesStayInsideVerifiedGeneratedLayouts() async throws {
+    let fixture=try Fixture()
+    let cases=try addGeneratedProjectFixtures(fixture)
+    let workspace=try await artifactWorkspace(fixture)
+    let tree=try artifactTree(fixture, workspace: workspace)
+    for item in cases {
+        let rule=try artifactRule("shou.builtin." + item.rule, workspace: workspace)
+        let candidate=try artifactCandidate(item.target, tree: tree, workspace: workspace, rules: [rule], homeDirectory: fixture.workspace)
+        try expect(candidate.eligible && candidate.risk == rule.risk.declaredLevel && !candidate.manifestDigest.isEmpty)
+        if let required=item.requiredMetadata {
+            var incomplete=tree
+            let missing=item.target + "/" + required
+            incomplete.entries.removeAll { $0.path == missing || $0.path.hasPrefix(missing + "/") }
+            let blocked=try artifactCandidate(item.target, tree: incomplete, workspace: workspace, rules: [rule], homeDirectory: fixture.workspace)
+            try expect(!blocked.eligible && blocked.reasons.contains("protected_content"))
+        }
+        var custom=rule
+        custom.risk.rebuildNote += " Locally edited."
+        let untrusted=try artifactCandidate(item.target, tree: tree, workspace: workspace, rules: [custom], homeDirectory: fixture.workspace)
+        try expect(!untrusted.eligible && untrusted.reasons.contains("protected_content"))
+    }
+}
+
+func additionalProjectArtifactsBlockAuthoredAndProtectedContent() async throws {
+    let fixture=try Fixture()
+    let cases=try addGeneratedProjectFixtures(fixture)
+    let workspace=try await artifactWorkspace(fixture)
+    let tree=try artifactTree(fixture, workspace: workspace)
+    for item in cases {
+        let rule=try artifactRule("shou.builtin." + item.rule, workspace: workspace)
+        let original=try require(tree.entries.first { $0.path == item.target + "/" + item.source })
+        let ext=(item.source as NSString).pathExtension
+        let paths=["manual/Keep." + ext, "generated/manual/Keep." + ext, "nuxt.config.ts", "package.json", "GRADLE.PROPERTIES", "POM.XML",
+                   ".git/config", ".ENV.local", ".aws/credentials", "private.pem", "state.sqlite3"]
+        for path in paths {
+            var changed=tree
+            var entry=original
+            entry.path=item.target + "/" + path
+            entry.inode += 10_000
+            changed.entries.append(entry)
+            let blocked=try artifactCandidate(item.target, tree: changed, workspace: workspace, rules: [rule], homeDirectory: fixture.workspace)
+            try expect(!blocked.eligible && blocked.reasons.contains("protected_content"))
+        }
+    }
+}
+
+func projectArtifactActivityIsScopedAndUnknownFactsRemainBlocked() async throws {
+    let fixture=try Fixture()
+    let cases: [(String, String, String, String, String)]=[
+        ("gradle", "build.gradle", "build/classes/Demo.class", "gradle-build", "java"),
+        ("flutter", "pubspec.yaml", ".dart_tool/package_config.json", "flutter-build", "dart"),
+        ("node", "package.json", "dist/artifact.bin", "node-build-outputs", "node"),
+        ("python", "pyproject.toml", ".mypy_cache/state.json", "python-analysis-cache", "python3.12")
+    ]
+    for (project, marker, output, _, _) in cases {
+        try fixture.put(project + "/" + marker)
+        try fixture.put(project + "/" + output)
+    }
+    let workspace=try await artifactWorkspace(fixture)
+    let tree=try artifactTree(fixture, workspace: workspace)
+    for (project, _, output, id, process) in cases {
+        let path=project + "/" + output.split(separator: "/")[0]
+        let rule=try artifactRule("shou.builtin." + id, workspace: workspace)
+        let unrelated=ScopedArtifactFixtureEvidence(projects: [workspace.path + "/another-project": [process]])
+        let available=try artifactCandidate(path, tree: tree, workspace: workspace, rules: [rule], evidence: unrelated, homeDirectory: fixture.workspace)
+        try expect(available.eligible)
+        let related=ScopedArtifactFixtureEvidence(projects: [workspace.path + "/" + project: [process]])
+        let running=try artifactCandidate(path, tree: tree, workspace: workspace, rules: [rule], evidence: related, homeDirectory: fixture.workspace)
+        try expect(!running.eligible && running.reasons.contains("build_process_running"))
+        for (evidence, reason) in [(ArtifactFixtureEvidence(tracked: true), "tracked_artifact_content"),
+                                   (ArtifactFixtureEvidence(unavailable: true), "artifact_evidence_unavailable")] {
+            let blocked=try artifactCandidate(path, tree: tree, workspace: workspace, rules: [rule], evidence: evidence, homeDirectory: fixture.workspace)
+            try expect(!blocked.eligible && blocked.reasons.contains(reason))
+        }
+    }
+}
+
+func browserAutomationCachesRequireGlobalActivityFactsAndProtectSource() async throws {
+    let fixture=try Fixture()
+    try fixture.put("Library/Caches/ms-playwright/chromium/chrome", "fixture runtime binary")
+    let workspace=try await artifactWorkspace(fixture, relativePath: "Library/Caches", rootRef: "browser-runtime-caches")
+    let rule=try artifactRule("shou.builtin.browser-automation-caches", workspace: workspace)
+    let tree=try artifactTree(fixture, workspace: workspace)
+    let safe=try artifactCandidate("ms-playwright", tree: tree, workspace: workspace, rules: [rule], homeDirectory: fixture.workspace)
+    try expect(safe.eligible && safe.risk == "high")
+    for name in ["node", "playwright", "Cypress"] {
+        let active=ScopedArtifactFixtureEvidence(projects: [fixture.workspace.path + "/unrelated-project": [name]])
+        let blocked=try artifactCandidate("ms-playwright", tree: tree, workspace: workspace, rules: [rule], evidence: active, homeDirectory: fixture.workspace)
+        try expect(!blocked.eligible && blocked.reasons.contains("build_process_running"))
+    }
+    let unavailable=try artifactCandidate("ms-playwright", tree: tree, workspace: workspace, rules: [rule], evidence: UnavailableArtifactEvidence(), homeDirectory: fixture.workspace)
+    try expect(!unavailable.eligible && unavailable.reasons.contains("artifact_evidence_unavailable"))
+    try fixture.put("Library/Caches/ms-playwright/custom/manual.js", "fixture authored source")
+    let authored=try artifactCandidate("ms-playwright", tree: artifactTree(fixture, workspace: workspace), workspace: workspace, rules: [rule], homeDirectory: fixture.workspace)
+    try expect(!authored.eligible && authored.reasons.contains("protected_content"))
+}
+
 func nativeBuildActivityScopesCurrentProcessToItsWorkingDirectory() throws {
     #if os(macOS)
     let fixture=try Fixture()

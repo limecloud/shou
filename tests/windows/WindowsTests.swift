@@ -34,6 +34,11 @@ func rawPurge(_ path: String, _ tree: TreeSnapshot, _ saved: [shou_win_info], ca
     nonisolated(unsafe) static var cancellationRemaining=0
     static func main() throws {
         let args=Array(CommandLine.arguments.dropFirst())
+        if args == ["--evidence-child"] {
+            FileHandle.standardOutput.write(Data([1]))
+            Thread.sleep(forTimeInterval: 45)
+            return
+        }
         if args.count == 2, args[0] == "--lock-probe" {
             let store=try LocalRecordStore(directory: URL(fileURLWithPath: args[1]))
             do { let lease=try store.lock(); lease.release(); throw Failure(message: "A second process acquired the same lock") }
@@ -42,11 +47,14 @@ func rawPurge(_ path: String, _ tree: TreeSnapshot, _ saved: [shou_win_info], ca
         }
         let fs=NativeFileSystem()
         try require(args.contains("--recycle") ? fs.supportsTrash : (!fs.supportsTrash && fs.trashUnavailableReason?.contains("disabled by default") == true), "Recycle Bin default policy or validation switch is incorrect")
-        let root=try fs.normalizedPath(FileManager.default.temporaryDirectory.appendingPathComponent("shou-windows-" + UUID().uuidString).path)
+        let root=try fs.normalizedPath(FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("shou-windows-validation-" + UUID().uuidString).path)
         try privateDirectory(root)
         // Remove only a newly generated, isolated fixture. Never enumerate or
         // modify existing user workspaces in the Windows native checks.
         defer { try? FileManager.default.removeItem(atPath: root) }
+        try windowsCanonicalSpellingRetainsProtectedRoots(root: root)
+        try windowsArtifactEvidenceChecksNativeGitAndProjectProcesses(root: root)
+        try windowsStorageMeasurementPreservesIdentitiesAndNativeCursors(root: root)
         let workspace=root + "/中文 空格 & fixture"
         try privateDirectory(workspace)
         let target=workspace + "/generated"

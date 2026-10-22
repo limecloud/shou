@@ -14,7 +14,8 @@ enum WindowsNative {
             case 5: category="permission_denied"
             case 32, 33: category="store_busy"
             case 80, 183: category="restore_conflict"
-            case 223, 234: category="resource_limit"
+            case 223, 234, 1460: category="resource_limit"
+            case 1223: category="cancelled"
             case 1006: category="plan_stale"
             default: category="capability_unavailable"
             }
@@ -88,18 +89,39 @@ public struct NativeFileSystem: PlatformFileSystem {
         catch let error as ShouError where error.code == "not_found" { return .missing }
         catch { return .unavailable(error.localizedDescription) }
     }
-    private func protectedRoot(_ path: String) -> Bool {
+    private func protectedRoot(_ path: String, allowCacheRoot: Bool = false, allowCacheTarget: Bool = false) -> Bool {
         let path=path.lowercased(), env=ProcessInfo.processInfo.environment
         func normalize(_ value: String?) -> String? { value.flatMap { try? normalizedPath($0).lowercased() } }
         let home=normalize(env["USERPROFILE"])
         let protected=[env["SystemRoot"], env["ProgramFiles"], env["ProgramFiles(x86)"], env["ProgramData"], env["PUBLIC"], env["OneDrive"], env["OneDriveConsumer"], env["OneDriveCommercial"], LocalRecordStore.defaultDirectory.path,
-            home.map { $0 + "/.ssh" }, home.map { $0 + "/.gnupg" }, home.map { $0 + "/AppData" }].compactMap(normalize)
-        return path.count <= 3 || path == home || path.split(separator: "/").contains("$recycle.bin") || protected.contains { path == $0 || path.hasPrefix($0 + "/") }
+            home.map { $0 + "/.ssh" }, home.map { $0 + "/.gnupg" }].compactMap(normalize)
+        if path.count <= 3 || path == home || path.split(separator: "/").contains("$recycle.bin") || protected.contains(where: { path == $0 || path.hasPrefix($0 + "/") }) { return true }
+        if let home, path == home + "/appdata" || path.hasPrefix(home + "/appdata/") {
+            guard let access=try? WindowsCacheAccess(homeDirectory: URL(fileURLWithPath: home)) else { return true }
+            return !((allowCacheRoot && access.permitsRoot(path)) || (allowCacheTarget && access.permitsTarget(path)))
+        }
+        return false
     }
     public func rootIdentity(_ path: String) throws -> FileEntry {
         let path=try normalizedPath(path), raw=try WindowsNative.metadata(path)
-        guard raw.kind == 2, raw.current_user == 1, !protectedRoot(path) else { throw ShouError("permission_denied", "Select a local user-owned directory outside protected system and Shou locations.") }
+        guard raw.kind == 2, raw.current_user == 1, !protectedRoot(path, allowCacheRoot: true) else { throw ShouError("permission_denied", "Select a local user-owned directory outside protected system and Shou locations.") }
         return WindowsNative.entry(raw, path: ".")
+    }
+    public func cleanupTargetIdentity(_ path: String) throws -> FileEntry {
+        let path=try normalizedPath(path), raw=try WindowsNative.metadata(path)
+        guard raw.kind == 2, raw.current_user == 1, !protectedRoot(path, allowCacheTarget: true) else {
+            throw ShouError("permission_denied", "Select a local user-owned cleanup directory outside protected data.")
+        }
+        return WindowsNative.entry(raw, path: ".")
+    }
+    private func verifyMutationParent(_ path: String) throws {
+        guard !protectedRoot(path, allowCacheTarget: true) else { throw ShouError("permission_denied", "Only declared cache targets may be changed inside AppData.") }
+        let parent=URL(fileURLWithPath: path).deletingLastPathComponent().path
+        if let home=try? normalizedPath(FileManager.default.homeDirectoryForCurrentUser.path),
+           let access=try? WindowsCacheAccess(homeDirectory: URL(fileURLWithPath: home)), access.permitsTarget(path) {
+            let raw=try WindowsNative.metadata(parent)
+            guard raw.kind == 2, raw.current_user == 1 else { throw ShouError("permission_denied", "The cache parent must be a local user-owned directory.") }
+        } else { _=try rootIdentity(parent) }
     }
     public func analysisRootIdentity(_ path: String) throws -> FileEntry {
         let raw=try WindowsNative.metadata(path)
@@ -109,8 +131,12 @@ public struct NativeFileSystem: PlatformFileSystem {
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspect(path, budget: budget, cancelled: cancelled, progress: { _ in })
     }
+    private func validateReadBudget(_ budget: ScanBudget) throws {
+        guard (1...1_000_000).contains(budget.maxEntries), budget.maxSeconds.isFinite, budget.maxSeconds > 0, budget.maxSeconds <= 600,
+              (0...128).contains(budget.maxDepth) else { throw ShouError("invalid_argument", "Invalid scan budget.") }
+    }
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
-        guard (1...1_000_000).contains(budget.maxEntries), (1...600).contains(budget.maxSeconds), (1...128).contains(budget.maxDepth) else { throw ShouError("invalid_argument", "Invalid scan budget.") }
+        try validateReadBudget(budget)
         let path=try normalizedPath(path), deadline=Date().addingTimeInterval(budget.maxSeconds)
         var entries=[FileEntry](), issues=[String](), completePaths=[String]()
         func checkpoint() throws {
@@ -146,23 +172,46 @@ public struct NativeFileSystem: PlatformFileSystem {
         catch { if entries.isEmpty { throw error }; issues.append(error.localizedDescription); complete=false }
         return TreeSnapshot(entries: entries.sorted { $0.path < $1.path }, complete: complete, issues: issues, caseSensitive: false, completedPaths: completePaths, discoveryComplete: complete)
     }
+    public func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try validateReadBudget(budget)
+        return try inspectCleanupTree(normalizedPath(path), rules: rules, budget: budget, cancelled: cancelled, progress: progress)
+    }
+    func measureCleanupTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try inspect(path, budget: budget, cancelled: cancelled, progress: progress)
+    }
     public func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspectFileTarget(path, budget: budget, cancelled: cancelled, largeFile: false)
+    }
+    public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspectFileTarget(path, budget: budget, cancelled: cancelled, largeFile: true)
+    }
+    public func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only an exact recorded Recycle Bin item can be inspected.") }
+        return try inspectStorageTarget(path, budget: budget, cancelled: cancelled)
+    }
+    private func inspectFileTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, largeFile: Bool) throws -> TreeSnapshot {
         let tree=try inspect(path, budget: budget, cancelled: cancelled)
         guard tree.entries.first?.kind == "file" else { return tree }
         var result=tree
-        let data=try WindowsNative.read(path, limit: 16_777_216)
-        result.entries[0].contentDigest=Digest.sha256(data)
+        if largeFile {
+            result.entries[0].contentDigest=try windowsStorageFileDigest(path, entry: tree.entries[0], maxSeconds: budget.maxSeconds, cancelled: cancelled)
+        } else {
+            let data=try WindowsNative.read(path, limit: 16_777_216)
+            guard WindowsNative.entry(try WindowsNative.metadata(path), path: ".") == tree.entries[0] else { throw ShouError("plan_stale", "The file changed while reading its contents.") }
+            result.entries[0].contentDigest=Digest.sha256(data)
+        }
+        if cancelled() || Task.isCancelled { throw ShouError("cancelled", "Target inspection stopped.") }
         return result
     }
     private func verify(_ path: String, expected: [FileEntry], trash: Bool = false) throws -> shou_win_info {
-        let tree=try inspectTarget(path, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled })
+        let tree=try inspectStorageTarget(path, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled })
         guard tree.complete, tree.entries.count == expected.count,
             zip(tree.entries, expected).allSatisfy({ a,b in a == b || (trash && a.matchesTrashRoot(as: b)) }) else { throw ShouError("plan_stale", "The full target manifest changed.") }
         return try WindowsNative.metadata(path)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
         guard supportsTrash else { throw ShouError("capability_unavailable", trashUnavailableReason!) }
-        _=try rootIdentity(URL(fileURLWithPath: path).deletingLastPathComponent().path)
+        try verifyMutationParent(try normalizedPath(path))
         var raw=try verify(path, expected: expected)
         var resultingPath: String?
         do {
@@ -170,7 +219,7 @@ public struct NativeFileSystem: PlatformFileSystem {
             resultingPath=result
             let destination=try normalizedPath(result)
             guard isTrashLocation(destination) else { throw ShouError("trash_outcome_unknown", "The system did not return a verifiable Recycle Bin item.") }
-            let tree=try inspectTarget(destination, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { false })
+            let tree=try inspectStorageTarget(destination, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { false })
             let verified=tree.complete && tree.entries.count == expected.count && zip(tree.entries,expected).allSatisfy { a,b in a == b || a.matchesTrashRoot(as: b) }
             return TrashResult(path: destination, manifest: tree.entries, verified: verified)
         } catch {
@@ -188,7 +237,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         guard supportsTrash else { throw ShouError("capability_unavailable", trashUnavailableReason!) }
         guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only the exact recorded Recycle Bin item may be restored.") }
         guard case .missing=targetAvailability(destination) else { throw ShouError("restore_conflict", "The restore destination already exists or is inaccessible.") }
-        _=try rootIdentity(URL(fileURLWithPath: destination).deletingLastPathComponent().path)
+        try verifyMutationParent(try normalizedPath(destination))
         var raw=try verify(path, expected: expected, trash: true)
         let actual=try mutation({ shou_win_restore(path, destination, &raw, $0) }, source: path, unknown: "restore_outcome_unknown")
         guard try normalizedPath(actual).lowercased() == normalizedPath(destination).lowercased() else { throw ShouError("restore_outcome_unknown", "The system restored the item to a different path.", details: ["resulting_path": actual]) }
@@ -212,8 +261,7 @@ public struct NativeFileSystem: PlatformFileSystem {
     public func purge(_ path: String, expected: [FileEntry]) throws {
         let path=try normalizedPath(path)
         if !isTrashLocation(path) {
-            guard !protectedRoot(path) else { throw ShouError("permission_denied", "Protected locations cannot be permanently removed.") }
-            _=try rootIdentity(URL(fileURLWithPath: path).deletingLastPathComponent().path)
+            try verifyMutationParent(path)
         }
         let root=try verify(path, expected: expected, trash: true)
         var manifest=try expected.map(WindowsNative.savedInfo)

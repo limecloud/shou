@@ -2,9 +2,9 @@ name: Windows native build
 on:
   push:
     branches: [main]
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   pull_request:
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -57,7 +57,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Rule coverage verification failed." }
       - name: Build Swift engine, native checks and WPF application
         run: ./scripts/build-windows.ps1 -Stage Build
-      - name: Verify WPF and real desktop processes
+      - name: Verify WPF, AI contracts and real desktop processes
         run: ./scripts/build-windows.ps1 -Stage Check
       - name: Package and verify self-contained Windows x64 release
         run: ./scripts/release-windows.ps1

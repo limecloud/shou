@@ -45,10 +45,11 @@ struct SettingsView: View {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
                     }
                     Divider().padding(.leading, 58)
-                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.10.0"), "Updates are verified before installation.", icon: "shippingbox") {
+                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.11.0"), "Updates are verified before installation.", icon: "shippingbox") {
                         Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
                 }
+                AIConnectionsSettings(model: model, session: model.ai)
                 group("Scanning and Privacy") {
                     row("Scan Locations", "App caches and developer projects are discovered automatically. Extra folders are remembered.", icon: "folder.badge.magnifyingglass") {
                         Button(model.t("View…")) { scanLocations=true }.disabled(model.busy)

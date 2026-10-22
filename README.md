@@ -13,15 +13,15 @@
 
 A native macOS cleaner with cleanup rules tailored by your existing AI agent. Tell Codex, Claude Code, or WorkBuddy what takes space and what to keep; it asks the missing questions and drafts reusable rules. Shou scans, validates, previews, and cleans locally.
 
-Shou v0.10.0 adds Simple and Detailed Space Analysis views, nested maps, extension statistics and local AI context copying. See the [space analysis design and acceptance](docs/engineering/space-analysis-agent-design.md) for implementation details and limits.
+Shou v0.11.0 adds optional built-in AI investigation, grouped startup controls, broader developer-cache rules and Windows cleanup refinements. See the [AI implementation](docs/engineering/embedded-ai-implementation.md) and [acceptance matrix](docs/engineering/embedded-ai-acceptance.md) for supported workflows and remaining limits.
 
 ## Download and install
 
-Download Shou v0.10.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.11.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.10.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.10.0/shou-0.10.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
 
-Windows: extract the complete ZIP and run **Shou.exe**. The portable x64 package includes its .NET and Swift runtimes; no developer tools are required. The interface is Simplified Chinese. AppData cache roots remain protected, and Recycle Bin/restoration are disabled by default. Windows packages are unsigned; there is no installer or automatic Windows update.
+Windows: extract the complete ZIP and run **Shou.exe**. The portable x64 package includes its .NET and Swift runtimes; no developer tools are required. The interface is Simplified Chinese. Only validated standard cache children can be cleaned under AppData; profile roots remain protected. Recycle Bin/restoration are disabled by default. Windows packages are unsigned; there is no installer or automatic Windows update.
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 
@@ -33,7 +33,7 @@ The first-use guide explains Full Disk Access and optional CLI installation. You
 | --- | --- |
 | **Agent-authored cleanup** | Use the bundled Skill to investigate your own caches and build outputs, answer focused questions, and preview rules without writing JSON. |
 | **Application uninstall** | Compare sizes and activity, expand exact components inline, select several apps and confirm once. Personal data needs separate consent; Trash items support restoration. |
-| **Startup items** | Inspect startup definitions, manage current-user LaunchAgents with explicit confirmation, and open macOS Login Items settings for the remaining sources. |
+| **Startup items** | Group registrations by application, filter states and leftovers, and confirm controls for eligible agents, third-party daemons and native login items. |
 | **Exclusions** | Protect folders globally or within a project, and edit personal rules as disabled revisions. |
 | **Application caches** | Review caches from browsers, chat apps, editors, and tools, including Chrome, Edge, Firefox, Codex, Claude, QQ, and WeChat. |
 | **Developer tools and projects** | Find npm, Cargo, Xcode, Python, and Go caches, Rust target directories, Node.js dependencies, and Swift build products. |
@@ -57,7 +57,9 @@ Rules run locally and cannot execute shell commands. No account, model connectio
 
 ## Customize with your agent
 
-In **Rules → Customize with AI**, select Codex or Claude Code and install the Skill, or export a ZIP to upload in WorkBuddy. Copy the prepared request into your existing coding agent. It reads the shipped [Shou Skill](skills/shou-rule-authoring/SKILL.md), investigates the chosen directory, asks about rebuild steps and keep paths, then validates, imports, and previews a disabled rule. You decide when to enable it and clean. Shou integrates no model and hosts no agent.
+In **Rules → Customize with AI**, select Codex or Claude Code and install the Skill, or export a ZIP to upload in WorkBuddy. Copy the prepared request into your existing coding agent. It reads the shipped [Shou Skill](skills/shou-rule-authoring/SKILL.md), investigates the chosen directory, asks about rebuild steps and keep paths, then validates, imports, and previews a disabled rule. You decide when to enable it and clean.
+
+Optional built-in AI investigation is off by default. Enable it in Settings → AI Investigation and configure a connection, then choose Investigate for a folder or saved scan. A native inspector handles focused questions, service usage and independent disabled-rule previews. Starting an investigation sends bounded index metadata and your answers to the selected services; ordinary scanning and cleanup stay local. See [usage and implementation](docs/engineering/embedded-ai-implementation.md) for provider and acceptance limits.
 
 Install for the client you use, or read the instructions without installation:
 

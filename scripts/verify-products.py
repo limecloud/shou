@@ -39,7 +39,7 @@ if args.app:
             if source.is_file():
                 assert (skill_directory / source.relative_to(skill_source)).read_bytes() == source.read_bytes(), 'Stale packaged agent skill'
     skill = json.loads(subprocess.check_output([str((app / 'Contents/Helpers/shou').resolve()), 'agent', 'skill', '--json'], text=True))['data']
-    assert Path(skill['entrypoint']).is_relative_to(app.resolve()), 'Packaged CLI used a source-tree skill'
+    assert Path(skill['entrypoint']).resolve().is_relative_to(app.resolve()), 'Packaged CLI used a source-tree skill'
     info = plistlib.loads((app / 'Contents/Info.plist').read_bytes())
     assert info['CFBundleIconFile'] == 'Shou'
     icon = app / 'Contents/Resources/Shou.icns'
@@ -47,6 +47,7 @@ if args.app:
     assert icon.read_bytes() == Path('assets/brand/Shou.icns').read_bytes(), 'Stale packaged application icon'
     assert (app / 'Contents/Resources/LICENSE.txt').read_bytes() == Path('LICENSE').read_bytes()
     assert (app / 'Contents/Resources/Sparkle-LICENSE.txt').read_bytes() == Path('.build/artifacts/sparkle/Sparkle/LICENSE').read_bytes()
+    assert (app / 'Contents/Resources/SwiftAISDK-LICENSE.txt').read_bytes() == Path('.build/checkouts/swift-ai-sdk/LICENSE').read_bytes()
     assert set(info['CFBundleLocalizations']) == {'en', 'zh-Hans'}
     resources = app / 'Contents/Resources/Shou_ShouCore.bundle'
     for language in ('en', 'zh-Hans'):

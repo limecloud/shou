@@ -30,6 +30,7 @@ struct CleanupResultView: View {
     private var unverified: Int { outcomes.filter { $0.state == .unverified }.count }
     private var permanent: Bool { result.receipts.contains { ["permanent_cleanup", "storage_permanent_removal", "application_permanent_uninstall", "application_batch_permanent_uninstall"].contains($0.operation ?? "") } }
     private var complete: Bool { result.failures.isEmpty && !items.isEmpty && result.receipts.allSatisfy { $0.state == "completed" } && moved + purged == items.count }
+    private var cancelled: Bool { result.failures.isEmpty && failed == 0 && unverified == 0 && result.receipts.contains { $0.state == "cancelled" } }
     private var hasIssues: Bool { !complete }
     private var title: String {
         if result.receipts.isEmpty { return model.t("Cleanup could not start") }
@@ -42,9 +43,9 @@ struct CleanupResultView: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 12)
-            Image(systemName: complete ? "checkmark.circle" : "exclamationmark.triangle")
+            Image(systemName: complete ? "checkmark.circle" : cancelled ? "pause.circle" : "exclamationmark.triangle")
                 .font(.system(size: 78, weight: .light))
-                .foregroundStyle(complete ? Color.green : Color.orange)
+                .foregroundStyle(complete ? Color.green : cancelled ? Color.secondary : Color.orange)
                 .scaleEffect(reduceMotion || appeared ? 1 : 0.84)
                 .opacity(reduceMotion || appeared ? 1 : 0)
                 .accessibilityHidden(true)
@@ -58,7 +59,7 @@ struct CleanupResultView: View {
                     .font(.system(size: 42, weight: .semibold, design: .rounded))
                     .monospacedDigit().padding(.top, 28)
             }
-            Text(model.t(complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
+            Text(model.t(cancelled ? "Removal stopped. Items not moved are kept in their original locations." : complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
                 .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
 

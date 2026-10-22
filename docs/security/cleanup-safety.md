@@ -8,7 +8,9 @@ Status: design draft. These are required constraints, not implemented guarantees
 
 Protect source, uncommitted changes, credentials, persistent business data, deliverables, and the ability to continue working under disk pressure.
 
-Imported/generated rules, filenames, directory layouts, project text, and writable local plans are untrusted. A declaration of rebuildability is not proof. Shou calls no models and hosts no agents; external callers use the same policy.
+Imported/generated rules, filenames, directory layouts, project text and writable local plans are untrusted. A declaration of rebuildability is not proof. Next-stage built-in cleanup AI uses user-selected models and bounded investigation tools; external agents retain CLI access to the same core. Model suggestions authorize neither enablement nor deletion, and investigation tools cannot delete. Both routes follow the same rules, protection, current confirmation and execution checks. The first SDK-backed investigation uses only scoped saved metadata; see [implementation and limits](../engineering/embedded-ai-implementation.md).
+
+The next [AI product contract](../product/embedded-ai.md) adds default-off desktop gating and Jev-first routing. Disabling blocks new desktop requests without retracting sent data, revoking keys or disabling independent CLI calls. Low cost/confidence never expands authority. Main-model escalation stays within disclosed destinations/scope; failures never silently forward evidence. Gating/routing/acceptance remain implementation work; see [architecture/sequences](../architecture/embedded-ai.md).
 
 ## 2. Threat model
 
@@ -19,7 +21,9 @@ Imported/generated rules, filenames, directory layouts, project text, and writab
 | Target replacement after scanning | Identity, full manifests, near-operation checks | Checks alone cannot eliminate all races |
 | Active work | Exclusions, activity evidence, retention, revalidation | Not all processes/use can be detected |
 | Executable rule content | No scripts or Shell expansion | Commands run outside Shou are uncontrolled |
-| Prompt/terminal injection | Treat content as data; escape output | External agent permissions remain external |
+| Prompt/terminal injection | Escape output; project content cannot change tool/path scope; locally validate model arguments | Models may still misinterpret purpose; external agents also follow their own authorization policies |
+| Excessive investigation transmission | Explicit enablement and provider/scope disclosure; targeted reads, relative paths, field/content budgets; exclude full indexes, personal content and credentials by default | Paths/configuration fragments can still contain private information |
+| Credential leakage or context forwarding | System credential stores, redacted logs, synthetic connection tests, no silent forwarding across providers | Explain each selected provider's retention policy separately |
 | Destructive retries | Unique plans, receipts, state queries | Crash outcomes may be unknown |
 | Misleading space accounting | Separate estimates, Trash, volume availability | Clones/snapshots/concurrency complicate attribution |
 | Full disk or corrupt journals | Persist intent first; stop on failure | No universal atomic recovery guarantee |

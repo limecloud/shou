@@ -30,6 +30,13 @@ public struct SystemScanResult: Sendable {
 }
 
 public enum KnownLocations {
+    static func pathKey(_ value: String, platform: String) -> String {
+        guard platform == "windows" else { return value }
+        var path=value.replacingOccurrences(of: "\\", with: "/")
+        if path.range(of: "^/[A-Za-z]:/", options: .regularExpression) != nil { path.removeFirst() }
+        while path.hasSuffix("/"), path.count > 3 { path.removeLast() }
+        return path.lowercased()
+    }
     private struct Definition: Decodable, Sendable {
         let id: String
         let title: String
@@ -124,7 +131,8 @@ extension ShouEngine {
 
     private func workspaceForKnownLocation(_ location: KnownLocation) throws -> Workspace {
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-        if let existing=try configuration().workspaces.first(where: { $0.path == location.path }) { return existing }
+        let key=KnownLocations.pathKey(location.path, platform: filesystem.platform)
+        if let existing=try configuration().workspaces.first(where: { KnownLocations.pathKey($0.path, platform: filesystem.platform) == key }) { return existing }
         return try addWorkspace(path: location.path, rootRef: "shou-location-" + location.id)
     }
 
@@ -159,7 +167,7 @@ extension ShouEngine {
         }
         let prepared=registered
         let reporter=BatchScanProgress(count: prepared.count, output: progress)
-        let workers=min(maxConcurrentLocations, max(1, ProcessInfo.processInfo.activeProcessorCount))
+        let workers=min(maxConcurrentLocations, max(1, filesystem.maximumConcurrentReadOperations), max(1, ProcessInfo.processInfo.activeProcessorCount))
         let completed=try await withThrowingTaskGroup(of: (Int, ScanSnapshot?, ShouError?).self) { group in
             func enqueue(_ index: Int) {
                 let (location, workspace)=prepared[index]

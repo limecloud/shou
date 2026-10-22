@@ -509,5 +509,89 @@
     "category": "developer",
     "relativePath": "AppData/Roaming/Code",
     "platform": "windows"
+  },
+  {
+    "id": "windows-brave",
+    "title": "Brave caches",
+    "category": "browser",
+    "relativePath": "AppData/Local/BraveSoftware/Brave-Browser/User Data",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-vivaldi",
+    "title": "Vivaldi caches",
+    "category": "browser",
+    "relativePath": "AppData/Local/Vivaldi/User Data",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-firefox",
+    "title": "Firefox caches",
+    "category": "browser",
+    "relativePath": "AppData/Local/Mozilla/Firefox/Profiles",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-slack",
+    "title": "Slack caches",
+    "category": "application",
+    "relativePath": "AppData/Roaming/Slack",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-discord",
+    "title": "Discord caches",
+    "category": "application",
+    "relativePath": "AppData/Roaming/discord",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-notion",
+    "title": "Notion caches",
+    "category": "application",
+    "relativePath": "AppData/Roaming/Notion",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-postman",
+    "title": "Postman caches",
+    "category": "developer",
+    "relativePath": "AppData/Roaming/Postman",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-vscode-insiders",
+    "title": "Visual Studio Code Insiders caches",
+    "category": "developer",
+    "relativePath": "AppData/Roaming/Code - Insiders",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-cursor",
+    "title": "Cursor caches",
+    "category": "developer",
+    "relativePath": "AppData/Roaming/Cursor",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-yarn",
+    "title": "Yarn download caches",
+    "category": "developer",
+    "relativePath": "AppData/Local/Yarn",
+    "platform": "windows"
+  },
+  {
+    "id": "windows-uv",
+    "title": "uv download caches",
+    "category": "developer",
+    "relativePath": "AppData/Local/uv",
+    "platform": "windows"
+  },
+  {
+    "id": "pnpm",
+    "title": "pnpm package store",
+    "category": "developer",
+    "relativePath": "Library/pnpm",
+    "platform": "macos"
   }
 ]

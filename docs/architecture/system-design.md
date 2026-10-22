@@ -6,13 +6,13 @@ English | [简体中文](../zh-CN/architecture/system-design.md)
 
 Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
 
-Status: current development architecture. Shared scanning, planning, receipts, Trash execution and bounded permanent execution have source implementations; Windows, distribution and filesystem race acceptance remain pending.
+Status: current development architecture and next-stage design. Shared scanning, planning, receipts, Trash execution and bounded permanent execution have source implementations; Windows, distribution and filesystem race acceptance remain pending. Built-in cleanup AI entered product scope on 2026-10-22; its first shared service, SDK adapter and native connection settings are implemented; see [implementation and remaining acceptance](../engineering/embedded-ai-implementation.md).
 
 ## 1. Constraints
 
 The native macOS application and Swift CLI share one portable Swift core. The Windows WPF desktop consumes the same engine through the versioned process bridge; its native runtime acceptance remains a separate gate. Rules are declarative whether handwritten or generated externally.
 
-Shou integrates no models and develops or hosts no agents. Initial operation needs no cloud service, account, privileged helper, or persistent daemon. Keep real platform dependencies isolated without a speculative plugin runtime.
+A built-in cleanup-specific Agent will use a replaceable Swift model SDK, separating investigation, questions and rule intent from deterministic execution. Ordinary scans and cleanup need no model, account or network. Initial AI uses user-provided credentials without a product-hosted backend, persistent daemon or privileged helper. Keep platform dependencies isolated.
 
 ## 2. Context
 
@@ -29,6 +29,11 @@ flowchart TB
     Draft --> CLI
     GUI --> Core[Shared core]
     CLI --> Core
+    GUI --> AI[ShouAI metadata investigation]
+    CLI --> AI
+    AI --> Core
+    AI --> SDK[Swift AI SDK and selected model]
+    AI --> Jev[Current optional Jev review]
     Windows[Windows WPF desktop] -->|Versioned structured process bridge| CLI
     Core --> Policy[Access and safety policy]
     Core --> Store[Local versioned storage]
@@ -39,7 +44,7 @@ flowchart TB
     Results --> CLI
 ```
 
-External agents, model-generated drafts, imported files, and project content remain outside the trust boundary.
+The diagram includes current built-in and external routes. Next work adds local deterministic handling, Jev-first decisions and main-model escalation; switches/routing remain pending. The [AI architecture/sequences](embedded-ai.md) distinguish current and target chains. Outputs, imported files and project content remain untrusted.
 
 ## 3. Modules
 
@@ -213,13 +218,19 @@ Trash follow-up verification tolerates a change only to the saved top-level dire
 
 Broad scans skip protected Trash locations without Full Disk Access. Post-move and follow-up verification instead attempt the exact direct-child location returned by the system and recorded in the receipt through `inspectTrashTarget`. The adapter validates the current user's Trash parent and retains OS permissions, no-follow traversal and complete manifest checks; it never enumerates unrelated Trash items. An unstarted `pending` item in a finished partial or cancelled batch is shown as skipped, while uncertain started mutations remain marked for verification.
 
-## 9. Existing-agent interface
+## 9. Built-in cleanup AI and existing agents
 
-Provide public rules, capability discovery, structured CLI results, and stable plan/history IDs. Existing Codex, Claude Code, and WorkBuddy tools may call these under their own authorization policies. No model SDK, agent runner, chat service, or global tool configuration is part of Shou.
+Provide public rules, capability discovery, structured CLI results and stable plan/history IDs. Existing agents retain independently authorized CLI access alongside built-in ShouAI investigation and its Swift SDK. General chat/global external-agent configuration is outside this cleanup workflow.
 
-`ShouAgentSupport` packages the rule-authoring Skill and its question matrix independently of `ShouCore`. Both frontends depend on this resource target. The Rules page copies a request containing local paths; `agent skill --json` exposes the same entrypoint and instructions without opening cleanup storage. The agent asks unresolved questions and writes a declarative draft; validation, disabled import, preview and later confirmed cleanup remain in the existing core. No agent process, provider SDK or inference service is added.
+`ShouAgentSupport` packages the rule-authoring Skill and its question matrix independently of `ShouCore`. Both frontends depend on this resource target. The Rules page copies a request containing local paths; `agent skill --json` exposes the same entrypoint and instructions without opening cleanup storage. This external-agent route continues to provide declarative drafts, validation, disabled import and preview.
 
-MCP is outside current scope; additional protocols require demonstrated integration needs. See [agent workflow](../ai/coding-agent-integration.md).
+ShouAI already supplies a shared service/thin SDK adapter for scope, retention, budgets, continuation and advice. Next add bounded routing: local code/templates first, Jev fixed decisions, main models only for open-ended understanding. The SDK keeps generative loops; Jev uses bounded questions/state transitions without a general Agent framework. See [gating, routing, independent Jev setup and service usage](embedded-ai.md).
+
+Current tools cover saved-index pages/inspection, questions and exact rule proposals. Configuration contents/tool activity require separate future adapters and acceptance. Scope policy, `PersonalRuleDraft` and the closed parser validate intent. Core retains enablement, fresh scans, confirmation and receipts; investigation tools cannot delete.
+
+Connections separate protocol, endpoint, model and credential reference, supporting Responses, Chat Completions and Messages. Platform credential stores hold sensitive values. Explicitly enabled investigation sends minimal evidence to the selected connection without silently resending it to another provider. The first metadata-only implementation is recorded in [implementation and acceptance](../engineering/embedded-ai-implementation.md). Verify SDK behavior on macOS 14 and Windows, streaming multi-turn calls, pause/resume and cancellation before adoption. See [integration design](../engineering/embedded-ai-investigation.md) and [implementation gates](../engineering/implementation-plan.md).
+
+General chat, arbitrary Shell/plugins and hosting external coding agents are outside this stage. MCP still requires demonstrated integration needs. See the external [agent workflow](../ai/coding-agent-integration.md).
 
 ## Startup discovery boundary
 
@@ -227,7 +238,7 @@ MCP is outside current scope; additional protocols require demonstrated integrat
 
 ## 10. Engineering principles
 
-KISS: one core with limited declarative semantics. DRY: reuse validation, protection, plans, and execution. YAGNI: no speculative cloud, scripting, privileged daemon, or model platform. SOLID: explicit responsibilities and minimal platform-facing interfaces.
+KISS: one core with limited declarative semantics. DRY: reuse validation, protection, plans and execution. YAGNI: add only cleanup-specific model loops and connections, without a product-hosted inference backend, dynamic scripting, general agent platform or privileged daemon. SOLID: explicit responsibilities and minimal platform-facing interfaces.
 
 
 ## Application uninstall boundary
@@ -370,4 +381,4 @@ flowchart TB
     Execute --> Verify[Relevant-scope verification and daily reuse]
 ```
 
-Shou adds no model integration or Agent service. The complete flow, sequence and acceptance are recorded in [space analysis and Agent design W09](../engineering/space-analysis-agent-design.md).
+W09 above is the implemented external-agent/Core flow. Built-in investigation will reuse it; the first model adapter and task service are implemented with remaining scope documented in [acceptance](../engineering/embedded-ai-implementation.md). The complete flow, sequence and acceptance are recorded in [space analysis and Agent design W09](../engineering/space-analysis-agent-design.md).

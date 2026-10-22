@@ -16,6 +16,7 @@ public struct NativeFileSystem: PlatformFileSystem {
     var scanPrivacyPolicy: ScanPrivacyPolicy { scanPrivacyOverride ?? .current }
     var storageReadWorkerExecutable: URL? { readWorkerExecutable }
     private let applicationRoots: [String]
+    private let applicationRecycler: (any ApplicationRecycling)?
     public var platform: String {
         #if os(macOS)
         "macos"
@@ -27,6 +28,7 @@ public struct NativeFileSystem: PlatformFileSystem {
     // bind a protocol existential to PlatformFileSystem's fallback implementation when the
     // streaming methods live in a later source-file extension.
     public var supportsStorageCatalog: Bool { true }
+    public var maximumConcurrentReadOperations: Int { readWorkerExecutable == nil ? 4 : NativeReadClient.maximumConcurrentChildren }
     public func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool,
                                progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
         try withoutActuallyEscaping(cancelled) { escapingCancelled in
@@ -36,6 +38,13 @@ public struct NativeFileSystem: PlatformFileSystem {
         }
     }
     public var supportsTrash: Bool { trashUnavailableReason == nil }
+    public var supportsAuthorizedApplicationTrash: Bool {
+        #if os(macOS)
+        true
+        #else
+        false
+        #endif
+    }
     public var trashUnavailableReason: String? {
         #if os(macOS)
         // API availability is separate from permission to enumerate the Trash.
@@ -45,10 +54,11 @@ public struct NativeFileSystem: PlatformFileSystem {
         "Native Trash is unavailable on this platform."
         #endif
     }
-    public init(readWorkerExecutable: URL? = nil, applicationRoots: [String]? = nil, scanPrivacyPolicy: ScanPrivacyPolicy? = nil) {
+    public init(readWorkerExecutable: URL? = nil, applicationRoots: [String]? = nil, scanPrivacyPolicy: ScanPrivacyPolicy? = nil, applicationRecycler: (any ApplicationRecycling)? = nil) {
         self.readWorkerExecutable=readWorkerExecutable
         self.scanPrivacyOverride=scanPrivacyPolicy
         self.applicationRoots=applicationRoots ?? [FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path, "/Applications"]
+        self.applicationRecycler=applicationRecycler
     }
     public func applicationParentIdentity(_ path: String) throws -> FileEntry {
         let components=try SecurePaths.components(path)
@@ -209,9 +219,12 @@ public struct NativeFileSystem: PlatformFileSystem {
         if let readWorkerExecutable {
             return try NativeReadClient(executable: readWorkerExecutable).inspect(path, rules: rules, budget: budget, cancelled: cancelled, progress: progress)
         }
-        return try inspectTree(path, cleanupRules: rules, budget: budget, cancelled: cancelled, progress: progress)
+        return try inspectCleanupTree(path, rules: rules, budget: budget, cancelled: cancelled, progress: progress)
     }
-    private func inspectTree(_ path: String, cleanupRules: [CleanupRule]?, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void, privacyPolicy: ScanPrivacyPolicy? = nil) throws -> TreeSnapshot {
+    func measureCleanupTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: progress, boundedEnumeration: true)
+    }
+    private func inspectTree(_ path: String, cleanupRules: [CleanupRule]?, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void, privacyPolicy: ScanPrivacyPolicy? = nil, boundedEnumeration: Bool = false) throws -> TreeSnapshot {
         let privacy=privacyPolicy ?? scanPrivacyPolicy
         try privacy.checkRoot(path)
         let root = try SecurePaths.directory(path, cancelled: cancelled); defer { close(root) }
@@ -239,7 +252,13 @@ public struct NativeFileSystem: PlatformFileSystem {
             do {
                 var before=stat()
                 guard fstat(descriptor, &before) == 0 else { throw SecurePaths.failure("Inspect directory", path: relative) }
-                for name in try SecurePaths.names(descriptor) {
+                let names: [String], truncated: Bool
+                if boundedEnumeration {
+                    let listing=try NativeDefinitionFiles.names(descriptor, limit: max(0, budget.maxEntries - visitedCount),
+                        deadline: .now.advanced(by: .seconds(max(0, deadline.timeIntervalSinceNow))), cancelled: cancelled)
+                    names=listing.names; truncated=listing.truncated
+                } else { names=try SecurePaths.names(descriptor); truncated=false }
+                for name in names {
                     if stopped { break }
                     if cancelled() || Date() > deadline || visitedCount >= budget.maxEntries { issues.append(cancelled() ? "cancelled" : "resource_limit"); stopped=true; break }
                     let child = relative.isEmpty ? name : relative + "/" + name
@@ -276,6 +295,7 @@ public struct NativeFileSystem: PlatformFileSystem {
                         close(sub)
                     }
                 }
+                if truncated { issues.append("resource_limit"); stopped=true }
                 var after=stat()
                 if fstat(descriptor, &after) != 0 || SecurePaths.entry(before, path: ".") != SecurePaths.entry(after, path: ".") { issues.append("changed_during_scan: " + relative) }
                 if measuring && issues.count == initialIssueCount && !stopped {
@@ -328,6 +348,24 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try inspectTarget(path, budget: budget, cancelled: { false }, useWorker: false, largeFile: true)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
+        try moveToTrashChecked(path,expected:expected,applicationRecycler:nil)
+    }
+    public func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
+        #if os(macOS)
+        let components=try SecurePaths.components(path)
+        guard "/" + components.joined(separator:"/") == path, path.lowercased().hasSuffix(".app"),
+              path.rangeOfCharacter(from:.controlCharacters) == nil,
+              expected.first(where:{ $0.path == "." })?.kind == "directory",
+              expected.allSatisfy({ $0.owner == UInt32(getuid()) || $0.owner == 0 }) else {
+            throw ShouError("permission_denied", "Only a fully observed local application owned by the current user or the system may use native application recycling.")
+        }
+        _ = try applicationParentIdentity(URL(fileURLWithPath:path).deletingLastPathComponent().path)
+        return try moveToTrashChecked(path,expected:expected,applicationRecycler:applicationRecycler ?? SystemApplicationRecycler())
+        #else
+        throw ShouError("capability_unavailable", "Authorized application recycling is available only on macOS.")
+        #endif
+    }
+    private func moveToTrashChecked(_ path: String, expected: [FileEntry], applicationRecycler: (any ApplicationRecycling)?) throws -> TrashResult {
         #if os(macOS)
         guard let original=expected.first(where: { $0.path == "." }),
               original.kind == "directory" || (original.kind == "file" && expected.count == 1 && original.contentDigest != nil) else {
@@ -351,20 +389,28 @@ public struct NativeFileSystem: PlatformFileSystem {
               SecurePaths.entry(currentTarget, path: ".") == original.metadata else {
             throw ShouError("plan_stale", "The Trash target or its parent changed before the system operation.")
         }
-        var destination: NSURL?
-        do { try FileManager.default.trashItem(at: URL(fileURLWithPath: path), resultingItemURL: &destination) }
+        let destinationPath: String
+        do {
+            if let applicationRecycler { destinationPath=try NativeApplicationTrash.recycle(path,recycler:applicationRecycler) }
+            else {
+                var destination: NSURL?
+                try FileManager.default.trashItem(at: URL(fileURLWithPath: path), resultingItemURL: &destination)
+                guard let destination, destination.isFileURL, let value=destination.path else {
+                    throw ShouError("trash_outcome_unknown", "Trash operation did not report its destination. Inspect the system Trash before retrying.")
+                }
+                destinationPath=value
+            }
+        }
         catch {
             // An API failure alone cannot prove the original is still in place.
             do { try verify(path, expected) }
             catch { throw ShouError("trash_outcome_unknown", "Trash operation could not be reconciled. Verify the recorded locations before taking another action.") }
             throw error
         }
-        guard let destination, destination.isFileURL, let destinationPath=destination.path else {
-            throw ShouError("trash_outcome_unknown", "Trash operation did not report its destination. Inspect the system Trash before retrying.")
-        }
         let tree = try? inspectMutationTarget(destinationPath, entryCount: expected.count)
         let moved = tree?.entries.first { $0.path == "." }
-        var verified = tree?.complete == true && moved.map { original.sameObject(as: $0) } == true && isTrashLocation(destinationPath)
+        let trustedDestination=applicationRecycler?.isTrashLocation(destinationPath) ?? isTrashLocation(destinationPath)
+        var verified = tree?.complete == true && moved.map { original.sameObject(as: $0) } == true && trustedDestination
         if original.kind == "file" { verified = verified && moved?.matchesTrashRoot(as: original) == true }
         if let tree {
             // Moving a directory changes its root ctime, but must preserve every descendant.

@@ -38,6 +38,12 @@ private struct StorageAnalysisView: View {
             else { results }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .inspector(isPresented: $model.ai.showingInspector) {
+            AIInvestigationInspector(model: model, session: model.ai)
+                .inspectorColumnWidth(min: 300, ideal: 340, max: 420)
+        }
+        .onChange(of: session.scan?.id) { _, _ in model.ai.stop() }
+        .onChange(of: session.hasChanges) { _, changed in if changed { model.ai.stop() } }
         .task { session.loadLocations() }
         .task(id: "\(session.scan?.id ?? ""):\(session.path):\(session.detailed)") { session.loadPresentation(app: model) }
         .sheet(item: $session.plan) { plan in StorageRemovalConfirmation(model: model, session: session, plan: plan) }
@@ -121,10 +127,15 @@ private struct StorageAnalysisView: View {
                 Text(model.t("Simple")).tag(false)
                 Text(model.t("Detailed")).tag(true)
             }.pickerStyle(.segmented).frame(width: 130).accessibilityIdentifier("storage.view-mode")
-            Button { session.copyAnalysis(app: model) } label: {
-                Label(model.t(session.copyingAnalysis ? "Preparing…" : session.analysisCopied ? "Copied" : "Copy for AI"), systemImage: session.analysisCopied ? "checkmark" : "doc.on.clipboard")
-            }.disabled(session.copyingAnalysis || session.loadingDirectory || model.busy).help(model.t("Copy scan results and a request for your AI agent"))
-                .accessibilityIdentifier("storage.copy-analysis")
+            Button { model.ai.requestLaunch(app: model, path: absolute(session.path)) } label: {
+                Label(model.t("Investigate"), systemImage: "sparkles")
+            }.disabled(session.loadingDirectory || model.busy).help(model.t("Investigate this folder with your model"))
+                .accessibilityIdentifier("storage.investigate")
+            Menu {
+                Button(model.t(session.copyingAnalysis ? "Preparing…" : session.analysisCopied ? "Copied" : "Copy for AI")) { session.copyAnalysis(app: model) }
+                    .disabled(session.copyingAnalysis || session.loadingDirectory || model.busy).accessibilityIdentifier("storage.copy-analysis")
+            } label: { Image(systemName: "ellipsis.circle") }.menuStyle(.borderlessButton).fixedSize()
+                .help(model.t("External AI Tools")).accessibilityLabel(model.t("External AI Tools"))
             if session.analysisHandoffStarted {
                 Button(model.t("Review AI Rules…")) {
                     Task { await model.refreshExternalChanges(); model.reviewPersonalRules=true; model.section="rules"; model.externalRulesChanged=false }
@@ -236,7 +247,7 @@ private struct StorageAnalysisView: View {
             }
             StorageTreemap(session: session, model: model, color: color,
                 focus: { session.focus=$0; keyboardArea = .map },
-                customize: { agentContext=StorageAgentContext(path: absolute($0)) },
+                customize: { model.ai.requestLaunch(app: model, path: absolute($0)) },
                 preview: { previewURL=URL(fileURLWithPath: absolute($0)) })
                 .focusable().focusEffectDisabled().focused($keyboardArea, equals: .map)
                 .onKeyPress(keys: [.space, .escape, "a"], action: handleKeyPress)
@@ -290,7 +301,7 @@ private struct StorageAnalysisView: View {
         Button(model.t("Select All in This Folder")) { session.selectVisible(app: model) }.disabled(model.busy)
         if node.kind == "directory" {
             Divider()
-            Button(model.t("Customize with AI")) { agentContext=StorageAgentContext(path: absolute(node.path)) }.disabled(model.busy)
+            Button(model.t("Investigate This Folder")) { model.ai.requestLaunch(app: model, path: absolute(node.path)) }.disabled(model.busy)
         }
         Button(model.t("Quick Look")) { previewURL=URL(fileURLWithPath: absolute(node.path)) }
     }
@@ -451,7 +462,7 @@ private struct StorageTreemap: View {
                                 Button(model.t(session.isSelected(node.path) ? "Deselect Item" : "Select Item")) { session.toggle(node, app: model) }.disabled(session.reason(node) != nil || model.busy)
                                 if node.kind == "directory" {
                                     Button(model.t("Open Directory")) { session.navigate(node.path) }
-                                    Button(model.t("Customize with AI")) { customize(node.path) }.disabled(model.busy)
+                                    Button(model.t("Investigate This Folder")) { customize(node.path) }.disabled(model.busy)
                                 }
                             }
                         }

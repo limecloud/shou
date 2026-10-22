@@ -78,6 +78,7 @@ public struct UninstallComponent: Codable, Sendable, Identifiable {
     public let warnings: [String]
     public let eligible: Bool
     public let requiresUserDataConsent: Bool
+    public var requiresAdministrator: Bool { kind == .application && warnings.contains("administrator_authorization_required") }
     init(id: String, kind: UninstallComponentKind, path: String, status: String, origin: UninstallReceiptOrigin?, manifest: [FileEntry], allocatedBytesEstimate: Int64, reasons: [String], warnings: [String]) {
         self.id=id; self.kind=kind; self.path=path; self.status=status; self.origin=origin; self.manifest=manifest
         self.allocatedBytesEstimate=allocatedBytesEstimate; self.reasons=reasons; self.warnings=warnings
@@ -93,6 +94,7 @@ public struct ApplicationUninstallReview: Codable, Sendable, Identifiable {
     public let components: [UninstallComponent]
     public let limitations: [String]
     public let budget: ScanBudget
+    public var requiresAdministrator: Bool { components.contains(where: \.requiresAdministrator) }
 }
 public struct ApplicationUninstallPlan: Codable, Sendable, Identifiable {
     public let id: String
@@ -203,6 +205,7 @@ extension ShouEngine {
               selected.allSatisfy({ $0.eligible && (!$0.kind.requiresUserDataConsent || includeUserData) }) else {
             throw ShouError("confirmation_required", "Select the application and eligible components; personal data requires separate consent.")
         }
+        try validateAuthorizedApplicationSelection(selected, action: action)
         let current=try analyzeApplication(path: review.application.path, budget: review.budget, inventory: inventory)
         try validateUninstallSelection(application: review.application, digest: review.configurationDigest, selected: selected, current: current)
         var plan=ApplicationUninstallPlan(id: Codec.id("uninstall"), application: current.application, createdAt: now(), expiresAt: now().addingTimeInterval(900),
@@ -239,6 +242,7 @@ extension ShouEngine {
         var components=[(plan: ApplicationUninstallPlan, component: UninstallComponent)]()
         for plan in plans {
             try plan.budget.validate()
+            try validateAuthorizedApplicationSelection(plan.components, action: action)
             guard plan.executionId == nil, plan.effectiveAction == action, plan.expiresAt > now(),
                   try plan.digest == plan.calculatedDigest(), !plan.components.isEmpty,
                   Set(plan.components.map(\.id)).count == plan.components.count,
@@ -291,8 +295,9 @@ extension ShouEngine {
                 }
             }
             let tree=try filesystem.inspectTarget(component.path, budget: plan.budget, cancelled: { Task.isCancelled })
+            let authorizedBundle=action == "trash" && component.requiresAdministrator && filesystem.supportsAuthorizedApplicationTrash
             guard tree.complete, tree.entries == component.manifest,
-                  !tree.entries.contains(where: { $0.owner != facts.currentUser || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) else {
+                  !tree.entries.contains(where: { ($0.owner != facts.currentUser && !(authorizedBundle && $0.owner == 0)) || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) else {
                 throw ShouError("plan_stale", "Application component changed; preview again.")
             }
             return nil
@@ -360,7 +365,14 @@ extension ShouEngine {
                     if !tree.complete { status="partial"; reasons.append("incomplete_manifest") }
                     let expectedKind=kind == .preferences ? "file" : "directory"
                     if manifest.first?.kind != expectedKind { reasons.append("unsupported_component_type") }
-                    if let facts, manifest.contains(where: { $0.owner != facts.currentUser || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) { reasons.append("protected_content") }
+                    if let facts {
+                        let authorizedBundle=kind == .application && filesystem.supportsAuthorizedApplicationTrash
+                        if manifest.contains(where: { ($0.owner != facts.currentUser && !(authorizedBundle && $0.owner == 0)) || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) {
+                            reasons.append("protected_content")
+                        } else if authorizedBundle && manifest.contains(where: { $0.owner != facts.currentUser }) {
+                            warnings.append("administrator_authorization_required")
+                        }
+                    }
                     let parent=URL(fileURLWithPath: target).deletingLastPathComponent().path
                     let identity=try kind == .application ? filesystem.applicationParentIdentity(parent) : filesystem.rootIdentity(parent)
                     origin=UninstallReceiptOrigin(kind: kind, applicationPath: app.path, bundleIdentifier: identifier, parentPath: parent, parentIdentity: identity)
@@ -395,6 +407,11 @@ extension ShouEngine {
     private func warningsForGroupCoverage(_ common: inout [String], error: ShouError) {
         if error.code != "resource_limit" && error.code != "permission_denied" && error.code != "io_error" {
             common.append("group_container_coverage_unavailable")
+        }
+    }
+    private func validateAuthorizedApplicationSelection(_ components: [UninstallComponent], action: String) throws {
+        guard !components.contains(where: \.requiresAdministrator) || (action == "trash" && components.count == 1 && filesystem.supportsAuthorizedApplicationTrash) else {
+            throw ShouError("permission_denied", "Applications requiring administrator access can only be moved to Trash on their own. Associated app data is kept.")
         }
     }
     private func validateUninstallSelection(application: ApplicationDefinition, digest: String, selected: [UninstallComponent], current: ApplicationUninstallReview) throws {

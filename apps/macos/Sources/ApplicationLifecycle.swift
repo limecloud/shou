@@ -5,6 +5,17 @@ import os
 private let lifecycleLog=Logger(subsystem: "dev.limecloud.shou", category: "Lifecycle")
 
 @MainActor
+private func confirmLeavingAI(_ model: AppModel) -> Bool {
+    guard model.ai.running || model.ai.investigation?.status == .waiting else { return true }
+    let alert=NSAlert(); alert.alertStyle = .warning
+    alert.messageText=model.t("Stop the AI investigation before leaving?")
+    alert.informativeText=model.t("Saved findings remain available. Unsubmitted answers will be lost; reopening the window does not resume this task automatically.")
+    alert.addButton(withTitle: model.t("Keep Open")); alert.addButton(withTitle: model.t("Stop and Leave"))
+    guard alert.runModal() == .alertSecondButtonReturn else { return false }
+    model.ai.stop(); return true
+}
+
+@MainActor
 private func confirmStopping(_ model: AppModel, closingWindow: Bool) -> Bool {
     let alert=NSAlert()
     alert.alertStyle = .warning
@@ -22,6 +33,7 @@ final class ShouApplicationDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if terminationPending { return .terminateLater }
+        if let model, !confirmLeavingAI(model) { return .terminateCancel }
         guard let model, model.isExecuting else { return .terminateNow }
         guard confirmStopping(model, closingWindow: false) else { return .terminateCancel }
         terminationPending=true
@@ -84,6 +96,7 @@ struct OperationWindowGuard: NSViewRepresentable {
         func windowShouldClose(_ sender: NSWindow) -> Bool {
             lifecycleLog.notice("Window close requested; waiting=\(self.closing), executing=\(self.model?.isExecuting ?? false)")
             guard !closing else { return false }
+            if let model, !confirmLeavingAI(model) { return false }
             guard let model, model.isExecuting else {
                 let allowed=originalDelegate?.windowShouldClose?(sender) ?? true
                 lifecycleLog.notice("Original window close decision=\(allowed)")
@@ -106,6 +119,7 @@ struct OperationWindowGuard: NSViewRepresentable {
             return false
         }
         func windowWillClose(_ notification: Notification) {
+            model?.ai.stop()
             lifecycleLog.notice("Window will close; number=\(self.window?.windowNumber ?? -1)")
             originalDelegate?.windowWillClose?(notification)
         }

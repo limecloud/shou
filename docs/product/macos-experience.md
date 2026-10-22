@@ -79,13 +79,19 @@ Provide expansion, breadcrumbs, sorting, Finder reveal, path copying, exclusion,
 
 ### Agent-authored rules and advanced wizard
 
-The primary Rules action is **Customize with AI**. A native sheet explains the external-agent workflow, provides a copyable request with the shipped Skill and exact CLI/workspace paths, and reveals the Skill in Finder. It does not launch a client or connect to a model. Users answer purpose, rebuild and preservation questions in their existing agent; imported drafts appear in Shou for preview and enablement. Manual creation and import remain in the Advanced menu.
+The [AI product/interaction contract](embedded-ai.md) owns this iteration's master switch, onboarding, Jev-first policy, contextual entries, task conflicts, questions, stopping/error/no-advice/stale states and rule next steps. Existing external handoff and the wizard remain below; ambiguous AI action names are pending correction. Implement the [flows/sequences](../architecture/embedded-ai.md) and [native acceptance journeys](../engineering/embedded-ai-acceptance.md) together.
+
+The released version's primary Rules action is **Customize with AI**. A native sheet explains the external-agent workflow, provides a copyable request with the shipped Skill and exact CLI/workspace paths, and reveals the Skill in Finder. This handoff does not launch a client or connect to a model. Users answer purpose, rebuild and preservation questions in their existing agent; imported drafts appear in Shou for preview and enablement. Manual creation and import remain in the Advanced menu.
+
+The next stage adds optional intelligent analysis to Space Analysis using the existing scan. Native task views show investigation location, evidence, pending questions, independent rules and actual previews. Settings configure model connections with synthetic tests; enabling investigation explains provider and evidence scope. Unknown major consumers retain a next diagnostic even without templates. Users select individual rules and actual cleanup targets before existing confirmation. Real local events drive feedback; cancellation stops network and further scheduling. The first native connection editor and task inspector are implemented; see [usage and remaining acceptance](../engineering/embedded-ai-implementation.md).
 
 Scope → purpose and rebuild prerequisites → retention/exclusions → preview → save. Bind existing workspaces rather than request unrestricted paths. Advanced JSON uses the same validation; preserve unsupported editor constructs rather than silently rewriting them.
 
 Personal rules now offer Edit Rule for the complete JSON definition, retaining multiple patterns, exclusions, platforms and conditions. The editor suggests an unused patch version, requires the original rule ID, reports validation issues and requires validation again after text changes. Saving adds a disabled version; existing workspace bindings retain their version. Preview the new draft, explicitly enable it and rescan. Importing, saving or toggling rules clears desktop scan evidence and selections. Core checks version uniqueness again under its mutation lock to reject concurrent CLI imports. A source picker switches between all, built-in and personal rules.
 
 ### Exclusions and protection
+
+The Rules page always shows the shipped catalog for the current platform, including before any scan location is registered. Search matches rule names and path patterns. Choosing a location exposes switches only for rules applicable to that location; additional application-cache rules discovered there remain available. Browsing the catalog does not import personal rules or register scan locations.
 
 Open Exclusions from Rules or Settings → Scanning and Privacy → Manage. The native sheet provides All Workspaces, Workspace and Project scopes, validates relative patterns, previews the stored pattern and supports individual removal. Global patterns are inherited by current and future workspaces; their inherited list directs editing to All Workspaces. Rule-specific exclusions remain in each rule definition.
 

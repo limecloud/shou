@@ -4,7 +4,10 @@ import Foundation
 public enum ProjectLocations {
     public static let relativePaths = [
         "Developer", "Projects", "Code", "code", "dev", "src", "repos", "GitHub",
-        "Documents/Developer", "Documents/Projects", "Documents/Code", "Documents/dev", "Documents/GitHub"
+        "Workspace", "Workspaces", "workspace", "workspaces", "Development", "Source", "Sources", "Git", "Repos",
+        "Documents/Developer", "Documents/Projects", "Documents/Code", "Documents/dev", "Documents/GitHub",
+        "Documents/Workspace", "Documents/Workspaces", "Documents/Development", "Documents/repos", "Documents/src",
+        "Desktop/Projects", "Desktop/Code", "Desktop/dev"
     ]
 }
 
@@ -14,8 +17,8 @@ extension ShouEngine {
     public func projectLocations() throws -> [KnownLocation] {
         guard ["macos", "windows"].contains(filesystem.platform) else { return [] }
         let caseSensitive=filesystem.platform != "windows"
-        let cachePaths=Set(try KnownLocations.catalog(homeDirectory: homeDirectory, platform: filesystem.platform).map { caseSensitive ? $0.path : $0.path.lowercased() })
-        let roots=try configuration().workspaces.filter { !cachePaths.contains(caseSensitive ? $0.path : $0.path.lowercased()) }
+        let cachePaths=Set(try KnownLocations.catalog(homeDirectory: homeDirectory, platform: filesystem.platform).map { KnownLocations.pathKey($0.path, platform: filesystem.platform) })
+        let roots=try configuration().workspaces.filter { !cachePaths.contains(KnownLocations.pathKey($0.path, platform: filesystem.platform)) }
         var locations=roots.map { projectLocation(path: $0.path, id: $0.id) }
         var identities=roots.map(\.identity)
         for relative in ProjectLocations.relativePaths {

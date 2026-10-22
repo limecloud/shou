@@ -8,13 +8,13 @@ Space Analysis offers Simple/Detailed views and a Copy for AI action in both. It
 
 ## 1. Boundary
 
-**Shou integrates no models, develops no agents, and does not start or host external agents.**
+**Shou's next stage adds a built-in cleanup Agent while retaining external coding-agent CLI/Skill access.** The first built-in investigation is implemented; see [usage and acceptance](../engineering/embedded-ai-implementation.md) and see the [PRD](../product/prd.md) and [integration design](../engineering/embedded-ai-investigation.md). This document covers the existing external-agent contract.
 
 A user’s existing coding agent operates Shou as a local tool with a stable CLI. Shou owns deterministic validation, scans, plans, and file-operation policy. The external product owns inference, authentication, conversation, and authorization.
 
-No API-key settings, model selector, chat interface, agent runner, provider SDK, or global configuration installer is part of Shou.
+Built-in investigation adds user-provided credentials, model connections and a replaceable Swift SDK. It does not host external coding agents, manage their authentication/conversation/permissions or expand Skill installation into client configuration management.
 
-**Agent-authored customization is the primary personal-rule workflow.** Users describe the problem and answer necessary questions; the existing agent investigates and writes the rule. The manual wizard and JSON import remain advanced fallback tools.
+**The released version uses existing agents for personal-rule customization.** Built-in investigation will share its draft, validation and independent-preview contracts. Users describe the problem and answer necessary questions; the manual wizard and JSON import remain advanced fallback tools.
 
 ### Bundled Skill and desktop handoff
 

@@ -1,6 +1,7 @@
 import Foundation
 import ShouCore
 import ShouPlatform
+import ShouAI
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
@@ -35,7 +36,11 @@ enum DesktopBridge {
             let task=Task {
                 do {
                     let data=try await perform(request, session: session)
-                    try session.send(kind: "result", value: .from(ResultEnvelope(data: data)))
+                    var envelope=try ResultEnvelope(data: data)
+                    if request.operation.hasPrefix("ai."), request.operation != "ai.cancel", ["failed", "cancelled", "limited"].contains(data["status"]?.string ?? "") {
+                        envelope.ok=false; envelope.status="partial"
+                    }
+                    try session.send(kind: "result", value: .from(envelope))
                 } catch {
                     let failure=error as? ShouError ?? ShouError(error is CancellationError ? "cancelled" : "io_error", error.localizedDescription)
                     try? session.send(kind: "result", value: .from(ResultEnvelope(error: failure)))
@@ -68,16 +73,71 @@ enum DesktopBridge {
             guard let value=input[key]?.string, !value.isEmpty, value.utf8.count <= 262144 else { throw ShouError("invalid_argument", "Missing or invalid desktop input.", details: ["field": key]) }
             return value
         }
-        func strings(_ key: String) throws -> [String] {
-            guard let array=input[key]?.array, (1...500).contains(array.count), array.allSatisfy({ $0.string != nil }) else { throw ShouError("invalid_argument", "Select explicit items.", details: ["field": key]) }
+        func strings(_ key: String, maximum: Int = 500) throws -> [String] {
+            guard let array=input[key]?.array, (1...maximum).contains(array.count), array.allSatisfy({ $0.string != nil }) else { throw ShouError("invalid_argument", "Select explicit items.", details: ["field": key]) }
             return array.compactMap(\.string)
+        }
+        func scanBudget(defaults: ScanBudget = ScanBudget()) throws -> ScanBudget {
+            guard let value=input["budget"] else { return defaults }
+            guard let fields=value.object, Set(fields.keys).isSubset(of: ["max_entries", "max_seconds", "max_depth"]) else { throw ShouError("invalid_argument", "Invalid scan budget fields.") }
+            func integer(_ key: String, default fallback: Int, range: ClosedRange<Int64>) throws -> Int {
+                guard let value=fields[key] else { return fallback }
+                guard case .integer(let count)=value, range.contains(count) else { throw ShouError("invalid_argument", "Invalid scan budget.") }
+                return Int(count)
+            }
+            return try ScanBudget(maxEntries: integer("max_entries", default: defaults.maxEntries, range: 1...1_000_000),
+                                  maxSeconds: Double(integer("max_seconds", default: Int(defaults.maxSeconds), range: 1...600)),
+                                  maxDepth: integer("max_depth", default: defaults.maxDepth, range: 1...128))
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["scan": .bool(true), "rules": .bool(true), "space_analysis": .bool(true), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "startup": .bool(false), "privacy": .bool(false)]),
+                "features": .object(["scan": .bool(true), "rules": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "startup": .bool(false), "privacy": .bool(false)]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
         }
-        let engine=ShouEngine(store: try LocalRecordStore(), filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+        let store=try LocalRecordStore()
+        let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+        if request.operation.hasPrefix("ai.") {
+            let connections=AIConnectionStore(store: store)
+            let credentials=SystemAICredentials()
+            let service=AIInvestigationService(engine: engine, store: store, credentials: credentials)
+            func connection() throws -> AIConnection {
+                guard let value=try connections.connections().first(where: { $0.id == input["connection_id"]?.string }) else { throw ShouError("not_found", "AI connection not found.") }
+                return value
+            }
+            @Sendable func update(_ state: AIInvestigation) async { try? session.send(kind: "progress", value: .from(state)) }
+            switch request.operation {
+            case "ai.providers": return AICLI.decisionProviders()
+            case "ai.list": return try .from(await service.list())
+            case "ai.cancel":
+                try await service.cancel(string("investigation_id")); return try .from(await service.read(string("investigation_id")))
+            case "ai.connections.save":
+                guard let profile=input["profile"], try Codec.encode(profile).count <= 16_384 else { throw ShouError("invalid_ai_connection", "Provide a bounded connection profile.") }
+                let value=try AIConnectionStore.profile(profile)
+                for (field, decision) in [("model_key", false), ("decision_key", true)] {
+                    if let key=input[field]?.string, !key.isEmpty {
+                        guard (decision ? value.decision?.authentication : value.authentication) == .keychain else { throw ShouError("invalid_ai_connection", "Keys must use the system credential store.") }
+                        try credentials.save(key, for: value, decision: decision)
+                    }
+                }
+                try connections.save(value); return try .from(value)
+            case "ai.connections": return try .from(connections.connections())
+            case "ai.test":
+                try await AIConnectionTest.run(connection: connection(), credentials: credentials)
+                return .object(["status": .string("verified"), "tool_round_trip": .bool(true)])
+            case "ai.decision.test":
+                return try .from(await StructuredDecisionService().test(connection: connection(), credentials: credentials))
+            case "ai.investigate":
+                guard let goal=AIInvestigationGoal(rawValue: input["goal"]?.string ?? "investigate") else { throw ShouError("invalid_argument", "Choose investigate, space or rules as the AI goal.") }
+                return try .from(await service.start(scanId: string("scan_id"), scope: input["path"]?.string ?? ".", connection: connection(),
+                    request: input["request"]?.string ?? "", locale: input["locale"]?.string ?? "en", goal: goal, progress: update))
+            case "ai.show": return try .from(await service.read(string("investigation_id")))
+            case "ai.resume":
+                guard let fields=input["answers"]?.object, fields.values.allSatisfy({ $0.string != nil }) else { throw ShouError("invalid_ai_answer", "Provide answers for the current questions.") }
+                return try .from(await service.resume(string("investigation_id"), answers: fields.compactMapValues(\.string), progress: update))
+            case "ai.advice.import": return try .from(await service.importAdvice(investigationId: string("investigation_id"), adviceId: string("advice_id")))
+            default: throw ShouError("invalid_argument", "Unknown AI desktop operation.")
+            }
+        }
         @Sendable func scanProgress(_ progress: ScanProgress) {
             var fields: [String: JSONValue]=["stage": .string(progress.stage), "entry_count": .integer(Int64(progress.entryCount)), "path": .string(progress.currentPath)]
             if progress.fractionCompleted != nil, let completed=progress.completedUnitCount, let total=progress.totalUnitCount {
@@ -109,7 +169,7 @@ enum DesktopBridge {
             }
             return try .from(preview)
         case "configuration":
-            return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) })])
+            return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) }), "locations": try .from(await engine.knownLocations())])
         case "workspace.add": return try .from(await engine.addWorkspace(path: string("path"), rootRef: string("root_ref")))
         case "system.scan":
             let result=try await engine.scanKnownLocations(includeProjects: true, progress: { _, update in scanProgress(update) })
@@ -154,12 +214,17 @@ enum DesktopBridge {
             return .object(["state": .string(state), "items": .array(rows), "execution_ids": try .from(executionIds)])
         case "scan":
             let ruleIds=input["rule_ids"] == nil ? [] : try strings("rule_ids")
-            let snapshot=try await engine.scan(workspaceId: string("workspace_id"), ruleIds: ruleIds, scope: ruleIds.isEmpty ? .full : .cleanup, progress: scanProgress)
+            let snapshot=try await engine.scan(workspaceId: string("workspace_id"), ruleIds: ruleIds, scope: .cleanup, budget: scanBudget(), progress: scanProgress)
             return try scanPage(snapshot, offset: 0)
+        case "scan.target":
+            return try scanPage(await engine.scanCleanupTarget(scanId: string("scan_id"), candidateId: string("candidate_id"),
+                budget: scanBudget(defaults: ScanBudget(maxEntries: 1_000_000, maxSeconds: 120)), progress: scanProgress), offset: 0)
         case "scan.results":
             let offset=Int(input["offset"]?.numeric ?? 0)
             guard offset >= 0, offset <= 1_000_000 else { throw ShouError("invalid_argument", "Invalid results offset.") }
             return try scanPage(await engine.scanSnapshot(string("scan_id")), offset: offset)
+        case "cleanup.review":
+            return try await DesktopCleanupReview.page(input: input, engine: engine)
         case "plan":
             return try planReview(await engine.createPlan(scanId: string("scan_id"), candidateIds: strings("candidate_ids"), action: input["action"]?.string ?? "trash"))
         case "plan.execute":
@@ -195,6 +260,14 @@ enum DesktopBridge {
         case "rules.set":
             guard case .bool(let enabled)=input["enabled"] else { throw ShouError("invalid_argument", "A rule enablement decision is required.") }
             return try .from(await engine.setRule(ruleId: string("rule_id"), workspaceId: string("workspace_id"), enabled: enabled, version: input["version"]?.string))
+        case "rules.location-set":
+            guard case .bool(let enabled)=input["enabled"] else { throw ShouError("invalid_argument", "A rule enablement decision is required.") }
+            let ruleId=try string("rule_id"), locationId=try string("location_id")
+            guard try BuiltinCatalog.templates().contains(where: { $0.id == ruleId && $0.location == locationId && $0.supportedPlatforms.contains(fs.platform) }) else {
+                throw ShouError("invalid_argument", "Select a bundled rule for this cache location.")
+            }
+            let workspace=try await engine.workspaceForKnownLocation(locationId)
+            return try .from(await engine.setRule(ruleId: ruleId, workspaceId: workspace.id, enabled: enabled))
         case "rules.preview":
             let config=try await engine.configuration(), id=try string("rule_id"), version=try string("version"), workspace=try string("workspace_id")
             guard let record=config.rules.first(where: { $0.rule.id == id && $0.rule.version == version }),
@@ -212,14 +285,34 @@ enum DesktopBridge {
             let scan=try await engine.scanStorage(path: string("path"), progress: scanProgress)
             let notes=scan.tree.issues.map { StorageCoverageNote(issue: $0, root: scan.rootPath) }
             return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) }), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
+        case "storage.show":
+            let scan=try await engine.storageScan(string("scan_id"))
+            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status)])
         case "storage.map":
             let result=try await engine.storagePresentation(scanId: string("scan_id"), path: input["path"]?.string ?? ".")
             let tiles=SpaceMap.nested(result.items.map(\.node), scope: result.scope.node, width: 1000, height: 600, aggregates: result.aggregates)
             let suffixes=Set(result.extensions.items.map(\.suffix) + result.items.filter { $0.node.kind == "file" }.map { StorageExtensionStat.suffix($0.node.name) } + result.aggregates.map(\.suffix))
             let colors=Dictionary(uniqueKeysWithValues: suffixes.map { ($0, JSONValue.string(StorageMapPalette.hex(forExtension: $0))) })
             return .object(["presentation": try .from(result), "colors": .object(colors), "tiles": .array(tiles.map { .object(["path": .string($0.tile.id), "inspect_path": .string($0.aggregate?.parentPath ?? $0.id), "aggregate": $0.aggregate.map { .object(["parent_path": .string($0.parentPath), "suffix": .string($0.suffix), "allocated_bytes": .integer($0.allocatedBytes), "file_count": .integer(Int64($0.fileCount))]) } ?? .null, "depth": .integer(Int64($0.depth)), "x": .number($0.tile.x), "y": .number($0.tile.y), "width": .number($0.tile.width), "height": .number($0.tile.height), "remainder": .bool($0.remainder)]) })])
+        case "storage.large-files":
+            if let value=input["type"], value.string == nil { throw ShouError("invalid_argument", "Select a supported filename type.") }
+            if let value=input["cursor"], value != .null, value.string == nil { throw ShouError("invalid_argument", "Invalid large-file cursor.") }
+            let minimum: Int64
+            if let value=input["minimum_bytes"] {
+                guard case .integer(let count)=value, count >= 0 else { throw ShouError("invalid_argument", "Use a nonnegative integer minimum size.") }
+                minimum=count
+            } else { minimum=50 * 1024 * 1024 }
+            guard let type=StorageFileType(rawValue: input["type"]?.string ?? "all") else { throw ShouError("invalid_argument", "Select a supported filename type.") }
+            let scan=try await engine.storageScan(string("scan_id"))
+            let page=try await engine.storageLargeFiles(scanId: scan.id, minimumBytes: minimum, type: type, limit: 500, cursor: input["cursor"]?.string)
+            var entries=[JSONValue]()
+            for item in page.items {
+                entries.append(.object(["entry": try .from(item.entry), "node": try .from(item.node), "removal_block_reason": try .from(await engine.storageRemovalReason(scan: scan, path: item.entry.path))]))
+            }
+            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entries": .array(entries),
+                "total_count": .integer(Int64(page.totalCount)), "total_allocated_bytes": .integer(page.totalAllocatedBytes), "next_cursor": try .from(page.nextCursor), "issues": try .from(scan.tree.issues)])
         case "storage.remove":
-            let plan=try await engine.createStorageRemovalPlan(scanId: string("scan_id"), paths: strings("paths"), action: input["action"]?.string ?? "permanent")
+            let plan=try await engine.createStorageRemovalPlan(scanId: string("scan_id"), paths: strings("paths", maximum: 5000), action: input["action"]?.string ?? "permanent")
             let review: JSONValue = .object(["action": .string(plan.action), "items": .array(plan.items.map { .object(["path": .string(StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path)), "bytes": .integer($0.allocatedBytesEstimate)]) })])
             try await session.confirm(digest: plan.digest, review: review, operation: plan.action)
             let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "windows-desktop", progress: executionProgress)

@@ -20,7 +20,9 @@ public actor ShouEngine {
         return try scan(workspaceId: workspaceId, scope: .cleanup, budget: budget, progress: progress)
     }
     public init(store: any RecordStore, filesystem: any PlatformFileSystem, applicationActivity: any ApplicationActivityChecking = UnavailableApplicationActivity(), artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), applicationCatalog: any ApplicationCatalogReading = UnavailableApplicationCatalog(), uninstallEvidence: any ApplicationUninstallChecking = UnavailableApplicationUninstallEvidence(), homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, now: @escaping @Sendable () -> Date = { Date() }) {
-        self.store=store; self.filesystem=filesystem; self.applicationActivity=applicationActivity; self.artifactEvidence=artifactEvidence; self.applicationCatalog=applicationCatalog; self.uninstallEvidence=uninstallEvidence; self.homeDirectory=homeDirectory; self.now=now
+        self.store=store; self.filesystem=filesystem; self.applicationActivity=applicationActivity; self.artifactEvidence=artifactEvidence; self.applicationCatalog=applicationCatalog; self.uninstallEvidence=uninstallEvidence
+        self.homeDirectory=filesystem.platform == "windows" ? (try? filesystem.normalizedPath(homeDirectory.path)).map { URL(fileURLWithPath: $0) } ?? homeDirectory : homeDirectory
+        self.now=now
     }
     public func configuration() throws -> Configuration {
         guard let data = try store.read("configuration", id: "current") else {
@@ -221,6 +223,101 @@ public actor ShouEngine {
         return snapshot
     }
     public func scanSnapshot(_ id: String) throws -> ScanSnapshot { try load(ScanSnapshot.self, collection: "scans", id: id) }
+    /// Re-measure one previously discovered target under its original authority.
+    /// Narrow patterns control reads only; policy always uses canonical rules.
+    public func scanCleanupTarget(scanId: String, candidateId: String, budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 120),
+                                  progress: @escaping @Sendable (ScanProgress) -> Void = { _ in }) throws -> ScanSnapshot {
+        if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        try budget.validate()
+        let previous=try scanSnapshot(scanId)
+        guard !previous.previewOnly else { throw ShouError("partial_result", "Draft previews cannot authorize target scans.") }
+        guard previous.scope == .cleanup else { throw ShouError("invalid_argument", "Select an incomplete cleanup scan.") }
+        let config=try configuration(), configurationDigest=try Digest.of(config)
+        guard configurationDigest == previous.configurationDigest else { throw ShouError("plan_stale", "Configuration changed; scan again.") }
+        guard let index=config.workspaces.firstIndex(where: { $0.id == previous.workspace.id }),
+              config.workspaces[index].path == previous.workspace.path, config.workspaces[index].rootRef == previous.workspace.rootRef,
+              let candidate=previous.candidates.first(where: { $0.id == candidateId }), !candidate.ruleIds.isEmpty,
+              candidate.reasons.contains("incomplete_scan"),
+              let savedTarget=previous.entries.first(where: { $0.path == candidate.relativePath && $0.kind == "directory" }) else {
+            throw ShouError("invalid_argument", "Select a previously matched, incomplete cleanup directory.")
+        }
+        let path=candidate.relativePath
+        try PathPattern.validate(path, target: true)
+        guard !path.contains("*"), !path.contains("?") else {
+            throw ShouError("capability_unavailable", "A target path containing wildcard characters requires a new workspace scan.")
+        }
+        let oldTree=TreeSnapshot(entries: previous.entries, complete: previous.treeComplete ?? (previous.status == "complete"),
+            issues: previous.issues, caseSensitive: previous.caseSensitive, completedPaths: previous.completedPaths)
+        guard !oldTree.isComplete(at: path) else { throw ShouError("invalid_argument", "This cleanup directory is already completely measured.") }
+        let rootIdentity=try filesystem.rootIdentity(previous.workspace.path)
+        guard rootIdentityMatches(rootIdentity, previous.workspace.identity), rootIdentity.hasSameOwner(as: previous.workspace.identity) else { throw ShouError("plan_stale", "Workspace identity changed; scan again.") }
+        let workspace=protectedWorkspace(try refreshedWorkspace(config, index: index, current: rootIdentity), configuration: config)
+        let installedCaches=try InstalledApplicationCaches.selected(previous.installedApplicationCaches, ruleIds: candidate.ruleIds)
+        try revalidateInstalledCaches(installedCaches, workspace: workspace)
+        let rules=try activeRules(config, workspaceId: workspace.id,
+            additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: workspace) })
+        let selected=rules.filter { candidate.ruleIds.contains($0.id) && candidate.ruleVersions[$0.id] == $0.version }
+        // Incomplete evidence proves matching, never source safety or completeness.
+        // Keep every old path incomplete while reproducing the original match.
+        let proof=try Analysis.candidates(tree: TreeSnapshot(entries: previous.entries, complete: false, issues: [],
+            caseSensitive: previous.caseSensitive), workspace: workspace, rules: selected, now: previous.createdAt, maxSeconds: budget.maxSeconds)
+        guard proof.contains(where: { $0.relativePath == path && $0.ruleIds == candidate.ruleIds && $0.ruleVersions == candidate.ruleVersions }) else {
+            throw ShouError("store_corrupt", "The original cleanup match could not be reproduced.")
+        }
+        let absolutePath=workspace.path + "/" + path
+        let targetIdentity=try filesystem.cleanupTargetIdentity(absolutePath)
+        guard targetIdentity.sameObject(as: savedTarget), targetIdentity.hasSameOwner(as: savedTarget) else {
+            throw ShouError("plan_stale", "Cleanup directory identity changed; scan again.")
+        }
+        let narrowRules=selected.map { rule in var copy=rule; copy.match.relativePatterns=[path]; return copy }
+        let reporter=ScanProgressReporter(output: progress)
+        let measured=try inspect(workspace.path, rules: narrowRules, scope: .cleanup, budget: budget, progress: { update in
+            reporter.report(ScanProgress(stage: "scanning", entryCount: update.entryCount, currentPath: update.currentPath, limitReached: update.limitReached))
+        })
+        if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        // A sparse result can complete only this subtree. Old siblings and root
+        // completion proofs never become part of the new snapshot.
+        let components=path.split(separator: "/")
+        let ancestors=Set(components.indices.dropFirst().map { components.prefix($0).joined(separator: "/") } + ["."])
+        let entries=measured.entries.filter { entry in
+            entry.path == path || entry.path.hasPrefix(path + "/") || ancestors.contains(entry.path) ||
+                (entry.kind != "directory" && ancestors.contains(StorageIndex.parent(entry.path)))
+        }
+        guard let observed=entries.first(where: { $0.path == path && $0.kind == "directory" }),
+              observed.sameObject(as: targetIdentity), observed.hasSameOwner(as: targetIdentity) else {
+            if measured.issues.contains("resource_limit") { throw ShouError("resource_limit", "The scan limit was reached before the cleanup directory could be measured.") }
+            throw ShouError("plan_stale", "Cleanup directory or its project markers changed; scan again.")
+        }
+        let tree=TreeSnapshot(entries: entries, complete: false, issues: measured.issues, caseSensitive: measured.caseSensitive,
+            completedPaths: measured.isComplete(at: path) ? [path] : [])
+        reporter.report(ScanProgress(stage: "analysis", entryCount: entries.count, currentPath: absolutePath, completedUnitCount: 1, totalUnitCount: 3))
+        let referenceTime=now()
+        let blocked=try ApplicationSafety.blockedRules(rules.map(\.id), activity: applicationActivity).merging(
+            InstalledApplicationCaches.blocked(installedCaches, workspace: workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
+        let candidates=try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: referenceTime, blockedRules: blocked,
+            artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds).filter {
+                $0.relativePath == path || $0.relativePath.hasPrefix(path + "/")
+            }
+        guard candidates.contains(where: { $0.relativePath == path && !$0.ruleIds.isEmpty }) else {
+            throw ShouError("plan_stale", "Cleanup rules or project markers no longer match this directory; scan again.")
+        }
+        let snapshot=ScanSnapshot(id: Codec.id("scan"), workspace: workspace, configurationDigest: configurationDigest, createdAt: referenceTime,
+            status: tree.isComplete(at: path) ? "complete" : "partial", previewOnly: false, caseSensitive: tree.caseSensitive, entries: entries,
+            candidates: candidates, issues: tree.issues, budget: budget, completedPaths: tree.completedPaths, treeComplete: false, scope: .cleanup,
+            installedApplicationCaches: installedCaches.isEmpty ? nil : installedCaches)
+        reporter.report(ScanProgress(stage: "saving", entryCount: entries.count, currentPath: absolutePath, completedUnitCount: 2, totalUnitCount: 3))
+        let lease=try store.lock(); defer { lease.release() }
+        if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
+        var expectedTarget=observed.metadata; expectedTarget.path="."
+        guard try Digest.of(configuration()) == configurationDigest,
+              rootIdentityMatches(try filesystem.rootIdentity(workspace.path), rootIdentity),
+              (try filesystem.cleanupTargetIdentity(absolutePath)) == expectedTarget else {
+            throw ShouError("plan_stale", "Configuration or directory identity changed during the scan; scan again.")
+        }
+        try save(snapshot, collection: "scans", id: snapshot.id)
+        reporter.report(ScanProgress(stage: "saving", entryCount: entries.count, currentPath: absolutePath, completedUnitCount: 3, totalUnitCount: 3))
+        return snapshot
+    }
     public func rulePreviewBenefits(scanId: String) throws -> RulePreviewBenefits {
         let scan=try scanSnapshot(scanId), config=try configuration()
         guard scan.previewOnly, scan.configurationDigest == (try Digest.of(config)) else { throw ShouError("plan_stale", "Preview the draft again with the current configuration.") }
@@ -317,7 +414,18 @@ public actor ShouEngine {
             additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: workspace) })
         let budget=plan.scanBudget ?? ScanBudget()
         try budget.validate()
-        let currentTree = try inspect(registered.path, rules: currentRules, scope: plan.scanScope ?? .full, budget: budget, progress: { [itemCount=plan.items.count] update in
+        var readRules=currentRules
+        for item in plan.items { try PathPattern.validate(item.candidate.relativePath) }
+        if plan.scanScope == .cleanup, plan.items.allSatisfy({ !$0.candidate.relativePath.contains("*") && !$0.candidate.relativePath.contains("?") }) {
+            // Selected paths bound I/O, never policy. Re-scanning their siblings
+            // could exhaust a budget that already measured these full targets.
+            readRules=currentRules.compactMap { rule in
+                let paths=plan.items.filter { $0.candidate.ruleIds.contains(rule.id) }.map(\.candidate.relativePath)
+                guard !paths.isEmpty else { return nil }
+                var copy=rule; copy.match.relativePatterns=paths; return copy
+            }
+        }
+        let currentTree = try inspect(registered.path, rules: readRules, scope: plan.scanScope ?? .full, budget: budget, progress: { [itemCount=plan.items.count] update in
             progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: itemCount, path: update.currentPath))
         })
         let currentEntries=Dictionary(uniqueKeysWithValues: currentTree.entries.map { ($0.path, $0) })

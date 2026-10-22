@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/product/user-stories-and-use-cases.md)
 
 Status: design draft. Requirement identifiers refer to the [PRD](prd.md).
 
+See [AI stories and use cases](embedded-ai.md) for US-AI01–US-AI16 and UC-AI01–UC-AI08 covering switches, Jev-first routing, contextual entry points and complete states. These extend the general stories; external-agent cases do not replace built-in interaction. See [AI architecture, states, flows and sequences](../architecture/embedded-ai.md).
+
 ## User stories
 
 | ID | Story | Acceptance | Requirements |

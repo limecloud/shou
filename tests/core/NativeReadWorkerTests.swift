@@ -42,6 +42,93 @@ func nativeReadWorkerMatchesDirectEvidenceWithoutOpeningStore() throws {
     try expect(try fixture.store.ids("scans").isEmpty)
 }
 
+private final class BatchReadProbe: @unchecked Sendable {
+    private let lock=NSLock()
+    private var active=0
+    private var peak=0
+    var maxActive: Int { lock.lock(); defer { lock.unlock() }; return peak }
+    func read<T>(_ body: () throws -> T) rethrows -> T {
+        lock.lock(); active += 1; peak=max(peak, active); lock.unlock()
+        defer { lock.lock(); active -= 1; lock.unlock() }
+        return try body()
+    }
+}
+
+/// Delegates every read to a real isolated worker and observes concurrent calls.
+private struct BatchWorkerFileSystem: PlatformFileSystem {
+    let native: NativeFileSystem
+    let probe: BatchReadProbe
+    var platform: String { native.platform }
+    var supportsTrash: Bool { false }
+    var maximumConcurrentReadOperations: Int { native.maximumConcurrentReadOperations }
+    func locationAvailability(_ path: String) -> LocationAvailability { native.locationAvailability(path) }
+    func rootIdentity(_ path: String) throws -> FileEntry { try probe.read { try native.rootIdentity(path) } }
+    func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try probe.read { try native.inspect(path, budget: budget, cancelled: cancelled) }
+    }
+    func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try probe.read { try native.inspectCleanup(path, rules: rules, budget: budget, cancelled: cancelled, progress: progress) }
+    }
+    func availableBytes(_ path: String) -> Int64? { native.availableBytes(path) }
+    func isTrashLocation(_ path: String) -> Bool { false }
+    func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult { throw ShouError("capability_unavailable", "Read-only worker fixture.") }
+    func restore(_ path: String, to destination: String, expected: [FileEntry]) throws { throw ShouError("capability_unavailable", "Read-only worker fixture.") }
+    func purge(_ path: String, expected: [FileEntry]) throws { throw ShouError("capability_unavailable", "Read-only worker fixture.") }
+}
+
+private struct WorkerBatchApplicationCatalog: ApplicationCatalogReading {
+    func read(options: ApplicationCatalogOptions) throws -> ApplicationCatalog { .init(checkedAt: Date(), sources: [], items: [], issues: []) }
+    func application(at path: String) throws -> ApplicationDefinition { throw ShouError("not_found", "Generated worker fixture has no applications.") }
+}
+
+func workerBackedSystemScanBoundsConcurrentReadsWithoutLosingRoots() async throws {
+    let fixture=try Fixture(), probe=BatchReadProbe()
+    let paths=["Library/Caches/pip", ".cache/pip", ".npm/_cacache", ".yarn/berry/cache", ".cargo/registry/cache",
+               "Library/Application Support/Slack/Cache", "Library/Application Support/Code/CachedData", "Library/Application Support/Google/Chrome/Default/Cache"]
+    for path in paths { for index in 0..<8 { try fixture.put(path + "/shard-\(index)/payload.bin") } }
+    try fixture.put("Documents/dev/example/Cargo.toml", "[package]")
+    try fixture.put("Documents/dev/example/target/artifact.bin")
+    let executable=URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
+    let native=NativeFileSystem(readWorkerExecutable: executable)
+    let filesystem=BatchWorkerFileSystem(native: native, probe: probe)
+    try expect((filesystem as any PlatformFileSystem).maximumConcurrentReadOperations == 2)
+    try expect((NativeFileSystem() as any PlatformFileSystem).maximumConcurrentReadOperations == 4)
+    let engine=ShouEngine(store: fixture.store, filesystem: filesystem, artifactEvidence: ArtifactFixtureEvidence(),
+        applicationCatalog: WorkerBatchApplicationCatalog(), homeDirectory: fixture.workspace)
+    let result=try await engine.scanKnownLocations(includeProjects: true, maxConcurrentLocations: 4)
+    let existing=result.locations.filter(\.exists)
+    if result.status != "complete" || result.snapshots.count != existing.count {
+        print("Worker batch: existing=\(existing.count), snapshots=\(result.snapshots.count), issues=\(result.issues.map { $0.locationId + ":" + $0.code + ":" + $0.message })")
+    }
+    try expect(existing.count > 4 && result.snapshots.count == existing.count)
+    try expect(result.status == "complete" && result.issues.isEmpty)
+    try expect(Set(result.snapshots.map(\.workspace.path)) == Set(existing.map(\.path)))
+    try expect(result.snapshots.contains { $0.workspace.path == fixture.workspace.path + "/Library/Caches" })
+    try expect(result.snapshots.contains { $0.workspace.path == fixture.workspace.path + "/Documents/dev" })
+    try expect(probe.maxActive <= 2)
+    if ProcessInfo.processInfo.activeProcessorCount > 1 { try expect(probe.maxActive == 2) }
+    try expect(result.snapshots.flatMap(\.candidates).contains { $0.relativePath == "example/target" && $0.eligible })
+    try expect(try await engine.history().isEmpty)
+    print("Isolated worker batch: \(existing.count) roots, \(result.snapshots.count) complete snapshots, peak \(probe.maxActive) reads; generated fixtures only.")
+}
+
+func isolatedCleanupDiscoveryKeepsLaterProjectsWithinSharedBudget() async throws {
+    let fixture=try Fixture()
+    let expected=try addFairCleanupFixture(fixture)
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs, homeDirectory: fixture.workspace)
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "test-workspace")
+    let rules=try BuiltinCatalog.rules(for: workspace, homeDirectory: fixture.workspace, platform: "macos")
+    let budget=ScanBudget(maxEntries: 256)
+    let direct=try fixture.fs.inspectCleanup(fixture.workspace.path, rules: rules, budget: budget, cancelled: { false }, progress: { _ in })
+    let worker=NativeFileSystem(readWorkerExecutable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL)
+    let isolated=try worker.inspectCleanup(fixture.workspace.path, rules: rules, budget: budget, cancelled: { false }, progress: { _ in })
+    try expect(direct.entries == isolated.entries && direct.completedPaths == isolated.completedPaths)
+    try expect(direct.issues == isolated.issues && isolated.issues.contains("resource_limit"))
+    try expect(isolated.entries.count <= budget.maxEntries && isolated.discoveryComplete == false)
+    for path in expected { try expect(isolated.isComplete(at: path)) }
+    try expect(!isolated.isComplete(at: "ai/aiclientproxy/node_modules"))
+}
+
 func nativeReadWorkerAcceptsSnakeCaseWireRequest() throws {
     let fixture=try Fixture()
     let channel=fixture.base.appendingPathComponent("wire-request")

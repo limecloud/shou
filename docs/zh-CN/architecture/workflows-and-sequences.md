@@ -1,5 +1,7 @@
 # 核心流程与时序
 
+内置 AI 的 Jev 优先路由、跨页面启动、开关／取消状态机、配置测试、调查问答及规则闭环图示统一见[AI 架构、流程与时序](embedded-ai.md)；[AI 用户用例](../product/embedded-ai.md)定义每个交互节点，以下既有清理流程继续复用。
+
 [English](../../architecture/workflows-and-sequences.md) | 简体中文
 
 当前桌面导航、自动发现及个人规则复用以此为准：[统一日常清理](../product/unified-cleanup.md)。

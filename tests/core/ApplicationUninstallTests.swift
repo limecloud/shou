@@ -9,16 +9,18 @@ import Glibc
 
 private final class UninstallFixtureEvidence: ApplicationUninstallChecking, @unchecked Sendable {
     private let lock=NSLock()
+    private let currentUser: UInt32
     private var active=false
     private var activityUnavailable=false
     private var verifiedGroupPaths: [String]=[]
+    init(currentUser: UInt32 = getuid()) { self.currentUser=currentUser }
     func setRunning(_ value: Bool) { lock.lock(); defer { lock.unlock() }; active=value }
     func setUnavailable(_ value: Bool) { lock.lock(); defer { lock.unlock() }; activityUnavailable=value }
     func setVerifiedGroupPaths(_ paths: [String]) { lock.lock(); defer { lock.unlock() }; verifiedGroupPaths=paths }
     func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
         lock.lock(); defer { lock.unlock() }
         if activityUnavailable { throw ShouError("application_activity_unavailable", "Generated activity is unavailable.") }
-        return ApplicationUninstallFacts(currentUser: getuid(), running: active, currentApplication: false)
+        return ApplicationUninstallFacts(currentUser: currentUser, running: active, currentApplication: false)
     }
     func containerIdentifier(at path: String) throws -> String { "dev.shou.fixture.uninstall" }
     func groupContainerPaths(for bundleIdentifier: String) throws -> [String] {
@@ -363,4 +365,64 @@ func nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() throws {
     try Data("invalid".utf8).write(to: groupMetadata)
     try expect(try groupEvidence.groupContainerPaths(for: "dev.shou.fixture.uninstall").isEmpty)
     #endif
+}
+
+/// Simulates ownership metadata without changing filesystem permissions.
+private struct AuthorizedUninstallFixtureFileSystem: PlatformFileSystem {
+    let wrapped: FixtureFileSystem
+    let applicationPath: String
+    let simulatedOwner: UInt32
+    let supportsAuthorizedApplicationTrash: Bool
+    var platform: String { wrapped.platform }
+    var supportsTrash: Bool { true }
+    func rootIdentity(_ path: String) throws -> FileEntry { try wrapped.rootIdentity(path) }
+    func applicationParentIdentity(_ path: String) throws -> FileEntry { try wrapped.applicationParentIdentity(path) }
+    func targetAvailability(_ path: String) -> LocationAvailability { wrapped.targetAvailability(path) }
+    func locationAvailability(_ path: String) -> LocationAvailability { wrapped.locationAvailability(path) }
+    func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try inspectTarget(path, budget: budget, cancelled: cancelled)
+    }
+    func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        var result=try wrapped.inspectTarget(path, budget: budget, cancelled: cancelled)
+        if path == applicationPath { result.entries=result.entries.map { var entry=$0; entry.owner=simulatedOwner; return entry } }
+        return result
+    }
+    func availableBytes(_ path: String) -> Int64? { wrapped.availableBytes(path) }
+    func isTrashLocation(_ path: String) -> Bool { wrapped.isTrashLocation(path) }
+    func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
+        throw CheckFailure(description: "Authorized application removal must use its dedicated native boundary.")
+    }
+    func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
+        throw CocoaError(.userCancelled)
+    }
+    func restore(_ path: String, to destination: String, expected: [FileEntry]) throws { try wrapped.restore(path, to: destination, expected: expected) }
+    func purge(_ path: String, expected: [FileEntry]) throws { throw CheckFailure(description: "Authorized applications must never be permanently removed.") }
+}
+
+func administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation() async throws {
+    let fixture=try UninstallFixture(), before=try fixture.hashes()
+    let user: UInt32=getuid() == 0 ? 501 : getuid()
+    for (owner, capability) in [(UInt32(0), true), (UInt32(0), false), (user + 1000, true)] {
+        let filesystem=AuthorizedUninstallFixtureFileSystem(
+            wrapped: FixtureFileSystem(native: NativeFileSystem(applicationRoots: [fixture.app.deletingLastPathComponent().path]), trash: fixture.fixture.trash),
+            applicationPath: fixture.app.path, simulatedOwner: owner, supportsAuthorizedApplicationTrash: capability)
+        let engine=ShouEngine(store: fixture.fixture.store, filesystem: filesystem, applicationCatalog: fixture.catalog,
+            uninstallEvidence: UninstallFixtureEvidence(currentUser: user), homeDirectory: fixture.fixture.workspace)
+        let review=try await engine.reviewApplication(path: fixture.app.path)
+        let bundle=try require(review.components.first { $0.kind == .application })
+        if owner != 0 || !capability {
+            try expect(!bundle.eligible && !review.requiresAdministrator)
+            continue
+        }
+        try expect(bundle.eligible && bundle.requiresAdministrator && review.requiresAdministrator)
+        try await expectThrows { try await engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id], action: "permanent") }
+        if let cache=review.components.first(where: { $0.kind == .caches && $0.eligible }) {
+            try await expectThrows { try await engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id, cache.id], action: "trash") }
+        }
+        let plan=try await engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id], action: "trash")
+        let receipt=try await engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-authorization-cancel")
+        try expect(receipt.state == "cancelled" && receipt.items.count == 1 && receipt.items[0].state == "skipped")
+        try expect(try fixture.hashes() == before)
+    }
+    try expect(try fixture.hashes() == before)
 }

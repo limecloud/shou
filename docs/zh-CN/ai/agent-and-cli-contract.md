@@ -8,7 +8,7 @@
 
 Shou 支持原生桌面端与独立 CLI。两者共享工作区、规则、扫描、计划、保护策略与历史；CLI 完成清理不需要 GUI 进程。
 
-Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 CLI。Shou 不调用模型、不启动或开发 Agent、不管理它们的登录与对话。
+Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 CLI，Shou 不管理这些外部客户端的登录与对话。下一阶段内置清理专用 Agent 与 CLI／桌面共用调查和规则合同，内置首版已增加可发现的 `ai` 命令组及 `network` 副作用，具体见[调查实现合同](../engineering/embedded-ai-implementation.md)；现有公开命令与终端确认合同仍以本文为准，新增命令需另行实现和版本化。
 
 所有持久业务能力都应有可发现的结构化入口；窗口位置、列宽等临时视图状态除外。不能出现“GUI 能添加规则，但 Agent 只能模拟点击”的设计。
 

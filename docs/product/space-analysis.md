@@ -33,7 +33,7 @@ flowchart LR
   Journal --> History[Shared history]
 ```
 
-`StorageSession` caches visited directories and loads file lists on demand, without a full-volume UI dictionary. `ShouEngine` owns immutable analysis records, directory queries and explicit removal validation. The platform streams local metadata and subtree totals to a shared SQLite index. Removal independently obtains complete target manifests and reuses native mutation, locking, journals and history. No model, Agent runtime, daemon or privileged helper is introduced.
+`StorageSession` caches visited directories and loads file lists on demand, without a full-volume UI dictionary. `ShouEngine` owns immutable analysis records, directory queries and explicit removal validation. The platform streams local metadata and subtree totals to a shared SQLite index. Removal independently obtains complete target manifests and reuses native mutation, locking, journals and history. This implemented scan/removal path needs no model, daemon or privileged helper. Next-stage built-in cleanup AI consumes its evidence and reuses the same confirmation/execution contracts; see [integration design](../engineering/embedded-ai-investigation.md).
 
 ## Flow
 

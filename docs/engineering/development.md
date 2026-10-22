@@ -8,7 +8,7 @@ For the C#/.NET 10/WPF client and Swift Windows adapters, see [Windows implement
 
 ## Toolchain and layout
 
-Use Swift 6 or later and the macOS SDK, with macOS 14 as the deployment baseline. The root Swift package builds the native application, independent CLI, portable core, platform adapter, and isolated test executable. No model SDK, JavaScript dependency manager, or running desktop process is required for the CLI.
+Use Swift 6 or later and the macOS SDK, with macOS 14 as the deployment baseline. The root Swift package builds the native application, independent CLI, portable core, platform adapter, and isolated test executable. SwiftPM resolves Swift AI SDK `0.20.0`; macOS builds use it through `ShouAI`. Ordinary offline scans and cleanup require neither model credentials nor model requests. AI network requests require explicit AI operations. The CLI needs no JavaScript dependency manager, Node.js runtime, or running desktop process.
 
 ```sh
 swift build --jobs 4
@@ -76,7 +76,7 @@ This explicit entry creates more than 100,000 distinct fixture files and exercis
 
 These checks do not establish native Trash API race behavior, UI accessibility, third-party agent compatibility, or Windows support. Keep those gates separate in [acceptance and testing](acceptance-and-testing.md).
 
-The desktop uses Sparkle 2.10.0 for online updates; the core and CLI have no third-party runtime dependency. `Package.resolved` pins the framework distribution. Packaging embeds Sparkle and its helpers. See [releasing](releasing.md) for universal builds, update signing, and the GitHub Actions release gate.
+The desktop uses Sparkle 2.10.0 for online updates. The core remains independent of model services; the macOS CLI links `ShouAI` and its Swift AI SDK dependencies. `Package.resolved` pins dependency versions. Packaging embeds Sparkle and its helpers. See [releasing](releasing.md) for universal builds, update signing, and the GitHub Actions release gate.
 
 Local isolated-fixture verification has exercised the installed desktop's project scan, preview cancellation, explicit cleanup, history and restoration. All 1,035 fixture files matched their original SHA-256 after restoration. A personal rule was also created as a disabled draft, previewed without execution, exported through the native save panel, enabled for a fresh scan, then used for an explicitly confirmed cleanup and GUI restoration with the same hash result. The independent large-target native regression restored 100,103 files with a 100,204-entry manifest, matching full descendant metadata, sentinel hashes and retained source, without purge. These are scoped results; GUI and terminal privacy access, fault cases and distribution remain separate gates.
 

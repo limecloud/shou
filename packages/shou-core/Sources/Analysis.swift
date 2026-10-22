@@ -131,8 +131,7 @@ public enum Analysis {
         let ext = (name as NSString).pathExtension.lowercased()
         if ["db", "sqlite", "sqlite3", "key", "pem", "p12", "pfx", "keychain", "keychain-db", "vmdk", "qcow2", "vdi", "vhdx"].contains(ext) { return true }
         if !dependency && !allowedSources.contains(entry.path) {
-            if ["Cargo.toml", "Cargo.lock", "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "Package.swift"].contains(name) { return true }
-            if entry.kind == "file" && ["swift", "rs", "c", "cpp", "h", "py", "tsx", "jsx"].contains(ext) { return true }
+            if ArtifactSafety.sourceLike(entry) { return true }
         }
         return false
     }

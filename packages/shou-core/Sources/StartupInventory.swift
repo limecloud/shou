@@ -39,17 +39,42 @@ public struct StartupDefinition: Codable, Sendable, Equatable, Identifiable {
     public let configuredState: String
     public let runtimeState: String
     public let controlCapability: String
-    public init(sourceId: String, path: String, label: String, programPath: String?, disabledByDefinition: Bool, triggers: [String], configuredState: String = "unknown", runtimeState: String = "unknown", controlCapability: String = "system_settings") {
+    public let displayName: String?
+    public let applicationPath: String?
+    public let publisher: String?
+    public let targetState: String
+    public let removable: Bool
+    public init(sourceId: String, path: String, label: String, programPath: String?, disabledByDefinition: Bool, triggers: [String], configuredState: String = "unknown", runtimeState: String = "unknown", controlCapability: String = "system_settings", displayName: String? = nil, applicationPath: String? = nil, publisher: String? = nil, targetState: String = "unknown", removable: Bool = false) {
         self.id=Digest.sha256(Data((sourceId + "\0" + path).utf8))
         self.sourceId=sourceId; self.path=path; self.label=label; self.programPath=programPath
         self.disabledByDefinition=disabledByDefinition; self.triggers=triggers
         self.configuredState=configuredState; self.runtimeState=runtimeState; self.controlCapability=controlCapability
+        self.displayName=displayName; self.applicationPath=applicationPath; self.publisher=publisher
+        self.targetState=targetState; self.removable=removable
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, sourceId, path, label, programPath, disabledByDefinition, triggers, configuredState, runtimeState, controlCapability
+        case displayName, applicationPath, publisher, targetState, removable
+    }
+    public init(from decoder: any Decoder) throws {
+        let values=try decoder.container(keyedBy: CodingKeys.self)
+        self.init(sourceId: try values.decode(String.self, forKey: .sourceId), path: try values.decode(String.self, forKey: .path),
+            label: try values.decode(String.self, forKey: .label), programPath: try values.decodeIfPresent(String.self, forKey: .programPath),
+            disabledByDefinition: try values.decode(Bool.self, forKey: .disabledByDefinition), triggers: try values.decode([String].self, forKey: .triggers),
+            configuredState: try values.decodeIfPresent(String.self, forKey: .configuredState) ?? "unknown",
+            runtimeState: try values.decodeIfPresent(String.self, forKey: .runtimeState) ?? "unknown",
+            controlCapability: try values.decodeIfPresent(String.self, forKey: .controlCapability) ?? "system_settings",
+            displayName: try values.decodeIfPresent(String.self, forKey: .displayName), applicationPath: try values.decodeIfPresent(String.self, forKey: .applicationPath),
+            publisher: try values.decodeIfPresent(String.self, forKey: .publisher), targetState: try values.decodeIfPresent(String.self, forKey: .targetState) ?? "unknown",
+            removable: try values.decodeIfPresent(Bool.self, forKey: .removable) ?? false)
     }
 }
 
 public enum StartupControlAction: String, Codable, Sendable {
     case enable
     case disable
+    case remove
 }
 
 public struct StartupControlResult: Codable, Sendable, Equatable {
@@ -81,7 +106,7 @@ public actor StartupControlService {
     private let controller: any StartupControlling
     public init(controller: any StartupControlling) { self.controller=controller }
     public func apply(definition: StartupDefinition, action: StartupControlAction) throws -> StartupControlResult {
-        guard definition.controlCapability != "system_settings" else {
+        guard action == .remove ? definition.removable : definition.controlCapability != "system_settings" else {
             throw ShouError("capability_unavailable", "This startup source must be managed in System Settings.")
         }
         return try controller.apply(definition: definition, action: action)
@@ -115,9 +140,9 @@ public struct StartupInventory: Codable, Sendable, Equatable {
     public let items: [StartupDefinition]
     public let issues: [StartupInventoryIssue]
     public let unavailableSources: [String]
-    public init(checkedAt: Date, includeSystem: Bool, sources: [StartupSourceCoverage], items: [StartupDefinition], issues: [StartupInventoryIssue]) {
+    public init(checkedAt: Date, includeSystem: Bool, sources: [StartupSourceCoverage], items: [StartupDefinition], issues: [StartupInventoryIssue], scope: String = "launchd_definitions", unavailableSources: [String] = ["login_items", "background_task_registrations", "embedded_helpers"]) {
         self.checkedAt=checkedAt; self.includeSystem=includeSystem; self.sources=sources; self.items=items; self.issues=issues
-        self.scope="launchd_definitions"; self.unavailableSources=["login_items", "background_task_registrations", "embedded_helpers"]
+        self.scope=scope; self.unavailableSources=unavailableSources
         self.status=sources.allSatisfy { ["complete", "missing"].contains($0.status) } && issues.isEmpty ? "complete" : "partial"
     }
 }

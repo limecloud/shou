@@ -20,7 +20,7 @@ else
     swift build --jobs 4 -c "$TASK_CONFIGURATION" --product shou
     TASK_BIN=$(swift build -c "$TASK_CONFIGURATION" --show-bin-path)
 fi
-TASK_APP="$TASK_ROOT/dist/Shou.app"
+TASK_APP="${SHOU_APP_OUTPUT:-$TASK_ROOT/dist/Shou.app}"
 mkdir -p "$TASK_APP/Contents/MacOS" "$TASK_APP/Contents/Resources" "$TASK_APP/Contents/Helpers" "$TASK_APP/Contents/Frameworks"
 if [ "$TASK_ARCHITECTURES" = universal ]; then
     lipo -create "$TASK_BIN/ShouDesktop" "$TASK_INTEL_BIN/ShouDesktop" -output "$TASK_APP/Contents/MacOS/Shou"
@@ -40,6 +40,7 @@ path.write_bytes(plistlib.dumps(info))
 PY
 cp "assets/brand/Shou.icns" "$TASK_APP/Contents/Resources/Shou.icns"
 cp "LICENSE" "$TASK_APP/Contents/Resources/LICENSE.txt"
+install -m 644 ".build/checkouts/swift-ai-sdk/LICENSE" "$TASK_APP/Contents/Resources/SwiftAISDK-LICENSE.txt"
 cp ".build/artifacts/sparkle/Sparkle/LICENSE" "$TASK_APP/Contents/Resources/Sparkle-LICENSE.txt"
 cp "packages/shou-contracts/rule.schema.json" "$TASK_APP/Contents/Resources/rule.schema.json"
 cp -R "$TASK_BIN/Shou_ShouCore.bundle" "$TASK_APP/Contents/Resources/"

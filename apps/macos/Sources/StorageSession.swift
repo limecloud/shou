@@ -198,7 +198,8 @@ struct StorageLocation: Identifiable {
         let panel=NSOpenPanel(); panel.canChooseFiles=false; panel.canChooseDirectories=true
         panel.message=app.t("Choose a disk or folder to analyze.")
         guard panel.runModal() == .OK, let url=panel.url else { return }
-        location=url.resolvingSymlinksInPath().standardizedFileURL.path
+        do { location=try NativeDirectorySelection.path(for: url) }
+        catch { app.error=error.localizedDescription; return }
         if !locations.contains(where: { $0.path == location }) { locations.append(StorageLocation(path: location, name: url.lastPathComponent, symbol: "folder")) }
         scan=nil; selected=[]
     }

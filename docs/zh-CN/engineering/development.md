@@ -8,7 +8,7 @@ C#/.NET 10/WPF 客户端与 Swift Windows 适配见 [Windows 实现](windows.md)
 
 ## 工具链与工程
 
-使用 Swift 6 及以上版本与 macOS SDK，部署基线为 macOS 14。根目录 Swift Package 构建原生应用、独立 CLI、可移植核心、平台适配与隔离测试程序。CLI 不需要模型 SDK、JavaScript 包管理器或运行中的桌面应用。
+使用 Swift 6 及以上版本与 macOS SDK，部署基线为 macOS 14。根目录 Swift Package 构建原生应用、独立 CLI、可移植核心、平台适配与隔离测试程序。SwiftPM 解析 Swift AI SDK `0.20.0`，macOS 构建通过 `ShouAI` 使用它。普通离线扫描与清理不需要模型凭据或模型请求；AI 联网仅由显式 AI 操作触发。CLI 不需要 JavaScript 包管理器、Node.js 运行时或运行中的桌面应用。
 
 ```sh
 swift build --jobs 4
@@ -49,7 +49,7 @@ CLI 测试覆盖非交互拒绝、取消，以及经过真实终端确认的原�
 
 这些检查不代表系统废纸篓 API 的竞态边界、界面辅助功能、第三方 Agent 兼容性或 Windows 已通过验证。对应证据按[验收与测试](acceptance-and-testing.md)分别维护。
 
-桌面端使用 Sparkle 2.10.0 实现在线升级，核心与 CLI 不依赖第三方运行库。`Package.resolved` 固定框架发行版本，打包时嵌入 Sparkle 及辅助程序。通用构建、更新签名及 GitHub Actions 发布闸门见[发布与在线升级](releasing.md)。
+桌面端使用 Sparkle 2.10.0 实现在线升级。核心保持独立于模型服务，macOS CLI 链接 `ShouAI` 及其 Swift AI SDK 依赖。`Package.resolved` 固定依赖版本，打包时嵌入 Sparkle 及辅助程序。通用构建、更新签名及 GitHub Actions 发布闸门见[发布与在线升级](releasing.md)。
 
 本机隔离夹具验证已通过安装版桌面端的项目扫描、预览取消、明确确认清理、历史与恢复；恢复后全部 1,035 个夹具文件的 SHA-256 与原始内容一致。个人规则也完成禁用草稿创建、不可执行的只读预览、原生保存面板导出、启用后重新扫描，以及明确确认的清理与 GUI 恢复，哈希结果一致。独立原生大目标回归恢复 100,103 个文件、100,204 项清单，完整后代元数据、哨兵哈希与保留源码一致，未执行永久移除。这些结果仅覆盖已测范围，GUI 与终端的隐私访问、故障场景及分发仍分别验收。
 

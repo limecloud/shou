@@ -8,7 +8,7 @@ Status: API `1.0` development contract. Commands have a source implementation. D
 
 Desktop and CLI share workspaces, rules, scans, plans, protection, and history. The CLI completes cleanup without a desktop process.
 
-Existing coding agents may call the public CLI under their own authorization policies. Shou integrates no models and develops, starts, or hosts no agents. Persistent business capabilities must be discoverable rather than hidden exclusively in GUI actions; temporary view state is exempt.
+Existing coding agents may call the public CLI under their own authorization policies; Shou does not manage these external clients' authentication or conversations. Next-stage built-in cleanup AI shares investigation/rule contracts with desktop and CLI and now exposes the discoverable `ai` command group with an explicit `network` side effect; see [the implementation contract](../engineering/embedded-ai-implementation.md). Existing public commands and terminal confirmation remain governed by this document; new commands require implementation and versioning. Persistent business capabilities must be discoverable rather than hidden exclusively in GUI actions; temporary view state is exempt.
 
 ## 2. Global behavior
 

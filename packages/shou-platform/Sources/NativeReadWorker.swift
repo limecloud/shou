@@ -47,7 +47,7 @@ private final class ReadChildren: @unchecked Sendable {
     private var children: [String: Process]=[:]
     func insert(_ process: Process, id: String) throws {
         lock.lock(); defer { lock.unlock() }
-        guard children.count < 2 else { throw ShouError("resource_limit", "Read workers are still stopping. Try the scan again shortly.") }
+        guard children.count < NativeReadClient.maximumConcurrentChildren else { throw ShouError("resource_limit", "Read workers are still stopping. Try the scan again shortly.") }
         children[id]=process
     }
     func remove(_ id: String) {
@@ -88,6 +88,7 @@ private enum ReadChannel {
 }
 
 struct NativeReadClient {
+    static let maximumConcurrentChildren=2
     let executable: URL
     func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
         let request=ReadRequest(version: 1, id: UUID().uuidString, parentPid: getpid(), operation: .storage, path: path, rules: nil,

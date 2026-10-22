@@ -150,9 +150,9 @@ struct ScanActivity: View {
                 .accessibilityValue(model.t(stages[stage]))
                 .accessibilityIdentifier("scan.stage")
             }
-            OperationProgressView(title: model.t(model.scanningLocation == nil ? stages[stage] : "Scan Common Locations"),
-                subtitle: model.scanningLocation.map { model.t($0.title) + " · " + model.t(stages[stage]) } ?? "",
-                currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningLocation?.path ?? model.workspace?.path ?? "",
+            OperationProgressView(title: model.t(model.scanningCleanupPath != nil ? "Scanning this directory…" : model.scanningLocation == nil ? stages[stage] : "Scan Common Locations"),
+                subtitle: model.scanningCleanupPath ?? model.scanningLocation.map { model.t($0.title) + " · " + model.t(stages[stage]) } ?? "",
+                currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningCleanupPath ?? model.scanningLocation?.path ?? model.workspace?.path ?? "",
                 countText: String(format: model.t("%lld items discovered"), locale: model.language.locale, model.scanEntryCount),
                 fraction: model.scanProgress?.fractionCompleted,
                 stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)

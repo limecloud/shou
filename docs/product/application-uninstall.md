@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/product/application-uninstall.md)
 
-Application uninstall is separate from rebuildable-cache rules. Desktop and CLI share summaries, component review, batch plans, native execution and history. Shou neither integrates models nor hosts an Agent. Implementation and actual verification are recorded separately in [acceptance and testing](../engineering/acceptance-and-testing.md).
+Application uninstall is separate from rebuildable-cache rules. Desktop and CLI share summaries, component review, batch plans, native execution and history. Uninstall execution does not depend on a model; next-stage built-in cleanup AI cannot bypass component selection, personal-data consent or actual uninstall confirmation. Implementation and actual verification are recorded separately in [acceptance and testing](../engineering/acceptance-and-testing.md).
 
 ## Purpose and interaction
 
@@ -16,8 +16,9 @@ Users need to compare applications, select several, review associated data inlin
 | Preserve personal data | Preferences, databases, sessions and containers remain unselected until separately allowed and individually selected |
 | Select the current view | The header affects only currently filtered eligible applications and preserves selections outside the filter and customized components; deselecting the required bundle deselects the application |
 | Running application | Request normal quit, then rescan; no forced termination or automatic selection |
-| Administrator/protected application | Explicit status; this build has no elevation capability and cannot label these applications executable |
-| Uninstall | Default permanent removal, with one exact application/component confirmation; native Trash is an explicit alternative |
+| Administrator application | Selectable lock indicator; eligible current-user/root-owned bundles use Finder’s native Trash operation, with macOS authentication when required; associated data is kept |
+| Protected application | System/current applications, other-user content and unverifiable targets remain unavailable |
+| Uninstall | Desktop defaults to native Trash after exact application/component confirmation; permanent removal remains an explicit alternative for eligible user-owned applications |
 | Results and recovery | Shared per-item history; only verified Trash items can be restored; permanent removal cannot be restored |
 
 List totals describe bundle allocation; the bottom bar describes the actual selected bundles and associated components. Neither promises exclusively reclaimable bytes. Missing last-used metadata stays unknown rather than using modification time. Coverage gaps, unavailable sizes and activity checks remain explicit. Refreshing or changing selection invalidates prior confirmation; mutations require a new scan for current totals and status.
@@ -115,7 +116,9 @@ sequenceDiagram
 
 Plans expire in 15 minutes and bind application identity, complete manifests, configuration, personal-data consent and mode. Whole-batch preflight failure prevents mutation. Failures or cancellation after starting can leave partial results: this is not a cross-application atomic transaction. Stop takes effect at safe item boundaries; completed items are not automatically rolled back and unknown outcomes are never blindly retried.
 
-Protected cases include system/current applications, running owners and helpers, unknown activity, other owners, special files, multiple hard links, credentials, Shou records and exclusions. Bundle links are handled as links. Preference files have bounded content digests; directories retain complete metadata manifests. Restoration verifies every exact original parent without creating parents or overwriting files. Permanent outcomes cannot be restored. No administrator elevation or privileged helper is introduced.
+Protected cases include system/current applications, running owners and helpers, unknown activity, other-user owners, special files, multiple hard links, credentials, Shou records and exclusions. Bundle links are handled as links. Preference files have bounded content digests; directories retain complete metadata manifests. Restoration verifies every exact original parent without creating parents or overwriting files. Permanent outcomes cannot be restored.
+
+On macOS, eligible application bundles containing root-owned content may be moved to Trash alone through `NSWorkspace.recycle`, which uses Finder’s system interaction. The app never collects a password or runs a privileged deletion command. This path retains the complete preflight, per-item journal and destination identity/content verification. Cancelling authentication leaves the application and its associated data in place. Other-user content and protected applications remain blocked. Associated data is not included in an administrator application’s plan; permanent removal is refused. Restoring a protected installation may still require Finder.
 
 Activity checks combine running bundle identifiers with current-user executable paths. `kill(pid, 0)` also succeeds for zombies: an unreadable path is skipped only when the kernel confirms the process has exited or is `SZOMB`. Live or unknown processes remain blocked. An exit race receives at most one retry within the existing cancellation and three-second deadline.
 

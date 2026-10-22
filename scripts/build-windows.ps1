@@ -40,6 +40,8 @@ try {
                 dotnet run --project "Shou.Windows.Checks" -c $Configuration --no-build -- --engine (Join-Path $bin "shou.exe")
                 if ($LASTEXITCODE -ne 0) { throw "Desktop process checks failed." }
             } finally { Pop-Location }
+            python -B "scripts/verify-ai-investigation.py" (Join-Path $bin "shou.exe")
+            if ($LASTEXITCODE -ne 0) { throw "AI provider, lifecycle and privacy contracts failed." }
             python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe") --native-permanent
             if ($LASTEXITCODE -ne 0) { throw "Real desktop protocol integration failed." }
         } finally {

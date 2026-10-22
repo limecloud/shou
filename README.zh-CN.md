@@ -13,15 +13,15 @@
 
 让现有 AI Agent 为你定制清理规则的原生 macOS 清理工具。告诉 Codex、Claude Code 或 WorkBuddy 哪些目录占空间、哪些内容要保留，由它追问、分析并编写可复用规则；Shou 在本地完成扫描、校验、预览与清理。
 
-Shou v0.10.0 新增简洁／详细空间分析视图、嵌套空间图、扩展名统计和本地 AI 上下文复制。实现与验收边界见[空间分析设计与验收](docs/zh-CN/engineering/space-analysis-agent-design.md)。
+Shou v0.11.0 新增可选内置 AI 调查、按应用分组的启动项控制，扩展开发缓存规则并改进 Windows 清理。支持流程与验收边界见 [AI 实现记录](docs/zh-CN/engineering/embedded-ai-implementation.md)和[验收矩阵](docs/zh-CN/engineering/embedded-ai-acceptance.md)。
 
 ## 下载与安装
 
-下载 Shou v0.10.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
+下载 Shou v0.11.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
 
-[**Shou v0.10.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.10.0/shou-0.10.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.10.0/Shou-0.10.0-windows-x64.zip)
+[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases) · [Windows 11 x64 (.zip)](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-windows-x64.zip)
 
-Windows：完整解压 ZIP 后运行 **Shou.exe**。x64 便携包包含 .NET、Swift 运行库，无需开发工具，界面为简体中文。AppData 缓存根目录仍受保护，回收站／恢复默认关闭；Windows 包未签名，暂无安装器和自动更新。
+Windows：完整解压 ZIP 后运行 **Shou.exe**。x64 便携包包含 .NET、Swift 运行库，无需开发工具，界面为简体中文。AppData 下仅经校验的标准缓存子目录可清理，用户配置根目录仍受保护；回收站／恢复默认关闭，Windows 包未签名，暂无安装器和自动更新。
 
 此版本使用 ad-hoc 签名，尚未经过 Apple 公证。如 macOS 阻止首次打开，请先确认下载来源，再查看**系统设置 → 隐私与安全性 → 仍要打开**。
 
@@ -33,7 +33,7 @@ Windows：完整解压 ZIP 后运行 **Shou.exe**。x64 便携包包含 .NET、S
 | --- | --- |
 | **AI Agent 定制清理** | 使用随包 Skill 分析个人缓存和构建产物，回答必要问题即可预览规则，无需手写 JSON。 |
 | **应用卸载** | 按大小与状态比较应用，行内展开组件，多选后统一确认。个人数据需单独同意，废纸篓项可恢复。 |
-| **启动项** | 查看启动项定义；对当前用户 LaunchAgents 在二次确认后启用或停用，其余来源在 macOS 登录项设置中管理。 |
+| **启动项** | 按应用分组查看注册项，筛选状态和残留；确认后管理符合条件的代理、第三方系统守护项和原生登录项。 |
 | **排除规则** | 在全局或单个项目中保护目录，个人规则修改后保存为禁用的新版本。 |
 | **应用缓存清理** | 集中查看浏览器、聊天工具、编辑器等应用的缓存，覆盖 Chrome、Edge、Firefox、Codex、Claude、QQ、微信等。 |
 | **开发工具与项目清理** | 查找 npm、Cargo、Xcode、Python、Go 缓存，以及 Rust target、Node.js 依赖、Swift 构建产物。 |
@@ -57,7 +57,9 @@ Windows：完整解压 ZIP 后运行 **Shou.exe**。x64 便携包包含 .NET、S
 
 ## 让现有 Agent 定制清理
 
-在**规则 → 通过 AI 定制**中选择 Codex 或 Claude Code 安装 Skill；使用 WorkBuddy 时导出 ZIP 并上传。复制请求，交给现有 Agent。它读取随包的 [Shou Skill](skills/shou-rule-authoring/SKILL.md)，分析指定目录，询问重建方式与保留项，自动校验、导入并预览禁用草稿。你决定何时启用和清理。Shou 不接入模型、不开发或托管 Agent。
+在**规则 → 通过 AI 定制**中选择 Codex 或 Claude Code 安装 Skill；使用 WorkBuddy 时导出 ZIP 并上传。复制请求，交给现有 Agent。它读取随包的 [Shou Skill](skills/shou-rule-authoring/SKILL.md)，分析指定目录，询问重建方式与保留项，自动校验、导入并预览禁用草稿。你决定何时启用和清理。
+
+可选内置 AI 调查默认关闭。在「设置 → AI 调查」启用并配置连接后，可选择目录或已有扫描进行智能分析；原生检查器支持追问、服务用量和逐条禁用规则预览。启动调查会将限定范围的索引元数据和你的回答发送给所选服务；常规扫描与清理仍在本地完成。服务支持与验收边界见[使用与实现记录](docs/zh-CN/engineering/embedded-ai-implementation.md)。
 
 也可在终端为所用客户端安装，或直接读取指令：
 

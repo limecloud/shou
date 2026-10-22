@@ -69,6 +69,69 @@ func projectDiscoveryCancellationStopsBeforeRegistration() async throws {
     try expect(try await engine.configuration().workspaces.isEmpty)
 }
 
+func projectDiscoveryFindsAdditionalCollectionsAndToolchains() async throws {
+    let fixture=try Fixture()
+    let projects: [(String, String, String, String, String)] = [
+        ("Workspace/groovy", "build.gradle", "build/classes/Demo.class", "gradle-build", "high"),
+        ("Workspace/kotlin", "build.gradle.kts", ".gradle/checksums/cache.bin", "gradle-kotlin-build", "high"),
+        ("Workspace/flutter", "pubspec.yaml", "build/app/flutter_assets/AssetManifest.json", "flutter-build", "high"),
+        ("Workspace/flutter", "pubspec.yaml", ".dart_tool/package_config.json", "flutter-build", "high"),
+        ("Documents/repos/cmake", "CMakeLists.txt", "cmake-build-debug/demo", "cmake-build", "high"),
+        ("Documents/repos/java", "pom.xml", "target/classes/Demo.class", "maven-build", "high"),
+        ("Desktop/Projects/web", "package.json", "dist/assets/app-abcdefgh.js", "node-build-outputs", "high"),
+        ("Desktop/Projects/web", "package.json", ".cache/tool/state.json", "node-local-cache", "review"),
+        ("Desktop/Projects/python", "pyproject.toml", ".mypy_cache/state.json", "python-analysis-cache", "review"),
+        ("Desktop/Projects/python", "pyproject.toml", ".ruff_cache/state.bin", "python-analysis-cache", "review"),
+        ("Desktop/Projects/setup", "setup.py", ".pytest_cache/v/cache/lastfailed", "python-setup-cache", "review"),
+        ("Desktop/Projects/requirements", "requirements.txt", ".ruff_cache/state.bin", "python-requirements-cache", "review")
+    ]
+    for (project, marker, output, _, _) in projects {
+        try fixture.put(project + "/" + marker, "fixture project marker")
+        try fixture.put(project + "/" + output, "fixture generated output")
+    }
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs, artifactEvidence: ArtifactFixtureEvidence(), homeDirectory: fixture.workspace)
+    let locations=try await engine.projectLocations()
+    try expect(Set(locations.filter(\.exists).map(\.path)) == Set(["Workspace", "Documents/repos", "Desktop/Projects"].map { fixture.workspace.path + "/" + $0 }))
+    try expect(try await engine.configuration().workspaces.isEmpty)
+    let scan=try await engine.scanKnownLocations(includeProjects: true)
+    if scan.snapshots.count != 3 || scan.status != "complete" {
+        print("Additional project discovery: status=\(scan.status), snapshots=\(scan.snapshots.count)")
+        for issue in scan.issues { print("  location \(issue.locationId): \(issue.code): \(issue.message)") }
+        for snapshot in scan.snapshots { print("  root \(snapshot.workspace.path): \(snapshot.status), issues=\(snapshot.issues)") }
+    }
+    try expect(scan.snapshots.count == 3 && scan.status == "complete")
+    for (project, _, output, id, risk) in projects {
+        let target=fixture.workspace.path + "/" + project + "/" + output.split(separator: "/")[0]
+        let candidates=scan.snapshots.flatMap { snapshot in
+            snapshot.candidates.filter { snapshot.workspace.path + "/" + $0.relativePath == target }
+        }
+        let candidate=try require(candidates.first)
+        try expect(candidate.eligible && candidate.risk == risk && candidate.ruleIds.contains("shou.builtin." + id))
+    }
+    try expect(try await engine.history().isEmpty)
+}
+
+func projectArtifactRulesRequireExactLocalMarkers() async throws {
+    let fixture=try Fixture()
+    for path in ["unmarked/build/output.bin", "unmarked/target/output.bin", "unmarked/.gradle/output.bin",
+                 "unmarked/.cache/output.bin", "unmarked/.mypy_cache/state.json", "unmarked/.ruff_cache/state.bin",
+                 "outer/nested/build/output.bin", "linked/build/output.bin", "linked-node/dist/output.bin"] {
+        try fixture.put(path)
+    }
+    try fixture.put("outer/build.gradle", "plugins {}")
+    try fixture.put("marker-source/build.gradle", "plugins {}")
+    try fixture.put("marker-source/package.json", "{}")
+    try FileManager.default.createSymbolicLink(at: fixture.workspace.appendingPathComponent("linked/build.gradle"), withDestinationURL: fixture.workspace.appendingPathComponent("marker-source/build.gradle"))
+    try FileManager.default.createSymbolicLink(at: fixture.workspace.appendingPathComponent("linked-node/package.json"), withDestinationURL: fixture.workspace.appendingPathComponent("marker-source/package.json"))
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs, artifactEvidence: ArtifactFixtureEvidence(), homeDirectory: fixture.workspace)
+    let root=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "marker-projects")
+    let scan=try await engine.scan(workspaceId: root.id)
+    for path in ["unmarked/build", "unmarked/target", "unmarked/.gradle", "unmarked/.cache", "unmarked/.mypy_cache", "unmarked/.ruff_cache", "outer/nested/build", "linked/build", "linked-node/dist"] {
+        let candidate=try require(scan.candidates.first { $0.relativePath == path })
+        try expect(!candidate.eligible && candidate.ruleIds.isEmpty && candidate.reasons.contains("unclassified"))
+    }
+}
+
 func enabledPersonalRulesJoinRepeatedCleanupWithoutReselecting() async throws {
     let fixture=try Fixture()
     try fixture.put("project/scratch/generated.bin", "generated personal cache")
