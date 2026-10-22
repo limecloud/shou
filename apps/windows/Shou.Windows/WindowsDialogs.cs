@@ -29,6 +29,12 @@ public sealed class WindowsDialogs(Window owner)
         name+"\n\n从可用配置中移除，保留调查历史及其密钥。可在“已删除配置”中恢复。",
         "删除 AI 配置方案？",MessageBoxButton.OKCancel,MessageBoxImage.Question,MessageBoxResult.Cancel)==MessageBoxResult.OK;
     public void RevealFolder(string path) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+    public void RevealItem(string path)
+    {
+        var start = new System.Diagnostics.ProcessStartInfo(System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe")) { UseShellExecute = false };
+        start.ArgumentList.Add("/select,"); start.ArgumentList.Add(path);
+        System.Diagnostics.Process.Start(start);
+    }
     public void OpenStartupSettings() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:startupapps") { UseShellExecute = true });
     public void OpenApplicationSettings() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:appsfeatures") { UseShellExecute = true });
     public void OpenStartupConsole(bool services)

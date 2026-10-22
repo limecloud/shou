@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Toolchain
-        run: swift --version | rg 'Swift version 6\.2\.3(\s|$)'
+        run: swift --version | grep -E 'Swift version 6[.]2[.]3([[:space:]]|$)'
       - name: Core, filesystem, CLI, localization, and documentation
         run: sh scripts/test.sh
       - name: Build and verify the local application bundle

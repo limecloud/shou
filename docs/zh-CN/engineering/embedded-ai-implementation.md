@@ -156,3 +156,15 @@ shou ai connections restore --connection-id connection_example --json
 同一 ID 的 `save` 用于更新。`show` 可读取已删除方案的非密钥正文；`list` 默认 active，支持 deleted／all。删除仅写 `ai-connection-states` 状态，保留历史快照及凭据；恢复前禁止编辑、测试和启动。bridge 对应 `ai.connections`、`ai.connections.deleted`、`ai.connections.show`、`ai.connections.save`、`ai.connections.delete`、`ai.connections.restore`。这些配置操作均不联网。
 
 本轮验证结果与新包安装证据在下文记录；旧包和旧提交上的通过不能替代本轮。
+
+### 本轮配置管理验收：2026-10-22
+
+- SDK 与 portable 各 114 项 AI CLI 合同及 bridge 取消通过，新增覆盖 Jev 单独配置拒绝、关闭后缺决策密钥仍由主模型接管、决策零请求、配置 CRUD／恢复、已删除配置的密钥写入拒绝及恢复后原密钥可用。
+- AI 安全子集 3/3 通过，包含提供方替换、关闭时凭据零读取、旧 Jev 测试入口门禁、配置删除恢复和私有凭据隔离。Windows WPF 交叉构建零警告、零错误。
+- 1750 个本地化键、97 个 Markdown、828 个本地链接及 30 张双语架构图解析通过。
+- 新包 `.build/ai-config-crud/Shou.app` 已替换 `/Applications/Shou.app`，139 个应用文件哈希与候选一致，旧包可从 `.build/local-install/20261022-221934/Shou.app` 恢复。安装过程只替换应用目录。本次临时签名更新后，系统隐私状态显示受保护目录访问受限；受保护目录完整扫描不在本次通过范围内。
+- 原生已观察：关闭 Jev 只显示主模型；必需主模型字段始终存在；主模型真实合成工具往返通过；密钥留空保存无钥匙串弹窗；重新开启 Jev 复用原配置；生成方案的新建、读取编辑、改名、设默认、删除取消／确认、默认项回退及恢复均通过。测试方案已移入可恢复删除列表；实际默认恢复为 `Bugu · GPT-6.1 Sol · 桌面`，Jev 开启。
+- 本轮 Jev 真实合成测试未通过；对已配置 `https://api.typesafe.ai/v1/systemone` 的诊断返回 HTTP 451。未记录服务正文或密钥，未自动切换提供方；此前成功不能替代本轮联通结果。
+- 仓库现有 Windows CI [39794897877](https://github.com/limecloud/shou/actions/runs/39794897877) 在启动项 C++ 安全头文件编译失败，AI 合同未执行。工作区随后已有 `c9048c2820927f688733eec6461db1ab00a68b75` 修复，复验 [39796938397](https://github.com/limecloud/shou/actions/runs/39796938397) 记录时排队；尚无本轮 Windows 原生通过结论。macOS 本机观察与 WPF 交叉构建不能替代该结果。
+
+复核日志：`/tmp/shou-ai-crud-sdk-tests.log`、`/tmp/shou-ai-crud-portable-tests.log`、`/tmp/shou-ai-crud-safety-tests.log`、`/tmp/shou-ai-crud-wpf-build.log`、`/tmp/shou-ai-crud-mermaid.log`。安装证据：`.build/ai-config-crud/evidence/installation.json`。

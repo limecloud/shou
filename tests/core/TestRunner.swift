@@ -390,6 +390,14 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL storage tests: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-browsing-only"] {
+            do {
+                try await storageBrowsingSelectionSharesProtectionAndHierarchyWithoutMutation()
+                try await storageBrowsingPagesAreBoundedAndExpandedSelectionsNeverTruncate()
+                print("2/2 storage browsing, protection, hierarchy, pagination and read-only selection checks passed; generated fixtures only.")
+            } catch { print("FAIL storage browsing: \(error)"); Foundation.exit(1) }
+            return
+        }
         if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-interruption-child" {
             do { try await historyInterruptionChild(CommandLine.arguments[2]) }
             catch { Foundation.exit(1) }
@@ -603,6 +611,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Built-in binding validation, isolation and benchmark", { try await builtinCatalogBindingPreservesValidationAndIsolation() }),
             ("Built-in protected descendants", { try await builtinRulesPreserveProtectedDescendants() }),
             ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
+            ("Storage browsing shares protection and selection without mutation", { try await storageBrowsingSelectionSharesProtectionAndHierarchyWithoutMutation() }),
+            ("Storage browsing pages and selection expansion retain exact scope", { try await storageBrowsingPagesAreBoundedAndExpandedSelectionsNeverTruncate() }),
             ("Storage analysis separates read scope and stale removal", { try await storageAnalysisProtectsRootsAndDetectsChanges() }),
             ("Storage removal rechecks exclusions and new descendants", { try await storageRemovalRechecksCurrentExclusionsAndNewDescendants() }),
             ("Native space analysis large-file Trash restore and permanent removal", { try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: CommandLine.arguments.contains("--native-trash-purge")) }),

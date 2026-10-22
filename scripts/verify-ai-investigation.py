@@ -2,6 +2,7 @@
 """Exercise the real SDK against synthetic local providers; never use real keys or user files."""
 from collections import defaultdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 import json
 import os
@@ -13,6 +14,9 @@ import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
+BRIDGE_SPEC = spec_from_file_location("desktop_bridge_checks", ROOT / "scripts/verify-desktop-bridge.py")
+BRIDGE = module_from_spec(BRIDGE_SPEC)
+BRIDGE_SPEC.loader.exec_module(BRIDGE)
 BINARY = (Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / ".build/debug/shou").resolve()
 COUNTS = defaultdict(int)
 REQUESTS = []
@@ -166,6 +170,7 @@ def main():
             (folder / "build/.ssh").mkdir()
             (folder / "build/.ssh/private-key").write_text("DO_NOT_SEND_PRIVATE_FIXTURE")
             (folder / "source.swift").write_text("DO_NOT_SEND_FILE_CONTENT")
+            BRIDGE.set_fixture_owner(folder)
             env = dict(os.environ, SHOU_DATA_DIR=str(base / "records"), SHOU_AI_FIXTURE_KEY="fixture-key",
                        OPENAI_API_KEY="must-not-use-ambient-key", ANTHROPIC_API_KEY="must-not-use-ambient-key")
 

@@ -61,13 +61,20 @@ public partial class App : Application
                 }
                 model.SelectedHistory=null;
                 if (model.HistoryItems.Count!=0 || model.ClearHistoryItemsCommand.CanExecute(null)) throw new InvalidOperationException("History selection survived a record change.");
+                model.SelectedSection=1;
+                foreach (var detailed in new[] { false, true }) {
+                    model.VerifyStorageLayout(detailed);
+                    foreach (var size in new[] { new Size(1280,800), new Size(840,580) }) {
+                        window.Measure(size);window.Arrange(new Rect(new Point(0,0),size));window.UpdateLayout();
+                    }
+                }
                 new HistoryInspectionDialog(null,client,"layout-fixture").VerifyLayout();
                 var workspace=new WorkspaceRow("layout-fixture","C:/layout-fixture","layout-fixture");
                 new RuleAuthoringDialog(null,client,workspace,CancellationToken.None).VerifyLayout();
                 var definition=new System.Text.Json.Nodes.JsonObject { ["id"]="personal.layout-fixture",["version"]="0.1.0",["scope"]=new System.Text.Json.Nodes.JsonObject { ["root_ref"]="layout-fixture" } };
                 new RuleAuthoringDialog(null,client,workspace,CancellationToken.None,definition).VerifyLayout();
                 var report = Environment.GetEnvironmentVariable("SHOU_PACKAGE_VERIFICATION_REPORT") ?? throw new InvalidOperationException("Missing package verification report path.");
-                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, scan_locations_layout_loaded = true }));
+                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, scan_locations_layout_loaded = true, storage_browsing_layout_loaded = true }));
                 Shutdown(0); return;
             }
             MainWindow = window; window.Show();

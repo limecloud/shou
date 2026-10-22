@@ -72,6 +72,21 @@ await Check("progress paths shorten only the middle and preserve Unicode text el
     return Task.CompletedTask;
 });
 static void Require(bool condition) { if (!condition) throw new Exception("Check failed"); }
+await Check("空间导航仅在目录加载成功后提交，分支跳转清空前进记录", () =>
+{
+    var history = new StorageNavigationHistory();
+    Require(history.Current == "." && history.BackTarget is null && history.ForwardTarget is null);
+    history.Visit("project"); history.Visit("project/target");
+    Require(history.BackTarget == "project" && history.Current == "project/target");
+    // Inspecting a target before a failed load must not change the stacks.
+    Require(history.BackTarget == "project" && history.Current == "project/target");
+    history.CommitBack(); Require(history.Current == "project" && history.ForwardTarget == "project/target");
+    history.CommitForward(); Require(history.Current == "project/target" && history.BackTarget == "project");
+    history.CommitBack(); history.Visit("other"); Require(history.ForwardTarget is null && history.BackTarget == "project");
+    history.Visit("other"); history.CommitBack(); Require(history.Current == "project");
+    history.Reset(); Require(history.Current == "." && history.BackTarget is null && history.ForwardTarget is null);
+    return Task.CompletedTask;
+});
 await Check("清理选择跨页保留、三态聚合与容量去重", () =>
 {
     var selection = new CleanupSelection();
@@ -138,7 +153,7 @@ await Check("输出超限立即结束只读生产者", () => Failure("output_lim
 await Check("只读请求期限", () => Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("scan")));
 await Check("补扫、跨目录扫描和大文件查询遵守只读请求期限", async () =>
 {
-    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
+    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "storage.browse", "storage.selection", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
         await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync(operation));
 });
 await Check("历史位置核验支持取消并拒绝任何变更确认", async () =>
@@ -154,6 +169,11 @@ await Check("确认绑定本次挑战和摘要", async () =>
 });
 await Check("扫描范围查询只读且不能请求变更确认", () =>
     Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("locations.scan", confirm: _ => throw new Exception("Read-only locations requested consent."))));
+await Check("空间浏览和选择计算只读且不能请求变更确认", async () =>
+{
+    foreach (var operation in new[] { "storage.browse", "storage.selection" })
+        await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync(operation, confirm: _ => throw new Exception("Read-only storage requested consent.")));
+});
 await Check("缺少确认处理器时取消", async () =>
 {
     var result = await Fixture("confirm").RequestAsync("plan.execute"); Require(result["kind"]?.GetValue<string>() == "cancel");

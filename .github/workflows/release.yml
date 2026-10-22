@@ -41,7 +41,7 @@ jobs:
         with:
           ref: ${{ env.SHOU_RELEASE_TAG }}
       - name: Toolchain
-        run: swift --version | rg 'Swift version 6\.2\.3(\s|$)'
+        run: swift --version | grep -E 'Swift version 6[.]2[.]3([[:space:]]|$)'
       - name: Full tests including native Trash, restore, and permanent removal
         run: sh scripts/test.sh --native-trash-purge
       - name: Storage metadata, directory workers, and cancellation
@@ -78,7 +78,7 @@ jobs:
         with:
           ref: ${{ env.SHOU_RELEASE_TAG }}
       - name: Toolchain
-        run: swift --version | rg 'Swift version 6\.2\.3(\s|$)'
+        run: swift --version | grep -E 'Swift version 6[.]2[.]3([[:space:]]|$)'
       - name: Build, test, package, and sign universal updates
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}

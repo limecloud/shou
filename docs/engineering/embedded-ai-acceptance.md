@@ -52,9 +52,9 @@ Evidence uses macOS 15.8.1, Apple Silicon and Swift 6.2.3; it cannot establish m
 | AI-AC30 | US-AI18 / US-AI19 | Existing Windows CI verifies this revision’s Swift/WPF/AI contracts and packages | Check stage wired; requires a run link for a commit containing these edits, never old HEAD |
 
 
-| AI-AC31 | US-AI20/UC-AI11 | Required main model; Jev assists when enabled; when disabled, main takes over with zero decision requests/credential reads | Contracts added; current results recorded in implementation document |
-| AI-AC32 | US-AI20/UC-AI11 | Create/read/update/default/delete confirmation/cancel/restore, preserving history and separate credentials | CLI/bridge and safety coverage; native configuration journey recorded separately |
-| AI-AC33 | US-AI20/UC-AI11 | macOS, Windows and CLI share switch/lifecycle semantics; repair legacy Jev-only profiles | Both desktops integrated; builds and native Windows CI recorded separately |
+| AI-AC31 | US-AI20/UC-AI11 | Required main model; Jev assists when enabled; when disabled, main takes over with zero decision requests/credential reads | SDK/portable each pass 114 checks plus safety; live Jev returns HTTP 451 and connectivity remains unverified |
+| AI-AC32 | US-AI20/UC-AI11 | Create/read/update/default/delete confirmation/cancel/restore, preserving history and separate credentials | CLI/bridge/safety pass; native macOS create/edit/default/delete-cancel/delete-confirm/fallback/restore pass |
+| AI-AC33 | US-AI20/UC-AI11 | macOS, Windows and CLI share switch/lifecycle semantics; repair legacy Jev-only profiles | Both desktops integrated; WPF builds; native Windows CI recompilation remains queued after the prior build failure |
 
 
 ## 3. Jev routing comparison cases

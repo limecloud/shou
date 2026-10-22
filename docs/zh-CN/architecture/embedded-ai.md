@@ -204,13 +204,12 @@ sequenceDiagram
         UI->>Test: 使用表单密钥或读取已保存凭据
         Test->>K: 按所选连接读取：仅在需要时
         Note over UI,K: 本地读取无需系统授权；旧钥匙串访问禁止交互弹窗
-        opt 启用主模型
-            Test->>M: 合成令牌和工具定义
-            M-->>Test: verify_connection 调用
-            Test->>M: 本地核验后的工具结果
-            M-->>Test: 最终模型响应
-        end
-        opt 配置 Jev 且未取消／关闭
+        Note over Test,M: 主模型为必需配置
+        Test->>M: 合成令牌和工具定义
+        M-->>Test: verify_connection 调用
+        Test->>M: 本地核验后的工具结果
+        M-->>Test: 最终模型响应
+        opt Jev 已配置且开启，未取消或关闭 AI
             Test->>J: 合成 Choice 问题
             J-->>Test: 已验证结构化判断
         end

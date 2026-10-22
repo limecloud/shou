@@ -40,7 +40,7 @@ public partial class MainWindow : Window
                 var parentPath=row.Path.TrimEnd('/');
                 var parent=FindStorageParent(model.StorageTree,parentPath);
                 if(parent is not null) await model.LoadStorageChildrenAsync(parent,true);
-            } else if(row.Eligible) model.SelectedStorageNode=row;
+            } else if(row.Kind is "file" or "directory") model.SelectedStorageNode=row;
         }
     }
     private static StorageRow? FindStorageParent(IEnumerable<StorageRow> nodes,string path) {
@@ -49,5 +49,10 @@ public partial class MainWindow : Window
     private async void OpenStorageNode(object sender, MouseButtonEventArgs e)
     {
         if (DataContext is MainViewModel model) await model.OpenStorageNodeAsync();
+    }
+    private async void StorageSelectionClicked(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (DataContext is MainViewModel model && sender is FrameworkElement { DataContext: StorageRow row }) await model.ToggleStorageSelectionAsync(row);
     }
 }

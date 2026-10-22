@@ -6,6 +6,7 @@ Shou v0.11.0 adds optional built-in AI investigation, application-grouped startu
 - Expand developer cleanup to Gradle, Flutter/Dart, CMake, Maven, Node.js outputs, Python analysis caches, pnpm and browser-automation runtimes. Add an inspectable built-in rule catalog and targeted rule scans. Project markers, source/credential protection, activity checks and high-risk selection still apply.
 - Improve application Trash handling and cross-volume selection, and carry reviewed large-file and cache cleanup through the Windows desktop bridge. Windows AppData access is limited to validated standard cache children; profile roots, credentials, source and environments remain protected. Add directory measurement, hashing and native artifact-evidence checks, plus a portable AI runtime, Windows Credential Manager storage and a WPF investigation workspace.
 - Add Windows startup inventory and confirmation for eligible current-user scheduled tasks, read-only registered-application inventory, personal-rule authoring and revision, and exact history-item inspection and follow-up selection. Keep inventory separate from application uninstall capability. Create Windows space indexes with explicit private ownership, including under elevated build accounts.
+- Show automatic, built-in and extra scan locations separately; removing an extra folder requires confirmation and only detaches saved scan configuration. Add Windows directory navigation, paged browsing and explicit storage selection through the shared engine.
 - Preserve AI findings and pending questions on interruption, make connection removal recoverable, and support private local credential storage independently for model and decision services. macOS CI and universal packaging explicitly select Swift 6.2.3 for the bundled AI SDK.
 
 Ordinary scans and cleanup remain local and require no model connection. Starting AI investigation sends only the disclosed bounded metadata and user answers to the selected services; file contents are not exposed by these tools. Credentials use macOS Keychain or an explicitly selected authentication source. AI output and confidence never authorize cleanup.
@@ -26,6 +27,7 @@ The separately published npm package `@limecloud/shou@0.11.0` is an immutable ma
 - 扩展 Gradle、Flutter/Dart、CMake、Maven、Node.js 产物、Python 分析缓存、pnpm 及浏览器自动化运行库，新增内置规则浏览和指定规则扫描；保留项目标记、源文件／凭据保护、活动检查和高风险选择要求。
 - 改进应用移入废纸篓及跨卷选择，Windows 桌面桥接同步大文件与缓存清理审阅，并补充目录计量、哈希及原生产物证据。AppData 仅允许经验证的标准缓存子目录，配置根目录、凭据、源文件和环境仍受保护；新增可移植 AI 运行时、Windows 凭据管理器存储和 WPF 调查界面。
 - 补充 Windows 启动项盘点与符合条件的当前用户计划任务确认控制、已注册应用只读盘点、个人规则创建与修订，以及精确历史项检查和后续选择。应用盘点不代表已支持卸载。Windows 空间索引显式设置私有所有权，覆盖提升权限的构建账号场景。
+- 区分自动发现、内置位置与额外包含的扫描位置；停止包含额外文件夹需要确认，仅解除保存的扫描配置。Windows 通过共享引擎提供目录导航、分页浏览与明确的空间清理选择。
 - AI 中断时保留已有发现与待回答问题，连接配置支持可恢复删除，主模型与决策服务独立支持私有本地凭据。macOS CI 与通用包构建显式选择 Swift 6.2.3，以支持内置 AI SDK。
 
 常规扫描、清理无需模型连接且在本地执行；启动 AI 调查才会向所选服务发送已披露的有限元数据与用户回答，工具不读取文件内容。凭据通过 macOS 钥匙串或明确指定的认证来源读取；模型输出和置信度不构成删除授权。

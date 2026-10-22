@@ -443,7 +443,8 @@ enum DesktopBridge {
         case "storage.scan":
             let scan=try await engine.scanStorage(path: string("path"), progress: scanProgress)
             let notes=scan.tree.issues.map { StorageCoverageNote(issue: $0, root: scan.rootPath) }
-            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) }), "directory": try directoryValue(await engine.storageDirectory(scanId: scan.id))])
+            let page=try await engine.storageDirectoryPage(scanId: scan.id)
+            return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status), "entry_count": .integer(Int64(scan.entryCount)), "issues": try .from(scan.tree.issues), "coverage_notes": .array(notes.map { .object(["code": .string($0.code), "path": .string($0.path), "system_managed": .bool($0.systemManaged)]) }), "directory": .object(["path": .string(page.item.node.path), "complete": .bool(page.item.node.isComplete == true), "children": try .from(page.children.map(\.node)), "total_count": .integer(Int64(page.totalCount)), "next_offset": page.nextOffset.map { .integer(Int64($0)) } ?? .null])])
         case "storage.show":
             let scan=try await engine.storageScan(string("scan_id"))
             return .object(["scan_id": .string(scan.id), "root_path": .string(scan.rootPath), "status": .string(scan.status)])
@@ -481,6 +482,19 @@ enum DesktopBridge {
             let value=input["offset"]?.numeric ?? 0
             guard value.isFinite, value.rounded() == value, (0...1_000_000_000).contains(value) else { throw ShouError("invalid_argument", "Invalid directory offset.") }
             return try .from(await engine.storageDirectoryPage(scanId: string("scan_id"), path: input["path"]?.string ?? ".", offset: Int(value), limit: 200))
+        case "storage.browse":
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["scan_id", "path", "offset"]) else { throw ShouError("invalid_argument", "Unknown directory browsing field.") }
+            let offset: Int
+            if let value=input["offset"] {
+                guard case .integer(let count)=value, (0...1_000_000_000).contains(count) else { throw ShouError("invalid_argument", "Invalid directory offset.") }
+                offset=Int(count)
+            } else { offset=0 }
+            let path=input["path"] == nil ? "." : try string("path")
+            return try .from(await engine.storageBrowsePage(scanId: string("scan_id"), path: path, offset: offset))
+        case "storage.selection":
+            guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_id", "paths", "targets", "selected"],
+                  case .bool(let selected)=input["selected"] else { throw ShouError("invalid_argument", "Provide an explicit analysis selection change.") }
+            return try .from(await engine.storageSelection(scanId: string("scan_id"), paths: strings("paths"), targets: strings("targets"), selected: selected))
         case "storage.context":
             let context=try await engine.storageAnalysisContext(scanId: string("scan_id"), path: input["path"]?.string ?? ".", focusedPath: input["focused_path"]?.string, selectedPaths: input["selected_paths"]?.array?.compactMap(\.string) ?? [], removedPaths: input["removed_paths"]?.array?.compactMap(\.string) ?? [],
                 cliPath: CommandLine.arguments[0])

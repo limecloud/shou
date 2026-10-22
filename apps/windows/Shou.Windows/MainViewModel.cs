@@ -30,12 +30,30 @@ public sealed class StorageRow(string path, string size, string kind, long alloc
     public string Icon => Kind == "directory" ? "📁" : "▤";
     private string share="—";
     public string Share { get=>share; set=>SetProperty(ref share,value); }
-    public bool Eligible => Kind is "file" or "directory";
+    private bool policyVerified, selectionEnabled = true;
+    private string? removalReason;
+    public bool Eligible => policyVerified && removalReason is null && Kind is ("file" or "directory");
+    public string Protection => RemovalReason switch {
+        null => "可加入选择；删除前会重新核验当前内容、排除和权限。",
+        "Item is absent from this analysis." => "此项目不在当前分析中，请重新扫描。",
+        "This item is not owned by the current user." => "此项目不属于当前用户。",
+        "Links, special files and the scan root cannot be removed here." => "链接、特殊文件及扫描根目录不可在此删除。",
+        "This system location is protected." => "此系统位置受到保护。",
+        "This location contains protected data." => "此位置包含受保护的数据。",
+        "Cleanup exclusions could not be verified." => "无法核验清理排除，请重新读取配置。",
+        "This selection contains excluded content." => "此范围包含已排除的内容。",
+        var message => message
+    };
+    public string? RemovalReason => policyVerified ? removalReason : "请进入所在目录核验保护状态。";
+    public bool CanSelect => Eligible && selectionEnabled;
+    public void SetPolicy(string? reason) { policyVerified = true; removalReason = reason; OnPropertyChanged(nameof(RemovalReason)); OnPropertyChanged(nameof(Protection)); OnPropertyChanged(nameof(Eligible)); OnPropertyChanged(nameof(CanSelect)); }
+    public void SetSelectionEnabled(bool enabled) { selectionEnabled = enabled; OnPropertyChanged(nameof(CanSelect)); }
     private bool focused, expanded;
     public bool Focused { get=>focused; set=>SetProperty(ref focused,value); }
     public bool Expanded { get=>expanded; set=>SetProperty(ref expanded,value); }
-    private bool selected;
-    public bool IsSelected { get => selected; set => SetProperty(ref selected,value && Eligible); }
+    private bool? selectionState = false;
+    public bool? SelectionState => selectionState;
+    public void SetSelection(bool? value) { selectionState = value; OnPropertyChanged(nameof(SelectionState)); }
     public ObservableCollection<StorageRow> Children { get; } = [];
 }
 public sealed record StorageExtensionRow(string Suffix, long AllocatedBytes, int Files, string Color, double ShareRatio, long LogicalBytes)
@@ -121,11 +139,11 @@ public sealed partial class MainViewModel : ObservableObject
         RevealStorageCommand = new RelayCommand(() => dialogs.RevealFolder(CurrentStorageFolder!), () => !IsBusy && CurrentStorageFolder is not null);
         try { storageDetailed = File.Exists(StoragePreference) && File.ReadAllText(StoragePreference) == "detailed"; } catch (Exception error) when(error is IOException or UnauthorizedAccessException) { }
         CopyStorageAnalysisCommand = new AsyncRelayCommand(() => RunAsync(async () => {
-            var context=await client.RequestAsync("storage.context", new() { ["scan_id"]=storageScanId,["path"]=StoragePath,["focused_path"]=SelectedStorageNode?.Path,["selected_paths"]=Strings(storageRows.Values.Where(row=>row.IsSelected).Select(row=>row.Path)),["removed_paths"]=Strings(storageRemovedPaths),["locale"]="zh-CN" }, cancellation:Token);
+            var context=await client.RequestAsync("storage.context", new() { ["scan_id"]=storageScanId,["path"]=StoragePath,["focused_path"]=SelectedStorageNode?.Path,["selected_paths"]=Strings(storageSelection),["removed_paths"]=Strings(storageRemovedPaths),["locale"]="zh-CN" }, cancellation:Token);
             System.Windows.Clipboard.SetText(Text(context,"text")); Status="已复制分析结果，可粘贴给 AI Agent。";
         }), () => !IsBusy && storageScanId is not null);
         RemoveStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => {
-            var paths=storageRows.Values.Where(row => row.IsSelected).Select(row => row.Path).ToArray();
+            var paths=storageSelection.ToArray();
             var result=await client.RequestAsync("storage.remove",new() { ["scan_id"]=storageScanId,["paths"]=Strings(paths),["action"]="permanent" },Progress(), review => dialogs.ConfirmAsync(review, Token),Token);
             Completion=BuildCompletion(result,"permanent");
             var removed=Array(result["items"]).Where(item=>Text(item,"state")=="purged").Select(item=>Text(item,"path").Replace('\\','/')).ToArray();
@@ -133,7 +151,6 @@ public sealed partial class MainViewModel : ObservableObject
             foreach(var absolute in removed.Where(path=>path.StartsWith(root,StringComparison.OrdinalIgnoreCase))) storageRemovedPaths.Add(absolute[root.Length..]);
             bool Gone(string relative) => StorageGone(relative);
             foreach(var row in storageRows.Values) {
-                if(Gone(row.Path)) row.IsSelected=false;
                 foreach(var child in row.Children.Where(child=>Gone(child.Path)).ToArray()) row.Children.Remove(child);
             }
             foreach(var row in StorageNodes.Where(row=>Gone(row.Path)).ToArray()) StorageNodes.Remove(row);
@@ -144,8 +161,10 @@ public sealed partial class MainViewModel : ObservableObject
                 StorageMap=updated;
             }
             StorageExtensions.Clear();
+            ClearStorageSelection();
+            FilterStorageRows();
             Status="所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。";
-        }), () => !IsBusy && storageScanId is not null && storageRows.Values.Any(row => row.IsSelected));
+        }), () => !IsBusy && permanentAvailable && storageScanId is not null && storageSelection.Count > 0);
         HistoryCommand = new AsyncRelayCommand(() => RunAsync(LoadHistoryAsync), () => !IsBusy);
         MoreHistoryCommand = new AsyncRelayCommand(() => RunAsync(() => LoadHistoryPageAsync(true)), () => !IsBusy && historyNextOffset is not null);
         CollectRecordsCommand = new AsyncRelayCommand(() => RunAsync(async () => {
@@ -182,6 +201,7 @@ public sealed partial class MainViewModel : ObservableObject
         InitializeStartup();
         InitializeRuleAuthoring();
         InitializeApplications();
+        InitializeStorageNavigation();
         commands.Add(PreviewRuleCommand); commands.Add(EnableAndScanRuleCommand); commands.Add(ReviewRulesCommand);
         PropertyChanged += (_, _) => RefreshCommands();
     }
@@ -240,7 +260,7 @@ public sealed partial class MainViewModel : ObservableObject
     public IAsyncRelayCommand AddExclusionCommand { get; }
     public IAsyncRelayCommand RemoveExclusionCommand { get; }
     public IRelayCommand CancelCommand { get; }
-    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) OnPropertyChanged(nameof(HistorySelectionEnabled)); } }
+    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) { OnPropertyChanged(nameof(HistorySelectionEnabled)); foreach (var row in storageRows.Values) row.SetSelectionEnabled(!value); } } }
     public bool ProgressIndeterminate => IsBusy && ProgressFraction is null;
     public double? ProgressFraction { get => progressFraction; private set { SetProperty(ref progressFraction, value); OnPropertyChanged(nameof(ProgressIndeterminate)); OnPropertyChanged(nameof(ProgressValue)); OnPropertyChanged(nameof(ProgressPercentage)); } }
     public double ProgressValue => (ProgressFraction ?? 0) * 100;
@@ -566,12 +586,13 @@ public sealed partial class MainViewModel : ObservableObject
     private async Task ScanStorageAsync(string path)
     {
         var scan = await client.RequestAsync("storage.scan", new() { ["path"] = path }, Progress(), cancellation: Token);
+        var browse = await client.RequestAsync("storage.browse", new() { ["scan_id"] = Text(scan, "scan_id"), ["path"] = "." }, cancellation: Token);
         storageScanId = Text(scan, "scan_id"); storageRoot = Text(scan, "root_path");
-        storageRows.Clear(); storageRemovedPaths.Clear(); storageCoverage = Array(scan["coverage_notes"]); StorageMap=null; ShowDirectory(scan["directory"]!); if(StorageDetailed) await LoadStorageMapAsync();
+        storageRows.Clear(); storageRemovedPaths.Clear(); storageChildOffsets.Clear(); storageCoverage = Array(scan["coverage_notes"]);
+        storageNavigation.Reset(); ClearStorageSelection(); StorageQuery=""; SelectedStorageExtension=null; StorageMap=null;
+        ShowStoragePage(browse, false); if(StorageDetailed) await LoadStorageMapAsync();
     }
-    public Task OpenStorageNodeAsync() => SelectedStorageNode is { Kind: "directory" } item ? RunAsync(async () => {
-        ShowDirectory(await client.RequestAsync("storage.directory",new() { ["scan_id"]=storageScanId,["path"]=item.Path },cancellation:Token)); StorageMap=null; if(StorageDetailed) await LoadStorageMapAsync();
-    }) : Task.CompletedTask;
+    public Task OpenStorageNodeAsync() => SelectedStorageNode is { Kind: "directory" } item ? RunAsync(() => NavigateStorageAsync(item.Path)) : Task.CompletedTask;
     public async Task FocusStorageAsync(string path,bool open) {
         if(storageRows.TryGetValue(path,out var row)) {
             foreach(var other in storageRows.Values) other.Focused=other==row;
@@ -581,15 +602,18 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
     public Task LoadStorageChildrenAsync(StorageRow row, bool more=false) => row.Kind != "directory" ? Task.CompletedTask : RunAsync(async () => {
-        var offset=more ? row.Children.Count(child=>child.Eligible) : 0;
-        var page=await client.RequestAsync("storage.page",new() { ["scan_id"]=storageScanId,["path"]=row.Path,["offset"]=offset },cancellation:Token);
+        if(more && !storageChildOffsets.ContainsKey(row.Path)) return;
+        var offset=more ? storageChildOffsets[row.Path] : 0;
+        var browse=await client.RequestAsync("storage.browse",new() { ["scan_id"]=storageScanId,["path"]=row.Path,["offset"]=offset },cancellation:Token);
+        var page=browse["directory"]!;
         if(!more) row.Children.Clear();
-        else { foreach(var placeholder in row.Children.Where(child=>!child.Eligible).ToArray()) row.Children.Remove(placeholder); }
+        else { foreach(var placeholder in row.Children.Where(child=>child.Kind is "loading" or "more").ToArray()) row.Children.Remove(placeholder); }
         foreach(var item in Array(page["children"]).Where(item=>!StorageGone(Text(item?["node"],"path")))) {
-            var child=StorageItem(item!["node"]!); row.Children.Add(child);
+            var child=StorageItem(item!["node"]!); child.SetPolicy(browse["removal_reasons"]?[child.Path]?.GetValue<string>()); row.Children.Add(child);
             if(child.Kind=="directory" && child.Children.Count==0) child.Children.Add(new StorageRow(child.Path+"/","…","loading"));
         }
-        if(page["next_offset"] is not null) row.Children.Add(new StorageRow(row.Path+"/","加载更多…","more"));
+        if(page["next_offset"] is not null) { storageChildOffsets[row.Path]=page["next_offset"]!.GetValue<int>(); row.Children.Add(new StorageRow(row.Path+"/","加载更多…","more")); }
+        else storageChildOffsets.Remove(row.Path);
     });
     private bool StorageGone(string path) => storageRemovedPaths.Any(removed=>path==removed || path.StartsWith(removed+"/",StringComparison.Ordinal));
     private StorageRow StorageItem(JsonNode item) {
@@ -597,7 +621,7 @@ public sealed partial class MainViewModel : ObservableObject
         if(storageRows.TryGetValue(path,out var existing)) return existing;
         var allocated=item["allocated_bytes"]?.GetValue<long>() ?? 0;
         var row=new StorageRow(path,Bytes(allocated),Text(item,"kind"),allocated,item["logical_bytes"]?.GetValue<long>() ?? 0,item["file_count"]?.GetValue<int>() ?? 0);
-        row.PropertyChanged += (_,_)=>RemoveStorageCommand.NotifyCanExecuteChanged(); storageRows[path]=row; return row;
+        row.SetSelectionEnabled(!IsBusy); storageRows[path]=row; ApplyStorageSelection(row); return row;
     }
     private async Task LoadStorageMapAsync() {
         StorageMap=await client.RequestAsync("storage.map",new() { ["scan_id"]=storageScanId,["path"]=StoragePath },cancellation:Token);
@@ -608,6 +632,7 @@ public sealed partial class MainViewModel : ObservableObject
         StorageTree.Clear();
         foreach(var row in nodes) { var slash=row.Path.LastIndexOf('/'); var parent=slash<0 ? "." : row.Path[..slash]; row.Share=totals.TryGetValue(parent,out var parentBytes) && parentBytes>0 ? ((double)row.AllocatedBytes/parentBytes).ToString("P1") : "—"; if(parent==StoragePath) StorageTree.Add(row); else if(storageRows.TryGetValue(parent,out var ancestor)) ancestor.Children.Add(row); }
         foreach(var row in StorageNodes.Where(row=>!StorageTree.Contains(row))) StorageTree.Add(row);
+        storageTreeRoots.Clear(); storageTreeRoots.AddRange(StorageTree); FilterStorageRows();
         foreach(var row in nodes.Where(row=>row.Kind=="directory" && row.Children.Count==0)) row.Children.Add(new StorageRow(row.Path+"/","…","loading"));
         StorageExtensions.Clear();
         if(StorageMap?["tiles"] is JsonArray originalTiles && storageRemovedPaths.Count > 0) {
@@ -622,22 +647,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
-    private Task StorageUpAsync() => RunAsync(async () =>
-    {
-        var slash = StoragePath.LastIndexOf('/'); var parent = slash < 0 ? "." : StoragePath[..slash];
-        ShowDirectory(await client.RequestAsync("storage.directory", new() { ["scan_id"] = storageScanId, ["path"] = parent }, cancellation: Token)); StorageMap=null; if(StorageDetailed) await LoadStorageMapAsync();
-    });
-    private void ShowDirectory(JsonNode directory)
-    {
-        StoragePath = Text(directory, "path"); StorageNodes.Clear();
-        foreach (var item in Array(directory["children"]).Where(item=>!StorageGone(Text(item,"path")))) StorageNodes.Add(StorageItem(item!));
-        var actionable = storageCoverage.Any(note => note?["system_managed"]?.GetValue<bool>() != true &&
-            (StoragePath == "." || Text(note, "path") is "" or "." || Text(note, "path") == StoragePath ||
-             Text(note, "path").StartsWith(StoragePath + "/", StringComparison.Ordinal) || StoragePath.StartsWith(Text(note, "path") + "/", StringComparison.Ordinal)));
-        Status = directory["complete"]?.GetValue<bool>() == true ? "当前文件夹分析完成。双击目录继续查看。" : actionable ?
-            "当前文件夹部分位置需处理：打开文件夹检查访问权限，处理后重新扫描当前文件夹。其余已完成的目录可继续查看。" :
-            "系统管理的位置不计入分析范围，无需更改权限。双击目录继续查看。";
-    }
+    private Task StorageUpAsync() => RunAsync(() => NavigateStorageAsync(StoragePath.Contains('/') ? StoragePath[..StoragePath.LastIndexOf('/')] : "."));
     private static JsonNode?[] Array(JsonNode? value) => value is JsonArray array ? array.ToArray() : [];
     private static string Text(JsonNode? node, string field) => node?[field]?.GetValue<string>() ?? "";
     private static JsonArray Strings(IEnumerable<string> values) => new(values.Select(value => (JsonNode?)JsonValue.Create(value)).ToArray());

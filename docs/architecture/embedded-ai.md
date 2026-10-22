@@ -204,12 +204,11 @@ sequenceDiagram
         UI->>Test: Use entered key or saved reference
         Test->>K: Read selected saved credential only if needed
         Note over UI,K: Local reads need no system approval, legacy Keychain access is noninteractive
-        opt Main model enabled
-            Test->>M: Synthetic token and tool definition
-            M-->>Test: verify_connection call
-            Test->>M: Locally verified tool result
-            M-->>Test: Final response
-        end
+        Note over Test,M: Main model is required
+        Test->>M: Synthetic token and tool definition
+        M-->>Test: verify_connection call
+        Test->>M: Locally verified tool result
+        M-->>Test: Final response
         opt Jev configured and still enabled, not cancelled
             Test->>J: Synthetic Choice question
             J-->>Test: Validated structured answer
