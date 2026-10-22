@@ -91,7 +91,7 @@ enum DesktopBridge {
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(false)]),
+                "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform))]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
         }
         if ["startup.scan", "startup.control"].contains(request.operation) {
@@ -219,6 +219,33 @@ enum DesktopBridge {
             try? session.send(kind: "progress", value: .object(fields))
         }
         switch request.operation {
+        case "privacy.scan":
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["range"]) else { throw ShouError("invalid_argument", "Unknown privacy scan field.") }
+            let range=try input["range"] == nil ? PrivacyTimeRange.lastHour : PrivacyTimeRange(rawValue: string("range"))
+            guard let range else { throw ShouError("invalid_argument", "Unknown privacy time range.") }
+            let service=await engine.privacyService(activity: NativeApplicationActivity(), sources: NativePrivacySources())
+            return try .from(await service.scan(range: range, progress: executionProgress))
+        case "privacy.history":
+            guard input.object?.isEmpty == true else { throw ShouError("invalid_argument", "Privacy history accepts no scope fields.") }
+            let service=await engine.privacyService(activity: NativeApplicationActivity(), sources: NativePrivacySources())
+            let history=try await service.history()
+            return .object(["entries": try .from(Array(history.prefix(20))), "total_count": .integer(Int64(history.count))])
+        case "privacy.clean":
+            guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_id", "source_ids", "sign_out"],
+                  case .bool(let signOut)=input["sign_out"] else { throw ShouError("invalid_argument", "Select exact privacy sources and explicit sign-out acknowledgement.") }
+            let service=await engine.privacyService(activity: NativeApplicationActivity(), sources: NativePrivacySources())
+            let plan=try await service.preparePlan(scanId: string("scan_id"), sourceIDs: strings("source_ids", maximum: 512), acknowledgeSignOut: signOut)
+            let items=plan.sources.map { source in
+                JSONValue.object(["path": .string(source.definition.browserName + " · " + source.definition.profile + " · " + source.definition.kind.rawValue),
+                    "records": .integer(source.recordCount ?? 0), "risk": .string("Permanent privacy record deletion; no restore.")])
+            }
+            let review: JSONValue = .object(["action": .string("privacy.delete"), "range": .string(plan.range.rawValue),
+                "range_start": try .from(plan.rangeStart), "range_end": try .from(plan.rangeEnd),
+                "requires_sign_out": .bool(plan.requiresSignOutConsent), "items": .array(items)])
+            try await session.confirm(digest: plan.digest, review: review, operation: "privacy.delete")
+            try Task.checkCancellation()
+            return try .from(await service.execute(planId: plan.id, digest: plan.digest,
+                consent: PrivacyConsent(irreversibleDeletion: true, signOut: plan.requiresSignOutConsent), progress: executionProgress))
         case "history.cleanup-preview", "history.clear":
             let ids=input["execution_ids"] == nil ? nil : try strings("execution_ids")
             let include: Bool

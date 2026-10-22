@@ -57,13 +57,16 @@ import ShouPlatform
         if let initial { panel.directoryURL=URL(fileURLWithPath: initial) }
         panel.message=app.t("Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation.")
         directoryPanel=panel
-        panel.begin { [weak self, weak app] response in
+        let completion: (NSApplication.ModalResponse) -> Void = { [weak self, weak app] response in
             guard let self else { return }
             self.directoryPanel=nil
             guard response == .OK, let url=panel.url else { return }
             do { selected(try NativeDirectorySelection.path(for: url)) }
             catch { app?.error=error.localizedDescription }
         }
+        if let window=NSApp.keyWindow ?? NSApp.mainWindow {
+            panel.beginSheetModal(for: window, completionHandler: completion)
+        } else { panel.begin(completionHandler: completion) }
     }
     func canReuse(_ target: String, app: AppModel) -> Bool {
         guard let scan=app.space.scan, !app.space.hasChanges else { return false }

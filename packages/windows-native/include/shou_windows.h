@@ -13,6 +13,9 @@ typedef struct {
 } shou_win_info;
 typedef struct shou_win_lock shou_win_lock;
 typedef struct shou_win_directory shou_win_directory;
+typedef struct shou_win_privacy_access shou_win_privacy_access;
+int shou_win_privacy_acquire(const char *home, const char *path, int writable, shou_win_privacy_access **result);
+void shou_win_privacy_release(shou_win_privacy_access *access);
 int shou_win_normalize(const char *path, char **result);
 int shou_win_stat(const char *path, shou_win_info *result);
 int shou_win_list(const char *path, size_t limit, char **result);

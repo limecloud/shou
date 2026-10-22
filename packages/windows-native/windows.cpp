@@ -114,12 +114,12 @@ struct Handles {
     ~Handles(){for(auto h:values)if(h!=INVALID_HANDLE_VALUE)CloseHandle(h);}
 };
 // Pin ancestors against rename while opening an object. Never follow a reparse point.
-DWORD open(const std::wstring &path, Handles &pins, HANDLE &last, DWORD access=FILE_READ_ATTRIBUTES|READ_CONTROL, DWORD share=FILE_SHARE_READ|FILE_SHARE_WRITE, DWORD ancestorShare=FILE_SHARE_READ|FILE_SHARE_WRITE) {
+DWORD open(const std::wstring &path, Handles &pins, HANDLE &last, DWORD access=FILE_READ_ATTRIBUTES|READ_CONTROL, DWORD share=FILE_SHARE_READ|FILE_SHARE_WRITE, DWORD ancestorShare=FILE_SHARE_READ|FILE_SHARE_WRITE, DWORD ancestorAccess=FILE_READ_ATTRIBUTES) {
     size_t end=3;
     while (true) {
         auto part=extended(path.substr(0,end));
         bool final=end==path.size();
-        HANDLE h=CreateFileW(part.c_str(),final?access:FILE_READ_ATTRIBUTES, final?share:ancestorShare,
+        HANDLE h=CreateFileW(part.c_str(),final?access:ancestorAccess, final?share:ancestorShare,
             nullptr,OPEN_EXISTING,FILE_FLAG_BACKUP_SEMANTICS|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
         if(h==INVALID_HANDLE_VALUE)return GetLastError();
         pins.values.push_back(h);
@@ -236,6 +236,31 @@ DWORD private_acl(const std::wstring &path,bool create) {
     LocalFree(descriptor);return valid?0:ERROR_ACCESS_DENIED;
 }
 
+// Browser data may inherit read permissions. Mutation rights must remain with
+// this user, SYSTEM or Administrators; discovery never rewrites an existing ACL.
+DWORD privacy_acl(HANDLE file){
+    auto user=user_sid();if(user.empty())return ERROR_INVALID_SID;
+    PSID owner=nullptr;PACL acl=nullptr;PSECURITY_DESCRIPTOR descriptor=nullptr;
+    auto code=GetSecurityInfo(file,SE_FILE_OBJECT,OWNER_SECURITY_INFORMATION|DACL_SECURITY_INFORMATION,&owner,nullptr,&acl,nullptr,&descriptor);
+    if(code)return code;
+    BYTE system[SECURITY_MAX_SID_SIZE],administrators[SECURITY_MAX_SID_SIZE];
+    DWORD systemSize=sizeof(system),adminSize=sizeof(administrators);
+    bool valid=owner && EqualSid(owner,user.data()) && acl &&
+        CreateWellKnownSid(WinLocalSystemSid,nullptr,system,&systemSize) &&
+        CreateWellKnownSid(WinBuiltinAdministratorsSid,nullptr,administrators,&adminSize);
+    constexpr DWORD mutations=GENERIC_ALL|GENERIC_WRITE|DELETE|WRITE_DAC|WRITE_OWNER|FILE_WRITE_DATA|FILE_APPEND_DATA|FILE_WRITE_EA|FILE_WRITE_ATTRIBUTES|FILE_DELETE_CHILD;
+    for(DWORD i=0;valid && i<acl->AceCount;i++){
+        void *raw=nullptr;if(!GetAce(acl,i,&raw)){valid=false;break;}
+        auto header=static_cast<ACE_HEADER *>(raw);
+        if(header->AceFlags&INHERIT_ONLY_ACE || header->AceType==ACCESS_DENIED_ACE_TYPE)continue;
+        if(header->AceType!=ACCESS_ALLOWED_ACE_TYPE){valid=false;break;}
+        auto ace=static_cast<ACCESS_ALLOWED_ACE *>(raw);
+        if((ace->Mask&mutations) && !EqualSid(&ace->SidStart,user.data()) &&
+           !EqualSid(&ace->SidStart,system) && !EqualSid(&ace->SidStart,administrators))valid=false;
+    }
+    LocalFree(descriptor);return valid?0:ERROR_ACCESS_DENIED;
+}
+
 class Sink final:public IFileOperationProgressSink {
     LONG references=1;
 public:
@@ -312,9 +337,46 @@ struct shou_win_directory {
     bool first=true;
     ~shou_win_directory(){if(search!=INVALID_HANDLE_VALUE)FindClose(search);}
 };
+struct shou_win_privacy_access { Handles pins; };
 
 extern "C" {
 void shou_win_free(void *value){free(value);}
+void shou_win_privacy_release(shou_win_privacy_access *access){delete access;}
+int shou_win_privacy_acquire(const char *homeInput,const char *input,int writable,shou_win_privacy_access **result){
+    if(!homeInput || !input || !result || (writable!=0 && writable!=1))return ERROR_INVALID_PARAMETER;
+    *result=nullptr;std::wstring home,path;auto code=normalized(homeInput,home);if(code)return code;
+    if((code=normalized(input,path)))return code;
+    if(home.size()<=3 || path.size()<=home.size()+1 || path[home.size()]!=L'\\' ||
+       _wcsnicmp(home.c_str(),path.c_str(),home.size())!=0 || std::count(path.begin(),path.end(),L'\\')>32)return ERROR_ACCESS_DENIED;
+    auto access=new(std::nothrow) shou_win_privacy_access();if(!access)return ERROR_NOT_ENOUGH_MEMORY;
+    auto acquire=[&]()->DWORD {
+        HANDLE file;
+        const DWORD rights=GENERIC_READ|READ_CONTROL|(writable?GENERIC_WRITE:0);
+        if(auto failure=open(path,access->pins,file,rights,FILE_SHARE_READ|FILE_SHARE_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,FILE_READ_ATTRIBUTES|READ_CONTROL))return failure;
+        size_t end=3,index=0;
+        while(true){
+            if(end>=home.size()){
+                shou_win_info metadata{};
+                if(auto failure=info(access->pins.values[index],&metadata))return failure;
+                if(!metadata.current_user || (end==path.size() && (metadata.kind!=1 || metadata.links!=1)))return ERROR_ACCESS_DENIED;
+                if(auto failure=privacy_acl(access->pins.values[index]))return failure;
+            }
+            if(end==path.size())break;
+            end=path.find(L'\\',end==3?3:end+1);if(end==std::wstring::npos)end=path.size();index++;
+        }
+        for(const auto suffix:{L"-wal",L"-shm",L"-journal"}){
+            HANDLE sidecar;
+            const auto failure=open(path+suffix,access->pins,sidecar,rights);
+            if(failure==ERROR_FILE_NOT_FOUND || failure==ERROR_PATH_NOT_FOUND)continue;
+            if(failure)return failure;
+            shou_win_info metadata{};if(auto status=info(sidecar,&metadata))return status;
+            if(metadata.kind!=1 || metadata.links!=1 || !metadata.current_user)return ERROR_ACCESS_DENIED;
+            if(auto status=privacy_acl(sidecar))return status;
+        }
+        return 0;
+    };
+    code=acquire();if(code){delete access;return code;}*result=access;return 0;
+}
 int shou_win_hash(const char *input,const shou_win_info *saved,uint32_t milliseconds,shou_win_read_cancelled cancelled,void *context,char **result){
     if(!input || !saved || !result || !milliseconds || milliseconds>600000 || saved->kind!=1)return ERROR_INVALID_PARAMETER;
     *result=nullptr;std::wstring path;auto code=normalized(input,path);if(code)return code;

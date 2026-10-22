@@ -27,8 +27,9 @@ public struct PrivacySourceDefinition: Codable, Sendable, Equatable {
     public let kind: PrivacyDataKind
     public let relativePath: String
     public let unsupported: Bool
-    public init(browser: PrivacyBrowser, browserName: String, bundleIdentifier: String, profile: String, kind: PrivacyDataKind, relativePath: String, unsupported: Bool = false) {
-        self.browser=browser; self.browserName=browserName; self.bundleIdentifier=bundleIdentifier; self.profile=profile; self.kind=kind; self.relativePath=relativePath; self.unsupported=unsupported
+    public let platform: String?
+    public init(browser: PrivacyBrowser, browserName: String, bundleIdentifier: String, profile: String, kind: PrivacyDataKind, relativePath: String, unsupported: Bool = false, platform: String? = nil) {
+        self.browser=browser; self.browserName=browserName; self.bundleIdentifier=bundleIdentifier; self.profile=profile; self.kind=kind; self.relativePath=relativePath; self.unsupported=unsupported; self.platform=platform
     }
 }
 
@@ -36,6 +37,14 @@ public struct PrivacySourceDefinition: Codable, Sendable, Equatable {
 public protocol PrivacySourceDiscovering: Sendable {
     func discover(home: URL) throws -> [PrivacySourceDefinition]
     func evidence(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> [FileEntry]
+    func acquire(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> any PrivacySourceAccess
+}
+
+/// Platforms can keep verified database paths pinned for the complete SQLite operation.
+public protocol PrivacySourceAccess: AnyObject, Sendable { func release() }
+private final class UnpinnedPrivacySourceAccess: PrivacySourceAccess { func release() {} }
+extension PrivacySourceDiscovering {
+    public func acquire(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> any PrivacySourceAccess { UnpinnedPrivacySourceAccess() }
 }
 
 public struct PrivacySource: Codable, Sendable, Identifiable {

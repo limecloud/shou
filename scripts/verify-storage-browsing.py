@@ -27,7 +27,7 @@ def main():
             target = workspace / path
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(b"generated fixture" * 256)
-        (workspace / "blocked/text.html").write_text("中文\n<script>literal text</script>", encoding="utf-8")
+        (workspace / "blocked/text.html").write_bytes("中文\n<script>literal text</script>".encode("utf-8"))
         (workspace / "blocked/large.log").write_bytes("中".encode() * 100_000)
         (workspace / "blocked/unicode.txt").write_bytes("UTF16 中文".encode("utf-16"))
         image = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNQaDjwHwAEhAJgikCezQAAAABJRU5ErkJggg==")
@@ -83,7 +83,7 @@ def main():
             return success("storage.preview", dict(scan_id=identifier, path=path))
 
         text = preview("blocked/text.html")
-        assert text["format"] == "text" and text["text"] == "中文\n<script>literal text</script>" and not text["truncated"]
+        assert text["format"] == "text" and text["text"] == "中文\n<script>literal text</script>" and not text["truncated"], text
         prefix = preview("blocked/large.log")
         assert prefix["format"] == "text" and prefix["truncated"] and len(prefix["text"].encode()) <= 262144
         assert preview("blocked/unicode.txt")["text"] == "UTF16 中文"

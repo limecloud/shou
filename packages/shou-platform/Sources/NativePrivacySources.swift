@@ -43,7 +43,7 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
         return result
     }
     public func evidence(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> [FileEntry] {
-        guard PrivacySourcePolicy.valid(source) else { throw ShouError("permission_denied", "Privacy source is outside known browser locations.") }
+        guard (source.platform ?? "macos") == "macos", PrivacySourcePolicy.valid(source) else { throw ShouError("permission_denied", "Privacy source is outside known browser locations.") }
         let path=home.appendingPathComponent(source.relativePath).path
         let (parent, name)=try SecurePaths.parent(path)
         defer { close(parent) }
@@ -100,14 +100,14 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
         ShouError(errno == EACCES || errno == EPERM ? "permission_denied" : "privacy_identity_unavailable", "The privacy database identity or access could not be verified.")
     }
 }
-#else
+#elseif !os(Windows)
 public struct NativePrivacySources: PrivacySourceDiscovering {
     public init() {}
     public func discover(home: URL) throws -> [PrivacySourceDefinition] {
-        throw ShouError("capability_unavailable", "Windows browser privacy sources have not been adapted.")
+        throw ShouError("capability_unavailable", "Browser privacy sources are unavailable on this platform.")
     }
     public func evidence(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> [FileEntry] {
-        throw ShouError("capability_unavailable", "Windows browser privacy sources have not been adapted.")
+        throw ShouError("capability_unavailable", "Browser privacy sources are unavailable on this platform.")
     }
 }
 #endif

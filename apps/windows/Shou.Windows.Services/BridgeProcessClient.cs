@@ -19,7 +19,7 @@ public sealed class BridgeProcessClient
     private readonly string[] prefix;
     private readonly string? dataDirectory;
     private readonly TimeSpan timeout;
-    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "locations.scan", "system.scan", "scan", "scan.target", "scan.results", "cleanup.review", "startup.scan", "applications.scan", "presets.scan", "history", "history.page", "history.inspect", "history.cleanup-preview", "rules.preview", "rules.draft", "rules.validate", "rules.revision", "rules.draft.preview", "records.preview", "storage.scan", "storage.show", "storage.directory", "storage.map", "storage.context", "storage.page", "storage.browse", "storage.selection", "storage.preview", "storage.large-files"];
+    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "locations.scan", "system.scan", "scan", "scan.target", "scan.results", "cleanup.review", "startup.scan", "applications.scan", "privacy.scan", "privacy.history", "presets.scan", "history", "history.page", "history.inspect", "history.cleanup-preview", "rules.preview", "rules.draft", "rules.validate", "rules.revision", "rules.draft.preview", "records.preview", "storage.scan", "storage.show", "storage.directory", "storage.map", "storage.context", "storage.page", "storage.browse", "storage.selection", "storage.preview", "storage.large-files"];
 
     public BridgeProcessClient(string executable, IEnumerable<string>? argumentPrefix = null, string? dataDirectory = null, TimeSpan? timeout = null)
     {

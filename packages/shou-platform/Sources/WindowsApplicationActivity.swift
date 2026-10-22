@@ -13,6 +13,7 @@ public struct WindowsApplicationActivity: ApplicationActivityChecking {
     public func runningBundleIdentifiers(in identifiers: Set<String>) throws -> Set<String> {
         let names=[
             "com.google.Chrome": "chrome.exe",
+            "org.chromium.Chromium": "chrome.exe",
             "com.microsoft.edgemac": "msedge.exe",
             "com.microsoft.VSCode": "Code.exe",
             "com.microsoft.VSCodeInsiders": "Code - Insiders.exe",

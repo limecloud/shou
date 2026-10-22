@@ -7,17 +7,27 @@ public enum PrivacySourcePolicy {
         ("Microsoft Edge", "com.microsoft.edgemac", "Library/Application Support/Microsoft Edge"),
         ("Brave", "com.brave.Browser", "Library/Application Support/BraveSoftware/Brave-Browser")
     ]
+    public static let windowsChromiumRoots: [(String, String, String)] = [
+        ("Google Chrome", "com.google.Chrome", "AppData/Local/Google/Chrome/User Data"),
+        ("Chromium", "org.chromium.Chromium", "AppData/Local/Chromium/User Data"),
+        ("Microsoft Edge", "com.microsoft.edgemac", "AppData/Local/Microsoft/Edge/User Data"),
+        ("Brave", "com.brave.Browser", "AppData/Local/BraveSoftware/Brave-Browser/User Data")
+    ]
     public static func valid(_ source: PrivacySourceDefinition) -> Bool {
         guard StorageRemovalPolicy.validRelative(source.relativePath), !source.profile.isEmpty,
-              !source.profile.contains("/"), source.profile.rangeOfCharacter(from: .controlCharacters) == nil else { return false }
+              !source.profile.contains("/"), !source.profile.contains("\\"), ![".", ".."].contains(source.profile),
+              source.profile.rangeOfCharacter(from: .controlCharacters) == nil,
+              source.platform == nil || ["macos", "windows"].contains(source.platform!) else { return false }
+        let windows=source.platform == "windows"
         switch source.browser {
         case .safari:
-            return source.bundleIdentifier == "com.apple.Safari" && source.relativePath == "Library/Safari/History.db" && source.kind == .history
+            return !windows && source.bundleIdentifier == "com.apple.Safari" && source.relativePath == "Library/Safari/History.db" && source.kind == .history
         case .firefox:
             let suffix=source.kind == .history ? "places.sqlite" : "cookies.sqlite"
-            return [.history, .cookies].contains(source.kind) && source.bundleIdentifier == "org.mozilla.firefox" && source.relativePath == "Library/Application Support/Firefox/Profiles/\(source.profile)/\(suffix)"
+            let root=windows ? "AppData/Roaming/Mozilla/Firefox/Profiles" : "Library/Application Support/Firefox/Profiles"
+            return [.history, .cookies].contains(source.kind) && source.bundleIdentifier == "org.mozilla.firefox" && source.relativePath == root + "/\(source.profile)/\(suffix)"
         case .chromium:
-            guard let root=chromiumRoots.first(where: { $0.1 == source.bundleIdentifier }), source.profile == "Default" || source.profile.range(of: "^Profile [0-9]+$", options: .regularExpression) != nil else { return false }
+            guard let root=(windows ? windowsChromiumRoots : chromiumRoots).first(where: { $0.1 == source.bundleIdentifier }), source.profile == "Default" || source.profile.range(of: "^Profile [0-9]+$", options: .regularExpression) != nil else { return false }
             let prefix=root.2 + "/" + source.profile + "/"
             return source.kind == .history ? source.relativePath == prefix + "History" : source.kind == .cookies && [prefix + "Cookies", prefix + "Network/Cookies"].contains(source.relativePath)
         }
@@ -61,6 +71,8 @@ public actor PrivacyService {
             } else {
                 do {
                     try protected(definition, configuration: config)
+                    let access=try catalog.acquire(source: definition, home: home, writable: false)
+                    defer { access.release() }
                     let evidence=try catalog.evidence(source: definition, home: home, writable: false)
                     let database=try PrivacyDatabase(path: absolute(definition), source: definition, start: range.start(at: date), end: date, writable: false)
                     defer { database.close() }
@@ -112,6 +124,8 @@ public actor PrivacyService {
             let label=source.definition.browserName + " · " + source.definition.profile
             progress(ExecutionProgress(stage: "privacy-cleaning", processedCount: index, itemCount: plan.sources.count, path: label))
             do {
+                let access=try catalog.acquire(source: source.definition, home: home, writable: true)
+                defer { access.release() }
                 try cancelled(); try verify(source, plan: plan)
                 receipt.items[index].state="executing"; try save(receipt, "privacy-history", receipt.id)
                 let database=try PrivacyDatabase(path: absolute(source.definition), source: source.definition, start: plan.rangeStart, end: plan.rangeEnd, writable: true)
@@ -140,8 +154,9 @@ public actor PrivacyService {
     }
     private func preflight(_ plan: PrivacyPlan, progress: (ExecutionProgress) -> Void = { _ in }) throws {
         try cancelled()
+        let currentHome=try filesystem.analysisRootIdentity(home.path)
         guard now() < plan.expiresAt, !plan.sources.isEmpty, Set(plan.sources.map(\.id)).count == plan.sources.count,
-              try filesystem.analysisRootIdentity(home.path).sameObject(as: plan.homeIdentity),
+              currentHome.sameObject(as: plan.homeIdentity), currentHome.hasSameOwner(as: plan.homeIdentity),
               try Digest.of(configuration()) == plan.configurationDigest else { throw ShouError("plan_stale", "The privacy plan expired or its protection settings changed; scan again.") }
         for source in plan.sources {
             progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.sources.count, path: source.definition.browserName + " · " + source.definition.profile))
@@ -150,12 +165,15 @@ public actor PrivacyService {
     }
     private func verify(_ source: PrivacySource, plan: PrivacyPlan, count: Bool = true) throws {
         try cancelled()
-        guard try filesystem.analysisRootIdentity(home.path).sameObject(as: plan.homeIdentity) else { throw ShouError("plan_stale", "The privacy home directory changed; scan again.") }
+        let currentHome=try filesystem.analysisRootIdentity(home.path)
+        guard currentHome.sameObject(as: plan.homeIdentity), currentHome.hasSameOwner(as: plan.homeIdentity) else { throw ShouError("plan_stale", "The privacy home directory changed; scan again.") }
         guard source.eligible, !source.definition.unsupported, PrivacySourcePolicy.valid(source.definition) else { throw ShouError("privacy_source_unavailable", "The privacy source is outside supported scope.") }
         guard try activity.runningBundleIdentifiers(in: [source.definition.bundleIdentifier]).isEmpty else { throw ShouError("application_running", "Close the browser before privacy cleaning.") }
         let config=try configuration()
         guard try Digest.of(config) == plan.configurationDigest else { throw ShouError("plan_stale", "Privacy protection settings changed; scan again.") }
         try protected(source.definition, configuration: config)
+        let access=try catalog.acquire(source: source.definition, home: home, writable: true)
+        defer { access.release() }
         let evidence=try catalog.evidence(source: source.definition, home: home, writable: true)
         let comparable=count ? evidence : evidence.filter { item in
             // BEGIN IMMEDIATE may create an empty WAL before any record mutation.
@@ -173,21 +191,25 @@ public actor PrivacyService {
         for (a, b) in zip(current, expected) {
             guard a.path == b.path else { return false }
             if a.kind == "directory" {
-                guard a.sameObject(as: b), a.owner == b.owner, a.mode == b.mode else { return false }
+                guard a.sameObject(as: b), a.hasSameOwner(as: b), a.mode == b.mode else { return false }
             } else if a != b { return false }
         }
         return true
     }
     private func protected(_ source: PrivacySourceDefinition, configuration: Configuration) throws {
         let path=absolute(source)
-        guard !store.protectedPaths.contains(where: { path == $0 || path.hasPrefix($0 + "/") || $0.hasPrefix(path + "/") }) else { throw ShouError("permission_denied", "The privacy source overlaps protected application data.") }
+        func key(_ path: String) -> String {
+            filesystem.caseSensitivePaths ? path : path.replacingOccurrences(of: "\\", with: "/").lowercased()
+        }
+        let compared=key(path)
+        guard !store.protectedPaths.contains(where: { compared == key($0) || compared.hasPrefix(key($0) + "/") || key($0).hasPrefix(compared + "/") }) else { throw ShouError("permission_denied", "The privacy source overlaps protected application data.") }
         let paths=[source.relativePath, source.relativePath + "-wal", source.relativePath + "-shm", source.relativePath + "-journal"]
         for relative in paths {
             let parts=relative.split(separator: "/").map(String.init)
             let ancestors=(1...parts.count).map { parts.prefix($0).joined(separator: "/") }
             if (configuration.globalExclusions ?? []).contains(where: { pattern in ancestors.contains { PathPattern.matches(pattern, $0, caseSensitive: false) } }) { throw ShouError("permission_denied", "The privacy source matches a protected exclusion.") }
             let absolute=home.appendingPathComponent(relative).path
-            for workspace in configuration.workspaces where absolute.hasPrefix(workspace.path + "/") {
+            for workspace in configuration.workspaces where key(absolute).hasPrefix(key(workspace.path) + "/") {
                 let scoped=String(absolute.dropFirst(workspace.path.count + 1)), pieces=scoped.split(separator: "/").map(String.init)
                 if workspace.exclusions.contains(where: { pattern in (1...pieces.count).contains { PathPattern.matches(pattern, pieces.prefix($0).joined(separator: "/"), caseSensitive: false) } }) { throw ShouError("permission_denied", "The privacy source matches a workspace exclusion.") }
             }
