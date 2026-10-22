@@ -22,6 +22,7 @@ public sealed class CleanupGroupRow(string categoryId, string? groupId, string t
 public sealed partial class MainViewModel
 {
     private readonly List<string> cleanupScanIds = [];
+    private readonly Dictionary<string, string> cleanupScanWorkspaces = new(StringComparer.Ordinal);
     private readonly JsonArray cleanupRefinements = [];
     private readonly CleanupSelection cleanupSelection = new();
     private CleanupGroupRow? cleanupScope;
@@ -96,7 +97,7 @@ public sealed partial class MainViewModel
 
     private void ResetCleanupReview()
     {
-        cleanupScanIds.Clear(); cleanupRefinements.Clear(); cleanupSelection.Clear();
+        cleanupScanIds.Clear(); cleanupScanWorkspaces.Clear(); cleanupRefinements.Clear(); cleanupSelection.Clear();
         cleanupScope = null; cleanupNextOffset = null; cleanupQueryDigest = "";
         appliedCleanupQuery = ""; CleanupQuery = "";
         SelectedCleanupCandidate = null; Candidates.Clear(); CleanupGroups.Clear();
@@ -107,6 +108,7 @@ public sealed partial class MainViewModel
     {
         var id = Text(page, "scan_id");
         if (!string.IsNullOrEmpty(id) && !cleanupScanIds.Contains(id)) cleanupScanIds.Add(id);
+        if (!string.IsNullOrEmpty(id)) cleanupScanWorkspaces[id] = Text(page, "workspace_id");
     }
     private JsonObject CleanupReviewInput(string? category = null, string? group = null, string query = "", bool recommended = false) => new() {
         ["scan_ids"] = Strings(cleanupScanIds), ["refinements"] = cleanupRefinements.DeepClone(),

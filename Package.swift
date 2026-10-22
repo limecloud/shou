@@ -36,6 +36,8 @@ products.removeAll { $0.name == "shou-tests" }
 targets.removeAll { $0.name == "ShouSelfTests" }
 products.append(.executable(name: "shou-windows-tests", targets: ["ShouWindowsTests"]))
 targets.append(.executableTarget(name: "ShouWindowsTests", dependencies: ["ShouCore", "ShouPlatform", "CShouWindows"], path: "tests/windows"))
+products.append(.executable(name: "shou-windows-closing-checks", targets: ["ShouWindowsClosingChecks"]))
+targets.append(.executableTarget(name: "ShouWindowsClosingChecks", dependencies: ["CShouWindows"], path: "tests/windows-closing"))
 #endif
 #if os(macOS)
 dependencies.append(.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"))

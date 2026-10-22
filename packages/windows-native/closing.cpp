@@ -142,7 +142,10 @@ extern "C" int shou_win_request_process_close(const char *input,const shou_win_c
     struct Pins{std::vector<HANDLE> values;~Pins(){for(auto value:values)if(value)CloseHandle(value);}} pins;
     for(size_t index=0;index<count;index++){
         if(cancelled && cancelled(context))return ERROR_CANCELLED;
-        if(!memchr(expected[index].owner_sid,0,sizeof(expected[index].owner_sid)) || !memchr(expected[index].executable_path,0,sizeof(expected[index].executable_path)))return ERROR_INVALID_PARAMETER;
+        if(!expected[index].pid || !memchr(expected[index].owner_sid,0,sizeof(expected[index].owner_sid)) ||
+           !memchr(expected[index].executable_path,0,sizeof(expected[index].executable_path)) ||
+           !memchr(expected[index].executable_identity.owner_sid,0,sizeof(expected[index].executable_identity.owner_sid)))return ERROR_INVALID_PARAMETER;
+        for(size_t previous=0;previous<index;previous++)if(expected[previous].pid==expected[index].pid)return ERROR_INVALID_PARAMETER;
         Handle process(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION|SYNCHRONIZE,FALSE,expected[index].pid));
         if(!process.value){if(GetLastError()==ERROR_INVALID_PARAMETER)continue;return GetLastError();}
         shou_win_close_process current{};auto code=inspect(process.value,expected[index].pid,name,current);

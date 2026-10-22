@@ -284,7 +284,7 @@ public sealed partial class MainViewModel : ObservableObject
         ruleAuthoringAvailable = capabilities["features"]?["rule_authoring"]?.GetValue<bool>() == true;
         applicationInventoryAvailable = capabilities["features"]?["application_inventory"]?.GetValue<bool>() == true;
         privacyAvailable = capabilities["features"]?["privacy"]?.GetValue<bool>() == true;
-        cleanupClosingAvailable = capabilities["close_cleanup_owners"]?.GetValue<bool>() == true;
+        cleanupClosingAvailable = capabilities["features"]?["close_cleanup_owners"]?.GetValue<bool>() == true;
         await LoadConfigurationAsync(); await LoadHistoryAsync(); await LoadAIAsync(capabilities);
         if (privacyAvailable) await LoadPrivacyHistoryAsync();
         Status = "一键扫描常用缓存和开发项目，也可以选择自定义目录。";

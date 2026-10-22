@@ -4,7 +4,7 @@
 
 日期：2026-10-23。这是当前工作区的实现记录，不代表已发布版本或生产验收完成。以下最新复核优先于后文按时间保留的旧包记录。
 
-产品合同见[20 个用户故事及 11 个用例](../product/embedded-ai.md)、[架构／状态／流程／时序](../architecture/embedded-ai.md)和[33 项验收矩阵](embedded-ai-acceptance.md)。本轮已实现默认关闭的桌面开关、结构化决策优先路由、独立 Jev 配置、按需主模型、分服务用量及跨页原生入口。实现、合成验证和真实服务证据分层记录，未通过项仍保留。
+产品合同见[20 个用户故事及 11 个用例](../product/embedded-ai.md)、[架构／状态／流程／时序](../architecture/embedded-ai.md)和[33 项验收矩阵](embedded-ai-acceptance.md)。本轮已实现默认关闭的桌面开关、结构化决策优先路由、可开关 Jev 协作与必需主模型、分服务用量及跨页原生入口。实现、合成验证和真实服务证据分层记录，未通过项仍保留。
 
 ## 最新完整验收复核：2026-10-23
 
@@ -20,10 +20,13 @@
 | 总开关 | 等待回答时关闭后终态为 cancelled，继续入口移除，证据保留，用量不变。慢速连接测试取消后关闭总开关，服务计数稳定为 1 次，无后续工具续接；慢速运行中的关闭另有既有原生和合同证据 |
 | 离线规则闭环 | 生成 `build/cache` 精确草稿默认禁用，11.3 MB 实际预览；关闭 AI 后单条启用、新扫描、明确废纸篓确认及真实回执通过，源码／配置哈希不变、网络计数不增 |
 | 原生恢复 | 立即 desktop bridge 废纸篓→恢复通过；另一次原生 UI 选择精确项目、确认、显示“所选项目已恢复”，文件 SHA-256 一致 |
+| 外观与键盘 | 中文浅色检查器与长路径换行、英文暗色配置表单通过；AI 关闭时测试禁用、Esc 取消表单通过；未据此覆盖最小窗口和 VoiceOver |
 
 两次较早的延迟 UI 恢复失败：原路径和记录的废纸篓路径在恢复前均已不存在，返回 `Inspect target: No such file or directory`。未查明消失原因，未把失败改记通过，也不能据此归因于应用或系统。仅影响可丢弃生成夹具；源码和配置保持完整。成功的独立恢复不能消除这两条失败记录。
 
 现有 Windows 工作流 [39810987069](https://github.com/limecloud/shou/actions/runs/39810987069) 检出 `64e52c0675545b4edbd681ef08726b3809de4fb3`：Swift／WPF 构建、24 项真实子进程检查和 115 项 AI CLI 检查均通过。随后隐私夹具在扫描前报 `privacy_identity_unavailable`，整条工作流失败、打包跳过。此结果证明 Windows 原生 AI 合同执行，不能写成整包发布通过或 WPF 全部按钮旅程通过。
+
+后续 [39813400240](https://github.com/limecloud/shou/actions/runs/39813400240)（`d9c55d17b48a9b227bb18f852a224419dcd63006`）在 SwiftPM 检查 `tests/windows` 时因新增 C++ 夹具混入 Swift 目标而失败，AI 检查与打包均未执行。夹具现已移到 `tests/windows-closing` 下的独立 `ShouWindowsClosingChecks` C++ 目标；未经对应远程复验不能算通过。此前的 115 项仅证明前述提交上的 AI 合同。
 
 本地详细证据在 `.build/ai-complete-acceptance/evidence/`，包括 `live-main-only-investigation.json`、`restart-restoration.json`、`waiting-cancellation.json`、`test-cancellation.json`、`immediate-native-roundtrip.json` 和 `ui-immediate-restore.json`。合同日志为 `/tmp/shou-ai-complete-fixed-{sdk,portable}.log`，Windows 失败日志为 `/tmp/shou-ai-full-windows-64e.log`。后文的更早版本／计数／钥匙串观察仅作历史记录。完整 VoiceOver／外观组合、macOS 14、质量／成本对照、额外真实协议、正式签名／公证和 Windows 包验证仍没有据此算通过。
 

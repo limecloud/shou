@@ -34,6 +34,7 @@ public partial class App : Application
                 window.Arrange(new Rect(0, 0, 1280, 800));
                 window.UpdateLayout();
                 var model=(MainViewModel)window.DataContext;
+                model.VerifyCleanupClosingState();
                 model.Candidates.Add(new("layout-candidate", "项目 中文/build/cache", 8192, true, "生成布局夹具", "layout-scan", "layout-workspace", "C:/layout-fixture", false, "build", "layout-rule", true, 2));
                 model.SelectedCleanupCandidate = model.Candidates[0];
                 foreach (var size in new[] { new Size(1280,800), new Size(840,580) }) {
@@ -85,7 +86,7 @@ public partial class App : Application
                 var definition=new System.Text.Json.Nodes.JsonObject { ["id"]="personal.layout-fixture",["version"]="0.1.0",["scope"]=new System.Text.Json.Nodes.JsonObject { ["root_ref"]="layout-fixture" } };
                 new RuleAuthoringDialog(null,client,workspace,CancellationToken.None,definition).VerifyLayout();
                 var report = Environment.GetEnvironmentVariable("SHOU_PACKAGE_VERIFICATION_REPORT") ?? throw new InvalidOperationException("Missing package verification report path.");
-                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, scan_locations_layout_loaded = true, storage_browsing_layout_loaded = true, file_preview_layout_loaded = true, disk_capacity_layout_loaded = true, privacy_layout_loaded = true }));
+                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, scan_locations_layout_loaded = true, storage_browsing_layout_loaded = true, file_preview_layout_loaded = true, disk_capacity_layout_loaded = true, privacy_layout_loaded = true, cleanup_closing_state_verified = true }));
                 Shutdown(0); return;
             }
             MainWindow = window; window.Show();

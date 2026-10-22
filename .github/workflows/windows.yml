@@ -2,9 +2,9 @@ name: Windows native build
 on:
   push:
     branches: [main]
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "tests/windows-closing/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   pull_request:
-    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
+    paths: ["Package.*", "apps/cli/**", "apps/windows/**", "packages/**", "skills/**", "tests/windows/**", "tests/windows-closing/**", "scripts/*windows*", "scripts/verify-desktop-bridge.py", "scripts/verify-rule-authoring.py", "scripts/verify-ai-investigation.py", ".github/workflows/windows.yml", ".github/workflows/release.yml"]
   workflow_dispatch:
   workflow_call:
     inputs:

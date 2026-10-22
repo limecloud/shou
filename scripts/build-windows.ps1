@@ -1,6 +1,7 @@
 param(
     [ValidateSet("Debug", "Release")][string]$Configuration = "Release",
-    [ValidateSet("All", "Build", "Check")][string]$Stage = "All"
+    [ValidateSet("All", "Build", "Check")][string]$Stage = "All",
+    [switch]$NativeClosingFixtures
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
@@ -12,6 +13,8 @@ try {
     if ($Stage -in @("All", "Build")) {
         swift build -c $swiftConfiguration --jobs 4 --product shou
         if ($LASTEXITCODE -ne 0) { throw "Swift CLI build failed." }
+        swift build -c $swiftConfiguration --jobs 4 --product shou-windows-closing-checks
+        if ($LASTEXITCODE -ne 0) { throw "Independent normal-close fixture build failed." }
         # The Swift 6.2.3 Windows compiler currently crashes in SIL partitioning
         # while compiling shou-windows-tests. The production engine still
         # compiles here; fixture coverage remains available in that target for
@@ -48,6 +51,12 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Windows application registration inventory checks failed." }
             python -B "scripts/verify-privacy-bridge.py" --engine (Join-Path $bin "shou.exe") --native-fixtures
             if ($LASTEXITCODE -ne 0) { throw "Browser privacy scope, confirmation and isolated transaction checks failed." }
+            python -B "scripts/verify-windows-closing.py" --engine (Join-Path $bin "shou.exe")
+            if ($LASTEXITCODE -ne 0) { throw "Normal-close scope and command discovery checks failed." }
+            if ($NativeClosingFixtures) {
+                python -B "scripts/verify-windows-closing.py" --engine (Join-Path $bin "shou.exe") --native-harness (Join-Path $bin "shou-windows-closing-checks.exe")
+                if ($LASTEXITCODE -ne 0) { throw "Generated normal-close native fixture acceptance did not pass; use a standard-user interactive Windows session." }
+            }
             python -B "scripts/verify-rule-authoring.py" (Join-Path $bin "shou.exe")
             if ($LASTEXITCODE -ne 0) { throw "Personal rule authoring, preview and immutable revision checks failed." }
             python -B "scripts/verify-scan-locations.py" --engine (Join-Path $bin "shou.exe")

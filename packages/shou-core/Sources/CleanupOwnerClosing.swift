@@ -107,6 +107,7 @@ extension ShouEngine {
               try controller.inspect(identifiers: Set(review.targets.map(\.identifier))) == review.targets else {
             throw ShouError("plan_stale", "Applications or cleanup settings changed; review again before closing.")
         }
+        guard review.expiresAt > now() else { throw ShouError("confirmation_required", "Application-close review expired during process verification.") }
         // Digest-keyed intent consumes this review even if the process is
         // interrupted after sending a close message. No automatic replay.
         let recordId="close_" + review.digest.dropFirst("sha256:".count)

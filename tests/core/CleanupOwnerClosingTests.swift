@@ -8,10 +8,12 @@ private final class OwnerCloseFixture: CleanupOwnerClosing, @unchecked Sendable 
     private var requests=0
     var refuses=false
     var throwsOnRequest=false
+    var onInspect: (@Sendable () -> Void)?
     var count: Int { lock.lock(); defer { lock.unlock() }; return requests }
     func changeIdentity() { lock.lock(); defer { lock.unlock() }; generation += 1 }
     func inspect(identifiers: Set<String>) throws -> [CleanupOwnerTarget] {
         lock.lock(); defer { lock.unlock() }
+        onInspect?()
         let file=FileEntry(path: "executable", kind: "file", device: 1, inode: 0, logicalBytes: 10, allocatedBytes: 10, modifiedNanoseconds: 1, changedNanoseconds: 1, mode: 0, owner: 0, links: 1)
         var identity=file; identity.windowsIdentity = .init(volume: 1, fileId: String(repeating: "a", count: 32), ownerSid: "S-1-5-21-1")
         return identifiers.filter { $0 == "com.google.Chrome" }.sorted().map { .init(identifier: $0, name: "Generated owner", processes: [.init(pid: 123, created: generation, session: 1, ownerSid: "S-1-5-21-1", executablePath: "C:/generated/owner.exe", executableIdentity: identity)]) }
@@ -22,6 +24,13 @@ private final class OwnerCloseFixture: CleanupOwnerClosing, @unchecked Sendable 
         if !refuses { running=false }
     }
     func isRunning(identifier: String) throws -> Bool { lock.lock(); defer { lock.unlock() }; return running }
+}
+
+private final class OwnerCloseClock: @unchecked Sendable {
+    private let lock=NSLock()
+    private var date=Date()
+    func read() -> Date { lock.lock(); defer { lock.unlock() }; return date }
+    func advance() { lock.lock(); defer { lock.unlock() }; date.addTimeInterval(121) }
 }
 
 private func ownerClosingFixture() async throws -> (Fixture, ShouEngine, ScanSnapshot, OwnerCloseFixture) {
@@ -61,6 +70,13 @@ func cleanupOwnerClosingRejectsChangedProcessesSettingsAndPreview() async throws
     }
     try await expectThrows { try await cancelled.value }
     try expect(controller.count == 0)
+    let clock=OwnerCloseClock()
+    let timedEngine=ShouEngine(store: fixture.store, filesystem: fixture.fs, now: { clock.read() })
+    let timedReview=try await timedEngine.cleanupOwnerCloseReview(scanIds: [scan.id], controller: controller)
+    controller.onInspect = { clock.advance() }
+    try await expectThrows { try await timedEngine.closeCleanupOwners(review: timedReview, confirmedDigest: timedReview.digest, controller: controller, timeoutSeconds: 0) }
+    controller.onInspect=nil
+    try expect(controller.count == 0 && (try fixture.store.ids("cleanup-close-history")).isEmpty)
     controller.changeIdentity()
     try await expectThrows { try await engine.closeCleanupOwners(review: review, confirmedDigest: review.digest, controller: controller, timeoutSeconds: 0) }
     try expect(controller.count == 0)

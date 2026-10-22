@@ -91,8 +91,7 @@ enum DesktopBridge {
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform))]),
-                "close_cleanup_owners": .bool(fs.platform == "windows"),
+                "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform)), "close_cleanup_owners": .bool(fs.platform == "windows")]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
         }
         if ["startup.scan", "startup.control"].contains(request.operation) {

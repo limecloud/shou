@@ -5,6 +5,7 @@
 #define _WIN32_WINNT 0x0A00
 #include "shou_windows.h"
 #include <windows.h>
+#include <shellapi.h>
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -48,6 +49,7 @@ struct Child {
     HANDLE stop=nullptr,ready=nullptr,notice=nullptr,process=nullptr;
     DWORD pid=0;
     Child(const std::wstring &executable,bool refusal){
+        try {
         const auto prefix=L"Local\\ShouCloseFixture-"+std::to_wstring(GetCurrentProcessId())+L"-"+std::to_wstring(GetTickCount64());
         stop=CreateEventW(nullptr,TRUE,FALSE,(prefix+L"-stop").c_str());ready=CreateEventW(nullptr,TRUE,FALSE,(prefix+L"-ready").c_str());notice=CreateEventW(nullptr,TRUE,FALSE,(prefix+L"-notice").c_str());
         require(stop && ready && notice,"Could not create owned fixture events");
@@ -56,8 +58,10 @@ struct Child {
         require(CreateProcessW(executable.c_str(),command.data(),nullptr,nullptr,FALSE,0,nullptr,nullptr,&startup,&child),"Could not launch generated fixture");
         process=child.hProcess;pid=child.dwProcessId;CloseHandle(child.hThread);
         require(WaitForSingleObject(ready,10000)==WAIT_OBJECT_0,"Generated fixture did not create a window");
+        }catch(...){release();throw;}
     }
-    ~Child(){if(stop)SetEvent(stop);if(process){WaitForSingleObject(process,10000);CloseHandle(process);}for(auto event:{stop,ready,notice})if(event)CloseHandle(event);}
+    void release(){if(stop)SetEvent(stop);if(process){WaitForSingleObject(process,10000);CloseHandle(process);}for(auto event:{stop,ready,notice})if(event)CloseHandle(event);}
+    ~Child(){release();}
 };
 shou_win_close_process selected(DWORD pid){
     shou_win_close_process *rows=nullptr;size_t count=0;
@@ -69,7 +73,7 @@ shou_win_close_process selected(DWORD pid){
 }
 }
 
-int wmain(int argc,wchar_t **argv){
+int runChecks(int argc,wchar_t **argv){
     if(argc==6 && std::wstring(argv[1])==L"--window")return windowMain(argv);
     HANDLE token=nullptr;TOKEN_ELEVATION elevation{};DWORD size=0;
     if(!OpenProcessToken(GetCurrentProcess(),TOKEN_QUERY,&token))return 1;
@@ -86,11 +90,14 @@ int wmain(int argc,wchar_t **argv){
     try {
         {
             Child child(executable,false);const auto saved=selected(child.pid);
-            for(int change=0;change<3;change++){
+            for(int change=0;change<6;change++){
                 auto stale=saved;
                 if(change==0)stale.created++;
                 if(change==1)stale.session++;
                 if(change==2)stale.executable_identity.file_id[0]^=1;
+                if(change==3)stale.owner_sid[0]='X';
+                if(change==4)stale.executable_path[0]='X';
+                if(change==5)stale.executable_identity.modified_ns++;
                 require(shou_win_request_process_close("Code.exe",&stale,1,nullptr,nullptr)!=0,"Changed process identity accepted");
                 require(WaitForSingleObject(child.notice,0)==WAIT_TIMEOUT,"Stale identity sent a close message");
             }
@@ -100,12 +107,24 @@ int wmain(int argc,wchar_t **argv){
             require(WaitForSingleObject(child.notice,10000)==WAIT_OBJECT_0 && WaitForSingleObject(child.process,10000)==WAIT_OBJECT_0,"Generated window did not close normally");
         }
         {
+            Child first(executable,false),second(executable,false);
+            shou_win_close_process selection[2]={selected(first.pid),selected(second.pid)};
+            selection[1].created++;
+            require(shou_win_request_process_close("Code.exe",selection,2,nullptr,nullptr)!=0,"Partially stale selection accepted");
+            require(WaitForSingleObject(first.notice,0)==WAIT_TIMEOUT && WaitForSingleObject(second.notice,0)==WAIT_TIMEOUT,"Preflight sent a close before validating all selected processes");
+        }
+        {
             Child child(executable,true);const auto saved=selected(child.pid);
             require(shou_win_request_process_close("Code.exe",&saved,1,nullptr,nullptr)==0,"Refusal fixture did not receive normal close");
             require(WaitForSingleObject(child.notice,10000)==WAIT_OBJECT_0 && WaitForSingleObject(child.process,0)==WAIT_TIMEOUT,"Refusing application was forced to exit");
         }
-        std::puts("PASS exact generated PID, creation/session/image identity refusal, cancellation, normal window close and preserved quit refusal");
+        std::puts("PASS exact generated PID, creation/session/owner/path/image identity refusal, whole-selection preflight, cancellation, normal window close and preserved quit refusal");
     }catch(const std::exception &error){std::fprintf(stderr,"FAIL %s\n",error.what());result=1;}
     if(!DeleteFileW(executable.c_str()) || !RemoveDirectoryW(directory.c_str()))return 1;
     return result;
+}
+
+int main(){
+    int argc=0;auto argv=CommandLineToArgvW(GetCommandLineW(),&argc);if(!argv)return 1;
+    const auto result=runChecks(argc,argv);LocalFree(argv);return result;
 }

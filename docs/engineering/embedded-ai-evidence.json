@@ -16,7 +16,8 @@
     "isolated_bundle_id": true,
     "isolated_data": true,
     "whole_installed_package_equivalence_claimed": false,
-    "picker_source_last_commit": "7512be20dffb6e4b201fbccf7cf390d0ff3c629d"
+    "picker_source_last_commit": "7512be20dffb6e4b201fbccf7cf390d0ff3c629d",
+    "current_installed_helper_sha256": "bb37a103b4611baf1800a1d60f5983cc525dedec38f2687b6d7a2e1980bc5640"
   },
   "live_services": {
     "jev": {
@@ -94,7 +95,14 @@
       "source/Keep.swift": true
     },
     "immediate_native_bridge_restore_sha256_match": true,
-    "native_ui_restore_sha256_match": true
+    "native_ui_restore_sha256_match": true,
+    "english_dark_configuration_form_readable": true,
+    "blank_key_fields_after_reopen": true,
+    "ai_off_test_disabled": true,
+    "escape_cancels_configuration_form": true,
+    "isolated_appearance_and_language_restored": true,
+    "minimum_window_verification": "not established: CUA resize returned noWindowsAvailable",
+    "post_disable_browsing_and_configuration_added_requests": 0
   },
   "windows_ci": {
     "workflow": ".github/workflows/windows.yml",
@@ -186,7 +194,40 @@
     "windows_64e": {
       "path": "/tmp/shou-ai-full-windows-64e.log",
       "sha256": "cb32ad398e1667914e0225b8b1fc3c8996648540e69b535f6aa35b665778872c"
+    },
+    "current_installed_sdk": {
+      "path": "/tmp/shou-ai-complete-current-installed-sdk.log",
+      "sha256": "dc3c221ac23ebac75ad21c049ac2a3634666d0a0157c779630eb587e95e95896"
+    },
+    "current_installed_portable": {
+      "path": "/tmp/shou-ai-complete-current-installed-portable.log",
+      "sha256": "dc3c221ac23ebac75ad21c049ac2a3634666d0a0157c779630eb587e95e95896"
+    },
+    "windows_d9c": {
+      "path": "/tmp/shou-ai-full-windows-d9c.log",
+      "sha256": "ebed1edf1d19b6865f067a05cc3a13dc6a13162b24fdce5993dd32d983d60e6b"
     }
   },
-  "secrets_included": false
+  "secrets_included": false,
+  "documentation_checks": {
+    "markdown_files": 97,
+    "local_links": 837,
+    "readme_languages": 11,
+    "localization_keys": 1750,
+    "ui_languages": 2,
+    "mermaid_diagrams": 30,
+    "all_passed": true
+  },
+  "latest_windows_ci": {
+    "workflow": ".github/workflows/windows.yml",
+    "run_id": 39813400240,
+    "url": "https://github.com/limecloud/shou/actions/runs/39813400240",
+    "head_sha": "d9c55d17b48a9b227bb18f852a224419dcd63006",
+    "conclusion": "failure",
+    "stage": "SwiftPM source validation before compilation",
+    "reason": "New C++ fixture included in a Swift target: mixed language source files unsupported",
+    "ai_checks": "skipped",
+    "packaging": "skipped",
+    "workspace_fix": "Package.swift excludes closing-fixture.cpp from ShouWindowsTests; remote rerun not established"
+  }
 }
