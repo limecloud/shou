@@ -136,7 +136,8 @@ func rawPurge(_ path: String, _ tree: TreeSnapshot, _ saved: [shou_win_info], ca
         let partialTree=try fs.inspect(partialRoot, budget: ScanBudget(), cancelled: { false })
         cancellationRemaining=partialTree.entries.count + 2
         let stopped=rawPurge(partialRoot, partialTree, try savedManifest(partialRoot, partialTree), cancelled: {
-            cancellationRemaining -= 1; return cancellationRemaining <= 0 ? 1 : 0
+            WindowsTests.cancellationRemaining -= 1
+            return WindowsTests.cancellationRemaining <= 0 ? 1 : 0
         })
         try require(stopped.code == 1223 && stopped.removed == 1 && FileManager.default.fileExists(atPath: partialRoot) && !FileManager.default.fileExists(atPath: partialRoot + "/nested/fixture.bin"), "Cancellation must report the partial removal count")
         print("PASS native permanent cancellation reports partially removed manifest")
