@@ -120,7 +120,7 @@ struct Inventory {
         // HKCU registry views can resolve to the same physical registration.
         // Retain distinct installations while collapsing identical view aliases.
         auto alias=utf8(registration)+std::string(1,'\0')+evidence;if(!aliases.insert(alias).second)return;
-        auto id=hash(source.id+std::string(1,'\0')+utf8(registration));
+        auto id="sha256:"+hash(source.id+std::string(1,'\0')+utf8(registration));
         std::string row="{\"id\":"+quote(id)+",\"source_id\":"+quote(source.id)+",\"registration\":"+q(registration)+",\"name\":"+q(name)+",\"version\":"+optional(version)+",\"publisher\":"+optional(publisher)+",\"install_location\":"+optional(location)+",\"estimated_bytes\":"+size+",\"kind\":"+quote(kind)+",\"system_component\":"+(system?"true":"false")+",\"uninstall_available\":"+uninstall+",\"package_family_name\":"+optional(family)+",\"evidence_digest\":"+quote(evidence)+"}";
         if(bytes+row.size()>6*1024*1024){bytes=6*1024*1024;issue(source,source.path,"resource_limit");return;}
         bytes+=row.size();items.push_back(row);++source.applications;

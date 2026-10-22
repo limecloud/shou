@@ -4,6 +4,7 @@ import argparse
 import importlib.util
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -54,7 +55,7 @@ def main():
             assert {row["definition"]["source_id"] for row in data["items"]} <= expected
             for row in data["items"]:
                 definition = row["definition"]
-                assert len(row["digest"]) == 64
+                assert re.fullmatch(r"sha256:[0-9a-f]{64}", row["digest"]), row["digest"]
                 if definition["source_id"] != "windows.scheduled_tasks":
                     assert definition["control_capability"] == "system_settings"
             print(f"PASS Windows startup source coverage: system={include_system}, status={inventory['status']}, items={len(data['items'])}")
