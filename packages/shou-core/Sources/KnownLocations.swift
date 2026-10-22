@@ -85,8 +85,6 @@ public enum KnownLocations {
     public static var currentPlatform: String {
         #if os(macOS)
         "macos"
-        #elseif os(Windows)
-        "windows"
         #else
         "unsupported"
         #endif

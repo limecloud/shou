@@ -10,7 +10,6 @@ private final class ToolFixtureRunner: CleanupToolRunning, @unchecked Sendable {
     var changed=false
     var failMutation=false
     var platform: CleanupToolPlatform = .macOS
-    var windowsEndpoint="npipe:////./pipe/docker_engine"
     var replaceBeforeMutation=false
     var onPreview: (@Sendable () -> Void)?
     var mutationCount: Int { lock.lock(); defer { lock.unlock() }; return mutations.count }
@@ -25,7 +24,7 @@ private final class ToolFixtureRunner: CleanupToolRunning, @unchecked Sendable {
         }
         let text: String
         switch command {
-        case .dockerContext: text=remote ? "\"tcp://remote:2376\"" : platform == .windows ? "\""+windowsEndpoint+"\"" : "\"unix:///var/run/docker.sock\""
+        case .dockerContext: text=remote ? "\"tcp://remote:2376\"" : "\"unix:///var/run/docker.sock\""
         case .dockerPreview: text="{\"Type\":\"Build Cache\",\"Reclaimable\":\"" + (removed.contains("docker") ? "0B" : changed ? "4MB" : "2MB") + "\"}\n"
         case .brewPreview: text=removed.contains("brew") ? "" : "Would remove: /fixture/old (3MB)\n"
         case .condaPreview: text="{\"success\":true,\"tarballs\":{\"total_size\":" + (removed.contains("conda") ? "0" : "4096") + "}}"
@@ -78,27 +77,6 @@ func toolCleanupRejectsRemoteStaleAndUnknownOutcomes() async throws {
     try expect(runner.mutationCount == 1)
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
     try expectThrows { try NativeCleanupTools().run(.rustRemove("--default"), timeoutSeconds: 1) }
-}
-
-func toolCleanupSupportsWindowsScopeAndBindsMutationImage() async throws {
-    let fixture=try Fixture(), runner=ToolFixtureRunner();runner.platform = .windows
-    let service=ToolCleanupService(runner: runner, store: fixture.store)
-    let scan=try await service.scan()
-    try expect(scan.issues.isEmpty && Set(scan.targets.map(\.tool)) == ["docker","conda","rustup"])
-    let target=try require(scan.targets.first { $0.tool == "docker" })
-    let plan=try await service.createPlan(scanId: scan.id, targetId: target.id)
-    for endpoint in ["tcp://remote:2376","unix:///var/run/docker.sock","npipe:////remote/pipe/docker_engine","npipe:////./pipe/other_engine"] {
-        runner.windowsEndpoint=endpoint
-        let refused=try await service.scan()
-        try expect(!refused.targets.contains { $0.tool == "docker" } && refused.issues.contains { $0.code == "remote_context" })
-    }
-    runner.windowsEndpoint="npipe:////./pipe/docker_engine";runner.replaceBeforeMutation=true
-    let receipt=try await service.execute(planId: plan.id, confirmedDigest: plan.digest)
-    try expect(receipt.state == "unknown" && receipt.error == "tool_changed" && runner.mutationCount == 0)
-    try await expectThrows { try await service.execute(planId: plan.id, confirmedDigest: plan.digest) }
-    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
-    try expectThrows { try WindowsCleanupTools().run(.rustRemove("--default"), timeoutSeconds: 1) }
-    try expectThrows { try WindowsCleanupTools().run(.brewPreview, timeoutSeconds: 1) }
 }
 
 private final class ToolCleanupClock: @unchecked Sendable {

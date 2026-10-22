@@ -65,7 +65,7 @@ Shou v0.11.0 支援 **macOS 14 以上版本**，通用版本適用於 Apple Sili
 
 ## 致謝
 
-[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## 授權條款
 

@@ -100,7 +100,7 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
         ShouError(errno == EACCES || errno == EPERM ? "permission_denied" : "privacy_identity_unavailable", "The privacy database identity or access could not be verified.")
     }
 }
-#elseif !os(Windows)
+#else
 public struct NativePrivacySources: PrivacySourceDiscovering {
     public init() {}
     public func discover(home: URL) throws -> [PrivacySourceDefinition] {

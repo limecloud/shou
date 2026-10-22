@@ -40,9 +40,9 @@ sequenceDiagram
     participant Pool as Directory workers (1..8)
     participant DB as Serialized catalog writer
     UI->>Parent: Analyze an explicit root
-    Parent->>Pool: Queue root; retain cancellation context
+    Parent->>Pool: Queue root, retain cancellation context
     loop Independent directories
-        Pool->>Pool: Check cancellation; read bulk metadata
+        Pool->>Pool: Check cancellation, read bulk metadata
         Pool->>DB: Append validated page in batches of at most 128
         Pool-->>UI: Throttled entry count and path
         Pool->>Pool: Queue children without waiting in a reader
@@ -51,14 +51,14 @@ sequenceDiagram
     Pool->>DB: Postorder totals and subtree coverage
     Pool-->>Parent: Join every reader and finalizer
     alt Cancelled or storage failure
-        Parent-->>UI: Error; do not publish scan
+        Parent-->>UI: Error, do not publish scan
     else Complete or explicit partial coverage
         Parent->>DB: Seal transaction and indexes
         Parent-->>UI: Publish scan ID and measured count
     end
     UI->>DB: Query one directory or large-file page
     DB-->>UI: Measured entries and coverage
-    UI->>UI: Cache directory sort/filter; apply selection as one batch
+    UI->>UI: Cache directory sort/filter, apply selection as one batch
 ```
 
 ## Saved results and desktop interaction
@@ -135,11 +135,11 @@ This compares compatible saved formats; existing catalogs obtain the new index o
 
 ## Platform scope
 
-The page-streaming and catalog-lock changes are implemented in the macOS native adapter. Partial catalog indexing, selection normalization and immutable bundled-rule validation live in shared Swift Core. Windows uses its separate platform traversal; its progress paths and process-bridge behavior are synchronized. The WPF Release cross-build and 12 process-bridge checks passed on this Mac. Windows native C++ traversal and actual Windows UI/runtime performance remain unverified here.
+macOS adapters own paged reads, bounded scheduling and index writes. Windows traversal, accounting, cancellation and performance will be implemented and verified independently under the native plan.
 
 ### Progress presentation
 
-Discovery has no fixed denominator and shows a live entry count. Once a stage has a known set of work, `ScanProgress.completedUnitCount` / `totalUnitCount` report its actual completion: catalog sealing statements, transferred pages, validated entries and durable result pages. The percentage describes the named stage, not elapsed time or whole-disk coverage. A partial scan can finish saving at 100% while retaining incomplete coverage. Both desktops shorten long progress paths only in the middle, retaining the path origin and filename suffix without splitting Unicode text elements. macOS passes the complete single-line path to native middle truncation; Windows fits the text to its measured width with a 64-text-element cap. Avoid pre-shortening followed by another layout truncation, which creates two ellipses. The original path is available on hover. CLI and bridge paths retain their complete values.
+macOS adapters own paged reads, bounded scheduling and index writes. Windows traversal, accounting, cancellation and performance will be implemented and verified independently under the native plan.
 
 Permanent removal additionally reports manifest-entry progress inside the current selected item. These transient updates do not replace the durable receipt or treat failed items as successfully removed.
 
@@ -156,4 +156,4 @@ python3 "scripts/benchmark-storage-finalizers.py" \
   --evidence ".build/storage-finalizer-comparison/new-run"
 ```
 
-Many-file deletion and immutable journal comparisons are recorded separately in the [0.9.0 plan](next-version-0.9.0.md); they do not establish scan acceleration.
+Many-file deletion and immutable journal comparisons are recorded separately in the [0.9.0 plan](cleanup-delivery.md); they do not establish scan acceleration.

@@ -1720,7 +1720,7 @@
     "applicationBundleIdentifiers": []
   },
   {
-    "id": "shou.builtin.mole-zed-cache",
+    "id": "shou.builtin.app-zed-cache",
     "version": "1.0.0",
     "name": "Zed caches",
     "category": "cache",
@@ -1740,7 +1740,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-us-zoom-xos-cache",
+    "id": "shou.builtin.app-us-zoom-xos-cache",
     "version": "1.0.0",
     "name": "Zoom caches",
     "category": "cache",
@@ -1760,7 +1760,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-ru-keepcoder-telegram-cache",
+    "id": "shou.builtin.app-ru-keepcoder-telegram-cache",
     "version": "1.0.0",
     "name": "Telegram caches",
     "category": "cache",
@@ -1780,7 +1780,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-net-whatsapp-whatsapp-cache",
+    "id": "shou.builtin.app-net-whatsapp-whatsapp-cache",
     "version": "1.0.0",
     "name": "WhatsApp caches",
     "category": "cache",
@@ -1800,7 +1800,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-skype-skype-cache",
+    "id": "shou.builtin.app-com-skype-skype-cache",
     "version": "1.0.0",
     "name": "Skype caches",
     "category": "cache",
@@ -1820,7 +1820,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tencent-weworkmac-cache",
+    "id": "shou.builtin.app-com-tencent-weworkmac-cache",
     "version": "1.0.0",
     "name": "WeCom caches",
     "category": "cache",
@@ -1840,7 +1840,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-openai-chat-cache",
+    "id": "shou.builtin.app-com-openai-chat-cache",
     "version": "1.0.0",
     "name": "ChatGPT caches",
     "category": "cache",
@@ -1861,7 +1861,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-lmstudio-lmstudio-cache",
+    "id": "shou.builtin.app-com-lmstudio-lmstudio-cache",
     "version": "1.0.0",
     "name": "LM Studio caches",
     "category": "cache",
@@ -1881,7 +1881,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-bohemiancoding-sketch3-cache",
+    "id": "shou.builtin.app-com-bohemiancoding-sketch3-cache",
     "version": "1.0.0",
     "name": "Sketch caches",
     "category": "cache",
@@ -1901,7 +1901,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-adobe-bridge-cache",
+    "id": "shou.builtin.app-com-adobe-bridge-cache",
     "version": "1.0.0",
     "name": "Adobe Bridge caches",
     "category": "cache",
@@ -1921,7 +1921,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-net-telestream-screenflow10-cache",
+    "id": "shou.builtin.app-net-telestream-screenflow10-cache",
     "version": "1.0.0",
     "name": "ScreenFlow caches",
     "category": "cache",
@@ -1941,7 +1941,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-apple-finalcut-cache",
+    "id": "shou.builtin.app-com-apple-finalcut-cache",
     "version": "1.0.0",
     "name": "Final Cut Pro caches",
     "category": "cache",
@@ -1961,7 +1961,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-blackmagic-design-davinciresolve-cache",
+    "id": "shou.builtin.app-com-blackmagic-design-davinciresolve-cache",
     "version": "1.0.0",
     "name": "DaVinci Resolve caches",
     "category": "cache",
@@ -1981,7 +1981,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-org-blenderfoundation-blender-cache",
+    "id": "shou.builtin.app-org-blenderfoundation-blender-cache",
     "version": "1.0.0",
     "name": "Blender caches",
     "category": "cache",
@@ -2001,7 +2001,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-maxon-cinema4d-cache",
+    "id": "shou.builtin.app-com-maxon-cinema4d-cache",
     "version": "1.0.0",
     "name": "Cinema 4D caches",
     "category": "cache",
@@ -2021,7 +2021,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tw93-miaoyan-cache",
+    "id": "shou.builtin.app-com-tw93-miaoyan-cache",
     "version": "1.0.0",
     "name": "MiaoYan caches",
     "category": "cache",
@@ -2041,7 +2041,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-klee-desktop-cache",
+    "id": "shou.builtin.app-com-klee-desktop-cache",
     "version": "1.0.0",
     "name": "Klee caches",
     "category": "cache",
@@ -2061,7 +2061,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-orabrowser-app-cache",
+    "id": "shou.builtin.app-com-orabrowser-app-cache",
     "version": "1.0.0",
     "name": "Ora browser caches",
     "category": "cache",
@@ -2081,7 +2081,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-filo-client-cache",
+    "id": "shou.builtin.app-com-filo-client-cache",
     "version": "1.0.0",
     "name": "Filo caches",
     "category": "cache",
@@ -2101,7 +2101,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-flomoapp-mac-cache",
+    "id": "shou.builtin.app-com-flomoapp-mac-cache",
     "version": "1.0.0",
     "name": "Flomo caches",
     "category": "cache",
@@ -2121,7 +2121,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-apple-music-cache",
+    "id": "shou.builtin.app-com-apple-music-cache",
     "version": "1.0.0",
     "name": "Apple Music caches",
     "category": "cache",
@@ -2141,7 +2141,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-apple-podcasts-cache",
+    "id": "shou.builtin.app-com-apple-podcasts-cache",
     "version": "1.0.0",
     "name": "Apple Podcasts caches",
     "category": "cache",
@@ -2161,7 +2161,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-apple-tv-cache",
+    "id": "shou.builtin.app-com-apple-tv-cache",
     "version": "1.0.0",
     "name": "Apple TV caches",
     "category": "cache",
@@ -2181,7 +2181,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-tv-plex-player-desktop-cache",
+    "id": "shou.builtin.app-tv-plex-player-desktop-cache",
     "version": "1.0.0",
     "name": "Plex caches",
     "category": "cache",
@@ -2201,7 +2201,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-netease-163music-cache",
+    "id": "shou.builtin.app-com-netease-163music-cache",
     "version": "1.0.0",
     "name": "NetEase Music caches",
     "category": "cache",
@@ -2221,7 +2221,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tencent-qqmusic-cache",
+    "id": "shou.builtin.app-com-tencent-qqmusic-cache",
     "version": "1.0.0",
     "name": "QQ Music caches",
     "category": "cache",
@@ -2241,7 +2241,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tencent-qqmusicmac-cache",
+    "id": "shou.builtin.app-com-tencent-qqmusicmac-cache",
     "version": "1.0.0",
     "name": "QQ Music Mac caches",
     "category": "cache",
@@ -2261,7 +2261,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-kugou-mac-cache",
+    "id": "shou.builtin.app-com-kugou-mac-cache",
     "version": "1.0.0",
     "name": "Kugou Music caches",
     "category": "cache",
@@ -2281,7 +2281,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-kuwo-mac-cache",
+    "id": "shou.builtin.app-com-kuwo-mac-cache",
     "version": "1.0.0",
     "name": "Kuwo Music caches",
     "category": "cache",
@@ -2301,7 +2301,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-colliderli-iina-cache",
+    "id": "shou.builtin.app-com-colliderli-iina-cache",
     "version": "1.0.0",
     "name": "IINA caches",
     "category": "cache",
@@ -2321,7 +2321,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-org-videolan-vlc-cache",
+    "id": "shou.builtin.app-org-videolan-vlc-cache",
     "version": "1.0.0",
     "name": "VLC caches",
     "category": "cache",
@@ -2341,7 +2341,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-io-mpv-cache",
+    "id": "shou.builtin.app-io-mpv-cache",
     "version": "1.0.0",
     "name": "MPV caches",
     "category": "cache",
@@ -2361,7 +2361,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-iqiyi-player-cache",
+    "id": "shou.builtin.app-com-iqiyi-player-cache",
     "version": "1.0.0",
     "name": "iQIYI caches",
     "category": "cache",
@@ -2381,7 +2381,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tencent-tenvideo-cache",
+    "id": "shou.builtin.app-com-tencent-tenvideo-cache",
     "version": "1.0.0",
     "name": "Tencent Video caches",
     "category": "cache",
@@ -2401,7 +2401,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-tv-danmaku-bili-cache",
+    "id": "shou.builtin.app-tv-danmaku-bili-cache",
     "version": "1.0.0",
     "name": "Bilibili caches",
     "category": "cache",
@@ -2421,7 +2421,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-net-xmac-aria2gui-cache",
+    "id": "shou.builtin.app-net-xmac-aria2gui-cache",
     "version": "1.0.0",
     "name": "Aria2 caches",
     "category": "cache",
@@ -2441,7 +2441,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-org-m0k-transmission-cache",
+    "id": "shou.builtin.app-org-m0k-transmission-cache",
     "version": "1.0.0",
     "name": "Transmission caches",
     "category": "cache",
@@ -2461,7 +2461,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-qbittorrent-qbittorrent-cache",
+    "id": "shou.builtin.app-com-qbittorrent-qbittorrent-cache",
     "version": "1.0.0",
     "name": "qBittorrent caches",
     "category": "cache",
@@ -2481,7 +2481,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-charlessoft-pacifist-cache",
+    "id": "shou.builtin.app-com-charlessoft-pacifist-cache",
     "version": "1.0.0",
     "name": "Pacifist caches",
     "category": "cache",
@@ -2501,7 +2501,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-valvesoftware-steam-cache",
+    "id": "shou.builtin.app-com-valvesoftware-steam-cache",
     "version": "1.0.0",
     "name": "Steam caches",
     "category": "cache",
@@ -2521,7 +2521,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-epicgames-epicgameslauncher-cache",
+    "id": "shou.builtin.app-com-epicgames-epicgameslauncher-cache",
     "version": "1.0.0",
     "name": "Epic Games caches",
     "category": "cache",
@@ -2541,7 +2541,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-blizzard-battle-net-cache",
+    "id": "shou.builtin.app-com-blizzard-battle-net-cache",
     "version": "1.0.0",
     "name": "Battle.net caches",
     "category": "cache",
@@ -2561,7 +2561,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-gog-galaxy-cache",
+    "id": "shou.builtin.app-com-gog-galaxy-cache",
     "version": "1.0.0",
     "name": "GOG Galaxy caches",
     "category": "cache",
@@ -2581,7 +2581,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-net-pcsx2-pcsx2-cache",
+    "id": "shou.builtin.app-net-pcsx2-pcsx2-cache",
     "version": "1.0.0",
     "name": "PCSX2 caches",
     "category": "cache",
@@ -2601,7 +2601,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-net-rpcs3-rpcs3-cache",
+    "id": "shou.builtin.app-net-rpcs3-rpcs3-cache",
     "version": "1.0.0",
     "name": "RPCS3 caches",
     "category": "cache",
@@ -2621,7 +2621,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-youdao-youdaodict-cache",
+    "id": "shou.builtin.app-com-youdao-youdaodict-cache",
     "version": "1.0.0",
     "name": "Youdao Dictionary caches",
     "category": "cache",
@@ -2641,7 +2641,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-bob-build-bob-cache",
+    "id": "shou.builtin.app-com-bob-build-bob-cache",
     "version": "1.0.0",
     "name": "Bob Translation caches",
     "category": "cache",
@@ -2661,7 +2661,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-reincubate-camo-cache",
+    "id": "shou.builtin.app-com-reincubate-camo-cache",
     "version": "1.0.0",
     "name": "Camo caches",
     "category": "cache",
@@ -2681,7 +2681,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-xnipapp-xnip-cache",
+    "id": "shou.builtin.app-com-xnipapp-xnip-cache",
     "version": "1.0.0",
     "name": "Xnip caches",
     "category": "cache",
@@ -2701,7 +2701,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-readdle-smartemail-mac-cache",
+    "id": "shou.builtin.app-com-readdle-smartemail-mac-cache",
     "version": "1.0.0",
     "name": "Spark caches",
     "category": "cache",
@@ -2721,7 +2721,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-todoist-mac-todoist-cache",
+    "id": "shou.builtin.app-com-todoist-mac-todoist-cache",
     "version": "1.0.0",
     "name": "Todoist caches",
     "category": "cache",
@@ -2741,7 +2741,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-dev-warp-warp-stable-cache",
+    "id": "shou.builtin.app-dev-warp-warp-stable-cache",
     "version": "1.0.0",
     "name": "Warp caches",
     "category": "cache",
@@ -2761,7 +2761,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-mitchellh-ghostty-cache",
+    "id": "shou.builtin.app-com-mitchellh-ghostty-cache",
     "version": "1.0.0",
     "name": "Ghostty caches",
     "category": "cache",
@@ -2781,7 +2781,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-runjuu-input-source-pro-cache",
+    "id": "shou.builtin.app-com-runjuu-input-source-pro-cache",
     "version": "1.0.0",
     "name": "Input Source Pro caches",
     "category": "cache",
@@ -2801,7 +2801,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-macos-wakatime-wakatime-cache",
+    "id": "shou.builtin.app-macos-wakatime-wakatime-cache",
     "version": "1.0.0",
     "name": "WakaTime caches",
     "category": "cache",
@@ -2821,7 +2821,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-ws-stash-app-mac-cache",
+    "id": "shou.builtin.app-ws-stash-app-mac-cache",
     "version": "1.0.0",
     "name": "Stash caches",
     "category": "cache",
@@ -2841,7 +2841,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-logseq-logseq-cache",
+    "id": "shou.builtin.app-com-logseq-logseq-cache",
     "version": "1.0.0",
     "name": "Logseq caches",
     "category": "cache",
@@ -2861,7 +2861,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-runningwithcrayons-alfred-cache",
+    "id": "shou.builtin.app-com-runningwithcrayons-alfred-cache",
     "version": "1.0.0",
     "name": "Alfred caches",
     "category": "cache",
@@ -2881,7 +2881,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-cx-c3-theunarchiver-cache",
+    "id": "shou.builtin.app-cx-c3-theunarchiver-cache",
     "version": "1.0.0",
     "name": "The Unarchiver caches",
     "category": "cache",
@@ -2901,7 +2901,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-teamviewer-teamviewer-cache",
+    "id": "shou.builtin.app-com-teamviewer-teamviewer-cache",
     "version": "1.0.0",
     "name": "TeamViewer caches",
     "category": "cache",
@@ -2921,7 +2921,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-sequel-ace-sequel-ace-cache",
+    "id": "shou.builtin.app-com-sequel-ace-sequel-ace-cache",
     "version": "1.0.0",
     "name": "Sequel Ace caches",
     "category": "cache",
@@ -2941,7 +2941,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-eggerapps-sequel-pro-cache",
+    "id": "shou.builtin.app-com-eggerapps-sequel-pro-cache",
     "version": "1.0.0",
     "name": "Sequel Pro caches",
     "category": "cache",
@@ -2961,7 +2961,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-navicat-navicatpremium-cache",
+    "id": "shou.builtin.app-com-navicat-navicatpremium-cache",
     "version": "1.0.0",
     "name": "Navicat Premium caches",
     "category": "cache",
@@ -2981,7 +2981,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-redis-redisinsight-cache",
+    "id": "shou.builtin.app-com-redis-redisinsight-cache",
     "version": "1.0.0",
     "name": "Redis Insight caches",
     "category": "cache",
@@ -3001,7 +3001,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-postmanlabs-mac-cache",
+    "id": "shou.builtin.app-com-postmanlabs-mac-cache",
     "version": "1.0.0",
     "name": "Postman caches",
     "category": "cache",
@@ -3021,7 +3021,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-konghq-insomnia-cache",
+    "id": "shou.builtin.app-com-konghq-insomnia-cache",
     "version": "1.0.0",
     "name": "Insomnia caches",
     "category": "cache",
@@ -3042,7 +3042,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tinyapp-tableplus-cache",
+    "id": "shou.builtin.app-com-tinyapp-tableplus-cache",
     "version": "1.0.0",
     "name": "TablePlus caches",
     "category": "cache",
@@ -3062,7 +3062,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-getpaw-paw-cache",
+    "id": "shou.builtin.app-com-getpaw-paw-cache",
     "version": "1.0.0",
     "name": "Paw API caches",
     "category": "cache",
@@ -3082,7 +3082,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-charlesproxy-charles-cache",
+    "id": "shou.builtin.app-com-charlesproxy-charles-cache",
     "version": "1.0.0",
     "name": "Charles Proxy caches",
     "category": "cache",
@@ -3102,7 +3102,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-proxyman-nsproxy-cache",
+    "id": "shou.builtin.app-com-proxyman-nsproxy-cache",
     "version": "1.0.0",
     "name": "Proxyman caches",
     "category": "cache",
@@ -3122,7 +3122,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-unity3d-unityhub-cache",
+    "id": "shou.builtin.app-com-unity3d-unityhub-cache",
     "version": "1.0.0",
     "name": "Unity Hub caches",
     "category": "cache",
@@ -3142,7 +3142,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-mongodb-compass-cache",
+    "id": "shou.builtin.app-com-mongodb-compass-cache",
     "version": "1.0.0",
     "name": "MongoDB Compass caches",
     "category": "cache",
@@ -3162,7 +3162,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-github-githubdesktop-cache",
+    "id": "shou.builtin.app-com-github-githubdesktop-cache",
     "version": "1.0.0",
     "name": "GitHub Desktop caches",
     "category": "cache",
@@ -3182,7 +3182,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-apple-safari-cache",
+    "id": "shou.builtin.app-com-apple-safari-cache",
     "version": "1.0.0",
     "name": "Safari caches",
     "category": "cache",
@@ -3202,7 +3202,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-microsoft-edgemac-cache",
+    "id": "shou.builtin.app-com-microsoft-edgemac-cache",
     "version": "1.0.0",
     "name": "Edge caches",
     "category": "cache",
@@ -3222,7 +3222,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-company-thebrowser-dia-cache",
+    "id": "shou.builtin.app-company-thebrowser-dia-cache",
     "version": "1.0.0",
     "name": "Dia caches",
     "category": "cache",
@@ -3242,7 +3242,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-net-imput-helium-cache",
+    "id": "shou.builtin.app-net-imput-helium-cache",
     "version": "1.0.0",
     "name": "Helium caches",
     "category": "cache",
@@ -3262,7 +3262,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-yandex-yandexbrowser-cache",
+    "id": "shou.builtin.app-yandex-yandexbrowser-cache",
     "version": "1.0.0",
     "name": "Yandex caches",
     "category": "cache",
@@ -3282,7 +3282,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-operasoftware-opera-cache",
+    "id": "shou.builtin.app-com-operasoftware-opera-cache",
     "version": "1.0.0",
     "name": "Opera caches",
     "category": "cache",
@@ -3302,7 +3302,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-comet-cache",
+    "id": "shou.builtin.app-comet-cache",
     "version": "1.0.0",
     "name": "Comet caches",
     "category": "cache",
@@ -3322,7 +3322,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-kagi-kagimacos-cache",
+    "id": "shou.builtin.app-com-kagi-kagimacos-cache",
     "version": "1.0.0",
     "name": "Orion caches",
     "category": "cache",
@@ -3342,7 +3342,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-zen-cache",
+    "id": "shou.builtin.app-zen-cache",
     "version": "1.0.0",
     "name": "Zen caches",
     "category": "cache",
@@ -3362,7 +3362,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-tencent-qqbrowser3-cache",
+    "id": "shou.builtin.app-com-tencent-qqbrowser3-cache",
     "version": "1.0.0",
     "name": "QQ Browser caches",
     "category": "cache",
@@ -3382,7 +3382,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-baidu-netdisk-cache",
+    "id": "shou.builtin.app-com-baidu-netdisk-cache",
     "version": "1.0.0",
     "name": "Baidu Netdisk caches",
     "category": "cache",
@@ -3402,7 +3402,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-alibaba-teambitiondisk-cache",
+    "id": "shou.builtin.app-com-alibaba-teambitiondisk-cache",
     "version": "1.0.0",
     "name": "Alibaba Cloud caches",
     "category": "cache",
@@ -3422,7 +3422,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-box-desktop-cache",
+    "id": "shou.builtin.app-com-box-desktop-cache",
     "version": "1.0.0",
     "name": "Box caches",
     "category": "cache",
@@ -3442,7 +3442,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-microsoft-word-cache",
+    "id": "shou.builtin.app-com-microsoft-word-cache",
     "version": "1.0.0",
     "name": "Microsoft Word caches",
     "category": "cache",
@@ -3462,7 +3462,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-microsoft-excel-cache",
+    "id": "shou.builtin.app-com-microsoft-excel-cache",
     "version": "1.0.0",
     "name": "Microsoft Excel caches",
     "category": "cache",
@@ -3482,7 +3482,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-microsoft-powerpoint-cache",
+    "id": "shou.builtin.app-com-microsoft-powerpoint-cache",
     "version": "1.0.0",
     "name": "Microsoft PowerPoint caches",
     "category": "cache",
@@ -3502,7 +3502,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-kingsoft-wpsoffice-mac-cache",
+    "id": "shou.builtin.app-com-kingsoft-wpsoffice-mac-cache",
     "version": "1.0.0",
     "name": "WPS Office caches",
     "category": "cache",
@@ -3522,7 +3522,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-org-mozilla-thunderbird-cache",
+    "id": "shou.builtin.app-org-mozilla-thunderbird-cache",
     "version": "1.0.0",
     "name": "Thunderbird caches",
     "category": "cache",
@@ -3542,7 +3542,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-utmapp-utm-cache",
+    "id": "shou.builtin.app-com-utmapp-utm-cache",
     "version": "1.0.0",
     "name": "UTM app caches",
     "category": "cache",
@@ -3562,7 +3562,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-vmware-fusion-cache",
+    "id": "shou.builtin.app-com-vmware-fusion-cache",
     "version": "1.0.0",
     "name": "VMware Fusion caches",
     "category": "cache",
@@ -3582,7 +3582,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-com-parallels-desktop-console-cache",
+    "id": "shou.builtin.app-com-parallels-desktop-console-cache",
     "version": "1.0.0",
     "name": "Parallels Desktop caches",
     "category": "cache",
@@ -4031,7 +4031,7 @@
     ]
   },
   {
-    "id": "shou.builtin.vscode-mole-caches",
+    "id": "shou.builtin.vscode-app-caches",
     "version": "1.0.0",
     "name": "Visual Studio Code web caches",
     "category": "cache",
@@ -4052,7 +4052,7 @@
     ]
   },
   {
-    "id": "shou.builtin.notion-mole-caches",
+    "id": "shou.builtin.notion-app-caches",
     "version": "1.0.0",
     "name": "Notion web caches",
     "category": "cache",
@@ -4072,7 +4072,7 @@
     ]
   },
   {
-    "id": "shou.builtin.teams-mole-caches",
+    "id": "shou.builtin.teams-app-caches",
     "version": "1.0.0",
     "name": "Microsoft Teams web caches",
     "category": "cache",
@@ -4286,7 +4286,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-developer-cache",
+    "id": "shou.builtin.app-developer-cache",
     "version": "1.0.0",
     "name": "Developer generated caches",
     "category": "packages",
@@ -4313,7 +4313,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-pyenv-downloads",
+    "id": "shou.builtin.app-pyenv-downloads",
     "version": "1.0.0",
     "name": "pyenv download caches",
     "category": "packages",
@@ -4331,7 +4331,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-rbenv-downloads",
+    "id": "shou.builtin.app-rbenv-downloads",
     "version": "1.0.0",
     "name": "rbenv download caches",
     "category": "packages",
@@ -4349,7 +4349,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-bundler-downloads",
+    "id": "shou.builtin.app-bundler-downloads",
     "version": "1.0.0",
     "name": "Bundler download caches",
     "category": "packages",
@@ -4367,7 +4367,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-hex-downloads",
+    "id": "shou.builtin.app-hex-downloads",
     "version": "1.0.0",
     "name": "Hex download caches",
     "category": "packages",
@@ -4385,7 +4385,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-opam-downloads",
+    "id": "shou.builtin.app-opam-downloads",
     "version": "1.0.0",
     "name": "Opam download caches",
     "category": "packages",
@@ -4403,7 +4403,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-android-generated",
+    "id": "shou.builtin.app-android-generated",
     "version": "1.0.0",
     "name": "Android generated caches",
     "category": "packages",
@@ -4422,7 +4422,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-expo-downloads",
+    "id": "shou.builtin.app-expo-downloads",
     "version": "1.0.0",
     "name": "Expo download caches",
     "category": "packages",
@@ -4446,7 +4446,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-turbo-downloads",
+    "id": "shou.builtin.app-turbo-downloads",
     "version": "1.0.0",
     "name": "Turbo generated caches",
     "category": "packages",
@@ -4464,7 +4464,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-vite-downloads",
+    "id": "shou.builtin.app-vite-downloads",
     "version": "1.0.0",
     "name": "Vite generated caches",
     "category": "packages",
@@ -4482,7 +4482,7 @@
     ]
   },
   {
-    "id": "shou.builtin.mole-docker-buildx",
+    "id": "shou.builtin.app-docker-buildx",
     "version": "1.0.0",
     "name": "Docker BuildX caches",
     "category": "packages",

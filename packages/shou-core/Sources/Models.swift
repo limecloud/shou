@@ -1,16 +1,5 @@
 import Foundation
 
-/// Windows identities must retain the entire File ID and SID, without hashing
-/// either value into POSIX compatibility fields.
-public struct WindowsFileIdentity: Codable, Sendable, Equatable {
-    public let volume: UInt64
-    public let fileId: String
-    public let ownerSid: String
-    public init(volume: UInt64, fileId: String, ownerSid: String) {
-        self.volume=volume; self.fileId=fileId; self.ownerSid=ownerSid
-    }
-}
-
 public struct FileEntry: Codable, Sendable, Equatable {
     public var path: String
     public var kind: String
@@ -24,27 +13,17 @@ public struct FileEntry: Codable, Sendable, Equatable {
     public var owner: UInt32
     public var links: UInt64
     public var contentDigest: String? = nil
-    public var windowsIdentity: WindowsFileIdentity? = nil
     public init(path: String, kind: String, device: UInt64, inode: UInt64, logicalBytes: Int64, allocatedBytes: Int64, modifiedNanoseconds: Int64, changedNanoseconds: Int64, mode: UInt32, owner: UInt32, links: UInt64) {
         self.path=path; self.kind=kind; self.device=device; self.inode=inode; self.logicalBytes=logicalBytes; self.allocatedBytes=allocatedBytes
         self.modifiedNanoseconds=modifiedNanoseconds; self.changedNanoseconds=changedNanoseconds; self.mode=mode; self.owner=owner; self.links=links
     }
     public func sameObject(as other: FileEntry) -> Bool {
-        if windowsIdentity != nil || other.windowsIdentity != nil {
-            guard let a=windowsIdentity, let b=other.windowsIdentity else { return false }
-            return a.volume == b.volume && a.fileId == b.fileId && kind == other.kind
-        }
         return device == other.device && inode == other.inode && kind == other.kind
     }
     public func hasSameOwner(as other: FileEntry) -> Bool {
-        if windowsIdentity != nil || other.windowsIdentity != nil {
-            guard let a=windowsIdentity, let b=other.windowsIdentity else { return false }
-            return a.ownerSid == b.ownerSid
-        }
         return owner == other.owner
     }
     public var objectIdentityKey: String {
-        if let identity=windowsIdentity { return "windows:\(identity.volume):\(identity.fileId)" }
         return "posix:\(device):\(inode)"
     }
     public var metadata: FileEntry { var copy=self; copy.contentDigest=nil; return copy }
@@ -246,7 +225,6 @@ public struct ItemReceipt: Codable, Sendable, Identifiable {
     public var allocatedBytesEstimate: Int64
     public var error: String?
     public var uninstallOrigin: UninstallReceiptOrigin? = nil
-    public var windowsApplicationDataOrigin: WindowsApplicationDataOrigin? = nil
 }
 public struct ExecutionReceipt: Codable, Sendable, Identifiable {
     public var id: String

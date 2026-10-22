@@ -6,7 +6,7 @@ import Darwin
 import Glibc
 #endif
 
-#if os(Windows) || canImport(Darwin) || canImport(Glibc)
+#if canImport(Darwin) || canImport(Glibc)
 private struct CleanupDirectory {
     let entry: FileEntry
     let depth: Int
@@ -17,19 +17,13 @@ extension NativeFileSystem {
     /// be incomplete, but cannot consume the quota reserved for later targets.
     func inspectCleanupTree(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool,
                             progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
-        #if !os(Windows)
         let privacy=scanPrivacyPolicy
         try privacy.checkRoot(path)
-        #endif
         let root=try CleanupDirectoryAccess(path, cancelled: cancelled)
         defer { withExtendedLifetime(root) {} }
         let rootEntry=try root.entry(relative: ".")
-        #if os(Windows)
-        let caseSensitive=false
-        #else
         let values=try? URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeSupportsCaseSensitiveNamesKey])
         let caseSensitive=values?.volumeSupportsCaseSensitiveNames ?? true
-        #endif
         let prepared=rules.map { rule in (rule, rule.match.relativePatterns.map { PathPattern.Compiled($0, caseSensitive: caseSensitive) }) }
         let markerNames=Set(rules.flatMap { $0.match.projectMarkers?.allOf ?? [] } +
             ["Package.swift", "workspace-state.json", "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile"])
@@ -144,9 +138,7 @@ extension NativeFileSystem {
                     }
                     guard !matches.isEmpty || discover else { continue }
                     entries[child.path]=child; directories[child.path]=child
-                    #if !os(Windows)
                     if privacy.requiresAuthorization(absolute(child.path)) { issues.append("authorization_required: " + child.path); continue }
-                    #endif
                     let childItem=CleanupDirectory(entry: child, depth: item.depth + 1)
                     if !matches.isEmpty { targets.append(childItem) }
                     else { queue.append(childItem) }

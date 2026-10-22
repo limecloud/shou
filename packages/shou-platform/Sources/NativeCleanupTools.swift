@@ -8,9 +8,7 @@ public struct NativeCleanupTools: CleanupToolRunning {
     private let homeDirectory: URL
     public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) { self.homeDirectory=homeDirectory }
     public var platform: CleanupToolPlatform {
-        #if os(Windows)
-        .windows
-        #elseif os(macOS)
+        #if os(macOS)
         .macOS
         #else
         .unsupported
@@ -31,8 +29,6 @@ public struct NativeCleanupTools: CleanupToolRunning {
         guard try identity(executable) == before else { throw ShouError("tool_changed", "The cleanup tool changed while running.") }
         guard let text=String(data: output, encoding: .utf8) else { throw ShouError("unsupported_schema", "The tool returned invalid UTF-8 output.") }
         return .init(text: text, executableIdentity: executable + ":" + before)
-        #elseif os(Windows)
-        return try WindowsCleanupTools(homeDirectory: homeDirectory).run(command, timeoutSeconds: timeoutSeconds, expectedExecutableIdentity: expectedExecutableIdentity)
         #else
         throw ShouError("capability_unavailable", "Tool-managed cleanup is currently available on macOS.")
         #endif

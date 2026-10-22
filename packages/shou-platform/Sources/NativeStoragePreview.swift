@@ -1,8 +1,6 @@
 import Foundation
 import ShouCore
-#if os(Windows)
-import CShouWindows
-#elseif canImport(Darwin)
+#if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
@@ -13,15 +11,6 @@ public struct NativeStoragePreview: StoragePreviewReading {
     public func read(_ path: String, expected: FileEntry, maximumBytes: Int, cancelled: @Sendable () -> Bool) throws -> Data {
         guard expected.kind == "file", (1...4_194_304).contains(maximumBytes) else { throw ShouError("invalid_argument", "Choose a regular file within the preview budget.") }
         if cancelled() { throw ShouError("cancelled", "Preview stopped.") }
-        #if os(Windows)
-        var saved=try WindowsNative.savedInfo(expected), bytes: UnsafeMutableRawPointer?, count=0
-        let code=shou_win_preview_read(path, &saved, maximumBytes, &bytes, &count)
-        defer { shou_win_free(bytes) }
-        try WindowsNative.check(code, path: path)
-        if cancelled() { throw ShouError("cancelled", "Preview stopped.") }
-        guard let bytes else { throw ShouError("io_error", "Preview could not be read.") }
-        return Data(bytes: bytes, count: count)
-        #else
         let (parent, name)=try SecurePaths.parent(path, cancelled: cancelled)
         defer { close(parent) }
         #if canImport(Darwin)
@@ -61,6 +50,5 @@ public struct NativeStoragePreview: StoragePreviewReading {
             data.append(contentsOf: buffer.prefix(count))
         }
         try verify(); return data
-        #endif
     }
 }

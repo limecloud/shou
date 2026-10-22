@@ -4,17 +4,11 @@ import ShouCore
 enum CLICommandDiscovery {
     static func matching(_ command: String) throws -> [CommandSpec] {
         let selected=commands.filter { spec in
-            #if os(Windows)
-            if spec.command != "applications list", !spec.command.hasPrefix("applications installer "), !spec.command.hasPrefix("applications data "), !spec.command.hasPrefix("applications package-data "), !spec.command.hasPrefix("applications usage "), ["applications", "uninstall"].contains(where: { spec.command == $0 || spec.command.hasPrefix($0 + " ") }) { return false }
-            if ["system close-plan", "system close-applications"].contains(spec.command) { return false }
-            if spec.command == "skills export" { return false }
-            #else
             if spec.command == "system close-owners" { return false }
             if spec.command.hasPrefix("applications installer ") { return false }
             if spec.command.hasPrefix("applications data ") { return false }
             if spec.command.hasPrefix("applications package-data ") { return false }
             if spec.command.hasPrefix("applications usage ") { return false }
-            #endif
             return command.isEmpty || spec.command == command || spec.command.hasPrefix(command + " ")
         }
         guard !selected.isEmpty else {

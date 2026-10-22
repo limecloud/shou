@@ -7,27 +7,20 @@ public enum PrivacySourcePolicy {
         ("Microsoft Edge", "com.microsoft.edgemac", "Library/Application Support/Microsoft Edge"),
         ("Brave", "com.brave.Browser", "Library/Application Support/BraveSoftware/Brave-Browser")
     ]
-    public static let windowsChromiumRoots: [(String, String, String)] = [
-        ("Google Chrome", "com.google.Chrome", "AppData/Local/Google/Chrome/User Data"),
-        ("Chromium", "org.chromium.Chromium", "AppData/Local/Chromium/User Data"),
-        ("Microsoft Edge", "com.microsoft.edgemac", "AppData/Local/Microsoft/Edge/User Data"),
-        ("Brave", "com.brave.Browser", "AppData/Local/BraveSoftware/Brave-Browser/User Data")
-    ]
     public static func valid(_ source: PrivacySourceDefinition) -> Bool {
         guard StorageRemovalPolicy.validRelative(source.relativePath), !source.profile.isEmpty,
               !source.profile.contains("/"), !source.profile.contains("\\"), ![".", ".."].contains(source.profile),
               source.profile.rangeOfCharacter(from: .controlCharacters) == nil,
-              source.platform == nil || ["macos", "windows"].contains(source.platform!) else { return false }
-        let windows=source.platform == "windows"
+              source.platform == nil || source.platform == "macos" else { return false }
         switch source.browser {
         case .safari:
-            return !windows && source.bundleIdentifier == "com.apple.Safari" && source.relativePath == "Library/Safari/History.db" && source.kind == .history
+            return source.bundleIdentifier == "com.apple.Safari" && source.relativePath == "Library/Safari/History.db" && source.kind == .history
         case .firefox:
             let suffix=source.kind == .history ? "places.sqlite" : "cookies.sqlite"
-            let root=windows ? "AppData/Roaming/Mozilla/Firefox/Profiles" : "Library/Application Support/Firefox/Profiles"
+            let root="Library/Application Support/Firefox/Profiles"
             return [.history, .cookies].contains(source.kind) && source.bundleIdentifier == "org.mozilla.firefox" && source.relativePath == root + "/\(source.profile)/\(suffix)"
         case .chromium:
-            guard let root=(windows ? windowsChromiumRoots : chromiumRoots).first(where: { $0.1 == source.bundleIdentifier }), source.profile == "Default" || source.profile.range(of: "^Profile [0-9]+$", options: .regularExpression) != nil else { return false }
+            guard let root=chromiumRoots.first(where: { $0.1 == source.bundleIdentifier }), source.profile == "Default" || source.profile.range(of: "^Profile [0-9]+$", options: .regularExpression) != nil else { return false }
             let prefix=root.2 + "/" + source.profile + "/"
             return source.kind == .history ? source.relativePath == prefix + "History" : source.kind == .cookies && [prefix + "Cookies", prefix + "Network/Cookies"].contains(source.relativePath)
         }

@@ -1,135 +1,64 @@
-# Monorepo 与多平台边界
+# 仓库与平台边界
 
 [English](../../architecture/monorepo-and-platforms.md) | 简体中文
 
-状态：正在实现。macOS 优先交付；Windows 已有原生开发版实现，单独设置验收门槛。
+状态：macOS 应用与 Swift CLI 已有源码实现；Windows 架构已定义，实现待开始。
 
-## 1. 组织原则
+## 架构决策
 
-仓库采用原生多平台 monorepo，按产品入口、共享业务、平台适配和公开合同划分职责：
-
-- `apps/` 管理各平台与 CLI 产品入口。
-- `packages/` 管理共享业务、平台能力和公开合同。
-- `scripts/`、`docs/`、`examples/`、`assets/` 独立管理工具、设计、样例与资源。
-- 原生 UI 消费共享业务，不复制业务规则；不同语言可通过结构化进程桥通信。
-- 平台构建成功、原生运行成功与完整分发验收分别记录。
-
-各目录只承载清理工具所需能力。下一阶段内置清理专用 Agent 的调查、模型适配与凭据能力按[系统架构](system-design.md)分层；SDK 类型不进入规则和执行层。移动端与通用 Agent 托管不在本阶段范围。
-
-## 2. 目标目录
-
-根目录 Swift Package 组织 macOS、CLI、共享核心、平台适配与 Windows 原生验证 target；WPF 客户端使用独立 .NET solution。见[本地开发](../engineering/development.md)与 [Windows 实现](../engineering/windows.md)。
-
-```text
-shou/
-├── apps/
-│   ├── macos/                  # Swift / SwiftUI / AppKit
-│   ├── cli/                    # Swift CLI，装配当前平台实现
-│   └── windows/                # C# / .NET 10 / WPF Fluent / MVVM
-├── packages/
-│   ├── shou-core/              # 规则、扫描编排、计划、执行状态机
-│   ├── shou-platform/          # 能力接口、macOS 与未来 Windows 适配
-│   └── shou-contracts/         # JSON Schema、版本与语言无关合同
-├── tests/
-│   └── fixtures/              # 虚构目录、符号链接及合同样例
-├── scripts/                    # 校验、构建、平台打包与基准
-├── examples/
-│   └── rules/                 # 手写或 Agent 生成规则的参考
-├── skills/                     # ShouAgentSupport 与随包规则制定 Skill
-├── assets/
-│   └── brand/                 # 品牌与图标源文件
-├── docs/
-├── README.md
-└── LICENSE
-```
-
-使用 SwiftPM 管理 Swift 包的本地路径依赖，macOS 应用按签名与资源需求选择 Xcode 工程或工作区。Windows 工程工具链在其原型阶段锁定。monorepo 不要求统一所有语言的构建系统，不引入 pnpm、Turbo 或 Web UI。
-
-## 3. 依赖方向
+各操作系统分别拥有原生界面、领域实现与系统适配。macOS 桌面和 CLI 共用 Swift 服务；Windows 桌面和 CLI 共用 C# 服务。两端通过产品合同、声明式资源和验收案例保持行为一致。
 
 ```mermaid
 flowchart TB
-    Mac[apps/macos] --> Core[packages/shou-core]
-    Mac --> Platform[packages/shou-platform]
-    CLI[apps/cli] --> Core
-    CLI --> Platform
-    Mac --> AgentSupport[skills / ShouAgentSupport]
-    CLI --> AgentSupport
-    Platform --> AgentSupport
-    Windows[apps/windows WPF] -.JSON 进程桥.-> CLI
-    Core --> Interfaces[平台能力接口]
-    Platform --> Interfaces
-    MacAdapter[macOS 实现] --> Interfaces
-    WinAdapter[未来 Windows 实现] --> Interfaces
-    Contracts[packages/shou-contracts] -.定义机器合同.-> Core
-    Contracts -.定义发现与结果.-> CLI
+    Contract[产品与安全合同] --> MacCore[Swift Core]
+    Contract --> WinCore[C# Core - 待实现]
+    Resources[规则 Schema、目录、文案与设计 token] --> MacCore
+    Resources --> WinCore
+    MacUI[SwiftUI 与 AppKit] --> MacCore
+    MacCLI[Swift CLI] --> MacCore
+    MacUI --> MacPlatform[macOS 系统适配]
+    MacCLI --> MacPlatform
+    MacPlatform --> MacCore
+    WinUI[WinUI 3 App - 待实现] --> VM[Presentation - 待实现]
+    VM --> WinCore
+    WinCLI[.NET CLI - 待实现] --> WinCore
+    WinUI --> WinPlatform[Windows 系统适配 - 待实现]
+    WinCLI --> WinPlatform
+    WinPlatform --> WinCore
 ```
 
-接口在源码中的放置原则：由核心声明自己需要的最小能力；平台包依赖核心并实现这些协议，核心不反向依赖平台包。Schema 是数据合同的单一事实源，不是需要运行的服务。
+Core 声明自身需要的最小能力接口，Platform 实现这些接口，应用入口负责组装依赖。领域服务不依赖 UI 框架或具体适配器。两套原生实现分别落实同一份安全要求。
 
-`ShouAgentSupport` 管理随包指令资源与读取，不依赖清理引擎；`ShouPlatform` 管理本地技能安装与 macOS ZIP 导出，桌面与 CLI 共用。客户端加载合同与图示见 [Skill 安装与分发](../ai/skill-distribution.md)。
+## 目录职责
 
-## 4. 核心与平台划分
+| 路径 | 职责 | 状态 |
+| --- | --- | --- |
+| `apps/macos` | SwiftUI/AppKit 应用与 macOS 交互 | 已有源码 |
+| `apps/cli` | macOS Swift 命令入口和终端确认 | 已有源码 |
+| `packages/shou-core` | Swift 规则、扫描、计划与回执 | 已有源码 |
+| `packages/shou-platform` | macOS 文件系统、访问、进程与持久化 | 已有源码 |
+| `packages/shou-ai` | macOS 调查与模型通信 | 已有源码 |
+| `packages/shou-contracts` | 语言无关的规则 Schema | 共享规范 |
+| `apps/windows` | C# Core、Platform、Presentation、App 与 CLI | 规划中；当前只有 README |
+| `tests/core` | Swift 领域与原生夹具回归 | 可执行 |
+| `SYNC.md` | 跨端功能与安全验收 | 必须维护 |
 
-| 跨平台核心负责 | 平台适配负责 |
-| --- | --- |
-| 规则解析、版本、来源与规范化 | 用户授权、TCC 或 ACL、目录选择 |
-| 受限模式和条件语义 | 枚举目录、文件身份、链接与卷边界 |
-| 风险、排除、去重与计划 | 分配大小、稀疏文件、卷可用容量 |
-| 确认绑定、状态机、执行编排 | 废纸篓/回收站、恢复、永久移除 |
-| JSON 结果、错误分类、历史模型 | 文件锁、原子写入、落盘与进程取消 |
-| 下一步动作与能力限制 | 系统路径与凭据存储 |
+Windows 目标工程树由实施方案定义。按实际能力增加接口与工程，不为未来功能预建空抽象，也不围绕 Swift 应用增加另一套构建系统。
 
-共享核心可使用经 Windows 验证的 Foundation 子集；不得直接导入 AppKit、SwiftUI、Darwin 或 Win32。平台实现中的条件编译集中在适配层，避免业务代码遍布 `#if os(...)`。
+## 共享资产
 
-## 5. Windows 路线
+规则 Schema 的唯一来源为 `packages/shou-contracts/rule.schema.json`。内置规则与扫描位置 JSON 统一维护于 `packages/shou-core/Sources/Resources`，Windows 后续消费经过校验的生成副本。平台适用字段只描述数据范围，不代表对应平台已经支持运行。
 
-### 已确定
+文案当前唯一来源为 `packages/shou-core/Localizable.xcstrings`。Windows 资源生成器须转换稳定 key，并检查占位符、复数、回退与全部当前运行时语言。设计 token 将从确认过的 macOS 值提取为统一文件，再生成 Swift/XAML 资源。品牌资产放在 `assets/brand`。生成过程必须确定、可重复，并支持无差异校验。
 
-- Windows 使用原生桌面体验，CLI 产品名为 `shou.exe`。
-- 规则、计划、错误和状态语义复用；平台特定规则显式声明适用平台。
-- 默认通过结构化进程桥调用共享 Swift CLI，避免先建立 Swift/C# ABI 桥或复制规则引擎。
-- 启动进程使用参数数组、JSON stdin/stdout 与有界输出，不拼接 Shell 命令。
-- 确认与执行之间的进程桥合同在 Windows 原型阶段单独定义，不为桥接增加全局 `--yes` 绕过。
+共享验收案例描述输入证据、预期选择、阻断原因、确认与结果。文件身份、访问权限与竞态必须分别在原生环境验证。两个运行时不读取对方平台的本地记录。
 
-### 实现基线与待验收项
+## 变更流程
 
-- Windows UI 确定为 C# / .NET 10 LTS / WPF Fluent / MVVM，复用知伴的进程桥实践。
-- 初始验证目标为 Windows 11 x64、Swift 6.2.3；运行库分发仍须实测。
-- 已实现完整 File ID/SID、ACL、LockFileEx、IFileOperation 适配，原生行为仍须 Windows 证据。
-- 一次性挑战与摘要绑定本次确认；变更协作取消并保留回执。Windows 回收站与恢复默认关闭，清单绑定的永久删除默认开放，细节见 [Windows 实现](../engineering/windows.md)。
+1. 阅读对应产品、安全与 Schema 合同。
+2. 在 `SYNC.md` 记录 macOS 基线提交及逐项变化。
+3. 在所属平台实现，从唯一来源生成共享资产。
+4. 运行纯逻辑与受影响的原生检查，记录平台、架构、提交和证据。
+5. 对各平台标明已实现、待实现、刻意差异或不适用，并写明理由。
 
-Swift 支持 Windows 不代表 Apple 框架可用；在 macOS 上编译部分合同也不代表 Windows 原生操作已通过。
-
-## 6. 跨平台路径合同
-
-- 规则中的相对模式统一使用 `/`，由平台适配映射到本地路径。
-- 禁止绝对路径、`..`、驱动器语法、UNC、设备路径与替代数据流语法进入相对模式。
-- Windows 的 junction、其他 reparse point 与 macOS 符号链接按“不跟随”处理；无法确定类型时阻断执行。
-- 大小写敏感性遵循目标文件系统实际语义；规范化字符串不能替代文件身份判断。
-- 不跨卷；Windows 卷挂载点同样属于边界。
-- 云端占位文件、按需下载目录和网络卷首版不列为支持的可执行清理范围。
-
-## 7. 能力发现
-
-CLI 的 `capabilities` 返回当前平台、构建版本、合同版本与每项能力的实际状态。回收站、恢复和永久删除是分别确认的操作；回收站失败不得静默退回永久删除。
-
-规则文件支持声明 `windows` 只是格式能够表达，不代表当前应用已经支持 Windows。平台支持结论由该平台的构建、运行、文件安全与干净环境分发证据共同决定。
-
-## 8. 仓库与发布边界
-
-- 各入口与合同一起变更、一起评审；不为每个平台建独立业务仓库。
-- 应用版本与规则格式版本分开。规则可独立演进，但必须符合当前引擎能力。
-- 构建产物默认不提交；不得将扫描真实开发目录的结果加入夹具。
-- macOS 签名、公证与 Windows 签名、运行库、安装卸载分开验收。
-- Skill 复制由用户显式发起；集成不编辑 Codex、Claude Code、WorkBuddy 的设置文件、不安装全局插件。
-
-## 9. 演进顺序
-
-1. 固定语言无关合同、核心模型与平台能力接口。
-2. 在 macOS 上完成 CLI 核心闭环，再接入 SwiftUI 原生展示。
-3. 定期以隔离检查阻止 Apple 依赖进入共享核心。
-4. 在 Windows 原型阶段验证共享核心与 CLI，再实现系统文件操作和原生 UI。
-5. 以同一套虚构规则和合同夹具验证语义一致，再分别验证平台差异。
-
-不为了未来 Windows 先实现完整通用插件框架；当前就隔离真实的平台依赖即可。
+即使 Windows 尚未实现，macOS 安全合同修复也必须登记对应对齐项。未完成验证的能力保持不可用。

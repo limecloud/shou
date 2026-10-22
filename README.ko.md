@@ -65,7 +65,7 @@ Shou v0.11.0은 **macOS 14 이상**을 지원합니다. 유니버설 앱은 Appl
 
 ## 감사의 말
 
-[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 ## 라이선스
 

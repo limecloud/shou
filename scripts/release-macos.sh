@@ -19,7 +19,6 @@ swift build --jobs 4 -c release --product shou-tests
 TASK_TEST_BIN=$(swift build -c release --show-bin-path)
 "$TASK_TEST_BIN/shou-tests" --native-trash-purge
 python3 "scripts/verify-cli.py" "dist/Shou.app/Contents/Helpers/shou"
-python3 "scripts/verify-desktop-bridge.py" --engine "dist/Shou.app/Contents/Helpers/shou"
 python3 "apps/cli/Tests/verify-confirmation.py" "dist/Shou.app/Contents/Helpers/shou"
 python3 "scripts/verify-native-cli.py" "dist/Shou.app/Contents/Helpers/shou" --native-trash-purge
 python3 "scripts/verify-uninstall-cli.py" "dist/Shou.app/Contents/Helpers/shou"

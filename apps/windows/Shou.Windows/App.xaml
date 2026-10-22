@@ -1,6 +1,0 @@
-<Application x:Class="Shou.Windows.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" ThemeMode="System">
-  <Application.Resources>
-    <Style TargetType="Button"><Setter Property="Padding" Value="14,7" /><Setter Property="Margin" Value="0,0,8,0" /></Style>
-    <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap" /></Style>
-  </Application.Resources>
-</Application>

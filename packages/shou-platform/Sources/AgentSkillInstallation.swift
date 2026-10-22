@@ -134,24 +134,14 @@ public enum AgentSkillInstallation {
 
     private static func fileData(_ path: URL, limit: Int) throws -> Data {
         try rejectLinks(path)
-#if os(Windows)
-        return try WindowsNative.read(path.path, limit: limit)
-#else
         let handle=try FileHandle(forReadingFrom: path)
         defer { try? handle.close() }
         let data=try handle.read(upToCount: limit + 1) ?? Data()
         guard data.count <= limit else { throw ShouError("resource_limit", "The Skill contains an oversized file.") }
         return data
-#endif
     }
 
     private static func rejectLinks(_ path: URL) throws {
-#if os(Windows)
-        guard path.isFileURL else { throw ShouError("invalid_argument", "Choose an absolute Skill path without traversal components.") }
-        let canonical=try NativeFileSystem().normalizedPath(path.path)
-        do { _=try WindowsNative.metadata(canonical) }
-        catch let error as ShouError where error.code == "not_found" { }
-#else
         // Foundation standardization can shorten /private/var to the /var link.
         // Keep the supplied absolute spelling and reject traversal components.
         guard path.isFileURL, path.path.hasPrefix("/"),
@@ -167,7 +157,6 @@ public enum AgentSkillInstallation {
             if parent == current { break }
             current = parent
         }
-#endif
     }
 
     private static func inventory(_ directory: URL) throws -> [String: String] {

@@ -122,7 +122,7 @@ flowchart TD
 
 All entry points use the same policy. An unexpired plan still needs revalidation. Journal and filesystem operations are not a cross-system transaction.
 
-Permanent removal uses an in-memory `PermanentRemovalContext` for one execution. The POSIX adapter pins shared regular files, checks exact metadata before `unlinkat`, then reads the same descriptor afterwards. Only a link count reduced by exactly one and the accompanying ctime change are recorded; every other field must remain unchanged. Subsequent entries and selected targets reconcile only that observed change against the original manifest. The context is discarded after the execution, so an earlier cleanup cannot authorize a stale plan. Windows retains its native verification and rejects unsupported hard-linked targets.
+Permanent removal uses an in-memory `PermanentRemovalContext` for one execution. The POSIX adapter pins shared regular files, checks exact metadata before `unlinkat`, then reads the same descriptor afterwards. Only a link count reduced by exactly one and the accompanying ctime change are recorded; every other field must remain unchanged. Subsequent entries and selected targets reconcile only that observed change against the original manifest. The context is discarded after the execution, so an earlier cleanup cannot authorize a stale plan. Windows behavior requires independent native implementation and acceptance.
 
 ```mermaid
 flowchart TD
@@ -315,11 +315,11 @@ sequenceDiagram
 
 History shows an item, date, outcome and processed size by default. Execution IDs, per-item paths, recovery and verification are available in details. Clearing finished records removes local JSON receipts and related follow-ups while retaining recovery, unknown outcomes and unfinished operations. Removing one record explicitly acknowledges loss of Shou recovery links; active operations and pending follow-up intents remain protected. Referenced files and Trash contents are never removed. Consumed plan state remains intact, preventing replay.
 
-Use `shou history cleanup-preview --json` to preview and `shou history clear` to confirm in a terminal. `--execution-id` selects one record; `--include-recoverable true` explicitly discards recovery links. Windows uses the same core through `history.cleanup-preview` and request-confirmed `history.clear`. Parent receipts are removed before follow-ups so interruption cannot make a restored item available for restoration again.
+Use `shou history cleanup-preview --json` to preview and `shou history clear` to confirm in a terminal. `--execution-id` selects one record; `--include-recoverable true` explicitly discards recovery links. Windows will implement the same product behavior in its C# services. Parent receipts are removed before follow-ups so interruption cannot make a restored item available for restoration again.
 
 Coverage notices concern the current directory. Unreadable siblings elsewhere do not mark a complete project folder as incomplete. System-managed locations such as `.fseventsd`, `.Spotlight-V100` and `.DocumentRevisions-V100` use an informational scope note, with individual paths collapsed. The core preserves incomplete coverage facts. User-directory access failures offer setup and Finder actions; changed or temporarily unreadable folders can be rescanned directly. Full Disk Access does not override Unix ownership or system protection, and Shou does not change system permissions to inspect system-managed directories.
 
-Only access/readability issues qualify as system-managed exclusions; resource limits and scan-time changes remain actionable, including when scanning a system root. After cleanup, the return page offers a measurement refresh instead of labeling changed totals as an access problem. Windows consumes the same coverage classification and directory completeness, with Explorer and focused rescan actions; its default bridge scan uses the shared disk-backed measurement path.
+Only access/readability issues qualify as system-managed exclusions; resource limits and scan-time changes remain actionable, including when scanning a system root. After cleanup, the return page offers a measurement refresh instead of labeling changed totals as an access problem. Windows behavior requires independent native implementation and acceptance.
 
 ```mermaid
 flowchart LR
@@ -379,7 +379,7 @@ sequenceDiagram
     Native-->>Core: Exit / timeout / cancellation
     Core->>Native: Verify current tool storage when possible
     Core->>Store: Completed / partial / unknown receipt
-    Core-->>UI: Typed result; no blind replay
+    Core-->>UI: Typed result, no blind replay
 ```
 
 Orphan removal first checks complete standard application coverage and native registration/activity. It rechecks absence, ownership, exclusions and the full component manifest before execution and again at each mutation boundary. Personal data is a separate opt-in. Permanent and Trash paths use shared per-item journals; Trash restoration remains separately confirmed. Derived-record maintenance never removes these journals or user targets.
@@ -399,8 +399,85 @@ sequenceDiagram
     Core->>FS: Execute explicit selection
     FS-->>Core: Verified or unknown outcome
     Core->>Journal: Save result
-    Note over Journal,Store: Changed manifest gets a new version; failed result write preserves intent
+    Note over Journal,Store: Changed manifest gets a new version, failed result write preserves intent
     Journal->>Store: Publish final state and paged summary
 ```
 
 The independent personal-rule flow and sequence—major-consumer investigation, separate disabled drafts, native review, a fresh chosen-rule scan, confirmation and receipt verification—are recorded in [space analysis and Agent design W09](../engineering/space-analysis-agent-design.md). External configuration changes invalidate old cleanup evidence without enabling other rules; daily cleanup reuses explicitly enabled choices.
+
+## Windows native cleanup sequence
+
+Status: target contract; implementation pending.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as WinUI App
+    participant VM as Presentation
+    participant Core as C# Core
+    participant Platform as Windows Platform
+    participant Store as Local journal
+    User->>App: Scan explicit scope
+    App->>VM: Start with cancellation token
+    VM->>Core: Scan and classify
+    Core->>Platform: Read native identities and bounded entries
+    Platform-->>Core: Evidence and coverage gaps
+    Core-->>VM: Candidates, blocked reasons and progress
+    User->>App: Review selection and action
+    App->>VM: Prepare plan
+    VM->>Core: Create immutable plan
+    Core-->>App: Exact scope, digest and expiry
+    User->>App: Confirm current plan
+    App->>VM: Confirmed action
+    VM->>Core: Execute bound plan
+    Core->>Platform: Acquire lease and revalidate identities
+    alt Evidence changed or journal unavailable
+        Core-->>VM: Refuse and request fresh review
+    else Current evidence
+        Core->>Store: Persist item intent
+        Core->>Platform: Perform selected native mutation
+        Platform-->>Core: Observed result or unknown
+        Core->>Store: Persist outcome
+        Core-->>VM: Receipt and next actions
+        VM-->>App: Render result
+    end
+```
+
+## Mac-hosted development flow
+
+```mermaid
+flowchart TD
+    Edit[Edit source on Mac] --> Pure[Run Core and Presentation tests on Mac]
+    Pure --> Check{Passed?}
+    Check -->|No| Edit
+    Check -->|Yes| VM[Build and launch in Windows VM]
+    VM --> Logs[Collect bounded build and exception logs]
+    Logs --> Runtime{Native checks passed?}
+    Runtime -->|No| Edit
+    Runtime -->|Yes| PC[Run real x64 and ARM64 acceptance]
+    PC --> Evidence[Record revision, OS, architecture and results]
+    Evidence --> Sync[Update feature ledger]
+```
+
+## Windows release sequence
+
+```mermaid
+sequenceDiagram
+    participant Build as Windows build runner
+    participant Sign as Signing service
+    participant Verify as Native acceptance
+    participant Feed as Update feed
+    Build->>Build: Restore pinned toolchain and dependencies
+    Build->>Build: Build x64 and ARM64 self-contained payloads
+    Build->>Sign: Sign binaries with timestamp
+    Sign-->>Build: Signed payloads
+    Build->>Build: Produce full and delta packages with Velopack
+    Build->>Sign: Sign final distributable artifacts as required
+    Sign-->>Build: Final artifacts
+    Build->>Verify: Verify signatures and clean-machine install/update
+    Verify-->>Build: Evidence for each architecture
+    Build->>Build: Compute final checksums and review release
+    Build->>Feed: Publish approved artifacts and metadata
+```
+
+Signing authentication and publishing remain explicit release gates. No Windows release pipeline exists yet.

@@ -40,19 +40,6 @@ func exactPersonalRuleSelectionCannotExpandItsScope() throws {
     }
 }
 
-func windowsExactPersonalRuleSelectionPreservesDriveAndWorkspaceBoundaries() throws {
-    for root in ["C:/Work/Projects", "c:\\work\\projects\\", "/C:/Work/Projects"] {
-        try expect(try PersonalRuleDraft.exactRelativePath(selection: "c:\\WORK\\projects\\项目\\Cache", workspacePath: root, platform: "windows") == "项目/Cache")
-    }
-    for path in ["C:/Work/Projects", "C:/Work/Projects-other/cache", "D:/Work/Projects/cache", "C:Work/Projects/cache",
-                 "\\\\server\\share\\cache", "\\\\?\\C:\\Work\\Projects\\cache", "C:/Work/Projects/../outside", "C:/Work/Projects/a/../../outside",
-                 "C:/Work/Projects/cache/*", "C:/Work/Projects/cache?", "C:/Work/Projects//cache"] {
-        try expectThrows { try PersonalRuleDraft.exactRelativePath(selection: path, workspacePath: "C:/Work/Projects", platform: "windows") }
-    }
-    let rule=try personalDraft().rule(id: "personal.windows-fixture", rootRef: "test-workspace", platform: "windows")
-    try expect(rule.platforms == ["windows"] && !rule.scope.followSymlinks && !rule.scope.crossFilesystems)
-}
-
 func personalRuleRevisionsPreserveBindingsAndRejectStaleSaves() async throws {
     let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
     let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "test-workspace")

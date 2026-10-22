@@ -37,7 +37,7 @@ public struct CleanupToolOutput: Sendable {
     public let executableIdentity: String
     public init(text: String, executableIdentity: String) { self.text=text; self.executableIdentity=executableIdentity }
 }
-public enum CleanupToolPlatform: String, Sendable { case macOS, windows, unsupported }
+public enum CleanupToolPlatform: String, Sendable { case macOS, unsupported }
 public protocol CleanupToolRunning: Sendable {
     var platform: CleanupToolPlatform { get }
     func run(_ command: CleanupToolCommand, timeoutSeconds: Double, expectedExecutableIdentity: String?) throws -> CleanupToolOutput
@@ -92,7 +92,7 @@ public actor ToolCleanupService {
     }
     public func scan() throws -> ToolCleanupScan {
         var targets=[ToolCleanupTarget](), issues=[ToolCleanupIssue]()
-        let tools=runner.platform == .windows ? ["docker","conda","rustup"] : runner.platform == .macOS ? ["docker","brew","conda","rustup"] : []
+        let tools=runner.platform == .macOS ? ["docker","brew","conda","rustup"] : []
         for tool in tools {
             if Task.isCancelled { throw ShouError("cancelled", "Tool scan cancelled.") }
             do { targets += try preview(tool) }
@@ -177,7 +177,7 @@ public actor ToolCleanupService {
         case "docker":
             let context=try output(.dockerContext)
             let endpoint=try JSONDecoder().decode(String.self, from: Data(context.text.utf8))
-            let local=runner.platform == .windows ? endpoint == "npipe:////./pipe/docker_engine" : endpoint.hasPrefix("unix:///")
+            let local=endpoint.hasPrefix("unix:///")
             guard local, !endpoint.contains("\n"), !endpoint.contains("\0") else { throw ShouError("remote_context", "Only the supported local Docker default context is supported.") }
             let value=try output(.dockerPreview)
             var bytes: Int64?

@@ -21,7 +21,7 @@ public actor ShouEngine {
     }
     public init(store: any RecordStore, filesystem: any PlatformFileSystem, applicationActivity: any ApplicationActivityChecking = UnavailableApplicationActivity(), artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), applicationCatalog: any ApplicationCatalogReading = UnavailableApplicationCatalog(), uninstallEvidence: any ApplicationUninstallChecking = UnavailableApplicationUninstallEvidence(), homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, now: @escaping @Sendable () -> Date = { Date() }) {
         self.store=store; self.filesystem=filesystem; self.applicationActivity=applicationActivity; self.artifactEvidence=artifactEvidence; self.applicationCatalog=applicationCatalog; self.uninstallEvidence=uninstallEvidence
-        self.homeDirectory=filesystem.platform == "windows" ? (try? filesystem.normalizedPath(homeDirectory.path)).map { URL(fileURLWithPath: $0) } ?? homeDirectory : homeDirectory
+        self.homeDirectory=homeDirectory
         self.now=now
     }
     public func configuration() throws -> Configuration {
@@ -69,8 +69,7 @@ public actor ShouEngine {
     /// target manifests continue to require their exact device/inode evidence.
     private func rootIdentityMatches(_ current: FileEntry, _ saved: FileEntry) -> Bool {
         current.sameObject(as: saved) ||
-            (current.windowsIdentity == nil && saved.windowsIdentity == nil &&
-             current.kind == "directory" && saved.kind == "directory" &&
+            (current.kind == "directory" && saved.kind == "directory" &&
              current.inode == saved.inode && current.owner == saved.owner)
     }
 

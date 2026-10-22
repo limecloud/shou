@@ -21,7 +21,7 @@ Shou v0.11.0 为 macOS 新增可选内置 AI 调查、按应用分组的启动�
 
 [**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-v0.11.0 仅发布 macOS 版本。Windows 编译与发行包暂停，准备重构。
+v0.11.0 仅发布 macOS 版本。Windows 采用 WinUI 3/.NET 原生方案，当前尚无构建与发行包，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
 
 此版本使用 ad-hoc 签名，尚未经过 Apple 公证。如 macOS 阻止首次打开，请先确认下载来源，再查看**系统设置 → 隐私与安全性 → 仍要打开**。
 
@@ -92,7 +92,7 @@ Codex 中使用 `$shou-rule-authoring`，Claude Code 本机会话中使用 `/sho
 
 ## 鸣谢
 
-[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 [Lark CLI](https://github.com/larksuite/cli) 与 [Vercel Skills](https://github.com/vercel-labs/skills) 为 Skill 分发与发现方式提供启发。
 
@@ -101,5 +101,3 @@ Codex 中使用 `$shou-rule-authoring`，Claude Code 本机会话中使用 `/sho
 [Apache License 2.0](LICENSE).
 
 空间分析支持本地卷与目录、列表和树图联动、文件及文件夹多选、废纸篓与恢复，以及明确确认后的永久删除。详见[空间分析](docs/zh-CN/product/space-analysis.md)。
-
-Mole 路径研究、署名与覆盖边界见[规则覆盖说明](docs/zh-CN/engineering/mole-rule-coverage.md)。

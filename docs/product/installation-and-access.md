@@ -52,7 +52,7 @@ sequenceDiagram
     end
     UI->>Worker: Scan selected root
     Worker->>OS: Check current responsible-process access
-    Worker->>Catalog: Measure accessible entries; mark skipped boundaries
+    Worker->>Catalog: Measure accessible entries, mark skipped boundaries
     Catalog-->>UI: Directory totals and completeness
     UI-->>User: Results and access guidance
 ```

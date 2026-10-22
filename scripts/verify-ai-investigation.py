@@ -2,7 +2,6 @@
 """Exercise the real SDK against synthetic local providers; never use real keys or user files."""
 from collections import defaultdict
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 import json
 import os
@@ -14,9 +13,6 @@ import threading
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-BRIDGE_SPEC = spec_from_file_location("desktop_bridge_checks", ROOT / "scripts/verify-desktop-bridge.py")
-BRIDGE = module_from_spec(BRIDGE_SPEC)
-BRIDGE_SPEC.loader.exec_module(BRIDGE)
 BINARY = (Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / ".build/debug/shou").resolve()
 COUNTS = defaultdict(int)
 REQUESTS = []
@@ -170,7 +166,6 @@ def main():
             (folder / "build/.ssh").mkdir()
             (folder / "build/.ssh/private-key").write_text("DO_NOT_SEND_PRIVATE_FIXTURE")
             (folder / "source.swift").write_text("DO_NOT_SEND_FILE_CONTENT")
-            BRIDGE.set_fixture_owner(folder)
             env = dict(os.environ, SHOU_DATA_DIR=str(base / "records"), SHOU_AI_FIXTURE_KEY="fixture-key",
                        OPENAI_API_KEY="must-not-use-ambient-key", ANTHROPIC_API_KEY="must-not-use-ambient-key")
 
@@ -366,25 +361,18 @@ def main():
             assert run("ai","show","--investigation-id",running["id"],ok=False)["data"]["status"]=="cancelled"
             SLOW.clear()
 
-            def bridge(operation, fields):
-                child=subprocess.Popen([str(BINARY),"--desktop-bridge"],env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
-                child.stdin.write(json.dumps({"bridge_version":1,"request_id":"ai_config_fixture","operation":operation,"input":fields})+"\n")
-                child.stdin.flush()
-                result=json.loads(child.stdout.readline())
-                child.stdin.close(); child.wait(timeout=10)
-                assert result["kind"]=="result",result
-                return result["value"]
-            assert bridge("ai.providers",{})["data"][0]["id"]=="jev"
-            fixture_profile={"id":"connection_bridge_fixture","name":"Bridge fixture","api_protocol":"responses","base_url":f"http://127.0.0.1:{server.server_port}/gateway/v1","model":"responses:bridge","authentication":"none","environment_variable":""}
-            assert bridge("ai.connections.save",{"profile":fixture_profile})["ok"]
-            assert not bridge("ai.connections.save",{"profile":dict(fixture_profile,api_key="must-not-store")})["ok"]
-            assert "must-not-store" not in json.dumps(run("ai","connections","list"))
-            assert bridge("storage.show",{"scan_id":scan})["data"]["root_path"].replace("\\","/")==str(folder).replace("\\","/")
+            fixture_profile={"id":"connection_cli_fixture","name":"CLI fixture","api_protocol":"responses","base_url":f"http://127.0.0.1:{server.server_port}/gateway/v1","model":"responses:probe","authentication":"none","environment_variable":""}
+            def save_profile(value, ok=True):
+                profile_file=base / "local-profile.json"
+                profile_file.write_text(json.dumps(value))
+                return run("ai","connections","save","--file",str(profile_file),ok=ok)
             # Local keys survive process restarts without Keychain access, with independent service accounts.
             local_profile=dict(fixture_profile,id="connection_local_credentials",model="responses:probe",authentication="local",
                 decision={"provider":"jev","base_url":fixture_profile["base_url"],"model":"jev:probe","authentication":"local","environment_variable":""})
             before=len(REQUESTS)
-            assert bridge("ai.connections.save",{"profile":local_profile,"model_key":"synthetic-local-main","decision_key":"synthetic-local-decision"})["ok"]
+            save_profile(local_profile)
+            run("ai","connections","credential","save","--connection-id",local_profile["id"],input="synthetic-local-main\n")
+            run("ai","connections","credential","save","--connection-id",local_profile["id"],"--service","decision",input="synthetic-local-decision\n")
             assert len(REQUESTS)==before, "Saving credentials must not send any network request"
             COUNTS["responses:probe"]=0
             run("ai","connections","test","--connection-id",local_profile["id"])
@@ -398,7 +386,7 @@ def main():
             assert {k.lower():v for k,v in REQUESTS[-1][1].items()}["authorization"]=="Bearer synthetic-local-rotated"
             exposed=json.dumps(run("ai","connections","list"))+json.dumps(run("ai","list"))
             assert not any(key in exposed for key in ("synthetic-local-main","synthetic-local-decision","synthetic-local-rotated"))
-            print("PASS private local credentials across bridge and CLI restarts, independent services, rotation and redaction")
+            print("PASS private local credentials across CLI restarts, independent services, rotation and redaction")
             before=len(REQUESTS)
             deleted=run("ai","connections","delete","--connection-id",local_profile["id"])["data"]
             assert deleted["status"]=="deleted" and deleted["recoverable"] is True
@@ -409,7 +397,7 @@ def main():
             assert retained["id"]==local_profile["id"] and "synthetic-local-rotated" not in json.dumps(retained)
             refused=run("ai","connections","test","--connection-id",local_profile["id"],ok=False)
             assert refused["error"]["code"]=="not_found"
-            assert not bridge("ai.connections.save",{"profile":local_profile})["ok"], "Restore a deleted configuration before editing it"
+            save_profile(local_profile, ok=False)
             assert len(REQUESTS)==before, "Recoverable removal and reading a deleted profile must not send network requests"
             restored=run("ai","connections","restore","--connection-id",local_profile["id"])["data"]
             assert restored["status"]=="restored"
@@ -419,43 +407,12 @@ def main():
             assert {k.lower():v for k,v in REQUESTS[-1][1].items()}["authorization"]=="Bearer synthetic-local-rotated"
             print("PASS recoverable connection removal, inactive-use refusal and restored credential references")
             updated=dict(local_profile,name="Updated local configuration",routing_strategy="main_only")
-            assert bridge("ai.connections.save",{"profile":updated})["ok"]
-            assert bridge("ai.connections.show",{"connection_id":updated["id"]})["data"]["name"]==updated["name"]
-            before=len(REQUESTS)
-            assert bridge("ai.connections.delete",{"connection_id":updated["id"]})["data"]["status"]=="deleted"
-            assert any(row["id"]==updated["id"] for row in bridge("ai.connections.deleted",{})["data"])
-            assert not bridge("ai.connections.save",{"profile":updated,"model_key":"must-not-overwrite-deleted-key"})["ok"]
-            assert bridge("ai.connections.restore",{"connection_id":updated["id"]})["data"]["status"]=="restored"
-            assert not bridge("ai.connections.delete",{"connection_id":"connection_missing"})["ok"]
-            assert len(REQUESTS)==before
-            COUNTS["responses:probe"]=0
-            run("ai","connections","test","--connection-id",updated["id"])
-            assert {k.lower():v for k,v in REQUESTS[-1][1].items()}["authorization"]=="Bearer synthetic-local-rotated"
-            print("PASS bridge configuration CRUD, recovery, update and deleted-key write refusal without network access")
-            if os.name=="nt":
-                COUNTS["responses:probe"]=0
-                import uuid
-                fixture_profile.update(id="connection_credential_"+uuid.uuid4().hex,model="responses:probe",authentication="keychain")
-                assert bridge("ai.connections.save",{"profile":fixture_profile,"model_key":"fixture-key"})["ok"]
-                run("ai","connections","test","--connection-id",fixture_profile["id"])
-            # Cancellation travels through the desktop request task into URLSession and a saved checkpoint.
-            connection = profile("chat_completions", "slow", auth="none")
-            process = subprocess.Popen([str(BINARY), "--desktop-bridge"], env=env, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            request = {"bridge_version": 1, "request_id": "ai_cancel_fixture", "operation": "ai.investigate", "input": {"scan_id": scan, "path": "build", "connection_id": connection}}
-            process.stdin.write(json.dumps(request) + "\n")
-            process.stdin.flush()
-            assert SLOW.wait(10), "Provider request did not start"
-            started = time.monotonic()
-            process.stdin.write(json.dumps({"bridge_version": 1, "request_id": "ai_cancel_fixture", "kind": "cancel"}) + "\n")
-            process.stdin.flush()
-            stdout, stderr = process.communicate(timeout=10)
-            assert time.monotonic() - started < 4, (stdout, stderr)
-            events = [json.loads(line) for line in stdout.splitlines()]
-            assert any(event.get("kind") == "progress" and event.get("value", {}).get("status") == "cancelled" for event in events), events
+            save_profile(updated)
+            assert run("ai","connections","show","--connection-id",updated["id"])["data"]["name"]==updated["name"]
             assert (folder / "build/cache/output.bin").read_bytes() == b"fixture" * 2048
             assert (folder / "source.swift").read_text() == "DO_NOT_SEND_FILE_CONTENT"
             assert run("history", "list")["data"] == []
-            print(f"PASS {CHECKS} AI CLI checks plus desktop cancellation, scope/privacy, budgets, redirect refusal and unchanged fixture files")
+            print(f"PASS {CHECKS} AI CLI checks, scope/privacy, budgets, cancellation and unchanged fixture files")
     finally:
         server.shutdown()
 

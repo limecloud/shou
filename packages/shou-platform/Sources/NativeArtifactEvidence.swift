@@ -33,8 +33,6 @@ public struct NativeArtifactEvidence: ArtifactEvidenceChecking {
         guard found else { return false }
         let output=try command("/usr/bin/git", arguments: ["-c", "core.fsmonitor=false", "-c", "core.untrackedCache=false", "-C", path, "ls-files", "--cached", "-z", "--", "."], limit: 2_097_152, deadline: uptime + 3)
         return !output.isEmpty
-        #elseif os(Windows)
-        return try windowsGitTrackedFiles(at: path)
         #else
         throw unavailable("Native artifact ownership checks are unavailable on this platform.")
         #endif
@@ -49,8 +47,6 @@ public struct NativeArtifactEvidence: ArtifactEvidenceChecking {
         guard let text=String(data: output, encoding: .utf8) else { throw unavailable("Build process output could not be decoded.") }
         let running=Set(text.split(separator: "\n").map { (String($0).trimmingCharacters(in: .whitespaces) as NSString).lastPathComponent })
         return names.intersection(running)
-        #elseif os(Windows)
-        return try windowsBuildProcesses(in: names)
         #else
         throw unavailable("Native build process checks are unavailable on this platform.")
         #endif

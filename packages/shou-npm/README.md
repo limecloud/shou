@@ -27,9 +27,13 @@ locally without a model. Optional AI investigation uses an explicitly configured
 service.
 
 The executable is ad-hoc signed and not Apple-notarized. Terminal privacy access
-and desktop privacy access are independent. Linux and Windows are not supported
-by this npm package; Windows users can use the project's separate portable
-desktop distribution.
+and desktop privacy access are independent. This release supports macOS only.
+Windows support is planned under the same `@limecloud/shou` package name and
+`shou` command, using a native .NET CLI. Windows packages are not available yet.
+
+The [npm distribution plan](https://github.com/limecloud/shou/blob/main/docs/engineering/npm-distribution.md) defines
+platform selection, native payloads and release acceptance. The current package
+manifest and staging script remain macOS-only until those checks pass.
 
 - [Shou project and desktop downloads](https://github.com/limecloud/shou)
 - [CLI contract](https://github.com/limecloud/shou/blob/7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc/docs/ai/agent-and-cli-contract.md)

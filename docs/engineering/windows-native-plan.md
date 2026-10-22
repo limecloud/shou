@@ -1,0 +1,136 @@
+# Windows native implementation plan
+
+English | [简体中文](../zh-CN/engineering/windows-native-plan.md)
+
+Status: approved design; no Windows application, CLI, generators or build automation is implemented. This document defines the implementation contract.
+
+## Product goal
+
+Deliver native Windows storage analysis, reviewable cleanup and reusable rules with consistent Shou interaction, language and safety behavior. Target Windows 11, x64 and ARM64. Select the exact minimum Windows build against the pinned Windows App SDK during the first prototype.
+
+## Technical decisions
+
+| Concern | Decision | Reason |
+| --- | --- | --- |
+| Language and runtime | C# / .NET 10 LTS | Native Windows ecosystem and long-term runtime support |
+| UI | WinUI 3 / Windows App SDK, MVVM | Fluent controls, DPI and native accessibility |
+| Domain | Independent deterministic C# Core | Windows path, identity and lifecycle semantics |
+| CLI | .NET console entry sharing C# Core | Independent terminal workflow with the same validation |
+| Distribution | Architecture-specific self-contained packages | No separate user installation of .NET |
+| Installation and updates | Velopack, subject to first-stage validation | Installer lifecycle and incremental updates |
+| Signing | Authenticode with timestamping | Verifiable publisher and distribution integrity |
+| AI | Separate .NET investigation service behind narrow interfaces | Domain execution stays deterministic; provider choice remains replaceable |
+
+Pin .NET SDK, Windows App SDK, build tools and package versions in the project and lock files when implementation starts. Verify their support matrix together. .NET self-contained publishing does not include Windows App SDK automatically: configure and verify Windows App SDK self-contained deployment independently. Do not enable trimming, single-file publishing or Native AOT until WinUI, COM and updater compatibility are proven.
+
+## Four layers and composition
+
+```mermaid
+flowchart TB
+    App[Shou.Windows.App - WinUI 3] --> Presentation[Shou.Windows.Presentation - net10.0]
+    Presentation --> Core[Shou.Windows.Core - net10.0]
+    CLI[Shou.Windows.Cli - net10.0-windows] --> Core
+    App --> Platform[Shou.Windows.Platform - net10.0-windows]
+    CLI --> Platform
+    Platform --> Core
+    Platform --> OS[Windows APIs and local storage]
+    Core --> Ports[Core-owned capability interfaces]
+```
+
+| Layer | Owns | Must not own | macOS checks |
+| --- | --- | --- | --- |
+| Core | Rule semantics, Windows logical path policy, exclusions, candidates, immutable plans, confirmation binding, receipts, cancellation | P/Invoke, registry, UI, direct filesystem access | Build and unit tests |
+| Platform | Filesystem handles/identity, registry, Win32/COM, processes, Recycle Bin, local records and credentials | UI decisions or copied matching logic | Reference compilation only when targeting packs support it |
+| Presentation | Page state, commands, selection, progress, async cancellation and errors | WinUI controls, dispatchers or OS calls | Build and state tests |
+| App | XAML, dialogs, accessibility, navigation, composition and UI-thread scheduling | Rules or deletion policy | Source generation checks only |
+
+The CLI is a composition entry, outside the UI layer chain. App and CLI register Platform implementations for Core interfaces. Presentation consumes service interfaces; inject a small scheduler only where required. Windows API reference compilation on macOS uses `EnableWindowsTargeting` where supported; it does not permit running Windows code or building the WinUI XAML pipeline there.
+
+Target layout, to be created stage by stage:
+
+```text
+apps/windows/
+  global.json
+  Directory.Build.props
+  Shou.Windows.slnx
+  src/
+    Shou.Windows.Core/
+    Shou.Windows.Platform/
+    Shou.Windows.Presentation/
+    Shou.Windows.App/
+    Shou.Windows.Cli/
+  tests/
+    Shou.Windows.Core.Tests/
+    Shou.Windows.Presentation.Tests/
+    Shou.Windows.Platform.Tests/
+    Shou.Windows.App.Tests/
+```
+
+## CLI contract reuse
+
+The Windows CLI is a thin .NET entry over C# Core: parse arguments, expose capability discovery, serialize versioned JSON, map errors/exit codes and perform interactive terminal review. Rules, plans, policy and mutations remain in the same services used by WinUI.
+
+Share stable command names, field semantics, error categories, confirmation requirements and semantic acceptance fixtures across platforms. Platform-specific commands declare their actual scope and unavailable reasons. Keep machine contracts aligned without exposing local persistence or native identity layouts as a universal ABI. Track intentional differences in the platform ledger.
+
+The npm entry remains `@limecloud/shou` and the command remains `shou`. A platform-aware launcher selects the matching native CLI; the [npm distribution plan](npm-distribution.md) owns package layout, version coordination and acceptance. Windows npm support remains unavailable until its native payload and packed installation pass those checks.
+
+## Data and safety contract
+
+Rule patterns use `/`-separated relative paths. Core uses an explicit Windows path model and simulated filesystem; tests must not derive Windows semantics from macOS `System.IO.Path`. Platform validates actual volume behavior and identities. Preserve full volume/File ID and owner SID without converting them into POSIX fields. Compare paths according to actual directory case behavior; path spelling alone never establishes identity.
+
+Reject path traversal, drive-relative paths, device namespaces, alternate data streams, network roots, junction escapes and unknown reparse points. Cloud placeholders and unsupported filesystems remain read-only or unavailable until separately verified. Check protected roots, current ownership, access, exclusions, active owners, full target manifests and replacement before mutation. Verify hard-link accounting and mutation races with real Windows handles.
+
+The desktop product defaults to permanent removal with an exact-scope irreversible confirmation. An optional Recycle Bin action requires separately verified move and restoration behavior and cannot fall back to permanent deletion. A CLI mutation requires an interactive confirmation bound to the current plan. Persist intent before each mutation; retain completed, skipped, failed, cancelled and unknown outcomes. Cancellation stops new work and reconciles an in-flight OS operation rather than inventing success.
+
+Use a current-user private Windows data root, ACLs, atomic writes, durable journals and cross-process mutation leases. Schema and record versions are owned by the Windows implementation. Product error semantics and fixture expectations align with macOS; stored binary layouts and platform identity DTOs are independent.
+
+## Resource synchronization
+
+Maintain the shared rule schema, catalog JSON, brand assets, text keys and semantic fixtures in one source location. Generate Windows resources with source digest and generation version. Extract approved colors, typography, spacing, radii and motion values into a canonical token source; generate XAML without copying Swift UI code. Preserve native keyboard, window, DPI and accessibility conventions.
+
+For every feature or safety change, record the exact macOS source commit, paths, contract digest, Windows implementation commit, differences and evidence in [SYNC.md](../../SYNC.md). Reject missing keys, mismatched placeholders, invalid schema and unreviewed generated diffs in CI. Resource generation is a planned deliverable, not an available command today.
+
+## Development topology
+
+```mermaid
+flowchart LR
+    Mac[Mac repository and editor] --> Pure[Core and Presentation tests on Mac]
+    Mac --> Scripts[Host orchestration scripts]
+    Scripts --> VM[Windows 11 ARM64 VM]
+    Scripts --> PC[Real Windows x64 PC]
+    VM --> Build[WinUI build, launch and logs]
+    PC --> Native[Native filesystem and installer acceptance]
+    Build --> Mac
+    Native --> Mac
+```
+
+Use Parallels shared source or an explicit revision-synchronized checkout. Place Windows `obj`, `bin`, NuGet cache and package output on Windows-local storage; keep Swift artifacts on macOS. Per-project output paths must remain distinct. First test shared-folder build behavior; use synchronized Windows-local source if metadata or toolchain behavior is unreliable.
+
+Host scripts will invoke PowerShell through `prlctl exec` for the VM and SSH for the physical PC. Scripts must take explicit arguments, propagate exit codes, impose deadlines, print bounded diagnostics, redact secrets and collect startup exceptions. Record source commit, working-tree digest, OS, architecture and toolchain in each run. UI automation supplements scriptable checks; system consent dialogs remain explicit user actions.
+
+A Windows ARM64 VM can build x64 output with the installed toolchain but cannot establish native x64 behavior. Validate ARM64 on its own runtime and x64 on a real x64 machine. Remote desktop does not establish local battery or physical display behavior.
+
+## Implementation stages
+
+| Stage | Deliverable | Required exit evidence |
+| --- | --- | --- |
+| WN01 | Pin SDKs; minimal WinUI App and .NET CLI; release prototype | x64 and ARM64 start; .NET and Windows App SDK bundled; signed install/update/uninstall on clean Windows; signing feasibility recorded |
+| WN02 | Pure Core, Presentation and shared resource generator | Mac tests verify Windows path semantics, protected data, stale plans, states and all locale placeholders; reproducible generated resources |
+| WN03 | Read-only Platform and storage UI | Real identities, ACLs, reparse points, long/Unicode paths, hard links, cancellation and partial coverage tested on Windows; no deletion enabled |
+| WN04 | Confirmed cleanup and durable history | Native generated-fixture permanent removal, interruption recovery, races, locks, disk-full and hash-preserved exclusions; optional Recycle Bin/restore independently pass |
+| WN05 | Feature increments | Personal rules, application cleanup, startup, privacy and AI added separately with contract cases and native UI evidence; ledger updated per feature |
+| WN06 | Distribution acceptance | Clean install, upgrade, delta/full recovery, signature validation, x64/ARM64, real DPI/accessibility, SmartScreen observations and uninstall behavior |
+
+Do not implement all pages before the first read-only vertical slice works. Unverified operations stay hidden or show an accurate unavailable reason. Each stage records executed results; document completion does not satisfy runtime gates.
+
+## Testing and release
+
+Run pure domain/state tests on macOS, Platform integration and WinUI checks on Windows. Use generated disposable directories and fake owner tools for automated mutations. Shared fixtures must include stale identities, replaced ancestors, partial targets, protected descendants, forged input, replayed confirmation, journal failure and cross-process contention. Real personal data is not a regression fixture.
+
+Produce separate `win-x64` and `win-arm64` assets. Sign shipped executables and installer/update artifacts as required by the selected packaging tool, timestamp and verify the final bytes, and then compute checksums. Never modify an artifact after its final signature. Test interrupted and invalid updates without broadening cleanup permissions. SmartScreen reputation is independent of a valid signature and is recorded as an observation.
+
+Select a certificate service available to the actual developer identity and release environment. Verify hardware/cloud signing access, session expiry, renewal and unattended support during WN01. If interactive authentication is required, the release pipeline stops at a prepared unsigned-artifact handoff; signing and verification resume explicitly. Never store private keys or one-time passwords in the repository.
+
+## AI implementation contract
+
+Before implementing a feature, read this plan, its product specification, [safety rules](../security/cleanup-safety.md) and the matching ledger row. Touch only owned modules and deterministic generated outputs. Implement the smallest working vertical slice; do not introduce cross-platform runtime glue, generic plugin hosts or future data migrations. Include the relevant unit, native and UI evidence. Report unsupported behavior with concrete reasons and update both language editions together.

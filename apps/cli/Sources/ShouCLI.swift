@@ -6,8 +6,6 @@ import ShouAgentSupport
 import Darwin
 #elseif canImport(Glibc)
 import Glibc
-#elseif os(Windows)
-import ucrt
 #endif
 
 struct CommandSpec: Codable, Sendable {
@@ -69,25 +67,9 @@ let commands: [CommandSpec] = [
     .init("skills install", "configuration", ["agent"], ["directory"], "Install the bundled Skill for codex or claude-code. Directory overrides the parent skills folder; default is the client's user skills folder. Preserve local edits; back up managed updates."),
     .init("skills export", "configuration", ["output"], [], "Export the whole Skill as a ZIP for WorkBuddy's Add Skill > Upload Skill. Never overwrite an existing output file."),
     .init("locations list", "read", [], [], "List built-in application and developer cache roots, their existence, and scoped rules; does not scan or grant access."),
-    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions or Windows Run/RunOnce entries, startup folders and login/boot tasks; include-system also includes machine sources and Windows services (true/false, default false). Report configured/runtime states and explicit unknowns without changing settings. macOS Login Items and background registrations remain in System Settings."),
-    .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent on macOS or a verified current-user login/boot task on Windows. Rechecks the exact definition and identity before mutation and verifies the result. Action is enable or disable; other Windows startup sources use system management."),
-    .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles or Windows desktop/MSIX registrations with explicit source coverage; never changes applications. Windows sizes are installer-declared estimates, not measured disk use."),
-    .init("applications installer scan", "snapshot", [], [], "Save Windows desktop/MSI/MSIX registrations for explicit installer review; no application is selected automatically."),
-    .init("applications installer plan", "plan", ["scan-id", "application-id"], [], repeated: ["application-id"], "Review 1–20 exact Windows registered installers. Rechecks registration and executable identity; never infers permission to delete installation or data directories."),
-    .init("applications installer show", "read", ["plan-id"], [], "Read the Windows installer selection, executable identities, digest and expiry."),
-    .init("applications installer execute", "destructive", ["plan-id"], [], "Run reviewed Windows MSI, MSIX or vendor uninstallers after terminal confirmation. The installer can remove application data or request elevation. No Shou restore or automatic retry; verify registration absence and preserve individual outcomes."),
-    .init("applications installer history", "read", [], [], "Read Windows installer receipts, uncertain outcomes and restart requirements without retrying."),
-    .init("applications usage scan", "snapshot", [], [], "Save current Windows registrations for explicit installation-directory measurement; no files are changed."),
-    .init("applications usage measure", "read", ["scan-id", "application-id"], ["max-entries", "max-seconds"], "Measure one current registered installation directory, deduplicating hard links; defaults: 100000 entries and 30 seconds, maximum 1000000 and 120. Partial observations and shared-directory scope are explicit. This does not establish ownership or removal rights, include all associated data or estimate released capacity."),
-    .init("applications package-data scan", "snapshot", [], [], "Save current Windows registrations for explicit MSIX application-data selection; no data is cleared."),
-    .init("applications package-data plan", "plan", ["scan-id", "application-id", "include-user-data"], [], repeated: ["application-id"], "Review 1–20 current-user MSIX packages and their data store identities. Requires include-user-data true and stopped applications; system/inbox packages are protected."),
-    .init("applications package-data show", "read", ["plan-id"], [], "Read the MSIX data-clear selection, whole-package scope, digest and expiry."),
-    .init("applications package-data execute", "destructive", ["plan-id"], [], "After terminal consent, Windows clears all local, roaming and temporary app data and settings. File cleanup exclusions do not limit this whole-package operation. No restore or automatic retry; stopping ends waiting and an initiated operation may continue."),
-    .init("applications package-data history", "read", [], [], "Read separate MSIX data-clear outcomes without retrying or claiming released disk capacity."),
-    .init("applications data scan", "snapshot", [], ["leftovers-only"], "Review maintained default Windows application-data paths. Leftovers-only defaults true and requires complete installation sources and stopped processes. Custom/portable installations and MSIX data remain outside this coverage."),
-    .init("applications data plan", "plan", ["review-id", "component", "include-user-data"], [], repeated: ["component"], "Select 1–32 reviewed Windows data components. Include-user-data must be true; settings, sign-ins and local databases can be removed permanently."),
-    .init("applications data show", "read", ["plan-id"], [], "Read the Windows data selection, personal-data consent, digest and expiry."),
-    .init("applications data execute", "destructive", ["plan-id"], [], "Recheck registrations, activity, exclusions and every manifest; permanently remove only the reviewed data after terminal confirmation. No automatic retry or restore."),
+    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions; include-system adds machine sources (true/false, default false). Report configured/runtime states and explicit unknowns without changing settings. macOS Login Items and background registrations remain in System Settings."),
+    .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent on macOS. Rechecks the exact definition and identity before mutation and verifies the result. Action is enable or disable; other sources use system management."),
+    .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles with explicit source coverage; never changes applications."),
     .init("applications leftovers scan", "snapshot", [], [], "Review exact orphan associations for maintained or previously verified bundle identifiers. Require complete standard-source and native-registration absence; shared containers are retained."),
     .init("applications leftovers plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Select eligible orphan components; personal data needs explicit consent. Defaults to permanent removal."),
     .init("applications leftovers show", "read", ["plan-id"], [], "Read the exact leftover selection, digest and expiry."),
@@ -146,7 +128,6 @@ let commands: [CommandSpec] = [
     .init("tools history", "read", [], [], "Inspect tool-cleanup receipts, including interrupted or unverified outcomes."),
     .init("system close-plan", "plan", ["scan-id"], [], repeated: ["scan-id"], "Group running cleanup owners from current scans into an identity-bound quit preview."),
     .init("system close-applications", "destructive", ["plan-id"], [], "Request graceful quit after terminal confirmation and verify all helpers stopped; never force-kill applications or delete files."),
-    .init("system close-owners", "destructive", ["scan-id"], [], repeated: ["scan-id"], "On Windows, review exact current-user cleanup owner processes, request normal window close after terminal confirmation, and verify activity; scan affected workspaces again before cleanup."),
     .init("history cleanup-preview", "read", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Preview local receipt cleanup. Recoverable and unfinished records are kept by default; target files are never removed."),
     .init("history clear", "destructive", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Confirm removal of local receipt records only. include-recoverable=true also discards Shou recovery links; target files stay untouched."),
     .init("history show", "read", ["execution-id"], [], "Show item states and follow-up receipts."),
@@ -217,9 +198,6 @@ struct Arguments {
 
 enum Terminal {
     static func confirm<T: Encodable>(_ scope: T, phrase: String, locale: String) throws {
-        #if os(Windows)
-        try WindowsConsole.confirm(review: String(decoding: Codec.encode(scope), as: UTF8.self), phrase: phrase, locale: locale)
-        #else
         guard let tty=FileHandle(forUpdatingAtPath: "/dev/tty"), isatty(tty.fileDescriptor) == 1 else { throw ShouError("confirmation_required", "An interactive terminal is required. No targets were changed.") }
         defer { try? tty.close() }
         let scopeObject=try JSONSerialization.jsonObject(with: Codec.encode(scope))
@@ -234,15 +212,12 @@ enum Terminal {
             response.append(byte)
         }
         guard String(data: response, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) == phrase else { throw ShouError("cancelled", "Operation cancelled. No targets were changed.") }
-        #endif
     }
 }
 
 @main enum ShouCLI {
     static let version = "0.11.0"
     static func main() async {
-        if let status=NativeSystemPreviewWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
-        if Array(CommandLine.arguments.dropFirst()) == ["--desktop-bridge"] { await DesktopBridge.run(); return }
         #if canImport(Darwin) || canImport(Glibc)
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         #endif
@@ -284,14 +259,7 @@ enum Terminal {
                 let fs=NativeFileSystem()
                 let selected=try CLICommandDiscovery.matching(args.value("command"))
                 let value: JSONValue = .object(["application_version": .string(version), "api_version": .string("1.0"), "rule_schema_version": .string("1.0"), "platform": .string(fs.platform), "runtime_locales": .array([.string("en"), .string("zh-CN")]), "commands": try .from(selected), "trash_available": .bool(fs.supportsTrash), "confirmation": .string("interactive_current_scope"), "limits": .object(["rule_bytes": .integer(262144), "scan_entries": .integer(100000), "scan_seconds": .integer(60), "scan_entries_max": .integer(1000000), "scan_seconds_max": .integer(600), "scan_depth_max": .integer(128), "page_size": .integer(500)]), "limitations": .array([.string("Cleanup requires local filesystem access and an explicit review of the current selection."), .string("Only local user-owned workspaces without ancestor links are supported."), .string("AI investigation uses an explicitly selected model connection and bounded metadata. Cleanup always requires current-scope confirmation.")])])
-                var discovery=value
-                #if os(Windows)
-                if case .object(var fields)=discovery {
-                    fields["permanent_available"] = .bool(true)
-                    fields["trash_unavailable_reason"] = fs.trashUnavailableReason.map(JSONValue.string) ?? .null
-                    discovery = .object(fields)
-                }
-                #endif
+                let discovery=value
                 try result(discovery, json: args.json)
                 return
             }
@@ -327,11 +295,7 @@ enum Terminal {
                 let includeSystem=args.values["include-system"]?.first ?? "false"
                 guard ["true", "false"].contains(includeSystem) else { throw ShouError("invalid_argument", "Include-system must be true or false.") }
                 let catalog: JSONValue
-                #if os(Windows)
-                catalog=try .from(WindowsRegisteredApplications().read(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true")))
-                #else
                 catalog=try .from(await ApplicationCatalogService(source: NativeApplicationCatalog()).scan(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true")))
-                #endif
                 try result(catalog, warnings: [], json: args.json)
                 return
             }
@@ -346,7 +310,7 @@ enum Terminal {
                 let actionValue=args.value("action").lowercased()
                 guard let action=StartupControlAction(rawValue: actionValue), action == .enable || action == .disable else { throw ShouError("invalid_argument", "Startup action must be enable or disable.") }
                 let inventory=try NativeStartupInventory().read(options: StartupInventoryOptions(includeSystem: false))
-                guard let definition=inventory.items.first(where: { $0.path == args.value("path") && ($0.sourceId == "macos.user_agents" || $0.controlCapability == "windows_user_task") }) else {
+                guard let definition=inventory.items.first(where: { $0.path == args.value("path") && $0.sourceId == "macos.user_agents" }) else {
                     throw ShouError("invalid_argument", "The startup definition is not a directly controllable current-user item in the inspected sources.")
                 }
                 let phrase="STARTUP \(action.rawValue.uppercased()) \(definition.label)"
@@ -369,60 +333,6 @@ enum Terminal {
             func scanValue(_ snapshot: ScanSnapshot) throws -> JSONValue { try summary(snapshot) }
             func nextResults(_ scan: ScanSnapshot) -> [JSONValue] { [.object(["command": .string("scan results"), "arguments": .object(["scan_id": .string(scan.id)])])] }
             switch args.command {
-            case "applications installer scan", "applications installer plan", "applications installer show", "applications installer execute", "applications installer history":
-                guard fs.platform == "windows" else { throw ShouError("unsupported_platform", "Registered installer operations require Windows.") }
-                let service=RegisteredApplicationUninstallService(runner: WindowsRegisteredApplicationUninstall(), store: store)
-                switch args.command {
-                case "applications installer scan": value=try .from(await service.scan())
-                case "applications installer plan": value=try .from(await service.createPlan(scanId: args.value("scan-id"), applicationIds: args.all("application-id")))
-                case "applications installer show": value=try .from(await service.plan(args.value("plan-id")))
-                case "applications installer execute":
-                    let plan=try await service.plan(args.value("plan-id"))
-                    try Terminal.confirm(["plan": try JSONValue.from(plan), "warning": .string("The official installer may delete application data, request administrator consent or require a restart. Shou cannot restore this operation. Stop requests end waiting; an installer may continue. Never automatically retry an uncertain result.")], phrase: "UNINSTALL WINDOWS " + plan.id, locale: args.locale)
-                    value=try .from(await service.execute(planId: plan.id, confirmedDigest: plan.digest))
-                default: value=try .from(await service.history())
-                }
-            case "applications usage scan", "applications usage measure":
-                guard fs.platform=="windows" else { throw ShouError("unsupported_platform", "Registered installation measurement requires Windows.") }
-                let service=WindowsApplicationUsageService(reader: WindowsApplicationUsageReader(),store: store)
-                if args.command.hasSuffix(" scan") { value=try .from(await service.scan()) }
-                else {
-                    guard let entries=Int(args.values["max-entries"]?.first ?? "100000"), let seconds=Double(args.values["max-seconds"]?.first ?? "30") else {
-                        throw ShouError("invalid_argument", "Application measurement budgets must be numeric.")
-                    }
-                    value=try .from(await service.measure(scanId: args.value("scan-id"),applicationId: args.value("application-id"),options: .init(maxEntries: entries,maxSeconds: seconds)))
-                }
-            case "applications package-data scan", "applications package-data plan", "applications package-data show", "applications package-data execute", "applications package-data history":
-                guard fs.platform=="windows" else { throw ShouError("unsupported_platform", "MSIX application data requires Windows.") }
-                let service=WindowsPackageDataService(runner: WindowsPackageData(),store: store)
-                switch args.command {
-                case "applications package-data scan": value=try .from(await service.scan())
-                case "applications package-data plan":
-                    value=try .from(await service.createPlan(scanId: args.value("scan-id"),applicationIds: args.all("application-id"),includeUserData: args.value("include-user-data")=="true"))
-                case "applications package-data show": value=try .from(await service.plan(args.value("plan-id")))
-                case "applications package-data execute":
-                    let plan=try await service.plan(args.value("plan-id"))
-                    try Terminal.confirm(["plan": try JSONValue.from(plan),"warning": .string("Windows clears all local, roaming and temporary app data and settings. Whole-package operation: file cleanup exclusions do not limit it. No restore. Stopping ends waiting; the operation may continue. Never automatically retry an uncertain result.")],phrase: "CLEAR MSIX "+plan.id,locale: args.locale)
-                    value=try .from(await service.execute(planId: plan.id,confirmedDigest: plan.digest))
-                default: value=try .from(await service.history())
-                }
-            case "applications data scan", "applications data plan", "applications data show", "applications data execute":
-                let dataEngine=try WindowsApplicationDataEvidence.makeEngine(store: store)
-                let evidence=WindowsApplicationDataEvidence()
-                switch args.command {
-                case "applications data scan":
-                    let include=args.values["leftovers-only"]?.first ?? "true"
-                    guard ["true","false"].contains(include) else { throw ShouError("invalid_argument", "Leftovers-only must be true or false.") }
-                    value=try .from(await dataEngine.reviewWindowsApplicationData(presence: evidence,leftoversOnly: include=="true"))
-                case "applications data plan":
-                    guard args.value("include-user-data")=="true" else { throw ShouError("confirmation_required", "Separately consent to personal application data removal.") }
-                    value=try .from(await dataEngine.createWindowsApplicationDataPlan(reviewId: args.value("review-id"),componentIds: args.all("component"),includeUserData: true))
-                case "applications data show": value=try .from(await dataEngine.windowsApplicationDataPlan(args.value("plan-id")))
-                default:
-                    let plan=try await dataEngine.windowsApplicationDataPlan(args.value("plan-id"))
-                    try Terminal.confirm(TerminalReviewScope(applicationData: plan,locale: args.locale),phrase: "PURGE "+plan.id,locale: args.locale)
-                    value=try .from(await dataEngine.executeWindowsApplicationData(planId: plan.id,confirmedDigest: plan.digest,presence: evidence,entryPoint: "cli"))
-                }
             case "applications leftovers scan": value=try .from(await engine.reviewApplicationOrphans(presence: NativeApplicationAbsence()))
             case "applications leftovers plan":
                 let include=args.values["include-user-data"]?.first ?? "false"
@@ -646,14 +556,6 @@ enum Terminal {
                 default: value=try .from(await service.history())
                 }
             case "system close-plan": value=try .from(await engine.cleanupApplicationClosePlan(scanIds: args.all("scan-id")))
-            case "system close-owners":
-                guard fs.platform == "windows" else { throw ShouError("capability_unavailable", "This normal-close adapter requires Windows.") }
-                let controller=WindowsCleanupOwnerClosing()
-                let review=try await engine.cleanupOwnerCloseReview(scanIds: args.all("scan-id"), controller: controller)
-                guard !review.targets.isEmpty else { throw ShouError("application_not_running", "No supported running cleanup owner was found. Scan again to refresh activity.") }
-                try Terminal.confirm(review, phrase: "CLOSE-OWNERS", locale: args.locale)
-                value = .object(["receipt": try .from(await engine.closeCleanupOwners(review: review, confirmedDigest: review.digest, controller: controller)),
-                    "affected_workspace_ids": try .from(review.affectedWorkspaceIds), "affected_paths": try .from(review.affectedPaths)])
             case "system close-applications":
                 let plan=try await engine.applicationClosePlan(args.value("plan-id"))
                 try Terminal.confirm(plan, phrase: "CLOSE " + plan.id, locale: args.locale)

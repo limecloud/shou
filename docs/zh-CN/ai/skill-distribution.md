@@ -26,14 +26,13 @@ Shou 学习这种分发与发现方式，使用自己的 Swift 实现。当前�
 "/Applications/Shou.app/Contents/Helpers/shou" skills export --output "$HOME/Downloads/shou-rule-authoring.zip" --json
 ```
 
-Windows 的**规则页**与**设置页**也提供外部 AI 设置窗口。Codex／Claude Code 安装先预览所选父目录，再明确确认，支持选择项目目录；WorkBuddy 通过保存面板导出 ZIP。归档跨平台生成，无需系统压缩工具。复制请求包含随包程序的完整路径，此交接无需先把 `shou` 加入 `PATH`；“设置 → 安装 CLI 命令”可经审阅安装用户级原生入口，不修改 PATH。请将完整应用保留在审阅位置；Windows 原生命令及界面验收仍待完成。客户端发现与 WorkBuddy 实际上传仍需 Windows 验收。
+Windows Skill 安装与导出待实现，使用 .NET CLI 与原生确认，文件系统和界面行为需独立验收。
 
 ```powershell
 & "C:/path/to/Shou/Engine/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
 & "C:/path/to/Shou/Engine/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
 ```
 
-桌面桥的 `agent.setup`／`skills.preview` 只读，`skills.install`／`skills.export` 使用本次请求确认，并在写入前复核审阅内容和目标。`scripts/verify-agent-setup.py` 只写生成目录，已接入常规测试和 Windows Check。
 
 按需选择一条命令，无需为所有客户端安装。
 

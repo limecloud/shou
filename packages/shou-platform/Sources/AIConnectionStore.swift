@@ -3,9 +3,6 @@ import ShouCore
 #if canImport(Security)
 import Security
 #endif
-#if os(Windows)
-import CShouWindows
-#endif
 
 public struct AIConnectionStore: Sendable {
     private let store: any RecordStore
@@ -107,16 +104,6 @@ public struct SystemAICredentials: AICredentialStore {
                 throw ShouError("ai_credential_missing", "The legacy Keychain key is unavailable. Open AI settings, choose local storage and enter the key again.")
             }
             return key
-            #elseif os(Windows)
-            var bytes: UnsafeMutableRawPointer?, count=0
-            guard shou_win_ai_credential_read(id, &bytes, &count) == 0, let bytes else {
-                throw ShouError("ai_credential_missing", "The API key is unavailable in Windows Credential Manager. Open AI settings to save it again.")
-            }
-            defer { shou_win_free(bytes) }
-            guard let key=String(data: Data(bytes: bytes, count: count), encoding: .utf8), !key.isEmpty else {
-                throw ShouError("ai_credential_missing", "The saved API key is invalid. Open AI settings to save it again.")
-            }
-            return key
             #else
             throw ShouError("ai_credential_unavailable", "System Keychain credentials are available on macOS. Select an explicit environment variable on this platform.")
             #endif
@@ -155,10 +142,6 @@ public struct SystemAICredentials: AICredentialStore {
             status=SecItemAdd(attributes as CFDictionary, nil)
         }
         guard status == errSecSuccess else { throw ShouError("ai_credential_unavailable", "Could not save the API key in Keychain.") }
-        #elseif os(Windows)
-        let data=Data(key.utf8)
-        let status=data.withUnsafeBytes { shou_win_ai_credential_write(account, $0.baseAddress, $0.count) }
-        guard status == 0 else { throw ShouError("ai_credential_unavailable", "Could not save the API key in Windows Credential Manager.") }
         #else
         throw ShouError("ai_credential_unavailable", "Use an explicit environment variable on this platform.")
         #endif

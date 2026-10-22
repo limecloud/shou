@@ -122,17 +122,6 @@ public struct ApplicationUninstallPlan: Codable, Sendable, Identifiable {
 enum ReceiptOrigins {
     struct Origin { let path: String; let identity: FileEntry; let applicationParent: Bool; var analysisRoot: Bool = false }
     static func resolve(receipt: ExecutionReceipt, item: ItemReceipt, homeDirectory: URL) throws -> Origin {
-        if receipt.operation == "windows_application_data_cleanup" {
-            guard let origin=item.windowsApplicationDataOrigin,item.uninstallOrigin==nil,
-                  let owner=WindowsApplicationDataOwner.all.first(where: { $0.id==origin.ownerId }),
-                  owner.paths(homeDirectory: homeDirectory).contains(item.originalPath),
-                  !item.relativePath.contains("/"),!item.relativePath.contains("\\"),
-                  item.originalPath==origin.parentPath+"/"+item.relativePath,
-                  origin.parentIdentity.path==".",origin.parentIdentity.kind=="directory",origin.parentIdentity.windowsIdentity != nil,
-                  item.manifest.first(where: { $0.path=="." })?.kind=="directory" else { throw ShouError("store_corrupt", "Application data receipt origin is invalid.") }
-            return Origin(path: origin.parentPath,identity: origin.parentIdentity,applicationParent: false,analysisRoot: true)
-        }
-        guard item.windowsApplicationDataOrigin==nil else { throw ShouError("store_corrupt", "Application data origin does not match the receipt operation.") }
         if ["storage_removal", "storage_permanent_removal"].contains(receipt.operation ?? "") {
             guard StorageRemovalPolicy.validRelative(item.relativePath), item.uninstallOrigin == nil,
                   item.originalPath == StorageRemovalPolicy.absolute(root: receipt.workspace.path, relative: item.relativePath),

@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="Shou.Windows/Shou.Windows.csproj" />
-  <Project Path="Shou.Windows.Services/Shou.Windows.Services.csproj" />
-  <Project Path="Shou.Windows.Checks/Shou.Windows.Checks.csproj" />
-</Solution>

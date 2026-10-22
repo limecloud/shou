@@ -226,7 +226,7 @@ Story **US-AI17**: As a user controlling cost and service choice, I want to repl
 | ID | Story | Acceptance |
 | --- | --- | --- |
 | US-AI18 | As a terminal/external-agent user, discover providers, configure/test, investigate/answer, list/cancel and import one draft | Fifteen discoverable operations; stdin-only credentials; cancellation reaches the running worker; cleanup retains terminal confirmation |
-| US-AI19 | As a Windows user, complete a native AI journey with the same investigation/rule semantics as macOS/CLI | Fluent UI, default-off switch, PasswordBox/Credential Manager, four contextual entries, complete states and existing rule previews; native runtime claims require this revision’s CI |
+| US-AI19 | As a Windows user, complete a native AI journey with the same investigation/rule semantics as macOS/CLI | Fluent UI, default-off switch, PasswordBox/Credential Manager, four contextual entries, complete states and existing rule previews; Windows implementation and native acceptance are pending |
 
 ### UC-AI09: Independent CLI investigation and cancellation
 
@@ -244,7 +244,7 @@ Story **US-AI17**: As a user controlling cost and service choice, I want to repl
 4. Inspect evidence, structured reviews, usage and escalation, then preview a single disabled draft through the existing rule/cleanup journey.
 5. Closing explains loss of unsent text. After restart, local records open saved questions and continue within 24 hours on the original connection. Expired/missing-index/incompatible-runtime records require a new investigation.
 
-Cross-builds, native CI and WPF interaction are distinct evidence. CLI and desktops share business services; desktop preferences do not silently override explicit terminal network authorization.
+Windows is planned with independent .NET services shared by its WinUI desktop and CLI. Pure tests, native APIs, UI and distribution require separate evidence. Desktop preferences do not override explicit terminal network authorization.
 
 ## Credential, configuration and scope interaction additions
 

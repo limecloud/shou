@@ -1,384 +1,110 @@
 # System architecture
 
-Shared scan and execution feedback, batch counts, cancellation and progress diagrams: [operation progress](../product/operation-progress.md).
-
 English | [简体中文](../zh-CN/architecture/system-design.md)
 
-Current desktop navigation and automatic discovery follow [Unified daily cleanup](../product/unified-cleanup.md).
+Status: macOS has source implementations. Windows follows the [native implementation plan](../engineering/windows-native-plan.md); its runtime and distribution are pending.
 
-Status: current development architecture and next-stage design. Shared scanning, planning, receipts, Trash execution and bounded permanent execution have source implementations; Windows, distribution and filesystem race acceptance remain pending. Built-in cleanup AI entered product scope on 2026-10-22; its first shared service, SDK adapter and native connection settings are implemented; see [implementation and remaining acceptance](../engineering/embedded-ai-implementation.md).
-
-## 1. Constraints
-
-The native macOS application and Swift CLI share one portable Swift core. The Windows WPF desktop consumes the same engine through the versioned process bridge; its native runtime acceptance remains a separate gate. Rules are declarative whether handwritten or generated externally.
-
-A built-in cleanup-specific Agent will use a replaceable Swift model SDK, separating investigation, questions and rule intent from deterministic execution. Ordinary scans and cleanup need no model, account or network. Initial AI uses user-provided credentials without a product-hosted backend, persistent daemon or privileged helper. Keep platform dependencies isolated.
-
-## 2. Context
+## System context
 
 ```mermaid
 flowchart TB
-    User[User] --> GUI[Native desktop]
-    User --> CLI[Swift CLI]
-    Terminal[User bin shou launcher] -->|Execute packaged binary with original arguments| CLI
-    GUI -->|Copy request and local paths| Skill[Bundled rule-authoring Skill]
-    Skill -->|User hands off to existing client| Agents
-    Agents[Existing coding agents] -->|Authorized calls| CLI
-    Agents --> Draft[JSON rule draft]
-    Draft --> GUI
-    Draft --> CLI
-    GUI --> Core[Shared core]
-    CLI --> Core
-    GUI --> AI[ShouAI metadata investigation]
+    User[User] --> Mac[macOS native application]
+    User --> Win[Windows native application - planned]
+    Agent[Authorized external agent] --> CLI[Platform-native CLI]
+    Mac --> Swift[Swift domain services]
+    Win --> CS[C# domain services - planned]
+    CLI --> Services[Services of the current platform]
+    Swift --> MacOS[macOS system adapters]
+    CS --> Windows[Windows system adapters - planned]
+    Shared[Product contracts and declarative resources] --> Swift
+    Shared --> CS
+    Services --> Local[Platform-local records and filesystem]
+    Mac --> AI[Optional investigation service]
+    Win -.Planned.-> AI
+    AI --> Provider[Explicitly selected model service]
+    AI --> Draft[Disabled rule draft]
+    Draft --> Services
+```
+
+Desktop and CLI are independent product entry points within each operating system. Both use the same platform-local domain services. Ordinary scans and cleanup operate offline. A model proposes evidence-backed rule drafts; deterministic validation, explicit enablement, a fresh scan and confirmed execution remain separate steps.
+
+## Domain responsibilities
+
+| Responsibility | Contract |
+| --- | --- |
+| Rules | Closed schema, immutable version, applicability, scope and protected data |
+| Discovery | Explicit known roots and bounded project hints; missing and inaccessible remain distinct |
+| Scan | Bounded work, stable identities, complete-target evidence and honest partial coverage |
+| Analysis | Allocated-byte estimates, hard-link deduplication, paged directory and large-file queries |
+| Plan | Exact selected targets, action, evidence digest, policy revision and expiry |
+| Confirmation | One reviewed action bound to the current plan and entry point |
+| Execution | Mutation lease, fresh validation, durable intent and per-item outcome |
+| Recovery | Verified receipt-based restore without overwrite; uncertain work is reconciled |
+| Retention | Quotas/expiry protect active plans, recovery evidence and consumed authorization |
+| AI | Bounded authorized evidence, provider isolation, cancellation and disabled drafts |
+
+Core owns these decisions and required capability interfaces. Platform owns native access, identities, processes and persistence. UI owns navigation, selection, rendering and scheduling. The Windows Presentation layer keeps state independently testable on macOS. See [repository boundaries](monorepo-and-platforms.md).
+
+## macOS implementation
+
+`apps/macos` composes SwiftUI/AppKit, `ShouCore`, `ShouPlatform`, `ShouAI` and bundled agent instructions. `apps/cli` independently composes the same Swift services and terminal confirmation. `Package.swift` builds the macOS products; it does not define Windows targets.
+
+```mermaid
+flowchart LR
+    Mac[SwiftUI and AppKit] --> Core[ShouCore]
+    CLI[Swift CLI] --> Core
+    Mac --> Platform[ShouPlatform]
+    CLI --> Platform
+    Platform --> Core
+    Core --> Contracts[ShouContracts]
+    Mac --> AI[ShouAI]
     CLI --> AI
     AI --> Core
-    AI --> SDK[Swift AI SDK and selected model]
-    AI --> Jev[Current optional Jev review]
-    Windows[Windows WPF desktop] -->|Versioned structured process bridge| CLI
-    Core --> Policy[Access and safety policy]
-    Core --> Store[Local versioned storage]
-    Policy --> FS[Explicit workspace filesystem]
-    FS --> Trash[System Trash or Recycle Bin]
-    Core --> Results[Plans and receipts]
-    Results --> GUI
-    Results --> CLI
+    AI --> Model[Model transport]
+    Platform --> Files[macOS filesystem and OS APIs]
 ```
 
-The diagram includes current built-in and external routes. Next work adds local deterministic handling, Jev-first decisions and main-model escalation; switches/routing remain pending. The [AI architecture/sequences](embedded-ai.md) distinguish current and target chains. Outputs, imported files and project content remain untrusted.
+The macOS adapter uses bounded native metadata readers, a disk-backed SQLite storage catalog and short-lived read workers where needed. Read-worker requests authorize identity/inspection only. The parent process owns confirmed mutations. Timeouts, cancellation, child limits and partial results remain explicit. [Storage performance](../engineering/storage-scan-performance.md) defines scheduler and measurement details.
 
-## 3. Modules
+Known roots and declarative rule data are maintained in JSON. `ShouEngine` registers available roots before capturing configuration-bound evidence. Rules cannot gain authority from a matching directory name alone. Application-cache discovery requires exact installed-owner evidence and observed inactivity; unknown ownership or activity blocks affected targets.
 
-```mermaid
-flowchart LR
-    App[macOS SwiftUI and AppKit] --> Core[Portable ShouCore]
-    App --> Setup[First-use and scan access guidance]
-    Setup --> Access[ShouPlatform / native access evidence]
-    Access --> Privacy[macOS privacy settings, user controlled]
-    App --> AgentSupport[ShouAgentSupport / Skill resources]
-    CLI --> AgentSupport
-    App --> SkillInstall[ShouPlatform / Skill installation and ZIP export]
-    CLI --> SkillInstall
-    SkillInstall --> AgentSupport
-    CLI[Swift executable] --> Core
-    App --> Quick[Desktop quick-clean routing]
-    Quick --> Core
-    App --> LargeFiles[Large-file browser and selection]
-    LargeFiles --> Core
-    Core --> CatalogQuery[Saved catalog directory and large-file queries]
-    Core --> Uninstall[Application summaries and batch uninstall]
-    Core --> PrivacyService[Source-specific privacy service]
-    PrivacyService --> SQLite[Time-bounded schema-aware SQLite transactions]
-    PrivacyService --> PrivacyReceipts[Irreversible aggregate privacy receipts]
-    Core --> Rules[Rule validation and matching]
-    Core --> Scanner[Scan orchestration]
-    Core --> Planner[Evidence and planning]
-    Core --> Safety[Access and protection]
-    Core --> Router[Execution router]
-    Router --> TrashExec[TrashExecution]
-    Router --> PurgeExec[PermanentExecution]
-    PurgeExec --> RemovalContext[Per-execution hard-link evidence]
-    RemovalContext --> Interfaces
-    Core --> FollowUp[Restore and Trash follow-up]
-    Core --> Store[Persistence orchestration]
-    Scanner --> Interfaces[Platform capability interfaces]
-    Safety --> Interfaces
-    TrashExec --> Interfaces
-    PurgeExec --> Interfaces
-    FollowUp --> Interfaces
-    Store --> Interfaces
-    Mac[macOS adapter] --> Interfaces
-    Win[Windows native adapter] --> Interfaces
-```
+## Windows implementation contract
 
-Core declares the minimal protocols it consumes. Platform packages implement them; the core never depends on concrete adapters. Rules, planning, and scanning initially remain responsibilities within one core package rather than independently published packages.
+WinUI App → Presentation → C# Core is the UI dependency chain. Windows Platform implements Core-owned filesystem, registry, process, credential and record interfaces. App and .NET CLI compose these implementations directly. The C# domain uses an explicit Windows path model, with real Win32 behavior verified separately. Module names, framework targets and stage exits are specified in the [Windows plan](../engineering/windows-native-plan.md).
 
-Skill resources are shared by both products. Installation and export stay outside cleanup storage and rule enablement; see [distribution architecture and sequence](../ai/skill-distribution.md).
+## Cleanup and concurrency
 
-### Isolated read operations
-
-Full storage analysis streams 64 KiB macOS metadata pages through bounded directory readers and commits at most 128 entries per catalog lock. New catalogs index regular files allocated at least 1 MiB for saved large-file queries; legacy catalogs remain readable. Desktop directory presentation caches and batch selection do not replace Core's fresh manifest checks. See the [pipeline, query strategy and sequence](../engineering/storage-scan-performance.md).
-
-Directory reads and ready postorder finalizers share one scheduler with at most eight executing tasks. Child-completion notifications enqueue parents only after descendants finish, so a parent never occupies a worker slot waiting for its children. SQLite remains a serialized writer; finalizers cannot create an independent unbounded thread backlog.
-
-The desktop injects `NativeFileSystem(readWorkerExecutable:)` with the packaged `Contents/Helpers/shou` executable. Root-identity queries and full/cleanup traversal run in short-lived read workers so a stalled filesystem call does not keep the desktop waiting on that call. The CLI's hidden worker entry accepts only identity and inspection requests and runs before opening the record store. It is a platform implementation detail, not a public agent protocol, a second cleanup engine or a persistent service. The independent CLI keeps its normal direct adapter.
-
-```mermaid
-flowchart LR
-    Core[Shared core] --> Adapter[Native filesystem adapter]
-    Adapter -->|Identity and inspection| Worker[Temporary bundled CLI read worker]
-    Worker -->|Read only| Files[Explicit filesystem scope]
-    Worker -->|Validated evidence and progress| Adapter
-    Adapter -->|Confirmed mutations and live verification| Parent[Parent native Trash and recovery operations]
-    Parent --> Files
-```
-
-Each request uses a current-user temporary channel: a `0700` directory and `0600` files. Request/result versions, request identity, parent identity, output size, progress and snapshot structure are checked before evidence reaches Core. Malformed, missing, timed-out or cancelled work cannot become a complete snapshot. Scope, matching, candidate eligibility, plans and receipts remain owned by the shared core.
-
-Cancellation or the wall-clock deadline requests termination of only the owned read child and returns without waiting for process exit. At most two live read children are retained, including a child still awaiting kernel exit; further work returns a resource limitation. A child watchdog also terminates it on parent exit or its deadline. This bounds desktop waiting and child accumulation; it does not promise immediate completion of a kernel request. Trash, restoration and permanent removal remain parent-process operations with native identity/manifests revalidation and existing confirmation/receipt gates. No model or agent is introduced. Automated checks cover evidence equivalence, cancellation, timeout, the two-child cap and capacity recovery. The packaged desktop has passed scan-stop and partial-result checks; exact runtime coverage is recorded in [acceptance](../engineering/acceptance-and-testing.md).
-
-### Common application scanning
-
-`KnownLocations` defines explicit roots and rule associations without accessing disk. `PlatformFileSystem.locationAvailability` supplies current availability; `ShouEngine` owns registration and bounded scanning. `BuiltinCatalog` binds fixed rules only to their exact known root. Project rules remain usable in selected project workspaces. A path with the same folder name elsewhere does not activate an application rule.
-
-`scanKnownLocations` inventories roots, registers all available roots, then produces one `ScanSnapshot` per root. Registration happens first so it cannot invalidate earlier configuration digests. Missing roots are skipped; inaccessible or incomplete roots produce separate issues. The desktop standard scan probes conventional developer collections and includes remembered project folders; CLI `system scan` includes them only with `--include-projects true` (default `false`). Both use cleanup scope by default. Neither discovers projects through an implicit home-wide scan, changes operating-system permissions nor deletes targets. Plans remain bound to one root and explicit candidates.
-
-`InstalledApplicationCaches` extends only the exact macOS current-user `Library/Caches` root. `ApplicationCatalogReading` supplies actual bundle identity/Info.plist evidence; `ApplicationUninstallChecking` supplies read-only owner activity facts without invoking the uninstall workflow. A valid installed owner with no observed duplicate identifier or overlapping discovery issue yields an exact directory rule. Static scopes, including disabled and narrower declarations, take priority. Optional snapshot/plan evidence binds selected owners and any partial-coverage flag. Plan creation, execute preflight and every item re-read inventory, the exact app and activity before shared permanent/Trash execution. Application ownership is distinct from cache ownership: administrator-owned third-party bundles can have eligible current-user caches. No bundle, support data or container is selected by this feature.
-
-An unavailable inventory omits generic discovery; partial inventory remains partial and isolates failures to overlapping owner paths. An owner, descendant or ancestor issue, unavailable/uninspected owner source or observed duplicate blocks the affected cache. Other verified owners remain manually selectable with a digest-bound coverage warning and no automatic recommendation. Complete evidence becoming partial requires a new scan and explicit review. Fixed-rule scans remain available, and discovery issues surface in the system result. Snapshot filesystem status does not silently claim application inventory completeness. See the [daily cleanup architecture, flow and sequence](../product/unified-cleanup.md#installed-application-caches) and [optional evidence contract](data-model.md#4-scan-and-plan-states).
-
-### Scan coverage and artifact evidence
-
-`full` inspects the workspace tree for space analysis. `cleanup` uses enabled rule prefixes to decide which branches to discover, prunes `.git` during discovery, and fully measures a matched target before it can be eligible. Pruning discovery does not exempt protected content inside a matched target from inspection. Cleanup completion is not proof that the whole tree was measured: snapshots record `scope`, `treeComplete` and candidate coverage in `completedPaths`. A partial scan may authorize an independently complete target; missing legacy coverage never relaxes an incomplete target. UI must explain sparse cleanup results and request a full scan for directory-space exploration.
-
-`ArtifactEvidenceChecking` is a read-only Core port implemented by `NativeArtifactEvidence`. Exact bundled definitions, not a rule ID prefix or user declaration, gate generated-source exceptions. Rust build-script `OUT_DIR`, Swift generated build products and Cargo extracted registry sources require their recognized layouts and native ownership/activity evidence. Cargo sources additionally require archive/checksum integrity and an available local restoration source. Tracked, modified, unknown or unverifiable data remains blocked. See [rule semantics](../rules/rule-specification.md).
-
-`ApplicationActivityChecking` is a separate core port, implemented by `NativeApplicationActivity` using macOS running-application metadata. Known application rules are blocked while their application is running or activity cannot be checked. The engine checks during scanning and plan creation, then again immediately before each move. A late-running application produces a skipped item receipt; independent items continue. Shou never quits applications. This protects identified desktop applications; arbitrary compiler and package-manager tasks must still be stopped by the user. A process check cannot atomically prevent an application from launching after it.
-
-| Layer | Concrete responsibility |
-| --- | --- |
-| `SmartScanView` / CLI | Start a scan, present progress and per-root evidence |
-| `KnownLocations` / `BuiltinCatalog` | Explicit roots and declarative matching metadata |
-| `ShouEngine` | Configuration, snapshots, policy, plans, revalidation and receipts |
-| `PlatformFileSystem` | Availability, bounded inspection, identity and filesystem operations |
-| `ApplicationActivityChecking` | Read application activity without controlling processes |
-| `InstalledApplicationCaches` / application catalog and facts ports | Bind exact installed-ID cache rules and revalidate selected owners without uninstall authority |
-| `ArtifactEvidenceChecking` | Read tracked-content, build-process and Cargo-integrity facts; never supplied by rule documents |
-| `RecordStore` | Atomic records and cross-process mutation lease |
-
-These are package-internal responsibilities and small ports, not a plugin system or a separate service for each rule. The CLI runs without the desktop process. A future Windows adapter must implement and validate its own roots, activity and Recycle Bin behavior before enabling them.
-
-Repository organization:
-
-```text
-apps/macos/                 Native SwiftUI and AppKit application
-apps/cli/                   Swift CLI: shou / shou.exe
-apps/windows/               Windows WPF application and process bridge
-packages/shou-core/         Portable models, rules, orchestration, plans
-packages/shou-platform/     Concrete platform implementations
-packages/shou-contracts/    Language-independent schemas and contracts
-skills/                     ShouAgentSupport and portable rule-authoring Skill
-scripts/                    Build, check, package, benchmark
-examples/rules/             Reviewable rules
-assets/brand/               Brand source assets
-tests/fixtures/             Fictional filesystem and contract fixtures
-docs/                       English documentation and localized editions
-```
-
-See [monorepo and platforms](monorepo-and-platforms.md) for dependency rules.
-
-## 4. Responsibilities
-
-| Service | Owns | Excludes |
-| --- | --- | --- |
-| WorkspaceAccess | Root binding, actual access, expiration | Permission escalation through rules |
-| RuleService | Parsing, versions, provenance, validation, enablement | Script execution or trusting model claims |
-| Scanner | Bounded traversal, project clues, sizes, modification evidence | Declaring unknown directories disposable |
-| Matcher | Deterministic predicates within bound scope | Searching unauthorized volumes |
-| Planner | Deduplication, protection, selection, manifests, digests | Deletion or inherited authorization |
-| Confirmation | Current plan/action confirmation in UI or TTY | Standing reusable permission |
-| Executor | Revalidation, Trash operations, cancellation, outcomes | Blind path-based retries |
-| ReceiptService | Verified restore and permanent batch removal | Emptying unrelated Trash contents |
-| LocalStore | Atomic records, versions, locks, interruption data | Uploading file contents |
-
-Presentation never owns a separate policy implementation. Localization changes display text, not business behavior.
-
-## 5. Concurrency
-
-Enable Swift 6 concurrency checks; provisional minimum macOS is 14. UI state is `@MainActor`; traversal and statistics run off the main thread. Use bounded structured concurrency, propagated cancellation, and coalesced progress updates. Unknown totals use counts/stages, not fabricated percentages.
-
-Serialize destructive execution within a process and use platform-backed locks across processes. A Swift actor cannot protect independent GUI/CLI processes. Inject filesystem, clock, and persistence only at actual external boundaries.
-
-The macOS application delegate and a forwarding window delegate guard termination and closing during mutations. They request cancellation through `AppModel` and await its execution task. Core checks cancellation before each item and before journaling; the native adapter finishes journaled Trash/restore verification in the parent rather than a cancellable read worker. Failure keeps the window available for review. Follow-up identity is the pair `(executionId, itemId)`, so matching item IDs in different batches do not share eligibility.
-
-## 6. Local persistence
-
-Begin with versioned JSON objects and streamable large manifests. Adopt SQLite only if measured query/volume needs justify it.
-
-Platform adapters select user-scoped data roots. Use same-directory temporary writes, atomic replacement, and tested durability for intent journals. Lock configuration changes and destructive execution. Permit at most one destructive task per user; immutable snapshots can be read independently.
-
-Caches are rebuildable; rules, exclusions, and receipts are not disposable scan caches. Persist intent before processing files. Disk-full or journal failure prevents starting; unexpected post-operation failures produce unknown states and stop further work. Revalidate local files rather than trusting their storage location.
-
-## 7. Access and distribution
-
-The GUI uses native directory panels; sandboxed designs require security-scoped bookmarks and lifetime management. Expired access requires reauthorization.
-
-CLI path registration is configuration, not an OS permission grant. Actual terminal/process/TCC/filesystem access must be checked. GUI access does not imply CLI access or the reverse. No initial privilege-borrowing service is planned.
-
-Prefer directly distributed signed/notarized macOS packages, subject to M0 validation of Sandbox, signing, CLI location, and permissions. Windows signing, runtime delivery, and native permissions are independent concerns.
-
-## 8. Filesystem races
-
-Record root and object identity, volume, type, size, modification/metadata information, and full directory manifests. Top-level `mtime` alone is insufficient.
-
-Before execution, recheck access, configuration, rules, expiry, paths, identities, and manifests. Resolve paths within a verified root without following ancestor links; string-prefix checks are insufficient. Changed or unverifiable targets are refused/skipped without scope expansion or blind recursive fallback.
-
-Known internal POSIX symlinks are opaque entries, never traversal roots. Platform Trash APIs and descriptor-based identity constraints need actual race prototypes. A check followed by an unrelated path operation is not an atomic safety guarantee; unmet constraints block release or narrow support.
-
-Trash follow-up verification tolerates a change only to the saved top-level directory's `ctime`, which macOS may update after the move. Its identity and every other saved root field must still match, as must all descendant entries. This exception applies only to recorded Trash follow-ups; it does not relax ordinary scan or pre-move verification.
-
-Broad scans skip protected Trash locations without Full Disk Access. Post-move and follow-up verification instead attempt the exact direct-child location returned by the system and recorded in the receipt through `inspectTrashTarget`. The adapter validates the current user's Trash parent and retains OS permissions, no-follow traversal and complete manifest checks; it never enumerates unrelated Trash items. An unstarted `pending` item in a finished partial or cancelled batch is shown as skipped, while uncertain started mutations remain marked for verification.
-
-## 9. Built-in cleanup AI and existing agents
-
-Provide public rules, capability discovery, structured CLI results and stable plan/history IDs. Existing agents retain independently authorized CLI access alongside built-in ShouAI investigation and its Swift SDK. General chat/global external-agent configuration is outside this cleanup workflow.
-
-`ShouAgentSupport` packages the rule-authoring Skill and its question matrix independently of `ShouCore`. Both frontends depend on this resource target. The Rules page copies a request containing local paths; `agent skill --json` exposes the same entrypoint and instructions without opening cleanup storage. This external-agent route continues to provide declarative drafts, validation, disabled import and preview.
-
-ShouAI already supplies a shared service/thin SDK adapter for scope, retention, budgets, continuation and advice. Next add bounded routing: local code/templates first, Jev fixed decisions, main models only for open-ended understanding. The SDK keeps generative loops; Jev uses bounded questions/state transitions without a general Agent framework. See [gating, routing, independent Jev setup and service usage](embedded-ai.md).
-
-Current tools cover saved-index pages/inspection, questions and exact rule proposals. Configuration contents/tool activity require separate future adapters and acceptance. Scope policy, `PersonalRuleDraft` and the closed parser validate intent. Core retains enablement, fresh scans, confirmation and receipts; investigation tools cannot delete.
-
-Connections separate protocol, endpoint, model and credential reference, supporting Responses, Chat Completions and Messages. Platform credential stores hold sensitive values. Explicitly enabled investigation sends minimal evidence to the selected connection without silently resending it to another provider. The first metadata-only implementation is recorded in [implementation and acceptance](../engineering/embedded-ai-implementation.md). Verify SDK behavior on macOS 14 and Windows, streaming multi-turn calls, pause/resume and cancellation before adoption. See [integration design](../engineering/embedded-ai-investigation.md) and [implementation gates](../engineering/implementation-plan.md).
-
-General chat, arbitrary Shell/plugins and hosting external coding agents are outside this stage. MCP still requires demonstrated integration needs. See the external [agent workflow](../ai/coding-agent-integration.md).
-
-## Startup discovery boundary
-
-`StartupInventoryService` owns read orchestration independently of cleanup storage. Core defines `StartupInventoryReading` and portable evidence/coverage models; `NativeStartupInventory` owns macOS directories, bounded physical reads, property-list interpretation and allow-listed read-only `launchctl` state queries for current-user agents. CLI and SwiftUI use the same service. The desktop opens Login Items through the public ServiceManagement API. State queries never change settings or require a privileged helper; mutation remains a separate, confirmed current-user control capability. See [startup discovery](../product/startup-items.md).
-
-## 10. Engineering principles
-
-KISS: one core with limited declarative semantics. DRY: reuse validation, protection, plans and execution. YAGNI: add only cleanup-specific model loops and connections, without a product-hosted inference backend, dynamic scripting, general agent platform or privileged daemon. SOLID: explicit responsibilities and minimal platform-facing interfaces.
-
-
-## Application uninstall boundary
-
-Application discovery and uninstall are a separate domain from rebuildable-cache rules. `ShouEngine` owns exact component associations, consent, current exclusions and digest-bound plans; `ApplicationCatalogReading` and `ApplicationUninstallChecking` supply platform evidence. The existing `TrashExecution` and `PermanentExecution` journals are shared with cleanup. Incremental `ApplicationSummary` results are separate from complete removal manifests; `ApplicationUninstallBatchPlan` binds explicit per-application selections and rejects overlapping paths before one confirmation. Each uninstall item records an exact original parent and component kind, allowing one receipt to cover several Library families and an installation directory. `ReceiptOrigins` validates those associations before history inspection or restoration. A separate restricted application-parent identity capability preserves ordinary workspace-root restrictions. See [application uninstall](../product/application-uninstall.md) for architecture, flow and sequence diagrams.
-
-## 11. Current execution paths
-
-The user experience intentionally has two levels. The desktop uses a fast path for verified built-in rules: one scan preselects eligible built-in and enabled personal-rule candidates and one native confirmation starts a concrete plan. Custom rules, blocked candidates and mixed selections enter the detail review. The CLI keeps explicit scan, plan and execute checkpoints because an existing coding agent needs stable JSON state and a resumable boundary.
+Read operations are cancellable and bounded. Whole-tree completeness and complete target subtrees are separate facts; only complete, current target evidence can authorize mutation. Sparse cleanup scans cannot stand in for full space analysis.
 
 ```mermaid
 flowchart TD
-    Entry[Desktop or CLI entry] --> Fixed{Desktop fixed-rule path?}
-    Fixed -->|Yes| Scan[Scan known locations and discovered and remembered projects]
-    Scan --> Auto[Auto-select eligible built-in candidates]
-    Auto --> Quick[Clean Recommended]
-    Quick --> Mode{User chooses action}
-    Fixed -->|No| Review[Review details and select explicit candidates]
-    Review --> Mode
-    Mode -->|Trash| TrashPlan[Create action=trash plan]
-    Mode -->|Permanent| PurgePlan[Create action=permanent plan]
-    TrashPlan --> Confirm[Native sheet or TTY confirmation]
-    PurgePlan --> Confirm
-    Confirm --> Revalidate[Recheck configuration, activity, identity and full manifest]
-    Revalidate --> Route{Plan action}
-    Route -->|trash| TrashExec[TrashExecution: move and verify returned location]
-    Route -->|permanent| PurgeExec[PermanentExecution: purge bound manifest entries]
-    TrashExec --> Receipt[Durable receipt and next actions]
-    PurgeExec --> Receipt
+    Evidence[Current scan and explicit selection] --> Plan[Immutable plan]
+    Plan --> Review[Exact scope and action review]
+    Review --> Confirm{Confirmed current digest?}
+    Confirm -->|No| Stop[No target changes]
+    Confirm -->|Yes| Lease[Acquire cross-process mutation lease]
+    Lease --> Verify{Identity, policy and manifest still valid?}
+    Verify -->|No| Rescan[Refuse and request fresh evidence]
+    Verify -->|Yes| Journal[Persist item intent]
+    Journal --> Mutate[Perform selected native operation]
+    Mutate --> Receipt[Persist observed outcome]
+    Receipt --> Next{More items and not cancelled?}
+    Next -->|Yes| Verify
+    Next -->|No| Results[Present results and available recovery]
 ```
 
-`CleanupPlan.action` is the routing boundary. `TrashExecution` records the system-provided Trash location and supports later verified restoration. `PermanentExecution` uses the same plan binding, lease, revalidation and per-item journal, but calls the platform purge capability against the original path and never creates a recovery location. Neither executor accepts arbitrary shell text or expands a plan after confirmation.
+Desktop cleanup defaults to permanent removal with an irreversible exact-scope confirmation. Trash/Recycle Bin is an explicit alternative with separately verified recovery. It never falls back to permanent deletion. CLI confirmation is interactive; no unattended destructive bypass is part of this contract.
 
-```mermaid
-flowchart LR
-    Plan[Immutable plan + full manifests] --> Lease[Mutation lease]
-    Lease --> Preflight[Fresh policy and identity checks]
-    Preflight --> Journal[Persist execution intent]
-    Journal --> TrashExecution[TrashExecution]
-    Journal --> PermanentExecution[PermanentExecution]
-    TrashExecution --> TrashReceipt[trash / trashed / trashPath]
-    PermanentExecution --> PurgeReceipt[permanent / purging / purged]
-    TrashReceipt --> FollowUp[Optional restore or purge of verified Trash items]
-    PurgeReceipt --> Terminal[Completed, partial, cancelled or failed]
-    FollowUp --> Terminal
-```
+A cancellation stops dispatching new mutations. An in-flight native result is recorded as observed or unknown. The journal and filesystem do not form an atomic cross-system transaction. Recovery must inspect current state rather than infer success from missing output. POSIX descriptor and Windows handle race protections are platform responsibilities.
 
-The permanent path is deliberately a first-class action rather than a hidden fallback. Its safety boundary is the reviewed plan and its exact manifest: a missing, replaced, expanded or unverifiable item is skipped or fails, and unrelated Trash contents are never enumerated or emptied. `operation=permanent_cleanup`, `purging`, `purged` and `permanentlyRemovedBytesEstimate` make the irreversible outcome machine-readable.
+## Data and resources
 
+Rules and product contracts are language-independent; local records are platform-owned. Use stable IDs, explicit format versions and structured error categories. Windows volume/File ID/SID and macOS device/inode/owner are separate identity models. See [data contracts](data-model.md).
 
-## Explicit space-analysis removal
+Text, design tokens, brand assets and rule resources use one canonical source per asset and deterministic generators. Generated resource changes carry source digests. Track each feature, safety change and intentional difference in [SYNC.md](../../SYNC.md).
 
-Space analysis now supports local volume/folder discovery and direct explicit file/directory removal, independently of cleanup-rule workspaces. Desktop list and treemap share navigation and normalized selection. Current manifests and exclusions are checked before confirmation and execution. It reuses existing mutation journals and history. See [space analysis architecture, flow and sequence](../product/space-analysis.md).
+## Engineering and verification
 
-Default space measurement is separate from deletion manifests. A read-only worker streams all measured files into a private SQLite catalog with per-directory totals and completeness. Desktop and CLI query directories on demand; measurement no longer stops at the one-million-entry deletion-manifest cap. `StorageScan` references its catalog and records `measured_entry_count`; nodes expose `is_complete`, and partial sizes are lower bounds. Removal still requires fresh complete target manifests and independent verification. Legacy JSON and paged records remain readable.
+Build the smallest feature slice with explicit capabilities. Keep domain interfaces narrow and introduce them only for current operations. Avoid universal plugin systems and duplicated policy in UI.
 
-On macOS, this worker uses a bounded FIFO of directories and up to eight concurrent readers. Bulk metadata reads overlap; SQLite appends and postorder totals remain serialized. Cancellation propagates from the parent task into the readers, and all tasks join before publication. See [scan architecture, flow and sequence](../engineering/storage-scan-performance.md).
-
-### Privacy domain
-
-Privacy records have a separate source model from cache files. GUI and CLI share `PrivacyService`; the platform discovers standard profiles and no-follow identities. Core checks time bounds, schema, activity, exclusions and fingerprints before per-source transactions. Receipts retain aggregates only; irreversible logical deletion has no restoration or disk-space promise. See [privacy architecture, flow, sequence and support matrix](../engineering/privacy-cleaning.md).
-
-### Cleanup presentation boundary
-
-`OperationProgressView` renders both read-only review and mutation progress; the result occupies the same detail area and returns to its source section. The core exposes optional stage work counts and current-item manifest counts, while clients shorten display paths locally. Discovery, confirmation evidence and durable execution facts remain separate responsibilities. Windows receives additive progress fields through the desktop bridge and keeps full paths in protocol data.
-
-## History cleanup and actionable scan coverage
-
-History shows an item, date, outcome and processed size by default. Execution IDs, per-item paths, recovery and verification are available in details. Clearing finished records removes local JSON receipts and related follow-ups while retaining recovery, unknown outcomes and unfinished operations. Removing one record explicitly acknowledges loss of Shou recovery links; active operations and pending follow-up intents remain protected. Referenced files and Trash contents are never removed. Consumed plan state remains intact, preventing replay.
-
-Use `shou history cleanup-preview --json` to preview and `shou history clear` to confirm in a terminal. `--execution-id` selects one record; `--include-recoverable true` explicitly discards recovery links. Windows uses the same core through `history.cleanup-preview` and request-confirmed `history.clear`. Parent receipts are removed before follow-ups so interruption cannot make a restored item available for restoration again.
-
-Coverage notices concern the current directory. Unreadable siblings elsewhere do not mark a complete project folder as incomplete. System-managed locations such as `.fseventsd`, `.Spotlight-V100` and `.DocumentRevisions-V100` use an informational scope note, with individual paths collapsed. The core preserves incomplete coverage facts. User-directory access failures offer setup and Finder actions; changed or temporarily unreadable folders can be rescanned directly. Full Disk Access does not override Unix ownership or system protection, and Shou does not change system permissions to inspect system-managed directories.
-
-`StorageCoverageNote` classifies access failures in shared Core; resource limits and changed contents remain actionable. The bridge exposes this classification and the current directory's completeness. Windows provides Explorer and focused rescanning without duplicating system-path policy. Default bridge scans use the shared catalog path; view state and short paths remain client responsibilities.
-
-```mermaid
-flowchart LR
-    H[History summary] --> D[Optional details]
-    H --> P[Preview removable records and bytes]
-    P --> C[Confirm records only]
-    C --> L[Acquire mutation lease and recheck state]
-    L --> R[Remove parent receipt then follow-ups]
-    L --> K[Keep recovery and unfinished evidence]
-    S[Current directory coverage] --> M{Cause}
-    M -->|System managed| I[Informational scope note]
-    M -->|User access| A[Setup or Finder]
-    M -->|Changed directory| F[Rescan current folder]
-```
-
-## 0.9.0 cleanup services
-
-The delivery checklist is [0.9.0](../engineering/next-version-0.9.0.md). The new services remain explicit Core capabilities: `RecordRetention` protects active evidence and recovery journals, `HistorySummaries` pages disposable metadata, `ApplicationClosing` verifies graceful exit, `ToolCleanupService` handles closed owner-tool operations, `RuleOpportunities` supplies investigation evidence, and `ApplicationOrphans` revalidates exact absent-owner associations before shared execution. Imported JSON rules still match paths only.
-
-```mermaid
-flowchart TB
-    Entry[macOS / CLI / Windows bridge] --> Core[Shared Swift Core]
-    Core --> Scan[Register roots then up to four location workers]
-    Scan --> Evidence[Complete targets and shared progress]
-    Core --> Retention[Hourly best-effort derived record collection]
-    Retention --> Protect[Keep active plans and recovery journals]
-    Core --> Rules[Uncovered directories and draft benefit comparison]
-    Rules --> Agent[Existing external agent authors disabled rule]
-    Agent --> Enable[Explicit enablement then shared desktop reuse]
-    Core --> Close[Identity-bound graceful close and scoped refresh]
-    Core --> Tools[Fixed Docker / brew / conda / rustup adapters]
-    Tools --> Process[Native process group, bounded time and output]
-    Tools --> ToolReceipt[Separate tool outcome and estimate]
-    Core --> Orphans[Maintained or verified bundle association]
-    Orphans --> Absence[Complete standard sources, native registration and activity]
-    Absence --> Shared[Shared permanent / Trash journal and recovery]
-    Shared --> Journal[ReceiptJournal small state record]
-    Journal --> Manifest[Immutable large manifest with count and digest]
-    Protect --> Manifest
-    Core --> Win[Eight Windows cache roots and native process snapshot]
-```
-
-Location concurrency is bounded at four and preserves a stable result order; per-directory readers and storage-analysis readers remain separate implementations. No FSEvents/USN reuse is claimed. Tool bytes are owner-reported estimates, separate from filesystem estimates and actual free-space changes. An interrupted tool execution remains unknown and its consumed plan cannot replay. Orphan scope excludes shared containers and unknown name guesses; unregistered custom installations are an explicit limitation.
-
-`ReceiptJournal` stores manifests above 1024 entries as immutable `history-manifests` dependencies, persisting every dependency before publishing the small receipt. State changes do not rewrite large manifests; Trash metadata changes publish a new manifest version. Full history reads validate dependency ID, count and SHA-256; summary reads only need state. Legacy inline receipts remain readable. Retention protects every manifest with an existing history parent. Explicit history cleanup removes the parent before its manifests and follow-ups. Interrupted deletion retains intent and evidence and cannot replay because of this optimization.
-
-## Major-consumer investigation and independent rules
-
-The space index and directory pages expose same-scan evidence to the user's existing Agent. The Skill prioritizes purpose, rebuild cost and retention for major consumers; each rule ID represents one selectable decision. Desktop activation checks external configuration revisions and invalidates old cleanup candidates. Preview changes no settings; enablement saves only the chosen rule version, scans it freshly and reuses existing selection, confirmation and receipt services.
-
-```mermaid
-flowchart TB
-    Agent[Existing external Agent and Skill] -->|Investigate major branches and pages| CLI[Public CLI]
-    Agent -->|Validate and import independent disabled drafts| CLI
-    Mac[Native macOS review] --> Core[Shared ShouEngine]
-    Win[Native Windows review] --> Bridge[Desktop process bridge]
-    Bridge --> Core
-    CLI --> Core
-    Core --> Index[Read-only space index and pages]
-    Core --> Config[Versioned rules and independent enablement]
-    Config -->|Revision changed| Invalidate[Invalidate old cleanup candidates]
-    Core --> Preview[Single-rule preview and deduplicated benefit]
-    Preview --> Fresh[Explicit enablement and fresh rule-specific scan]
-    Fresh --> Execute[Existing selection confirmation execution and receipts]
-    Execute --> Verify[Relevant-scope verification and daily reuse]
-```
-
-W09 above is the implemented external-agent/Core flow. Built-in investigation will reuse it; the first model adapter and task service are implemented with remaining scope documented in [acceptance](../engineering/embedded-ai-implementation.md). The complete flow, sequence and acceptance are recorded in [space analysis and Agent design W09](../engineering/space-analysis-agent-design.md).
+Mac-hosted tests establish domain/state semantics. Windows native integration establishes Windows system behavior. UI, accessibility, signing, installation and updates each require independent evidence. Every supported capability must identify its platform, architecture, exact revision and executed checks; see [acceptance](../engineering/acceptance-and-testing.md).

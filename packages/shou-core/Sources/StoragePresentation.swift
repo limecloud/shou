@@ -99,7 +99,7 @@ public struct StorageAnalysisContext: Codable, Sendable {
         return """
         \(request)
 
-        \(zh ? "本地 CLI（POSIX shell 示例；Windows 请用参数数组调用相同命令）：" : "Local CLI (POSIX shell examples; on Windows pass the same arguments as an array):")
+        \(zh ? "本地 CLI（POSIX shell 示例）：" : "Local CLI (POSIX shell examples):")
         \(executable) analysis context --scan-id \(id) --path \(path) --json
         \(executable) analysis children --scan-id \(id) --path \(path) --limit 100 --json
         \(executable) rules list --json

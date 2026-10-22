@@ -203,11 +203,7 @@ actor InvestigationEvidence {
         let draft=PersonalRuleDraft(name: input.name, relativePatterns: [path], maxDepth: min(64, max(8, path.split(separator: "/").count + 1)),
                                     minimumAgeDays: input.minimumAgeDays, rebuildNote: input.rebuildNote, limitations: limitations, highRisk: true)
         let id="personal.ai." + UUID().uuidString.lowercased()
-        #if os(Windows)
-        let platform="windows"
-        #else
         let platform="macos"
-        #endif
         var rule=try draft.rule(id: id, rootRef: "ai-investigation", platform: platform)
         rule.description=input.explanation.trimmingCharacters(in: .whitespacesAndNewlines)
         checkpoint.state.advice.append(AIAdvice(id: id, path: path, explanation: input.explanation, rule: rule))

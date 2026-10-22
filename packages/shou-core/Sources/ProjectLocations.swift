@@ -23,7 +23,7 @@ extension ShouEngine {
     /// Reads metadata only. Explicit registrations take precedence over an
     /// overlapping suggestion so discovery cannot bypass their rule policy.
     public func projectLocations() throws -> [KnownLocation] {
-        guard ["macos", "windows"].contains(filesystem.platform) else { return [] }
+        guard filesystem.platform == "macos" else { return [] }
         let cachePaths=Set(try KnownLocations.catalog(homeDirectory: homeDirectory, platform: filesystem.platform).map { KnownLocations.pathKey($0.path, platform: filesystem.platform) })
         let roots=try configuration().workspaces.filter { !cachePaths.contains(KnownLocations.pathKey($0.path, platform: filesystem.platform)) }
         var locations=roots.map { projectLocation(path: $0.path, id: $0.id) }

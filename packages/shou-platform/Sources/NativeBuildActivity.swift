@@ -52,8 +52,6 @@ extension NativeArtifactEvidence {
             if containsBuildActivityPath(comparedProject, comparedDirectory) || containsBuildActivityPath(comparedDirectory, comparedProject) { running.insert(name) }
         }
         return running
-        #elseif os(Windows)
-        return try windowsBuildProcesses(in: names, project: projectPath)
         #else
         throw unavailable("Native build process checks are unavailable on this platform.")
         #endif

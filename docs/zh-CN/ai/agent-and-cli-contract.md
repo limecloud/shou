@@ -67,7 +67,7 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 
 CLI 参数、GUI 表单和错误均来自同一领域合同；实际命令支持范围必须由 `capabilities` 发现，不能只凭文档假定可用。
 
-清理操作记录不会删除记录引用的文件、清空废纸篓或删除已消费计划的执行证据。引擎在变更锁内重新核验选定记录 ID。桌面桥接的 `history.cleanup-preview`、`history.clear` 复用同一实现；清理确认绑定当前预览摘要和本次请求挑战。删除可恢复记录会失去 Shou 对该记录的恢复／核验入口，必须明确提示。
+清理操作记录不会删除记录引用的文件、清空废纸篓或删除已消费计划的执行证据。引擎在变更锁内重新核验选定记录 ID。删除可恢复记录会失去 Shou 对该记录的恢复／核验入口，必须明确提示。
 
 安装步骤、官方客户端目录、调用方式与 Lark CLI 调研见 [Skill 安装与分发](skill-distribution.md)。以上命令在打开清理存储前执行，不会启用清理规则。
 
@@ -271,5 +271,3 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 `records preview`／`records collect` 仅维护 Shou 可重新生成的证据，保护活跃计划及恢复日志。`history summaries --offset N --limit N` 分页读取不含 manifest 的摘要，执行与恢复始终重读权威回执。
 
 macOS 提供 `tools scan|plan|execute|history` 固定 Docker／Homebrew／Conda／Rust 操作，以及 `applications leftovers scan|plan|show|execute` 精确的缺失所属应用关联审阅。公共 CLI 执行仍需终端确认当前范围。JSON 规则不可提供可执行文件、参数或 shell 片段。工具结果使用独立回执与估计值，超时／unknown 不允许重放。`system close-plan` 和 `system close-applications` 请求正常退出，不删除文件、不强制结束进程。
-
-Windows 桌面桥新增 `system.scan`（固定缓存加发现／记住的项目）和 `system.clean`（跨根明确选择扫描／候选、一次请求绑定确认），逐项记录结果并保留部分失败。这没有为公共 CLI 提供无人值守删除入口。

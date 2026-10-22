@@ -4,7 +4,7 @@ import ShouCore
 import FoundationNetworking
 #endif
 
-/// Non-streaming provider transport shared by macOS and Windows. Limits apply while receiving.
+/// Bounded non-streaming provider transport. Limits apply while receiving.
 enum BoundedAITransport {
     static func send(_ request: URLRequest, limit: Int, permit: AIRequestPermit) async throws -> Data {
         try permit.check()

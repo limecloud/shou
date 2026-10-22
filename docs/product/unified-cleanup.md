@@ -40,7 +40,7 @@ All roots are prepared before the first snapshot is captured so every snapshot u
 
 ### Installed application caches
 
-On macOS, the exact `~/Library/Caches` scan additionally reads installed applications from the platform catalog. A valid installed owner with no observed duplicate bundle identifier produces an exact relative rule for that identifier; the Mole tested-app inventory and its identity hints are never execution input. Existing maintained cache patterns take priority, including disabled rules and narrower descendants, so generic discovery cannot broaden them. Dynamic rule bindings can also be disabled.
+On macOS, the exact `~/Library/Caches` scan additionally reads installed applications from the platform catalog. A valid installed owner with no observed duplicate bundle identifier produces an exact relative rule for that identifier; application-name lists and identity hints are never execution authority. Existing maintained cache patterns take priority, including disabled rules and narrower descendants, so generic discovery cannot broaden them. Dynamic rule bindings can also be disabled.
 
 Only independently complete, current-user cache manifests passing the shared exclusions, protected-content and no-follow checks can be recommended. System/Apple and current applications are protected; running or unknown activity blocks cleanup. The installed application bundle may be administrator-owned because it is read only. Cache cleanup uses the ordinary plan and receipt flow and does not uninstall the application or select its preferences, support data or containers.
 
@@ -113,18 +113,18 @@ sequenceDiagram
   User->>UI: Start Scan, or Scan & Free Space
   UI->>Engine: scanKnownLocations(includeProjects: true)
   Engine->>FS: Probe conventional directories and verify identities
-  Engine->>Store: Reuse policy; register missing eligible roots
+  Engine->>Store: Reuse policy, register missing eligible roots
   loop Every included root
     opt Exact current-user Library/Caches root
       Engine->>Apps: Read installed identities and current activity
       Apps-->>Engine: Verified owners, observed conflicts and real coverage issues
-      Engine->>Engine: Preserve static scopes; bind exact dynamic rules
+      Engine->>Engine: Preserve static scopes, bind exact dynamic rules
     end
     Engine->>FS: Rule-directed read-only scan
     Engine->>Store: Save snapshot, configuration digest and optional app evidence
   end
   Engine-->>UI: Per-location evidence and coverage gaps
-  UI->>UI: Aggregate matches; partial-owner caches remain manual choices
+  UI->>UI: Aggregate matches, partial-owner caches remain manual choices
   UI-->>User: Categories, recommendations, and selection bar
   User->>UI: Clean selected, or continue the quick action
   UI->>Engine: Prepare exact selected plans
@@ -135,7 +135,7 @@ sequenceDiagram
   Engine->>Apps: Re-read inventory and selected owner identities
   loop Each selected target
     Engine->>Apps: Re-read inventory, exact owner and activity before mutation
-    Engine->>FS: Reverify and remove exact cache target; retain application
+    Engine->>FS: Reverify and remove exact cache target, retain application
   end
   Engine->>Store: Record per-item outcomes
   Engine-->>UI: Results and history

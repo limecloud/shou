@@ -26,14 +26,13 @@ The same operations are available in the app's independent CLI. Examples elsewhe
 "/Applications/Shou.app/Contents/Helpers/shou" skills export --output "$HOME/Downloads/shou-rule-authoring.zip" --json
 ```
 
-On Windows, **Rules** and **Settings** also open the external AI setup window. Codex/Claude Code installation previews the selected parent directory and asks for confirmation; project directories can be chosen explicitly. WorkBuddy exports through a save panel. ZIP generation is portable and requires no system archiver. The request includes the bundled executable path, so installing `shou` on `PATH` is optional for this handoff; Settings → Install CLI Command can create a reviewed user-level native entry without changing PATH. Keep the complete application at its reviewed location; Windows native command/UI acceptance remains pending. Client discovery and actual WorkBuddy upload still need Windows acceptance.
+Windows Skill installation/export is planned with the .NET CLI and native confirmation; its filesystem and UI behavior requires Windows acceptance.
 
 ```powershell
 & "C:/path/to/Shou/Engine/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
 & "C:/path/to/Shou/Engine/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
 ```
 
-The desktop bridge uses read-only `agent.setup`/`skills.preview` and request-scoped `skills.install`/`skills.export` confirmations. The reviewed content and destination are rechecked before writing. `scripts/verify-agent-setup.py` exercises these contracts only in generated directories and is included in regular tests and Windows Check.
 
 Choose the relevant command; installing every client is unnecessary.
 

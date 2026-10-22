@@ -4,7 +4,7 @@ import ShouCore
 import FoundationNetworking
 #endif
 
-/// Windows uses the same bounded tools and checkpoints without the Apple-only SDK APIs.
+/// An alternate bounded transport uses the same tools and checkpoints.
 enum PortableModelRuntime {
     static var preferred: Bool {
         #if canImport(SwiftAISDK)

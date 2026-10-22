@@ -21,7 +21,7 @@ Download Shou v0.11.0 for **macOS 14 or later**. The universal app runs on Apple
 
 [**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-v0.11.0 is a macOS release. Windows builds and release packages are paused for reconstruction.
+v0.11.0 is a macOS release. Windows uses a planned WinUI 3/.NET implementation; builds and packages are not yet available. See the [Windows plan](docs/engineering/windows-native-plan.md).
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 
@@ -92,7 +92,7 @@ Privacy cleaning has a separate source/time-range workflow for supported history
 
 ## Acknowledgements
 
-[MangoDisk](https://github.com/harry0703/MangoDisk) · [Mole](https://github.com/tw93/mole) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
+[MangoDisk](https://github.com/harry0703/MangoDisk) · [Pulse](https://pulse.egoist.dev/) · [BuhoCleaner](https://www.drbuho.com/buhocleaner) · [Sparkle](https://sparkle-project.org/)
 
 [Lark CLI](https://github.com/larksuite/cli) and [Vercel Skills](https://github.com/vercel-labs/skills) informed Skill distribution and discovery.
 
@@ -101,5 +101,3 @@ Privacy cleaning has a separate source/time-range workflow for supported history
 [Apache License 2.0](LICENSE).
 
 Space analysis supports local volumes and folders, linked list/treemap navigation, multi-selection, Trash/restore and explicitly confirmed permanent removal. See [space analysis](docs/product/space-analysis.md).
-
-Mole path research, attribution and explicit coverage limits: [rule coverage](docs/engineering/mole-rule-coverage.md).

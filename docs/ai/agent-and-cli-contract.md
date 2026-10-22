@@ -64,7 +64,7 @@ R reads business state. W writes local configuration/drafts/snapshots/plans with
 
 Discover actual availability rather than assuming every documented command exists.
 
-History cleanup never deletes referenced files, empties Trash, or removes consumed-plan evidence. The engine revalidates selected receipt IDs under its mutation lease. Desktop bridge operations `history.cleanup-preview` and `history.clear` share this implementation; clear binds confirmation to the current preview digest and request challenge. Discarding a recoverable receipt removes Shou's restore/verification entry for that receipt and requires an explicit warning.
+History cleanup never deletes referenced files, empties Trash, or removes consumed-plan evidence. The engine revalidates selected receipt IDs under its mutation lease. Discarding a recoverable receipt removes Shou's restore/verification entry for that receipt and requires an explicit warning.
 
 Skill installation, official client directories, invocation syntax and the Lark CLI research are documented in [Skill distribution](skill-distribution.md). These commands run before cleanup storage is opened and do not enable cleanup rules.
 
@@ -257,5 +257,3 @@ Use `capabilities --command rules --json` for the installed contract. `rules opp
 `records preview` and `records collect` manage reproducible Shou evidence only; active plans/recovery journals remain protected. `history summaries --offset N --limit N` pages metadata without manifests; execution and recovery always load the authoritative receipt again.
 
 On macOS, discover `tools scan|plan|execute|history` for fixed Docker/Homebrew/Conda/Rust operations and `applications leftovers scan|plan|show|execute` for reviewed absent-owner associations. Public execution still requires current-scope terminal confirmation. JSON rules cannot supply executables, arguments or shell snippets. Tool outcomes use separate receipts and estimates; timeout/unknown never authorizes replay. `system close-plan` and `system close-applications` request normal application exit; they do not delete files or force-kill processes.
-
-The Windows desktop bridge adds `system.scan` (fixed caches plus discovered/remembered projects) and `system.clean` (explicit scan/candidate selections across roots with one request-bound confirmation). It reports each journalled outcome and preserves partial failure. This does not create an unattended public CLI bypass.

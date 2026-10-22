@@ -40,10 +40,6 @@ struct TerminalReviewScope: Encodable {
             risk=component.requiresUserDataConsent ? "personal_data" : "application_removal"
             rebuildNotes=[]; limitations=["exact_bundle_identifier_association"] + component.warnings; ruleVersions=[:]
         }
-        init(applicationData component: WindowsApplicationDataComponent) {
-            id=component.id;originalPath=component.path;trashPath=nil;allocatedBytesEstimate=component.allocatedBytesEstimate
-            risk="personal_data";rebuildNotes=[];limitations=["Settings, profiles, sign-ins and local databases; permanent removal has no restore."];ruleVersions=[:]
-        }
         init(uninstallItem item: ItemReceipt) {
             id=item.id; originalPath=item.originalPath; trashPath=item.trashPath; allocatedBytesEstimate=item.allocatedBytesEstimate
             risk=item.uninstallOrigin?.kind.requiresUserDataConsent == true ? "personal_data" : "application_removal"
@@ -78,13 +74,6 @@ struct TerminalReviewScope: Encodable {
         items=plan.components.map(Item.init(component:))
     }
 
-    init(applicationData plan: WindowsApplicationDataPlan,locale: String) {
-        action="windows_application_data_cleanup";planId=plan.id;executionId=nil;digest=plan.digest
-        workspace=WorkspaceScope(id: plan.id,rootRef: "windows-application-data",path: plan.components.map(\.path).joined(separator: "\n"))
-        selectedItemCount=plan.components.count;allocatedBytesEstimate=plan.components.reduce(0) { $0+$1.allocatedBytesEstimate };irreversible=true
-        notes=[locale=="zh-CN" ? "永久删除所选应用的个人数据，包括设置、登录状态和本地数据库，无法恢复。便携或自定义安装仍可能使用这些数据。" : "Permanently remove selected settings, sign-ins and local databases. No restore; portable/custom installations may still use this data."]
-        items=plan.components.map(Item.init(applicationData:))
-    }
 
     init(uninstallBatch plan: ApplicationUninstallBatchPlan, locale: String) {
         action=plan.action == "permanent" ? "permanent_batch_uninstall" : "batch_uninstall"

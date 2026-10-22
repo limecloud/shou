@@ -15,11 +15,7 @@ public enum AIAuthentication: String, Codable, CaseIterable, Sendable {
     case local, keychain, environment, none
     public var storesKey: Bool { self == .local || self == .keychain }
     public static var preferred: Self {
-        #if os(Windows)
-        .keychain
-        #else
         .local
-        #endif
     }
 }
 

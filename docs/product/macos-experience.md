@@ -51,7 +51,7 @@ Use a standard title bar and toolbar, `NavigationSplitView`, a sortable `Table` 
 
 Rules keeps Customize with AI in a 44-point inline strip; detailed guidance is available from the information button. Startup descriptions use the same `PageInfoButton` popover. Privacy retains the visible permanent-deletion notice and cookie consent. History puts record cleanup in the toolbar; Settings begins directly with its General group. Space Analysis uses a 42-point navigation row and reveals coverage details on demand. Remaining height belongs to results. Centered entry, operation progress and completion content keep their distinct purpose and do not gain a second top header.
 
-Windows retains native tabs as page labels, removes the repeated brand header and idle progress block, and uses a compact navigation row for Space Analysis. This shared density rule does not imply identical platform widgets.
+Windows native presentation is planned under its implementation contract. This shared density rule does not imply identical platform widgets.
 
 ```mermaid
 sequenceDiagram

@@ -1,7 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <EmbeddedResource Include="Resources/UiStrings.json" LogicalName="Shou.Windows.UiStrings.json" />
-    <EmbeddedResource Include="../../../packages/shou-core/Sources/Resources/zh-Hans.lproj/Localizable.strings" LogicalName="Shou.Core.Chinese.strings" />
-    <EmbeddedResource Include="../../../packages/shou-core/Sources/Resources/en.lproj/Localizable.strings" LogicalName="Shou.Core.English.strings" />
-  </ItemGroup>
-</Project>

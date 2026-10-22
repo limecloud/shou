@@ -42,21 +42,12 @@ public struct PersonalRuleDraft: Codable, Sendable, Equatable {
 
     /// Do not resolve or broaden a selection. Filesystem access is rechecked by scanning.
     public static func exactRelativePath(selection: String, workspacePath: String, platform: String = "macos") throws -> String {
-        func spelling(_ value: String) throws -> String {
-            guard platform == "windows" else { return value }
-            var path=value.replacingOccurrences(of: "\\", with: "/")
-            if path.hasPrefix("/"), path.dropFirst().first?.isASCII == true, path.dropFirst(2).hasPrefix(":/") { path.removeFirst() }
-            let bytes=Array(path.utf8.prefix(3))
-            guard bytes.count == 3, (65...90).contains(bytes[0]) || (97...122).contains(bytes[0]), bytes[1] == 58, bytes[2] == 47 else {
-                throw ShouError("invalid_rule", "Choose a folder inside the selected workspace, not the workspace itself.")
-            }
-            return path
-        }
-        let selected=try spelling(selection), workspace=try spelling(workspacePath)
+        guard platform == "macos" else { throw ShouError("unsupported_platform", "This authoring entry supports macOS paths.") }
+        let selected=selection, workspace=workspacePath
         let root=workspace.hasSuffix("/") ? String(workspace.dropLast()) : workspace
         let prefix=root + "/"
-        let range=selected.range(of: prefix, options: platform == "windows" ? [.anchored, .caseInsensitive, .literal] : [.anchored, .literal])
-        guard (platform == "windows" || root.hasPrefix("/")), let range else {
+        let range=selected.range(of: prefix, options: [.anchored, .literal])
+        guard root.hasPrefix("/"), let range else {
             throw ShouError("invalid_rule", "Choose a folder inside the selected workspace, not the workspace itself.")
         }
         let relative=String(selected[range.upperBound...])

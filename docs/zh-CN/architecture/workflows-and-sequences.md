@@ -122,7 +122,7 @@ flowchart TD
 
 任一入口均调用相同策略。计划尚未过期也不能跳过复核；记录与文件操作不是跨系统事务，异常现场需要核对。
 
-永久删除使用仅在一次执行中存活的 `PermanentRemovalContext`。POSIX 适配层先固定共享文件的描述符，核对完整元数据，再以 `unlinkat` 删除所选名称，并从同一描述符读取删除后的状态。只认可链接数恰好减一及伴随的 ctime 变化，其他字段必须不变。后续条目及同批选中目标仅按这些实际观测结果修正原始清单的核验。执行结束即丢弃上下文，先前清理不会授权过期计划。Windows 保持原生核验，仍拒绝不支持的硬链接目标。
+永久删除使用仅在一次执行中存活的 `PermanentRemovalContext`。POSIX 适配层先固定共享文件的描述符，核对完整元数据，再以 `unlinkat` 删除所选名称，并从同一描述符读取删除后的状态。只认可链接数恰好减一及伴随的 ctime 变化，其他字段必须不变。后续条目及同批选中目标仅按这些实际观测结果修正原始清单的核验。执行结束即丢弃上下文，先前清理不会授权过期计划。Windows 身份和硬链接行为需独立实现并通过原生验收。
 
 ```mermaid
 flowchart TD
@@ -319,11 +319,11 @@ sequenceDiagram
 
 操作记录默认只呈现项目、日期、结果与已处理大小；执行 ID、逐项路径、恢复和核验操作放在详情中。清理已结束记录会删除本地 JSON 回执及关联后续记录，保留恢复所需、结果未知和未结束记录。单独删除记录需要明确确认恢复入口丢失；正在执行或尚有后续意图的记录仍保留。只删除记录，不移动或清空实际文件和废纸篓。已执行计划保留消费状态，不能通过清空记录重放。
 
-CLI 使用 `shou history cleanup-preview --json` 预览、`shou history clear` 在终端确认；指定 `--execution-id` 可清理单条，`--include-recoverable true` 明确允许丢弃恢复入口。Windows 通过 `history.cleanup-preview` 与带本次确认挑战的 `history.clear` 调用同一核心。记录删除顺序是主回执在前、关联后续记录在后，避免中断后让已恢复的项目再次成为可恢复项。
+CLI 使用 `shou history cleanup-preview --json` 预览、`shou history clear` 在终端确认；指定 `--execution-id` 可清理单条，`--include-recoverable true` 明确允许丢弃恢复入口。Windows 对应行为由独立 C# 服务按相同产品合同待实现。记录删除顺序是主回执在前、关联后续记录在后，避免中断后让已恢复的项目再次成为可恢复项。
 
 扫描提示只针对当前目录。其他目录的不可读状态不污染完整项目目录的浏览。系统管理位置如 `.fseventsd`、`.Spotlight-V100`、`.DocumentRevisions-V100` 使用普通范围说明，默认折叠具体路径；核心仍保留覆盖事实，不把它们伪装为已测量。用户目录的访问问题提供完成设置和 Finder 入口，变化或临时读取失败可重新扫描当前文件夹。完整磁盘访问权限不能覆盖 Unix 所有权或系统保护，软件不会为读取系统目录而修改系统权限。
 
-只有访问／读取问题会被归为系统管理范围；资源限制和扫描期间变化始终提供处理入口，包括直接扫描系统根目录的情况。清理后返回页面提供统计刷新，不把待刷新大小误报为权限问题。Windows 使用同一覆盖分类和当前目录完整性，提供资源管理器及当前文件夹重扫入口，默认桥接扫描使用共用的磁盘索引测量路径。
+只有访问／读取问题会被归为系统管理范围；资源限制和扫描期间变化始终提供处理入口，包括直接扫描系统根目录的情况。清理后返回页面提供统计刷新，不把待刷新大小误报为权限问题。 Windows 对应行为按原生方案独立实现与验证。
 
 ```mermaid
 flowchart LR
@@ -408,3 +408,80 @@ sequenceDiagram
 ```
 
 独立个人规则的“大占用下钻 → 逐条停用草稿 → 原生审阅 → 所选规则新扫描 → 确认与回执核验”流程及时序见[空间分析与 Agent 协作设计 W09](../engineering/space-analysis-agent-design.md)。外部配置变化使旧清理证据失效，不会自动启用其他规则；日常清理复用已经明确启用的选择。
+
+## Windows 原生清理时序
+
+状态：目标合同，实现待开始。
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as WinUI App
+    participant VM as Presentation
+    participant Core as C# Core
+    participant Platform as Windows Platform
+    participant Store as Local journal
+    User->>App: Scan explicit scope
+    App->>VM: Start with cancellation token
+    VM->>Core: Scan and classify
+    Core->>Platform: Read native identities and bounded entries
+    Platform-->>Core: Evidence and coverage gaps
+    Core-->>VM: Candidates, blocked reasons and progress
+    User->>App: Review selection and action
+    App->>VM: Prepare plan
+    VM->>Core: Create immutable plan
+    Core-->>App: Exact scope, digest and expiry
+    User->>App: Confirm current plan
+    App->>VM: Confirmed action
+    VM->>Core: Execute bound plan
+    Core->>Platform: Acquire lease and revalidate identities
+    alt Evidence changed or journal unavailable
+        Core-->>VM: Refuse and request fresh review
+    else Current evidence
+        Core->>Store: Persist item intent
+        Core->>Platform: Perform selected native mutation
+        Platform-->>Core: Observed result or unknown
+        Core->>Store: Persist outcome
+        Core-->>VM: Receipt and next actions
+        VM-->>App: Render result
+    end
+```
+
+## Mac 主导的研发流程
+
+```mermaid
+flowchart TD
+    Edit[Edit source on Mac] --> Pure[Run Core and Presentation tests on Mac]
+    Pure --> Check{Passed?}
+    Check -->|No| Edit
+    Check -->|Yes| VM[Build and launch in Windows VM]
+    VM --> Logs[Collect bounded build and exception logs]
+    Logs --> Runtime{Native checks passed?}
+    Runtime -->|No| Edit
+    Runtime -->|Yes| PC[Run real x64 and ARM64 acceptance]
+    PC --> Evidence[Record revision, OS, architecture and results]
+    Evidence --> Sync[Update feature ledger]
+```
+
+## Windows 发布时序
+
+```mermaid
+sequenceDiagram
+    participant Build as Windows build runner
+    participant Sign as Signing service
+    participant Verify as Native acceptance
+    participant Feed as Update feed
+    Build->>Build: Restore pinned toolchain and dependencies
+    Build->>Build: Build x64 and ARM64 self-contained payloads
+    Build->>Sign: Sign binaries with timestamp
+    Sign-->>Build: Signed payloads
+    Build->>Build: Produce full and delta packages with Velopack
+    Build->>Sign: Sign final distributable artifacts as required
+    Sign-->>Build: Final artifacts
+    Build->>Verify: Verify signatures and clean-machine install/update
+    Verify-->>Build: Evidence for each architecture
+    Build->>Build: Compute final checksums and review release
+    Build->>Feed: Publish approved artifacts and metadata
+```
+
+签名认证与发布为明确交付门槛，当前尚无 Windows 发布流水线。

@@ -135,11 +135,11 @@ SHOU_STORAGE_SCAN_WORKERS=8 .build/debug/shou-tests --storage-performance-only
 
 ## 平台范围
 
-逐页读取和 catalog 写入锁优化位于 macOS 原生适配器。部分索引、选择规范化和不可变内置规则验证位于共享 Swift Core；Windows 保留独立的平台遍历实现，同步了进度路径与进程 bridge 行为。本机通过 WPF Release 交叉构建及 12 项进程 bridge 检查；Windows 原生 C++ 遍历和 Windows 实机 UI／性能仍未验证。
+macOS 原生适配负责分页读取、目录调度与索引写入。Windows 按原生方案独立实现与验证遍历、计量、取消和性能；不以 macOS 结果代替。
 
 ### 进度展示
 
-发现文件时总量未知，显示实时条目计数。进入已知工作量的阶段后，`ScanProgress.completedUnitCount` / `totalUnitCount` 报告真实完成量：catalog 封存语句、传输分页、已验证条目和持久化结果分页。百分比表示标题所指的当前阶段，不代表耗时比例或整盘覆盖率。部分扫描也可以完成保存并显示 100%，但覆盖状态仍为不完整。两端桌面仅省略长进度路径的中间部分，保留路径开头和文件名末尾，不拆分 Unicode 字素。macOS 向原生中间截断传递完整单行路径；Windows 按实际测量宽度适配，上限为 64 个字素。避免预先缩短后再由布局二次截断而产生两个省略号。悬停可查看原路径；CLI 和 bridge 保留完整路径。
+macOS 原生适配负责分页读取、目录调度与索引写入。Windows 按原生方案独立实现与验证遍历、计量、取消和性能；不以 macOS 结果代替。
 
 永久删除还会报告当前所选目录内部的清单条目进度。这些即时更新不替代持久化回执，也不把失败项目计为删除成功。
 
@@ -156,4 +156,4 @@ python3 "scripts/benchmark-storage-finalizers.py" \
   --evidence ".build/storage-finalizer-comparison/new-run"
 ```
 
-大量文件删除与不可变日志的独立对照见 [0.9.0 计划](next-version-0.9.0.md)，其结果不能用于声明扫描提速。
+大量文件删除与不可变日志的独立对照见 [0.9.0 计划](cleanup-delivery.md)，其结果不能用于声明扫描提速。

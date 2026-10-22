@@ -230,7 +230,7 @@ stateDiagram-v2
 
 默认空间统计与删除清单分离：只读 Worker 流式生成私有 SQLite 索引，保留全部已测量文件，逐目录汇总容量与完整性；桌面和 CLI 按需查询目录，不再受删除清单 100 万条上限截断。`StorageScan` 引用索引并记录 `measured_entry_count`，节点提供 `is_complete`，部分容量为已统计下限。删除仍重新获取所选目标的完整清单并独立核验。旧 JSON 与分页记录继续可读。
 
-新索引使用 SQLite `user_version=2`，在 POSIX 字段之外完整保存可空的 Windows 卷、File ID 和 owner SID。版本 1 索引保持只读兼容，不原地迁移。Windows 硬链接按卷和完整 128 位 File ID 去重，POSIX 文件按 device/inode 去重；Windows 身份缺字段或格式错误时拒绝读取，不能回退到兼容 inode。
+macOS 空间索引按 device/inode/owner 记录原生身份，按现有格式版本读取本平台索引。Windows 使用独立的卷标识、完整 File ID 与 owner SID 模型及本地记录格式，具体实现待完成。平台间共享安全与状态语义，不共用身份 DTO。
 
 ## 大文件查询状态
 

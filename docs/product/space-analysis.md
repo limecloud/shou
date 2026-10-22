@@ -9,7 +9,7 @@ Simple/Detailed switching, extension aggregates, nested maps and same-snapshot a
 - Choose a mounted local volume, the home directory, or a folder. The startup disk analyzes its APFS data volume, avoiding duplicate firmlink accounting. This does not claim to measure the sealed system volume or other mounts.
 - Start a read-only scan with current path, measured-entry count, elapsed time, and Stop. No invented percentage is displayed. Stopping discards the interrupted worker result and preserves any previous analysis. A budget or access gap returns an explicit partial result.
 - Browse a size-sorted directory list and proportional treemap. Single click inspects, double click opens a directory. Back, Forward, Up, breadcrumbs, per-folder filtering, and size/name/file-count ordering support navigation. Space opens native Quick Look, ⌘A selects visible eligible entries, and Escape clears the selection while browsing. Text-field editing keeps its own shortcuts.
-- The page title lives in the native toolbar. A single 42-point row contains navigation, breadcrumbs, the coverage icon, Refresh and Start Over. Coverage details open on demand; after removal, the Refresh tooltip explains that sizes need measuring again. The list and treemap fill the remaining height. Windows also uses a compact navigation row with width-based middle truncation and a full-path tooltip.
+- The page title lives in the native toolbar. A single 42-point row contains navigation, breadcrumbs, the coverage icon, Refresh and Start Over. Coverage details open on demand; after removal, the Refresh tooltip explains that sizes need measuring again. The list and treemap fill the remaining height. Windows native presentation is planned under its implementation contract.
 - Check individual files or directories in either view. Select All applies to selectable entries in the current filtered folder; Clear Selection applies to the whole selection. Selection persists across navigation. Directory context menus can open Customize with AI with the exact directory in the copied Agent request. Parent selections subsume descendants. Unchecking a covered child preserves its siblings.
 - The primary action is Delete Permanently and opens one exact-scope irreversible confirmation. Move to Trash remains an explicit menu alternative; it does not free space. All listed paths and freshly measured size estimates are reviewed before mutation. Creating a removal plan is an internal implementation step, not a separate desktop task.
 - Results report individual success, failure, cancellation and unknown outcomes. Completed items disappear from both views. Refresh obtains a new authoritative measurement; pruning completed items is not a fresh scan. History supports verified Trash restoration without overwrite and separately confirmed purge.
@@ -65,12 +65,12 @@ sequenceDiagram
   participant Worker as Read-only worker
   participant FS as Native filesystem
   participant Store as Catalog / record store
-  User->>UI: Choose location; scan
+  User->>UI: Choose location, scan
   UI->>Engine: scanStorage(path)
   Engine->>Worker: measureStorage(path, catalog)
   loop Every accessible directory and file
     Worker->>FS: Read no-follow metadata
-    Worker->>Store: Append row; accumulate subtree totals and coverage
+    Worker->>Store: Append row, accumulate subtree totals and coverage
     Worker-->>UI: Current path and measured entry count
   end
   Worker->>Store: Seal catalog and child index
@@ -79,18 +79,18 @@ sequenceDiagram
   UI->>Engine: storageDirectory(scanId, path)
   Engine->>Store: Query saved totals and direct children
   Engine-->>UI: Directory list and completeness
-  UI-->>User: Compact navigation, list and map; partial sizes use ≥
+  UI-->>User: Compact navigation, list and map, partial sizes use ≥
   opt Inspect incomplete coverage
     User->>UI: Open coverage icon
     UI-->>User: Coverage details and available actions
   end
-  User->>UI: Select items; delete
+  User->>UI: Select items, delete
   UI->>Engine: createStorageRemovalPlan(paths, mode)
   Engine->>FS: Fresh complete manifests for selected targets
   Engine-->>User: Exact scope, estimates and confirmation
   User->>Engine: Confirm plan digest
-  Engine->>Store: Acquire mutation lease; record intent
-  Engine->>FS: Reverify current targets; remove
+  Engine->>Store: Acquire mutation lease, record intent
+  Engine->>FS: Reverify current targets, remove
   Engine->>Store: Save each outcome
   Engine-->>UI: Shared history and per-item results
 ```
@@ -118,7 +118,7 @@ Paths in `analysis plan` are literal, scan-relative values, not globs. `--mode p
 
 ## Verification
 
-`shou-tests --storage-only` checks selection expansion, root protection, stale-target refusal, partial analysis, current exclusions and newly added descendants, 20 MiB file and directory Trash/restore, permanent removal and history inspection of generated fixtures. `scripts/verify-storage-cli.py` checks discovery, paging, parent/child normalization, file selections, invalid input, explicit partial results and non-TTY refusal without authorizing deletion. Desktop acceptance uses a separate bundle identifier and record store, with generated files only. See [acceptance evidence](../engineering/acceptance-and-testing.md) and [reference acknowledgments](../engineering/reference-design.md).
+`shou-tests --storage-only` checks selection expansion, root protection, stale-target refusal, partial analysis, current exclusions and newly added descendants, 20 MiB file and directory Trash/restore, permanent removal and history inspection of generated fixtures. `scripts/verify-storage-cli.py` checks discovery, paging, parent/child normalization, file selections, invalid input, explicit partial results and non-TTY refusal without authorizing deletion. Desktop acceptance uses a separate bundle identifier and record store, with generated files only. See [acceptance evidence](../engineering/acceptance-and-testing.md) and [reference acknowledgments](../engineering/interface-design.md).
 
 Default `analysis scan` uses the full disk-backed index. Explicit `--max-entries` or `--max-seconds` selects the compatible bounded snapshot path. `analysis summary` includes the measured entry count; each node from `analysis children` includes `is_complete`.
 

@@ -20,7 +20,7 @@ Percentages describe processed work in a known set, rather than elapsed time, su
 
 Rule scanning uses three completed processing phases per registered location: discovery, rule matching and snapshot persistence. Worker sealing and transfer belong to discovery; their local percentages do not overwrite the overall value. A smart batch fixes its denominator after registration, offsets each location's phase count, and carries discovered entries forward across locations, including a location that fails after reading entries. The failure stays in the result and is not counted as successful coverage. Cancellation does not complete unprocessed phases. The desktop rejects regressive callbacks within the current operation. Its footer and central count use the same cumulative evidence; numeric text changes immediately so frequent events cannot overlap rolling digits. The progress bar can still animate.
 
-Progress paths retain their origin and filename and omit only the middle when space is insufficient. Keep a single ellipsis, use Unicode text boundaries and provide the full original value through hover/accessibility; CLI and bridge data keep complete paths.
+Progress paths retain their origin and filename and omit only the middle when space is insufficient. Keep a single ellipsis, use Unicode text boundaries and provide the full original value through hover/accessibility; CLI and domain data keep complete paths.
 
 Preflight never advances deletion counts. Executors advance counts after persisting individual outcomes; failures and skipped targets are processed outcomes, while completion separately reports success, failure and remaining work. Final receipt handling displays “Finishing cleanup”. Partial results and cancellation never receive a fabricated 100%.
 
@@ -137,7 +137,7 @@ Privacy counts advance after each independent database transaction, without disp
 
 The normal successful path is intentionally short: completion icon, measured bytes or processed count, one sentence describing the outcome, and `Done`. A successful operation does not force the user through History. When an operation is partial, cancelled, failed or still needs verification, the page adds four counters (processed, skipped, failed and needs verification), keeps item details collapsed, and exposes `Scan Again`, `View History` and `Close`.
 
-`Scan Again` starts a new scan for the originating section and builds a new plan from current evidence. It never replays the old plan or assumes that a failed path still exists. `View History` opens the durable receipt with the per-item state and diagnostic. macOS and Windows use the same receipt states and follow-up semantics; only the native presentation controls differ.
+`Scan Again` starts a new scan for the originating section and builds a new plan from current evidence. It never replays the old plan or assumes that a failed path still exists. `View History` opens the durable receipt with the per-item state and diagnostic. Windows will implement equivalent receipt and follow-up semantics through its own C# services.
 
 ## Verification scope
 

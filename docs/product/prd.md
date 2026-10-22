@@ -12,7 +12,7 @@ Status: active product contract · Version: 0.3 · Updated: 2026-10-22. Initial 
 
 **Tidy up. That’s it. / 收好，就好。**
 
-The primary audience is developers maintaining multiple projects on limited-capacity computers. macOS ships first; Windows is a future native platform target. A portable core and explicit platform adapters are required from the outset.
+The primary audience is developers maintaining multiple projects on limited-capacity computers. macOS ships first; Windows is a future native platform target. Each platform owns its domain services and native adapters, aligned through shared contracts.
 
 Major-consumer investigation is a core deliverable. The Agent follows the largest branches to establish actual purpose, active use, rebuild method and cost instead of stopping at small caches covered by built-in rules. Every major finding explains whether to clean, optionally clean, preserve or investigate; unresolved areas retain concrete unknowns and a next diagnostic. Different purposes or retention needs become independent rule choices, followed by preview, explicit selection, actual execution receipts and relevant-scope verification. See [space analysis and Agent design](../engineering/space-analysis-agent-design.md) for the interaction and acceptance contract.
 
@@ -85,7 +85,7 @@ P0 is required for the initial usable release; P1 extends the validated loop; P2
 | F14 | Uninstall and associated files | P1 | [macOS application uninstall](application-uninstall.md): size/status/last-used summaries, inline components, multi-application selection, one digest-bound batch confirmation, permanent or Trash execution, exact associations and separate personal-data consent; orphan-only discovery, elevation and external registrations remain pending |
 | F15 | Startup management | P1 | First-stage launchd discovery and restricted current-user LaunchAgent enable/disable with native settings guidance implemented; system sources, complete registration inventory and runtime control require separate acceptance |
 | F16 | Sharing and additional protocols | P2 | Strip local information; add protocols only for demonstrated integration needs |
-| F17 | Monorepo and platform boundaries | P0 | Shared core excludes Apple/Windows-specific APIs |
+| F17 | Monorepo and platform boundaries | P0 | Independent platform Core implementations, shared specifications/resources and no native APIs in Core |
 | F18 | Native Windows and CLI | P2 | Actual Windows build/runtime, paths, ACLs, links, Recycle Bin, distribution |
 | F19 | Internationalization | P0 | English default docs, multilingual READMEs, initial English/Simplified Chinese UI and CLI targets |
 | F20 | Privacy cleaning | P1 | Browser/source/time-bounded history and cookies; separate sign-out consent, schema-aware transactions and irreversible aggregate receipts. Unsupported private scoring/trigger schemas remain preserved; see [privacy cleaning](../engineering/privacy-cleaning.md) |
@@ -156,7 +156,7 @@ First use must explain app installation, complete-scanning access and optional C
 
 ## Large-file cleanup
 
-Provide an independent large-file entry alongside directory space analysis. Users can scan a volume or folder, or reuse a current space-analysis catalog, then filter by allocated size and extension category without rescanning. Include video, audio, images, archives, documents, AI models and other files. Show matching totals, paged results, Quick Look, Finder reveal, loaded-page mixed selection and explicit selection across every matching page. Selection starts empty. The fixed action bar keeps the selected count and estimate visible; permanent removal and optional Trash reuse exact-scope confirmation, existing history and fresh target verification. After mutation, suppress stale aggregate totals until a new scan. See [space analysis](space-analysis.md) and [reference capability map](../engineering/reference-capability-map.md).
+Provide an independent large-file entry alongside directory space analysis. Users can scan a volume or folder, or reuse a current space-analysis catalog, then filter by allocated size and extension category without rescanning. Include video, audio, images, archives, documents, AI models and other files. Show matching totals, paged results, Quick Look, Finder reveal, loaded-page mixed selection and explicit selection across every matching page. Selection starts empty. The fixed action bar keeps the selected count and estimate visible; permanent removal and optional Trash reuse exact-scope confirmation, existing history and fresh target verification. After mutation, suppress stale aggregate totals until a new scan. See [space analysis](space-analysis.md) and [reference capability map](../engineering/capability-plan.md).
 
 ## Privacy cleaning
 
