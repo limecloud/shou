@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/architecture/embedded-ai.md)
 
-Date: 2026-10-22. The [product contract](../product/embedded-ai.md) owns user behavior; this document explains shared implementation. The gate, router and shared launch are implemented; desktop restart recovery and additional adapters remain future work. Existing calls do not establish acceptance on every platform. See the [acceptance matrix](../engineering/embedded-ai-acceptance.md).
+Date: 2026-10-23. The [product contract](../product/embedded-ai.md) owns user behavior; this document explains shared implementation. The gate, router, shared launch and desktop waiting-record continuation after restart are implemented. Interrupted-running recovery and additional adapters remain future work. Diagrams do not establish acceptance on every platform. See the [acceptance matrix](../engineering/embedded-ai-acceptance.md).
 
 ## 1. Context and trust boundaries
 

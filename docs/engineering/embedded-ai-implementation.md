@@ -2,9 +2,30 @@
 
 English | [简体中文](../zh-CN/engineering/embedded-ai-implementation.md)
 
-Date: 2026-10-22. This records the working-tree implementation, not a published release or production acceptance.
+Date: 2026-10-23. This records the working-tree implementation, not a published release or production acceptance. The latest review below supersedes the historical package records retained afterward.
 
 The contract covers [20 stories and 11 use cases](../product/embedded-ai.md), [architecture/states/flows/sequences](../architecture/embedded-ai.md) and [33 acceptance checks](embedded-ai-acceptance.md). Default-off desktop gating, decision-first routing, switchable Jev assistance, required main models, per-service usage and contextual native entries are implemented. Implementation, synthetic checks and live evidence remain distinct.
+
+## Latest complete acceptance review: 2026-10-23
+
+Only generated folders and isolated local records were used; no personal file contents were sent. Native observations use `.build/ai-complete-fixed/Shou AI Recovery.app`, copied from the sibling `Shou.app` with a distinct bundle ID/signature. This does not establish whole-package identity with the installed application, which is being updated independently. See the [sanitized evidence](embedded-ai-evidence.json).
+
+| Scope | Observed result |
+| --- | --- |
+| Region/Jev | The earlier HTTP 451 explicitly identified a regional restriction. After the user changed region, the installed CLI read the existing private local credential and passed a live `jev-1.13.0` synthetic decision, reporting 575 tokens. Two native live investigations completed with retention or insufficient-rebuild-evidence/no-advice outcomes |
+| Jev disabled | The original live `gpt-6.1-sol` profile in `main_only` completed a generated-folder investigation: 3 main requests, 15077 reported tokens and 0 Jev requests. Source was retained; no advice is a valid result |
+| Contracts | Installed and picker-fixed packages each pass 114 AI CLI checks plus desktop cancellation in SDK and portable modes, covering three protocols, required main setup, disabled-decision zero requests/credential reads, CRUD/recovery and disabled drafts |
+| Folder selection | Nested `NSOpenPanel` now uses an asynchronous sheet on its owning window. Reopening, path entry, cancellation, entire scanned scope, one folder and current Space folder pass; cancelling preserves scope and cleanup selection |
+| Questions/restart | Required answers, unsent answers across pages, return from conflicts and cancelled quit pass. Manually opening a waiting record after restart restores original scope/connection/questions with zero new requests. Unsubmitted answers are not persisted across processes, as the quit warning states; interrupted-running recovery remains separate |
+| Master switch | Disabling while waiting produces cancelled, removes continuation, retains evidence and leaves usage unchanged. Cancelling a slow connection-test dialog then disabling leaves exactly one request and no tool continuation. Earlier native/contract evidence covers disabling an active slow investigation |
+| Offline rule flow | An exact `build/cache` draft imports disabled and previews 11.3 MB. With AI off, individual enablement, fresh scan, explicit Trash confirmation and a real receipt pass; source/configuration hashes and network counts remain unchanged |
+| Native restoration | Immediate desktop-bridge Trash→restore passes. A separate native UI restoration selects the exact item, confirms, displays success and preserves the file SHA-256 |
+
+Two earlier delayed UI restorations failed with `Inspect target: No such file or directory`: both original and recorded Trash targets were already absent before restoration. Their disappearance remains unexplained; these failures are retained without attributing a cause to the app or system. Only disposable generated fixtures were affected, with source/configuration preserved. Independent successful restorations do not erase those failures.
+
+Existing Windows workflow [39810987069](https://github.com/limecloud/shou/actions/runs/39810987069), at `64e52c0675545b4edbd681ef08726b3809de4fb3`, passes Swift/WPF builds, 24 real subprocess checks and 115 AI CLI checks. The subsequent privacy fixture fails before scanning with `privacy_identity_unavailable`; the workflow fails and packaging is skipped. This establishes native Windows AI contract execution, not complete release-package or WPF button-journey acceptance.
+
+Local details are under `.build/ai-complete-acceptance/evidence/`: `live-main-only-investigation.json`, `restart-restoration.json`, `waiting-cancellation.json`, `test-cancellation.json`, `immediate-native-roundtrip.json` and `ui-immediate-restore.json`. Contract logs: `/tmp/shou-ai-complete-fixed-{sdk,portable}.log`; Windows failure: `/tmp/shou-ai-full-windows-64e.log`. Older counts/packages/Keychain observations below are historical. Full VoiceOver/appearance combinations, macOS 14, quality/cost comparisons, additional live protocols, distribution signing/notarization and Windows packaging remain unverified.
 
 ## Native workflow
 

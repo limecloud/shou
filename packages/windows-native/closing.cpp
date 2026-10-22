@@ -76,9 +76,12 @@ DWORD inspect(HANDLE process,DWORD pid,const std::wstring &name,shou_win_close_p
     return WaitForSingleObject(process,0)==WAIT_TIMEOUT?0:ERROR_PROCESS_ABORTED;
 }
 bool same(const shou_win_close_process &a,const shou_win_close_process &b){
+    const auto &x=a.executable_identity,&y=b.executable_identity;
     return a.pid==b.pid && a.session==b.session && a.created==b.created &&
         !strcmp(a.owner_sid,b.owner_sid) && !strcmp(a.executable_path,b.executable_path) &&
-        !memcmp(&a.executable_identity,&b.executable_identity,sizeof(a.executable_identity));
+        x.volume==y.volume && !memcmp(x.file_id,y.file_id,sizeof(x.file_id)) && !strcmp(x.owner_sid,y.owner_sid) &&
+        x.kind==y.kind && x.links==y.links && x.attributes==y.attributes && x.logical_bytes==y.logical_bytes &&
+        x.allocated_bytes==y.allocated_bytes && x.modified_ns==y.modified_ns && x.changed_ns==y.changed_ns;
 }
 struct CloseWindows {
     const std::vector<HANDLE> &handles;
@@ -87,10 +90,12 @@ struct CloseWindows {
     void *context;
     DWORD code=0;
     size_t windows=0;
+    ULONGLONG deadline=GetTickCount64()+3000;
 };
 BOOL CALLBACK closeWindow(HWND window,LPARAM context){
     auto &state=*reinterpret_cast<CloseWindows *>(context);
     if(state.cancelled && state.cancelled(state.context)){state.code=ERROR_CANCELLED;return FALSE;}
+    if(GetTickCount64()>=state.deadline){state.code=ERROR_TIMEOUT;return FALSE;}
     DWORD pid=0;GetWindowThreadProcessId(window,&pid);
     for(size_t index=0;index<state.handles.size();index++){
         if(pid!=state.expected[index].pid)continue;
@@ -134,7 +139,7 @@ extern "C" int shou_win_close_process_inventory(const char *input,shou_win_close
 extern "C" int shou_win_request_process_close(const char *input,const shou_win_close_process *expected,size_t count,shou_win_read_cancelled cancelled,void *context){
     if(!input || !expected || !count || count>256)return ERROR_INVALID_PARAMETER;
     const auto name=wide(input);if(!knownName(name))return ERROR_ACCESS_DENIED;
-    struct Pins{std::vector<HANDLE> values;~Pins(){for(auto value:values)CloseHandle(value);}} pins;
+    struct Pins{std::vector<HANDLE> values;~Pins(){for(auto value:values)if(value)CloseHandle(value);}} pins;
     for(size_t index=0;index<count;index++){
         if(cancelled && cancelled(context))return ERROR_CANCELLED;
         if(!memchr(expected[index].owner_sid,0,sizeof(expected[index].owner_sid)) || !memchr(expected[index].executable_path,0,sizeof(expected[index].executable_path)))return ERROR_INVALID_PARAMETER;
@@ -150,5 +155,7 @@ extern "C" int shou_win_request_process_close(const char *input,const shou_win_c
     }
     while(pins.values.size()<count)pins.values.push_back(nullptr);
     CloseWindows state{pins.values,expected,cancelled,context};
-    EnumWindows(closeWindow,reinterpret_cast<LPARAM>(&state));return state.code;
+    SetLastError(ERROR_SUCCESS);
+    if(!EnumWindows(closeWindow,reinterpret_cast<LPARAM>(&state)) && !state.code) return GetLastError()?GetLastError():ERROR_GEN_FAILURE;
+    return state.code;
 }

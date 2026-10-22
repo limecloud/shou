@@ -8,6 +8,8 @@ enum CLICommandDiscovery {
             if spec.command != "applications list", ["applications", "uninstall", "tools"].contains(where: { spec.command == $0 || spec.command.hasPrefix($0 + " ") }) { return false }
             if ["system close-plan", "system close-applications"].contains(spec.command) { return false }
             if spec.command == "skills export" { return false }
+            #else
+            if spec.command == "system close-owners" { return false }
             #endif
             return command.isEmpty || spec.command == command || spec.command.hasPrefix(command + " ")
         }

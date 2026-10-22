@@ -130,6 +130,7 @@ let commands: [CommandSpec] = [
     .init("tools history", "read", [], [], "Inspect tool-cleanup receipts, including interrupted or unverified outcomes."),
     .init("system close-plan", "plan", ["scan-id"], [], repeated: ["scan-id"], "Group running cleanup owners from current scans into an identity-bound quit preview."),
     .init("system close-applications", "destructive", ["plan-id"], [], "Request graceful quit after terminal confirmation and verify all helpers stopped; never force-kill applications or delete files."),
+    .init("system close-owners", "destructive", ["scan-id"], [], repeated: ["scan-id"], "On Windows, review exact current-user cleanup owner processes, request normal window close after terminal confirmation, and verify activity; scan affected workspaces again before cleanup."),
     .init("history cleanup-preview", "read", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Preview local receipt cleanup. Recoverable and unfinished records are kept by default; target files are never removed."),
     .init("history clear", "destructive", [], ["execution-id", "include-recoverable"], repeated: ["execution-id"], "Confirm removal of local receipt records only. include-recoverable=true also discards Shou recovery links; target files stay untouched."),
     .init("history show", "read", ["execution-id"], [], "Show item states and follow-up receipts."),
@@ -574,6 +575,14 @@ enum Terminal {
                 default: value=try .from(await service.history())
                 }
             case "system close-plan": value=try .from(await engine.cleanupApplicationClosePlan(scanIds: args.all("scan-id")))
+            case "system close-owners":
+                guard fs.platform == "windows" else { throw ShouError("capability_unavailable", "This normal-close adapter requires Windows.") }
+                let controller=WindowsCleanupOwnerClosing()
+                let review=try await engine.cleanupOwnerCloseReview(scanIds: args.all("scan-id"), controller: controller)
+                guard !review.targets.isEmpty else { throw ShouError("application_not_running", "No supported running cleanup owner was found. Scan again to refresh activity.") }
+                try Terminal.confirm(review, phrase: "CLOSE-OWNERS", locale: args.locale)
+                value = .object(["receipt": try .from(await engine.closeCleanupOwners(review: review, confirmedDigest: review.digest, controller: controller)),
+                    "affected_workspace_ids": try .from(review.affectedWorkspaceIds), "affected_paths": try .from(review.affectedPaths)])
             case "system close-applications":
                 let plan=try await engine.applicationClosePlan(args.value("plan-id"))
                 try Terminal.confirm(plan, phrase: "CLOSE " + plan.id, locale: args.locale)

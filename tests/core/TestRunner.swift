@@ -107,7 +107,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         if Array(CommandLine.arguments.dropFirst()) == ["--application-closing-only"] {
             do {
                 try await applicationClosingVerifiesIdentityAndReportsRemainingOwners()
-                print("1/1 application-close identity, confirmation, remaining-process and no-file-mutation checks passed.")
+                try await cleanupOwnerClosingBindsProcessesAndConsumesConsent()
+                try await cleanupOwnerClosingRejectsChangedProcessesSettingsAndPreview()
+                try await cleanupOwnerClosingRetainsRefusalAndSanitizesFailures()
+                print("4/4 application-close identity, confirmation, single use, settings, remaining-process and no-file-mutation checks passed.")
             } catch { print("FAIL application closing: \(error)"); Foundation.exit(1) }
             return
         }
@@ -665,6 +668,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Replaceable AI decisions and credential-wait revocation", { try await aiDecisionProvidersAreReplaceableAndRevokedCredentialsCannotSend() }),
             ("Private local AI credentials and independent provider accounts", { try aiLocalCredentialsRemainPrivateAndIndependent() }),
             ("Application closing binds identity and verifies remaining owners", { try await applicationClosingVerifiesIdentityAndReportsRemainingOwners() }),
+            ("Cleanup owner closing binds processes and consumes consent", { try await cleanupOwnerClosingBindsProcessesAndConsumesConsent() }),
+            ("Cleanup owner closing rejects changed processes, settings and preview scans", { try await cleanupOwnerClosingRejectsChangedProcessesSettingsAndPreview() }),
+            ("Cleanup owner closing retains refusal and sanitizes failures", { try await cleanupOwnerClosingRetainsRefusalAndSanitizesFailures() }),
             ("Tool cleanup uses fixed owner operations and verifies outcomes", { try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes() }),
             ("Tool cleanup rejects remote, stale and unknown outcomes", { try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes() }),
             ("Native tool adapter bounds generated process groups and output", { try nativeToolAdapterBoundsRealFixtureProcesses() }),

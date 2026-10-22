@@ -2,9 +2,30 @@
 
 [English](../../engineering/embedded-ai-implementation.md) | 简体中文
 
-日期：2026-10-22。这是当前工作区的实现记录，不代表已发布版本或生产验收完成。
+日期：2026-10-23。这是当前工作区的实现记录，不代表已发布版本或生产验收完成。以下最新复核优先于后文按时间保留的旧包记录。
 
 产品合同见[20 个用户故事及 11 个用例](../product/embedded-ai.md)、[架构／状态／流程／时序](../architecture/embedded-ai.md)和[33 项验收矩阵](embedded-ai-acceptance.md)。本轮已实现默认关闭的桌面开关、结构化决策优先路由、独立 Jev 配置、按需主模型、分服务用量及跨页原生入口。实现、合成验证和真实服务证据分层记录，未通过项仍保留。
+
+## 最新完整验收复核：2026-10-23
+
+本轮使用生成目录和独立本地记录，不发送个人文件正文。原生交互使用 `.build/ai-complete-fixed/Shou AI Recovery.app`，构建来源为同目录的 `Shou.app`；隔离副本具有独立 bundle ID 和签名，不能以整包哈希等同安装版。已安装包仍由其他工作持续更新，本记录不声称覆盖其后新增的全部功能。可复核摘要见[脱敏证据](../../engineering/embedded-ai-evidence.json)。
+
+| 范围 | 实际结果 |
+| --- | --- |
+| 地区与 Jev | 原 HTTP 451 诊断确认为服务地区限制。用户切换地区后，已安装 CLI 从本地私有存储读取原凭据，`jev-1.13.0` 合成判断通过，报告 575 token；两次真实原生调查均正常完成，分别保留内容／因重建证据不足不生成规则 |
+| 关闭 Jev | 原真实主模型以 `main_only` 完成生成目录调查：`gpt-6.1-sol`，3 次主模型请求、15077 个报告 token、0 次 Jev 请求；保留源码，无规则建议也是有效终态 |
+| 合同回归 | 安装版和目录选择修复包，SDK／portable 各通过 114 项 AI CLI 合同及桌面取消；包含三协议往返、必需主模型、关闭决策零请求／零凭据读取、CRUD／恢复和禁用草稿 |
+| 目录选择 | 修复嵌套 sheet 中的 `NSOpenPanel`，使用所属窗口的异步 sheet；反复打开、路径输入、取消、全部已扫描范围、单目录和当前空间目录传递通过；取消不改变范围与清理选择 |
+| 问答与恢复 | 必答校验、未提交答案跨页保留、冲突返回、取消退出通过。重启后手动打开等待记录恢复原范围／连接／问题，打开记录新增请求为零；未提交答案不跨进程保存，退出提示已说明。此项不等于恢复中断的 running 任务 |
+| 总开关 | 等待回答时关闭后终态为 cancelled，继续入口移除，证据保留，用量不变。慢速连接测试取消后关闭总开关，服务计数稳定为 1 次，无后续工具续接；慢速运行中的关闭另有既有原生和合同证据 |
+| 离线规则闭环 | 生成 `build/cache` 精确草稿默认禁用，11.3 MB 实际预览；关闭 AI 后单条启用、新扫描、明确废纸篓确认及真实回执通过，源码／配置哈希不变、网络计数不增 |
+| 原生恢复 | 立即 desktop bridge 废纸篓→恢复通过；另一次原生 UI 选择精确项目、确认、显示“所选项目已恢复”，文件 SHA-256 一致 |
+
+两次较早的延迟 UI 恢复失败：原路径和记录的废纸篓路径在恢复前均已不存在，返回 `Inspect target: No such file or directory`。未查明消失原因，未把失败改记通过，也不能据此归因于应用或系统。仅影响可丢弃生成夹具；源码和配置保持完整。成功的独立恢复不能消除这两条失败记录。
+
+现有 Windows 工作流 [39810987069](https://github.com/limecloud/shou/actions/runs/39810987069) 检出 `64e52c0675545b4edbd681ef08726b3809de4fb3`：Swift／WPF 构建、24 项真实子进程检查和 115 项 AI CLI 检查均通过。随后隐私夹具在扫描前报 `privacy_identity_unavailable`，整条工作流失败、打包跳过。此结果证明 Windows 原生 AI 合同执行，不能写成整包发布通过或 WPF 全部按钮旅程通过。
+
+本地详细证据在 `.build/ai-complete-acceptance/evidence/`，包括 `live-main-only-investigation.json`、`restart-restoration.json`、`waiting-cancellation.json`、`test-cancellation.json`、`immediate-native-roundtrip.json` 和 `ui-immediate-restore.json`。合同日志为 `/tmp/shou-ai-complete-fixed-{sdk,portable}.log`，Windows 失败日志为 `/tmp/shou-ai-full-windows-64e.log`。后文的更早版本／计数／钥匙串观察仅作历史记录。完整 VoiceOver／外观组合、macOS 14、质量／成本对照、额外真实协议、正式签名／公证和 Windows 包验证仍没有据此算通过。
 
 ## 使用方式
 

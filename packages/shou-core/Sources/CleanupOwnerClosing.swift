@@ -53,7 +53,9 @@ extension ShouEngine {
         let targets=try controller.inspect(identifiers: scope.identifiers)
         guard targets.count <= 32, Set(targets.map(\.identifier)).count == targets.count,
               Set(targets.map(\.identifier)).isSubset(of: scope.identifiers),
-              targets.allSatisfy({ !$0.processes.isEmpty && $0.processes.count <= 256 && Set($0.processes.map(\.pid)).count == $0.processes.count }) else {
+              targets.allSatisfy({ !$0.processes.isEmpty && $0.processes.count <= 256 && Set($0.processes.map(\.pid)).count == $0.processes.count &&
+                  $0.processes.allSatisfy { $0.pid > 0 && $0.created > 0 && $0.session > 0 && !$0.ownerSid.isEmpty && !$0.executablePath.isEmpty && $0.executableIdentity.kind == "file" && $0.executableIdentity.windowsIdentity != nil }
+              }) else {
             throw ShouError("application_activity_unavailable", "Application process evidence was incomplete or exceeded its bounds.")
         }
         let date=now()
@@ -107,8 +109,9 @@ extension ShouEngine {
         }
         // Digest-keyed intent consumes this review even if the process is
         // interrupted after sending a close message. No automatic replay.
-        guard try store.read("cleanup-close-history", id: review.digest) == nil else { throw ShouError("plan_stale", "This application-close review was already used.") }
-        let receipt=CleanupOwnerCloseReceipt(id: review.digest, createdAt: now(), reviewDigest: review.digest, state: "executing",
+        let recordId="close_" + review.digest.dropFirst("sha256:".count)
+        guard try store.read("cleanup-close-history", id: recordId) == nil else { throw ShouError("plan_stale", "This application-close review was already used.") }
+        let receipt=CleanupOwnerCloseReceipt(id: recordId, createdAt: now(), reviewDigest: review.digest, state: "executing",
             items: review.targets.map { .init(applicationId: $0.identifier, name: $0.name, state: "pending") })
         try store.write("cleanup-close-history", id: receipt.id, data: Codec.encode(receipt))
         return receipt

@@ -2,7 +2,7 @@
 
 [English](../../architecture/embedded-ai.md) | 简体中文
 
-日期：2026-10-22。[产品与交互合同](../product/embedded-ai.md)定义用户行为；本文定义如何通过共享服务实现。本轮已实现开关、路由及共享入口；桌面重启恢复和其他提供方适配器仍属后续范围。图中未标注的既有调用也不代表所有平台已通过验收，证据见[验收矩阵](../engineering/embedded-ai-acceptance.md)。
+日期：2026-10-23。[产品与交互合同](../product/embedded-ai.md)定义用户行为；本文定义如何通过共享服务实现。开关、路由、共享入口及桌面等待记录重启续接已实现；中断 running 任务恢复和其他提供方适配器仍属后续范围。图示不代表所有平台已通过验收，证据见[验收矩阵](../engineering/embedded-ai-acceptance.md)。
 
 ## 1. 上下文与信任边界
 
