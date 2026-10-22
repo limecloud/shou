@@ -11,7 +11,7 @@ import threading
 import uuid
 
 
-def request(engine, environment, operation, values=None, confirmation="cancel"):
+def request(engine, environment, operation, values=None, confirmation="cancel", before_confirmation=None):
     identifier = uuid.uuid4().hex
     process = subprocess.Popen([str(engine), "--desktop-bridge"], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=environment)
@@ -57,6 +57,8 @@ def request(engine, environment, operation, values=None, confirmation="cancel"):
                 review = event["value"]
                 assert review["review"]["items"] and review["digest"] and review["challenge"]
                 assert review["operation"] == review["review"]["action"]
+                if before_confirmation is not None:
+                    before_confirmation(review)
                 if confirmation == "eof":
                     process.stdin.close()
                 elif confirmation == "wrong":

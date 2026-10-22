@@ -9,6 +9,7 @@
 #include <shlobj.h>
 #include <shobjidl.h>
 #include <bcrypt.h>
+#include <security.h>
 #include <secext.h>
 #include <wrl/client.h>
 #include <algorithm>

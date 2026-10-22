@@ -41,6 +41,14 @@ public partial class App : Application
                 }
                 model.SelectedSection=7;
                 window.Measure(new Size(1280,800));window.Arrange(new Rect(0,0,1280,800));window.UpdateLayout();
+                model.ScanLocations.Add(new("layout-included", "额外项目", "C:/layout-fixture/中文 projects", "included", "available", null, "layout-included", true));
+                model.ScanLocations.Add(new("layout-automatic", "自动项目", "C:/Users/layout/Projects", "automatic", "available", null, null, false));
+                model.ScanLocations.Add(new("layout-cache", "内置缓存", "C:/Users/layout/AppData/Local/fixture/Cache", "builtin", "unavailable", "夹具：无法读取位置", null, false));
+                model.SelectedSection=8;
+                foreach (var location in model.ScanLocations) {
+                    model.SelectedScanLocation=location;
+                    window.Measure(new Size(840,580));window.Arrange(new Rect(0,0,840,580));window.UpdateLayout();
+                }
                 model.History.Add(new("layout-fixture", "2026-10-22", "C:/layout-fixture", "partial", [
                     new("selected", "C:/layout-fixture/build/cache", "trashed", 4096, true, true, null, "C:/$Recycle.Bin/layout-fixture"),
                     new("pending", "C:/layout-fixture/target", "needs_verification", 8192, false, false, "需要核实", null)
@@ -59,7 +67,7 @@ public partial class App : Application
                 var definition=new System.Text.Json.Nodes.JsonObject { ["id"]="personal.layout-fixture",["version"]="0.1.0",["scope"]=new System.Text.Json.Nodes.JsonObject { ["root_ref"]="layout-fixture" } };
                 new RuleAuthoringDialog(null,client,workspace,CancellationToken.None,definition).VerifyLayout();
                 var report = Environment.GetEnvironmentVariable("SHOU_PACKAGE_VERIFICATION_REPORT") ?? throw new InvalidOperationException("Missing package verification report path.");
-                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true }));
+                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, scan_locations_layout_loaded = true }));
                 Shutdown(0); return;
             }
             MainWindow = window; window.Show();

@@ -138,7 +138,7 @@ await Check("输出超限立即结束只读生产者", () => Failure("output_lim
 await Check("只读请求期限", () => Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("scan")));
 await Check("补扫、跨目录扫描和大文件查询遵守只读请求期限", async () =>
 {
-    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
+    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
         await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync(operation));
 });
 await Check("历史位置核验支持取消并拒绝任何变更确认", async () =>
@@ -152,13 +152,15 @@ await Check("确认绑定本次挑战和摘要", async () =>
     var result = await Fixture("confirm").RequestAsync("plan.execute", confirm: _ => Task.FromResult(true));
     Require(result["kind"]?.GetValue<string>() == "confirm" && result["challenge"]?.GetValue<string>() == "one-use" && result["digest"]?.GetValue<string>() == "scope-digest");
 });
+await Check("扫描范围查询只读且不能请求变更确认", () =>
+    Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("locations.scan", confirm: _ => throw new Exception("Read-only locations requested consent."))));
 await Check("缺少确认处理器时取消", async () =>
 {
     var result = await Fixture("confirm").RequestAsync("plan.execute"); Require(result["kind"]?.GetValue<string>() == "cancel");
 });
 await Check("变更请求协作取消并等待回执", async () =>
 {
-    foreach(var operation in new[] { "plan.execute", "startup.control" }) {
+    foreach(var operation in new[] { "plan.execute", "startup.control", "workspace.remove" }) {
         using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
         var result = await Fixture("mutation-cancel").RequestAsync(operation, cancellation: stop.Token);
         Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);
