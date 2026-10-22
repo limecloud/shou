@@ -111,7 +111,7 @@ public sealed partial class MainViewModel
             for (var index = 0; index < parts.Length; index++) StorageBreadcrumbs.Add(new(string.Join('/', parts.Take(index + 1)), parts[index]));
         }
         FilterStorageRows();
-        Status = page["item"]?["node"]?["is_complete"]?.GetValue<bool>() == true ? T("当前文件夹分析完成。双击目录继续查看。") : T("此范围存在覆盖缺口，可展开“扫描覆盖详情”查看。");
+        Status = page["item"]?["node"]?["is_complete"]?.GetValue<bool>() == true ? T("当前文件夹分析完成。双击目录继续查看。") : T("此范围存在覆盖缺口，可打开“扫描覆盖详情”查看。");
     }
 
     private void FilterStorageRows()

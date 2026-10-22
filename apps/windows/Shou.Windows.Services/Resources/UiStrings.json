@@ -382,7 +382,7 @@
   "所选项目处理完毕。当前视图已移除成功项；刷新可重新测量占用和类型统计。": "Selected items processed. Only successful items were removed from this view. Refresh to remeasure usage and type statistics.",
   "扫描根目录": "Scan root directory",
   "当前文件夹分析完成。双击目录继续查看。": "Current folder analyzed. Double-click a directory to explore.",
-  "此范围存在覆盖缺口，可展开“扫描覆盖详情”查看。": "This scope has coverage gaps. Expand Scan Coverage Details to view them.",
+  "此范围存在覆盖缺口，可打开“扫描覆盖详情”查看。": "This scope has coverage gaps. Open Scan Coverage Details to view them.",
   "可选择": "Selectable",
   "压缩包": "Archives",
   "部分扫描 · ": "Partial scan · ",

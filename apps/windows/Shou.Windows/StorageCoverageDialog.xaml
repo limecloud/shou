@@ -4,22 +4,22 @@
     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
     <StackPanel>
       <TextBlock Text="{local:Text t5bd08ef0420dc9bb}" FontSize="22" FontWeight="SemiBold" />
-      <TextBlock Text="{local:Text t300f18ab930b02ca}" Margin="0,10,0,0" />
-      <TextBox Text="{Binding Summary.RootPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Margin="0,10,0,0" AutomationProperties.Name="{local:Text t9520ac548b0e602f}" />
-      <TextBlock Text="{Binding Summary.State}" Margin="0,8,0,0" FontWeight="SemiBold" />
-      <TextBlock Text="{Binding MeasurementSummary}" Margin="0,4,0,0" />
+      <TextBlock Text="{local:Text t300f18ab930b02ca}" Margin="0,10,0,0" TextWrapping="Wrap" />
+      <TextBox Text="{Binding Summary.RootPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="80" VerticalScrollBarVisibility="Auto" BorderThickness="0" Margin="0,10,0,0" AutomationProperties.Name="{local:Text t9520ac548b0e602f}" />
+      <TextBlock Text="{Binding Summary.State}" Margin="0,8,0,0" FontWeight="SemiBold" TextWrapping="Wrap" />
+      <TextBlock Text="{Binding MeasurementSummary}" Margin="0,4,0,0" TextWrapping="Wrap" />
     </StackPanel>
     <CheckBox x:Name="ShowSystem" Grid.Row="1" Content="{local:Text t28a5957d781eefcd}" Checked="FilterChanged" Unchecked="FilterChanged" Margin="0,12,0,0" />
     <Grid Grid.Row="2" Margin="0,10,0,0">
       <ListBox ItemsSource="{Binding VisibleItems}" HorizontalContentAlignment="Stretch" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling" AutomationProperties.Name="{local:Text t8fd9414104b7508d}">
         <ListBox.ItemTemplate><DataTemplate><Border Padding="4,12" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"><StackPanel>
-          <TextBlock Text="{Binding Reason}" FontWeight="SemiBold" />
-          <TextBox Text="{Binding DisplayPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" FontSize="12" Margin="0,6,0,0" />
-          <TextBlock Text="{Binding Code}" FontSize="11" Opacity="0.65" />
+          <TextBlock Text="{Binding Reason}" FontWeight="SemiBold" TextWrapping="Wrap" />
+          <TextBox Text="{Binding DisplayPath,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="96" VerticalScrollBarVisibility="Auto" BorderThickness="0" FontSize="12" Margin="0,6,0,0" />
+          <TextBlock Text="{Binding Code}" FontSize="11" Opacity="0.65" TextWrapping="Wrap" />
           <WrapPanel Margin="0,8,0,0"><Button Content="{local:Text tb97c49acb93028ec}" Click="CopyClicked" IsEnabled="{Binding CanCopy}" /><Button Content="{local:Text t9e3fc11213b90ed0}" Click="RevealClicked" IsEnabled="{Binding CanReveal}" /></WrapPanel>
         </StackPanel></Border></DataTemplate></ListBox.ItemTemplate>
       </ListBox>
-      <TextBlock x:Name="EmptyNotice" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8" />
+      <TextBlock x:Name="EmptyNotice" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="8" TextWrapping="Wrap" />
     </Grid>
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0"><Button Content="{local:Text t6951a2a42fa0ed67}" Click="RescanClicked" /><Button Content="{local:Text t3fd47edce45b3603}" IsCancel="True" IsDefault="True" /></StackPanel>
   </Grid>
