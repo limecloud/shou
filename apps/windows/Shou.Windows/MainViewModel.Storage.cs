@@ -83,7 +83,7 @@ public sealed partial class MainViewModel
             row.SetPolicy(browse["removal_reasons"]?[row.Path]?.GetValue<string>());
             if (row.Kind == "directory" && row.Children.Count == 0) row.Children.Add(new StorageRow(row.Path + "/", "…", "loading"));
             if (!storageDirectoryRows.Contains(row)) storageDirectoryRows.Add(row);
-            if (append && !storageTreeRoots.Contains(row)) storageTreeRoots.Add(row);
+            if (!storageTreeRoots.Contains(row)) storageTreeRoots.Add(row);
         }
         StorageBreadcrumbs.Clear(); StorageBreadcrumbs.Add(new(".", "扫描根目录"));
         if (StoragePath != ".") {

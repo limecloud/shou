@@ -71,13 +71,15 @@ func storagePreviewIsBoundedReadOnlyAndRejectsChangedObjects() async throws {
     try FileManager.default.removeItem(at: fixture.workspace.appendingPathComponent("preview/unicode.txt"))
     try FileManager.default.createSymbolicLink(atPath: fixture.workspace.appendingPathComponent("preview/unicode.txt").path, withDestinationPath: fixture.workspace.appendingPathComponent("preview/large.log").path)
     try await expectThrows { try await engine.storagePreview(scanId: scan.id, path: "preview/unicode.txt", reader: reader) }
-    let cancelled=Task {
-        withUnsafeCurrentTask { $0?.cancel() }
-        return try await engine.storagePreview(scanId: scan.id, path: "preview/large.log", reader: reader)
+    for path in ["preview/large.log", "preview/not-executed.exe", "preview"] {
+        let cancelled=Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await engine.storagePreview(scanId: scan.id, path: path, reader: reader)
+        }
+        do { _ = try await cancelled.value; throw CheckFailure(description: "Cancelled preview returned a result.") }
+        catch is CancellationError { }
+        catch let error as ShouError { try expect(error.code == "cancelled") }
     }
-    do { _ = try await cancelled.value; throw CheckFailure(description: "Cancelled preview returned content.") }
-    catch is CancellationError { }
-    catch let error as ShouError { try expect(error.code == "cancelled") }
     try expect(try Digest.of(await engine.configuration()) == before)
     try expect(try fixture.store.ids("storage-plans").isEmpty && fixture.store.ids("history").isEmpty)
     try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("preview/not-executed.exe"), encoding: .utf8) == "MZ generated fixture")

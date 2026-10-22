@@ -21,6 +21,7 @@ extension ShouEngine {
     /// Preview is a bounded local read, independent of removal eligibility.
     /// A platform reader must reject links and bind its handle to this identity.
     public func storagePreview(scanId: String, path: String, reader: any StoragePreviewReading) throws -> StorageFilePreview {
+        try Task.checkCancellation()
         guard StorageRemovalPolicy.validRelative(path) else { throw ShouError("invalid_argument", "Choose one exact analysis item to preview.") }
         let scan=try storageScan(scanId)
         guard let entry=try storageEntry(scan: scan, path: path) else { throw ShouError("invalid_argument", "Item is absent from this analysis.") }
