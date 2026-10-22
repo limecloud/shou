@@ -494,7 +494,11 @@ enum DesktopBridge {
         case "storage.selection":
             guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_id", "paths", "targets", "selected"],
                   case .bool(let selected)=input["selected"] else { throw ShouError("invalid_argument", "Provide an explicit analysis selection change.") }
-            return try .from(await engine.storageSelection(scanId: string("scan_id"), paths: strings("paths"), targets: strings("targets"), selected: selected))
+            func selectionPaths(_ key: String) throws -> [String] {
+                guard let values=input[key]?.array, values.count <= 5000, values.allSatisfy({ $0.string != nil }) else { throw ShouError("invalid_argument", "Provide up to 5,000 explicit analysis paths.") }
+                return values.compactMap(\.string)
+            }
+            return try .from(await engine.storageSelection(scanId: string("scan_id"), paths: selectionPaths("paths"), targets: selectionPaths("targets"), selected: selected))
         case "storage.context":
             let context=try await engine.storageAnalysisContext(scanId: string("scan_id"), path: input["path"]?.string ?? ".", focusedPath: input["focused_path"]?.string, selectedPaths: input["selected_paths"]?.array?.compactMap(\.string) ?? [], removedPaths: input["removed_paths"]?.array?.compactMap(\.string) ?? [],
                 cliPath: CommandLine.arguments[0])

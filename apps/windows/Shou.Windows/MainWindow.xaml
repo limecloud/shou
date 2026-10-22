@@ -34,23 +34,21 @@
       <TabItem Header="空间分析">
         <Grid Margin="8">
           <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <StackPanel Margin="0,0,0,8"><DockPanel>
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+          <StackPanel Margin="0,0,0,8"><WrapPanel>
+            <Button Content="←" Command="{Binding StorageBackCommand}" ToolTip="后退" AutomationProperties.Name="后退" /><Button Content="→" Command="{Binding StorageForwardCommand}" ToolTip="前进" AutomationProperties.Name="前进" /><Button Content="↑" Command="{Binding StorageUpCommand}" ToolTip="上一级" AutomationProperties.Name="上一级" />
               <RadioButton Content="简洁" GroupName="SpaceView" IsChecked="{Binding StorageSimple}" VerticalAlignment="Center" Margin="4" />
               <RadioButton Content="详细" GroupName="SpaceView" IsChecked="{Binding StorageDetailed}" VerticalAlignment="Center" Margin="4" />
               <Button Content="AI 调查此目录…" Command="{Binding AiFromStorageCommand}" /><Button Content="复制给 AI" Command="{Binding CopyStorageAnalysisCommand}" />
               <Button Content="审阅 AI 规则…" Command="{Binding ReviewRulesCommand}" />
               <Button Content="刷新" Command="{Binding RescanStorageCommand}" /><Button Content="选择目录…" Command="{Binding AnalyzeCommand}" />
-            </StackPanel>
-            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"><Button Content="←" Command="{Binding StorageBackCommand}" ToolTip="后退" AutomationProperties.Name="后退" /><Button Content="→" Command="{Binding StorageForwardCommand}" ToolTip="前进" AutomationProperties.Name="前进" /><Button Content="↑" Command="{Binding StorageUpCommand}" ToolTip="上一级" AutomationProperties.Name="上一级" /></StackPanel>
-            <local:ProgressPathTextBlock FullPath="{Binding StorageDisplayPath}" ToolTip="{Binding StorageDisplayPath}" VerticalAlignment="Center" Margin="8,0" />
-          </DockPanel>
+          </WrapPanel>
+          <local:ProgressPathTextBlock FullPath="{Binding StorageDisplayPath}" ToolTip="{Binding StorageDisplayPath}" Margin="0,8,0,0" />
           <ItemsControl ItemsSource="{Binding StorageBreadcrumbs}" Margin="0,8,0,0"><ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate><Button Content="{Binding Label}" Command="{Binding DataContext.StorageBreadcrumbCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" ToolTip="{Binding Path}" Padding="8,3" /></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
           <WrapPanel Margin="0,8,0,0"><TextBox Width="230" Text="{Binding StorageQuery,UpdateSourceTrigger=PropertyChanged}" MaxLength="256" AutomationProperties.Name="筛选当前目录已加载的名称" ToolTip="按名称筛选当前目录中已加载的项目" Margin="0,0,8,0" /><Button Content="选择可见项目" Command="{Binding SelectVisibleStorageCommand}" /><Button Content="清空选择" Command="{Binding ClearStorageSelectionCommand}" /><Button Content="加载更多" Command="{Binding MoreStorageCommand}" /><TextBlock Text="{Binding StorageListSummary}" VerticalAlignment="Center" /></WrapPanel>
           </StackPanel>
           <DataGrid Grid.Row="1" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode" Visibility="{Binding StorageSimple, Converter={StaticResource BoolToVisibility}}">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding SelectionState,Mode=OneWay}" IsThreeState="True" Click="StorageSelectionClicked" IsEnabled="{Binding CanSelect}" ToolTip="{Binding RemovalReason}" AutomationProperties.Name="选择项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+              <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding SelectionState,Mode=OneWay}" IsThreeState="True" Click="StorageSelectionClicked" IsEnabled="{Binding CanSelect}" ToolTip="{Binding Protection}" AutomationProperties.Name="选择项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
               <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" SortMemberPath="AllocatedBytes" Width="120" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="100" />
             </DataGrid.Columns>
           </DataGrid>
@@ -69,7 +67,7 @@
                 <TreeView.ItemTemplate><HierarchicalDataTemplate ItemsSource="{Binding Children}">
                   <Grid Height="19">
                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="130" /><ColumnDefinition Width="48" /><ColumnDefinition Width="78" /><ColumnDefinition Width="78" /><ColumnDefinition Width="64" /></Grid.ColumnDefinitions>
-                    <DockPanel><CheckBox DockPanel.Dock="Left" IsChecked="{Binding SelectionState,Mode=OneWay}" IsThreeState="True" Click="StorageSelectionClicked" IsEnabled="{Binding CanSelect}" ToolTip="{Binding RemovalReason}" Margin="0,0,3,0" AutomationProperties.Name="选择项目" /><TextBlock DockPanel.Dock="Left" Text="{Binding Icon}" Margin="0,0,3,0" /><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}" /></DockPanel>
+                    <DockPanel><CheckBox DockPanel.Dock="Left" IsChecked="{Binding SelectionState,Mode=OneWay}" IsThreeState="True" Click="StorageSelectionClicked" IsEnabled="{Binding CanSelect}" ToolTip="{Binding Protection}" Margin="0,0,3,0" AutomationProperties.Name="选择项目" /><TextBlock DockPanel.Dock="Left" Text="{Binding Icon}" Margin="0,0,3,0" /><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}" /></DockPanel>
                     <TextBlock Grid.Column="1" Text="{Binding Share}" TextAlignment="Right" Background="#162779DF" /><TextBlock Grid.Column="2" Text="{Binding Size}" TextAlignment="Right" /><TextBlock Grid.Column="3" Text="{Binding LogicalSize}" TextAlignment="Right" /><TextBlock Grid.Column="4" Text="{Binding Files}" TextAlignment="Right" />
                   </Grid>
                 </HierarchicalDataTemplate></TreeView.ItemTemplate>

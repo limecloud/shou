@@ -20,7 +20,7 @@ public sealed partial class MainViewModel
     private string storageQuery = "";
     public ObservableCollection<StorageBreadcrumb> StorageBreadcrumbs { get; } = [];
     public string StorageQuery { get => storageQuery; set { if (SetProperty(ref storageQuery, value)) FilterStorageRows(); } }
-    public string StorageListSummary => $"显示 {StorageNodes.Count} 项 · 已加载 {storageDirectoryRows.Count} / {storageChildCount} 项";
+    public string StorageListSummary => $"列表 { (StorageDetailed ? StorageTree.Count : StorageNodes.Count) } 项 · 目录页已加载 {storageDirectoryRows.Count} / {storageChildCount} 项";
     public string StorageSelectionSummary => $"已选 {storageSelection.Count} 项 · 占用估算 {Bytes(storageSelectedBytes)}";
     public string StorageProtection => SelectedStorageNode?.Protection ?? "选择项目以查看保护状态。";
     public string StorageCoverageDetails => storageCoverage.Length == 0 ? "扫描未报告覆盖缺口。" : string.Join("\n", storageCoverage.Select(note =>
@@ -40,7 +40,7 @@ public sealed partial class MainViewModel
         StorageForwardCommand = new AsyncRelayCommand(() => RunAsync(() => NavigateStorageAsync(storageNavigation.ForwardTarget!, 1)), () => !IsBusy && storageNavigation.ForwardTarget is not null);
         StorageBreadcrumbCommand = new AsyncRelayCommand<StorageBreadcrumb>(item => RunAsync(() => NavigateStorageAsync(item!.Path)), item => !IsBusy && storageScanId is not null && item is not null && item.Path != StoragePath);
         MoreStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => ShowStoragePage(await client.RequestAsync("storage.browse", new() { ["scan_id"] = storageScanId, ["path"] = StoragePath, ["offset"] = storageNextOffset }, cancellation: Token), true)), () => !IsBusy && storageNextOffset is not null);
-        SelectVisibleStorageCommand = new AsyncRelayCommand(() => ChangeStorageSelectionAsync(StorageNodes.Where(row => row.Eligible).Select(row => row.Path).ToArray(), true), () => !IsBusy && StorageNodes.Any(row => row.Eligible));
+        SelectVisibleStorageCommand = new AsyncRelayCommand(() => ChangeStorageSelectionAsync(VisibleStorageRows().Where(row => row.Eligible).Select(row => row.Path).ToArray(), true), () => !IsBusy && VisibleStorageRows().Any(row => row.Eligible));
         ClearStorageSelectionCommand = new RelayCommand(ClearStorageSelection, () => !IsBusy && storageSelection.Count > 0);
         RevealStorageItemCommand = new RelayCommand(() => dialogs.RevealItem(StorageAbsolutePath(SelectedStorageNode!.Path)), () => !IsBusy && SelectedStorageNode is { Kind: "file" or "directory" });
         CopyStorageItemPathCommand = new RelayCommand(() => System.Windows.Clipboard.SetText(StorageAbsolutePath(SelectedStorageNode!.Path)), () => !IsBusy && SelectedStorageNode is { Kind: "file" or "directory" });
@@ -68,6 +68,7 @@ public sealed partial class MainViewModel
         {
             var row = StorageItem(item!["node"]!);
             row.SetPolicy(browse["removal_reasons"]?[row.Path]?.GetValue<string>());
+            if (row.Kind == "directory" && row.Children.Count == 0) row.Children.Add(new StorageRow(row.Path + "/", "…", "loading"));
             if (!storageDirectoryRows.Contains(row)) storageDirectoryRows.Add(row);
             if (append && !storageTreeRoots.Contains(row)) storageTreeRoots.Add(row);
         }
@@ -87,6 +88,19 @@ public sealed partial class MainViewModel
         StorageNodes.Clear(); foreach (var row in storageDirectoryRows.Where(Matches)) StorageNodes.Add(row);
         StorageTree.Clear(); foreach (var row in storageTreeRoots.Where(Matches)) StorageTree.Add(row);
         OnPropertyChanged(nameof(StorageListSummary)); RefreshCommands();
+    }
+
+    private IEnumerable<StorageRow> VisibleStorageRows()
+    {
+        if (!StorageDetailed) return StorageNodes;
+        static IEnumerable<StorageRow> ExpandedRows(IEnumerable<StorageRow> rows)
+        {
+            foreach (var row in rows) {
+                yield return row;
+                if (row.Expanded) foreach (var child in ExpandedRows(row.Children)) yield return child;
+            }
+        }
+        return ExpandedRows(StorageTree);
     }
 
     public Task ToggleStorageSelectionAsync(StorageRow row) => row.CanSelect && !IsBusy ? ChangeStorageSelectionAsync([row.Path], row.SelectionState != true) : Task.CompletedTask;

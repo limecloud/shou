@@ -51,4 +51,28 @@ func storageBrowsingPagesAreBoundedAndExpandedSelectionsNeverTruncate() async th
     try await expectThrows { try await engine.storageSelection(scanId: scan.id, paths: [], targets: (0...5000).map { "wide/file-\($0).bin" }, selected: true) }
     try await expectThrows { try await engine.storageBrowsePage(scanId: scan.id, path: "wide", offset: -1) }
     try expect(try fixture.store.ids("storage-plans").isEmpty)
+
+    // A synthetic published index covers expansion refusal without generating
+    // thousands of physical files or modifying any real scan catalog.
+    let dense=try Fixture(), denseEngine=ShouEngine(store: dense.store, filesystem: dense.fs)
+    var denseScan=try await denseEngine.scanStorage(path: dense.workspace.path, budget: ScanBudget())
+    let catalog=try StorageCatalog(url: require(dense.store.storageCatalogURL(id: denseScan.id)), create: true)
+    var root=try catalog.append(denseScan.identity, complete: true)
+    var directory=denseScan.identity; directory.path="wide"; directory.inode += 1
+    var total=try catalog.append(directory, complete: true)
+    for index in 0..<5002 {
+        var entry=directory; entry.path="wide/file-\(index)"; entry.kind="file"; entry.inode += UInt64(index + 1)
+        entry.links=1; entry.logicalBytes=4096; entry.allocatedBytes=4096
+        _ = try catalog.append(entry)
+        total.logicalBytes += 4096; total.allocatedBytes += 4096; total.fileCount += 1
+    }
+    root.logicalBytes += total.logicalBytes; root.allocatedBytes += total.allocatedBytes; root.fileCount += total.fileCount
+    try catalog.setTotals(total); try catalog.setTotals(root); try catalog.seal()
+    denseScan.catalogId=denseScan.id; denseScan.tree.entries=[denseScan.identity]; denseScan.measuredEntryCount=5004
+    try dense.store.write("storage-scans", id: denseScan.id, data: Codec.encode(denseScan))
+    do {
+        _ = try await denseEngine.storageSelection(scanId: denseScan.id, paths: ["wide"], targets: ["wide/file-0"], selected: false)
+        throw CheckFailure(description: "Oversized expansion must fail as a whole.")
+    } catch let error as ShouError { try expect(error.code == "resource_limit") }
+    try expect(try dense.store.ids("storage-plans").isEmpty && dense.store.ids("history").isEmpty)
 }

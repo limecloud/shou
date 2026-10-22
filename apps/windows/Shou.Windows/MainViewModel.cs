@@ -20,7 +20,7 @@ public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, st
 public sealed class StorageRow(string path, string size, string kind, long allocatedBytes=0, long logicalBytes=0, int files=0) : ObservableObject
 {
     public string Path { get; } = path;
-    public string Name => Path.Split('/').Last();
+    public string Name => Kind switch { "loading" => "正在加载…", "more" => "加载更多…", _ => Path.Split('/').Last() };
     public string Size { get; } = size;
     public string Kind { get; } = kind;
     public long AllocatedBytes { get; } = allocatedBytes;
@@ -222,7 +222,7 @@ public sealed partial class MainViewModel : ObservableObject
     public IAsyncRelayCommand RemoveStorageCommand { get; }
     public bool StorageDetailed {
         get => storageDetailed;
-        set { if(SetProperty(ref storageDetailed,value)) { OnPropertyChanged(nameof(StorageSimple)); try { Directory.CreateDirectory(Path.GetDirectoryName(StoragePreference)!); File.WriteAllText(StoragePreference,value ? "detailed" : "simple"); } catch(Exception error) when(error is IOException or UnauthorizedAccessException) { } if(value && storageScanId is not null && StorageMap is null && !IsBusy) _ = RunAsync(LoadStorageMapAsync); } }
+        set { if(SetProperty(ref storageDetailed,value)) { OnPropertyChanged(nameof(StorageSimple)); OnPropertyChanged(nameof(StorageListSummary)); try { Directory.CreateDirectory(Path.GetDirectoryName(StoragePreference)!); File.WriteAllText(StoragePreference,value ? "detailed" : "simple"); } catch(Exception error) when(error is IOException or UnauthorizedAccessException) { } if(value && storageScanId is not null && StorageMap is null && !IsBusy) _ = RunAsync(LoadStorageMapAsync); } }
     }
     public bool StorageSimple { get => !StorageDetailed; set { if(value) StorageDetailed=false; } }
     public JsonNode? StorageMap { get => storageMap; private set => SetProperty(ref storageMap,value); }
@@ -633,7 +633,7 @@ public sealed partial class MainViewModel : ObservableObject
         foreach(var row in nodes) { var slash=row.Path.LastIndexOf('/'); var parent=slash<0 ? "." : row.Path[..slash]; row.Share=totals.TryGetValue(parent,out var parentBytes) && parentBytes>0 ? ((double)row.AllocatedBytes/parentBytes).ToString("P1") : "—"; if(parent==StoragePath) StorageTree.Add(row); else if(storageRows.TryGetValue(parent,out var ancestor)) ancestor.Children.Add(row); }
         foreach(var row in StorageNodes.Where(row=>!StorageTree.Contains(row))) StorageTree.Add(row);
         storageTreeRoots.Clear(); storageTreeRoots.AddRange(StorageTree); FilterStorageRows();
-        foreach(var row in nodes.Where(row=>row.Kind=="directory" && row.Children.Count==0)) row.Children.Add(new StorageRow(row.Path+"/","…","loading"));
+        foreach(var row in storageRows.Values.Where(row=>row.Kind=="directory" && row.Children.Count==0 && !StorageGone(row.Path))) row.Children.Add(new StorageRow(row.Path+"/","…","loading"));
         StorageExtensions.Clear();
         if(StorageMap?["tiles"] is JsonArray originalTiles && storageRemovedPaths.Count > 0) {
             var updated=StorageMap.DeepClone();
