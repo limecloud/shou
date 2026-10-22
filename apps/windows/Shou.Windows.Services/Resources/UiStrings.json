@@ -1063,6 +1063,7 @@
   "包系列：": "Package family: ",
   "测量安装占用": "Measure Installation Usage",
   "实测安装占用": "Measured Installation Usage",
+  "安装占用详情": "Installation Usage Details",
   "未测量": "Not measured",
   "部分：": "Partial: ",
   "正在测量所选应用的安装目录…": "Measuring the selected application's installation directory…",

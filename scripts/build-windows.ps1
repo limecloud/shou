@@ -23,8 +23,8 @@ try {
         $nativeCompiler = (Get-Command clang -ErrorAction Stop).Source
         $nativeOptimization = if ($Configuration -eq "Release") { "-O2" } else { "-O0" }
         foreach ($program in @(
-            @{ Source = "packages/windows-cli-launcher/launcher.cpp"; Name = "shou-cli-launcher"; Entry = "shou_cli_entry"; Libraries = @("kernel32.lib") },
-            @{ Source = "tests/windows-cli-launcher/probe.cpp"; Name = "shou-cli-launcher-probe"; Entry = "shou_cli_probe_entry"; Libraries = @("kernel32.lib", "shell32.lib") }
+            @{ Source = "packages/windows-cli-launcher/launcher.cpp"; Name = "shou-cli-launcher"; Entry = "shou_cli_entry"; Libraries = @("-lkernel32") },
+            @{ Source = "tests/windows-cli-launcher/probe.cpp"; Name = "shou-cli-launcher-probe"; Entry = "shou_cli_probe_entry"; Libraries = @("-lkernel32", "-lshell32") }
         )) {
             $nativeLibraries = $program.Libraries
             & $nativeCompiler -x c++ -std=c++17 $nativeOptimization -fno-builtin -fno-stack-protector -fno-exceptions -fno-rtti -fuse-ld=lld $program.Source -o (Join-Path $launcherBin ($program.Name + ".exe")) -Xlinker /NODEFAULTLIB -Xlinker ("/ENTRY:" + $program.Entry) -Xlinker /SUBSYSTEM:CONSOLE @nativeLibraries
