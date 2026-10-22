@@ -172,6 +172,7 @@
     <TabItem Header="启动项"><local:StartupView /></TabItem>
     <TabItem Header="应用"><local:ApplicationsView /></TabItem>
     <TabItem Header="扫描范围"><local:ScanLocationsView /></TabItem>
+    <TabItem Header="隐私"><local:PrivacyView /></TabItem>
     </TabControl>
     <TextBlock Grid.Row="1" Text="{Binding Status}" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}" AutomationProperties.LiveSetting="Polite" />
   </Grid>

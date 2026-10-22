@@ -58,11 +58,12 @@ public sealed class WindowsDialogs(Window owner)
     {
         if (cancellation.IsCancellationRequested || challenge["review"]?["items"] is not JsonArray { Count: > 0 } ||
             !DateTimeOffset.TryParse(challenge["expires_at"]?.GetValue<string>(), out var expiry) || expiry <= DateTimeOffset.UtcNow ||
-            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "workspace.remove" or "startup.enable" or "startup.disable")) return Task.FromResult(false);
+            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "workspace.remove" or "startup.enable" or "startup.disable" or "privacy.delete")) return Task.FromResult(false);
         var operation = challenge["operation"]!.GetValue<string>();
         if (challenge["review"]?["action"]?.GetValue<string>() != operation) return Task.FromResult(false);
         var (caption, heading, warning) = operation switch
         {
+            "privacy.delete" => ("永久清理隐私记录", "永久删除以下浏览器记录？", "此操作只处理本次扫描中选定的来源和时间范围。记录不会进入回收站，无法通过历史恢复。Cookie 清理可能使你退出网站登录。请先关闭相关浏览器。"),
             "workspace.remove" => ("停止包含文件夹", "停止在一键扫描中包含以下额外文件夹？", "已保存的规则绑定、规则选择和该工作区的排除将解除。文件与清理历史保留。如需再次扫描，可以重新包含此文件夹。"),
             "startup.enable" => ("确认启用启动项", "启用以下计划任务？", "仅修改所选当前用户任务的启用配置。不会立即启动任务。执行前重新核验完整定义，执行后读取配置确认结果。"),
             "startup.disable" => ("确认停用启动项", "停用以下计划任务？", "仅修改所选当前用户任务的启用配置。已经运行的实例会继续运行。执行前重新核验完整定义，执行后读取配置确认结果。"),
@@ -80,14 +81,31 @@ public sealed class WindowsDialogs(Window owner)
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 14, 0, 0) };
         var cancel = new Button { Content = "取消", IsCancel = true, IsDefault = true };
         var confirm = new Button { Content = caption };
-        confirm.Click += (_, _) => { accepted = !cancellation.IsCancellationRequested && DateTimeOffset.UtcNow < expiry; dialog.DialogResult = accepted; };
+        confirm.Click += (_, _) => { accepted = confirm.IsEnabled && !cancellation.IsCancellationRequested && DateTimeOffset.UtcNow < expiry; dialog.DialogResult = accepted; };
         buttons.Children.Add(cancel); buttons.Children.Add(confirm); DockPanel.SetDock(buttons, Dock.Bottom); panel.Children.Add(buttons);
         var text = new StringBuilder(warning + "\n\n");
+        if (operation == "privacy.delete")
+        {
+            var irreversible = new CheckBox { Content = "我理解这些记录将永久删除，无法恢复。", Margin = new Thickness(0, 6, 0, 0) };
+            var signOut = new CheckBox { Content = "我同意清理 Cookie，并理解可能退出网站登录。", Margin = new Thickness(0, 6, 0, 0) };
+            var requiresSignOut = challenge["review"]?["requires_sign_out"]?.GetValue<bool>() == true;
+            confirm.IsEnabled = false;
+            void UpdateConsent(object sender, RoutedEventArgs args) => confirm.IsEnabled = irreversible.IsChecked == true && (!requiresSignOut || signOut.IsChecked == true);
+            irreversible.Checked += UpdateConsent; irreversible.Unchecked += UpdateConsent;
+            signOut.Checked += UpdateConsent; signOut.Unchecked += UpdateConsent;
+            var consents = new StackPanel(); consents.Children.Add(irreversible);
+            if (requiresSignOut) consents.Children.Add(signOut);
+            DockPanel.SetDock(consents, Dock.Bottom); panel.Children.Add(consents);
+            string Time(string field) => DateTimeOffset.TryParse(challenge["review"]?[field]?.GetValue<string>(), out var date) ? date.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") : "不限";
+            text.AppendLine("扫描时间范围：" + Time("range_start") + " 至 " + Time("range_end"));
+            text.AppendLine();
+        }
         if (challenge["review"]?["items"] is JsonArray items)
         {
             foreach (var item in items)
             {
                 text.AppendLine(item?["path"]?.GetValue<string>());
+                if (operation == "privacy.delete" && item?["records"] is JsonValue records) text.AppendLine("记录数：" + records.GetValue<long>());
                 if (operation == "purge") text.AppendLine("原始路径：" + item?["original_path"]?.GetValue<string>());
                 if (item?["bytes"] is JsonValue bytes) text.AppendLine("占用估算：" + MainViewModel.Bytes(bytes.GetValue<long>()));
                 if (item?["risk"] is JsonValue risk) text.AppendLine("风险：" + risk.GetValue<string>());

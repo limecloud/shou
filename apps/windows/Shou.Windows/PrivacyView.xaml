@@ -1,0 +1,33 @@
+<UserControl x:Class="Shou.Windows.PrivacyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid Margin="16">
+    <Grid.Resources><BooleanToVisibilityConverter x:Key="BoolToVisibility" /></Grid.Resources>
+    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" MinHeight="100" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+    <StackPanel>
+      <TextBlock Text="浏览器隐私" FontSize="22" FontWeight="SemiBold" />
+      <TextBlock Text="先关闭浏览器。清理将永久删除选定数据库记录，不进入回收站且无法恢复。只展示汇总数量，不展示网址、域名或 Cookie 内容；不会自动选择来源。" TextWrapping="Wrap" Margin="0,8" />
+      <WrapPanel IsEnabled="{Binding PrivacyCanEdit}">
+        <ComboBox ItemsSource="{Binding PrivacyRanges}" SelectedItem="{Binding SelectedPrivacyRange}" DisplayMemberPath="Name" Width="160" AutomationProperties.Name="隐私清理时间范围" Margin="0,0,8,0" />
+        <Button Content="扫描隐私来源" Command="{Binding ScanPrivacyCommand}" />
+        <Button Content="刷新回执" Command="{Binding PrivacyHistoryCommand}" />
+        <TextBlock Text="历史按访问时间；Cookie 按最后访问时间" VerticalAlignment="Center" Margin="8,0" FontSize="12" />
+      </WrapPanel>
+      <TextBlock Text="{Binding PrivacyStatus}" TextWrapping="Wrap" Margin="0,8" />
+    </StackPanel>
+    <DataGrid Grid.Row="1" ItemsSource="{Binding PrivacySources}" IsEnabled="{Binding PrivacyCanEdit}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" EnableRowVirtualization="True" AutomationProperties.Name="隐私来源与汇总数量">
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanSelect}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="选择此隐私来源" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+        <DataGridTextColumn Header="浏览器" Binding="{Binding Browser}" Width="140" /><DataGridTextColumn Header="配置文件" Binding="{Binding Profile}" Width="*" />
+        <DataGridTextColumn Header="数据" Binding="{Binding DataKind}" Width="90" /><DataGridTextColumn Header="记录数" Binding="{Binding Count}" SortMemberPath="RecordCount" Width="90" />
+        <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="160" /><DataGridTextColumn Header="原因" Binding="{Binding Details}" Width="130" />
+      </DataGrid.Columns>
+    </DataGrid>
+    <StackPanel Grid.Row="2" Margin="0,10,0,0">
+      <CheckBox Content="我理解清理 Cookie 可能使我退出网站登录。" IsChecked="{Binding PrivacySignOut}" IsEnabled="{Binding PrivacyCanEdit}" AutomationProperties.Name="允许审阅可能退出登录的 Cookie 清理" />
+      <DockPanel Margin="0,8"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="清空选择" Command="{Binding ClearPrivacySelectionCommand}" /><Button Content="审阅永久删除…" Command="{Binding CleanPrivacyCommand}" /></StackPanel><TextBlock Text="{Binding PrivacySelectionSummary}" VerticalAlignment="Center" /></DockPanel>
+      <Expander Header="本次结果与最近 20 条回执" MaxHeight="180"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel><TextBlock Text="{Binding PrivacyResult}" TextWrapping="Wrap" /><ItemsControl ItemsSource="{Binding PrivacyReceipts}"><ItemsControl.ItemTemplate><DataTemplate><StackPanel Margin="0,8"><TextBlock Text="{Binding Summary}" FontWeight="SemiBold" /><TextBlock Text="{Binding Details}" TextWrapping="Wrap" FontSize="12" /></StackPanel></DataTemplate></ItemsControl.ItemTemplate></ItemsControl></StackPanel></ScrollViewer></Expander>
+      <TextBlock Text="支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置。自选配置、站点存储、密码、自动填充、扩展及云端副本不在此清理；格式无法核验时保留。" FontSize="12" Opacity="0.7" TextWrapping="Wrap" Margin="0,8,0,0" />
+    </StackPanel>
+  </Grid>
+</UserControl>

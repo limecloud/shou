@@ -46,6 +46,8 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Windows startup read-only source and confirmation checks failed." }
             python -B "scripts/verify-windows-applications.py" (Join-Path $bin "shou.exe")
             if ($LASTEXITCODE -ne 0) { throw "Windows application registration inventory checks failed." }
+            python -B "scripts/verify-privacy-bridge.py" --engine (Join-Path $bin "shou.exe") --native-fixtures
+            if ($LASTEXITCODE -ne 0) { throw "Browser privacy scope, confirmation and isolated transaction checks failed." }
             python -B "scripts/verify-rule-authoring.py" (Join-Path $bin "shou.exe")
             if ($LASTEXITCODE -ne 0) { throw "Personal rule authoring, preview and immutable revision checks failed." }
             python -B "scripts/verify-scan-locations.py" --engine (Join-Path $bin "shou.exe")

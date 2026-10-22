@@ -299,6 +299,7 @@ def main():
         video = large_root / "isolated-video.mp4"
         video.write_bytes(b"generated extension-based video fixture" * 256)
         (large_root / "isolated-document.pdf").write_bytes(b"generated document fixture" * 1024)
+        set_fixture_owner(large_root)
         large_scan = success("storage.scan", dict(path=str(large_root)))
         large = success("storage.large-files", dict(scan_id=large_scan["scan_id"], minimum_bytes=0))
         assert large["total_count"] == 503 and len(large["entries"]) == 500 and large["next_cursor"], large
@@ -307,7 +308,7 @@ def main():
         assert len({item["entry"]["path"] for item in large["entries"] + last["entries"]}) == 503
         videos = success("storage.large-files", dict(scan_id=large_scan["scan_id"], minimum_bytes=0, type="video"))
         assert videos["total_count"] == 1 and videos["entries"][0]["entry"]["path"] == video.name
-        assert videos["entries"][0]["removal_block_reason"] is None
+        assert videos["entries"][0]["removal_block_reason"] is None, videos
         for values in [dict(minimum_bytes=-1), dict(type=True), dict(type="unsupported"), dict(cursor=True), dict(minimum_bytes=0, type="video", cursor=large["next_cursor"])]:
             rejected, reviewed = request(engine, environment, "storage.large-files", dict(scan_id=large_scan["scan_id"], **values))
             assert not rejected["ok"] and not reviewed, rejected

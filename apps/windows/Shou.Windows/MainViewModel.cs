@@ -202,6 +202,7 @@ public sealed partial class MainViewModel : ObservableObject
         InitializeRuleAuthoring();
         InitializeApplications();
         InitializeStorageNavigation();
+        InitializePrivacy();
         commands.Add(PreviewRuleCommand); commands.Add(EnableAndScanRuleCommand); commands.Add(ReviewRulesCommand);
         PropertyChanged += (_, _) => RefreshCommands();
     }
@@ -260,7 +261,7 @@ public sealed partial class MainViewModel : ObservableObject
     public IAsyncRelayCommand AddExclusionCommand { get; }
     public IAsyncRelayCommand RemoveExclusionCommand { get; }
     public IRelayCommand CancelCommand { get; }
-    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) { OnPropertyChanged(nameof(HistorySelectionEnabled)); UpdateStorageSelectionEnabled(); } } }
+    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) { OnPropertyChanged(nameof(HistorySelectionEnabled)); OnPropertyChanged(nameof(PrivacyCanEdit)); UpdateStorageSelectionEnabled(); } } }
     public bool ProgressIndeterminate => IsBusy && ProgressFraction is null;
     public double? ProgressFraction { get => progressFraction; private set { SetProperty(ref progressFraction, value); OnPropertyChanged(nameof(ProgressIndeterminate)); OnPropertyChanged(nameof(ProgressValue)); OnPropertyChanged(nameof(ProgressPercentage)); } }
     public double ProgressValue => (ProgressFraction ?? 0) * 100;
@@ -302,7 +303,9 @@ public sealed partial class MainViewModel : ObservableObject
         startupAvailable = capabilities["features"]?["startup"]?.GetValue<bool>() == true;
         ruleAuthoringAvailable = capabilities["features"]?["rule_authoring"]?.GetValue<bool>() == true;
         applicationInventoryAvailable = capabilities["features"]?["application_inventory"]?.GetValue<bool>() == true;
+        privacyAvailable = capabilities["features"]?["privacy"]?.GetValue<bool>() == true;
         await LoadConfigurationAsync(); await LoadHistoryAsync(); await LoadAIAsync(capabilities);
+        if (privacyAvailable) await LoadPrivacyHistoryAsync();
         Status = "一键扫描常用缓存和开发项目，也可以选择自定义目录。";
     });
     private async Task RunAsync(Func<Task> action, bool cleanup = false)
@@ -326,7 +329,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (!IsBusy) return;
         var stage = Text(value, "stage");
-        var title = stage switch { "scanning" => "正在扫描", "analysis" => "正在整理结果", "saving" => "正在保存结果", "loading" or "transferring" or "validating" => "正在读取结果", "moving" => "正在移入回收站", "purging" => "正在永久清理", "restoring" => "正在恢复", "finalizing" => "正在完成清理", _ => "正在核验所选项目" };
+        var title = stage switch { "privacy-scanning" => "正在统计隐私来源", "privacy-cleaning" => "正在清理隐私记录", "scanning" => "正在扫描", "analysis" => "正在整理结果", "saving" => "正在保存结果", "loading" or "transferring" or "validating" => "正在读取结果", "moving" => "正在移入回收站", "purging" => "正在永久清理", "restoring" => "正在恢复", "finalizing" => "正在完成清理", _ => "正在核验所选项目" };
         var completed = value["completed_unit_count"]?.GetValue<long>() ?? value["processed_count"]?.GetValue<long>();
         var total = value["total_unit_count"]?.GetValue<long>() ?? value["item_count"]?.GetValue<long>();
         ProgressFraction = completed is >= 0 && total is > 0 && completed <= total ? (double)completed.Value / total.Value : null;

@@ -186,7 +186,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await privacyRefusesRunningStaleExcludedAndUnsupportedSources()
                 try await privacyTransactionsRollbackAndUnknownSchemasStayUnavailable()
                 try await privacyIntegerTimeBoundsAndUnknownCascadesAreConservative()
-                print("6/6 privacy range, consent, schema and transaction tests passed; generated databases only.")
+                try windowsPrivacyPolicyKeepsPlatformsProfilesAndDataKindsClosed()
+                try await windowsPrivacyTransactionsHoldAccessAndHonorCaseInsensitiveExclusions()
+                print("8/8 privacy range, consent, schema, platform policy, access lease and transaction tests passed; generated databases only.")
             } catch { print("FAIL privacy: \(error)"); Foundation.exit(1) }
             return
         }
@@ -522,6 +524,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Privacy refuses running, stale, excluded and unsupported sources", { try await privacyRefusesRunningStaleExcludedAndUnsupportedSources() }),
             ("Privacy transactions roll back and unknown schemas stay unavailable", { try await privacyTransactionsRollbackAndUnknownSchemasStayUnavailable() }),
             ("Privacy integer time bounds, WAL and unknown cascades", { try await privacyIntegerTimeBoundsAndUnknownCascadesAreConservative() }),
+            ("Windows privacy policy keeps platforms and profile scope closed", { try windowsPrivacyPolicyKeepsPlatformsProfilesAndDataKindsClosed() }),
+            ("Windows privacy transactions retain access and exclusion boundaries", { try await windowsPrivacyTransactionsHoldAccessAndHonorCaseInsensitiveExclusions() }),
             ("Application discovery validates before read and cancellation", { try await applicationCatalogValidatesBeforeReadAndHonorsCancellation() }),
             ("Application catalog preserves distinct paths and explicit scope", { try nativeApplicationCatalogPreservesDistinctPathsAndBoundsItsScope() }),
             ("Application catalog rejects unsafe metadata with explicit gaps", { try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps() }),

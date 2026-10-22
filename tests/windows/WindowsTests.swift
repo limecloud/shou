@@ -55,6 +55,7 @@ func rawPurge(_ path: String, _ tree: TreeSnapshot, _ saved: [shou_win_info], ca
         try windowsCanonicalSpellingRetainsProtectedRoots(root: root)
         try windowsArtifactEvidenceChecksNativeGitAndProjectProcesses(root: root)
         try windowsStorageMeasurementPreservesIdentitiesAndNativeCursors(root: root)
+        try windowsPrivacySourcesPinDatabasePathsAndRejectHardlinks(root: root)
         let workspace=root + "/中文 空格 & fixture"
         try privateDirectory(workspace)
         let target=workspace + "/generated"
