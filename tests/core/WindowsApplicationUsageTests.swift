@@ -73,7 +73,10 @@ func windowsApplicationUsageValidatesBudgetsAndCooperatesWithCancellation() asyn
     }
     try expect(reader.measurements==0)
     let task=Task { while !Task.isCancelled { await Task.yield() };return try await service.measure(scanId: scan.id,applicationId: reader.app.id) }
-    task.cancel();try await expectThrows { try await task.value };try expect(reader.measurements==0)
-    reader.mode="cancelled";try await expectThrows { try await service.measure(scanId: scan.id,applicationId: reader.app.id) }
+    task.cancel()
+    do { _=try await task.value;throw CheckFailure(description: "Cancelled usage returned a result") } catch is CancellationError { }
+    try expect(reader.measurements==0)
+    reader.mode="cancelled"
+    do { _=try await service.measure(scanId: scan.id,applicationId: reader.app.id);throw CheckFailure(description: "Interrupted usage returned a result") } catch is CancellationError { }
     try expect(try fixture.store.ids("history").isEmpty)
 }

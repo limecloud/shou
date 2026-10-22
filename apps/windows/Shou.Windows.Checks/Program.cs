@@ -271,7 +271,7 @@ await Check("应用占用测量只读且取消不请求确认", async () =>
     await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("applications.usage",confirm: _ => throw new Exception("Read-only usage requested consent.")));
     await Failure("request_timeout", () => Fixture("timeout",TimeSpan.FromMilliseconds(500)).RequestAsync("applications.usage"));
     using var stop=new CancellationTokenSource(500);
-    await Failure("request_cancelled", () => Fixture("timeout").RequestAsync("applications.usage",cancellation: stop.Token));
+    await Failure("cancelled", () => Fixture("timeout").RequestAsync("applications.usage",cancellation: stop.Token));
 });
 await Check("MSIX 数据历史只读且清理取消等待独立回执", async () =>
 {

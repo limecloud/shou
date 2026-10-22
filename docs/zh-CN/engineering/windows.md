@@ -192,6 +192,16 @@ Docker 只接受默认本机端点 `npipe:////./pipe/docker_engine`，预览和 
 
 `scripts/verify-windows-applications.py` 已加入 Windows Check，原生分支只读取当前注册表／包源、检查条目预算和 CLI，不创建虚假注册项、不执行卸载、不接受变更确认。macOS 只执行输入拒绝和平台边界检查。包校验新增应用页布局及 `application_inventory_layout_loaded` 断言；这些检查源码尚不代表 Windows 已运行验收。
 
+### 安装目录占用
+
+选择一个应用行，点击“测量安装占用”，即可按需测量当前登记的安装目录。独立列同时保留安装器登记大小和实测占用，按原始字节排序；详情展示确切目录、逻辑大小、去重文件数及不完整覆盖。重新盘点会清空这些观察结果。部分数值只描述遍历时已观察到的条目，不能保证是正在变化目录的当前容量下限。
+
+独立 `application_usage` 能力与只读 `applications.usage` 桥操作只接受当前已存储的 `scan_id`、一个 `application_id` 和可选条目／时间预算。Windows CLI 提供 `applications usage scan/measure`，默认 100,000 项和 30 秒，上限 1,000,000 项和 120 秒。服务要求原登记来源完整，并在测量前后复核登记未变。原生适配按确切注册表来源／视图读取桌面或 MSI 的 `InstallLocation`，MSIX 使用 PackageManager 的 `InstalledLocation`；只测量本地固定磁盘目录，缺失或不可访问的位置保持不可用。
+
+目录游标固定祖先身份，拒绝 reparse／在线占位条目；按卷与文件身份去重，区分逻辑大小和实际分配，保留条目／深度／时间／读取／变化问题。只读取文件系统元数据，不读内容、不改应用文件、不创建删除计划。目录可能包含共享文件，也不包含全部关联数据；不同应用可能指向重叠目录，不可直接相加，也不据此声明可释放容量或数据归属。
+
+`scripts/verify-windows-application-usage.py` 执行拒绝／平台检查，不发起有效安装目录扫描。Windows Check 另外运行六项原生输入／启动前取消门禁。`./scripts/build-windows.ps1 -NativeUsageFixtures` 使用生成的本地文件与进程内注册表重定向，检查硬链接计量、有界部分遍历、登记变化及文件保留；不测量已安装应用或 MSIX。包探针在两种尺寸加载生成的实测／部分行，验证旧扫描不能测量，并报告 `application_usage_layout_loaded`。Windows 原生执行、真实 MSIX／登记位置、ACL／reparse／句柄集成及 WPF 旅程仍待验收。
+
 ### 通过登记的安装器卸载
 
 WPF 默认不选择应用，最多明确选择 20 个注册项；一次确认展示名称、版本、登记发布者、卸载程序及注册标识，默认按钮为“取消”，另需勾选理解可能删除应用数据且无法通过 Shou 恢复。桌面 `applications.prepare-scan` 保存有界扫描，`applications.uninstall` 只接受其 `scan_id` 和不同的 `application_ids`，拒绝任意路径、可执行参数及无人值守 `yes`；`applications.uninstall-history` 读取独立回执。Windows CLI 提供 `applications installer scan/plan/show/execute/history`，执行必须在终端输入当前 `UNINSTALL WINDOWS <plan-id>`。
