@@ -51,11 +51,12 @@ public sealed class WindowsDialogs(Window owner)
     {
         if (cancellation.IsCancellationRequested || challenge["review"]?["items"] is not JsonArray { Count: > 0 } ||
             !DateTimeOffset.TryParse(challenge["expires_at"]?.GetValue<string>(), out var expiry) || expiry <= DateTimeOffset.UtcNow ||
-            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "startup.enable" or "startup.disable")) return Task.FromResult(false);
+            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "workspace.remove" or "startup.enable" or "startup.disable")) return Task.FromResult(false);
         var operation = challenge["operation"]!.GetValue<string>();
         if (challenge["review"]?["action"]?.GetValue<string>() != operation) return Task.FromResult(false);
         var (caption, heading, warning) = operation switch
         {
+            "workspace.remove" => ("停止包含文件夹", "停止在一键扫描中包含以下额外文件夹？", "已保存的规则绑定、规则选择和该工作区的排除将解除。文件与清理历史保留。如需再次扫描，可以重新包含此文件夹。"),
             "startup.enable" => ("确认启用启动项", "启用以下计划任务？", "仅修改所选当前用户任务的启用配置。不会立即启动任务。执行前重新核验完整定义，执行后读取配置确认结果。"),
             "startup.disable" => ("确认停用启动项", "停用以下计划任务？", "仅修改所选当前用户任务的启用配置。已经运行的实例会继续运行。执行前重新核验完整定义，执行后读取配置确认结果。"),
             "history.clear" => ("清理操作记录", "删除以下本地操作记录？", "仅删除记录，文件保持原位。删除记录后将无法通过 Shou 恢复或核验。未结束的操作记录会保留。"),

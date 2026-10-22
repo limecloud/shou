@@ -175,6 +175,7 @@ public sealed partial class MainViewModel : ObservableObject
         commands.Add(MoreHistoryCommand); commands.Add(CollectRecordsCommand);
         commands.Add(CopyStorageAnalysisCommand); commands.Add(RemoveStorageCommand); commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
         InitializeHistory();
+        InitializeLocations();
         InitializeLargeFiles();
         InitializeAI();
         InitializeCleanupReview();
@@ -340,6 +341,7 @@ public sealed partial class MainViewModel : ObservableObject
         await LoadConfigurationAsync();
         if(revision is not null && revision != configuration?["configuration"]?["revision"]?.GetValue<string>()) {
             ResetCleanupReview();
+            if (SelectedSection == 8) await LoadScanLocationsAsync();
             Status="外部规则或配置已更新。到“规则与排除”逐条预览，再启用并扫描所选规则。";
         }
     });
@@ -407,6 +409,7 @@ public sealed partial class MainViewModel : ObservableObject
             if (existing is not null) { SelectedWorkspace = existing; return; }
             var result = await client.RequestAsync("workspace.add", new() { ["path"] = folder, ["root_ref"] = "project-" + Guid.NewGuid().ToString("N") }, cancellation: Token);
             await LoadConfigurationAsync(); SelectedWorkspace = Workspaces.FirstOrDefault(item => item.Id == Text(result, "id"));
+            if (SelectedSection == 8) await LoadScanLocationsAsync();
             Status = "已选择目录，可以开始扫描。";
         });
     }

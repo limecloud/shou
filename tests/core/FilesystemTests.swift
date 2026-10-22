@@ -323,12 +323,24 @@ func protectedStoreCannotBecomeCleanupTarget() async throws {
 
 func workspaceRemovalPreservesFilesAndHistory() async throws {
     let fixture=try Fixture()
-    let (engine, workspace, _, _)=try await fixture.ready()
+    let (engine, workspace, scan, candidate)=try await fixture.ready()
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
+    let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
     _ = try await engine.savePreset(name: "Fixture", workspaceId: workspace.id, ruleIds: ["test.artifacts"])
-    try await engine.removeWorkspace(workspace.id)
+    let reviewed=try await engine.configuration()
+    _ = try await engine.setGlobalExclusion(pattern: "unrelated-preservation", remove: false)
+    try await expectThrows { try await engine.removeWorkspace(workspace.id, expectedConfigurationRevision: reviewed.revision) }
+    try expect(try await engine.configuration().workspaces.contains { $0.id == workspace.id })
+    let current=try await engine.configuration()
+    try await engine.removeWorkspace(workspace.id, expectedConfigurationRevision: current.revision)
     let config=try await engine.configuration()
     try expect(config.workspaces.isEmpty && config.bindings.isEmpty && config.presets.isEmpty)
     try expect(config.rules.count == 1)
+    try expect(try await engine.history().map(\.id) == [receipt.id])
+    let ids=receipt.items.map(\.id)
+    let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: ids, action: "restore")
+    let restored=try await engine.followUp(executionId: receipt.id, itemIds: ids, action: "restore", confirmedDigest: digest)
+    try expect(restored.allSatisfy { $0.state == "completed" })
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
 }
 

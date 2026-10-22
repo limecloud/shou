@@ -235,6 +235,24 @@ enum DesktopBridge {
         case "configuration":
             return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) }), "locations": try .from(await engine.knownLocations())])
         case "workspace.add": return try .from(await engine.addWorkspace(path: string("path"), rootRef: string("root_ref")))
+        case "locations.scan":
+            guard input.object?.isEmpty == true else { throw ShouError("invalid_argument", "Scan location discovery does not accept extra fields.") }
+            return try .from(await engine.scanLocations())
+        case "workspace.remove":
+            guard let fields=input.object, Set(fields.keys) == ["workspace_id", "configuration_revision"] else {
+                throw ShouError("invalid_argument", "Select one included folder and its reviewed configuration revision.")
+            }
+            let id=try string("workspace_id"), revision=try string("configuration_revision"), inventory=try await engine.scanLocations()
+            guard revision == inventory.configurationRevision else { throw ShouError("plan_stale", "Configuration changed; review scan locations again before stopping inclusion.") }
+            guard let entry=inventory.entries.first(where: { $0.workspaceId == id && $0.canRemove }) else {
+                throw ShouError("capability_unavailable", "Select one extra included folder. Automatic locations remain managed by built-in discovery.")
+            }
+            let review: JSONValue = .object(["action": .string("workspace.remove"), "items": .array([.object(["path": .string(entry.path),
+                "limitations": .array([.string("Saved rule bindings, presets and workspace exclusions will be detached. Target files and cleanup history remain unchanged.")])])])])
+            try await session.confirm(digest: Digest.of(["workspace_id": id, "configuration_revision": revision, "path": entry.path]), review: review, operation: "workspace.remove")
+            try Task.checkCancellation()
+            try await engine.removeWorkspace(id, expectedConfigurationRevision: revision)
+            return .object(["workspace_id": .string(id), "removed": .bool(true)])
         case "presets.save":
             guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["name", "workspace_id", "configuration_revision"]) else { throw ShouError("invalid_argument", "Unknown saved rule selection field.") }
             return try .from(await engine.savePreset(name: string("name"), workspaceId: string("workspace_id"), expectedConfigurationRevision: string("configuration_revision")))

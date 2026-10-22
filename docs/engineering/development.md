@@ -8,7 +8,7 @@ For the C#/.NET 10/WPF client and Swift Windows adapters, see [Windows implement
 
 ## Toolchain and layout
 
-Use Swift 6.2.3 or later and the macOS SDK, with macOS 14 as the deployment baseline. CI and release packaging select Swift 6.2.3 explicitly because the AI SDK requires its concurrency support. The root Swift package builds the native application, independent CLI, portable core, platform adapter, and isolated test executable. SwiftPM resolves Swift AI SDK `0.20.0`; macOS builds use it through `ShouAI`. Ordinary offline scans and cleanup require neither model credentials nor model requests. AI network requests require explicit AI operations. The CLI needs no JavaScript dependency manager, Node.js runtime, or running desktop process.
+Use Swift 6.2.3 or later and the macOS SDK, with macOS 14 as the deployment baseline. CI and release packaging select the preinstalled Xcode 26.2 toolchain and verify Swift 6.2.3 because the AI SDK requires its concurrency support. The root Swift package builds the native application, independent CLI, portable core, platform adapter, and isolated test executable. SwiftPM resolves Swift AI SDK `0.20.0`; macOS builds use it through `ShouAI`. Ordinary offline scans and cleanup require neither model credentials nor model requests. AI network requests require explicit AI operations. The CLI needs no JavaScript dependency manager, Node.js runtime, or running desktop process.
 
 ```sh
 swift build --jobs 4

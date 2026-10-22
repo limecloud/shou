@@ -9,7 +9,7 @@
     <TabControl SelectedIndex="{Binding SelectedSection, Mode=TwoWay}">
       <TabItem Header="清理">
         <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <DockPanel><Button DockPanel.Dock="Right" Content="选择目录…" Command="{Binding ChooseFolderCommand}" /><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" MinWidth="300" AutomationProperties.Name="扫描目录" /></DockPanel>
+          <DockPanel><Button DockPanel.Dock="Right" Content="扫描范围…" Command="{Binding ShowScanLocationsCommand}" /><Button DockPanel.Dock="Right" Content="选择目录…" Command="{Binding ChooseFolderCommand}" /><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" MinWidth="300" AutomationProperties.Name="扫描目录" /></DockPanel>
           <StackPanel Grid.Row="1" Margin="0,12">
             <WrapPanel><Button Content="一键扫描" Command="{Binding ScanCommand}" /><Button Content="AI 调查…" Command="{Binding AiFromCleanupCommand}" /><Button Content="扫描所选目录" Command="{Binding ScanFolderCommand}" /><Button Content="选择推荐项" Command="{Binding SelectRecommendedCleanupCommand}" /><Button Content="全选当前范围 / 取消" Command="{Binding SelectAllCommand}" /><Button Content="清空选择" Command="{Binding ClearCleanupSelectionCommand}" /></WrapPanel>
             <DockPanel Margin="0,8,0,0"><Button DockPanel.Dock="Right" Content="搜索" Command="{Binding ApplyCleanupSearchCommand}" /><TextBox Text="{Binding CleanupQuery,UpdateSourceTrigger=PropertyChanged}" MaxLength="256" AutomationProperties.Name="搜索清理目录、规则和保护原因"><TextBox.InputBindings><KeyBinding Key="Enter" Command="{Binding ApplyCleanupSearchCommand}" /></TextBox.InputBindings></TextBox></DockPanel>
@@ -166,6 +166,7 @@
     <TabItem Header="AI 调查"><local:AIWorkspaceView /></TabItem>
     <TabItem Header="启动项"><local:StartupView /></TabItem>
     <TabItem Header="应用"><local:ApplicationsView /></TabItem>
+    <TabItem Header="扫描范围"><local:ScanLocationsView /></TabItem>
     </TabControl>
     <TextBlock Grid.Row="1" Text="{Binding Status}" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}" AutomationProperties.LiveSetting="Polite" />
   </Grid>

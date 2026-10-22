@@ -203,7 +203,7 @@ sequenceDiagram
     else Enabled
         UI->>Test: Use entered key or saved reference
         Test->>K: Read selected saved credential only if needed
-        Note over UI,K: Local reads need no system approval; legacy Keychain access is noninteractive
+        Note over UI,K: Local reads need no system approval, legacy Keychain access is noninteractive
         opt Main model enabled
             Test->>M: Synthetic token and tool definition
             M-->>Test: verify_connection call
@@ -308,7 +308,7 @@ sequenceDiagram
     Settings->>Session: Close desktop request gate first
     Session->>Session: Cancel tasks and show Stopping
     Session->>Network: Request cancellation of in-flight work
-    Note over Session,Network: Delivered content cannot be recalled; credentials are read without interactive prompts
+    Note over Session,Network: Delivered content cannot be recalled, credentials are read without interactive prompts
     Network-->>Session: Actual completion or cancellation
     Session->>Session: Recheck switch and prevent subsequent requests or Jev
     Session->>Store: Retain findings and actual final state
@@ -452,7 +452,7 @@ sequenceDiagram
     U->>UI: Confirm removal of named configuration
     UI->>S: setDeleted true
     S-->>UI: Exclude from active choices
-    Note over S,H: Preserve profile, historical snapshots and keys; no network
+    Note over S,H: Preserve profile, historical snapshots and keys, no network
     U->>UI: Restore deleted configuration
     UI->>S: setDeleted false
     S-->>UI: Original configuration available again

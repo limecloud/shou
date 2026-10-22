@@ -548,6 +548,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Startup discovery retains explicit budget gaps", { try nativeStartupInventoryReportsBudgetGapsWithoutLosingValidItems() }),
             ("Explicit platform-scoped known locations", { try knownLocationsAreExplicitAndPlatformScoped() }),
             ("Automatic project discovery reuses scope and exclusions", { try await projectDiscoveryFindsCollectionsWithoutRegistrationAndReusesPolicy() }),
+            ("Scan location inventory distinguishes automatic, included and built-in roots", { try await scanLocationInventoryDistinguishesAutomaticIncludedAndCacheRoots() }),
+            ("Conventional location boundaries follow platform paths", { try conventionalLocationScopeUsesPlatformPathBoundaries() }),
             ("Project discovery respects explicit nested policy", { try await projectDiscoveryRespectsExplicitNestedScopeAndDisabledRules() }),
             ("Project discovery cancels before registration", { try await projectDiscoveryCancellationStopsBeforeRegistration() }),
             ("Project discovery covers additional collections and toolchains", { try await projectDiscoveryFindsAdditionalCollectionsAndToolchains() }),
