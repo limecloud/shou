@@ -57,7 +57,7 @@ with tempfile.TemporaryDirectory(prefix="windows-release-", dir=root / ".build")
     assert gui.returncode == 0, {"exit_code": gui.returncode, "stdout": gui.stdout.decode(errors="replace"), "stderr": gui.stderr.decode(errors="replace"),
                               "report": (base / "wpf-report.json").read_text(encoding="utf-8-sig") if (base / "wpf-report.json").exists() else "No report"}
     wpf = json.loads((base / "wpf-report.json").read_text(encoding="utf-8-sig"))
-    assert wpf == {"assembly_version": version + ".0", "application_version": version, "wpf_layout_loaded": True, "rule_authoring_layout_loaded": True, "rule_settings_layout_loaded": True, "application_inventory_layout_loaded": True, "history_selection_layout_loaded": True, "history_inspection_layout_loaded": True, "scan_locations_layout_loaded": True, "storage_browsing_layout_loaded": True, "file_preview_layout_loaded": True}, wpf
+    assert wpf == {"assembly_version": version + ".0", "application_version": version, "wpf_layout_loaded": True, "rule_authoring_layout_loaded": True, "rule_settings_layout_loaded": True, "application_inventory_layout_loaded": True, "history_selection_layout_loaded": True, "history_inspection_layout_loaded": True, "scan_locations_layout_loaded": True, "storage_browsing_layout_loaded": True, "file_preview_layout_loaded": True, "disk_capacity_layout_loaded": True}, wpf
     subprocess.run([sys.executable, "-B", str(root / "scripts/verify-desktop-bridge.py"), "--engine", str(engine), "--native-permanent"],
                    check=True, env=environment, cwd=base, timeout=300)
     print(f"Windows {version}: ZIP inventory, bundled runtime closure, resources, WPF layout, engine version and native desktop bridge passed with restricted PATH.")

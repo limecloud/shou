@@ -105,7 +105,7 @@ public sealed partial class MainViewModel
     {
         var query=more ? largeFilesQuery!.Value : LargeFileQuery;
         var page=await client.RequestAsync("storage.large-files",new() { ["scan_id"]=id,["minimum_bytes"]=(long)query.Minimum*1024*1024,["type"]=query.Type,["cursor"]=more ? largeFilesCursor : null },cancellation:Token);
-        var root=Text(page,"root_path");
+        var root=Text(page,"root_path"); LargeFilesCapacityPath=root;
         if(id!=largeFilesScanId) largeFilesRemovedPaths.Clear();
         var rows=Array(page["entries"]).Where(item=>!largeFilesRemovedPaths.Contains(Text(item?["entry"],"path"))).Select(item=>new LargeFileRow(Text(item?["entry"],"path"),root,item?["node"]?["allocated_bytes"]?.GetValue<long>() ?? 0,item?["node"]?["logical_bytes"]?.GetValue<long>() ?? 0,item?["removal_block_reason"]?.GetValue<string>())).ToArray();
         if(!more) LargeFiles.Clear();

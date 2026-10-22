@@ -273,14 +273,14 @@ public sealed partial class MainViewModel : ObservableObject
     public bool CompletionVisible => Completion is not null;
     public bool CompletionHasIssues => Completion?.HasIssues == true;
     public string Status { get => status; private set => SetProperty(ref status, value); }
-    public string StoragePath { get => storagePath; private set { SetProperty(ref storagePath, value); OnPropertyChanged(nameof(StorageDisplayPath)); } }
+    public string StoragePath { get => storagePath; private set { SetProperty(ref storagePath, value); OnPropertyChanged(nameof(StorageDisplayPath)); OnPropertyChanged(nameof(StorageCapacityPath)); } }
     public string StorageDisplayPath => CurrentStorageFolder ?? "";
     public string ExclusionPattern { get => exclusionPattern; set => SetProperty(ref exclusionPattern, value); }
     public string? SelectedExclusion { get => selectedExclusion; set => SetProperty(ref selectedExclusion, value); }
     public WorkspaceRow? SelectedWorkspace
     {
         get => selectedWorkspace;
-        set { if (!updatingWorkspaces && SetProperty(ref selectedWorkspace, value)) { ResetCleanupReview(); LoadRules();ExclusionProject="";ExclusionPattern="";LoadExclusionScope(); RefreshCommands(); } }
+        set { if (!updatingWorkspaces && SetProperty(ref selectedWorkspace, value)) { ResetCleanupReview(); LoadRules();ExclusionProject="";ExclusionPattern="";LoadExclusionScope(); OnPropertyChanged(nameof(CleanupCapacityPath)); RefreshCommands(); } }
     }
     public RuleRow? SelectedRule { get => selectedRule; set { if(SetProperty(ref selectedRule, value)) { rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=value?.Title ?? ""; RulePreviewDetails=value?.Details ?? ""; RefreshCommands(); } } }
     public HistoryRow? SelectedHistory
