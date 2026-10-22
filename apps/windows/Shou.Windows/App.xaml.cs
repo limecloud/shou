@@ -64,6 +64,7 @@ public partial class App : Application
                 model.VerifyRegisteredUninstallLayout();model.SelectedSection=7;
                 window.Measure(new Size(1280,800));window.Arrange(new Rect(0,0,1280,800));window.UpdateLayout();
                 model.VerifyPackageDataLayout();
+                model.VerifyApplicationUsageLayout();
                 foreach (var size in new[] { new Size(1280,800), new Size(840,580) }) {
                     window.Measure(size);window.Arrange(new Rect(new Point(0,0),size));window.UpdateLayout();
                 }
@@ -134,7 +135,7 @@ public partial class App : Application
                 var cliReview=cliInstallation.Preview();
                 cliInstallation.Install(cliReview.Digest);
                 if(!cliInstallation.Preview().AlreadyCurrent)throw new InvalidOperationException("Packaged user CLI installation was not verified.");
-                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), language = UiText.Language, wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, application_uninstall_layout_loaded = true, application_data_layout_loaded = true, package_data_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, record_maintenance_layout_loaded = true, scan_locations_layout_loaded = true, storage_browsing_layout_loaded = true, file_preview_layout_loaded = true, system_preview_surface_loaded = true, disk_capacity_layout_loaded = true, privacy_layout_loaded = true, cleanup_closing_state_verified = true, tools_layout_loaded = true, settings_layout_loaded = true, agent_setup_layout_loaded = true, cli_installation_verified = true, presentation_preferences_verified = true }));
+                File.WriteAllText(report, System.Text.Json.JsonSerializer.Serialize(new { assembly_version = typeof(App).Assembly.GetName().Version?.ToString(), application_version = capabilities["application_version"]?.GetValue<string>(), language = UiText.Language, wpf_layout_loaded = true, rule_authoring_layout_loaded = true, rule_settings_layout_loaded = true, application_inventory_layout_loaded = true, application_uninstall_layout_loaded = true, application_data_layout_loaded = true, application_usage_layout_loaded = true, package_data_layout_loaded = true, history_selection_layout_loaded = true, history_inspection_layout_loaded = true, record_maintenance_layout_loaded = true, scan_locations_layout_loaded = true, storage_browsing_layout_loaded = true, file_preview_layout_loaded = true, system_preview_surface_loaded = true, disk_capacity_layout_loaded = true, privacy_layout_loaded = true, cleanup_closing_state_verified = true, tools_layout_loaded = true, settings_layout_loaded = true, agent_setup_layout_loaded = true, cli_installation_verified = true, presentation_preferences_verified = true }));
                 Shutdown(0); return;
             }
             MainWindow = window; window.Show();

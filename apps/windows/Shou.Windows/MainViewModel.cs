@@ -287,6 +287,7 @@ public sealed partial class MainViewModel : ObservableObject
         applicationUninstallAvailable = capabilities["features"]?["application_uninstall"]?.GetValue<bool>() == true;
         applicationDataAvailable = capabilities["features"]?["application_data"]?.GetValue<bool>() == true;
         packageDataAvailable = capabilities["features"]?["application_package_data"]?.GetValue<bool>() == true;
+        applicationUsageAvailable = capabilities["features"]?["application_usage"]?.GetValue<bool>() == true;
         privacyAvailable = capabilities["features"]?["privacy"]?.GetValue<bool>() == true;
         cleanupClosingAvailable = capabilities["features"]?["close_cleanup_owners"]?.GetValue<bool>() == true;
         toolsAvailable = capabilities["features"]?["tool_cleanup"]?.GetValue<bool>() == true;

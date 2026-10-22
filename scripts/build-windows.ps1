@@ -3,7 +3,8 @@ param(
     [ValidateSet("All", "Build", "Check")][string]$Stage = "All",
     [switch]$NativeClosingFixtures,
     [switch]$NativeToolFixtures,
-    [switch]$NativeUninstallFixtures
+    [switch]$NativeUninstallFixtures,
+    [switch]$NativeUsageFixtures
 )
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
@@ -39,6 +40,8 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "Independent generated preview stream fixture build failed." }
         swift build -c $swiftConfiguration --jobs 4 --product shou-windows-package-data-checks
         if ($LASTEXITCODE -ne 0) { throw "Independent MSIX input fixture build failed." }
+        swift build -c $swiftConfiguration --jobs 4 --product shou-windows-application-usage-checks
+        if ($LASTEXITCODE -ne 0) { throw "Independent application usage fixture build failed." }
         # The Swift 6.2.3 Windows compiler currently crashes in SIL partitioning
         # while compiling shou-windows-tests. The production engine still
         # compiles here; fixture coverage remains available in that target for
@@ -91,6 +94,10 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Windows application-data input, consent and discovery checks failed." }
             python -B "scripts/verify-windows-package-data.py" --engine (Join-Path $bin "shou.exe") --native-harness (Join-Path $bin "shou-windows-package-data-checks.exe")
             if ($LASTEXITCODE -ne 0) { throw "MSIX data input, consent, discovery and native pre-cancellation checks failed." }
+            $usageArguments = @("-B", "scripts/verify-windows-application-usage.py", "--engine", (Join-Path $bin "shou.exe"), "--native-harness", (Join-Path $bin "shou-windows-application-usage-checks.exe"))
+            if ($NativeUsageFixtures) { $usageArguments += "--native-fixtures" }
+            python @usageArguments
+            if ($LASTEXITCODE -ne 0) { throw "Application usage read-only boundaries or generated fixtures failed." }
             if ($NativeUninstallFixtures) {
                 python -B "scripts/verify-windows-uninstall.py" --engine (Join-Path $bin "shou.exe") --native-harness (Join-Path $bin "shou-windows-uninstall-checks.exe")
                 if ($LASTEXITCODE -ne 0) { throw "Generated installer fixture acceptance did not pass; use a standard-user Windows session." }

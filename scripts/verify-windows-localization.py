@@ -29,7 +29,7 @@ def placeholders(value):
 
 
 def main():
-    catalog = json.loads((WINDOWS / "Shou.Windows.Services/Resources/UiStrings.json").read_text(), object_pairs_hook=unique_object)
+    catalog = json.loads((WINDOWS / "Shou.Windows.Services/Resources/UiStrings.json").read_text(encoding="utf-8"), object_pairs_hook=unique_object)
     assert isinstance(catalog, dict) and catalog, "Missing Windows interface catalog"
     by_key = {catalog_key(source): source for source in catalog}
     assert len(by_key) == len(catalog), "UI key collision"
@@ -38,13 +38,13 @@ def main():
         assert not re.search(r"[\u4e00-\u9fff]", english), f"Untranslated English text: {source!r}"
         assert placeholders(source) == placeholders(english), f"Changed format parameters: {source!r}"
     shared = ROOT / "packages/shou-core/Sources/Resources/zh-Hans.lproj/Localizable.strings"
-    shared_sources = {json.loads(match[1]) for match in re.finditer(r'^("(?:[^"\\]|\\.)*") = ', shared.read_text(), re.M)}
+    shared_sources = {json.loads(match[1]) for match in re.finditer(r'^("(?:[^"\\]|\\.)*") = ', shared.read_text(encoding="utf-8"), re.M)}
     sources = set()
     csharp_count = xaml_count = 0
     literal_call = re.compile(r'(?<![\w.])(?:UiText\.)?[TF]\(\s*("(?:[^"\\]|\\.)*")')
     for project in ("Shou.Windows", "Shou.Windows.Services"):
         for path in sorted((WINDOWS / project).glob("*.cs")):
-            text = path.read_text()
+            text = path.read_text(encoding="utf-8")
             for match in literal_call.finditer(text):
                 source = json.loads(match[1])
                 assert source in catalog or source in shared_sources, f"Missing C# source at {path.relative_to(ROOT)}:{text.count(chr(10), 0, match.start()) + 1}: {source!r}"

@@ -19,6 +19,13 @@ public sealed class RegisteredApplicationRow(string id,string name,string versio
     public string Registration { get; }=registration;
     public string Details { get; }=details;
     public bool CanUninstall { get; }=canUninstall;
+    private long? measuredBytes;
+    private bool measurementPartial;
+    public long? MeasuredBytes => measuredBytes;
+    public string MeasuredSize => measuredBytes is { } bytes ? (measurementPartial ? T("部分：") : "")+MainViewModel.Bytes(bytes) : T("未测量");
+    public void SetMeasurement(long bytes,bool partial) {
+        measuredBytes=bytes;measurementPartial=partial;OnPropertyChanged(nameof(MeasuredBytes));OnPropertyChanged(nameof(MeasuredSize));
+    }
     private bool selected;
     public bool IsSelected { get=>selected;set=>SetProperty(ref selected,value && CanUninstall); }
 }
@@ -77,6 +84,7 @@ public sealed partial class MainViewModel
             allRegisteredApplications.Count(row=>row.IsSelected) is >0 and <=20 && allRegisteredApplications.Where(row=>row.IsSelected).All(row=>row.Kind=="MSIX"));
         PackageDataHistoryCommand=new AsyncRelayCommand(()=>RunAsync(LoadPackageDataHistoryAsync),()=>packageDataAvailable && CanEditRuleSettings);
         commands.AddRange([ClearPackageDataCommand,PackageDataHistoryCommand]);
+        InitializeApplicationUsage();
     }
     private void SetApplicationSelection(bool selected)
     {
@@ -95,6 +103,7 @@ public sealed partial class MainViewModel
     private async Task ScanRegisteredApplicationsAsync()
     {
         registeredApplicationScanId=null;
+        ApplicationUsageSummary="";
         allRegisteredApplications.Clear();RegisteredApplications.Clear();ApplicationCoverage.Clear();SelectedRegisteredApplication=null;
         ApplicationInventorySummary=T("正在读取已安装的应用…");ApplicationCoverageSummary="";
         ProgressVisible=true;

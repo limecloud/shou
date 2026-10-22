@@ -68,6 +68,8 @@ int shou_win_ai_credential_read(const char *account, void **bytes, size_t *count
 int shou_win_ai_credential_write(const char *account, const void *bytes, size_t count);
 int shou_win_startup_inventory(int include_system, size_t limit, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
 int shou_win_application_inventory(int include_system, size_t limit, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
+int shou_win_application_usage(const char *source_id, const char *registration, const char *evidence_digest,
+    size_t limit, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
 int shou_win_application_uninstall_review(const char *source_id, const char *registration, const char *evidence_digest, char **result);
 int shou_win_application_uninstall_execute(const char *source_id, const char *registration, const char *evidence_digest, const char *action_digest,
     uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, int *started, uint32_t *exit_code, int *restart_required);

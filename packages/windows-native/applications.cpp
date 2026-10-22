@@ -22,6 +22,7 @@
 #include <cwchar>
 #include <set>
 #include <memory>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -255,6 +256,79 @@ bool within(const std::wstring &path,const std::wstring &root) {
     auto base=root;std::replace(base.begin(),base.end(),L'/',L'\\');while(base.size()>3 && base.back()==L'\\')base.pop_back();
     return _wcsicmp(path.c_str(),base.c_str())==0 || (path.size()>base.size() && path[base.size()]==L'\\' && _wcsnicmp(path.c_str(),base.c_str(),base.size())==0);
 }
+std::string applicationUsagePath(const std::string &source,const std::wstring &registration,const std::string &expected) {
+    std::wstring declared;
+    if(source=="windows.user_packages") {
+        WinRT runtime;if(FAILED(runtime.status))throw InventoryError{ERROR_NOT_SUPPORTED};
+        auto manager=packageManager();Text user(L""),name(registration.c_str());ComPtr<ABI::Windows::ApplicationModel::IPackage> package;
+        if(FAILED(manager->FindPackageByUserSecurityIdPackageFullName(user.value,name.value,&package)) || !package)throw InventoryError{ERROR_NOT_FOUND};
+        const auto item=packageValues(package.Get());if(item.full!=registration || item.evidence!=expected)throw InventoryError{ERROR_FILE_INVALID};
+        ComPtr<ABI::Windows::Storage::IStorageFolder> folder;ComPtr<ABI::Windows::Storage::IStorageItem> location;Text path;
+        if(FAILED(package->get_InstalledLocation(&folder)) || FAILED(folder.As(&location)) || FAILED(location->get_Path(&path.value)))throw InventoryError{ERROR_ACCESS_DENIED};
+        declared=path.string();
+    } else {
+        HKEY hive=nullptr;REGSAM view=0;
+        if(source=="windows.user_uninstall64"){hive=HKEY_CURRENT_USER;view=KEY_WOW64_64KEY;}
+        else if(source=="windows.user_uninstall32"){hive=HKEY_CURRENT_USER;view=KEY_WOW64_32KEY;}
+        else if(source=="windows.machine_uninstall64"){hive=HKEY_LOCAL_MACHINE;view=KEY_WOW64_64KEY;}
+        else if(source=="windows.machine_uninstall32"){hive=HKEY_LOCAL_MACHINE;view=KEY_WOW64_32KEY;}
+        else throw InventoryError{ERROR_INVALID_PARAMETER};
+        const std::wstring key=L"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\";
+        const std::wstring prefix=(hive==HKEY_CURRENT_USER?L"HKEY_CURRENT_USER\\":L"HKEY_LOCAL_MACHINE\\")+key;
+        if(registration.compare(0,prefix.size(),prefix))throw InventoryError{ERROR_INVALID_PARAMETER};
+        const auto leaf=registration.substr(prefix.size());if(leaf.empty() || leaf.find_first_of(L"\\/")!=std::wstring::npos)throw InventoryError{ERROR_INVALID_PARAMETER};
+        Key opened;auto code=RegOpenKeyExW(hive,(key+leaf).c_str(),0,KEY_READ|view,&opened.value);if(code)throw InventoryError{static_cast<DWORD>(code)};
+        const auto item=registrationValues(opened.value,registration);if(item.label.empty() || item.evidence!=expected)throw InventoryError{ERROR_FILE_INVALID};
+        declared=localDirectory(item.install);
+    }
+    if(declared.size()<=3 || declared[1]!=L':' || GetDriveTypeW((declared.substr(0,2)+L"\\").c_str())!=DRIVE_FIXED)throw InventoryError{ERROR_NOT_SUPPORTED};
+    char *path=nullptr;auto code=shou_win_normalize(utf8(declared).c_str(),&path);
+    struct Buffer{char *value;~Buffer(){shou_win_free(value);}} release{path};
+    if(code)throw InventoryError{static_cast<DWORD>(code)};
+    if(!path || strlen(path)<=3)throw InventoryError{ERROR_NOT_SUPPORTED};return path;
+}
+struct ApplicationUsage {
+    size_t limit,visited=0,files=0;ULONGLONG deadline;shou_win_read_cancelled cancelled;void *context;
+    int64_t logical=0,allocated=0;std::set<std::string> seen,issues;
+    void issue(const char *code){if(issues.size()<16)issues.insert(code);}
+    bool stopped() {
+        if(cancelled && cancelled(context))throw InventoryError{ERROR_CANCELLED};
+        if(GetTickCount64()>=deadline){issue("measurement_timeout");return true;}return false;
+    }
+    void add(int64_t &total,int64_t value) {
+        if(value<0 || value>std::numeric_limits<int64_t>::max()-total){issue("size_overflow");return;}total+=value;
+    }
+    void visit(const std::string &path,const shou_win_info &identity,unsigned depth) {
+        if(stopped())return;
+        if(visited>=limit){issue("entry_limit");return;}++visited;
+        std::string key(reinterpret_cast<const char *>(&identity.volume),sizeof(identity.volume));key.append(reinterpret_cast<const char *>(identity.file_id),16);
+        if(!seen.insert(key).second)return;
+        add(logical,identity.kind==1?identity.logical_bytes:0);add(allocated,identity.allocated_bytes);
+        if(identity.kind==1){++files;return;}
+        if(identity.kind!=2){issue("unsupported_entry");return;}
+        if(depth>=128){issue("depth_limit");return;}
+        shou_win_directory *cursor=nullptr;auto code=shou_win_directory_open(path.c_str(),&identity,&cursor);
+        if(code){issue("directory_unavailable");return;}
+        struct Directory{shou_win_directory *value;~Directory(){shou_win_directory_close(value);}} close{cursor};
+        while(!stopped()) {
+            char *raw=nullptr;code=shou_win_directory_next(cursor,&raw);
+            struct Name{char *value;~Name(){shou_win_free(value);}} release{raw};
+            if(code==ERROR_NO_MORE_FILES)break;
+            if(code){issue("directory_read_failed");break;}
+            if(visited>=limit){issue("entry_limit");break;}
+            const auto child=path+"/"+raw;shou_win_info metadata{};
+            if(shou_win_stat(child.c_str(),&metadata)){++visited;issue("entry_unavailable");continue;}
+            visit(child,metadata,depth+1);
+            if(issues.count("measurement_timeout"))break;
+        }
+        if(shou_win_directory_verify(cursor,&identity))issue("directory_changed");
+    }
+    std::string encode(const std::string &path)const {
+        std::vector<std::string> codes;for(const auto &code:issues)codes.push_back(quote(code));
+        return "{\"path\":"+quote(path)+",\"status\":"+quote(issues.empty()?"complete":"partial")+",\"logical_bytes\":"+std::to_string(logical)+
+            ",\"allocated_bytes\":"+std::to_string(allocated)+",\"file_count\":"+std::to_string(files)+",\"visited_entries\":"+std::to_string(visited)+",\"issues\":"+array(codes)+"}";
+    }
+};
 std::wstring normalizedExecutable(const std::wstring &input) {
     if(input.size()<7 || input[1]!=L':' || (input[2]!=L'\\' && input[2]!=L'/') || _wcsicmp(input.substr(input.size()-4).c_str(),L".exe"))throw InventoryError{ERROR_NOT_SUPPORTED};
     char *raw=nullptr;auto code=shou_win_normalize(utf8(input).c_str(),&raw);
@@ -534,6 +608,23 @@ extern "C" int shou_win_application_inventory(int includeSystem,size_t limit,uin
     }catch(const InventoryError &error){return error.code;}catch(...){return ERROR_NOT_ENOUGH_MEMORY;}
 }
 
+extern "C" int shou_win_application_usage(const char *source,const char *registration,const char *evidence,
+    size_t limit,uint32_t milliseconds,shou_win_read_cancelled cancelled,void *context,char **result) {
+    if(!source || !registration || !evidence || !result || strlen(source)>64 || strlen(registration)>32768 || strlen(evidence)!=64 || !limit || limit>1000000 || milliseconds<1000 || milliseconds>120000)return ERROR_INVALID_PARAMETER;
+    *result=nullptr;if(cancelled && cancelled(context))return ERROR_CANCELLED;
+    try {
+        ApplicationUsage usage{limit,0,0,GetTickCount64()+milliseconds,cancelled,context,0,0,{},{}};
+        const auto name=wide(registration);const auto path=applicationUsagePath(source,name,evidence);shou_win_info identity{};
+        auto code=shou_win_stat(path.c_str(),&identity);if(code)return code;if(identity.kind!=2)return ERROR_DIRECTORY;
+        // Traverse only this resolved registration root. Directory cursors pin
+        // ancestors; stat refuses reparse/offline entries. No content is read.
+        usage.visit(path,identity,0);
+        if(usage.stopped() && !usage.visited)return ERROR_TIMEOUT;
+        if(applicationUsagePath(source,name,evidence)!=path)return ERROR_FILE_INVALID;
+        auto output=usage.encode(path);*result=static_cast<char *>(malloc(output.size()+1));if(!*result)return ERROR_NOT_ENOUGH_MEMORY;
+        memcpy(*result,output.c_str(),output.size()+1);return 0;
+    }catch(const InventoryError &error){return error.code;}catch(...){return ERROR_NOT_ENOUGH_MEMORY;}
+}
 extern "C" int shou_win_application_uninstall_review(const char *source,const char *registration,const char *evidence,char **result) {
     if(!source || !registration || !evidence || !result || strlen(source)>64 || strlen(evidence)!=64)return ERROR_INVALID_PARAMETER;*result=nullptr;
     try {

@@ -416,6 +416,16 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL storage browsing: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--windows-application-usage-only"] {
+            do {
+                try await windowsApplicationUsageBindsCurrentRegistrationWithoutMutationGrants()
+                try await windowsApplicationUsageRejectsStaleSourcesExpiryAndWrongSelections()
+                try await windowsApplicationUsageKeepsPartialObservationsAndRejectsForgedCounts()
+                try await windowsApplicationUsageValidatesBudgetsAndCooperatesWithCancellation()
+                print("4/4 Windows application usage scope, current registrations, partial observations, budgets and cancellation checks passed; generated records and simulated measurement only.")
+            } catch { print("FAIL Windows application usage: \(error)");Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--windows-package-data-only"] {
             do {
                 try await windowsPackageDataRequiresCurrentMSIXScopeAndSeparateConsent()
@@ -658,6 +668,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Windows registered applications preserve identity and unknown facts", { try windowsRegisteredApplicationsPreserveSourcesIdentityAndUnknownFacts() }),
             ("Windows registered applications reject forged coverage and unsafe paths", { try windowsRegisteredApplicationsRejectForgedCoverageAndUnsafePaths() }),
             ("Windows registered applications retain partial and system coverage", { try windowsRegisteredApplicationsRetainPartialAndSystemCoverage() }),
+            ("Windows usage binds registration without removal grants", { try await windowsApplicationUsageBindsCurrentRegistrationWithoutMutationGrants() }),
+            ("Windows usage rejects stale sources and expired selections", { try await windowsApplicationUsageRejectsStaleSourcesExpiryAndWrongSelections() }),
+            ("Windows usage preserves partial observations and validates counts", { try await windowsApplicationUsageKeepsPartialObservationsAndRejectsForgedCounts() }),
+            ("Windows usage validates budgets and cancellation", { try await windowsApplicationUsageValidatesBudgetsAndCooperatesWithCancellation() }),
             ("Registered uninstall verifies all installer routes and consumes consent", { try await registeredUninstallVerifiesAllInstallerRoutesAndConsumesConsent() }),
             ("Registered uninstall refuses stale batches and expired reviews", { try await registeredUninstallRefusesStaleBatchesAndExpiredReviews() }),
             ("Registered uninstall preserves unknown and unstarted outcomes", { try await registeredUninstallKeepsUnknownAndUnstartedOutcomesSeparate() }),

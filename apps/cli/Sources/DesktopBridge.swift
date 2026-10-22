@@ -92,7 +92,7 @@ enum DesktopBridge {
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["external_agent_setup": .bool(true), "scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "application_uninstall": .bool(fs.platform == "windows"), "application_data": .bool(fs.platform == "windows"), "application_package_data": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform)), "close_cleanup_owners": .bool(fs.platform == "windows"), "tool_cleanup": .bool(["windows", "macos"].contains(fs.platform))]),
+                "features": .object(["external_agent_setup": .bool(true), "scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "application_usage": .bool(fs.platform == "windows"), "application_uninstall": .bool(fs.platform == "windows"), "application_data": .bool(fs.platform == "windows"), "application_package_data": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(["windows", "macos"].contains(fs.platform)), "close_cleanup_owners": .bool(fs.platform == "windows"), "tool_cleanup": .bool(["windows", "macos"].contains(fs.platform))]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
         }
         if request.operation == "agent.setup" {
@@ -202,6 +202,21 @@ enum DesktopBridge {
             try await session.confirm(digest: plan.digest, review: review, operation: "applications.uninstall")
             try Task.checkCancellation()
             return try .from(await service.execute(planId: plan.id, confirmedDigest: plan.digest))
+        }
+        if request.operation=="applications.usage" {
+            let keys=Set(input.object?.keys.map { $0 } ?? [])
+            guard keys.isSubset(of: ["scan_id","application_id","max_entries","max_seconds"]),keys.isSuperset(of: ["scan_id","application_id"]) else {
+                throw ShouError("invalid_argument", "Select one registered application to measure; arbitrary paths are not accepted.")
+            }
+            func integer(_ key: String,default fallback: Int,maximum: Int) throws -> Int {
+                guard let value=input[key] else { return fallback }
+                guard case .integer(let count)=value,(1...Int64(maximum)).contains(count) else { throw ShouError("invalid_argument", "Application measurement budgets are outside supported limits.") }
+                return Int(count)
+            }
+            let scan=try string("scan_id"),application=try string("application_id")
+            let options=WindowsApplicationUsageOptions(maxEntries: try integer("max_entries",default: 100_000,maximum: 1_000_000),maxSeconds: Double(try integer("max_seconds",default: 30,maximum: 120)))
+            guard fs.platform=="windows" else { throw ShouError("unsupported_platform", "Registered installation measurement requires Windows.") }
+            return try .from(await WindowsApplicationUsageService(reader: WindowsApplicationUsageReader(),store: try LocalRecordStore()).measure(scanId: scan,applicationId: application,options: options))
         }
         if ["applications.package-data-clear", "applications.package-data-history"].contains(request.operation) {
             let cleaning=request.operation=="applications.package-data-clear"

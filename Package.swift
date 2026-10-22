@@ -47,6 +47,8 @@ products.append(.executable(name: "shou-windows-preview-checks", targets: ["Shou
 targets.append(.executableTarget(name: "ShouWindowsPreviewChecks", dependencies: ["CShouWindows"], path: "tests/windows-preview", linkerSettings: [.linkedLibrary("swiftCore")]))
 products.append(.executable(name: "shou-windows-package-data-checks", targets: ["ShouWindowsPackageDataChecks"]))
 targets.append(.executableTarget(name: "ShouWindowsPackageDataChecks", dependencies: ["CShouWindows"], path: "tests/windows-package-data", linkerSettings: [.linkedLibrary("swiftCore")]))
+products.append(.executable(name: "shou-windows-application-usage-checks", targets: ["ShouWindowsApplicationUsageChecks"]))
+targets.append(.executableTarget(name: "ShouWindowsApplicationUsageChecks", dependencies: ["CShouWindows"], path: "tests/windows-application-usage", linkerSettings: [.linkedLibrary("swiftCore")]))
 #endif
 #if os(macOS)
 dependencies.append(.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"))

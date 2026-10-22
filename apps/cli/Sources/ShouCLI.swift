@@ -77,6 +77,8 @@ let commands: [CommandSpec] = [
     .init("applications installer show", "read", ["plan-id"], [], "Read the Windows installer selection, executable identities, digest and expiry."),
     .init("applications installer execute", "destructive", ["plan-id"], [], "Run reviewed Windows MSI, MSIX or vendor uninstallers after terminal confirmation. The installer can remove application data or request elevation. No Shou restore or automatic retry; verify registration absence and preserve individual outcomes."),
     .init("applications installer history", "read", [], [], "Read Windows installer receipts, uncertain outcomes and restart requirements without retrying."),
+    .init("applications usage scan", "snapshot", [], [], "Save current Windows registrations for explicit installation-directory measurement; no files are changed."),
+    .init("applications usage measure", "read", ["scan-id", "application-id"], ["max-entries", "max-seconds"], "Measure one current registered installation directory, deduplicating hard links; defaults: 100000 entries and 30 seconds, maximum 1000000 and 120. Partial observations and shared-directory scope are explicit. This does not establish ownership or removal rights, include all associated data or estimate released capacity."),
     .init("applications package-data scan", "snapshot", [], [], "Save current Windows registrations for explicit MSIX application-data selection; no data is cleared."),
     .init("applications package-data plan", "plan", ["scan-id", "application-id", "include-user-data"], [], repeated: ["application-id"], "Review 1–20 current-user MSIX packages and their data store identities. Requires include-user-data true and stopped applications; system/inbox packages are protected."),
     .init("applications package-data show", "read", ["plan-id"], [], "Read the MSIX data-clear selection, whole-package scope, digest and expiry."),
@@ -379,6 +381,16 @@ enum Terminal {
                     try Terminal.confirm(["plan": try JSONValue.from(plan), "warning": .string("The official installer may delete application data, request administrator consent or require a restart. Shou cannot restore this operation. Stop requests end waiting; an installer may continue. Never automatically retry an uncertain result.")], phrase: "UNINSTALL WINDOWS " + plan.id, locale: args.locale)
                     value=try .from(await service.execute(planId: plan.id, confirmedDigest: plan.digest))
                 default: value=try .from(await service.history())
+                }
+            case "applications usage scan", "applications usage measure":
+                guard fs.platform=="windows" else { throw ShouError("unsupported_platform", "Registered installation measurement requires Windows.") }
+                let service=WindowsApplicationUsageService(reader: WindowsApplicationUsageReader(),store: store)
+                if args.command.hasSuffix(" scan") { value=try .from(await service.scan()) }
+                else {
+                    guard let entries=Int(args.values["max-entries"]?.first ?? "100000"), let seconds=Double(args.values["max-seconds"]?.first ?? "30") else {
+                        throw ShouError("invalid_argument", "Application measurement budgets must be numeric.")
+                    }
+                    value=try .from(await service.measure(scanId: args.value("scan-id"),applicationId: args.value("application-id"),options: .init(maxEntries: entries,maxSeconds: seconds)))
                 }
             case "applications package-data scan", "applications package-data plan", "applications package-data show", "applications package-data execute", "applications package-data history":
                 guard fs.platform=="windows" else { throw ShouError("unsupported_platform", "MSIX application data requires Windows.") }
