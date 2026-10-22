@@ -74,6 +74,14 @@ func windowsStorageMeasurementPreservesIdentitiesAndNativeCursors(root: String) 
     }
     shou_win_free(hash)
     try require(cancelled == 1223 && checks == 4, "Streaming hashing must observe cancellation between bounded reads")
+    var prefix: UnsafeMutableRawPointer?, prefixCount=0
+    try native(shou_win_preview_read(large, &largeInfo, 262144, &prefix, &prefixCount))
+    try require(prefix != nil && prefixCount == 262144, "Preview must return only the bounded prefix of a large file")
+    if let prefix { try require(Data(bytes: prefix, count: prefixCount) == bytes.prefix(prefixCount), "Preview prefix differs from the generated fixture") }
+    shou_win_free(prefix); prefix=nil
+    var changedInfo=largeInfo; changedInfo.logical_bytes += 1
+    try require(shou_win_preview_read(large, &changedInfo, 262144, &prefix, &prefixCount)==1006 && prefix == nil && prefixCount==0, "Stale preview evidence returned content")
+    try require(shou_win_preview_read(large, &largeInfo, 4194305, &prefix, &prefixCount)==87 && prefix == nil, "Preview byte budget must be enforced natively")
     try fs.purge(large, expected: largeTree.entries)
     try require(!FileManager.default.fileExists(atPath: large), "Reviewed large-file permanent removal failed")
     print("PASS native large-file hashing, cooperative cancellation and reviewed permanent removal")

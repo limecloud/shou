@@ -54,6 +54,8 @@ public sealed partial class MainViewModel
     public IAsyncRelayCommand TrashLargeFilesCommand { get; private set; }=null!;
     public IAsyncRelayCommand PurgeLargeFilesCommand { get; private set; }=null!;
     public IRelayCommand<LargeFileRow> RevealLargeFileCommand { get; private set; }=null!;
+    public IRelayCommand<LargeFileRow> PreviewLargeFileCommand { get; private set; }=null!;
+    public IRelayCommand<LargeFileRow> CopyLargeFilePathCommand { get; private set; }=null!;
 
     private void InitializeLargeFiles()
     {
@@ -79,7 +81,10 @@ public sealed partial class MainViewModel
         bool CanRemove() => !IsBusy && LargeFileResultsCurrent && LargeFiles.Any(row=>row.IsSelected && row.Eligible);
         TrashLargeFilesCommand=new AsyncRelayCommand(()=>RemoveLargeFilesAsync("trash"),()=>trashAvailable && CanRemove());
         PurgeLargeFilesCommand=new AsyncRelayCommand(()=>RemoveLargeFilesAsync("permanent"),()=>permanentAvailable && CanRemove());
-        RevealLargeFileCommand=new RelayCommand<LargeFileRow>(row=>dialogs.RevealFolder(Path.GetDirectoryName(row!.AbsolutePath)!),row=>!IsBusy && row is not null);
+        RevealLargeFileCommand=new RelayCommand<LargeFileRow>(row=>dialogs.RevealItem(row!.AbsolutePath),row=>!IsBusy && row is not null);
+        PreviewLargeFileCommand=new RelayCommand<LargeFileRow>(row=>dialogs.PreviewFile(client,largeFilesScanId!,row!.Path),row=>!IsBusy && LargeFileResultsCurrent && row is not null);
+        CopyLargeFilePathCommand=new RelayCommand<LargeFileRow>(row=>System.Windows.Clipboard.SetText(row!.AbsolutePath),row=>!IsBusy && row is not null);
+        commands.AddRange([PreviewLargeFileCommand,CopyLargeFilePathCommand]);
         commands.AddRange([ChooseLargeFilesFolderCommand,ScanLargeFilesCommand,FilterLargeFilesCommand,MoreLargeFilesCommand,UseStorageForLargeFilesCommand,SelectLoadedLargeFilesCommand,SelectAllLargeFilesCommand,TrashLargeFilesCommand,PurgeLargeFilesCommand,RevealLargeFileCommand]);
     }
     private void LargeFilesChanged()

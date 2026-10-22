@@ -18,9 +18,12 @@ public sealed partial class MainViewModel
     private int storageChildCount;
     private long storageSelectedBytes;
     private string storageQuery = "";
+    private string storageAppliedQuery = "";
+    private string? storageQueryDigest;
     public ObservableCollection<StorageBreadcrumb> StorageBreadcrumbs { get; } = [];
-    public string StorageQuery { get => storageQuery; set { if (SetProperty(ref storageQuery, value)) FilterStorageRows(); } }
-    public string StorageListSummary => $"列表 { (StorageDetailed ? StorageTree.Count : StorageNodes.Count) } 项 · 目录页已加载 {storageDirectoryRows.Count} / {storageChildCount} 项";
+    public string StorageQuery { get => storageQuery; set { if (SetProperty(ref storageQuery, value)) { UpdateStorageSelectionEnabled(); OnPropertyChanged(nameof(StorageListSummary)); RefreshCommands(); } } }
+    private bool StorageQueryCurrent => StorageQuery.Trim() == storageAppliedQuery;
+    public string StorageListSummary => $"列表 { (StorageDetailed ? StorageTree.Count : StorageNodes.Count) } 项 · {(storageAppliedQuery.Length == 0 ? "目录" : "匹配")}已加载 {storageDirectoryRows.Count} / {storageChildCount} 项" + (StorageQueryCurrent ? "" : " · 按搜索更新结果");
     public string StorageSelectionSummary => $"已选 {storageSelection.Count} 项 · 占用估算 {Bytes(storageSelectedBytes)}";
     public string StorageProtection => SelectedStorageNode?.Protection ?? "选择项目以查看保护状态。";
     public string StorageCoverageDetails => storageCoverage.Length == 0 ? "扫描未报告覆盖缺口。" : string.Join("\n", storageCoverage.Select(note =>
@@ -29,22 +32,31 @@ public sealed partial class MainViewModel
     public IAsyncRelayCommand StorageForwardCommand { get; private set; } = null!;
     public IAsyncRelayCommand<StorageBreadcrumb> StorageBreadcrumbCommand { get; private set; } = null!;
     public IAsyncRelayCommand MoreStorageCommand { get; private set; } = null!;
+    public IAsyncRelayCommand SearchStorageCommand { get; private set; } = null!;
     public IAsyncRelayCommand SelectVisibleStorageCommand { get; private set; } = null!;
     public IRelayCommand ClearStorageSelectionCommand { get; private set; } = null!;
     public IRelayCommand RevealStorageItemCommand { get; private set; } = null!;
     public IRelayCommand CopyStorageItemPathCommand { get; private set; } = null!;
+    public IRelayCommand PreviewStorageItemCommand { get; private set; } = null!;
 
     private void InitializeStorageNavigation()
     {
         StorageBackCommand = new AsyncRelayCommand(() => RunAsync(() => NavigateStorageAsync(storageNavigation.BackTarget!, -1)), () => !IsBusy && storageNavigation.BackTarget is not null);
         StorageForwardCommand = new AsyncRelayCommand(() => RunAsync(() => NavigateStorageAsync(storageNavigation.ForwardTarget!, 1)), () => !IsBusy && storageNavigation.ForwardTarget is not null);
         StorageBreadcrumbCommand = new AsyncRelayCommand<StorageBreadcrumb>(item => RunAsync(() => NavigateStorageAsync(item!.Path)), item => !IsBusy && storageScanId is not null && item is not null && item.Path != StoragePath);
-        MoreStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => ShowStoragePage(await client.RequestAsync("storage.browse", new() { ["scan_id"] = storageScanId, ["path"] = StoragePath, ["offset"] = storageNextOffset }, cancellation: Token), true)), () => !IsBusy && storageNextOffset is not null);
-        SelectVisibleStorageCommand = new AsyncRelayCommand(() => ChangeStorageSelectionAsync(VisibleStorageRows().Where(row => row.Eligible).Select(row => row.Path).ToArray(), true), () => !IsBusy && VisibleStorageRows().Any(row => row.Eligible));
+        MoreStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => ShowStoragePage(await client.RequestAsync("storage.browse", new() { ["scan_id"] = storageScanId, ["path"] = StoragePath, ["offset"] = storageNextOffset, ["query"] = storageAppliedQuery, ["query_digest"] = storageQueryDigest }, cancellation: Token), true)), () => !IsBusy && StorageQueryCurrent && storageNextOffset is not null);
+        SearchStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => {
+            var browse = await client.RequestAsync("storage.browse", new() { ["scan_id"] = storageScanId, ["path"] = StoragePath, ["query"] = StorageQuery }, cancellation: Token);
+            ShowStoragePage(browse, false);
+            if (StorageDetailed && StorageMap is not null) await LoadStorageMapAsync();
+        }), () => !IsBusy && storageScanId is not null);
+        SelectVisibleStorageCommand = new AsyncRelayCommand(() => ChangeStorageSelectionAsync(VisibleStorageRows().Where(row => row.Eligible).Select(row => row.Path).ToArray(), true), () => !IsBusy && StorageQueryCurrent && VisibleStorageRows().Any(row => row.Eligible));
         ClearStorageSelectionCommand = new RelayCommand(ClearStorageSelection, () => !IsBusy && storageSelection.Count > 0);
         RevealStorageItemCommand = new RelayCommand(() => dialogs.RevealItem(StorageAbsolutePath(SelectedStorageNode!.Path)), () => !IsBusy && SelectedStorageNode is { Kind: "file" or "directory" });
         CopyStorageItemPathCommand = new RelayCommand(() => System.Windows.Clipboard.SetText(StorageAbsolutePath(SelectedStorageNode!.Path)), () => !IsBusy && SelectedStorageNode is { Kind: "file" or "directory" });
-        commands.AddRange([StorageBackCommand, StorageForwardCommand, StorageBreadcrumbCommand, MoreStorageCommand, SelectVisibleStorageCommand, ClearStorageSelectionCommand, RevealStorageItemCommand, CopyStorageItemPathCommand]);
+        PreviewStorageItemCommand = new RelayCommand(() => dialogs.PreviewFile(client, storageScanId!, SelectedStorageNode!.Path), () => !IsBusy && storageScanId is not null && SelectedStorageNode is { Kind: "file" or "directory" });
+        commands.Add(PreviewStorageItemCommand);
+        commands.AddRange([StorageBackCommand, StorageForwardCommand, StorageBreadcrumbCommand, MoreStorageCommand, SearchStorageCommand, SelectVisibleStorageCommand, ClearStorageSelectionCommand, RevealStorageItemCommand, CopyStorageItemPathCommand]);
         PropertyChanged += (_, change) => { if (change.PropertyName == nameof(SelectedStorageNode)) OnPropertyChanged(nameof(StorageProtection)); };
     }
 
@@ -60,6 +72,7 @@ public sealed partial class MainViewModel
     private void ShowStoragePage(JsonNode browse, bool append)
     {
         var page = browse["directory"]!;
+        storageAppliedQuery = Text(browse, "query"); storageQueryDigest = Text(browse, "query_digest");
         if (!append) { storageDirectoryRows.Clear(); storageTreeRoots.Clear(); StorageTree.Clear(); SelectedStorageNode = null; }
         StoragePath = Text(page["item"]?["node"], "path");
         storageChildCount = page["total_count"]?.GetValue<int>() ?? 0;
@@ -83,12 +96,13 @@ public sealed partial class MainViewModel
 
     private void FilterStorageRows()
     {
-        var query = StorageQuery.Trim();
-        bool Matches(StorageRow row) => !StorageGone(row.Path) && (query.Length == 0 || row.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase));
-        StorageNodes.Clear(); foreach (var row in storageDirectoryRows.Where(Matches)) StorageNodes.Add(row);
-        StorageTree.Clear(); foreach (var row in storageTreeRoots.Where(Matches)) StorageTree.Add(row);
+        var query = storageAppliedQuery;
+        StorageNodes.Clear(); foreach (var row in storageDirectoryRows.Where(row => !StorageGone(row.Path))) StorageNodes.Add(row);
+        StorageTree.Clear(); foreach (var row in storageTreeRoots.Where(row => !StorageGone(row.Path) && (query.Length == 0 || storageDirectoryRows.Contains(row)))) StorageTree.Add(row);
         OnPropertyChanged(nameof(StorageListSummary)); RefreshCommands();
     }
+
+    private void UpdateStorageSelectionEnabled() { foreach (var row in storageRows.Values) row.SetSelectionEnabled(!IsBusy && StorageQueryCurrent); }
 
     private IEnumerable<StorageRow> VisibleStorageRows()
     {

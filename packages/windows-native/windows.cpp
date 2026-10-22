@@ -407,6 +407,28 @@ int shou_win_read(const char *input,size_t limit,void **bytes,size_t *count){
     if(!code)code=info(h,&after);if(!code&&!same(before,after))code=ERROR_FILE_INVALID;
     if(code){free(data);return code;}*bytes=data;*count=total;return 0;
 }
+int shou_win_preview_read(const char *input,const shou_win_info *saved,size_t limit,void **bytes,size_t *count){
+    *bytes=nullptr;*count=0;
+    if(!saved || !limit || limit>4194304 || saved->kind!=1)return ERROR_INVALID_PARAMETER;
+    std::wstring path;auto code=normalized(input,path);if(code)return code;
+    Handles pins;HANDLE h;if((code=open(path,pins,h,GENERIC_READ|READ_CONTROL,FILE_SHARE_READ)))return code;
+    shou_win_info before{},after{};if((code=info(h,&before)))return code;
+    if(before.kind!=1 || before.logical_bytes<0 || !same(before,*saved))return ERROR_FILE_INVALID;
+    const auto wanted=static_cast<size_t>(std::min<uint64_t>(static_cast<uint64_t>(before.logical_bytes),limit));
+    auto data=malloc(wanted+1);if(!data)return ERROR_NOT_ENOUGH_MEMORY;
+    const auto deadline=GetTickCount64()+10000;
+    size_t total=0;
+    while(total<wanted){
+        if(GetTickCount64()>=deadline){code=ERROR_TIMEOUT;break;}
+        DWORD n=0;
+        if(!ReadFile(h,static_cast<char *>(data)+total,static_cast<DWORD>(std::min<size_t>(65536,wanted-total)),&n,nullptr)||!n){code=ERROR_READ_FAULT;break;}
+        total+=n;
+    }
+    if(!code)code=info(h,&after);
+    if(!code&&!same(before,after))code=ERROR_FILE_INVALID;
+    if(code){free(data);return code;}
+    *bytes=data;*count=total;return 0;
+}
 int shou_win_private_directory(const char *input){std::wstring path;auto code=normalized(input,path);return code?code:private_acl(path,true);}
 int shou_win_create_private_catalog(const char *input){
     std::wstring path;auto code=normalized(input,path);if(code)return code;

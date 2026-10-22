@@ -10,6 +10,7 @@ namespace Shou.Windows;
 
 public sealed class WindowsDialogs(Window owner)
 {
+    public void PreviewFile(BridgeProcessClient client, string scanId, string path) => new FilePreviewDialog(owner, client, scanId, path).ShowDialog();
     public void InspectHistory(BridgeProcessClient client, string executionId) => new HistoryInspectionDialog(owner, client, executionId).ShowDialog();
     public JsonNode? AuthorPersonalRule(BridgeProcessClient client,WorkspaceRow workspace,CancellationToken cancellation,JsonObject? original=null)
     {

@@ -21,6 +21,7 @@ int shou_win_directory_next(shou_win_directory *directory, char **name);
 int shou_win_directory_verify(shou_win_directory *directory, const shou_win_info *expected);
 void shou_win_directory_close(shou_win_directory *directory);
 int shou_win_read(const char *path, size_t limit, void **bytes, size_t *count);
+int shou_win_preview_read(const char *path, const shou_win_info *expected, size_t limit, void **bytes, size_t *count);
 typedef int (*shou_win_read_cancelled)(void *context);
 int shou_win_hash(const char *path, const shou_win_info *expected, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
 int shou_win_private_directory(const char *path);

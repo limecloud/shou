@@ -271,7 +271,7 @@ public final class StorageCatalog {
             result.append(try item(statement))
         }
     }
-    func directoryPage(path: String, offset: Int, limit: Int) throws -> StorageDirectoryPage {
+    func directoryPage(path: String, offset: Int, limit: Int, nameFilter: String = "") throws -> StorageDirectoryPage {
         if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
         let checkpoint=CatalogCheckpoint { if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") } }
         sqlite3_progress_handler(database, 4096, { pointer in
@@ -280,20 +280,22 @@ public final class StorageCatalog {
             do { try context.check(); return 0 } catch { context.error=error; return 1 }
         }, Unmanaged.passUnretained(checkpoint).toOpaque())
         defer { sqlite3_progress_handler(database, 0, nil, nil) }
-        do { return try readDirectoryPage(path: path, offset: offset, limit: limit) }
+        do { return try readDirectoryPage(path: path, offset: offset, limit: limit, nameFilter: nameFilter) }
         catch { throw checkpoint.error ?? error }
     }
-    private func readDirectoryPage(path: String, offset: Int, limit: Int) throws -> StorageDirectoryPage {
+    private func readDirectoryPage(path: String, offset: Int, limit: Int, nameFilter: String) throws -> StorageDirectoryPage {
         guard let root=try entry(at: path), root.node.kind == "directory" else { throw ShouError("invalid_argument", "Directory is absent from this analysis.") }
-        let count=try prepare("SELECT COUNT(*) FROM entries WHERE parent=(SELECT id FROM entries WHERE path=?)")
+        try registerNameMatchFunction()
+        let predicate="e.parent=(SELECT id FROM entries WHERE path=?1) AND (?2='' OR shou_name_matches(e.name,?2))"
+        let count=try prepare("SELECT COUNT(*) FROM entries e WHERE " + predicate)
         defer { sqlite3_finalize(count) }
-        try bind(path, 1, to: count)
+        try bind(path, 1, to: count); try bind(nameFilter, 2, to: count)
         guard sqlite3_step(count) == SQLITE_ROW else { throw Self.failure() }
         let total=Int(sqlite3_column_int64(count, 0))
         guard offset <= total else { throw ShouError("invalid_argument", "Invalid directory offset.") }
-        let statement=try prepare("SELECT " + columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name LIMIT ? OFFSET ?")
+        let statement=try prepare("SELECT " + columns + Self.source + "WHERE " + predicate + " ORDER BY e.total_allocated DESC,e.name LIMIT ?3 OFFSET ?4")
         defer { sqlite3_finalize(statement) }
-        try bind(path, 1, to: statement); try bind([Int64(limit), Int64(offset)], startingAt: 2, to: statement)
+        try bind(path, 1, to: statement); try bind(nameFilter, 2, to: statement); try bind([Int64(limit), Int64(offset)], startingAt: 3, to: statement)
         var rows=[StorageCatalogItem]()
         while true {
             if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
@@ -304,6 +306,12 @@ public final class StorageCatalog {
         }
         let end=offset + rows.count
         return StorageDirectoryPage(item: root, children: rows, totalCount: total, nextOffset: end < total ? end : nil)
+    }
+    private func registerNameMatchFunction() throws {
+        guard sqlite3_create_function_v2(database, "shou_name_matches", 2, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nil, { context, count, values in
+            guard count == 2, let values, let name=sqlite3_value_text(values[0]), let query=sqlite3_value_text(values[1]) else { sqlite3_result_int(context, 0); return }
+            sqlite3_result_int(context, String(cString: name).localizedCaseInsensitiveContains(String(cString: query)) ? 1 : 0)
+        }, nil, nil, nil) == SQLITE_OK else { throw Self.failure() }
     }
     private func registerExtensionFunction() throws {
         guard sqlite3_create_function_v2(database, "shou_extension", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nil, { context, count, values in

@@ -117,17 +117,18 @@ public struct StorageAnalysisContext: Codable, Sendable {
 }
 
 extension ShouEngine {
-    public func storageDirectoryPage(scanId: String, path: String = ".", offset: Int = 0, limit: Int = 200) throws -> StorageDirectoryPage {
-        guard (path == "." || StorageRemovalPolicy.validRelative(path)), offset >= 0, (1...500).contains(limit) else {
+    public func storageDirectoryPage(scanId: String, path: String = ".", offset: Int = 0, limit: Int = 200, nameFilter: String = "") throws -> StorageDirectoryPage {
+        guard (path == "." || StorageRemovalPolicy.validRelative(path)), offset >= 0, (1...500).contains(limit), nameFilter.utf8.count <= 1024, !nameFilter.contains("\0") else {
             throw ShouError("invalid_argument", "Invalid directory page.")
         }
         let scan=try storageScan(scanId)
-        if let catalog=try catalog(for: scan) { return try catalog.directoryPage(path: path, offset: offset, limit: limit) }
+        if let catalog=try catalog(for: scan) { return try catalog.directoryPage(path: path, offset: offset, limit: limit, nameFilter: nameFilter) }
         let directory=try storageDirectory(scanId: scanId, path: path)
-        guard offset <= directory.children.count else { throw ShouError("invalid_argument", "Invalid directory offset.") }
-        let end=min(offset + limit, directory.children.count)
-        return StorageDirectoryPage(item: directory.item, children: Array(directory.children[offset..<end]), totalCount: directory.children.count,
-            nextOffset: end < directory.children.count ? end : nil)
+        let children=nameFilter.isEmpty ? directory.children : directory.children.filter { $0.node.name.localizedCaseInsensitiveContains(nameFilter) }
+        guard offset <= children.count else { throw ShouError("invalid_argument", "Invalid directory offset.") }
+        let end=min(offset + limit, children.count)
+        return StorageDirectoryPage(item: directory.item, children: Array(children[offset..<end]), totalCount: children.count,
+            nextOffset: end < children.count ? end : nil)
     }
     /// All queries read the published index. No filesystem inspection occurs here.
     public func storagePresentation(scanId: String, path: String = ".") throws -> StoragePresentation {

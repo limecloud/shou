@@ -26,7 +26,7 @@ def main():
         (workspace / "generated/keep.txt").write_text("retain fixture data", encoding="utf-8")
         other = root / "other project"
         other.mkdir()
-        bridge.set_fixture_owner(workspace)
+        bridge.set_fixture_owner(root)
         environment = dict(os.environ, SHOU_DATA_DIR=str(root / "records"))
 
         def success(operation, values=None):

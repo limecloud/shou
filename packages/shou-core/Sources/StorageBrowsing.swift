@@ -3,6 +3,8 @@ import Foundation
 public struct StorageBrowsePage: Codable, Sendable {
     public let directory: StorageDirectoryPage
     public let removalReasons: [String: String]
+    public let query: String
+    public let queryDigest: String
 }
 
 public struct StorageSelectionSummary: Codable, Sendable {
@@ -13,15 +15,21 @@ public struct StorageSelectionSummary: Codable, Sendable {
 extension ShouEngine {
     /// Read-only presentation of the published scan and current protection rules.
     /// Execution still builds and validates a new complete removal manifest.
-    public func storageBrowsePage(scanId: String, path: String = ".", offset: Int = 0) throws -> StorageBrowsePage {
-        let page=try storageDirectoryPage(scanId: scanId, path: path, offset: offset, limit: 200)
+    public func storageBrowsePage(scanId: String, path: String = ".", offset: Int = 0, nameFilter: String = "", expectedQueryDigest: String? = nil) throws -> StorageBrowsePage {
+        try Task.checkCancellation()
+        let query=nameFilter.trimmingCharacters(in: .whitespacesAndNewlines)
+        let digest=try Digest.of(["scan_id": scanId, "path": path, "query": query])
+        guard (expectedQueryDigest == nil || expectedQueryDigest == digest), (offset == 0 || query.isEmpty || expectedQueryDigest != nil) else {
+            throw ShouError("invalid_argument", "Directory continuation belongs to a different scan, folder or search.")
+        }
+        let page=try storageDirectoryPage(scanId: scanId, path: path, offset: offset, limit: 200, nameFilter: query)
         let scan=try storageScan(scanId)
         var reasons=[String: String]()
         for item in page.children {
             try Task.checkCancellation()
             if let reason=storageRemovalReason(scan: scan, path: item.node.path) { reasons[item.node.path]=reason }
         }
-        return StorageBrowsePage(directory: page, removalReasons: reasons)
+        return StorageBrowsePage(directory: page, removalReasons: reasons, query: query, queryDigest: digest)
     }
 
     /// Reuse the same literal, disjoint selection semantics as the macOS client.

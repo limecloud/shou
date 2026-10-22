@@ -483,14 +483,17 @@ enum DesktopBridge {
             guard value.isFinite, value.rounded() == value, (0...1_000_000_000).contains(value) else { throw ShouError("invalid_argument", "Invalid directory offset.") }
             return try .from(await engine.storageDirectoryPage(scanId: string("scan_id"), path: input["path"]?.string ?? ".", offset: Int(value), limit: 200))
         case "storage.browse":
-            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["scan_id", "path", "offset"]) else { throw ShouError("invalid_argument", "Unknown directory browsing field.") }
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["scan_id", "path", "offset", "query", "query_digest"]) else { throw ShouError("invalid_argument", "Unknown directory browsing field.") }
             let offset: Int
             if let value=input["offset"] {
                 guard case .integer(let count)=value, (0...1_000_000_000).contains(count) else { throw ShouError("invalid_argument", "Invalid directory offset.") }
                 offset=Int(count)
             } else { offset=0 }
             let path=input["path"] == nil ? "." : try string("path")
-            return try .from(await engine.storageBrowsePage(scanId: string("scan_id"), path: path, offset: offset))
+            let query: String
+            if let value=input["query"] { guard let text=value.string else { throw ShouError("invalid_argument", "Provide a directory name search.") }; query=text } else { query="" }
+            let digest=input["query_digest"] == nil ? nil : try string("query_digest")
+            return try .from(await engine.storageBrowsePage(scanId: string("scan_id"), path: path, offset: offset, nameFilter: query, expectedQueryDigest: digest))
         case "storage.selection":
             guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_id", "paths", "targets", "selected"],
                   case .bool(let selected)=input["selected"] else { throw ShouError("invalid_argument", "Provide an explicit analysis selection change.") }
@@ -499,9 +502,12 @@ enum DesktopBridge {
                 return values.compactMap(\.string)
             }
             return try .from(await engine.storageSelection(scanId: string("scan_id"), paths: selectionPaths("paths"), targets: selectionPaths("targets"), selected: selected))
+        case "storage.preview":
+            guard Set(input.object?.keys.map { $0 } ?? []) == ["scan_id", "path"] else { throw ShouError("invalid_argument", "Choose one exact analysis item to preview.") }
+            return try .from(await engine.storagePreview(scanId: string("scan_id"), path: string("path"), reader: NativeStoragePreview()))
         case "storage.context":
             let context=try await engine.storageAnalysisContext(scanId: string("scan_id"), path: input["path"]?.string ?? ".", focusedPath: input["focused_path"]?.string, selectedPaths: input["selected_paths"]?.array?.compactMap(\.string) ?? [], removedPaths: input["removed_paths"]?.array?.compactMap(\.string) ?? [],
-                cliPath: CommandLine.arguments[0])
+                nameFilter: input["name_filter"]?.string ?? "", extensionFilter: input["extension_filter"]?.string, cliPath: CommandLine.arguments[0])
             return .object(["context": try .from(context), "text": .string(try context.text(locale: input["locale"]?.string ?? "zh-CN"))])
         case "storage.directory": return try directoryValue(await engine.storageDirectory(scanId: string("scan_id"), path: input["path"]?.string ?? "."))
         default: throw ShouError("capability_unavailable", "This desktop operation is not available.")

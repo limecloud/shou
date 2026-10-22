@@ -153,7 +153,7 @@ await Check("输出超限立即结束只读生产者", () => Failure("output_lim
 await Check("只读请求期限", () => Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("scan")));
 await Check("补扫、跨目录扫描和大文件查询遵守只读请求期限", async () =>
 {
-    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "storage.browse", "storage.selection", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
+    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "storage.browse", "storage.selection", "storage.preview", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "locations.scan", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
         await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync(operation));
 });
 await Check("历史位置核验支持取消并拒绝任何变更确认", async () =>
@@ -171,8 +171,13 @@ await Check("扫描范围查询只读且不能请求变更确认", () =>
     Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("locations.scan", confirm: _ => throw new Exception("Read-only locations requested consent."))));
 await Check("空间浏览和选择计算只读且不能请求变更确认", async () =>
 {
-    foreach (var operation in new[] { "storage.browse", "storage.selection" })
+    foreach (var operation in new[] { "storage.browse", "storage.selection", "storage.preview" })
         await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync(operation, confirm: _ => throw new Exception("Read-only storage requested consent.")));
+});
+await Check("文件预览取消立即终止只读生产者", async () =>
+{
+    using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+    await Failure("cancelled", () => Fixture("timeout").RequestAsync("storage.preview", cancellation: stop.Token));
 });
 await Check("缺少确认处理器时取消", async () =>
 {

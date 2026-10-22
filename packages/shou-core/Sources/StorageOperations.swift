@@ -176,7 +176,7 @@ extension ShouEngine {
         guard try catalog.entry(at: ".")?.entry == scan.identity else { throw ShouError("store_corrupt", "Space analysis index belongs to a different root.") }
         return catalog
     }
-    private func storageEntry(scan: StorageScan, path: String) throws -> FileEntry? {
+    func storageEntry(scan: StorageScan, path: String) throws -> FileEntry? {
         if let catalog=try catalog(for: scan) { return try catalog.entry(at: path)?.entry }
         return scan.tree.entries.first { $0.path == path }
     }

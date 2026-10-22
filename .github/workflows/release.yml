@@ -21,12 +21,25 @@ env:
   SHOU_RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
+  source:
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.resolve.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.sha || env.SHOU_RELEASE_TAG }}
+      - id: resolve
+        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
   verify-windows:
+    needs: source
     uses: ./.github/workflows/windows.yml
     with:
-      ref: ${{ github.event.inputs.tag || github.ref_name }}
+      ref: ${{ needs.source.outputs.commit }}
 
   verify:
+    needs: source
     name: All tests (${{ matrix.runner }})
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
@@ -39,7 +52,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.SHOU_RELEASE_TAG }}
+          ref: ${{ needs.source.outputs.commit }}
       - name: Toolchain
         run: swift --version | grep -E 'Swift version 6[.]2[.]3([[:space:]]|$)'
       - name: Full tests including native Trash, restore, and permanent removal
@@ -68,7 +81,7 @@ jobs:
         run: python3 scripts/verify-read-worker-lifecycle.py --bin dist/Shou.app/Contents/Helpers/shou --evidence "$RUNNER_TEMP/shou-read-worker-lifecycle"
 
   package:
-    needs: [verify, verify-windows]
+    needs: [source, verify, verify-windows]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
     runs-on: macos-15
@@ -76,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.SHOU_RELEASE_TAG }}
+          ref: ${{ needs.source.outputs.commit }}
       - name: Toolchain
         run: swift --version | grep -E 'Swift version 6[.]2[.]3([[:space:]]|$)'
       - name: Build, test, package, and sign universal updates
@@ -101,14 +114,14 @@ jobs:
             dist/release-*/SHA256SUMS
 
   publish:
-    needs: package
+    needs: [source, package]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.SHOU_RELEASE_TAG }}
+          ref: ${{ needs.source.outputs.commit }}
       - uses: actions/download-artifact@v4
         with:
           name: shou-release
@@ -120,7 +133,9 @@ jobs:
       - name: Publish verified release assets
         env:
           GH_TOKEN: ${{ github.token }}
+          SHOU_SOURCE_COMMIT: ${{ needs.source.outputs.commit }}
         run: |
+          test "$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHOU_RELEASE_TAG" --jq .sha)" = "$SHOU_SOURCE_COMMIT" || { echo 'Release tag moved; publish the new verified source instead'; exit 1; }
           task_asset_dir="$(dirname "$(find release-assets -name SHA256SUMS -print -quit)")"
           task_windows_dir="$(dirname "$(find windows-release-assets -name SHA256SUMS-windows -print -quit)")"
           test -f "$task_asset_dir/SHA256SUMS"

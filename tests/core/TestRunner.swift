@@ -398,6 +398,14 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL storage browsing: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-search-preview-only"] {
+            do {
+                try await storageNameSearchReadsEveryImmediateChildAndBindsContinuation()
+                try await storagePreviewIsBoundedReadOnlyAndRejectsChangedObjects()
+                print("2/2 full-directory search, continuation, bounded preview, encoding, changed object and cancellation checks passed; generated fixtures only.")
+            } catch { print("FAIL storage search/preview: \(error)"); Foundation.exit(1) }
+            return
+        }
         if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--history-interruption-child" {
             do { try await historyInterruptionChild(CommandLine.arguments[2]) }
             catch { Foundation.exit(1) }
@@ -613,6 +621,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
             ("Storage browsing shares protection and selection without mutation", { try await storageBrowsingSelectionSharesProtectionAndHierarchyWithoutMutation() }),
             ("Storage browsing pages and selection expansion retain exact scope", { try await storageBrowsingPagesAreBoundedAndExpandedSelectionsNeverTruncate() }),
+            ("Storage name search covers unloaded children and binds continuation", { try await storageNameSearchReadsEveryImmediateChildAndBindsContinuation() }),
+            ("Storage preview is bounded, read-only and identity-bound", { try await storagePreviewIsBoundedReadOnlyAndRejectsChangedObjects() }),
             ("Storage analysis separates read scope and stale removal", { try await storageAnalysisProtectsRootsAndDetectsChanges() }),
             ("Storage removal rechecks exclusions and new descendants", { try await storageRemovalRechecksCurrentExclusionsAndNewDescendants() }),
             ("Native space analysis large-file Trash restore and permanent removal", { try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: CommandLine.arguments.contains("--native-trash-purge")) }),

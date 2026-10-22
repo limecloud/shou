@@ -139,7 +139,7 @@ public sealed partial class MainViewModel : ObservableObject
         RevealStorageCommand = new RelayCommand(() => dialogs.RevealFolder(CurrentStorageFolder!), () => !IsBusy && CurrentStorageFolder is not null);
         try { storageDetailed = File.Exists(StoragePreference) && File.ReadAllText(StoragePreference) == "detailed"; } catch (Exception error) when(error is IOException or UnauthorizedAccessException) { }
         CopyStorageAnalysisCommand = new AsyncRelayCommand(() => RunAsync(async () => {
-            var context=await client.RequestAsync("storage.context", new() { ["scan_id"]=storageScanId,["path"]=StoragePath,["focused_path"]=SelectedStorageNode?.Path,["selected_paths"]=Strings(storageSelection),["removed_paths"]=Strings(storageRemovedPaths),["locale"]="zh-CN" }, cancellation:Token);
+            var context=await client.RequestAsync("storage.context", new() { ["scan_id"]=storageScanId,["path"]=StoragePath,["focused_path"]=SelectedStorageNode?.Path,["selected_paths"]=Strings(storageSelection),["removed_paths"]=Strings(storageRemovedPaths),["name_filter"]=storageAppliedQuery,["extension_filter"]=StorageExtensionFilter,["locale"]="zh-CN" }, cancellation:Token);
             System.Windows.Clipboard.SetText(Text(context,"text")); Status="已复制分析结果，可粘贴给 AI Agent。";
         }), () => !IsBusy && storageScanId is not null);
         RemoveStorageCommand = new AsyncRelayCommand(() => RunAsync(async () => {
@@ -260,7 +260,7 @@ public sealed partial class MainViewModel : ObservableObject
     public IAsyncRelayCommand AddExclusionCommand { get; }
     public IAsyncRelayCommand RemoveExclusionCommand { get; }
     public IRelayCommand CancelCommand { get; }
-    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) { OnPropertyChanged(nameof(HistorySelectionEnabled)); foreach (var row in storageRows.Values) row.SetSelectionEnabled(!value); } } }
+    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) { OnPropertyChanged(nameof(HistorySelectionEnabled)); UpdateStorageSelectionEnabled(); } } }
     public bool ProgressIndeterminate => IsBusy && ProgressFraction is null;
     public double? ProgressFraction { get => progressFraction; private set { SetProperty(ref progressFraction, value); OnPropertyChanged(nameof(ProgressIndeterminate)); OnPropertyChanged(nameof(ProgressValue)); OnPropertyChanged(nameof(ProgressPercentage)); } }
     public double ProgressValue => (ProgressFraction ?? 0) * 100;
@@ -621,7 +621,7 @@ public sealed partial class MainViewModel : ObservableObject
         if(storageRows.TryGetValue(path,out var existing)) return existing;
         var allocated=item["allocated_bytes"]?.GetValue<long>() ?? 0;
         var row=new StorageRow(path,Bytes(allocated),Text(item,"kind"),allocated,item["logical_bytes"]?.GetValue<long>() ?? 0,item["file_count"]?.GetValue<int>() ?? 0);
-        row.SetSelectionEnabled(!IsBusy); storageRows[path]=row; ApplyStorageSelection(row); return row;
+        row.SetSelectionEnabled(!IsBusy && StorageQueryCurrent); storageRows[path]=row; ApplyStorageSelection(row); return row;
     }
     private async Task LoadStorageMapAsync() {
         StorageMap=await client.RequestAsync("storage.map",new() { ["scan_id"]=storageScanId,["path"]=StoragePath },cancellation:Token);
