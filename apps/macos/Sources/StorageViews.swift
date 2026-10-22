@@ -101,6 +101,11 @@ private struct StorageAnalysisView: View {
     private var coverageDescription: String {
         model.t(session.actionableCoverage.isEmpty ? "System-managed locations are excluded from analysis." : "Some locations in this folder need attention.")
     }
+    private var investigationPath: String {
+        if session.selected.count == 1, let path=session.selected.first, session.index.nodes[path]?.kind == "directory" { return path }
+        if let path=session.focus, session.index.nodes[path]?.kind == "directory" { return path }
+        return session.path
+    }
     private var navigation: some View {
         HStack(spacing: 10) {
             ControlGroup {
@@ -127,7 +132,7 @@ private struct StorageAnalysisView: View {
                 Text(model.t("Simple")).tag(false)
                 Text(model.t("Detailed")).tag(true)
             }.pickerStyle(.segmented).frame(width: 130).accessibilityIdentifier("storage.view-mode")
-            Button { model.ai.requestLaunch(app: model, path: absolute(session.path)) } label: {
+            Button { model.ai.requestLaunch(app: model, path: absolute(investigationPath)) } label: {
                 Label(model.t("Investigate"), systemImage: "sparkles")
             }.disabled(session.loadingDirectory || model.busy).help(model.t("Investigate this folder with your model"))
                 .accessibilityIdentifier("storage.investigate")

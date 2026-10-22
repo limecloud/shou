@@ -5,14 +5,18 @@
       <TextBlock Text="AI 调查" FontSize="24" FontWeight="SemiBold" />
       <CheckBox Content="启用 AI 调查" IsChecked="{Binding AiEnabled}" Margin="0,16,0,8" AutomationProperties.Name="启用 AI 调查" />
       <TextBlock Text="开启后仍需点击开始。关闭会停止后续请求。空间占用解释使用本地索引。" Opacity="0.75" />
-      <TextBlock Text="连接" Margin="0,20,0,6" />
-      <ComboBox ItemsSource="{Binding AiConnections}" SelectedItem="{Binding SelectedAiConnection}" DisplayMemberPath="Name" AutomationProperties.Name="AI 连接" />
-      <WrapPanel Margin="0,8,0,0"><Button Content="添加…" Command="{Binding AiNewConnectionCommand}" /><Button Content="编辑…" Command="{Binding AiEditConnectionCommand}" /><Button Content="测试" Command="{Binding AiTestCommand}" ToolTip="仅发送合成数据，不读取文件。" /></WrapPanel>
+      <TextBlock Text="AI 配置方案" Margin="0,20,0,6" />
+      <ComboBox ItemsSource="{Binding AiConnections}" SelectedItem="{Binding SelectedAiConnection}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AiCanEdit}" AutomationProperties.Name="AI 配置方案" />
+      <WrapPanel Margin="0,8,0,0"><Button Content="添加…" Command="{Binding AiNewConnectionCommand}" /><Button Content="编辑…" Command="{Binding AiEditConnectionCommand}" /><Button Content="删除…" Command="{Binding AiDeleteConnectionCommand}" /><Button Content="测试" Command="{Binding AiTestCommand}" ToolTip="仅发送合成数据，不读取文件。" /></WrapPanel>
+      <CheckBox Content="启用决策服务（Jev 协助主模型）" IsChecked="{Binding AiDecisionEnabled}" IsEnabled="{Binding AiCanEdit}" Margin="0,12,0,0" AutomationProperties.Name="启用决策服务" />
+      <TextBlock Text="主模型为必需配置。关闭决策服务后由主模型接管，保留决策配置和密钥。" Opacity="0.75" Margin="0,6,0,0" />
+      <Expander Header="已删除配置" Margin="0,10,0,0"><StackPanel><ComboBox ItemsSource="{Binding AiDeletedConnections}" SelectedItem="{Binding SelectedAiDeletedConnection}" DisplayMemberPath="DisplayName" IsEnabled="{Binding AiCanEdit}" AutomationProperties.Name="已删除配置" /><Button Content="恢复所选配置" Command="{Binding AiRestoreConnectionCommand}" HorizontalAlignment="Left" Margin="0,6,0,0" /></StackPanel></Expander>
       <TextBlock Text="{Binding AiConnectionDisclosure}" Margin="0,12,0,0" TextWrapping="Wrap" />
       <StackPanel IsEnabled="{Binding AiCanEdit}">
         <TextBlock Text="目标" Margin="0,20,0,6" /><ComboBox ItemsSource="{Binding AiGoals}" SelectedItem="{Binding SelectedAiGoal}" DisplayMemberPath="Name" AutomationProperties.Name="AI 调查目标" />
-        <TextBlock Text="所选物理目录" Margin="0,14,0,6" /><TextBox Text="{Binding AiFolder,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="AI 调查目录" />
-        <Button Content="选择目录…" Command="{Binding AiChooseFolderCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+        <TextBlock Text="调查范围" Margin="0,14,0,6" /><TextBox Text="{Binding AiFolder,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" AutomationProperties.Name="AI 调查目录" />
+        <WrapPanel Margin="0,8,0,0"><Button Content="全部已扫描范围" Command="{Binding AiAllScannedCommand}" /><Button Content="选择单个目录…" Command="{Binding AiChooseFolderCommand}" /></WrapPanel>
+        <TextBlock Text="{Binding AiScopeLabel}" Margin="0,8,0,0" Opacity="0.75" />
         <TextBlock Text="{Binding AiMeasurement}" Margin="0,8,0,0" Opacity="0.75" />
         <TextBlock Text="保留条件与调查要求（可选）" Margin="0,16,0,6" /><TextBox Text="{Binding AiRequest,UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" MaxLength="2000" AutomationProperties.Name="保留条件与调查要求" />
       </StackPanel>

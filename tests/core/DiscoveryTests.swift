@@ -50,6 +50,30 @@ func builtinCatalogScopeAndNamespace() async throws {
     try expect(try await engine.scan(workspaceId: root.id, ruleIds: preset.ruleIds).candidates.contains(where: \.eligible))
 }
 
+func enabledRulePresetsPreserveReviewedConfigurationAndBindings() async throws {
+    let fixture=try Fixture()
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    let root=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "test-workspace")
+    _ = try await engine.importRule(fixtureRule())
+    _ = try await engine.setRule(ruleId: "test.artifacts", workspaceId: root.id, enabled: true)
+    _ = try await engine.setRule(ruleId: "shou.builtin.rust-target", workspaceId: root.id, enabled: false)
+    let reviewed=try await engine.configuration()
+    let preset=try await engine.savePreset(name: "Enabled fixture", workspaceId: root.id, expectedConfigurationRevision: reviewed.revision)
+    try expect(preset.ruleIds.contains("test.artifacts") && !preset.ruleIds.contains("shou.builtin.rust-target"))
+    try expect(preset.ruleIds == Array(Set(preset.ruleIds)).sorted())
+    let saved=try await engine.configuration()
+    try expect(try Codec.encode(saved.bindings) == Codec.encode(reviewed.bindings))
+    try expect(saved.presets.map(\.id) == [preset.id])
+    try await expectThrows { try await engine.savePreset(name: "Stale", workspaceId: root.id, expectedConfigurationRevision: reviewed.revision) }
+    try expect(try await engine.configuration().revision == saved.revision)
+    _ = try await engine.setRule(ruleId: "test.artifacts", workspaceId: root.id, enabled: false)
+    let disabled=try await engine.configuration()
+    try await expectThrows { try await engine.scan(workspaceId: preset.workspaceId, ruleIds: preset.ruleIds) }
+    try await expectThrows { try await engine.savePreset(name: "Empty", workspaceId: root.id, ruleIds: []) }
+    try expect(try await engine.configuration().revision == disabled.revision)
+    try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("project/target/artifact.bin"), encoding: .utf8) == String(repeating: "x", count: 8192))
+}
+
 func builtinCatalogBindingPreservesValidationAndIsolation() async throws {
     let fixture=try Fixture()
     let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)

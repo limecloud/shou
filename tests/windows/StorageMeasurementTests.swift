@@ -14,6 +14,14 @@ func windowsStorageMeasurementPreservesIdentitiesAndNativeCursors(root: String) 
     let url=try store.storageCatalogURL(id: "native-measurement")!
     let measured=try fs.measureStorage(path, catalog: url, cancelled: { false }, progress: { _ in })
     try require(measured.tree.complete && measured.entryCount == 6, "Native streaming measurement lost entries or coverage")
+    // Reopen through the store, including on elevated CI accounts whose token
+    // default owner can be Administrators. Direct SQLite reads bypass this gate.
+    try require(try store.storageCatalogURL(id: "native-measurement") == url, "SQLite catalog must retain the current user's private ownership")
+    var catalogIdentity=shou_win_info();try native(shou_win_stat(url.path,&catalogIdentity))
+    try require(catalogIdentity.current_user==1 && catalogIdentity.links==1 && catalogIdentity.kind==1, "Private catalog identity is invalid")
+    let unchanged=try Data(contentsOf: url)
+    try require(shou_win_create_private_catalog(url.path)==80, "Creating a catalog must refuse an existing database")
+    try require(try Data(contentsOf: url)==unchanged, "Existing database was overwritten during catalog creation")
     do {
         let catalog=try StorageCatalog(url: url), baseline=try fs.inspect(path, budget: ScanBudget(), cancelled: { false })
         let expected=StorageIndex(entries: baseline.entries)
@@ -47,6 +55,7 @@ func windowsStorageMeasurementPreservesIdentitiesAndNativeCursors(root: String) 
         _ = try fs.measureStorage(path, catalog: cancelledURL, cancelled: { true }, progress: { _ in })
         throw Failure(message: "Cancelled measurement succeeded")
     } catch let error as ShouError { try require(error.code == "cancelled", "Unexpected measurement cancellation error") }
+    try require(!FileManager.default.fileExists(atPath: cancelledURL.path), "An already cancelled measurement must not create an index")
     try require(try store.ids("storage-scans").isEmpty, "Direct measurements must not publish scan records")
     print("PASS native storage cursors, complete Windows identities, hard links, sibling coverage and cancellation")
 

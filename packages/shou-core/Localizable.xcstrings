@@ -769,6 +769,38 @@
         }
       }
     },
+    "AI Configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 配置方案"
+          }
+        }
+      }
+    },
+    "AI Configurations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI Configurations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 配置方案"
+          }
+        }
+      }
+    },
     "AI Investigation": {
       "localizations": {
         "en": {
@@ -797,6 +829,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "AI 模型"
+          }
+        }
+      }
+    },
+    "AI configuration not found.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI configuration not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到此 AI 配置。"
+          }
+        }
+      }
+    },
+    "AI credential storage must be private to the current user (0700).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI credential storage must be private to the current user (0700)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 凭据目录必须仅限当前用户访问（0700）。"
           }
         }
       }
@@ -893,6 +957,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "将 API 密钥存入钥匙串"
+          }
+        }
+      }
+    },
+    "API Key in Local Storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key in Local Storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key（本地私有存储）"
           }
         }
       }
@@ -1025,6 +1105,22 @@
         }
       }
     },
+    "Add a main model before using this legacy configuration.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a main model before using this legacy configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此旧配置缺少主模型，请编辑补全后使用。"
+          }
+        }
+      }
+    },
     "Add a main model connection to handle open-ended understanding.": {
       "localizations": {
         "en": {
@@ -1037,6 +1133,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请配置主模型连接以处理开放式理解。"
+          }
+        }
+      }
+    },
+    "Add a main model in Settings before starting AI. The optional decision service assists the main model.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a main model in Settings before starting AI. The optional decision service assists the main model."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先在设置中配置主模型。可选的决策服务用于协助主模型。"
           }
         }
       }
@@ -1345,6 +1457,22 @@
         }
       }
     },
+    "All Scanned Folders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Scanned Folders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部已扫描范围"
+          }
+        }
+      }
+    },
     "All Types": {
       "localizations": {
         "en": {
@@ -1485,6 +1613,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "允许选择应用个人数据"
+          }
+        }
+      }
+    },
+    "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API 密钥不可用。请在 AI 设置中使用本地存储重新保存密钥，再新建调查；无需输入系统密码。"
           }
         }
       }
@@ -4497,6 +4641,22 @@
         }
       }
     },
+    "Choose active, deleted or all as the configuration state.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose active, deleted or all as the configuration state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配置状态请选择 active、deleted 或 all。"
+          }
+        }
+      }
+    },
     "Choose an unused rule version. Existing versions cannot be overwritten.": {
       "localizations": {
         "en": {
@@ -4525,6 +4685,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择额外文件夹，今后的清理扫描会自动包含这些位置。"
+          }
+        }
+      }
+    },
+    "Choose local storage or system credentials before saving an API key.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose local storage or system credentials before saving an API key."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存 API 密钥前，请选择本地存储或系统凭据。"
           }
         }
       }
@@ -5521,6 +5697,22 @@
         }
       }
     },
+    "Combine structured decisions with a main model in one configuration. Local analysis and the decision service come first; the main model handles requests that need more understanding.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combine structured decisions with a main model in one configuration. Local analysis and the decision service come first; the main model handles requests that need more understanding."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在一个方案中组合结构化决策和大模型。优先使用本地分析与决策服务，仅在需要更多理解时调用大模型。"
+          }
+        }
+      }
+    },
     "Comet caches": {
       "localizations": {
         "en": {
@@ -5777,6 +5969,22 @@
         }
       }
     },
+    "Configuration Name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuration Name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "方案名称"
+          }
+        }
+      }
+    },
     "Configuration changed; scan again.": {
       "localizations": {
         "en": {
@@ -5853,6 +6061,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先配置 Jev，或明确选择仅主模型策略。"
+          }
+        }
+      }
+    },
+    "Configure a main model. The decision service assists the main model and cannot be used alone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure a main model. The decision service assists the main model and cannot be used alone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请配置主模型。决策服务用于协助主模型，不能单独使用。"
           }
         }
       }
@@ -6641,6 +6865,22 @@
         }
       }
     },
+    "Decision Service · First": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decision Service · First"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "决策服务 · 优先调用"
+          }
+        }
+      }
+    },
     "Decision Variable Name": {
       "localizations": {
         "en": {
@@ -6653,6 +6893,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "决策服务环境变量名"
+          }
+        }
+      }
+    },
+    "Decision service is off. The main model takes over; saved decision settings and keys are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decision service is off. The main model takes over; saved decision settings and keys are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "决策服务已关闭，由主模型接管；已保存的决策配置和密钥会保留。"
           }
         }
       }
@@ -6737,6 +6993,54 @@
         }
       }
     },
+    "Delete Configuration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Configuration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除配置"
+          }
+        }
+      }
+    },
+    "Delete Configuration?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Configuration?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除此配置？"
+          }
+        }
+      }
+    },
+    "Delete Configuration…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Configuration…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除配置…"
+          }
+        }
+      }
+    },
     "Delete Permanently": {
       "localizations": {
         "en": {
@@ -6781,6 +7085,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "永久删除这些项目？"
+          }
+        }
+      }
+    },
+    "Deleted Configurations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleted Configurations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除配置"
           }
         }
       }
@@ -7553,6 +7873,22 @@
         }
       }
     },
+    "Each configuration includes a main model. Turn the decision service on to save tokens, or off to use the main model directly. Keys stay in private local storage.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each configuration includes a main model. Turn the decision service on to save tokens, or off to use the main model directly. Keys stay in private local storage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每个配置方案都包含主模型。开启决策服务可协助节省 token；关闭后由主模型接管。密钥保存在本地私有存储中。"
+          }
+        }
+      }
+    },
     "Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review.": {
       "localizations": {
         "en": {
@@ -7741,6 +8077,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先启用 AI 调查再测试连接。"
+          }
+        }
+      }
+    },
+    "Enable Decision Service": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable Decision Service"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用决策服务"
           }
         }
       }
@@ -10353,6 +10705,22 @@
         }
       }
     },
+    "Investigate the entire saved scan, including its child folders. A broad overview may reach the per-investigation limit; you can then investigate individual folders.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigate the entire saved scan, including its child folders. A broad overview may reach the per-investigation limit; you can then investigate individual folders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调查当前索引根及其子目录，不包含其他卷。概览可能达到单次调查上限，之后可选择具体子目录继续。"
+          }
+        }
+      }
+    },
     "Investigate this folder with your model": {
       "localizations": {
         "en": {
@@ -10397,6 +10765,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "调查目标"
+          }
+        }
+      }
+    },
+    "Investigation Scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigation Scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调查范围"
           }
         }
       }
@@ -10461,6 +10845,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "调查已完成"
+          }
+        }
+      }
+    },
+    "Investigation limit reached": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigation limit reached"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到本次调查上限"
           }
         }
       }
@@ -11153,6 +11553,38 @@
         }
       }
     },
+    "Legacy Keychain Reference": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy Keychain Reference"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧钥匙串引用（兼容）"
+          }
+        }
+      }
+    },
+    "Legacy Keychain access depends on the app signature. Switch to local storage and enter each key once; the old Keychain entries are kept. Shou will not request your login Keychain password.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legacy Keychain access depends on the app signature. Switch to local storage and enter each key once; the old Keychain entries are kept. Shou will not request your login Keychain password."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧钥匙串访问受应用签名影响。改用本地存储后，请重新填写一次各服务密钥；原钥匙串条目会保留。Shou 不会要求输入登录钥匙串密码。"
+          }
+        }
+      }
+    },
     "Light": {
       "localizations": {
         "en": {
@@ -11281,6 +11713,54 @@
         }
       }
     },
+    "Local analysis → main model. Structured decisions are not used by this strategy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local analysis → main model. Structured decisions are not used by this strategy."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地分析 → 大模型。当前策略不使用结构化决策服务。"
+          }
+        }
+      }
+    },
+    "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地分析 → 结构化决策 → 必要时大模型。两项服务在同一方案中协作，按需调用。"
+          }
+        }
+      }
+    },
+    "Local analysis → structured decisions. The main model is off.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local analysis → structured decisions. The main model is off."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地分析 → 结构化决策。大模型未启用。"
+          }
+        }
+      }
+    },
     "Local data": {
       "localizations": {
         "en": {
@@ -11293,6 +11773,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "本地数据"
+          }
+        }
+      }
+    },
+    "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地密钥由用户文件权限保护，不使用钥匙串加密；不会写入连接资料或调查历史。连接测试仅发送合成数据。"
           }
         }
       }
@@ -11437,6 +11933,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "MPV 缓存"
+          }
+        }
+      }
+    },
+    "Main Model": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main Model"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大模型"
+          }
+        }
+      }
+    },
+    "Main Model · When Needed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main Model · When Needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "大模型 · 按需理解"
           }
         }
       }
@@ -13601,6 +14129,38 @@
         }
       }
     },
+    "One Folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One Folder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单个目录"
+          }
+        }
+      }
+    },
+    "One configuration combines a decision service and an optional main model. Keys are saved locally for your user account; ordinary scans work offline.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One configuration combines a decision service and an optional main model. Keys are saved locally for your user account; ordinary scans work offline."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个方案包含决策服务和可选大模型。密钥保存在当前用户的本地私有目录；普通扫描离线运行。"
+          }
+        }
+      }
+    },
     "One relative pattern per line": {
       "localizations": {
         "en": {
@@ -13708,7 +14268,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅包含默认 Windows 用户位置中列明的缓存子目录。请先关闭所属应用并停止相关构建。保留用户配置、账号、凭据、会话、设置、扩展、环境和项目源文件。自定义位置需要单独审阅。"
+            "value": "仅包含默认 Windows 用户位置下明确命名的缓存子目录。请先关闭所属应用并停止相关构建。用户配置、账号、凭据、会话、设置、扩展、环境和项目源码都会保留；自定义位置需单独审阅。"
           }
         }
       }
@@ -13789,6 +14349,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅包含当前用户 Library/Caches 下的指定目录。受保护文件仍禁止清理，保留偏好设置、个人数据及缓存目录之外的已下载模型。"
+          }
+        }
+      }
+    },
+    "Only this folder and its children are investigated. This does not select files for cleanup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this folder and its children are investigated. This does not select files for cleanup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅调查此目录及其子目录。调查范围不改变清理勾选。"
           }
         }
       }
@@ -13917,6 +14493,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开文件夹…"
+          }
+        }
+      }
+    },
+    "Open Investigation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Investigation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开调查"
           }
         }
       }
@@ -17009,6 +17601,22 @@
         }
       }
     },
+    "Remove this configuration from available choices. Saved investigations and their keys are retained. You can restore it from Deleted Configurations.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this configuration from available choices. Saved investigations and their keys are retained. You can restore it from Deleted Configurations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从可用配置中移除此方案，保留已保存的调查及其密钥。之后可在“已删除配置”中恢复。"
+          }
+        }
+      }
+    },
     "Report an Issue": {
       "localizations": {
         "en": {
@@ -17105,6 +17713,22 @@
         }
       }
     },
+    "Restore": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复"
+          }
+        }
+      }
+    },
     "Restore destination already exists; nothing was overwritten.": {
       "localizations": {
         "en": {
@@ -17133,6 +17757,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "恢复位置已被占用"
+          }
+        }
+      }
+    },
+    "Restore the deleted AI configuration before editing it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore the deleted AI configuration before editing it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先恢复已删除的 AI 配置，再进行编辑。"
           }
         }
       }
@@ -20033,6 +20673,22 @@
         }
       }
     },
+    "Set as Default": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as Default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为默认"
+          }
+        }
+      }
+    },
     "Set up Shou once, then get straight to cleaning.": {
       "localizations": {
         "en": {
@@ -22193,6 +22849,22 @@
         }
       }
     },
+    "Switch to Local Key Storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to Local Key Storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改用本地密钥存储"
+          }
+        }
+      }
+    },
     "System Background Item": {
       "localizations": {
         "en": {
@@ -22753,6 +23425,22 @@
         }
       }
     },
+    "The decision service is off. The main model handles this configuration directly.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The decision service is off. The main model handles this configuration directly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "决策服务已关闭，当前配置由主模型直接处理。"
+          }
+        }
+      }
+    },
     "The file changed before permanent removal.": {
       "localizations": {
         "en": {
@@ -22849,6 +23537,86 @@
         }
       }
     },
+    "The investigation reached its 12-step analysis limit. Existing evidence is saved; investigate a specific child folder next.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The investigation reached its 12-step analysis limit. Existing evidence is saved; investigate a specific child folder next."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到单次 12 步分析上限。已有证据已保存，可选择具体子目录继续调查。"
+          }
+        }
+      }
+    },
+    "The investigation reached its 3-minute processing limit. Existing evidence is saved; try a narrower folder. This does not indicate an exhausted API balance.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The investigation reached its 3-minute processing limit. Existing evidence is saved; try a narrower folder. This does not indicate an exhausted API balance."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到单次 3 分钟处理时限。已有证据已保存，可缩小目录重新调查；这不代表 API 账户余额不足。"
+          }
+        }
+      }
+    },
+    "The investigation reached its 32,000 reported-token limit. Existing evidence is saved; try a narrower folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The investigation reached its 32,000 reported-token limit. Existing evidence is saved; try a narrower folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到单次 32,000 个报告 token 上限。已有证据已保存，可缩小目录重新调查。"
+          }
+        }
+      }
+    },
+    "The investigation reached its 32-tool-call limit. Existing evidence is saved; try a narrower folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The investigation reached its 32-tool-call limit. Existing evidence is saved; try a narrower folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到单次 32 次工具调用上限。已有证据已保存，可缩小目录重新调查。"
+          }
+        }
+      }
+    },
+    "The investigation reached its 8-decision-request limit. Existing evidence is saved; investigate a specific child folder next.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The investigation reached its 8-decision-request limit. Existing evidence is saved; investigate a specific child folder next."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到单次 8 次决策请求上限。已有证据已保存，可选择具体子目录继续调查。"
+          }
+        }
+      }
+    },
     "The investigation reached its budget. Review the available suggestions or start a smaller investigation.": {
       "localizations": {
         "en": {
@@ -22861,6 +23629,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "调查已达到预算限制。你可以审阅已有建议，或缩小范围后重新调查。"
+          }
+        }
+      }
+    },
+    "The investigation reached its evidence size limit. Existing evidence is saved; try a narrower folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The investigation reached its evidence size limit. Existing evidence is saved; try a narrower folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "达到本次证据大小上限。已有证据已保存，可缩小目录重新调查。"
+          }
+        }
+      }
+    },
+    "The legacy Keychain key is unavailable. Open AI settings, choose local storage and enter the key again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The legacy Keychain key is unavailable. Open AI settings, choose local storage and enter the key again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "旧钥匙串密钥不可用。请在 AI 设置中改用本地存储，并重新输入密钥。"
+          }
+        }
+      }
+    },
+    "The local API key is unavailable. Open AI settings to save it again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local API key is unavailable. Open AI settings to save it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地 API 密钥不可用，请在 AI 设置中重新保存。"
           }
         }
       }
@@ -22909,6 +23725,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "此位置扫描未完成，无法创建可执行清理计划。"
+          }
+        }
+      }
+    },
+    "The main model is required. Enable the decision service to reduce token use; switch it off to let the main model handle the investigation directly.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The main model is required. Enable the decision service to reduce token use; switch it off to let the main model handle the investigation directly."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主模型为必需配置。开启决策服务可协助减少 token 用量；关闭后由主模型直接处理调查。"
           }
         }
       }
@@ -22993,6 +23825,22 @@
         }
       }
     },
+    "The overview reached its 8-directory limit. Review the findings, then investigate a specific child folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The overview reached its 8-directory limit. Review the findings, then investigate a specific child folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次概览已分析 8 个目录。请审阅已有发现，再选择具体子目录继续调查。"
+          }
+        }
+      }
+    },
     "The owner or leftover scope changed. Scan again.": {
       "localizations": {
         "en": {
@@ -23020,7 +23868,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "所属应用会重新生成这些缓存；后续启动或构建可能需要重新下载。"
+            "value": "所属应用会重新生成这些缓存；之后启动或构建时可能需要重新下载。"
           }
         }
       }
@@ -23245,6 +24093,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚未安装所选结构化决策适配器，请编辑连接并选择可用服务。"
+          }
+        }
+      }
+    },
+    "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。"
           }
         }
       }
@@ -24477,6 +25341,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "安装前验证更新签名。"
+          }
+        }
+      }
+    },
+    "Use Browsed Folder": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Browsed Folder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用当前浏览目录"
           }
         }
       }

@@ -46,14 +46,22 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         return fd
     }
     public func read(_ collection: String, id: String) throws -> Data? {
+        try read(collection, id: id, limit: 268_435_456, privateAccess: false)
+    }
+    func readAICredential(id: String) throws -> Data? {
+        try read("ai-credentials", id: id, limit: 8192, privateAccess: true)
+    }
+    private func read(_ collection: String, id: String, limit: Int, privateAccess: Bool) throws -> Data? {
         try validate(id)
         let dir = try self.collection(collection); defer { close(dir) }
-        let fd = openat(dir, id + ".json", O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        if privateAccess { try requirePrivateDirectory(dir) }
+        let fd = openat(dir, id + (privateAccess ? ".key" : ".json"), O_RDONLY | O_NONBLOCK | O_NOFOLLOW | O_CLOEXEC)
         if fd < 0 && errno == ENOENT { return nil }
         guard fd >= 0 else { throw SecurePaths.failure("Read record", path: id) }
         defer { close(fd) }
         var metadata = stat()
-        guard fstat(fd, &metadata) == 0, metadata.st_mode & S_IFMT == S_IFREG, metadata.st_size <= 268_435_456, metadata.st_uid == getuid(), metadata.st_nlink == 1 else { throw ShouError("store_corrupt", "Record has an unsupported type, owner, link count, or size.") }
+        guard fstat(fd, &metadata) == 0, metadata.st_mode & S_IFMT == S_IFREG, metadata.st_size <= limit, metadata.st_uid == getuid(), metadata.st_nlink == 1,
+              !privateAccess || metadata.st_mode & 0o077 == 0 else { throw ShouError("store_corrupt", "Record has an unsupported type, owner, permissions, link count, or size.") }
         var data=Data(), buffer=[UInt8](repeating: 0, count: 65_536)
         while true {
             let count = buffer.withUnsafeMutableBytes { raw in
@@ -67,14 +75,27 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
             if count < 0 && errno == EINTR { continue }
             guard count > 0 else { throw SecurePaths.failure("Read record bytes", path: id) }
             data.append(contentsOf: buffer.prefix(count))
-            guard data.count <= 268_435_456 else { throw ShouError("resource_limit", "Record exceeds the storage read limit.") }
+            guard data.count <= limit else { throw ShouError("resource_limit", "Record exceeds the storage read limit.") }
         }
         return data
     }
     public func write(_ collection: String, id: String, data: Data) throws {
+        try write(collection, id: id, data: data, limit: 268_435_456, privateAccess: false)
+    }
+    func writeAICredential(id: String, data: Data) throws {
+        try write("ai-credentials", id: id, data: data, limit: 8192, privateAccess: true)
+    }
+    private func requirePrivateDirectory(_ descriptor: Int32) throws {
+        var metadata=stat()
+        guard fstat(descriptor, &metadata) == 0, metadata.st_uid == getuid(), metadata.st_mode & 0o077 == 0 else {
+            throw ShouError("permission_denied", "AI credential storage must be private to the current user (0700).")
+        }
+    }
+    private func write(_ collection: String, id: String, data: Data, limit: Int, privateAccess: Bool) throws {
         try validate(id)
-        guard data.count <= 268_435_456 else { throw ShouError("resource_limit", "Record exceeds the storage read limit.") }
+        guard data.count <= limit else { throw ShouError("resource_limit", "Record exceeds the storage read limit.") }
         let dir = try self.collection(collection); defer { close(dir) }
+        if privateAccess { try requirePrivateDirectory(dir) }
         let temporary = ".pending-" + UUID().uuidString
         let fd = openat(dir, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)
         guard fd >= 0 else { throw SecurePaths.failure("Create durable record", path: id) }
@@ -96,7 +117,7 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         #if canImport(Darwin)
         guard fcntl(fd, F_FULLFSYNC) == 0 else { throw SecurePaths.failure("Synchronize record storage", path: id) }
         #endif
-        guard renameat(dir, temporary, dir, id + ".json") == 0, fsync(dir) == 0 else { throw SecurePaths.failure("Commit durable record", path: id) }
+        guard renameat(dir, temporary, dir, id + (privateAccess ? ".key" : ".json")) == 0, fsync(dir) == 0 else { throw SecurePaths.failure("Commit durable record", path: id) }
     }
     public func ids(_ collection: String) throws -> [String] {
         let dir = try self.collection(collection); defer { close(dir) }

@@ -408,6 +408,24 @@ int shou_win_read(const char *input,size_t limit,void **bytes,size_t *count){
     if(code){free(data);return code;}*bytes=data;*count=total;return 0;
 }
 int shou_win_private_directory(const char *input){std::wstring path;auto code=normalized(input,path);return code?code:private_acl(path,true);}
+int shou_win_create_private_catalog(const char *input){
+    std::wstring path;auto code=normalized(input,path);if(code)return code;
+    const auto parentPath=path.substr(0,path.find_last_of(L'\\'));
+    if((code=private_acl(parentPath,false)))return code;
+    Handles pins;HANDLE parent;if((code=open(parentPath,pins,parent)))return code;
+    PSECURITY_DESCRIPTOR descriptor=nullptr;if((code=private_descriptor(user_sid(),descriptor)))return code;
+    SECURITY_ATTRIBUTES attributes{sizeof(attributes),descriptor,FALSE};
+    // SQLite inherits the token's default owner when it creates the database.
+    // Elevated Windows accounts can default to Administrators instead of their
+    // user SID. Create the new empty database with explicit private ownership;
+    // an existing object is never truncated, adopted or repaired here.
+    HANDLE file=CreateFileW(extended(path).c_str(),GENERIC_READ|GENERIC_WRITE|READ_CONTROL,FILE_SHARE_READ|FILE_SHARE_WRITE,&attributes,CREATE_NEW,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_OPEN_REPARSE_POINT,nullptr);
+    code=file==INVALID_HANDLE_VALUE?GetLastError():0;LocalFree(descriptor);if(code)return code;
+    pins.values.push_back(file);shou_win_info current{};
+    if((code=info(file,&current)))return code;
+    if(current.kind!=1 || !current.current_user || current.links!=1 || current.logical_bytes!=0)return ERROR_ACCESS_DENIED;
+    return private_acl(path,false);
+}
 int shou_win_remove_record(const char *input){
     std::wstring path;auto code=normalized(input,path);if(code)return code;
     Handles pins;HANDLE handle;

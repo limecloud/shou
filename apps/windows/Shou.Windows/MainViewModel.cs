@@ -13,8 +13,7 @@ public sealed record RuleRow(string Id, string Version, string Title, string Loc
     public bool CanToggle => WorkspaceId is not null || (IsBuiltin && Location != "projects" && Available);
 }
 public sealed record RulePreviewRow(string Path, string Size, string Decision);
-public sealed record HistoryItemRow(string Path, string State, string? Error, string? ResultingPath);
-public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, string[] RestorableIds, string[] PurgeableIds, HistoryItemRow[] Items)
+public sealed record HistoryRow(string Id, string CreatedAt, string RootPath, string State, HistoryItemRow[] Items)
 {
     public string Label => ProgressPresentation.ShortPath(RootPath);
 }
@@ -25,7 +24,8 @@ public sealed class StorageRow(string path, string size, string kind, long alloc
     public string Size { get; } = size;
     public string Kind { get; } = kind;
     public long AllocatedBytes { get; } = allocatedBytes;
-    public string LogicalSize { get; } = MainViewModel.Bytes(logicalBytes);
+    public long LogicalBytes { get; } = logicalBytes;
+    public string LogicalSize => MainViewModel.Bytes(LogicalBytes);
     public int Files { get; } = files;
     public string Icon => Kind == "directory" ? "📁" : "▤";
     private string share="—";
@@ -38,7 +38,13 @@ public sealed class StorageRow(string path, string size, string kind, long alloc
     public bool IsSelected { get => selected; set => SetProperty(ref selected,value && Eligible); }
     public ObservableCollection<StorageRow> Children { get; } = [];
 }
-public sealed record StorageExtensionRow(string Suffix, string Size, int Files, string Color, string Share, string LogicalSize) { public string Name => Suffix.Length == 0 ? "无扩展名" : "." + Suffix; }
+public sealed record StorageExtensionRow(string Suffix, long AllocatedBytes, int Files, string Color, double ShareRatio, long LogicalBytes)
+{
+    public string Name => Suffix.Length == 0 ? "无扩展名" : "." + Suffix;
+    public string Size => MainViewModel.Bytes(AllocatedBytes);
+    public string LogicalSize => MainViewModel.Bytes(LogicalBytes);
+    public string Share => ShareRatio >= 0 ? ShareRatio.ToString("P1") : "—";
+}
 
 public sealed record CleanupItemResultRow(string Path, string State, string? Error);
 public sealed record CleanupCompletionRow(string Icon, string Title, string SuccessText, string Message, string Processed, string Skipped, string Failed, string NeedsVerification, bool HasIssues, CleanupItemResultRow[] Items);
@@ -53,6 +59,7 @@ public sealed class CandidateRow(string id, string path, long bytes, bool eligib
     public CleanupChoice Choice { get; } = new(scan + ":" + id, scan, id, workspace, root.TrimEnd('/', '\\') + "/" + path, category, group, bytes);
     public bool Recommended { get; } = recommended;
     public int Files { get; } = files;
+    public long AllocatedBytes => Choice.Bytes;
     public string Size { get; } = MainViewModel.Bytes(bytes);
     public bool Eligible { get; } = eligible;
     public string Description { get; } = description;
@@ -85,6 +92,7 @@ public sealed partial class MainViewModel : ObservableObject
     private bool busy, trashAvailable, permanentAvailable;
     private string status = "正在连接清理核心…", exclusionPattern = "", storagePath = ".";
     private WorkspaceRow? selectedWorkspace;
+    private bool updatingWorkspaces;
     private RuleRow? selectedRule;
     private HistoryRow? selectedHistory;
     private StorageRow? selectedStorageNode;
@@ -146,8 +154,8 @@ public sealed partial class MainViewModel : ObservableObject
         }), () => !IsBusy);
         ClearHistoryCommand = new AsyncRelayCommand(() => ClearHistoryAsync(false), () => !IsBusy && History.Count > 0);
         RemoveHistoryCommand = new AsyncRelayCommand(() => ClearHistoryAsync(true), () => !IsBusy && SelectedHistory is not null);
-        RestoreCommand = new AsyncRelayCommand(() => FollowUpAsync("restore"), () => !IsBusy && trashAvailable && SelectedHistory?.RestorableIds.Length > 0);
-        PurgeCommand = new AsyncRelayCommand(() => FollowUpAsync("purge"), () => !IsBusy && permanentAvailable && SelectedHistory?.PurgeableIds.Length > 0);
+        RestoreCommand = new AsyncRelayCommand(() => FollowUpAsync("restore"), () => !IsBusy && trashAvailable && CanFollowUpHistory("restore"));
+        PurgeCommand = new AsyncRelayCommand(() => FollowUpAsync("purge"), () => !IsBusy && permanentAvailable && CanFollowUpHistory("purge"));
         DismissCompletionCommand = new RelayCommand(() => Completion = null, () => Completion is not null);
         ViewHistoryFromCompletionCommand = new RelayCommand(() => { Completion = null; SelectedSection = 3; _ = LoadHistoryAsync(); }, () => Completion is not null && !IsBusy);
         RetryCleanupCommand = new AsyncRelayCommand(RetryCleanupAsync, () => !IsBusy && CompletionHasIssues);
@@ -157,8 +165,8 @@ public sealed partial class MainViewModel : ObservableObject
         ReviewRulesCommand = new AsyncRelayCommand(() => RunAsync(async () => { await LoadConfigurationAsync(); SelectedSection=2; }), () => !IsBusy);
         EnableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(true), () => !IsBusy && SelectedRule?.CanToggle == true);
         DisableRuleCommand = new AsyncRelayCommand(() => SetRuleAsync(false), () => !IsBusy && SelectedRule?.CanToggle == true);
-        AddExclusionCommand = new AsyncRelayCommand(AddExclusionAsync, () => !IsBusy && !string.IsNullOrWhiteSpace(ExclusionPattern));
-        RemoveExclusionCommand = new AsyncRelayCommand(RemoveExclusionAsync, () => !IsBusy && SelectedExclusion is not null);
+        AddExclusionCommand = new AsyncRelayCommand(() => SetScopedExclusionAsync(false), () => CanEditRuleSettings && (ExclusionScope==0 || SelectedWorkspace is not null) && (ProjectExclusionScope ? !string.IsNullOrWhiteSpace(ExclusionProject) : !string.IsNullOrWhiteSpace(ExclusionPattern)));
+        RemoveExclusionCommand = new AsyncRelayCommand(() => SetScopedExclusionAsync(true), () => CanEditRuleSettings && SelectedExclusion is not null && (ExclusionScope==0 || SelectedWorkspace is not null));
         CancelCommand = new RelayCommand(() => { active?.Cancel(); Status = "正在停止；请等待当前项目写回回执。"; }, () => IsBusy);
         commands = [ChooseFolderCommand, ScanCommand, MoreCommand, CleanCommand, PermanentDeleteCommand, AnalyzeCommand, StorageUpCommand, HistoryCommand, RestoreCommand, PurgeCommand, ImportRuleCommand, EnableRuleCommand, DisableRuleCommand, AddExclusionCommand, RemoveExclusionCommand, CancelCommand, DismissCompletionCommand, ViewHistoryFromCompletionCommand, RetryCleanupCommand];
         commands.Add(ScanFolderCommand); commands.Add(SelectAllCommand);
@@ -166,9 +174,13 @@ public sealed partial class MainViewModel : ObservableObject
         commands.Add(ClearHistoryCommand); commands.Add(RemoveHistoryCommand);
         commands.Add(MoreHistoryCommand); commands.Add(CollectRecordsCommand);
         commands.Add(CopyStorageAnalysisCommand); commands.Add(RemoveStorageCommand); commands.Add(RescanStorageCommand); commands.Add(RevealStorageCommand);
+        InitializeHistory();
         InitializeLargeFiles();
         InitializeAI();
         InitializeCleanupReview();
+        InitializeStartup();
+        InitializeRuleAuthoring();
+        InitializeApplications();
         commands.Add(PreviewRuleCommand); commands.Add(EnableAndScanRuleCommand); commands.Add(ReviewRulesCommand);
         PropertyChanged += (_, _) => RefreshCommands();
     }
@@ -227,7 +239,7 @@ public sealed partial class MainViewModel : ObservableObject
     public IAsyncRelayCommand AddExclusionCommand { get; }
     public IAsyncRelayCommand RemoveExclusionCommand { get; }
     public IRelayCommand CancelCommand { get; }
-    public bool IsBusy { get => busy; private set => SetProperty(ref busy, value); }
+    public bool IsBusy { get => busy; private set { if (SetProperty(ref busy, value)) OnPropertyChanged(nameof(HistorySelectionEnabled)); } }
     public bool ProgressIndeterminate => IsBusy && ProgressFraction is null;
     public double? ProgressFraction { get => progressFraction; private set { SetProperty(ref progressFraction, value); OnPropertyChanged(nameof(ProgressIndeterminate)); OnPropertyChanged(nameof(ProgressValue)); OnPropertyChanged(nameof(ProgressPercentage)); } }
     public double ProgressValue => (ProgressFraction ?? 0) * 100;
@@ -247,13 +259,13 @@ public sealed partial class MainViewModel : ObservableObject
     public WorkspaceRow? SelectedWorkspace
     {
         get => selectedWorkspace;
-        set { if (SetProperty(ref selectedWorkspace, value)) { ResetCleanupReview(); LoadRules(); RefreshCommands(); } }
+        set { if (!updatingWorkspaces && SetProperty(ref selectedWorkspace, value)) { ResetCleanupReview(); LoadRules();ExclusionProject="";ExclusionPattern="";LoadExclusionScope(); RefreshCommands(); } }
     }
     public RuleRow? SelectedRule { get => selectedRule; set { if(SetProperty(ref selectedRule, value)) { rulePreview=null; RulePreviewRows.Clear(); RulePreviewSummary=value?.Title ?? ""; RulePreviewDetails=value?.Details ?? ""; RefreshCommands(); } } }
     public HistoryRow? SelectedHistory
     {
         get => selectedHistory;
-        set { if (SetProperty(ref selectedHistory, value)) { HistoryItems.Clear(); foreach (var item in value?.Items ?? []) HistoryItems.Add(item); } }
+        set { if (SetProperty(ref selectedHistory, value)) ResetHistoryItems(value); }
     }
     public StorageRow? SelectedStorageNode { get => selectedStorageNode; set { if(SetProperty(ref selectedStorageNode, value)) OnPropertyChanged(nameof(StorageFocusPath)); } }
     private CancellationToken Token => active?.Token ?? CancellationToken.None;
@@ -266,6 +278,9 @@ public sealed partial class MainViewModel : ObservableObject
             throw new BridgeException("incompatible_engine", "请选择与 Windows 客户端匹配的 Shou 清理核心。");
         trashAvailable = capabilities["features"]?["trash"]?.GetValue<bool>() == true;
         permanentAvailable = capabilities["features"]?["permanent"]?.GetValue<bool>() == true;
+        startupAvailable = capabilities["features"]?["startup"]?.GetValue<bool>() == true;
+        ruleAuthoringAvailable = capabilities["features"]?["rule_authoring"]?.GetValue<bool>() == true;
+        applicationInventoryAvailable = capabilities["features"]?["application_inventory"]?.GetValue<bool>() == true;
         await LoadConfigurationAsync(); await LoadHistoryAsync(); await LoadAIAsync(capabilities);
         Status = "一键扫描常用缓存和开发项目，也可以选择自定义目录。";
     });
@@ -309,12 +324,16 @@ public sealed partial class MainViewModel : ObservableObject
         var result = await client.RequestAsync("configuration", cancellation: Token);
         if(configuration?["configuration"]?["revision"]?.GetValue<string>() == result["configuration"]?["revision"]?.GetValue<string>()) return;
         configuration = result as JsonObject;
-        Workspaces.Clear();
-        foreach (var item in Array(result["configuration"]?["workspaces"])) Workspaces.Add(new(Text(item, "id"), Text(item, "path"), Text(item, "root_ref")));
-        Exclusions.Clear(); SelectedExclusion = null;
-        foreach (var item in Array(result["configuration"]?["global_exclusions"])) if (item?.GetValue<string>() is { } pattern) Exclusions.Add(pattern);
+        // ComboBox clears its selection while the source collection reloads.
+        // Keep that transient state from erasing the current exclusion scope.
+        updatingWorkspaces=true;
+        try {
+            Workspaces.Clear();
+            foreach (var item in Array(result["configuration"]?["workspaces"])) Workspaces.Add(new(Text(item, "id"), Text(item, "path"), Text(item, "root_ref")));
+        } finally { updatingWorkspaces=false; }
         SelectedWorkspace = Workspaces.FirstOrDefault(item => item.Id == selected) ?? Workspaces.FirstOrDefault();
-        LoadRules();
+        OnPropertyChanged(nameof(SelectedWorkspace));
+        LoadRules();LoadRuleSettings();
     }
     public Task RefreshExternalChangesAsync() => RunAsync(async () => {
         var revision=configuration?["configuration"]?["revision"]?.GetValue<string>();
@@ -361,20 +380,20 @@ public sealed partial class MainViewModel : ObservableObject
             if (item["platforms"] is JsonArray platforms && !platforms.Any(value => value?.GetValue<string>() == "windows")) continue;
             var id = Text(item, "id"); var version = item["version"]?.GetValue<string>() ?? "1.0.0";
             var builtin = id.StartsWith("shou.builtin.", StringComparison.Ordinal);
+            if(RuleSource==1 && !builtin || RuleSource==2 && builtin)continue;
             var location = Text(item, "location");
             var knownLocation = locations.FirstOrDefault(value => Text(value,"id") == location);
             WorkspaceRow? workspace;
             if(builtin && location != "projects") workspace=Workspaces.FirstOrDefault(value => SamePath(value.Path,Text(knownLocation,"path")));
             else if(builtin) workspace=SelectedWorkspace is { } selected && !locations.Any(value=>SamePath(selected.Path,Text(value,"path"))) ? selected : null;
             else workspace=Workspaces.FirstOrDefault(value => value.RootRef==Text(item["scope"],"root_ref"));
-            if(!builtin && SelectedWorkspace is not null && workspace?.Id != SelectedWorkspace.Id) continue;
             var binding = bindings.FirstOrDefault(value => Text(value, "rule_id") == id && Text(value, "workspace_id") == workspace?.Id && (builtin || Text(value, "version") == version));
             var enabled = binding?["enabled"]?.GetValue<bool>() ?? builtin;
             var available = location == "projects" || !builtin || knownLocation?["exists"]?.GetValue<bool>() == true;
             var scopeLabel = builtin ? location == "projects" ? workspace is null ? "选择项目目录后配置" : "项目内置" : "缓存内置" : "个人规则";
             var state = !available ? "位置不存在或不可访问" : enabled ? "已启用" : "已停用 / 草稿";
             var patterns = string.Join("\n",Array(item["patterns"] ?? item["match"]?["relative_patterns"]).Select(value=>value?.GetValue<string>()));
-            var details = (builtin ? Text(item,"rebuild_note") : Text(item,"description"))+"\n"+(builtin ? Text(item,"limitation") : "个人规则默认停用；预览并审阅后启用。")+"\n\n匹配目录：\n"+patterns;
+            var details = (builtin ? Text(item,"rebuild_note") : Text(item,"description"))+"\n"+(builtin ? Text(item,"limitation") : "个人规则默认停用；预览并审阅后启用。\n工作区："+(workspace?.Path ?? Text(item["scope"],"root_ref")))+"\n\n匹配目录：\n"+patterns;
             Rules.Add(new(id, version, $"{Text(item, "name")} · {scopeLabel} · {state}", location, workspace?.Id, details, builtin, available));
         }
     }
@@ -447,14 +466,15 @@ public sealed partial class MainViewModel : ObservableObject
     }
     private async Task LoadHistoryPageAsync(bool append)
     {
+        var selectedId = SelectedHistory?.Id;
         var result = await client.RequestAsync("history.page", new() { ["offset"] = append ? historyNextOffset ?? 0 : 0 }, cancellation: Token);
-        if (!append) History.Clear();
+        if (!append) { SelectedHistory = null; History.Clear(); }
         historyNextOffset = result["next_offset"]?.GetValue<int>();
         foreach (var item in Array(result["receipts"]).Where(item => !History.Any(existing => existing.Id == Text(item, "id")))) History.Add(new(Text(item, "id"), Text(item, "created_at"), Text(item, "root_path"), Text(item, "state"),
-            Array(item?["items"]).Where(value => value?["can_restore"]?.GetValue<bool>() == true).Select(value => Text(value, "id")).ToArray(),
-            Array(item?["items"]).Where(value => value?["can_purge"]?.GetValue<bool>() == true).Select(value => Text(value, "id")).ToArray(),
-            Array(item?["items"]).Select(value => new HistoryItemRow(Text(value, "path"), Text(value, "state"), value?["error"]?.GetValue<string>(), value?["resulting_path"]?.GetValue<string>())).ToArray()));
-        SelectedHistory = History.FirstOrDefault();
+            Array(item?["items"]).Select(value => new HistoryItemRow(Text(value, "id"), Text(value, "path"), Text(value, "state"), value?["bytes"]?.GetValue<long>() ?? 0,
+                value?["can_restore"]?.GetValue<bool>() == true, value?["can_purge"]?.GetValue<bool>() == true,
+                value?["error"]?.GetValue<string>(), value?["resulting_path"]?.GetValue<string>())).ToArray()));
+        SelectedHistory = History.FirstOrDefault(item => item.Id == selectedId) ?? History.FirstOrDefault();
     }
     private Task ClearHistoryAsync(bool selectedOnly) => RunAsync(async () =>
     {
@@ -467,7 +487,8 @@ public sealed partial class MainViewModel : ObservableObject
     private Task FollowUpAsync(string action) => RunAsync(async () =>
     {
         var receipt = SelectedHistory!;
-        var result = await client.RequestAsync("history." + action, new() { ["execution_id"] = receipt.Id, ["item_ids"] = Strings(action == "restore" ? receipt.RestorableIds : receipt.PurgeableIds) }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
+        var itemIds = HistoryFollowUpSelection.ItemIds(action, SelectedHistoryChoices());
+        var result = await client.RequestAsync("history." + action, new() { ["execution_id"] = receipt.Id, ["item_ids"] = Strings(itemIds) }, Progress(), review => dialogs.ConfirmAsync(review, Token), Token);
         Completion = BuildCompletion(result, action);
         Status = (action == "restore" ? "恢复结果：" : "永久删除结果：") + string.Join("、", Array(result).Select(value => Text(value, "state"))) + (action == "restore" ? "。已有同名目标不会被覆盖。" : "。已永久删除的项目无法恢复。");
         if (!Token.IsCancellationRequested) await LoadHistoryAsync();
@@ -490,16 +511,6 @@ public sealed partial class MainViewModel : ObservableObject
         else
             await client.RequestAsync("rules.set", new() { ["workspace_id"] = rule.WorkspaceId, ["rule_id"] = rule.Id, ["version"] = rule.Version, ["enabled"] = enabled }, cancellation: Token);
         ResetCleanupReview(); await LoadConfigurationAsync(); Status = "规则设置已保存，请重新扫描。";
-    });
-    private Task AddExclusionAsync() => RunAsync(async () =>
-    {
-        await client.RequestAsync("exclusions.set", new() { ["pattern"] = ExclusionPattern, ["remove"] = false }, cancellation: Token);
-        ResetCleanupReview(); await LoadConfigurationAsync(); Status = "全局排除已保存，请重新扫描。";
-    });
-    private Task RemoveExclusionAsync() => RunAsync(async () =>
-    {
-        await client.RequestAsync("exclusions.set", new() { ["pattern"] = SelectedExclusion, ["remove"] = true }, cancellation: Token);
-        ResetCleanupReview(); await LoadConfigurationAsync(); Status = "全局排除已移除，请重新扫描。";
     });
     private Task RetryCleanupAsync()
     {
@@ -604,7 +615,7 @@ public sealed partial class MainViewModel : ObservableObject
         var scopeBytes=presentation["scope"]?["node"]?["allocated_bytes"]?.GetValue<long>() ?? 0;
         if(storageRemovedPaths.Count == 0) foreach(var item in Array(presentation["extensions"]?["items"])) {
             var suffix=Text(item,"suffix"); var allocated=item?["allocated_bytes"]?.GetValue<long>() ?? 0;
-            StorageExtensions.Add(new(suffix,Bytes(allocated),item?["file_count"]?.GetValue<int>() ?? 0,StorageMap?["colors"]?[suffix]?.GetValue<string>() ?? "#76877E",scopeBytes>0 ? ((double)allocated/scopeBytes).ToString("P1") : "—",Bytes(item?["logical_bytes"]?.GetValue<long>() ?? 0)));
+            StorageExtensions.Add(new(suffix,allocated,item?["file_count"]?.GetValue<int>() ?? 0,StorageMap?["colors"]?[suffix]?.GetValue<string>() ?? "#76877E",scopeBytes>0 ? (double)allocated/scopeBytes : -1,item?["logical_bytes"]?.GetValue<long>() ?? 0));
         }
     }
 

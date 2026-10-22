@@ -24,7 +24,7 @@
           <DataGrid Grid.Column="2" ItemsSource="{Binding Candidates}" AutoGenerateColumns="False" CanUserAddRows="False" EnableRowVirtualization="True" EnableColumnVirtualization="True" IsReadOnly="False" SelectionMode="Extended" AutomationProperties.Name="清理候选目录">
             <DataGrid.Columns>
               <DataGridTemplateColumn Width="48"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="选择清理项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-              <DataGridTextColumn Header="目录" Binding="{Binding AbsolutePath}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="文件数" Binding="{Binding Files}" Width="65" IsReadOnly="True" /><DataGridTextColumn Header="风险与原因" Binding="{Binding Description}" Width="160" IsReadOnly="True" />
+              <DataGridTextColumn Header="目录" Binding="{Binding AbsolutePath}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" SortMemberPath="AllocatedBytes" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="文件数" Binding="{Binding Files}" Width="65" IsReadOnly="True" /><DataGridTextColumn Header="风险与原因" Binding="{Binding Description}" Width="160" IsReadOnly="True" />
               <DataGridTemplateColumn Header="测量" Width="110"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="继续扫描" Command="{Binding DataContext.ContinueScanCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" Visibility="{Binding CanContinue,Converter={StaticResource BoolToVisibility}}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
             </DataGrid.Columns>
           </DataGrid></Grid>
@@ -48,7 +48,7 @@
           <DataGrid Grid.Row="1" ItemsSource="{Binding StorageNodes}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" SelectedItem="{Binding SelectedStorageNode}" MouseDoubleClick="OpenStorageNode" Visibility="{Binding StorageSimple, Converter={StaticResource BoolToVisibility}}">
             <DataGrid.Columns>
               <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" AutomationProperties.Name="选择项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-              <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" Width="120" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="100" />
+              <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="*" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" SortMemberPath="AllocatedBytes" Width="120" /><DataGridTextColumn Header="类型" Binding="{Binding Kind}" Width="100" />
             </DataGrid.Columns>
           </DataGrid>
           <Grid Grid.Row="1" Visibility="{Binding StorageDetailed, Converter={StaticResource BoolToVisibility}}">
@@ -75,7 +75,7 @@
               <DataGrid Grid.Column="2" FontSize="11" RowHeight="19" ColumnHeaderHeight="22" GridLinesVisibility="None" HeadersVisibility="Column" AlternatingRowBackground="#08000000" ItemsSource="{Binding StorageExtensions}" SelectedItem="{Binding SelectedStorageExtension}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" EnableRowVirtualization="True" AutomationProperties.Name="文件扩展名">
                 <DataGrid.Columns>
                   <DataGridTemplateColumn Header="扩展名" Width="*" MinWidth="80"><DataGridTemplateColumn.CellTemplate><DataTemplate><StackPanel Orientation="Horizontal"><Rectangle Width="8" Height="8" Fill="{Binding Color}" Margin="3,0,5,0" /><TextBlock Text="{Binding Name}" /></StackPanel></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-                  <DataGridTextColumn Header="占比" Binding="{Binding Share}" Width="48" /><DataGridTextColumn Header="分配空间" Binding="{Binding Size}" Width="78" /><DataGridTextColumn Header="文件" Binding="{Binding Files}" Width="64" /><DataGridTextColumn Header="逻辑大小" Binding="{Binding LogicalSize}" Width="78" />
+                  <DataGridTextColumn Header="占比" Binding="{Binding Share}" SortMemberPath="ShareRatio" Width="48" /><DataGridTextColumn Header="分配空间" Binding="{Binding Size}" SortMemberPath="AllocatedBytes" Width="78" /><DataGridTextColumn Header="文件" Binding="{Binding Files}" Width="64" /><DataGridTextColumn Header="逻辑大小" Binding="{Binding LogicalSize}" SortMemberPath="LogicalBytes" Width="78" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -89,14 +89,24 @@
         </Grid>
       </TabItem>
       <TabItem Header="规则与排除">
-        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="110" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <StackPanel Orientation="Horizontal"><Button Content="AI 生成规则…" Command="{Binding AiFromRulesCommand}" /><Button Content="导入规则草稿…" Command="{Binding ImportRuleCommand}" /><Button Content="启用所选规则" Command="{Binding EnableRuleCommand}" /><Button Content="停用所选规则" Command="{Binding DisableRuleCommand}" /></StackPanel>
-          <Grid Grid.Row="1" Margin="0,14"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="2*" /></Grid.ColumnDefinitions>
-            <ListBox ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" DisplayMemberPath="Title" AutomationProperties.Name="当前目录规则" />
+        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" MinHeight="180" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+          <StackPanel>
+            <WrapPanel><Button Content="AI 生成规则…" Command="{Binding AiFromRulesCommand}" /><Button Content="新建规则…" Command="{Binding CreateRuleCommand}" /><Button Content="导入规则草稿…" Command="{Binding ImportRuleCommand}" /><Button Content="启用所选规则" Command="{Binding EnableRuleCommand}" /><Button Content="停用所选规则" Command="{Binding DisableRuleCommand}" /></WrapPanel>
+            <DockPanel Margin="0,8" IsEnabled="{Binding CanEditRuleSettings}"><ComboBox DockPanel.Dock="Right" SelectedIndex="{Binding RuleSource}" MinWidth="150" Margin="12,0,0,0" AutomationProperties.Name="规则来源"><ComboBoxItem Content="所有规则" /><ComboBoxItem Content="内置规则" /><ComboBoxItem Content="个人规则" /></ComboBox><ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" DisplayMemberPath="Path" AutomationProperties.Name="规则和排除的工作区" /></DockPanel>
+          </StackPanel>
+          <Expander Grid.Row="1" Header="已保存的规则选择" Margin="0,0,0,6">
+            <StackPanel IsEnabled="{Binding CanEditRuleSettings}">
+              <TextBlock Text="保存当前工作区启用的规则。使用时重新扫描；已停用的规则需要先审阅并启用。" TextWrapping="Wrap" Margin="0,6" />
+              <DockPanel><Button DockPanel.Dock="Right" Content="保存启用的规则" Command="{Binding SaveRulePresetCommand}" /><TextBox Text="{Binding PresetName,UpdateSourceTrigger=PropertyChanged}" MaxLength="200" AutomationProperties.Name="规则选择名称" /></DockPanel>
+              <DockPanel Margin="0,6"><Button DockPanel.Dock="Right" Content="按此选择扫描" Command="{Binding ScanRulePresetCommand}" /><ComboBox ItemsSource="{Binding RulePresets}" SelectedItem="{Binding SelectedRulePreset}" DisplayMemberPath="Label" AutomationProperties.Name="已保存的规则选择" /></DockPanel>
+            </StackPanel>
+          </Expander>
+          <Grid Grid.Row="2" Margin="0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="2*" /></Grid.ColumnDefinitions>
+            <ListBox ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}" DisplayMemberPath="Title" AutomationProperties.Name="规则目录" />
             <DockPanel Grid.Column="1" Margin="14,0,0,0">
               <StackPanel DockPanel.Dock="Top">
                 <TextBlock Text="内置规则由系统提供；个人规则需逐条预览和启用。项目规则可在选择目录后配置。" TextWrapping="Wrap" Margin="0,0,0,8" />
-                <WrapPanel><Button Content="预览此规则" Command="{Binding PreviewRuleCommand}" /><Button Content="启用并扫描此规则" Command="{Binding EnableAndScanRuleCommand}" /></WrapPanel>
+                <WrapPanel><Button Content="编辑新版本…" Command="{Binding EditRuleCommand}" /><Button Content="导出此版本…" Command="{Binding ExportRuleCommand}" /><Button Content="预览此规则" Command="{Binding PreviewRuleCommand}" /><Button Content="启用并扫描此规则" Command="{Binding EnableAndScanRuleCommand}" /></WrapPanel>
                 <TextBlock Text="{Binding RulePreviewSummary}" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,8" />
                 <TextBlock Text="{Binding RulePreviewDetails}" TextWrapping="Wrap" Margin="0,0,0,8" />
               </StackPanel>
@@ -105,22 +115,36 @@
               </DataGrid>
             </DockPanel>
           </Grid>
-          <DockPanel Grid.Row="2"><Button DockPanel.Dock="Right" Content="添加全局排除" Command="{Binding AddExclusionCommand}" /><TextBox Text="{Binding ExclusionPattern, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" AutomationProperties.Name="全局排除模式" /></DockPanel>
-          <ListBox Grid.Row="3" ItemsSource="{Binding Exclusions}" SelectedItem="{Binding SelectedExclusion}" Margin="0,12,0,0" AutomationProperties.Name="已配置的全局排除" />
-          <Button Grid.Row="4" Content="移除所选排除" Command="{Binding RemoveExclusionCommand}" HorizontalAlignment="Right" Margin="0,8,0,0" />
+          <Expander Grid.Row="3" x:Name="RuleExclusionsPanel" Header="排除保护" IsExpanded="True">
+            <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto"><StackPanel IsEnabled="{Binding CanEditRuleSettings}">
+              <TextBlock Text="排除内容也会保护包含它的父级清理目标。修改后需要重新扫描。" TextWrapping="Wrap" Margin="0,6" />
+              <ComboBox SelectedIndex="{Binding ExclusionScope}" HorizontalAlignment="Left" MinWidth="180" AutomationProperties.Name="排除范围"><ComboBoxItem Content="所有工作区" /><ComboBoxItem Content="当前工作区" /><ComboBoxItem Content="当前工作区中的项目" /></ComboBox>
+              <StackPanel Visibility="{Binding ProjectExclusionScope,Converter={StaticResource BoolToVisibility}}" Margin="0,6"><TextBlock Text="项目相对于工作区的确切目录；模式留空可保护整个项目。" TextWrapping="Wrap" /><TextBox Text="{Binding ExclusionProject,UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="项目相对目录" /></StackPanel>
+              <DockPanel Margin="0,6"><Button DockPanel.Dock="Right" Content="添加排除" Command="{Binding AddExclusionCommand}" /><TextBox Text="{Binding ExclusionPattern, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" AutomationProperties.Name="相对排除模式" ToolTip="使用 **/target/** 等相对模式；不允许绝对路径或父级遍历。" /></DockPanel>
+              <ListBox ItemsSource="{Binding Exclusions}" SelectedItem="{Binding SelectedExclusion}" MaxHeight="90" AutomationProperties.Name="当前范围的排除" />
+              <TextBlock Text="{Binding InheritedExclusions}" TextWrapping="Wrap" Opacity="0.7" Margin="0,6" />
+              <Button Content="移除所选排除" Command="{Binding RemoveExclusionCommand}" HorizontalAlignment="Right" />
+            </StackPanel></ScrollViewer>
+          </Expander>
         </Grid>
       </TabItem>
       <TabItem Header="历史与恢复">
-        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-          <WrapPanel><Button Content="刷新" Command="{Binding HistoryCommand}" /><Button Content="加载更多" Command="{Binding MoreHistoryCommand}" /><Button Content="回收扫描记录" Command="{Binding CollectRecordsCommand}" /><Button Content="清理已结束记录…" Command="{Binding ClearHistoryCommand}" /><Button Content="删除所选记录…" Command="{Binding RemoveHistoryCommand}" /><Button Content="恢复…" Command="{Binding RestoreCommand}" /><Button Content="永久删除…" Command="{Binding PurgeCommand}" /></WrapPanel>
-          <DataGrid Grid.Row="1" ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,14,0,0">
+        <Grid Margin="16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="2*" MinHeight="75" /><RowDefinition Height="5" /><RowDefinition Height="3*" MinHeight="150" /></Grid.RowDefinitions>
+          <WrapPanel><Button Content="刷新" Command="{Binding HistoryCommand}" /><Button Content="加载更多" Command="{Binding MoreHistoryCommand}" /><Button Content="回收扫描记录" Command="{Binding CollectRecordsCommand}" /><Button Content="清理已结束记录…" Command="{Binding ClearHistoryCommand}" /><Button Content="删除所选记录…" Command="{Binding RemoveHistoryCommand}" /></WrapPanel>
+          <DataGrid Grid.Row="1" ItemsSource="{Binding History}" SelectedItem="{Binding SelectedHistory}" SelectionMode="Single" IsEnabled="{Binding HistorySelectionEnabled}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,14,0,0" AutomationProperties.Name="操作历史">
             <DataGrid.Columns><DataGridTextColumn Header="时间" Binding="{Binding CreatedAt}" Width="190" /><DataGridTextColumn Header="目录" Binding="{Binding Label}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="140" /></DataGrid.Columns>
           </DataGrid>
-          <Expander Grid.Row="2" Header="所选记录的详细结果" Margin="0,12,0,0">
-          <DataGrid ItemsSource="{Binding HistoryItems}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" MaxHeight="180" AutomationProperties.Name="所选历史记录的逐项结果">
-            <DataGrid.Columns><DataGridTextColumn Header="原始路径" Binding="{Binding Path}" Width="*" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="130" /><DataGridTextColumn Header="实际结果路径" Binding="{Binding ResultingPath}" Width="220" /><DataGridTextColumn Header="原因" Binding="{Binding Error}" Width="220" /></DataGrid.Columns>
-          </DataGrid>
-          </Expander>
+          <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" />
+          <Grid Grid.Row="3" Margin="0,10,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <WrapPanel><TextBlock Text="所选记录的逐项结果" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" /><Button Content="全选可操作项" Command="{Binding SelectHistoryItemsCommand}" /><Button Content="清空选择" Command="{Binding ClearHistoryItemsCommand}" /><Button Content="核验位置…" Command="{Binding InspectHistoryCommand}" /></WrapPanel>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding HistoryItems}" IsEnabled="{Binding HistorySelectionEnabled}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" EnableRowVirtualization="True" Margin="0,8,0,0" AutomationProperties.Name="所选历史记录的逐项结果">
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" HorizontalAlignment="Center" VerticalAlignment="Center" AutomationProperties.Name="选择历史项目" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
+                <DataGridTextColumn Header="原始路径" Binding="{Binding Path}" Width="2*" MinWidth="160" /><DataGridTextColumn Header="状态" Binding="{Binding State}" Width="120" /><DataGridTextColumn Header="占用估算" Binding="{Binding Size}" SortMemberPath="AllocatedBytes" Width="100" /><DataGridTextColumn Header="可用操作" Binding="{Binding Actions}" Width="130" /><DataGridTextColumn Header="实际结果路径" Binding="{Binding ResultingPath}" Width="*" MinWidth="120" /><DataGridTextColumn Header="原因" Binding="{Binding Error}" Width="160" />
+              </DataGrid.Columns>
+            </DataGrid>
+            <DockPanel Grid.Row="2" Margin="0,10,0,0"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="恢复所选项目…" Command="{Binding RestoreCommand}" /><Button Content="永久删除所选项目…" Command="{Binding PurgeCommand}" /></StackPanel><TextBlock Text="{Binding HistorySelectionSummary}" VerticalAlignment="Center" TextWrapping="Wrap" /></DockPanel>
+          </Grid>
         </Grid>
       </TabItem>
       <TabItem Header="大文件">
@@ -132,7 +156,7 @@
           <DataGrid Grid.Row="3" ItemsSource="{Binding LargeFiles}" AutoGenerateColumns="False" CanUserAddRows="False" EnableRowVirtualization="True" AutomationProperties.Name="大文件结果">
             <DataGrid.Columns><DataGridTemplateColumn Header="AI" Width="110"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="调查父目录" Command="{Binding DataContext.AiFromLargeFileCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
               <DataGridTemplateColumn Width="42"><DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsSelected,UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding Eligible}" HorizontalAlignment="Center" AutomationProperties.Name="选择大文件" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
-              <DataGridTextColumn Header="文件" Binding="{Binding Name}" Width="180" IsReadOnly="True" /><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用空间" Binding="{Binding Size}" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="逻辑大小" Binding="{Binding LogicalSize}" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="保护条件" Binding="{Binding Protection}" Width="160" IsReadOnly="True" />
+              <DataGridTextColumn Header="文件" Binding="{Binding Name}" Width="180" IsReadOnly="True" /><DataGridTextColumn Header="路径" Binding="{Binding Path}" Width="*" IsReadOnly="True" /><DataGridTextColumn Header="占用空间" Binding="{Binding Size}" SortMemberPath="AllocatedBytes" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="逻辑大小" Binding="{Binding LogicalSize}" SortMemberPath="LogicalBytes" Width="100" IsReadOnly="True" /><DataGridTextColumn Header="保护条件" Binding="{Binding Protection}" Width="160" IsReadOnly="True" />
               <DataGridTemplateColumn Width="90"><DataGridTemplateColumn.CellTemplate><DataTemplate><Button Content="所在目录" Command="{Binding DataContext.RevealLargeFileCommand,RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" /></DataTemplate></DataGridTemplateColumn.CellTemplate></DataGridTemplateColumn>
             </DataGrid.Columns>
           </DataGrid>
@@ -140,6 +164,8 @@
         </Grid>
       </TabItem>
     <TabItem Header="AI 调查"><local:AIWorkspaceView /></TabItem>
+    <TabItem Header="启动项"><local:StartupView /></TabItem>
+    <TabItem Header="应用"><local:ApplicationsView /></TabItem>
     </TabControl>
     <TextBlock Grid.Row="1" Text="{Binding Status}" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Status}" AutomationProperties.LiveSetting="Polite" />
   </Grid>

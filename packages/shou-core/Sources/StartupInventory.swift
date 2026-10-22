@@ -44,18 +44,20 @@ public struct StartupDefinition: Codable, Sendable, Equatable, Identifiable {
     public let publisher: String?
     public let targetState: String
     public let removable: Bool
-    public init(sourceId: String, path: String, label: String, programPath: String?, disabledByDefinition: Bool, triggers: [String], configuredState: String = "unknown", runtimeState: String = "unknown", controlCapability: String = "system_settings", displayName: String? = nil, applicationPath: String? = nil, publisher: String? = nil, targetState: String = "unknown", removable: Bool = false) {
+    public let evidenceDigest: String?
+    public init(sourceId: String, path: String, label: String, programPath: String?, disabledByDefinition: Bool, triggers: [String], configuredState: String = "unknown", runtimeState: String = "unknown", controlCapability: String = "system_settings", displayName: String? = nil, applicationPath: String? = nil, publisher: String? = nil, targetState: String = "unknown", removable: Bool = false, evidenceDigest: String? = nil) {
         self.id=Digest.sha256(Data((sourceId + "\0" + path).utf8))
         self.sourceId=sourceId; self.path=path; self.label=label; self.programPath=programPath
         self.disabledByDefinition=disabledByDefinition; self.triggers=triggers
         self.configuredState=configuredState; self.runtimeState=runtimeState; self.controlCapability=controlCapability
         self.displayName=displayName; self.applicationPath=applicationPath; self.publisher=publisher
         self.targetState=targetState; self.removable=removable
+        self.evidenceDigest=evidenceDigest
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, sourceId, path, label, programPath, disabledByDefinition, triggers, configuredState, runtimeState, controlCapability
-        case displayName, applicationPath, publisher, targetState, removable
+        case displayName, applicationPath, publisher, targetState, removable, evidenceDigest
     }
     public init(from decoder: any Decoder) throws {
         let values=try decoder.container(keyedBy: CodingKeys.self)
@@ -67,7 +69,8 @@ public struct StartupDefinition: Codable, Sendable, Equatable, Identifiable {
             controlCapability: try values.decodeIfPresent(String.self, forKey: .controlCapability) ?? "system_settings",
             displayName: try values.decodeIfPresent(String.self, forKey: .displayName), applicationPath: try values.decodeIfPresent(String.self, forKey: .applicationPath),
             publisher: try values.decodeIfPresent(String.self, forKey: .publisher), targetState: try values.decodeIfPresent(String.self, forKey: .targetState) ?? "unknown",
-            removable: try values.decodeIfPresent(Bool.self, forKey: .removable) ?? false)
+            removable: try values.decodeIfPresent(Bool.self, forKey: .removable) ?? false,
+            evidenceDigest: try values.decodeIfPresent(String.self, forKey: .evidenceDigest))
     }
 }
 
@@ -75,6 +78,25 @@ public enum StartupControlAction: String, Codable, Sendable {
     case enable
     case disable
     case remove
+}
+
+/// Runtime activity can change while a review is open. Bind the configuration
+/// and identity instead; activity alone must not invalidate a startup toggle.
+public enum StartupSelection {
+    private struct Binding: Encodable {
+        let id: String
+        let source: String
+        let path: String
+        let label: String
+        let program: String?
+        let state: String
+        let capability: String
+        let evidence: String?
+    }
+    public static func digest(_ definition: StartupDefinition) throws -> String {
+        try Digest.of(Binding(id: definition.id, source: definition.sourceId, path: definition.path, label: definition.label,
+            program: definition.programPath, state: definition.configuredState, capability: definition.controlCapability, evidence: definition.evidenceDigest))
+    }
 }
 
 public struct StartupControlResult: Codable, Sendable, Equatable {

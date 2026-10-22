@@ -25,7 +25,7 @@ flowchart TB
     Evidence --> Core[ShouCore queries and rule validation]
     Core --> Index[Local space catalog]
     Service --> Checkpoint[Local investigation checkpoint]
-    Desktop --> Profiles[ShouPlatform profiles and Keychain]
+    Desktop --> Profiles[ShouPlatform profiles and private credentials]
     CLI --> Profiles
     Profiles --> Service
     Service --> Advice[Validated advice]
@@ -106,14 +106,14 @@ sequenceDiagram
     R-->>UI: Outcome, per-service usage and escalation reason
 ```
 
-`AIConnection` supports an independent `DecisionConnection`, optional main model, `decision_first / main_only` policy and task goals. Checkpoints retain routing queues, answers, fingerprints, service usage and escalation reasons, shared by CLI/bridge. Old records stay readable with missing historical metrics shown as unrecorded, never invented. Routing/templates belong to ShouAI; Core stays model-independent.
+`AIConnection` supports an independent `DecisionConnection`, required main model and decision switch, `decision_first / main_only` policy and task goals. Checkpoints retain routing queues, answers, fingerprints, service usage and escalation reasons, shared by CLI/bridge. Old records stay readable with missing historical metrics shown as unrecorded, never invented. Routing/templates belong to ShouAI; Core stays model-independent.
 
 ## 3. Modules and interface reuse
 
 | Module | Base responsibilities | Implemented changes |
 | --- | --- | --- |
 | `ShouCore` | DTOs, evidence policy, rules, scans, plans, execution | Keep UI switches out of matching/deletion eligibility |
-| `ShouPlatform` | Profiles, Keychain/explicit environment credentials, native selection | Responsive credential waits without weakened access |
+| `ShouPlatform` | Profiles, private local/system/explicit environment credentials, native selection | No interactive Keychain access; private local files by default on macOS |
 | `ShouAI` | SDK adapter, investigation actor, evidence, Jev, budgets/checkpoints | Retain shared semantics; new tools require separate contracts |
 | `InvestigationRouter` | Bounded workflow | Local first, Jev fixed decisions, main-model escalation, deduplication and service usage |
 | `AIWorkspaceSession` | Window connection/task/answers/preview coordination | Desktop gate, cross-page targets and stopping state |
@@ -144,7 +144,7 @@ Pages provide intent and exact targets without independent model loops. Multiple
 
 | Object | Contents | Semantics |
 | --- | --- | --- |
-| `AIConnection` | ID/name/optional main-model setup/decision/routing policy | No key; protocol and gateway prefix remain independent |
+| `AIConnection` | ID/name/required main-model setup/decision/routing policy | No key; protocol and gateway prefix remain independent |
 | `DecisionConnection` | Provider/root/model/credential reference | Jev uses `/systemone`; future adapters own their native protocol; `JevConnection` alias retained |
 | `AIInvestigation` | IDs/scope/connection snapshot/status/time/questions/evidence/advice/usage | Resume uses original connection |
 | `InvestigationCheckpoint` | State/SDK continuation/pending calls/observed folders/retention answers/routing queue/decision fingerprints | Private local record without credentials, not generic chat export |
@@ -191,7 +191,7 @@ sequenceDiagram
     actor U as User
     participant UI as Connection editor
     participant Gate as Desktop gate
-    participant K as System Keychain
+    participant K as Private credential storage
     participant Test as Shared connection test
     participant M as Selected model
     participant J as Optional Jev
@@ -203,7 +203,7 @@ sequenceDiagram
     else Enabled
         UI->>Test: Use entered key or saved reference
         Test->>K: Read selected saved credential only if needed
-        Note over UI,K: User handles system approval without main-thread blocking
+        Note over UI,K: Local reads need no system approval; legacy Keychain access is noninteractive
         opt Main model enabled
             Test->>M: Synthetic token and tool definition
             M-->>Test: verify_connection call
@@ -221,7 +221,7 @@ sequenceDiagram
     UI->>UI: Persist secret-free profile
 ```
 
-A synthetic test verifies that configuration's round trip. HTTP 200, main-model success or high Jev probability alone cannot mean overall success. Saving is local while disabled; testing is gated. The gate is implemented and rechecked after credential access. Save progress prevents duplicates/dismissal; system approval is never bypassed by automation.
+A synthetic test verifies that configuration's round trip. HTTP 200, main-model success or high Jev probability alone cannot mean overall success. Saving is local while disabled; testing is gated. The gate is implemented and rechecked after credential access. Save progress prevents duplicates/dismissal; no default path requests system approval. Local files use per-user permissions, not Keychain encryption.
 
 ## 7. On-demand main-model loop, questions and decision review
 
@@ -308,7 +308,7 @@ sequenceDiagram
     Settings->>Session: Close desktop request gate first
     Session->>Session: Cancel tasks and show Stopping
     Session->>Network: Request cancellation of in-flight work
-    Note over Session,Network: Delivered content cannot be recalled and Keychain waits need system return
+    Note over Session,Network: Delivered content cannot be recalled; credentials are read without interactive prompts
     Network-->>Session: Actual completion or cancellation
     Session->>Session: Recheck switch and prevent subsequent requests or Jev
     Session->>Store: Retain findings and actual final state
@@ -365,7 +365,7 @@ flowchart TB
     Registry --> Unknown[Unknown provider explicitly unavailable]
 ```
 
-To switch, select an installed provider, enter its settings, explicitly test, save and start a new investigation. Existing Jev credentials remain stored. CLI `--service decision` writes the selected provider's separate Keychain account; `--service jev` remains a Jev-only compatibility alias. Protocol-specific suffix checks belong to that provider's configuration; disabling the main model no longer requires a placeholder main-model URL. New adapters require code registration and contract acceptance; Clef is not selectable today.
+To switch, select an installed provider, enter its settings, explicitly test, save and start a new investigation. Existing Jev credentials remain stored. CLI `--service decision` writes the selected provider's separate local or system credential account; `--service jev` remains a Jev-only compatibility alias. Protocol-specific suffix checks belong to that provider's configuration; the main model is required; disabling decisions changes routing while retaining provider settings and credentials. New adapters require code registration and contract acceptance; Clef is not selectable today.
 
 ## Cross-platform runtime and cancellation
 
@@ -385,7 +385,7 @@ flowchart TB
     Portable --> Tools
     Tools --> Core[Core rule import and preview]
     Win --> Credentials[Windows Credential Manager]
-    Mac --> Keychain[macOS Keychain]
+    Mac --> LocalKeys[Private local credentials / legacy Keychain]
 ```
 
 ```mermaid
@@ -417,4 +417,43 @@ flowchart LR
     Transport --> Result[Save cancelled checkpoint]
     Budget --> Result
     Result --> Show[CLI ai show / desktop result]
+```
+
+## 14. Configuration lifecycle and Jev switch
+
+`main_model_enabled: false` identifies legacy records only; new saves, starts and continuations require a valid main model. `routing_strategy: main_only` disables decisions even when the retained `decision` object exists: no decision credential read or request. `decision_first` enables them. A single routing field represents the switch without a conflicting duplicate Boolean.
+
+```mermaid
+flowchart TD
+    C[Configure main model] --> V{Valid main model?}
+    V -->|No| E[Repair in editor]
+    V -->|Yes| S{Decision service enabled?}
+    S -->|Yes| D[Local analysis and fixed Jev choices]
+    D -->|Sufficient| F[Local summary or disabled draft]
+    D -->|Open-ended understanding| M[Configured main model]
+    S -->|No| M
+    M --> F
+    S -.Retain while disabled.-> K[Decision settings and separate key]
+```
+
+Profiles live in `ai-connections`; recoverable removal state lives in `ai-connection-states`. Removal writes state only, retaining investigation snapshots and credentials. Default lists exclude deleted profiles; explicit reads return key-free profiles. Editing checks deletion before profile and credential writes; restore is required first.
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant UI as macOS or Windows
+    participant S as AIConnectionStore
+    participant H as History and credentials
+    U->>UI: Create or edit configuration
+    UI->>S: Validate required main model and save
+    U->>UI: Disable Jev
+    UI->>S: Save main_only and retain decision
+    S-->>UI: Refresh active choices and service disclosure
+    U->>UI: Confirm removal of named configuration
+    UI->>S: setDeleted true
+    S-->>UI: Exclude from active choices
+    Note over S,H: Preserve profile, historical snapshots and keys; no network
+    U->>UI: Restore deleted configuration
+    UI->>S: setDeleted false
+    S-->>UI: Original configuration available again
 ```

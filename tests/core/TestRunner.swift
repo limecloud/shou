@@ -23,11 +23,22 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 
 @main enum TestRunner {
     static func main() async {
+        if Array(CommandLine.arguments.dropFirst()) == ["--windows-startup-only"] {
+            do {
+                try windowsStartupPreservesCoverageUnknownStatesAndDistinctRegistrations()
+                try windowsStartupRejectsIncompleteOrForgedNativeContracts()
+                try windowsStartupControlBindsDefinitionsAndRetainsUnknownOutcomes()
+                try startupSelectionBindsConfigurationAndKeepsLegacyRecordsReadable()
+                print("4/4 Windows startup coverage, identity, configuration review and mutation-boundary checks passed; generated evidence only, no real startup configuration changed.")
+            } catch { print("FAIL Windows startup boundaries: \(error)");Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--ai-safety-only"] {
             do {
                 try aiInvestigationPreservesConnectionAndPhysicalSelectionBoundaries()
                 try await aiDecisionProvidersAreReplaceableAndRevokedCredentialsCannotSend()
-                print("2/2 AI connection, scope, provider substitution and request-revocation checks passed; generated fixtures only.")
+                try aiLocalCredentialsRemainPrivateAndIndependent()
+                print("3/3 AI connection, scope, provider substitution, request revocation and private local credential checks passed; generated fixtures only.")
             } catch { print("FAIL AI boundaries: \(error)"); Foundation.exit(1) }
             return
         }
@@ -70,6 +81,18 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await agentRuleLoopMeasuresAdditionalCoverageAndPersistsReuse()
                 print("1/1 agent discovery, draft benefit, explicit enablement and persisted reuse checks passed.")
             } catch { print("FAIL agent rule loop: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--personal-rules-only"] {
+            do {
+                try personalDraftUsesClosedContractAndPortableFields()
+                try exactPersonalRuleSelectionCannotExpandItsScope()
+                try windowsExactPersonalRuleSelectionPreservesDriveAndWorkspaceBoundaries()
+                try await personalRuleRevisionsPreserveBindingsAndRejectStaleSaves()
+                try await personalDraftPreviewExplainsConditionsAndPreservesDisabledState()
+                try await personalDraftAgeExplanationUsesCandidateDecisionBoundary()
+                print("6/6 personal rule authoring, Windows scope, immutable revisions, stale saves and preview checks passed; isolated fixtures only.")
+            } catch { print("FAIL personal rule authoring: \(error)"); Foundation.exit(1) }
             return
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--tool-cleanup-only"] {
@@ -216,6 +239,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-catalog-only"] {
             do {
+                try storageCatalogPreparesPrivateFilesAfterExistingFileRefusal()
                 try storageCatalogPreservesWindowsIdentitiesAndHardLinks()
                 try storageCatalogRetainsLegacySchemaAndRejectsCorruptWindowsIdentity()
                 try storageCatalogPagesDirectoryWorkWhileDescendantsAreInserted()
@@ -223,7 +247,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await storageCatalogAccountsHardLinksAndOpaqueLinks()
                 try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings()
                 try await storageCatalogCancellationNeverPublishesAScan()
-                print("7/7 streaming storage catalog, Windows identity, legacy schemas, directory paging, sibling coverage, hard links, permissions and cancellation tests passed; generated fixtures only.")
+                print("8/8 streaming storage catalog, private file creation, Windows identity, legacy schemas, directory paging, sibling coverage, hard links, permissions and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage catalog: \(error)"); Foundation.exit(1) }
             return
         }
@@ -403,6 +427,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Windows startup preserves coverage, unknown states and distinct registrations", { try windowsStartupPreservesCoverageUnknownStatesAndDistinctRegistrations() }),
+            ("Windows startup rejects incomplete and forged native contracts", { try windowsStartupRejectsIncompleteOrForgedNativeContracts() }),
+            ("Windows startup controls bind definitions and preserve unknown outcomes", { try windowsStartupControlBindsDefinitionsAndRetainsUnknownOutcomes() }),
+            ("Startup selection binds configuration and retains legacy records", { try startupSelectionBindsConfigurationAndKeepsLegacyRecordsReadable() }),
             ("Execution progress preserves batch totals and partial boundaries", { try executionProgressKeepsBatchTotalsAndPartialBoundaries() }),
             ("Privacy progress follows committed source outcomes", { try await privacyProgressTracksSourcesAndCommittedOutcomes() }),
             ("Privacy progress cancellation preserves remaining sources", { try await privacyProgressCancellationPreservesRemainingSources() }),
@@ -425,6 +453,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Nested map bounds, omissions, area and cancellation", { try await storageNestedMapIsBoundedAndPreservesParentArea() }),
             ("Storage catalog deduplicates hard links without following symlinks", { try await storageCatalogAccountsHardLinksAndOpaqueLinks() }),
             ("Storage catalog preserves full Windows identities and hard links", { try storageCatalogPreservesWindowsIdentitiesAndHardLinks() }),
+            ("Storage catalog prepares private files after existing-file refusal", { try storageCatalogPreparesPrivateFilesAfterExistingFileRefusal() }),
             ("Storage catalog reads legacy schemas and rejects incomplete Windows identity", { try storageCatalogRetainsLegacySchemaAndRejectsCorruptWindowsIdentity() }),
             ("Storage catalog pages directory work during descendant inserts", { try storageCatalogPagesDirectoryWorkWhileDescendantsAreInserted() }),
             ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),
@@ -454,6 +483,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Schema and round trip", { try ruleSchemaAndRoundTrip() }),
             ("Personal draft authoring uses the closed portable contract", { try personalDraftUsesClosedContractAndPortableFields() }),
             ("Exact folder authoring cannot broaden workspace scope", { try exactPersonalRuleSelectionCannotExpandItsScope() }),
+            ("Windows exact folder authoring preserves drive and workspace boundaries", { try windowsExactPersonalRuleSelectionPreservesDriveAndWorkspaceBoundaries() }),
+            ("Personal rule revisions preserve old bindings and reject stale saves", { try await personalRuleRevisionsPreserveBindingsAndRejectStaleSaves() }),
             ("Personal draft preview explains conditions and stays disabled", { try await personalDraftPreviewExplainsConditionsAndPreservesDisabledState() }),
             ("Independent personal rules preserve unselected drafts through cleanup", { try await independentPersonalRulesCompleteCleanupWithoutEnablingOtherDrafts() }),
             ("Personal draft age explanations preserve decision boundaries", { try await personalDraftAgeExplanationUsesCandidateDecisionBoundary() }),
@@ -563,6 +594,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("First scan built-in discovery and cleanup", { try await builtinDiscoveryWorksWithoutImport() }),
             ("Built-in disable invalidates evidence", { try await disablingBuiltinInvalidatesPlan() }),
             ("Built-in scope, namespace and presets", { try await builtinCatalogScopeAndNamespace() }),
+            ("Enabled rule presets preserve reviewed configuration and disabled bindings", { try await enabledRulePresetsPreserveReviewedConfigurationAndBindings() }),
+            ("Windows registered applications preserve identity and unknown facts", { try windowsRegisteredApplicationsPreserveSourcesIdentityAndUnknownFacts() }),
+            ("Windows registered applications reject forged coverage and unsafe paths", { try windowsRegisteredApplicationsRejectForgedCoverageAndUnsafePaths() }),
+            ("Windows registered applications retain partial and system coverage", { try windowsRegisteredApplicationsRetainPartialAndSystemCoverage() }),
             ("Built-in binding validation, isolation and benchmark", { try await builtinCatalogBindingPreservesValidationAndIsolation() }),
             ("Built-in protected descendants", { try await builtinRulesPreserveProtectedDescendants() }),
             ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
@@ -602,6 +637,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Agent rules measure new coverage and persist opt-in reuse", { try await agentRuleLoopMeasuresAdditionalCoverageAndPersistsReuse() }),
             ("AI connections, private scope and physical folder selections", { try aiInvestigationPreservesConnectionAndPhysicalSelectionBoundaries() }),
             ("Replaceable AI decisions and credential-wait revocation", { try await aiDecisionProvidersAreReplaceableAndRevokedCredentialsCannotSend() }),
+            ("Private local AI credentials and independent provider accounts", { try aiLocalCredentialsRemainPrivateAndIndependent() }),
             ("Application closing binds identity and verifies remaining owners", { try await applicationClosingVerifiesIdentityAndReportsRemainingOwners() }),
             ("Tool cleanup uses fixed owner operations and verifies outcomes", { try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes() }),
             ("Tool cleanup rejects remote, stale and unknown outcomes", { try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes() }),

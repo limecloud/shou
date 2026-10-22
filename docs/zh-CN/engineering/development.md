@@ -8,7 +8,7 @@ C#/.NET 10/WPF 客户端与 Swift Windows 适配见 [Windows 实现](windows.md)
 
 ## 工具链与工程
 
-使用 Swift 6 及以上版本与 macOS SDK，部署基线为 macOS 14。根目录 Swift Package 构建原生应用、独立 CLI、可移植核心、平台适配与隔离测试程序。SwiftPM 解析 Swift AI SDK `0.20.0`，macOS 构建通过 `ShouAI` 使用它。普通离线扫描与清理不需要模型凭据或模型请求；AI 联网仅由显式 AI 操作触发。CLI 不需要 JavaScript 包管理器、Node.js 运行时或运行中的桌面应用。
+使用 Swift 6.2.3 及以上版本与 macOS SDK，部署基线为 macOS 14。CI 与发布打包显式选择 Swift 6.2.3，以提供 AI SDK 所需的并发支持。根目录 Swift Package 构建原生应用、独立 CLI、可移植核心、平台适配与隔离测试程序。SwiftPM 解析 Swift AI SDK `0.20.0`，macOS 构建通过 `ShouAI` 使用它。普通离线扫描与清理不需要模型凭据或模型请求；AI 联网仅由显式 AI 操作触发。CLI 不需要 JavaScript 包管理器、Node.js 运行时或运行中的桌面应用。
 
 ```sh
 swift build --jobs 4

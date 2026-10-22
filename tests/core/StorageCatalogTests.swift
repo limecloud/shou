@@ -2,6 +2,32 @@ import Foundation
 import ShouCore
 import ShouPlatform
 
+func storageCatalogPreparesPrivateFilesAfterExistingFileRefusal() throws {
+    let fixture=try Fixture(), url=try require(fixture.store.storageCatalogURL(id: "prepared-private-file"))
+    let root=try fixture.fs.analysisRootIdentity(fixture.workspace.path)
+    var preparations=0
+    do {
+        let catalog=try StorageCatalog(url: url, create: true, prepareNewFile: {
+            preparations += 1
+            try Data().write(to: url, options: .withoutOverwriting)
+        })
+        _ = try catalog.append(root); try catalog.seal()
+    }
+    try expect(preparations == 1)
+    try expect(try StorageCatalog(url: url).entry(at: ".")?.entry == root)
+    let original=try Data(contentsOf: url)
+    try expectThrows {
+        _ = try StorageCatalog(url: url, create: true, prepareNewFile: { preparations += 1 })
+    }
+    try expect(preparations == 1 && Data(contentsOf: url) == original)
+    let cancelled=try require(fixture.store.storageCatalogURL(id: "cancelled-private-file"))
+    do {
+        _ = try StorageCatalog(url: cancelled, create: true, prepareNewFile: { throw ShouError("cancelled", "Stopped before file creation.") })
+        throw CheckFailure(description: "File preparation failure must stop SQLite creation.")
+    } catch let error as ShouError { try expect(error.code == "cancelled") }
+    try expect(!FileManager.default.fileExists(atPath: cancelled.path))
+}
+
 func storageCatalogScansLaterSiblingsAndLoadsExactDirectories() async throws {
     let fixture=try Fixture()
     let early=fixture.workspace.appendingPathComponent(".npm")

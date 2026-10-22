@@ -169,9 +169,10 @@ def main():
             env = dict(os.environ, SHOU_DATA_DIR=str(base / "records"), SHOU_AI_FIXTURE_KEY="fixture-key",
                        OPENAI_API_KEY="must-not-use-ambient-key", ANTHROPIC_API_KEY="must-not-use-ambient-key")
 
-            def run(*args, ok=True, timeout=30):
+            def run(*args, ok=True, timeout=30, input=None):
                 global CHECKS
-                process = subprocess.run([str(BINARY), *args, "--json"], env=env, stdin=subprocess.DEVNULL,
+                stdin={"stdin": subprocess.DEVNULL} if input is None else {"input": input}
+                process = subprocess.run([str(BINARY), *args, "--json"], env=env, **stdin,
                                          capture_output=True, text=True, timeout=timeout)
                 assert process.stdout.strip(), (args, process.stderr)
                 result = json.loads(process.stdout)
@@ -180,16 +181,13 @@ def main():
                 CHECKS += 1
                 return result
 
-            def profile(protocol, scenario, auth="environment", url=None, decision=None, main_enabled=True, strategy=None):
+            def profile(protocol, scenario, auth="environment", url=None, decision=None, strategy=None):
                 connection = {"id": f"connection_{protocol}_{scenario}", "name": "Fixture", "api_protocol": protocol,
                               "base_url": url or f"http://127.0.0.1:{server.server_port}/gateway/v1", "model": f"{protocol}:{scenario}",
                               "authentication": auth, "environment_variable": "SHOU_AI_FIXTURE_KEY"}
                 if decision:
                     connection["decision"]={"base_url": f"http://127.0.0.1:{server.server_port}/gateway/v1", "model": f"jev:{decision}",
                                             "authentication": "environment", "environment_variable": "SHOU_AI_FIXTURE_KEY"}
-                if not main_enabled:
-                    connection["main_model_enabled"]=False
-                    connection["model"]=""
                 if strategy:
                     connection["routing_strategy"]=strategy
                 path = base / "connection.json"
@@ -201,7 +199,12 @@ def main():
             assert [p["id"] for p in providers] == ["jev"]
             scan = run("analysis", "scan", "--path", str(folder))["data"]["scan_id"]
             discovery = run("capabilities", "--command", "ai")["data"]["commands"]
-            assert len(discovery) == 12 and {c["side_effect"] for c in discovery} == {"read", "configuration", "network"}
+            expected_commands = {"ai providers", "ai list", "ai cancel", "ai connections list", "ai connections show",
+                                 "ai connections delete", "ai connections restore", "ai connections save", "ai connections test",
+                                 "ai connections credential save", "ai connections decision test", "ai investigate", "ai show",
+                                 "ai resume", "ai advice import"}
+            assert len(discovery) == len(expected_commands) and {c["command"] for c in discovery} == expected_commands
+            assert {c["side_effect"] for c in discovery} == {"read", "configuration", "network"}
             for protocol in ("responses", "chat_completions", "anthropic"):
                 connection = profile(protocol, "probe")
                 assert run("ai", "connections", "test", "--connection-id", connection)["data"]["tool_round_trip"]
@@ -239,7 +242,13 @@ def main():
                 print(f"PASS {protocol}: tool round trip, scoped metadata, question/resume, disabled draft and native preview")
 
             for decision in ("supported", "uncertain", "retain", "malformed"):
-                connection=profile("chat_completions", "unused_" + decision, decision=decision, main_enabled=False)
+                connection=profile("chat_completions", "unused_" + decision, decision=decision)
+                if decision == "supported":
+                    invalid_profile = json.loads((base / "connection.json").read_text())
+                    invalid_profile.update(main_model_enabled=False, model="")
+                    invalid_path = base / "decision-only-invalid.json"
+                    invalid_path.write_text(json.dumps(invalid_profile))
+                    assert run("ai", "connections", "save", "--file", str(invalid_path), ok=False)["error"]["code"] == "invalid_ai_connection"
                 if decision == "supported":
                     assert run("ai", "connections", "decision", "test", "--connection-id", connection)["data"]["verdict"] == "supported"
                 before_main=sum(count for model,count in COUNTS.items() if not model.startswith("jev:"))
@@ -266,7 +275,7 @@ def main():
                     assert advice["path"] == "build/cache"
                     imported=run("ai", "advice", "import", "--investigation-id", state["id"], "--advice-id", advice["id"])["data"]
                     assert imported["rule"]["match"]["relative_patterns"] == ["build/cache"]
-                print(f"PASS Jev-first {decision}: independent configuration, bounded decisions, guarded drafts and ZERO main-model calls")
+                print(f"PASS Jev-first {decision}: configured main model, bounded decisions, guarded drafts and ZERO main-model calls")
 
             # Open-ended understanding escalates only after bounded metadata and clarification.
             connection=profile("chat_completions", "escalation", auth="none", decision="unknown")
@@ -288,10 +297,17 @@ def main():
             assert all(item["requests"] == 0 for item in local["service_usage"])
             # Explicit main-only policy does not call a configured decision provider.
             connection=profile("chat_completions", "main_only", auth="none", decision="supported", strategy="main_only")
+            disabled_profile=json.loads((base / "connection.json").read_text())
+            disabled_profile["decision"].update(authentication="environment",environment_variable="SHOU_AI_ABSENT_DECISION_KEY")
+            (base / "connection.json").write_text(json.dumps(disabled_profile))
+            run("ai","connections","save","--file",str(base / "connection.json"))
             before_jev=COUNTS["jev:supported"]
             main=run("ai", "investigate", "--scan-id", scan, "--path", "build", "--connection-id", connection)["data"]
             assert main["status"] == "complete" and COUNTS["jev:supported"] == before_jev
             assert next(item for item in main["service_usage"] if item["service"] == "main")["requests"] == 1
+            assert run("ai","connections","decision","test","--connection-id",connection,ok=False)["error"]["code"]=="ai_decision_disabled"
+            assert run("ai","connections","show","--connection-id",connection)["data"]["decision"]==disabled_profile["decision"]
+            print("PASS disabled Jev: retained configuration, unavailable decision key never read, ZERO Jev calls and main-model takeover")
 
             for decision in ("error", "redirect", "oversized"):
                 connection=profile("chat_completions", "probe", decision=decision)
@@ -310,7 +326,10 @@ def main():
                 assert not state["advice"]
                 assert state["status"] == ("limited" if scenario in ("budget", "tokens", "oversized") else "failed" if limited else "complete")
                 if scenario == "budget":
+                    assert state["limit_reason"] == "steps", state
                     assert state["steps"] <= 12
+                if scenario in ("tokens", "oversized"):
+                    assert state["limit_reason"] == ("tokens" if scenario == "tokens" else "response"), state
                 for _, headers, body in REQUESTS:
                     if body["model"] == f"chat_completions:{scenario}":
                         assert not {k.lower() for k in headers}.intersection({"authorization", "x-api-key"})
@@ -356,6 +375,58 @@ def main():
             assert not bridge("ai.connections.save",{"profile":dict(fixture_profile,api_key="must-not-store")})["ok"]
             assert "must-not-store" not in json.dumps(run("ai","connections","list"))
             assert bridge("storage.show",{"scan_id":scan})["data"]["root_path"].replace("\\","/")==str(folder).replace("\\","/")
+            # Local keys survive process restarts without Keychain access, with independent service accounts.
+            local_profile=dict(fixture_profile,id="connection_local_credentials",model="responses:probe",authentication="local",
+                decision={"provider":"jev","base_url":fixture_profile["base_url"],"model":"jev:probe","authentication":"local","environment_variable":""})
+            before=len(REQUESTS)
+            assert bridge("ai.connections.save",{"profile":local_profile,"model_key":"synthetic-local-main","decision_key":"synthetic-local-decision"})["ok"]
+            assert len(REQUESTS)==before, "Saving credentials must not send any network request"
+            COUNTS["responses:probe"]=0
+            run("ai","connections","test","--connection-id",local_profile["id"])
+            run("ai","connections","decision","test","--connection-id",local_profile["id"])
+            local_requests=REQUESTS[before:]
+            assert local_requests and all({k.lower():v for k,v in headers.items()}.get("authorization")==("Bearer synthetic-local-decision" if body["model"].startswith("jev:") else "Bearer synthetic-local-main") for _,headers,body in local_requests)
+            saved=run("ai","connections","credential","save","--connection-id",local_profile["id"],input="synthetic-local-rotated\n")["data"]
+            assert saved["status"]=="saved_locally" and saved["authentication"]=="local"
+            COUNTS["responses:probe"]=0
+            run("ai","connections","test","--connection-id",local_profile["id"])
+            assert {k.lower():v for k,v in REQUESTS[-1][1].items()}["authorization"]=="Bearer synthetic-local-rotated"
+            exposed=json.dumps(run("ai","connections","list"))+json.dumps(run("ai","list"))
+            assert not any(key in exposed for key in ("synthetic-local-main","synthetic-local-decision","synthetic-local-rotated"))
+            print("PASS private local credentials across bridge and CLI restarts, independent services, rotation and redaction")
+            before=len(REQUESTS)
+            deleted=run("ai","connections","delete","--connection-id",local_profile["id"])["data"]
+            assert deleted["status"]=="deleted" and deleted["recoverable"] is True
+            assert all(row["id"]!=local_profile["id"] for row in run("ai","connections","list")["data"])
+            assert any(row["id"]==local_profile["id"] for row in run("ai","connections","list","--state","deleted")["data"])
+            assert any(row["id"]==local_profile["id"] for row in run("ai","connections","list","--state","all")["data"])
+            retained=run("ai","connections","show","--connection-id",local_profile["id"])["data"]
+            assert retained["id"]==local_profile["id"] and "synthetic-local-rotated" not in json.dumps(retained)
+            refused=run("ai","connections","test","--connection-id",local_profile["id"],ok=False)
+            assert refused["error"]["code"]=="not_found"
+            assert not bridge("ai.connections.save",{"profile":local_profile})["ok"], "Restore a deleted configuration before editing it"
+            assert len(REQUESTS)==before, "Recoverable removal and reading a deleted profile must not send network requests"
+            restored=run("ai","connections","restore","--connection-id",local_profile["id"])["data"]
+            assert restored["status"]=="restored"
+            assert any(row["id"]==local_profile["id"] for row in run("ai","connections","list")["data"])
+            COUNTS["responses:probe"]=0
+            run("ai","connections","test","--connection-id",local_profile["id"])
+            assert {k.lower():v for k,v in REQUESTS[-1][1].items()}["authorization"]=="Bearer synthetic-local-rotated"
+            print("PASS recoverable connection removal, inactive-use refusal and restored credential references")
+            updated=dict(local_profile,name="Updated local configuration",routing_strategy="main_only")
+            assert bridge("ai.connections.save",{"profile":updated})["ok"]
+            assert bridge("ai.connections.show",{"connection_id":updated["id"]})["data"]["name"]==updated["name"]
+            before=len(REQUESTS)
+            assert bridge("ai.connections.delete",{"connection_id":updated["id"]})["data"]["status"]=="deleted"
+            assert any(row["id"]==updated["id"] for row in bridge("ai.connections.deleted",{})["data"])
+            assert not bridge("ai.connections.save",{"profile":updated,"model_key":"must-not-overwrite-deleted-key"})["ok"]
+            assert bridge("ai.connections.restore",{"connection_id":updated["id"]})["data"]["status"]=="restored"
+            assert not bridge("ai.connections.delete",{"connection_id":"connection_missing"})["ok"]
+            assert len(REQUESTS)==before
+            COUNTS["responses:probe"]=0
+            run("ai","connections","test","--connection-id",updated["id"])
+            assert {k.lower():v for k,v in REQUESTS[-1][1].items()}["authorization"]=="Bearer synthetic-local-rotated"
+            print("PASS bridge configuration CRUD, recovery, update and deleted-key write refusal without network access")
             if os.name=="nt":
                 COUNTS["responses:probe"]=0
                 import uuid

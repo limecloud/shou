@@ -23,7 +23,7 @@ Evidence uses macOS 15.8.1, Apple Silicon and Swift 6.2.3; it cannot establish m
 | AI-AC01 | US-AI01/UC-AI01 | New install off; enable/save never automatically call models | Implemented; default-off gate tests and ai-decision-ready initial off/no automatic requests observed |
 | AI-AC02 | US-AI02/UC-AI01 | Independent protocol/root/model; no keys in profiles/output/logs | Existing automation/editor; re-audit changed paths |
 | AI-AC03 | US-AI02/UC-AI01 | Three SDK protocols execute a tool then another model turn | Synthetic all three; selected live Responses passed; other live protocols pending |
-| AI-AC04 | US-AI02/UC-AI01 | Reopen editor, leave keys blank, read Keychain and pass both tests | Both live tests passed in ai-ready; new package credential access requires separate evidence |
+| AI-AC04 | US-AI02/UC-AI01 | Reopen app and read independent local model/decision keys without system password prompts | Synthetic bridge/CLI restart, rotation and isolation passed; native/live package evidence is recorded in implementation notes |
 | AI-AC05 | US-AI03/UC-AI06 | Disable during run/wait/test blocks start/resume/subsequent Jev | Revocation/post-credential/bridge tests pass; native slow investigation cancelled with count stable at 2; wait/test combinations pending |
 | AI-AC06 | US-AI03/UC-AI08 | Disable preserves credentials/enabled rules and offline scan/preview/cleanup | Switch independent of profiles/rules; offline findings observed; disabled-cleanup combinations pending |
 | AI-AC07 | US-AI04/UC-AI02 | Smart Cleanup empty/results actions select exact folders and obtain space indexes | Shared folder selection/local measurement implemented and Smart Cleanup fixture flow observed; result menus pending |
@@ -39,17 +39,22 @@ Evidence uses macOS 15.8.1, Apple Silicon and Swift 6.2.3; it cannot establish m
 | AI-AC17 | US-AI12/UC-AI07 | Explicit escalation reason and no silent fallback if missing setup | Bounded evidence/user clarification produced exactly one main request with reason; missing connection/technical failures never silently escalate |
 | AI-AC18 | US-AI12/UC-AI07 | No repeated unchanged-evidence review; new evidence permits bounded review | Evidence/question/intent fingerprints, bounded questions and shared routing budgets implemented; synthetic cache reuse passes |
 | AI-AC19 | US-AI12/UC-AI07 | Per-service request/token/reason metrics without invented prices | Actual requests, reported tokens and reasons implemented with contract assertions and UI; no prices invented |
-| AI-AC20 | US-AI12/UC-AI07 | Distinct Jev support/uncertainty/retention/malformed/error outcomes | 87 checks cover independent routing outcomes; previous selected-service review retained; real classification quality pending |
+| AI-AC20 | US-AI12/UC-AI07 | Distinct Jev support/uncertainty/retention/malformed/error outcomes | SDK and portable each pass 94 contracts covering independent routing outcomes; previous selected-service review retained; real classification quality pending |
 | AI-AC21 | US-AI13/all cases | Languages, appearance, narrow windows, long paths, keyboard/VoiceOver | Localization/partial UI evidence; full combinations pending |
-| AI-AC22 | US-AI15 | Restart restores original question/scope/provider; expiration rejects | CLI and both desktops implement local records/waiting continuation; original connection/expiry retained; interrupted-running recovery remains open |
+| AI-AC22 | US-AI15 | Restart restores original question/scope/provider; expiration rejects | CLI and both desktops implement local records/waiting continuation; native macOS cross-process waiting resume and completed history after restart pass; original connection/expiry retained; interrupted-running recovery remains open |
 | AI-AC23 | US-AI16 | Domain-specific uninstall/startup/privacy evidence without private records | Adapters pending; do not ship as working entries |
 | AI-AC24 | US-AI05/UC-AI06 | Return/new choice for conflicts; navigation/hiding preserves task | Return/stop-new conflict actions implemented; navigation/unsent answers retained; complete conflict-button path pending |
 | AI-AC25 | US-AI08/UC-AI05 | Useful no-advice reasons/next steps; stale findings cannot preview | No-advice/new/24-hour stale UI and guards implemented; native no-advice observed; full stale actions pending |
-| AI-AC26 | US-AI02/UC-AI01 | Keychain waits off main thread; cancellation prevents later Jev | Background save, noninteractive Keychain reads and post-read cancellation checks implemented; user owns system permissions |
+| AI-AC26 | US-AI02/UC-AI01 | macOS local defaults; legacy noninteractive access; credential loading excludes processing time and rechecks revocation | Private permissions, link refusal, size bounds and migrated legacy references have automated coverage; post-read revocation is retained |
 | AI-AC27 | US-AI17 | Alternative adapters, legacy configuration, unknown providers, isolated credentials and fixed active-task provider | Alternative injection, unknown-provider rejection, legacy policy/profile and independent configuration tests pass; credentials separated by provider; Clef unimplemented |
-| AI-AC28 | US-AI18 / UC-AI09 | Twelve operations, installed providers, isolated credentials and cross-process cancellation | Added to synthetic contracts; current results belong in the implementation record |
-| AI-AC29 | US-AI19 / UC-AI10 | Windows four contextual entries, complete gating/configuration/questions/previews/system credentials | WPF cross-build and 15 subprocess checks pass; native CI and button journeys pending |
+| AI-AC28 | US-AI18 / UC-AI09 | Fifteen operations, installed providers, isolated credentials and cross-process cancellation | Added to synthetic contracts; current results belong in the implementation record |
+| AI-AC29 | US-AI19 / UC-AI10 | Windows four contextual entries, complete gating/configuration/questions/previews/system credentials | WPF cross-build and 16 subprocess checks pass; native CI and button journeys pending |
 | AI-AC30 | US-AI18 / US-AI19 | Existing Windows CI verifies this revision’s Swift/WPF/AI contracts and packages | Check stage wired; requires a run link for a commit containing these edits, never old HEAD |
+
+
+| AI-AC31 | US-AI20/UC-AI11 | Required main model; Jev assists when enabled; when disabled, main takes over with zero decision requests/credential reads | Contracts added; current results recorded in implementation document |
+| AI-AC32 | US-AI20/UC-AI11 | Create/read/update/default/delete confirmation/cancel/restore, preserving history and separate credentials | CLI/bridge and safety coverage; native configuration journey recorded separately |
+| AI-AC33 | US-AI20/UC-AI11 | macOS, Windows and CLI share switch/lifecycle semantics; repair legacy Jev-only profiles | Both desktops integrated; builds and native Windows CI recorded separately |
 
 
 ## 3. Jev routing comparison cases
@@ -96,4 +101,13 @@ Fixtures: `.build/ai-native-acceptance/Fixture`; current receipt `execution_4438
 
 Validate bilingual navigation/IDs, local links, fences and Mermaid parsing; align diagrams with existing versus target behavior and remove conflicting integration claims. Documentation checks do not replace feature tests.
 
-Desktop gate, decision-first routing, independent setup/usage, shared launch and state UI are implemented. Continue latest-package native live, accessibility and quality/cost acceptance per row. Desktop recovery, domain explanations, content reads, Windows and macOS 14 remain independent gates.
+Desktop gate, decision-first routing, independent setup/usage, shared launch and state UI are implemented. Latest native packages additionally pass asynchronous folder selection, local measurement, history/waiting continuation and cancelling a new investigation. Continue live, accessibility and quality/cost acceptance per row. Interrupted-running recovery, domain explanations, content reads, Windows and macOS 14 remain independent gates.
+
+## Current UX regression
+
+| Check | Expected | Evidence |
+| --- | --- | --- |
+| Cooperating services | Jev first and main model on demand shown together; single-service policies remain accurate | Native launch/settings/inspector, WPF build and existing Windows CI |
+| Scope | Entire scan or one folder, with consistent downstream path | Native selection/cancel and reused-index inspector |
+| Credentials | Independent keys saved once and reusable after restart without password prompts | Synthetic subprocess contracts and selected live connection tests |
+| Limits | CLI `limit_reason` and desktop explain the specific cap | Token/step/response synthetic scenarios; historical records retained |

@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/product/startup-items.md)
 
-The native page groups startup registrations by verified application path and provides state counts, All / Enabled / Disabled / Leftovers filters, search, inline controls and expandable details. Direct controls cover eligible LaunchAgents, third-party system daemons and native application login registrations. Unsupported registrations retain a macOS Settings entry point.
+The macOS native page groups startup registrations by verified application path and provides state counts, All / Enabled / Disabled / Leftovers filters, search, inline controls and expandable details. Direct controls cover eligible LaunchAgents, third-party system daemons and native application login registrations. Unsupported registrations retain a macOS Settings entry point. Windows sources, controls and verification boundaries are described below.
 
 ## User workflow
 
@@ -50,7 +50,21 @@ flowchart LR
     Control --> LoginList[Native login registration list]
 ```
 
-Core owns the portable result, pure application grouping/filtering and control contract. The platform adapter owns launchd source paths, property-list interpretation, physical reads, native login registrations and the authorization boundary. The desktop owns search, native presentation, confirmation and settings navigation. Discovery and control do not open the cleanup record store and cannot create cleanup plans. Windows explicitly reports this capability as unsupported until a separate adapter is implemented.
+Core owns the portable result, pure application grouping/filtering and control contract. The platform adapter owns source paths, definition parsing, physical reads, native registrations and the authorization boundary. The desktop owns search, native presentation, confirmation and settings navigation. Discovery and control do not open the cleanup record store and cannot create cleanup plans.
+
+## Windows startup items
+
+Windows reuses the Core models and services. Default sources are current-user Run, RunOnce, Startup and Task Scheduler login/boot tasks whose principal matches the current account. Include System adds 32/64-bit machine Run/RunOnce, Common Startup, other accounts' login/boot tasks and automatic/disabled services. Each source reports complete, missing, partial, unavailable or not scanned. Packaged-app StartupTask, group-policy scripts and Winlogon extensions remain explicitly outside coverage.
+
+Registry commands expose only an unambiguous absolute executable path, omit arguments/environment values and never search PATH. Startup-folder reads do not follow filesystem reparse points. Bounded `.lnk` bytes are parsed through the native Shell Link stream interface for the embedded path; Resolve is never called, and moved-target searches, network targets and UI are avoided. Unresolved targets stay unknown instead of becoming leftovers. Registry/Startup effective enablement may depend on Windows policies or startup settings, so it remains unknown; Shou does not rewrite undocumented StartupApproved data. Tasks and services report configuration and runtime separately.
+
+WPF provides the source list, search, all/enabled/disabled/missing-target filters, configuration/runtime states, coverage details and entry points to Windows startup settings, Task Scheduler and Services. Same-name registrations remain separate unless application ownership is established.
+
+Direct controls apply only to fully readable current-account login/boot tasks outside the `\\Microsoft\\` tree. Review binds the path, configuration, executable and native evidence digest; confirmation additionally binds the action. The native adapter rechecks the account and complete XML, changes Enabled through the public scheduler interface, fetches the task again and verifies that only this setting changed. It does not start tasks or stop running instances. Unverifiable outcomes after a write are reported as possibly changed and require a new scan; they are never retried automatically. Other sources retain system-management entry points. Whole-application elevation, registry removal, task removal and service mutation are not introduced.
+
+On Windows, `startup list` returns `scope: windows_startup_items`. `startup control --path '\\Folder\\Task' --action disable` accepts the exact task path from discovery and requires current-terminal confirmation. The desktop bridge exposes `startup.scan` and `startup.control`; reads remain independent of cleanup storage. The default shared budget is 2,000 entries/five seconds, checked between native operations; an active COM or kernel call cannot be forcibly interrupted.
+
+Current evidence includes four Windows contract checks on the host, full Core regression, WPF compilation, explicit Windows branch type checking and x64/ARM64 native cross-linking. Windows CI adds read-only source/refusal/cancellation checks whose verifier always refuses mutation confirmation. Native Windows task mutation and UI journeys have not run on this host; this is not complete Windows startup acceptance.
 
 ## CLI
 

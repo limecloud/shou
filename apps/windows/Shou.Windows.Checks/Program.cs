@@ -13,7 +13,7 @@ if (args.FirstOrDefault() == "--fixture")
     if (mode == "overflow") { await Console.Out.WriteAsync(new string('x', 9 * 1024 * 1024)); await Task.Delay(TimeSpan.FromMinutes(1)); return 0; }
     if (mode == "duplicate") { await Console.Out.WriteLineAsync("{\"bridge_version\":1,\"bridge_version\":2}"); return 0; }
     if (mode == "invalid") { await Console.Out.WriteLineAsync("not a protocol"); return 0; }
-    if (mode == "error") { await Emit("result", new() { ["api_version"] = "1.0", ["ok"] = false, ["error"] = new JsonObject { ["code"] = "plan_stale", ["message"] = "Changed evidence" } }); return 0; }
+    if (mode == "error") { await Emit("result", new() { ["api_version"] = "1.0", ["ok"] = false, ["error"] = new JsonObject { ["code"] = "plan_stale", ["message"] = "Changed evidence", ["details"] = new JsonObject { ["issues"] = "$.match: generated fixture issue" } } }); return 0; }
     if (mode == "ai-partial") {
         await Emit("result",new() { ["api_version"]="1.0",["ok"]=false,["status"]="partial",["data"]=new JsonObject { ["id"]="investigation_fixture",["status"]="cancelled",["evidence"]=new JsonArray(new JsonObject { ["path"]="build/cache" }) } }); return 0;
     }
@@ -99,6 +99,27 @@ async Task Failure(string code, Func<Task<JsonNode>> action)
     try { await action(); } catch (BridgeException error) when (error.Code == code) { return; }
     throw new Exception("Expected " + code);
 }
+await Check("历史后续操作保持精确子集，拒绝混合权限和超限选择", () =>
+{
+    var both = new HistoryFollowUpChoice("both", true, true);
+    var restoreOnly = new HistoryFollowUpChoice("restore-only", true, false);
+    var blocked = new HistoryFollowUpChoice("pending", false, false);
+    Require(!HistoryFollowUpSelection.CanSubmit("restore", []));
+    Require(HistoryFollowUpSelection.ItemIds("restore", [restoreOnly, both]).SequenceEqual(["restore-only", "both"]));
+    Require(HistoryFollowUpSelection.ItemIds("purge", [both]).SequenceEqual(["both"]));
+    foreach (var selection in new HistoryFollowUpChoice[][] { [both, restoreOnly], [blocked], [both, both], [both with { Id = "" }] })
+    {
+        Require(!HistoryFollowUpSelection.CanSubmit("purge", selection));
+        try { HistoryFollowUpSelection.ItemIds("purge", selection); throw new Exception("Invalid history selection accepted."); }
+        catch (BridgeException error) when (error.Code == "invalid_argument") { }
+    }
+    Require(!HistoryFollowUpSelection.CanSubmit("restore", [both, blocked]));
+    Require(!HistoryFollowUpSelection.CanSubmit("permanent", [both]));
+    var maximum = Enumerable.Range(0, 500).Select(index => both with { Id = "item-" + index }).ToArray();
+    Require(HistoryFollowUpSelection.ItemIds("purge", maximum).Length == 500);
+    Require(!HistoryFollowUpSelection.CanSubmit("purge", maximum.Append(both).ToArray()));
+    return Task.CompletedTask;
+});
 await Check("UTF-8、参数隔离、同时排空诊断", async () =>
 {
     var result = await Fixture("echo").RequestAsync("capabilities", new() { ["path"] = "中文 空格 & $(literal)" });
@@ -106,14 +127,25 @@ await Check("UTF-8、参数隔离、同时排空诊断", async () =>
     Require(result["arguments"] is JsonArray { Count: 1 } list && list[0]?.GetValue<string>() == "--desktop-bridge");
 });
 await Check("结构化错误", () => Failure("plan_stale", () => Fixture("error").RequestAsync("scan")));
+await Check("规则校验问题详情保留",async()=> {
+    try { await Fixture("error").RequestAsync("rules.validate"); }
+    catch(BridgeException error) when(error.Code=="plan_stale" && error.Details?["issues"]?.GetValue<string>()=="$.match: generated fixture issue") { return; }
+    throw new Exception("Structured rule issues were lost.");
+});
 await Check("非法 JSON 拒绝", () => Failure("transport_failed", () => Fixture("invalid").RequestAsync("scan")));
 await Check("重复字段拒绝", () => Failure("transport_failed", () => Fixture("duplicate").RequestAsync("scan")));
 await Check("输出超限立即结束只读生产者", () => Failure("output_limit", () => Fixture("overflow").RequestAsync("scan")));
 await Check("只读请求期限", () => Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync("scan")));
 await Check("补扫、跨目录扫描和大文件查询遵守只读请求期限", async () =>
 {
-    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "cleanup.review" })
+    foreach(var operation in new[] { "scan.target", "system.scan", "storage.large-files", "cleanup.review", "startup.scan", "applications.scan", "history.inspect", "presets.scan", "rules.draft", "rules.revision", "rules.validate", "rules.draft.preview" })
         await Failure("request_timeout", () => Fixture("timeout", TimeSpan.FromMilliseconds(500)).RequestAsync(operation));
+});
+await Check("历史位置核验支持取消并拒绝任何变更确认", async () =>
+{
+    using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+    await Failure("cancelled", () => Fixture("timeout").RequestAsync("history.inspect", cancellation: stop.Token));
+    await Failure("invalid_protocol", () => Fixture("confirm").RequestAsync("history.inspect", confirm: _ => throw new Exception("Read-only verification requested consent.")));
 });
 await Check("确认绑定本次挑战和摘要", async () =>
 {
@@ -126,9 +158,11 @@ await Check("缺少确认处理器时取消", async () =>
 });
 await Check("变更请求协作取消并等待回执", async () =>
 {
-    using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
-    var result = await Fixture("mutation-cancel").RequestAsync("plan.execute", cancellation: stop.Token);
-    Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);
+    foreach(var operation in new[] { "plan.execute", "startup.control" }) {
+        using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+        var result = await Fixture("mutation-cancel").RequestAsync(operation, cancellation: stop.Token);
+        Require(result["kind"]?.GetValue<string>() == "cancel" && result["receipt_saved"]?.GetValue<bool>() == true);
+    }
 });
 await Check("AI 部分结果保留证据，普通业务错误仍拒绝", async () => {
     var result=await Fixture("ai-partial").RequestAsync("ai.investigate");

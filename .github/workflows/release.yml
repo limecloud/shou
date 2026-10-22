@@ -38,6 +38,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.SHOU_RELEASE_TAG }}
+      - uses: swift-actions/setup-swift@7591e4f04c00624cb043783da51a7fd6ee0a6bf6 # v2
+        with:
+          swift-version: "6.2.3"
       - name: Full tests including native Trash, restore, and permanent removal
         run: sh scripts/test.sh --native-trash-purge
       - name: Storage metadata, directory workers, and cancellation
@@ -71,6 +74,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.SHOU_RELEASE_TAG }}
+      - uses: swift-actions/setup-swift@7591e4f04c00624cb043783da51a7fd6ee0a6bf6 # v2
+        with:
+          swift-version: "6.2.3"
       - name: Build, test, package, and sign universal updates
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}

@@ -4,16 +4,39 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Microsoft.Win32;
+using Shou.Windows.Services;
 
 namespace Shou.Windows;
 
 public sealed class WindowsDialogs(Window owner)
 {
+    public void InspectHistory(BridgeProcessClient client, string executionId) => new HistoryInspectionDialog(owner, client, executionId).ShowDialog();
+    public JsonNode? AuthorPersonalRule(BridgeProcessClient client,WorkspaceRow workspace,CancellationToken cancellation,JsonObject? original=null)
+    {
+        var dialog=new RuleAuthoringDialog(owner,client,workspace,cancellation,original);
+        return dialog.ShowDialog()==true ? dialog.SavedRule : null;
+    }
+    public string? ChooseRuleExport(string id)
+    {
+        var picker=new SaveFileDialog { Title="导出个人规则",FileName=id+".rule.json",Filter="清理规则|*.rule.json;*.json",DefaultExt=".rule.json",AddExtension=true,OverwritePrompt=true };
+        return picker.ShowDialog(owner)==true ? picker.FileName : null;
+    }
     public JsonObject? EditAIConnection(JsonObject? existing, JsonNode?[] providers) {
         var dialog=new AIConnectionDialog(owner,existing,providers);
         return dialog.ShowDialog()==true ? dialog.Request : null;
     }
+    public bool ConfirmAIConfigurationDeletion(string name) => MessageBox.Show(owner,
+        name+"\n\n从可用配置中移除，保留调查历史及其密钥。可在“已删除配置”中恢复。",
+        "删除 AI 配置方案？",MessageBoxButton.OKCancel,MessageBoxImage.Question,MessageBoxResult.Cancel)==MessageBoxResult.OK;
     public void RevealFolder(string path) => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+    public void OpenStartupSettings() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:startupapps") { UseShellExecute = true });
+    public void OpenApplicationSettings() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("ms-settings:appsfeatures") { UseShellExecute = true });
+    public void OpenStartupConsole(bool services)
+    {
+        var start=new System.Diagnostics.ProcessStartInfo(System.IO.Path.Combine(Environment.SystemDirectory,"mmc.exe")) { UseShellExecute=false };
+        start.ArgumentList.Add(System.IO.Path.Combine(Environment.SystemDirectory,services ? "services.msc" : "taskschd.msc"));
+        System.Diagnostics.Process.Start(start);
+    }
     public string? ChooseFolder()
     {
         var picker = new OpenFolderDialog { Title = "选择需要分析或清理的本地目录" };
@@ -28,11 +51,13 @@ public sealed class WindowsDialogs(Window owner)
     {
         if (cancellation.IsCancellationRequested || challenge["review"]?["items"] is not JsonArray { Count: > 0 } ||
             !DateTimeOffset.TryParse(challenge["expires_at"]?.GetValue<string>(), out var expiry) || expiry <= DateTimeOffset.UtcNow ||
-            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear")) return Task.FromResult(false);
+            challenge["operation"]?.GetValue<string>() is not ("trash" or "restore" or "permanent" or "purge" or "history.clear" or "startup.enable" or "startup.disable")) return Task.FromResult(false);
         var operation = challenge["operation"]!.GetValue<string>();
         if (challenge["review"]?["action"]?.GetValue<string>() != operation) return Task.FromResult(false);
         var (caption, heading, warning) = operation switch
         {
+            "startup.enable" => ("确认启用启动项", "启用以下计划任务？", "仅修改所选当前用户任务的启用配置。不会立即启动任务。执行前重新核验完整定义，执行后读取配置确认结果。"),
+            "startup.disable" => ("确认停用启动项", "停用以下计划任务？", "仅修改所选当前用户任务的启用配置。已经运行的实例会继续运行。执行前重新核验完整定义，执行后读取配置确认结果。"),
             "history.clear" => ("清理操作记录", "删除以下本地操作记录？", "仅删除记录，文件保持原位。删除记录后将无法通过 Shou 恢复或核验。未结束的操作记录会保留。"),
             "restore" => ("确认恢复", "恢复以下具体项目？", "恢复遇到同名目标时停止，不会覆盖。"),
             "permanent" => ("确认永久删除", "永久删除以下具体项目？", "此操作不可撤销，删除后无法通过历史恢复。请先停止相关应用、构建和包管理任务。"),

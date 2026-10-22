@@ -10,16 +10,20 @@ extension NativeFileSystem {
     /// names into SQLite and retain the complete Windows identity for later reads.
     public func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool,
                                progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
+        func checkCancellation() throws {
+            if cancelled() || Task.isCancelled { throw ShouError("cancelled", "Space analysis stopped.") }
+        }
+        try checkCancellation()
         let path=try normalizedPath(path), identity=try analysisRootIdentity(path)
         let rootPrefix=path.hasSuffix("/") ? path : path + "/"
-        let database=try StorageCatalog(url: catalog, create: true)
+        let database=try StorageCatalog(url: catalog, create: true, prepareNewFile: {
+            try checkCancellation()
+            try WindowsNative.check(shou_win_create_private_catalog(catalog.path), path: catalog.path)
+        })
         let first=try database.append(identity, name: ".", parentID: 0)
         let deadline=ContinuousClock.now.advanced(by: .seconds(3600))
         var count=1, issueCount=0, issues=[String](), issueBytes=0
         var lastReport=ContinuousClock.now
-        func checkCancellation() throws {
-            if cancelled() || Task.isCancelled { throw ShouError("cancelled", "Space analysis stopped.") }
-        }
         func issue(_ value: String) {
             issueCount += 1
             if issues.count < 256, issueBytes + value.utf8.count <= 262_144 {

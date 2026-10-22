@@ -69,10 +69,6 @@ struct ScanLocationsView: View {
     }
 
     private func isConventional(_ path: String) -> Bool {
-        let home=FileManager.default.homeDirectoryForCurrentUser
-        return ProjectLocations.relativePaths.contains {
-            let conventional=home.appendingPathComponent($0).path
-            return path == conventional || path.hasPrefix(conventional + "/") || conventional.hasPrefix(path + "/")
-        }
+        ProjectLocations.isConventional(path, homeDirectory: FileManager.default.homeDirectoryForCurrentUser, platform: "macos")
     }
 }

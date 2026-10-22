@@ -9,6 +9,14 @@ public enum ProjectLocations {
         "Documents/Workspace", "Documents/Workspaces", "Documents/Development", "Documents/repos", "Documents/src",
         "Desktop/Projects", "Desktop/Code", "Desktop/dev"
     ]
+
+    public static func isConventional(_ path: String, homeDirectory: URL, platform: String) -> Bool {
+        relativePaths.contains { pathsOverlap(path, homeDirectory.appendingPathComponent($0).path, platform: platform) }
+    }
+    static func pathsOverlap(_ first: String, _ second: String, platform: String) -> Bool {
+        let a=KnownLocations.pathKey(first, platform: platform), b=KnownLocations.pathKey(second, platform: platform)
+        return a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
+    }
 }
 
 extension ShouEngine {
@@ -16,7 +24,6 @@ extension ShouEngine {
     /// overlapping suggestion so discovery cannot bypass their rule policy.
     public func projectLocations() throws -> [KnownLocation] {
         guard ["macos", "windows"].contains(filesystem.platform) else { return [] }
-        let caseSensitive=filesystem.platform != "windows"
         let cachePaths=Set(try KnownLocations.catalog(homeDirectory: homeDirectory, platform: filesystem.platform).map { KnownLocations.pathKey($0.path, platform: filesystem.platform) })
         let roots=try configuration().workspaces.filter { !cachePaths.contains(KnownLocations.pathKey($0.path, platform: filesystem.platform)) }
         var locations=roots.map { projectLocation(path: $0.path, id: $0.id) }
@@ -24,7 +31,7 @@ extension ShouEngine {
         for relative in ProjectLocations.relativePaths {
             if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
             let path=homeDirectory.appendingPathComponent(relative, isDirectory: true).path
-            guard !locations.contains(where: { Self.projectPathsOverlap($0.path, path, caseSensitive: caseSensitive) }) else { continue }
+            guard !locations.contains(where: { ProjectLocations.pathsOverlap($0.path, path, platform: filesystem.platform) }) else { continue }
             switch filesystem.locationAvailability(path) {
             case .missing: continue
             case .unavailable(let message):
@@ -42,11 +49,6 @@ extension ShouEngine {
             }
         }
         return locations
-    }
-
-    private static func projectPathsOverlap(_ first: String, _ second: String, caseSensitive: Bool) -> Bool {
-        let a=caseSensitive ? first : first.lowercased(), b=caseSensitive ? second : second.lowercased()
-        return a == b || a.hasPrefix(b + "/") || b.hasPrefix(a + "/")
     }
 
     private func projectLocation(path: String, id: String? = nil, issue: String? = nil) -> KnownLocation {

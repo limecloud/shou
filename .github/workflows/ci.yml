@@ -22,6 +22,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - uses: swift-actions/setup-swift@7591e4f04c00624cb043783da51a7fd6ee0a6bf6 # v2
+        with:
+          swift-version: "6.2.3"
       - name: Toolchain
         run: swift --version
       - name: Core, filesystem, CLI, localization, and documentation

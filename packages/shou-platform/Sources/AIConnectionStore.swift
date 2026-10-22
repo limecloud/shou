@@ -10,15 +10,36 @@ import CShouWindows
 public struct AIConnectionStore: Sendable {
     private let store: any RecordStore
     public init(store: any RecordStore) { self.store=store }
-    public func connections() throws -> [AIConnection] {
+    public func connections(deleted: Bool = false) throws -> [AIConnection] {
         try store.ids("ai-connections").compactMap { id in
-            try store.read("ai-connections", id: id).map { try Codec.decode(AIConnection.self, from: $0).validated() }
+            guard try isDeleted(id) == deleted else { return nil }
+            return try store.read("ai-connections", id: id).map { try Codec.decode(AIConnection.self, from: $0).validated(allowLegacyDecisionOnly: true) }
         }.sorted { $0.name < $1.name }
+    }
+    public func connection(_ id: String, includingDeleted: Bool = false) throws -> AIConnection {
+        guard try includingDeleted || !isDeleted(id), let data=try store.read("ai-connections", id: id) else {
+            throw ShouError("not_found", "AI configuration not found.")
+        }
+        return try Codec.decode(AIConnection.self, from: data).validated(allowLegacyDecisionOnly: true)
+    }
+    private func isDeleted(_ id: String) throws -> Bool {
+        guard let data=try store.read("ai-connection-states", id: id) else { return false }
+        return try Codec.decode(Bool.self, from: data)
+    }
+    /// Recoverable deletion preserves credentials referenced by historical investigations.
+    public func setDeleted(_ deleted: Bool, id: String) throws {
+        let lease=try store.lock(); defer { lease.release() }
+        _ = try connection(id, includingDeleted: true)
+        try store.write("ai-connection-states", id: id, data: Codec.encode(deleted))
     }
     public func save(_ connection: AIConnection) throws {
         let value=try connection.validated()
         let lease=try store.lock(); defer { lease.release() }
+        try checkEditable(value.id)
         try store.write("ai-connections", id: value.id, data: Codec.encode(value))
+    }
+    public func checkEditable(_ id: String) throws {
+        guard try !isDeleted(id) else { throw ShouError("invalid_ai_connection", "Restore the deleted AI configuration before editing it.") }
     }
     public static func profile(_ json: JSONValue) throws -> AIConnection {
         let fields: Set<String>=["id", "name", "api_protocol", "base_url", "model", "authentication", "environment_variable", "decision", "main_model_enabled", "routing_strategy"]
@@ -36,7 +57,18 @@ public struct AIConnectionStore: Sendable {
 
 /// Only explicitly selected credentials are read; provider environment defaults are never used.
 public struct SystemAICredentials: AICredentialStore {
-    public init() {}
+    private let directory: URL
+    public init(directory: URL = LocalRecordStore.defaultDirectory) { self.directory=directory }
+    private static func localID(_ account: String) -> String {
+        "credential_" + Digest.sha256(Data(account.utf8)).dropFirst("sha256:".count)
+    }
+    private func localKey(_ id: String) throws -> String? {
+        guard let data=try LocalRecordStore(directory: directory).readAICredential(id: Self.localID(id)) else { return nil }
+        guard let key=String(data: data, encoding: .utf8), !key.isEmpty, !key.contains(where: { $0.isWhitespace }) else {
+            throw ShouError("ai_credential_missing", "The local API key is unavailable. Open AI settings to save it again.")
+        }
+        return key
+    }
     public func key(for connection: AIConnection) throws -> String? {
         try key(authentication: connection.authentication, environmentVariable: connection.environmentVariable, id: connection.id)
     }
@@ -51,12 +83,19 @@ public struct SystemAICredentials: AICredentialStore {
     private func key(authentication: AIAuthentication, environmentVariable: String, id: String) throws -> String? {
         switch authentication {
         case .none: return nil
+        case .local:
+            guard let key=try localKey(id) else {
+                throw ShouError("ai_credential_missing", "The local API key is unavailable. Open AI settings to save it again.")
+            }
+            return key
         case .environment:
             guard let value=ProcessInfo.processInfo.environment[environmentVariable], !value.isEmpty else {
                 throw ShouError("ai_credential_missing", "The selected API key environment variable is empty.")
             }
             return value
         case .keychain:
+            // Explicitly migrated accounts also serve old checkpoints, without changing their provider snapshot.
+            if let migrated=try localKey(id) { return migrated }
             #if canImport(Security)
             var query=Self.query(id)
             query[kSecUseAuthenticationUI as String]=kSecUseAuthenticationUIFail
@@ -65,7 +104,7 @@ public struct SystemAICredentials: AICredentialStore {
             var result: CFTypeRef?
             let status=SecItemCopyMatching(query as CFDictionary, &result)
             guard status == errSecSuccess, let data=result as? Data, let key=String(data: data, encoding: .utf8), !key.isEmpty else {
-                throw ShouError("ai_credential_missing", "The API key is unavailable in Keychain. Open AI settings to save it again.")
+                throw ShouError("ai_credential_missing", "The legacy Keychain key is unavailable. Open AI settings, choose local storage and enter the key again.")
             }
             return key
             #elseif os(Windows)
@@ -88,13 +127,25 @@ public struct SystemAICredentials: AICredentialStore {
         guard !key.isEmpty, key.utf8.count <= 8192, !key.contains(where: { $0.isWhitespace }) else {
             throw ShouError("invalid_ai_key", "Enter one API key no larger than 8 KiB.")
         }
+        let profile=try connection.validated()
+        guard let authentication=decision ? profile.decision?.authentication : profile.authentication, authentication.storesKey else {
+            throw ShouError("invalid_ai_connection", "Choose local storage or system credentials before saving an API key.")
+        }
+        let account=profile.id + (decision ? Self.decisionSuffix(profile) : "")
+        if authentication == .local {
+            let store=try LocalRecordStore(directory: directory)
+            let lease=try store.lock(); defer { lease.release() }
+            try store.writeAICredential(id: Self.localID(account), data: Data(key.utf8))
+            return
+        }
         #if canImport(Security)
-        let query=Self.query(connection.id + (decision ? Self.decisionSuffix(connection) : "")), data=Data(key.utf8)
+        let query=Self.query(account), data=Data(key.utf8)
         var updateQuery=query
         updateQuery[kSecUseAuthenticationUI as String]=kSecUseAuthenticationUIFail
         var status=SecItemUpdate(updateQuery as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if status == errSecItemNotFound {
             var attributes=query
+            attributes[kSecUseAuthenticationUI as String]=kSecUseAuthenticationUIFail
             attributes[kSecValueData as String]=data
             attributes[kSecAttrAccessible as String]=kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
             attributes[kSecAttrLabel as String]="Shou AI · " + connection.name + (decision ? " · " + (connection.decision?.providerName ?? "Decision") : "")
@@ -106,7 +157,7 @@ public struct SystemAICredentials: AICredentialStore {
         guard status == errSecSuccess else { throw ShouError("ai_credential_unavailable", "Could not save the API key in Keychain.") }
         #elseif os(Windows)
         let data=Data(key.utf8)
-        let status=data.withUnsafeBytes { shou_win_ai_credential_write(connection.id + (decision ? Self.decisionSuffix(connection) : ""), $0.baseAddress, $0.count) }
+        let status=data.withUnsafeBytes { shou_win_ai_credential_write(account, $0.baseAddress, $0.count) }
         guard status == 0 else { throw ShouError("ai_credential_unavailable", "Could not save the API key in Windows Credential Manager.") }
         #else
         throw ShouError("ai_credential_unavailable", "Use an explicit environment variable on this platform.")

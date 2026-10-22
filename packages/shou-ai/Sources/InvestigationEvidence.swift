@@ -35,7 +35,7 @@ actor InvestigationEvidence {
     private let permit: AIRequestPermit
     private let decisions: StructuredDecisionService
     private var checkpoint: InvestigationCheckpoint
-    private let deadline=ContinuousClock.now.advanced(by: .seconds(180))
+    private var deadline=ContinuousClock.now.advanced(by: .seconds(180))
 
     init(engine: ShouEngine, store: any RecordStore, checkpoint: InvestigationCheckpoint, credentials: any AICredentialStore,
          permit: AIRequestPermit = .unrestricted, decisions: StructuredDecisionService = .init(), progress: @escaping @Sendable (AIInvestigation) async -> Void) {
@@ -46,7 +46,7 @@ actor InvestigationEvidence {
     func replaceMessages(_ messages: Data) async throws { checkpoint.messages=messages; try await publish() }
     func publish() async throws {
         let data=try JSONEncoder().encode(checkpoint)
-        guard data.count <= 1_048_576 else { throw ShouError("ai_budget_exceeded", "The investigation reached its evidence budget.") }
+        guard data.count <= 1_048_576 else { throw AIEvidencePolicy.budgetExceeded(.evidence) }
         do {
             let lease=try store.lock(); defer { lease.release() }
             try store.write("ai-investigations", id: checkpoint.state.id, data: data)
@@ -56,9 +56,7 @@ actor InvestigationEvidence {
     func beginStep() async throws {
         try checkBudget()
         guard checkpoint.state.issue == nil else { throw ShouError("ai_decision_failed", "Structured evidence review failed.") }
-        guard checkpoint.state.steps < AIEvidencePolicy.maximumSteps, checkpoint.state.tokens < AIEvidencePolicy.maximumTokens else {
-            throw ShouError("ai_budget_exceeded", "The investigation reached its model budget.")
-        }
+        guard checkpoint.state.steps < AIEvidencePolicy.maximumSteps else { throw AIEvidencePolicy.budgetExceeded(.steps) }
         checkpoint.state.activity="Analyzing evidence…"
         await progress(checkpoint.state)
     }
@@ -72,8 +70,17 @@ actor InvestigationEvidence {
         try Task.checkCancellation()
         if try store.read("ai-cancellations", id: checkpoint.state.id) != nil { throw CancellationError() }
         try permit.check()
-        guard ContinuousClock.now < deadline else { throw ShouError("ai_budget_exceeded", "The investigation reached its time budget.") }
-        guard checkpoint.state.tokens < AIEvidencePolicy.maximumTokens else { throw ShouError("ai_budget_exceeded", "The investigation reached its model budget.") }
+        guard ContinuousClock.now < deadline else { throw AIEvidencePolicy.budgetExceeded(.time) }
+        guard checkpoint.state.tokens < AIEvidencePolicy.maximumTokens else { throw AIEvidencePolicy.budgetExceeded(.tokens) }
+    }
+    /// Credential resolution is setup, not model processing. Always recheck revocation afterwards.
+    func credential(decision: Bool = false) throws -> String? {
+        try checkBudget()
+        let started=ContinuousClock.now
+        defer { deadline=deadline.advanced(by: started.duration(to: .now)) }
+        let key=try decision ? credentials.decisionKey(for: checkpoint.state.connection) : credentials.key(for: checkpoint.state.connection)
+        try Task.checkCancellation(); try permit.check()
+        return key
     }
     private func usage(_ service: String, requests: Int = 0, tokens: Int = 0) {
         var values=checkpoint.state.serviceUsage ?? []
@@ -101,13 +108,11 @@ actor InvestigationEvidence {
             "criteria": criteria.map { .object($0.mapValues(ShouCore.JSONValue.string)) } ?? .null])).base64EncodedString()
         if let cached=checkpoint.decisions?[fingerprint] { return cached }
         let provider=checkpoint.state.connection.decision?.providerID ?? "decision"
-        guard checkpoint.state.steps < AIEvidencePolicy.maximumSteps,
-              (checkpoint.state.serviceUsage?.first(where: { $0.service == provider })?.requests ?? 0) < 8 else {
-            throw ShouError("ai_budget_exceeded", "The investigation reached its decision budget.")
-        }
+        guard checkpoint.state.steps < AIEvidencePolicy.maximumSteps else { throw AIEvidencePolicy.budgetExceeded(.steps) }
+        guard (checkpoint.state.serviceUsage?.first(where: { $0.service == provider })?.requests ?? 0) < 8 else { throw AIEvidencePolicy.budgetExceeded(.decisions) }
         checkpoint.state.activity="Reviewing evidence with the decision provider…"
         try await publish()
-        let key=try credentials.decisionKey(for: checkpoint.state.connection)
+        let key=try credential(decision: true)
         try checkBudget(); checkpoint.state.steps += 1; usage(provider, requests: 1); try await publish()
         let review: AIDecisionReview
         do {
@@ -123,7 +128,7 @@ actor InvestigationEvidence {
     }
     private func tool(_ activity: String) async throws {
         try checkBudget()
-        guard checkpoint.state.toolCalls < AIEvidencePolicy.maximumToolCalls else { throw ShouError("ai_budget_exceeded", "The investigation reached its tool budget.") }
+        guard checkpoint.state.toolCalls < AIEvidencePolicy.maximumToolCalls else { throw AIEvidencePolicy.budgetExceeded(.tools) }
         checkpoint.state.toolCalls += 1; checkpoint.state.activity=activity
         await progress(checkpoint.state)
     }
@@ -139,7 +144,7 @@ actor InvestigationEvidence {
         let size=try Codec.encode(result).count
         guard checkpoint.state.evidenceRows < AIEvidencePolicy.maximumRows,
               checkpoint.state.evidenceBytes + size <= AIEvidencePolicy.maximumBytes else {
-            throw ShouError("ai_budget_exceeded", "The investigation reached its evidence budget.")
+            throw AIEvidencePolicy.budgetExceeded(.evidence)
         }
         checkpoint.state.evidenceRows += 1; checkpoint.state.evidenceBytes += size
         if !checkpoint.state.evidence.contains(where: { $0.path == item.node.path }) {
@@ -212,22 +217,32 @@ actor InvestigationEvidence {
     func finish(summary: String, questions: [AIQuestion], pending: [String], messages: Data, limited: Bool) async throws -> AIInvestigation {
         guard checkpoint.state.issue == nil else { throw ShouError("ai_decision_failed", "Structured evidence review failed.") }
         guard checkpoint.state.toolCalls + questions.count <= AIEvidencePolicy.maximumToolCalls else {
-            throw ShouError("ai_budget_exceeded", "The investigation reached its tool budget.")
+            throw AIEvidencePolicy.budgetExceeded(.tools)
         }
         checkpoint.messages=messages; checkpoint.pendingCalls=pending
         checkpoint.questionCount += questions.count
         checkpoint.state.toolCalls += questions.count
         checkpoint.state.questions=questions; checkpoint.state.summary=String(summary.prefix(12_000))
         checkpoint.state.status = limited ? .limited : questions.isEmpty ? .complete : .waiting
-        checkpoint.state.activity = questions.isEmpty ? "Investigation finished" : "Waiting for your answer"
+        if limited {
+            checkpoint.state.limitReason = checkpoint.state.tokens >= AIEvidencePolicy.maximumTokens ? .tokens : checkpoint.state.steps >= AIEvidencePolicy.maximumSteps ? .steps : .directories
+            checkpoint.state.issue=checkpoint.state.limitReason?.message
+        }
+        checkpoint.state.activity = limited ? "Investigation limit reached" : questions.isEmpty ? "Investigation finished" : "Waiting for your answer"
         try await publish(); return checkpoint.state
     }
     func fail(_ error: any Error) async -> AIInvestigation {
         let cancelled=Task.isCancelled || error is CancellationError || (error as? ShouError)?.code == "ai_disabled"
         let limited=(error as? ShouError)?.code == "ai_budget_exceeded"
         checkpoint.state.status = cancelled ? .cancelled : limited ? .limited : .failed
+        let reason=(error as? ShouError)?.details["budget"].flatMap(AIInvestigationLimit.init(rawValue:))
+        checkpoint.state.limitReason=limited ? reason : nil
         // Provider error bodies can echo credentials or evidence; never persist them.
-        checkpoint.state.issue = cancelled ? "Investigation cancelled." : limited ? "The investigation reached its budget. Review the available suggestions or start a smaller investigation." : checkpoint.state.issue ?? "The model request failed. Check the connection and tool-calling support, then try again."
+        checkpoint.state.issue = cancelled ? "Investigation cancelled." : limited ? reason?.message ?? "The investigation reached its budget. Review the available suggestions or start a smaller investigation." : checkpoint.state.issue ?? "The model request failed. Check the connection and tool-calling support, then try again."
+        if !cancelled, ["ai_credential_missing", "ai_credential_unavailable"].contains((error as? ShouError)?.code ?? "") {
+            checkpoint.state.issue="An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required."
+        }
+        checkpoint.state.activity=cancelled ? "Investigation cancelled." : limited ? "Investigation limit reached" : "Investigation failed"
         try? await publish()
         return checkpoint.state
     }

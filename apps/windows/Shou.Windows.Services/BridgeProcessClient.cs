@@ -6,9 +6,10 @@ using System.Text.Json.Nodes;
 
 namespace Shou.Windows.Services;
 
-public sealed class BridgeException(string code, string message) : Exception(message)
+public sealed class BridgeException(string code, string message, JsonObject? details = null) : Exception(message)
 {
     public string Code { get; } = code;
+    public JsonObject? Details { get; } = details?.DeepClone().AsObject();
 }
 
 /// <summary>Owns one request process. Filesystem mutations stop cooperatively.</summary>
@@ -18,7 +19,7 @@ public sealed class BridgeProcessClient
     private readonly string[] prefix;
     private readonly string? dataDirectory;
     private readonly TimeSpan timeout;
-    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "system.scan", "scan", "scan.target", "scan.results", "cleanup.review", "history", "history.page", "history.cleanup-preview", "rules.preview", "records.preview", "storage.scan", "storage.show", "storage.directory", "storage.map", "storage.context", "storage.page", "storage.large-files"];
+    private static readonly HashSet<string> Reads = ["capabilities", "configuration", "system.scan", "scan", "scan.target", "scan.results", "cleanup.review", "startup.scan", "applications.scan", "presets.scan", "history", "history.page", "history.inspect", "history.cleanup-preview", "rules.preview", "rules.draft", "rules.validate", "rules.revision", "rules.draft.preview", "records.preview", "storage.scan", "storage.show", "storage.directory", "storage.map", "storage.context", "storage.page", "storage.large-files"];
 
     public BridgeProcessClient(string executable, IEnumerable<string>? argumentPrefix = null, string? dataDirectory = null, TimeSpan? timeout = null)
     {
@@ -122,7 +123,7 @@ public sealed class BridgeProcessClient
                         if (!ok && !aiPartial)
                         {
                             var error = result["error"] as JsonObject;
-                            throw new BridgeException(error?["code"]?.GetValue<string>() ?? "engine_error", error?["message"]?.GetValue<string>() ?? "操作未完成，请查询实际状态。");
+                            throw new BridgeException(error?["code"]?.GetValue<string>() ?? "engine_error", error?["message"]?.GetValue<string>() ?? "操作未完成，请查询实际状态。", error?["details"] as JsonObject);
                         }
                         return result["data"]?.DeepClone() ?? throw new BridgeException("invalid_protocol", "缺少业务结果。");
                     default: throw new BridgeException("invalid_protocol", "未知的清理核心事件。");

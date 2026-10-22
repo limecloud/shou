@@ -142,6 +142,14 @@ def main():
             assert result["ok"], result
             return result["data"]
 
+        def history_record_snapshot():
+            records = root / "records"
+            snapshot = {path.relative_to(records).as_posix(): (path.read_bytes(), path.stat().st_mtime_ns)
+                        for collection in ("history", "history-manifests", "followups")
+                        for path in (records / collection).glob("*.json")}
+            assert snapshot, "Fixture must contain durable history before checking read-only behavior"
+            return snapshot
+
         capabilities = success("capabilities")
         assert success("history.cleanup-preview")["execution_ids"] == []
         assert capabilities["features"]["permanent"] is True
@@ -227,21 +235,45 @@ def main():
         assert success("history") == []
         if args.native_trash:
             assert capabilities["features"]["trash"], "Native Recycle Bin capability must be explicitly available"
-            plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[candidate["id"]]))
+            chosen = [item for item in scan["candidates"] if item["eligible"]][:2]
+            plan = success("plan", dict(scan_id=scan["scan_id"], candidate_ids=[item["id"] for item in chosen]))
             result, reviewed = request(engine, environment, "plan.execute", dict(plan_id=plan["id"]), "accept")
             assert reviewed and result["ok"], result
             receipt = result["data"]
             assert receipt["state"] == "completed" and all(item["state"] == "trashed" for item in receipt["items"]), receipt
             assert not (workspace / candidate["relative_path"]).exists()
             history = success("history")
-            assert len(history) == 1 and history[0]["items"][0]["can_restore"] and history[0]["items"][0]["can_purge"]
+            assert len(history) == 1 and len(history[0]["items"]) == 2 and all(item["can_restore"] and item["can_purge"] for item in history[0]["items"])
+            saved_records = history_record_snapshot()
+            inspection = success("history.inspect", dict(execution_id=receipt["id"]))
+            assert inspection["execution_id"] == receipt["id"] and inspection["status"] == "complete" and not inspection["unfinished"], inspection
+            assert all(item["state"] == "verified_trash" and item["original"]["state"] == "missing" and item["trash"]["state"] == "matches" for item in inspection["items"])
+            limited = success("history.inspect", dict(execution_id=receipt["id"], budget=dict(max_entries=1)))
+            assert limited["status"] == "partial" and any(item["trash"]["state"] == "unavailable" for item in limited["items"]), limited
+            conflict = Path(receipt["items"][0]["path"])
+            conflict.mkdir()
+            inspection = success("history.inspect", dict(execution_id=receipt["id"]))
+            assert next(item for item in inspection["items"] if item["id"] == receipt["items"][0]["id"])["state"] == "restore_conflict", inspection
+            conflict.rename(root / "isolated-restore-conflict")
+            assert success("history") == history, "Position checks must not rewrite receipts or follow-up eligibility"
+            assert history_record_snapshot() == saved_records, "Position checks rewrote durable receipt or manifest data"
+            # Restore one explicit item while its unselected sibling stays in Trash.
             result, reviewed = request(engine, environment, "history.restore",
-                                       dict(execution_id=receipt["id"], item_ids=[item["id"] for item in receipt["items"]]), "accept")
+                                       dict(execution_id=receipt["id"], item_ids=[receipt["items"][0]["id"]]), "accept")
             assert reviewed and result["ok"] and all(item["state"] == "completed" for item in result["data"]), result
-            restored = success("history")[0]["items"][0]
+            assert len(result["data"]) == 1 and result["data"][0]["item_id"] == receipt["items"][0]["id"], result
+            after = success("history")
+            restored, retained = after[0]["items"]
             assert restored["state"] == "restored" and not restored["can_restore"] and not restored["can_purge"], restored
+            assert retained["state"] == "trashed" and retained["can_restore"] and retained["can_purge"] and not Path(retained["path"]).exists(), retained
+            inspection = success("history.inspect", dict(execution_id=receipt["id"]))
+            assert [item["state"] for item in inspection["items"]] == ["restored", "verified_trash"], inspection
+            assert success("history") == after
+            result, reviewed = request(engine, environment, "history.restore",
+                                       dict(execution_id=receipt["id"], item_ids=[retained["id"]]), "accept")
+            assert reviewed and result["ok"] and len(result["data"]) == 1 and result["data"][0]["state"] == "completed", result
             assert (workspace / candidate["relative_path"] / "fixture.bin").read_bytes() == b"isolated desktop fixture" * 32
-            print("PASS confirmed native Trash, history, restoration and replay eligibility", flush=True)
+            print("PASS native Trash, exact-subset restoration, read-only location checks, conflicts, budgets and replay eligibility", flush=True)
         storage = success("storage.scan", dict(path=str(workspace)))
         assert storage["status"] == "complete" and storage["entry_count"] == 421 and storage["issues"] == [], storage
         mapped = success("storage.map", dict(scan_id=storage["scan_id"], path="."))
@@ -282,6 +314,22 @@ def main():
         result, reviewed = request(engine, environment, "storage.remove", dict(scan_id=large_scan["scan_id"], paths=[video.name], action="permanent"), "accept")
         assert reviewed and result["ok"] and result["data"]["state"] == "completed", result
         assert not video.exists() and (large_root / "small-000.bin").is_file()
+        removed_id = result["data"]["id"]
+        before_inspection = success("history")
+        saved_records = history_record_snapshot()
+        inspection = success("history.inspect", dict(execution_id=removed_id))
+        assert inspection["execution_id"] == removed_id and inspection["status"] == "complete" and not inspection["unfinished"]
+        assert len(inspection["items"]) == 1 and inspection["items"][0]["state"] == "purged", inspection
+        assert inspection["items"][0]["original"]["state"] == "missing" and inspection["items"][0]["trash"]["state"] == "not_recorded"
+        assert success("history") == before_inspection, "Read-only inspection changed history"
+        assert history_record_snapshot() == saved_records, "Read-only inspection rewrote durable history"
+        for invalid in [{}, dict(execution_id=3), dict(execution_id=""), dict(execution_id=removed_id, path=str(video)),
+                        dict(execution_id=removed_id, budget=True), dict(execution_id=removed_id, budget=dict(max_entries=0)),
+                        dict(execution_id=removed_id, budget=dict(max_seconds=0.5)), dict(execution_id=removed_id, budget=dict(max_depth=True)),
+                        dict(execution_id=removed_id, budget=dict(unknown=1))]:
+            rejected, reviewed = request(engine, environment, "history.inspect", invalid)
+            assert not rejected["ok"] and not reviewed and rejected["error"]["code"] == "invalid_argument", rejected
+        print("PASS desktop history inspection is read-only, receipt-scoped and strictly budgeted", flush=True)
         print("PASS large-file pagination, filename filters, query-bound cursors and confirmed file removal", flush=True)
         success("exclusions.set", dict(pattern="generated-000", remove=False))
         excluded = success("scan", dict(workspace_id=registered["id"]))

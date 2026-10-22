@@ -1,7 +1,7 @@
 import Foundation
 
 /// Authoring convenience only. The closed rule parser remains the authority.
-public struct PersonalRuleDraft: Sendable, Equatable {
+public struct PersonalRuleDraft: Codable, Sendable, Equatable {
     public var name: String
     public var relativePatterns: [String]
     public var projectMarkers: [String]
@@ -41,18 +41,50 @@ public struct PersonalRuleDraft: Sendable, Equatable {
     }
 
     /// Do not resolve or broaden a selection. Filesystem access is rechecked by scanning.
-    public static func exactRelativePath(selection: String, workspacePath: String) throws -> String {
-        let root=workspacePath.hasSuffix("/") ? String(workspacePath.dropLast()) : workspacePath
-        guard root.hasPrefix("/"), selection.hasPrefix(root + "/") else {
+    public static func exactRelativePath(selection: String, workspacePath: String, platform: String = "macos") throws -> String {
+        func spelling(_ value: String) throws -> String {
+            guard platform == "windows" else { return value }
+            var path=value.replacingOccurrences(of: "\\", with: "/")
+            if path.hasPrefix("/"), path.dropFirst().first?.isASCII == true, path.dropFirst(2).hasPrefix(":/") { path.removeFirst() }
+            let bytes=Array(path.utf8.prefix(3))
+            guard bytes.count == 3, (65...90).contains(bytes[0]) || (97...122).contains(bytes[0]), bytes[1] == 58, bytes[2] == 47 else {
+                throw ShouError("invalid_rule", "Choose a folder inside the selected workspace, not the workspace itself.")
+            }
+            return path
+        }
+        let selected=try spelling(selection), workspace=try spelling(workspacePath)
+        let root=workspace.hasSuffix("/") ? String(workspace.dropLast()) : workspace
+        let prefix=root + "/"
+        let range=selected.range(of: prefix, options: platform == "windows" ? [.anchored, .caseInsensitive, .literal] : [.anchored, .literal])
+        guard (platform == "windows" || root.hasPrefix("/")), let range else {
             throw ShouError("invalid_rule", "Choose a folder inside the selected workspace, not the workspace itself.")
         }
-        let relative=String(selection.dropFirst(root.count + 1))
+        let relative=String(selected[range.upperBound...])
         guard !relative.contains("*"), !relative.contains("?") else {
             throw ShouError("invalid_rule", "This folder name contains wildcard characters and cannot be represented as an exact rule.")
         }
         try PathPattern.validate(relative, target: true)
         return relative
     }
+}
+
+public enum PersonalRuleRevision {
+    /// A suggestion only; import still checks uniqueness under the record lock.
+    public static func suggestedRule(_ original: CleanupRule, existingVersions: Set<String>) throws -> CleanupRule {
+        let parts=original.version.split(separator: ".").map(String.init)
+        guard parts.count == 3, var patch=Int(parts[2]) else { throw conflict() }
+        while patch < Int.max {
+            patch += 1
+            let version=parts[0] + "." + parts[1] + "." + String(patch)
+            guard version.count <= 32 else { break }
+            if !existingVersions.contains(version) {
+                var draft=original; draft.version=version
+                return try CleanupRule.parse(Codec.encode(draft))
+            }
+        }
+        throw conflict()
+    }
+    private static func conflict() -> ShouError { ShouError("version_conflict", "Choose an unused rule version. Existing versions cannot be overwritten.") }
 }
 
 /// Shared by candidate matching and draft explanations, including precise age boundaries.

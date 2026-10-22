@@ -43,8 +43,9 @@ public struct StructuredDecisionService: Sendable {
     public func decide(_ request: StructuredDecisionRequest, connection: AIConnection, key: String?, permit: AIRequestPermit = .unrestricted) async throws -> AIDecisionReview {
         try permit.check()
         let connection=try connection.validated()
+        guard connection.decisionEnabled else { throw ShouError("ai_decision_disabled", "The decision service is off. The main model handles this configuration directly.") }
         try AIEvidencePolicy.validate(request.path)
-        guard try Codec.encode(request.evidence).count <= 24_576 else { throw ShouError("ai_budget_exceeded", "The decision evidence exceeded its size budget.") }
+        guard try Codec.encode(request.evidence).count <= 24_576 else { throw AIEvidencePolicy.budgetExceeded(.evidence) }
         guard let id=connection.decision?.providerID, let provider=providers.first(where: { $0.id == id }) else {
             throw ShouError("ai_decision_unavailable", "The selected structured decision provider is not installed. Edit the connection to choose an available provider.")
         }
@@ -63,6 +64,8 @@ public struct StructuredDecisionService: Sendable {
     }
     public func test(connection: AIConnection, credentials: any AICredentialStore, permit: AIRequestPermit = .unrestricted) async throws -> AIDecisionReview {
         try permit.check()
+        let connection=try connection.validated()
+        guard connection.decisionEnabled else { throw ShouError("ai_decision_disabled", "The decision service is off. The main model handles this configuration directly.") }
         let key=try credentials.decisionKey(for: connection)
         try permit.check()
         let result=try await decide(.init(path: "synthetic-cache", evidence: .object([

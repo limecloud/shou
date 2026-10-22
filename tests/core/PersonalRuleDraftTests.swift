@@ -40,6 +40,43 @@ func exactPersonalRuleSelectionCannotExpandItsScope() throws {
     }
 }
 
+func windowsExactPersonalRuleSelectionPreservesDriveAndWorkspaceBoundaries() throws {
+    for root in ["C:/Work/Projects", "c:\\work\\projects\\", "/C:/Work/Projects"] {
+        try expect(try PersonalRuleDraft.exactRelativePath(selection: "c:\\WORK\\projects\\项目\\Cache", workspacePath: root, platform: "windows") == "项目/Cache")
+    }
+    for path in ["C:/Work/Projects", "C:/Work/Projects-other/cache", "D:/Work/Projects/cache", "C:Work/Projects/cache",
+                 "\\\\server\\share\\cache", "\\\\?\\C:\\Work\\Projects\\cache", "C:/Work/Projects/../outside", "C:/Work/Projects/a/../../outside",
+                 "C:/Work/Projects/cache/*", "C:/Work/Projects/cache?", "C:/Work/Projects//cache"] {
+        try expectThrows { try PersonalRuleDraft.exactRelativePath(selection: path, workspacePath: "C:/Work/Projects", platform: "windows") }
+    }
+    let rule=try personalDraft().rule(id: "personal.windows-fixture", rootRef: "test-workspace", platform: "windows")
+    try expect(rule.platforms == ["windows"] && !rule.scope.followSymlinks && !rule.scope.crossFilesystems)
+}
+
+func personalRuleRevisionsPreserveBindingsAndRejectStaleSaves() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "test-workspace")
+    let original=try personalDraft().rule(id: "personal.versioned", rootRef: workspace.rootRef, platform: "macos")
+    _ = try await engine.importRule(Codec.encode(original))
+    let binding=try await engine.setRule(ruleId: original.id, workspaceId: workspace.id, enabled: true, version: original.version)
+    let reviewed=try await engine.configuration()
+    let revision=try PersonalRuleRevision.suggestedRule(original, existingVersions: ["0.1.0", "0.1.1", "0.1.2"])
+    try expect(revision.version == "0.1.3" && revision.id == original.id && revision.match == original.match)
+    let stale="foreign-configuration"
+    do {
+        _ = try await engine.importRule(Codec.encode(revision), requireNewVersion: true, expectedConfigurationRevision: stale)
+        throw CheckFailure(description: "A stale rule save must be refused.")
+    } catch let error as ShouError { try expect(error.code == "plan_stale") }
+    try expect(try Codec.encode(await engine.configuration()) == Codec.encode(reviewed))
+    _ = try await engine.importRule(Codec.encode(revision), requireNewVersion: true, expectedConfigurationRevision: reviewed.revision)
+    let saved=try await engine.configuration()
+    try expect(try Codec.encode(saved.bindings) == Codec.encode([binding]) && saved.rules.count == 2 && saved.rules.contains { $0.rule == revision })
+    try await expectThrows { try await engine.importRule(Codec.encode(revision), requireNewVersion: true) }
+    try expect(try Codec.encode(await engine.configuration()) == Codec.encode(saved))
+    var exhausted=original;exhausted.version="0.1."+String(Int.max)
+    try expectThrows { try PersonalRuleRevision.suggestedRule(exhausted, existingVersions: []) }
+}
+
 func personalDraftPreviewExplainsConditionsAndPreservesDisabledState() async throws {
     let fixture=try Fixture()
     try fixture.put("project/.personal-cache/generated.bin", String(repeating: "x", count: 8192))

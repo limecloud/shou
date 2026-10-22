@@ -25,7 +25,7 @@ flowchart TB
     Evidence --> Core[ShouCore 查询与规则校验]
     Core --> Index[本地空间索引]
     Service --> Checkpoint[本地调查检查点]
-    Desktop --> Profiles[ShouPlatform 连接与钥匙串]
+    Desktop --> Profiles[ShouPlatform 连接与私有凭据]
     CLI --> Profiles
     Profiles --> Service
     Service --> Advice[已验证建议]
@@ -106,14 +106,14 @@ sequenceDiagram
     R-->>UI: 结果、各服务用量及升级原因
 ```
 
-`AIConnection` 已支持独立 `DecisionConnection`、可选主模型、`decision_first / main_only` 策略及调查目标。检查点已保存路由队列、答案、证据指纹、分服务用量和升级原因，并同步 CLI／bridge。旧记录继续可读，缺失的历史统计显示未记录，不能回填猜测值。路由／模板属于 ShouAI，Core 仍不依赖模型服务。
+`AIConnection` 已支持独立 `DecisionConnection`、必需主模型和决策开关、`decision_first / main_only` 策略及调查目标。检查点已保存路由队列、答案、证据指纹、分服务用量和升级原因，并同步 CLI／bridge。旧记录继续可读，缺失的历史统计显示未记录，不能回填猜测值。路由／模板属于 ShouAI，Core 仍不依赖模型服务。
 
 ## 3. 模块与界面复用
 
 | 模块 | 基础职责 | 本轮已实现变化 |
 | --- | --- | --- |
 | `ShouCore` | 连接／调查 DTO、证据策略、规则校验、扫描、计划、执行 | UI 开关不进入规则匹配或删除资格判断 |
-| `ShouPlatform` | 连接记录、钥匙串／显式环境凭据、原生目录选择 | 凭据等待保持界面响应；不通过开关放宽钥匙串访问 |
+| `ShouPlatform` | 连接记录、本地／系统／显式环境凭据、原生目录选择 | macOS 默认私有文件；旧钥匙串禁止交互授权 |
 | `ShouAI` | SDK 适配、调查 actor、证据工具、Jev、预算及检查点 | 继续使用同一调查语义；新工具需单独合同 |
 | `InvestigationRouter` | 有界工作流 | 确定性处理优先、Jev 固定判断、主模型按需升级、去重及按服务用量 |
 | `AIWorkspaceSession` | 当前窗口的连接选择、调查任务、问答和预览 | 桌面开关、请求门禁、跨页目标协调与停止中状态 |
@@ -144,7 +144,7 @@ flowchart LR
 
 | 对象 | 关键内容 | 保持的语义 |
 | --- | --- | --- |
-| `AIConnection` | ID、名称、可选主模型配置、`decision`、路由策略 | 不含 API key；支持独立协议和网关前缀 |
+| `AIConnection` | ID、名称、必需主模型配置、`decision`、路由策略 | 不含 API key；支持独立协议和网关前缀 |
 | `DecisionConnection` | 提供方、独立地址、模型和认证引用 | Jev 使用 `/systemone`；其他适配器使用自身协议；保留 `JevConnection` 别名 |
 | `AIInvestigation` | ID、scan ID、scope、连接快照、状态、时间、问题、证据、建议、用量 | 恢复使用原连接，不跟随当前默认设置 |
 | `InvestigationCheckpoint` | 领域状态、SDK 续接消息、待续接工具调用、已观察目录、保留回答、路由队列和决策指纹 | 私有本地记录，不含凭据；不是通用聊天导出 |
@@ -191,7 +191,7 @@ sequenceDiagram
     actor U as 用户
     participant UI as 连接编辑器
     participant Gate as 桌面门禁
-    participant K as 系统钥匙串
+    participant K as 本地私有凭据
     participant Test as 共享连接测试
     participant M as 选定模型
     participant J as 可选 Jev
@@ -203,7 +203,7 @@ sequenceDiagram
     else 已开启
         UI->>Test: 使用表单密钥或读取已保存凭据
         Test->>K: 按所选连接读取：仅在需要时
-        Note over UI,K: 系统授权由用户完成；等待不阻塞主线程
+        Note over UI,K: 本地读取无需系统授权；旧钥匙串访问禁止交互弹窗
         opt 启用主模型
             Test->>M: 合成令牌和工具定义
             M-->>Test: verify_connection 调用
@@ -221,7 +221,7 @@ sequenceDiagram
     UI->>UI: 持久化无密钥连接引用
 ```
 
-测试只证明特定配置下的合成合同往返。HTTP 200、主模型成功或 Jev 高概率都不能冒充整个测试成功。关闭时允许本地保存，但禁止测试联网；上图门禁已实现，凭据返回后再次校验许可。保存状态防止重复点击和中途表单关闭；调用系统授权的行为不通过自动化绕过。
+测试只证明特定配置下的合成合同往返。HTTP 200、主模型成功或 Jev 高概率都不能冒充整个测试成功。关闭时允许本地保存，但禁止测试联网；上图门禁已实现，凭据返回后再次校验许可。保存状态防止重复点击和中途表单关闭；默认流程不请求系统授权。本地文件由用户权限保护，不使用钥匙串加密。
 
 ## 7. 按需主模型循环、问答与结构化复核时序
 
@@ -308,7 +308,7 @@ sequenceDiagram
     Settings->>Session: 先关闭桌面请求门禁
     Session->>Session: 取消调查／测试并显示停止中
     Session->>Network: 请求取消已在途网络
-    Note over Session,Network: 无法撤回已送达的内容；钥匙串同步等待需系统返回
+    Note over Session,Network: 无法撤回已送达的内容；凭据读取不发起交互授权
     Network-->>Session: 返回实际完成或取消结果
     Session->>Session: 再检查开关，禁止后续请求／Jev
     Session->>Store: 保留已有结果和实际终态
@@ -365,7 +365,7 @@ flowchart TB
     Registry --> Unknown[未知提供方明确不可用]
 ```
 
-切换步骤为选择已安装提供方、填写其配置、显式测试、保存，再新建调查。旧 Jev 凭据不删除；CLI 通过 `--service decision` 写入所选提供方的独立钥匙串账户，保留 `--service jev` 作为仅限 Jev 的兼容别名。协议专用后缀检查只属于相应适配器配置；关闭主模型时不再要求占位主模型地址。新增适配器需要代码注册与合同验收，当前不能只在下拉框中选择 Clef。
+切换步骤为选择已安装提供方、填写其配置、显式测试、保存，再新建调查。旧 Jev 凭据不删除；CLI 通过 `--service decision` 写入所选提供方的独立本地或系统凭据账户，保留 `--service jev` 作为仅限 Jev 的兼容别名。协议专用后缀检查只属于相应适配器配置；主模型不可关闭；关闭决策服务只切换路由策略，保留提供方配置及凭据。新增适配器需要代码注册与合同验收，当前不能只在下拉框中选择 Clef。
 
 ## 跨平台运行时与取消
 
@@ -385,7 +385,7 @@ flowchart TB
     Portable --> Tools
     Tools --> Core[Core rule import and preview]
     Win --> Credentials[Windows Credential Manager]
-    Mac --> Keychain[macOS Keychain]
+    Mac --> LocalKeys[本地私有凭据 / 旧钥匙串兼容]
 ```
 
 ```mermaid
@@ -417,4 +417,43 @@ flowchart LR
     Transport --> Result[Save cancelled checkpoint]
     Budget --> Result
     Result --> Show[CLI ai show / desktop result]
+```
+
+## 14. 配置生命周期与 Jev 开关
+
+`main_model_enabled: false` 只用于识别旧记录；新保存、开始和续接均要求有效主模型。`routing_strategy: main_only` 表示决策服务关闭，即使 `decision` 对象仍存在也不读其凭据或发送请求；`decision_first` 表示开启。使用同一字段表达策略与开关，避免保存互相冲突的第二份布尔状态。
+
+```mermaid
+flowchart TD
+    C[配置主模型] --> V{主模型有效？}
+    V -->|否| E[留在编辑器修正]
+    V -->|是| S{启用决策服务？}
+    S -->|是| D[本地分析与 Jev 固定判断]
+    D -->|足够| F[本地摘要或禁用草稿]
+    D -->|需要开放式理解| M[已配置主模型]
+    S -->|否| M
+    M --> F
+    S -.关闭时保留.-> K[决策配置与独立密钥]
+```
+
+配置正文存于 `ai-connections`，可恢复删除状态单独存于 `ai-connection-states`。删除只写状态，不改调查快照及凭据。默认列表排除已删除项；显式查看仍可读取脱敏正文；已删除项保存前及写入凭据前均检查状态，恢复后才可编辑。
+
+```mermaid
+sequenceDiagram
+    actor U as 用户
+    participant UI as macOS 或 Windows
+    participant S as AIConnectionStore
+    participant H as 历史与凭据
+    U->>UI: 新建或编辑配置
+    UI->>S: 校验必需主模型并保存
+    U->>UI: 关闭 Jev
+    UI->>S: 保存 main_only，保留 decision
+    S-->>UI: 更新可用列表及实际服务组合
+    U->>UI: 确认删除指定配置
+    UI->>S: setDeleted true
+    S-->>UI: 从活动列表排除
+    Note over S,H: 原配置、历史快照及密钥均保留，无网络请求
+    U->>UI: 恢复已删除配置
+    UI->>S: setDeleted false
+    S-->>UI: 原方案重新可用
 ```

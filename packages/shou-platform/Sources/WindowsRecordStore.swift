@@ -24,13 +24,15 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         try WindowsNative.check(shou_win_private_directory(base), path: base)
         let folder=base + "/" + collection
         try WindowsNative.check(shou_win_private_directory(folder), path: folder)
-        return id.map { folder + "/" + $0 + (collection == "storage-catalogs" ? ".sqlite" : ".json") } ?? folder
+        return id.map { folder + "/" + $0 + (collection == "storage-catalogs" ? ".sqlite" : collection == "ai-credentials" ? ".key" : ".json") } ?? folder
     }
     public func storageCatalogURL(id: String) throws -> URL? {
         let path=try location("storage-catalogs", id: id)
         do {
             let info=try WindowsNative.metadata(path)
-            guard info.kind == 1, info.current_user == 1, info.links == 1 else { throw ShouError("store_corrupt", "Space analysis index has an invalid identity.") }
+            guard info.kind == 1, info.current_user == 1, info.links == 1 else {
+                throw ShouError("store_corrupt", "Space analysis index has an invalid identity.", details: ["kind": String(info.kind), "current_user": String(info.current_user), "links": String(info.links)])
+            }
         } catch let error as ShouError where error.code == "not_found" { }
         return URL(fileURLWithPath: path)
     }
@@ -43,6 +45,15 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
         guard data.count <= 268_435_456 else { throw ShouError("resource_limit", "Record exceeds the storage limit.") }
         let path=try location(collection,id:id)
         try data.withUnsafeBytes { try WindowsNative.check(shou_win_write(path, $0.baseAddress, $0.count), path: path) }
+    }
+    func readAICredential(id: String) throws -> Data? {
+        let path=try location("ai-credentials", id: id)
+        do { return try WindowsNative.read(path, limit: 8192) }
+        catch let error as ShouError where error.code == "not_found" { return nil }
+    }
+    func writeAICredential(id: String, data: Data) throws {
+        guard data.count <= 8192 else { throw ShouError("invalid_ai_key", "Enter one API key no larger than 8 KiB.") }
+        try write("ai-credentials", id: id, data: data)
     }
     public func ids(_ collection: String) throws -> [String] {
         let path=try location(collection)

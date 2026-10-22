@@ -105,9 +105,12 @@ public actor ShouEngine {
         let workspace = Workspace(id: Codec.id("ws"), rootRef: rootRef, path: path, identity: identity, exclusions: [], addedAt: now())
         config.workspaces.append(workspace); try saveConfiguration(config); return workspace
     }
-    public func removeWorkspace(_ id: String) throws {
+    public func removeWorkspace(_ id: String, expectedConfigurationRevision: String? = nil) throws {
         let lease=try store.lock(); defer { lease.release() }
         var config=try configuration()
+        if let expectedConfigurationRevision, expectedConfigurationRevision != config.revision {
+            throw ShouError("plan_stale", "Configuration changed; review scan locations again before stopping inclusion.")
+        }
         guard config.workspaces.contains(where: { $0.id == id }) else { throw ShouError("invalid_argument", "Unknown workspace.") }
         config.workspaces.removeAll { $0.id == id }
         config.bindings.removeAll { $0.workspaceId == id }
@@ -156,12 +159,15 @@ public actor ShouEngine {
         else if !config.workspaces[index].exclusions.contains(pattern) { config.workspaces[index].exclusions.append(pattern) }
         try saveConfiguration(config); return config.workspaces[index]
     }
-    public func importRule(_ data: Data, provenance: String = "local_file", requireNewVersion: Bool = false) throws -> RuleRecord {
+    public func importRule(_ data: Data, provenance: String = "local_file", requireNewVersion: Bool = false, expectedConfigurationRevision: String? = nil) throws -> RuleRecord {
         let rule = try CleanupRule.parse(data)
         guard !rule.id.hasPrefix(BuiltinCatalog.prefix) else { throw ShouError("invalid_rule", "The built-in rule namespace is reserved.") }
         let digest = try Digest.of(rule)
         let lease = try store.lock(); defer { lease.release() }
         var config = try configuration()
+        if let expectedConfigurationRevision, config.revision != expectedConfigurationRevision {
+            throw ShouError("plan_stale", "Configuration changed; validate or preview the rule again before saving.")
+        }
         if let old = config.rules.first(where: { $0.rule.id == rule.id && $0.rule.version == rule.version }) {
             guard !requireNewVersion else { throw ShouError("version_conflict", "Choose an unused rule version. Existing versions cannot be overwritten.") }
             guard old.digest == digest else { throw ShouError("version_conflict", "The same rule version already exists with different content.") }
@@ -596,12 +602,17 @@ public actor ShouEngine {
         }
         return results
     }
-    public func savePreset(name: String, workspaceId: String, ruleIds: [String]) throws -> Preset {
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !ruleIds.isEmpty else { throw ShouError("invalid_argument", "A preset requires a name and explicit rules.") }
+    public func savePreset(name: String, workspaceId: String, ruleIds: [String]? = nil, expectedConfigurationRevision: String? = nil) throws -> Preset {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ShouError("invalid_argument", "A preset requires a name and explicit rules.") }
         let lease = try store.lock(); defer { lease.release() }
         var config = try configuration()
+        if let expectedConfigurationRevision, config.revision != expectedConfigurationRevision {
+            throw ShouError("plan_stale", "Configuration changed; review the enabled rules again before saving.")
+        }
         let workspace=try workspace(workspaceId)
         let enabled=try activeRules(config, workspaceId: workspaceId, additionalBuiltins: installedCacheDiscovery(for: workspace).rules)
+        let ruleIds=ruleIds ?? enabled.map(\.id)
+        guard !ruleIds.isEmpty else { throw ShouError("invalid_argument", "A preset requires at least one enabled rule.") }
         guard ruleIds.allSatisfy({ id in enabled.contains { $0.id == id } }) else { throw ShouError("invalid_argument", "Preset rules must be enabled in this workspace.") }
         let preset = Preset(id: Codec.id("preset"), name: name, workspaceId: workspaceId, ruleIds: Array(Set(ruleIds)).sorted())
         config.presets.append(preset); try saveConfiguration(config); return preset

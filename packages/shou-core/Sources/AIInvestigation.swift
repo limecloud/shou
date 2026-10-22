@@ -12,7 +12,15 @@ public enum AIProtocol: String, Codable, CaseIterable, Sendable {
 }
 
 public enum AIAuthentication: String, Codable, CaseIterable, Sendable {
-    case keychain, environment, none
+    case local, keychain, environment, none
+    public var storesKey: Bool { self == .local || self == .keychain }
+    public static var preferred: Self {
+        #if os(Windows)
+        .keychain
+        #else
+        .local
+        #endif
+    }
 }
 
 public enum AIRoutingStrategy: String, Codable, CaseIterable, Sendable {
@@ -69,13 +77,21 @@ public struct AIConnection: Codable, Sendable, Equatable, Identifiable {
     public var routingStrategy: AIRoutingStrategy?
     public var usesMainModel: Bool { mainModelEnabled != false }
     public var strategy: AIRoutingStrategy { routingStrategy ?? (decision == nil ? .mainOnly : .decisionFirst) }
+    public var decisionEnabled: Bool { decision != nil && strategy == .decisionFirst }
+    /// Describes the services used by this policy, independently of a user-chosen profile name.
+    public var serviceSummary: String {
+        if strategy == .decisionFirst, let decision {
+            return decision.providerName + (usesMainModel ? " + " + model : " · " + decision.model)
+        }
+        return model
+    }
     private enum CodingKeys: String, CodingKey {
         case id, name, apiProtocol, model, authentication, environmentVariable, decision, mainModelEnabled, routingStrategy
         case baseURL = "baseUrl"
     }
 
     public init(id: String = Codec.id("connection"), name: String = "OpenAI", apiProtocol: AIProtocol = .responses,
-                baseURL: String = "https://api.openai.com/v1", model: String = "", authentication: AIAuthentication = .keychain,
+                baseURL: String = "https://api.openai.com/v1", model: String = "", authentication: AIAuthentication = .preferred,
                 environmentVariable: String = "SHOU_AI_API_KEY", decision: DecisionConnection? = nil,
                 mainModelEnabled: Bool? = nil, routingStrategy: AIRoutingStrategy? = nil) {
         self.id=id; self.name=name; self.apiProtocol=apiProtocol; self.baseURL=baseURL; self.model=model
@@ -84,7 +100,10 @@ public struct AIConnection: Codable, Sendable, Equatable, Identifiable {
         self.mainModelEnabled=mainModelEnabled; self.routingStrategy=routingStrategy
     }
 
-    public func validated() throws -> AIConnection {
+    public func validated(allowLegacyDecisionOnly: Bool = false) throws -> AIConnection {
+        guard usesMainModel || allowLegacyDecisionOnly else {
+            throw ShouError("invalid_ai_connection", "Configure a main model. The decision service assists the main model and cannot be used alone.")
+        }
         var copy=self
         copy.name=name.trimmingCharacters(in: .whitespacesAndNewlines)
         copy.model=model.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -129,6 +148,22 @@ public enum AIInvestigationStatus: String, Codable, Sendable {
     case running, waiting, complete, limited, cancelled, failed
 }
 
+public enum AIInvestigationLimit: String, Codable, Sendable {
+    case time, tokens, steps, decisions, tools, evidence, response, directories
+    public var message: String {
+        switch self {
+        case .time: "The investigation reached its 3-minute processing limit. Existing evidence is saved; try a narrower folder. This does not indicate an exhausted API balance."
+        case .tokens: "The investigation reached its 32,000 reported-token limit. Existing evidence is saved; try a narrower folder."
+        case .steps: "The investigation reached its 12-step analysis limit. Existing evidence is saved; investigate a specific child folder next."
+        case .decisions: "The investigation reached its 8-decision-request limit. Existing evidence is saved; investigate a specific child folder next."
+        case .tools: "The investigation reached its 32-tool-call limit. Existing evidence is saved; try a narrower folder."
+        case .evidence: "The investigation reached its evidence size limit. Existing evidence is saved; try a narrower folder."
+        case .response: "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder."
+        case .directories: "The overview reached its 8-directory limit. Review the findings, then investigate a specific child folder."
+        }
+    }
+}
+
 public struct AIQuestion: Codable, Sendable, Equatable, Identifiable {
     public let id: String
     public let text: String
@@ -159,7 +194,7 @@ public struct DecisionConnection: Codable, Sendable, Equatable {
         case baseURL = "baseUrl", model, authentication, environmentVariable, provider
     }
     public init(baseURL: String = "https://api.typesafe.ai/v1", model: String = "jev-1.13.0",
-                authentication: AIAuthentication = .keychain, environmentVariable: String = "SHOU_JEV_API_KEY", provider: String? = nil) {
+                authentication: AIAuthentication = .preferred, environmentVariable: String = "SHOU_JEV_API_KEY", provider: String? = nil) {
         self.baseURL=baseURL; self.model=model; self.authentication=authentication; self.environmentVariable=environmentVariable
         self.provider=provider
     }
@@ -245,6 +280,7 @@ public struct AIInvestigation: Codable, Sendable, Identifiable {
     public var goal: AIInvestigationGoal?
     public var serviceUsage: [AIServiceUsage]?
     public var escalationReasons: [String]?
+    public var limitReason: AIInvestigationLimit?
     public init(id: String = Codec.id("investigation"), scanId: String, scope: String, connection: AIConnection) {
         self.id=id; self.scanId=scanId; self.scope=scope; self.connection=connection; createdAt=Date()
     }
@@ -267,6 +303,9 @@ public enum AIEvidencePolicy {
     public static let maximumRows=300
     public static let maximumBytes=65_536
     public static let maximumTokens=32_000
+    public static func budgetExceeded(_ reason: AIInvestigationLimit) -> ShouError {
+        ShouError("ai_budget_exceeded", reason.message, details: ["budget": reason.rawValue])
+    }
     public static func validate(_ path: String) throws {
         guard path == "." || (path.count <= 1024 && StorageRemovalPolicy.validRelative(path)),
               !path.contains(where: { $0.isNewline || $0.asciiValue.map { $0 < 32 } == true }) else {

@@ -69,9 +69,9 @@ let commands: [CommandSpec] = [
     .init("skills install", "configuration", ["agent"], ["directory"], "Install the bundled Skill for codex or claude-code. Directory overrides the parent skills folder; default is the client's user skills folder. Preserve local edits; back up managed updates."),
     .init("skills export", "configuration", ["output"], [], "Export the whole Skill as a ZIP for WorkBuddy's Add Skill > Upload Skill. Never overwrite an existing output file."),
     .init("locations list", "read", [], [], "List built-in application and developer cache roots, their existence, and scoped rules; does not scan or grant access."),
-    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions (include-system true/false, default false). Report best-effort configured/runtime states and explicit unknowns; never changes startup settings. Login Items and background registrations remain in System Settings."),
-    .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent after rechecking its plist, owner, label and exact path. Action is enable or disable; system definitions remain read-only."),
-    .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles with explicit directory coverage; never changes applications."),
+    .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions or Windows Run/RunOnce entries, startup folders and login/boot tasks; include-system also includes machine sources and Windows services (true/false, default false). Report configured/runtime states and explicit unknowns without changing settings. macOS Login Items and background registrations remain in System Settings."),
+    .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent on macOS or a verified current-user login/boot task on Windows. Rechecks the exact definition and identity before mutation and verifies the result. Action is enable or disable; other Windows startup sources use system management."),
+    .init("applications list", "read", [], ["include-system"], "Discover macOS application bundles or Windows desktop/MSIX registrations with explicit source coverage; never changes applications. Windows sizes are installer-declared estimates, not measured disk use."),
     .init("applications leftovers scan", "snapshot", [], [], "Review exact orphan associations for maintained or previously verified bundle identifiers. Require complete standard-source and native-registration absence; shared containers are retained."),
     .init("applications leftovers plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Select eligible orphan components; personal data needs explicit consent. Defaults to permanent removal."),
     .init("applications leftovers show", "read", ["plan-id"], [], "Read the exact leftover selection, digest and expiry."),
@@ -308,8 +308,13 @@ enum Terminal {
             if args.command == "applications list" {
                 let includeSystem=args.values["include-system"]?.first ?? "false"
                 guard ["true", "false"].contains(includeSystem) else { throw ShouError("invalid_argument", "Include-system must be true or false.") }
-                let catalog=try await ApplicationCatalogService(source: NativeApplicationCatalog()).scan(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true"))
-                try result(try .from(catalog), warnings: [], json: args.json)
+                let catalog: JSONValue
+                #if os(Windows)
+                catalog=try .from(WindowsRegisteredApplications().read(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true")))
+                #else
+                catalog=try .from(await ApplicationCatalogService(source: NativeApplicationCatalog()).scan(options: ApplicationCatalogOptions(includeSystem: includeSystem == "true")))
+                #endif
+                try result(catalog, warnings: [], json: args.json)
                 return
             }
             if args.command == "startup list" {
@@ -323,12 +328,12 @@ enum Terminal {
                 let actionValue=args.value("action").lowercased()
                 guard let action=StartupControlAction(rawValue: actionValue), action == .enable || action == .disable else { throw ShouError("invalid_argument", "Startup action must be enable or disable.") }
                 let inventory=try NativeStartupInventory().read(options: StartupInventoryOptions(includeSystem: false))
-                guard let definition=inventory.items.first(where: { $0.path == args.value("path") && $0.sourceId == "macos.user_agents" }) else {
-                    throw ShouError("invalid_argument", "The startup definition is not a current-user LaunchAgent in the inspected sources.")
+                guard let definition=inventory.items.first(where: { $0.path == args.value("path") && ($0.sourceId == "macos.user_agents" || $0.controlCapability == "windows_user_task") }) else {
+                    throw ShouError("invalid_argument", "The startup definition is not a directly controllable current-user item in the inspected sources.")
                 }
                 let phrase="STARTUP \(action.rawValue.uppercased()) \(definition.label)"
                 let scope=StartupControlReviewScope(action: action.rawValue, label: definition.label, path: definition.path, source: definition.sourceId,
-                    notes: [args.locale == "zh-CN" ? "仅修改当前用户 LaunchAgent 的 launchd 覆盖设置，不会终止已运行进程。执行前会重新核验 plist、所有者和标签。" : "Only the current user's LaunchAgent launchd override will change; running processes are not terminated. The plist, owner and label are rechecked before execution."])
+                    notes: [args.locale == "zh-CN" ? "仅修改所选当前用户启动项的配置，不会终止已运行进程。执行前重新核验定义与身份，执行后读取配置确认结果。" : "Only the selected current-user startup configuration changes; running processes are not terminated. The definition and identity are rechecked before execution and the configuration is read back afterwards."])
                 try Terminal.confirm(scope, phrase: phrase, locale: args.locale)
                 let controlResult=try NativeStartupControl().apply(definition: definition, action: action)
                 try result(try .from(controlResult), json: args.json)

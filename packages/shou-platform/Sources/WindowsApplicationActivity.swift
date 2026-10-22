@@ -25,12 +25,15 @@ public struct WindowsApplicationActivity: ApplicationActivityChecking {
             "com.postmanlabs.mac": "Postman.exe",
             "com.todesktop.230313mzl4w4u92": "Cursor.exe"
         ]
-        guard identifiers.allSatisfy({ names[$0] != nil }) else {
-            throw ShouError("application_activity_unavailable", "Unknown Windows application activity mapping.")
+        let requested=try identifiers.sorted().map { identifier in
+            guard let name=names[identifier] else {
+                throw ShouError("application_activity_unavailable", "Unknown Windows application activity mapping.")
+            }
+            return (identifier, name)
         }
         var running=Set<String>()
-        for identifier in identifiers.sorted() {
-            if try processRunning(names[identifier]!) { running.insert(identifier) }
+        for (identifier, name) in requested {
+            if try processRunning(name) { running.insert(identifier) }
         }
         return running
     }

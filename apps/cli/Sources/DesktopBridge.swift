@@ -91,14 +91,71 @@ enum DesktopBridge {
         }
         if request.operation == "capabilities" {
             return .object(["application_version": .string(ShouCLI.version), "api_version": .string("1.0"), "platform": .string(fs.platform),
-                "features": .object(["scan": .bool(true), "rules": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "startup": .bool(false), "privacy": .bool(false)]),
+                "features": .object(["scan": .bool(true), "rules": .bool(true), "rule_authoring": .bool(true), "space_analysis": .bool(true), "ai_investigation": .bool(AIInvestigationService.isAvailable), "trash": .bool(fs.supportsTrash), "restore": .bool(fs.supportsTrash), "permanent": .bool(true), "applications": .bool(false), "application_inventory": .bool(fs.platform == "windows"), "startup": .bool(["windows", "macos"].contains(fs.platform)), "privacy": .bool(false)]),
                 "confirmation": .string("request_scoped_challenge"), "bridge_version": .integer(1)])
+        }
+        if ["startup.scan", "startup.control"].contains(request.operation) {
+            let includeSystem: Bool
+            if let value=input["include_system"] {
+                guard case .bool(let include)=value else { throw ShouError("invalid_argument", "Choose whether to include system startup sources.") }
+                includeSystem=include
+            } else { includeSystem=false }
+            let inventory=try await StartupInventoryService(source: NativeStartupInventory()).scan(options: StartupInventoryOptions(includeSystem: includeSystem))
+            if request.operation == "startup.scan" {
+                var metadata=try JSONValue.from(inventory).object ?? [:]
+                metadata.removeValue(forKey: "items")
+                return .object(["inventory": .object(metadata), "items": .array(try inventory.items.map { .object(["definition": try .from($0), "digest": .string(try StartupSelection.digest($0))]) })])
+            }
+            guard let action=StartupControlAction(rawValue: try string("action")), action != .remove,
+                  let definition=inventory.items.first(where: { $0.id == input["definition_id"]?.string }),
+                  definition.controlCapability == "windows_user_task" else { throw ShouError("capability_unavailable", "Select one verified current-user startup task.") }
+            guard try StartupSelection.digest(definition) == string("definition_digest") else { throw ShouError("plan_stale", "The startup definition changed. Scan again before continuing.") }
+            let operation="startup." + action.rawValue
+            let review: JSONValue = .object(["action": .string(operation), "items": .array([.object(["path": .string(definition.path), "label": .string(definition.label), "source": .string(definition.sourceId), "limitations": .array([.string("Only this task's startup configuration changes. Running instances are not stopped. The complete definition is verified before and after the operation.")])])])])
+            try await session.confirm(digest: Digest.of(["definition": StartupSelection.digest(definition), "action": action.rawValue]), review: review, operation: operation)
+            try Task.checkCancellation()
+            return try .from(await StartupControlService(controller: NativeStartupControl()).apply(definition: definition, action: action))
+        }
+        if request.operation == "applications.scan" {
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["include_system", "max_entries", "max_seconds"]) else { throw ShouError("invalid_argument", "Unknown application inventory field.") }
+            let include: Bool
+            if let value=input["include_system"] {
+                guard case .bool(let decision)=value else { throw ShouError("invalid_argument", "Choose whether to include system components.") }
+                include=decision
+            } else { include=false }
+            func integer(_ key: String, fallback: Int, maximum: Int) throws -> Int {
+                guard let value=input[key] else { return fallback }
+                guard case .integer(let count)=value, (1...Int64(maximum)).contains(count) else { throw ShouError("invalid_argument", "Application inventory budgets are outside supported limits.") }
+                return Int(count)
+            }
+            return try .from(WindowsRegisteredApplications().read(options: ApplicationCatalogOptions(includeSystem: include,
+                maxEntries: integer("max_entries", fallback: 4000, maximum: 20000), maxSeconds: Double(integer("max_seconds", fallback: 10, maximum: 30)))))
         }
         let store=try LocalRecordStore()
         let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+        func personalRuleInput(_ configuration: Configuration) throws -> CleanupRule {
+            let rule=try CleanupRule.parse(Data(string("json").utf8))
+            guard !rule.id.hasPrefix(BuiltinCatalog.prefix) else { throw ShouError("invalid_rule", "The built-in rule namespace is reserved.") }
+            if let original=input["original_rule_id"] {
+                guard let id=original.string, id == rule.id, configuration.rules.contains(where: { $0.rule.id == id }) else {
+                    throw ShouError("invalid_rule", "Keep the original rule ID when editing a version.")
+                }
+            } else {
+                guard configuration.workspaces.contains(where: { $0.id == input["workspace_id"]?.string && $0.rootRef == rule.scope.rootRef }),
+                      rule.platforms.contains(fs.platform) else { throw ShouError("invalid_rule", "Select a personal rule in its registered workspace and platform.") }
+            }
+            guard !configuration.rules.contains(where: { $0.rule.id == rule.id && $0.rule.version == rule.version }) else {
+                throw ShouError("version_conflict", "Choose an unused rule version. Existing versions cannot be overwritten.")
+            }
+            return rule
+        }
+        func authoredRuleValue(_ rule: CleanupRule, configuration: Configuration) throws -> JSONValue {
+            .object(["rule": try .from(rule), "json": .string(String(decoding: try Codec.encode(rule), as: UTF8.self)),
+                "digest": .string(try Digest.of(rule)), "configuration_revision": .string(configuration.revision)])
+        }
         if request.operation.hasPrefix("ai.") {
             let connections=AIConnectionStore(store: store)
-            let credentials=SystemAICredentials()
+            let credentials=SystemAICredentials(directory: store.directory)
             let service=AIInvestigationService(engine: engine, store: store, credentials: credentials)
             func connection() throws -> AIConnection {
                 guard let value=try connections.connections().first(where: { $0.id == input["connection_id"]?.string }) else { throw ShouError("not_found", "AI connection not found.") }
@@ -113,14 +170,21 @@ enum DesktopBridge {
             case "ai.connections.save":
                 guard let profile=input["profile"], try Codec.encode(profile).count <= 16_384 else { throw ShouError("invalid_ai_connection", "Provide a bounded connection profile.") }
                 let value=try AIConnectionStore.profile(profile)
+                try connections.checkEditable(value.id)
                 for (field, decision) in [("model_key", false), ("decision_key", true)] {
                     if let key=input[field]?.string, !key.isEmpty {
-                        guard (decision ? value.decision?.authentication : value.authentication) == .keychain else { throw ShouError("invalid_ai_connection", "Keys must use the system credential store.") }
+                        guard (decision ? value.decision?.authentication : value.authentication)?.storesKey == true else { throw ShouError("invalid_ai_connection", "Choose local storage or system credentials before saving an API key.") }
                         try credentials.save(key, for: value, decision: decision)
                     }
                 }
                 try connections.save(value); return try .from(value)
             case "ai.connections": return try .from(connections.connections())
+            case "ai.connections.deleted": return try .from(connections.connections(deleted: true))
+            case "ai.connections.show": return try .from(connections.connection(string("connection_id"), includingDeleted: true))
+            case "ai.connections.delete", "ai.connections.restore":
+                let deleted=request.operation == "ai.connections.delete"
+                try connections.setDeleted(deleted, id: string("connection_id"))
+                return .object(["status": .string(deleted ? "deleted" : "restored"), "recoverable": .bool(true)])
             case "ai.test":
                 try await AIConnectionTest.run(connection: connection(), credentials: credentials)
                 return .object(["status": .string("verified"), "tool_round_trip": .bool(true)])
@@ -171,6 +235,15 @@ enum DesktopBridge {
         case "configuration":
             return .object(["configuration": try .from(await engine.configuration()), "templates": try .from(BuiltinCatalog.templates().filter { $0.supportedPlatforms.contains(fs.platform) }), "locations": try .from(await engine.knownLocations())])
         case "workspace.add": return try .from(await engine.addWorkspace(path: string("path"), rootRef: string("root_ref")))
+        case "presets.save":
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["name", "workspace_id", "configuration_revision"]) else { throw ShouError("invalid_argument", "Unknown saved rule selection field.") }
+            return try .from(await engine.savePreset(name: string("name"), workspaceId: string("workspace_id"), expectedConfigurationRevision: string("configuration_revision")))
+        case "presets.scan":
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["preset_id", "budget"]) else { throw ShouError("invalid_argument", "Select a saved rule selection by its ID.") }
+            let id=try string("preset_id"), config=try await engine.configuration()
+            guard let preset=config.presets.first(where: { $0.id == id }), !preset.ruleIds.isEmpty else { throw ShouError("invalid_argument", "Unknown or empty saved rule selection.") }
+            let scan=try await engine.scan(workspaceId: preset.workspaceId, ruleIds: preset.ruleIds, scope: .cleanup, budget: scanBudget(), progress: scanProgress)
+            return try scanPage(scan, offset: 0)
         case "system.scan":
             let result=try await engine.scanKnownLocations(includeProjects: true, progress: { _, update in scanProgress(update) })
             return .object(["status": .string(result.status), "scans": try .from(result.snapshots.map { try scanPage($0, offset: 0) }), "issues": try .from(result.issues)])
@@ -240,6 +313,11 @@ enum DesktopBridge {
             let summaries=try page.receipts.map { try receiptSummary($0, followUps: followUps) }
             if request.operation == "history" { return .array(summaries) }
             return .object(["receipts": .array(summaries), "total_count": .integer(Int64(page.totalCount)), "next_offset": page.nextOffset.map { .integer(Int64($0)) } ?? .null])
+        case "history.inspect":
+            guard let fields=input.object, Set(fields.keys).isSubset(of: ["execution_id", "budget"]) else {
+                throw ShouError("invalid_argument", "Provide one execution ID and an optional verification budget.")
+            }
+            return try .from(await engine.inspectHistory(executionId: string("execution_id"), budget: scanBudget()))
         case "records.preview": return try .from(await engine.recordRetentionPreview())
         case "records.collect": return try .from(await engine.collectRecords())
         case "history.restore", "history.purge":
@@ -253,10 +331,67 @@ enum DesktopBridge {
             try await session.confirm(digest: digest, review: review, operation: action)
             try Task.checkCancellation()
             return try .from(await engine.followUp(executionId: id, itemIds: itemIds, action: action, confirmedDigest: digest, progress: executionProgress))
+        case "rules.draft":
+            let configuration=try await engine.configuration()
+            guard let workspace=configuration.workspaces.first(where: { $0.id == input["workspace_id"]?.string }),
+                  let fields=input["fields"], let object=fields.object,
+                  Set(object.keys).isSubset(of: ["name", "relative_patterns", "project_markers", "exclusions", "max_depth", "minimum_allocated_bytes", "minimum_age_days", "rebuild_note", "limitations", "high_risk"]) else {
+                throw ShouError("invalid_rule", "Provide rule fields for one registered workspace.")
+            }
+            var draft: PersonalRuleDraft
+            do { draft=try Codec.decode(PersonalRuleDraft.self, from: Codec.encode(fields)) }
+            catch { throw ShouError("invalid_rule", "Provide valid rule names, patterns, conditions and preservation notes.") }
+            let mode=try string("mode")
+            guard ["folder", "patterns"].contains(mode) else { throw ShouError("invalid_rule", "Choose one exact folder or relative patterns.") }
+            if mode == "folder" {
+                let selection=try string("folder")
+                let absolute=selection.hasPrefix("/") || selection.hasPrefix("\\") || selection.dropFirst().hasPrefix(":")
+                let path=try fs.normalizedPath(absolute ? selection : workspace.path + "/" + selection)
+                draft.relativePatterns=[try PersonalRuleDraft.exactRelativePath(selection: path, workspacePath: workspace.path, platform: fs.platform)]
+            }
+            let rule=try draft.rule(id: string("rule_id"), rootRef: workspace.rootRef, platform: fs.platform)
+            guard !rule.id.hasPrefix(BuiltinCatalog.prefix), !configuration.rules.contains(where: { $0.rule.id == rule.id }) else {
+                throw ShouError("version_conflict", "Choose an unused personal rule ID.")
+            }
+            return try authoredRuleValue(rule, configuration: configuration)
+        case "rules.revision":
+            let configuration=try await engine.configuration(), id=try string("rule_id"), version=try string("version")
+            guard !id.hasPrefix(BuiltinCatalog.prefix), let original=configuration.rules.first(where: { $0.rule.id == id && $0.rule.version == version }) else {
+                throw ShouError("invalid_rule", "Select an existing personal rule version.")
+            }
+            let draft=try PersonalRuleRevision.suggestedRule(original.rule, existingVersions: Set(configuration.rules.filter { $0.rule.id == id }.map { $0.rule.version }))
+            return try authoredRuleValue(draft, configuration: configuration)
+        case "rules.validate", "rules.draft.preview":
+            let configuration=try await engine.configuration(), rule=try personalRuleInput(configuration)
+            if request.operation == "rules.validate" { return try authoredRuleValue(rule, configuration: configuration) }
+            let scan=try await engine.scan(workspaceId: string("workspace_id"), previewRule: rule, scope: .cleanup, budget: scanBudget(), progress: scanProgress)
+            guard scan.configurationDigest == (try Digest.of(configuration)) else { throw ShouError("plan_stale", "Configuration changed; preview the rule again.") }
+            let rows=try PersonalRulePreview.rows(snapshot: scan, rule: rule)
+            let matched=rows.filter { $0.status == "matched" }.count, blocked=rows.filter { $0.status == "blocked" }.count
+            try Task.checkCancellation()
+            return .object(["scan_id": .string(scan.id), "status": .string(scan.status), "configuration_revision": .string(configuration.revision),
+                "rule": try .from(rule), "json": .string(String(decoding: try Codec.encode(rule), as: UTF8.self)), "digest": .string(try Digest.of(rule)),
+                "rows": try .from(Array(rows.prefix(200))), "total_count": .integer(Int64(rows.count)), "matched_count": .integer(Int64(matched)),
+                "blocked_count": .integer(Int64(blocked)), "not_matched_count": .integer(Int64(rows.count - matched - blocked)), "issues": try .from(scan.issues)])
         case "rules.import":
             let json=try string("json")
             guard json.utf8.count <= 262144 else { throw ShouError("resource_limit", "Rule exceeds the import limit.") }
-            return try .from(await engine.importRule(Data(json.utf8)))
+            let requireNewVersion: Bool
+            if let value=input["require_new_version"] {
+                guard case .bool(let decision)=value else { throw ShouError("invalid_argument", "Choose whether a new version is required.") }
+                requireNewVersion=decision
+            } else { requireNewVersion=false }
+            if input["original_rule_id"] != nil || input["workspace_id"] != nil {
+                guard requireNewVersion else { throw ShouError("invalid_argument", "Rule editing must create a new disabled version.") }
+                _ = try personalRuleInput(await engine.configuration())
+            }
+            let revision: String?
+            if let value=input["configuration_revision"] {
+                guard let expected=value.string, !expected.isEmpty, expected.utf8.count <= 120 else { throw ShouError("invalid_argument", "Provide the reviewed configuration revision.") }
+                revision=expected
+            } else { revision=nil }
+            try Task.checkCancellation()
+            return try .from(await engine.importRule(Data(json.utf8), provenance: input["original_rule_id"] == nil ? "local_file" : "desktop_revision", requireNewVersion: requireNewVersion, expectedConfigurationRevision: revision))
         case "rules.set":
             guard case .bool(let enabled)=input["enabled"] else { throw ShouError("invalid_argument", "A rule enablement decision is required.") }
             return try .from(await engine.setRule(ruleId: string("rule_id"), workspaceId: string("workspace_id"), enabled: enabled, version: input["version"]?.string))
@@ -279,7 +414,13 @@ enum DesktopBridge {
                 "rule": try .from(record.rule), "rows": try .from(PersonalRulePreview.rows(snapshot: scan, rule: record.rule)),
                 "benefits": try .from(await engine.rulePreviewBenefits(scanId: scan.id)), "issues": try .from(scan.issues)])
         case "exclusions.set":
+            guard Set(input.object?.keys.map { $0 } ?? []).isSubset(of: ["pattern", "remove", "workspace_id", "project"]) else { throw ShouError("invalid_argument", "Unknown exclusion scope field.") }
             guard case .bool(let remove)=input["remove"] else { throw ShouError("invalid_argument", "An exclusion action is required.") }
+            if input["workspace_id"] != nil {
+                let project=input["project"] == nil ? nil : try string("project")
+                return try .from(await engine.setExclusion(workspaceId: string("workspace_id"), pattern: string("pattern"), remove: remove, project: project))
+            }
+            guard input["project"] == nil else { throw ShouError("invalid_argument", "A project exclusion requires an explicit workspace.") }
             return try .from(await engine.setGlobalExclusion(pattern: string("pattern"), remove: remove))
         case "storage.scan":
             let scan=try await engine.scanStorage(path: string("path"), progress: scanProgress)

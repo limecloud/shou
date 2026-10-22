@@ -6,6 +6,7 @@ struct AIInvestigationInspector: View {
     var model: AppModel
     @Bindable var session: AIWorkspaceSession
     @State private var editing: AIConnection?
+    @State private var historySelection: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -46,7 +47,8 @@ struct AIInvestigationInspector: View {
                     Button(model.t(session.stopping ? "Stopping investigation…" : "Stop Investigation")) { session.stop() }.disabled(session.stopping).accessibilityIdentifier("ai.investigation.stop")
                     Spacer()
                 } else if session.investigation != nil || session.stale(app: model) {
-                    Button(model.t("New Investigation")) { session.prepare(app: model) }.disabled(model.space.scanning || model.space.hasChanges)
+                    Button(model.t("New Investigation")) { session.requestLaunch(app: model, path: session.folder) }
+                        .disabled(model.busy || model.space.scanning)
                     Spacer()
                 } else { Label(model.t("Nothing is deleted automatically"), systemImage: "hand.raised").font(.caption).foregroundStyle(.secondary) }
             }.padding(14)
@@ -62,17 +64,27 @@ struct AIInvestigationInspector: View {
             Text(model.t("Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours."))
                 .font(.callout).foregroundStyle(.secondary)
             if session.loadingHistory { ProgressView() }
-            List(session.savedInvestigations) { state in
-                Button { session.restore(state, app: model) } label: {
+            List(selection: $historySelection) {
+                ForEach(session.savedInvestigations) { state in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(state.scope).font(.headline)
                         Text(state.connection.name + " · " + model.t(statusTitle(state.status))).font(.caption)
                         Text(state.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading)
-                }.buttonStyle(.plain)
+                        .tag(state.id)
+                }
+            }.disabled(session.loadingHistory)
+            if let issue=session.issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
+            HStack {
+                Spacer()
+                Button(model.t("Done")) { session.showingHistory=false }.keyboardShortcut(.cancelAction)
+                Button(model.t("Open Investigation")) {
+                    guard let state=session.savedInvestigations.first(where: { $0.id == historySelection }) else { return }
+                    session.restore(state, app: model)
+                }.keyboardShortcut(.defaultAction)
+                    .disabled(session.loadingHistory || !session.savedInvestigations.contains(where: { $0.id == historySelection }))
             }
-            HStack { Spacer(); Button(model.t("Done")) { session.showingHistory=false }.keyboardShortcut(.cancelAction) }
-        }.padding(24).frame(minWidth: 480, minHeight: 360)
+        }.padding(24).frame(minWidth: 480, minHeight: 360).onAppear { historySelection=nil }
     }
     private var setup: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -82,28 +94,21 @@ struct AIInvestigationInspector: View {
                 Text(model.t("Show largest entries locally")).tag(AIInvestigationGoal.space)
                 Text(model.t("Create reusable rules")).tag(AIInvestigationGoal.rules)
             }
-            if session.connections.isEmpty {
+            if !session.connections.contains(where: \.usesMainModel) {
                 ContentUnavailableView {
                     Label(model.t("Connect a Model"), systemImage: "network")
                 } description: {
-                    Text(model.t("Choose your own service to begin an investigation."))
+                    Text(model.t("Add a main model in Settings before starting AI. The optional decision service assists the main model."))
                 } actions: {
-                    Button(model.t("Add Connection…")) { editing=AIConnection() }
+                    Button(model.t("Add Connection…")) { editing=AIConnection(decision: DecisionConnection()) }
                 }.frame(maxWidth: .infinity)
             } else {
-                Picker(model.t("Connection"), selection: $session.connectionId) {
-                    ForEach(session.connections) { Text($0.name).tag($0.id) }
+                Picker(model.t("AI Configuration"), selection: $session.connectionId) {
+                    ForEach(session.connections.filter(\.usesMainModel)) { Text($0.name + " · " + $0.serviceSummary).tag($0.id) }
                 }.pickerStyle(.menu)
                 if let connection=session.connections.first(where: { $0.id == session.connectionId }) {
-                    if connection.usesMainModel { Text(connection.model + " · " + connection.baseURL).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
-                    Text(model.t(connection.strategy == .decisionFirst ? "Structured decisions first" : "Main model only")).font(.caption).foregroundStyle(.secondary)
+                    AIConnectionSummary(model: model, connection: connection)
                     Button(model.t("Edit Connection…")) { editing=connection }.buttonStyle(.link)
-                    if let decision=connection.decision, connection.strategy == .decisionFirst {
-                        Label(decision.providerName + " · " + decision.model + " · " + decision.baseURL, systemImage: "checkmark.shield")
-                            .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-                        Text(model.t("Local processing comes first, then fixed-choice decisions. The main model is used only when open-ended understanding is needed."))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
                 }
                 TextField(model.t("What should be kept? (optional)"), text: $session.request, axis: .vertical)
                     .lineLimit(3...6).textFieldStyle(.roundedBorder).accessibilityIdentifier("ai.investigation.request")
@@ -174,7 +179,7 @@ struct AIInvestigationInspector: View {
                 Text(model.t(session.stopping ? "Stopping investigation…" : session.running ? state.activity : statusTitle(state.status)))
                     .font(.callout.weight(.medium))
             }.accessibilityElement(children: .combine)
-            Text(state.connection.name).font(.caption).foregroundStyle(.secondary)
+            Text(state.connection.name + " · " + state.connection.serviceSummary).font(.caption).foregroundStyle(.secondary)
             Text(String(format: model.t("%lld steps · %lld evidence rows"), state.steps, state.evidenceRows))
                 .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
         }
@@ -184,7 +189,7 @@ struct AIInvestigationInspector: View {
         case .waiting: "Waiting for your answer"
         case .complete: "Investigation finished"
         case .failed: "Investigation failed"
-        case .limited: "Investigation budget reached"
+        case .limited: "Investigation limit reached"
         case .cancelled: "Investigation cancelled."
         case .running: "Preparing investigation…"
         }

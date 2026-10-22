@@ -32,9 +32,9 @@ enum PortableModelRuntime {
         var messages=try JSONDecoder().decode([Message].self, from: data)
         messages.append(Message(role: "user", text: text)); return try JSONEncoder().encode(messages)
     }
-    static func run(_ evidence: InvestigationEvidence, credentials: any AICredentialStore, permit: AIRequestPermit) async throws -> AIInvestigation {
+    static func run(_ evidence: InvestigationEvidence, permit: AIRequestPermit) async throws -> AIInvestigation {
         let checkpoint=await evidence.value(), connection=checkpoint.state.connection
-        try permit.check(); let key=try credentials.key(for: connection); try permit.check()
+        try permit.check(); let key=try await evidence.credential(); try permit.check()
         var messages=try JSONDecoder().decode([Message].self, from: checkpoint.messages)
         var seenCalls=Set(messages.flatMap { $0.calls.map(\.id) })
         while true {
@@ -87,6 +87,7 @@ enum PortableModelRuntime {
         }
     }
     static func test(connection: AIConnection, credentials: any AICredentialStore, permit: AIRequestPermit) async throws {
+        let connection=try connection.validated()
         try permit.check(); let key=try credentials.key(for: connection); try permit.check()
         let token=UUID().uuidString
         var messages=[Message(role: "user", text: "Call verify_connection exactly once with token '\(token)'. After its result reply 'Ready'.")]
@@ -125,7 +126,7 @@ enum PortableModelRuntime {
         switch connection.apiProtocol { case .responses: endpoint="/responses"; case .chatCompletions: endpoint="/chat/completions"; case .anthropic: endpoint="/messages" }
         var request=URLRequest(url: URL(string: connection.baseURL + endpoint)!)
         request.httpMethod="POST"; request.httpBody=try Codec.encode(JSONValue.object(fields)); request.timeoutInterval=60
-        guard request.httpBody!.count <= 1_048_576 else { throw ShouError("ai_budget_exceeded", "The investigation reached its evidence budget.") }
+        guard request.httpBody!.count <= 1_048_576 else { throw AIEvidencePolicy.budgetExceeded(.evidence) }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if connection.apiProtocol == .anthropic { request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version") }
         if connection.authentication != .none, let key {

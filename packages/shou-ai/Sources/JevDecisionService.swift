@@ -8,6 +8,8 @@ import FoundationNetworking
 public enum JevDecisionService {
     public static func test(connection: AIConnection, credentials: any AICredentialStore, permit: AIRequestPermit = .unrestricted) async throws -> AIDecisionReview {
         try permit.check()
+        let connection=try connection.validated()
+        guard connection.decisionEnabled else { throw ShouError("ai_decision_disabled", "The decision service is off. The main model handles this configuration directly.") }
         let key=try credentials.decisionKey(for: connection)
         try permit.check()
         let review=try await evaluate(connection: connection, key: key, path: "synthetic-cache",
@@ -37,12 +39,13 @@ public enum JevDecisionService {
     static func choose(connection: AIConnection, key: String?, path: String, state: JSONValue, question: JSONValue,
                        choices: Set<String>, permit: AIRequestPermit = .unrestricted) async throws -> AIDecisionReview {
         try permit.check()
+        guard connection.decisionEnabled else { throw ShouError("ai_decision_disabled", "The decision service is off. The main model handles this configuration directly.") }
         guard let settings=try connection.validated().decision else { throw ShouError("invalid_ai_connection", "Jev is not configured for this connection.") }
         guard settings.providerID == "jev" else { throw ShouError("ai_decision_unavailable", "The Jev adapter cannot handle this structured decision provider.") }
         guard settings.authentication == .none || key?.isEmpty == false else { throw ShouError("ai_credential_missing", "The Jev API key is unavailable.") }
         try AIEvidencePolicy.validate(path)
         let data=try Codec.encode(JSONValue.object(["model": .string(settings.model), "state": state, "questions": .object(["cleanup_review": question])]))
-        guard data.count <= 24_576 else { throw ShouError("ai_budget_exceeded", "The decision evidence exceeded its size budget.") }
+        guard data.count <= 24_576 else { throw AIEvidencePolicy.budgetExceeded(.evidence) }
         var request=URLRequest(url: URL(string: settings.baseURL + "/systemone")!)
         request.httpMethod="POST"; request.httpBody=data; request.timeoutInterval=40
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -24,6 +24,7 @@ int shou_win_read(const char *path, size_t limit, void **bytes, size_t *count);
 typedef int (*shou_win_read_cancelled)(void *context);
 int shou_win_hash(const char *path, const shou_win_info *expected, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
 int shou_win_private_directory(const char *path);
+int shou_win_create_private_catalog(const char *path);
 int shou_win_write(const char *path, const void *bytes, size_t count);
 int shou_win_remove_record(const char *path);
 int shou_win_lock_acquire(const char *path, shou_win_lock **result);
@@ -41,6 +42,9 @@ int shou_win_console_confirm(const char *review, const char *prompt, const char 
 int shou_win_stdin(void *buffer, uint32_t capacity, uint32_t *count);
 int shou_win_ai_credential_read(const char *account, void **bytes, size_t *count);
 int shou_win_ai_credential_write(const char *account, const void *bytes, size_t count);
+int shou_win_startup_inventory(int include_system, size_t limit, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
+int shou_win_application_inventory(int include_system, size_t limit, uint32_t milliseconds, shou_win_read_cancelled cancelled, void *context, char **result);
+int shou_win_startup_task_control(const char *path, const char *expected_digest, int enabled, int *write_started);
 void shou_win_free(void *value);
 #ifdef __cplusplus
 }

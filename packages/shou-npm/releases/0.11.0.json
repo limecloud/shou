@@ -1,0 +1,11 @@
+{
+  "name": "@limecloud/shou",
+  "version": "0.11.0",
+  "registry": "https://registry.npmjs.org/",
+  "source_commit": "7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc",
+  "source_tree": "d999d012c4e84d6324e47af9424f994dfaca0641",
+  "integrity": "sha512-RQTMyj5DDEBt4IRAfOcffbTjndjylHgC025FEDh1RBHZQe8CfNjwHfGvsWFrrko2XsyI/TFPokgnMM0wnhP+JA==",
+  "shasum": "8275783ccfeec45f690a53b2df115d694327d1d7",
+  "platform": "darwin",
+  "architectures": ["arm64", "x86_64"]
+}

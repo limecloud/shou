@@ -75,6 +75,8 @@ public struct NativeStartupControl: StartupControlling {
         return StartupControlResult(definitionId: definition.id, label: definition.label, action: action,
             configuredState: expected, runtimeState: "unknown", controlCapability: definition.controlCapability,
             message: action == .enable ? "Startup definition enabled for the current user." : "Startup definition disabled for the current user.")
+        #elseif os(Windows)
+        return try WindowsStartupControl().apply(definition: definition, action: action)
         #else
         throw ShouError("unsupported_platform", "Direct startup control is currently available only on macOS.")
         #endif

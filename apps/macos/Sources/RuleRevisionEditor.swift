@@ -13,17 +13,8 @@ struct RuleRevisionEditor: View {
     init(model: AppModel, original: RuleRecord) {
         self.model=model; self.original=original
         do {
-            var draft=original.rule
-            let versions=Set(model.configuration.rules.filter { $0.rule.id == draft.id }.map { $0.rule.version })
-            let parts=draft.version.split(separator: ".").map(String.init)
-            if parts.count == 3, var patch=Int(parts[2]) {
-                while patch < Int.max {
-                    patch += 1
-                    let version=parts[0] + "." + parts[1] + "." + String(patch)
-                    if version.count > 32 { break }
-                    if !versions.contains(version) { draft.version=version; break }
-                }
-            }
+            let versions=Set(model.configuration.rules.filter { $0.rule.id == original.rule.id }.map { $0.rule.version })
+            let draft=(try? PersonalRuleRevision.suggestedRule(original.rule, existingVersions: versions)) ?? original.rule
             let object=try JSONSerialization.jsonObject(with: Codec.encode(draft))
             let data=try JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
             _text=State(initialValue: String(decoding: data, as: UTF8.self))

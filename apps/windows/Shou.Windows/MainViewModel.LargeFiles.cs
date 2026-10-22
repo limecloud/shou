@@ -13,8 +13,9 @@ public sealed class LargeFileRow(string path,string root,long allocatedBytes,lon
     public string Name => Path.Split('/').Last();
     public string AbsolutePath => root.TrimEnd('/','\\')+"/"+Path;
     public long AllocatedBytes { get; }=allocatedBytes;
+    public long LogicalBytes { get; }=logicalBytes;
     public string Size => MainViewModel.Bytes(AllocatedBytes);
-    public string LogicalSize => MainViewModel.Bytes(logicalBytes);
+    public string LogicalSize => MainViewModel.Bytes(LogicalBytes);
     public string Protection => reason ?? "可选择";
     public bool Eligible => reason is null;
     private bool selected;

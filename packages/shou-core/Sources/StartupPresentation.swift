@@ -32,7 +32,7 @@ public struct StartupApplicationGroup: Identifiable, Sendable, Equatable {
 
     public var controllableItems: [StartupDefinition] {
         items.filter {
-            ["launchctl_user_agent", "launchctl_system_daemon", "login_item"].contains($0.controlCapability) &&
+            ["launchctl_user_agent", "launchctl_system_daemon", "login_item", "windows_user_task"].contains($0.controlCapability) &&
                 ["enabled", "disabled"].contains($0.configuredState)
         }
     }
@@ -49,7 +49,7 @@ public enum StartupPresentation {
     public static func groups(_ items: [StartupDefinition]) -> [StartupApplicationGroup] {
         let grouped=Dictionary(grouping: items) { item in
             if let path=item.applicationPath { return "application:" + path }
-            return "label:" + item.label
+            return item.sourceId.hasPrefix("windows.") ? "registration:" + item.id : "label:" + item.label
         }
         return grouped.map { key, definitions in
             let sorted=definitions.sorted { ($0.sourceId, $0.path) < ($1.sourceId, $1.path) }

@@ -38,9 +38,12 @@ public final class StorageCatalog {
     private var schemaVersion: Int32 = 2
     private var cachedParent: (path: String, id: Int64)?
     private let transient=unsafeBitCast(-1, to: sqlite3_destructor_type.self)
-    public init(url: URL, create: Bool = false) throws {
+    public init(url: URL, create: Bool = false, prepareNewFile: () throws -> Void = {}) throws {
         writable=create
         guard !create || !FileManager.default.fileExists(atPath: url.path) else { throw Self.failure() }
+        // Platforms can exclusively create the empty file with native ownership
+        // after the existing-file check and before SQLite opens it.
+        if create { try prepareNewFile() }
         let flags=(create ? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE : SQLITE_OPEN_READONLY) | SQLITE_OPEN_NOFOLLOW | SQLITE_OPEN_NOMUTEX
         guard sqlite3_open_v2(url.path, &database, flags, nil) == SQLITE_OK else {
             if let database { sqlite3_close(database) }; database=nil

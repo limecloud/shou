@@ -58,7 +58,7 @@ enum BoundedAITransport {
                 return
             }
             guard response.expectedContentLength <= Int64(limit) else {
-                completionHandler(.cancel); finish(.failure(ShouError("ai_budget_exceeded", "The model response exceeded its size budget."))); return
+                completionHandler(.cancel); finish(.failure(AIEvidencePolicy.budgetExceeded(.response))); return
             }
             completionHandler(.allow)
         }
@@ -67,7 +67,7 @@ enum BoundedAITransport {
             let oversized=data.count + chunk.count > limit
             if !stopped && !oversized { data.append(chunk) }
             lock.unlock()
-            if oversized { finish(.failure(ShouError("ai_budget_exceeded", "The model response exceeded its size budget."))) }
+            if oversized { finish(.failure(AIEvidencePolicy.budgetExceeded(.response))) }
         }
         func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
             if error != nil { finish(.failure(ShouError("ai_request_failed", "The AI request failed. Check the connection and try again."))) }

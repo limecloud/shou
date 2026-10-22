@@ -59,7 +59,7 @@ OpenAI recommends Responses for new projects. Chat Completions remains a separat
 
 Each connection contains a name, protocol, `base_url`, `model`, credential reference and necessary protocol options. Define `base_url` as the API root, preserve gateway path prefixes and append the resource path exactly once, avoiding duplicated `/v1`. Allow manual model IDs; unavailable model-list endpoints must not block configuration.
 
-OpenAI defaults to Bearer authentication; Anthropic defaults to `x-api-key` with `anthropic-version: 2023-06-01`. Compatible gateways may explicitly select their supported authentication mode and extra headers; unauthenticated local services may omit credentials. Store API keys and sensitive headers in OS credential stores, with references in ordinary configuration. CLI and both desktops share the contract; explicitly configured CLI automation may read credentials from its process environment without putting keys in arguments or logs.
+OpenAI defaults to Bearer authentication; Anthropic defaults to `x-api-key` with `anthropic-version: 2023-06-01`. Compatible gateways may explicitly select their supported authentication mode and extra headers; unauthenticated local services may omit credentials. Store API keys in private per-user credential files by default on macOS, or the selected system credential store, with references in ordinary configuration. Local files use OS file permissions and are not Keychain-encrypted. CLI and both desktops share the contract; explicitly configured CLI automation may read credentials from its process environment without putting keys in arguments or logs.
 
 Settings follow protocol, service URL, API key, model and connection test. Provide editable official-service presets. Tests send only minimal synthetic requests and separately report connection/authentication, model response and required investigation capabilities. They send no local directory evidence, and HTTP 200 alone is not a capability check. Switching connections affects future requests; an active investigation keeps its connection or is cancelled and restarted by the user, without silently forwarding context elsewhere.
 
@@ -143,7 +143,7 @@ flowchart TB
     Runtime --> Responses[OpenAI Responses adapter]
     Runtime --> Chat[OpenAI Chat Completions adapter]
     Runtime --> Anthropic[Anthropic Messages adapter]
-    Profiles[Connections and OS credential references] --> Model
+    Profiles[Connections and private credential references] --> Model
     Model --> Host
     Minimize -.When needed.-> Decision[Optional structured decision interface]
     Decision --> Clef[Clef]
@@ -220,7 +220,7 @@ Directory/project names and configuration snippets can be private. Explain provi
 
 Cloudflare currently states zero retention for ordinary stateless Workers AI inference, subject to documented security/legal exceptions; selected storage, Gateway logging/caching and application logs change retention. TypeSafe states customer requests/responses are not used for training, with enterprise ZDR separately conditioned. These are not a universal promise that no data is ever retained.
 
-Initially use user-provided credentials in the OS credential store for official, compatible-gateway or local services. Evaluate a product-hosted inference backend only after demonstrated demand; never distribute a publisher key in the app. Authentication, quotas, billing and operations are not prerequisites for this stage. Research created no account, configured no credentials and made no paid inference requests.
+Initially use user-provided credentials in private local storage or the selected OS credential store for official, compatible-gateway or local services. Evaluate a product-hosted inference backend only after demonstrated demand; never distribute a publisher key in the app. Authentication, quotas, billing and operations are not prerequisites for this stage. Research created no account, configured no credentials and made no paid inference requests.
 
 ## Validation and rollout
 

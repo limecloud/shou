@@ -5,7 +5,7 @@ enum CLICommandDiscovery {
     static func matching(_ command: String) throws -> [CommandSpec] {
         let selected=commands.filter { spec in
             #if os(Windows)
-            if ["applications", "uninstall", "startup", "privacy", "tools"].contains(where: { spec.command == $0 || spec.command.hasPrefix($0 + " ") }) { return false }
+            if spec.command != "applications list", ["applications", "uninstall", "privacy", "tools"].contains(where: { spec.command == $0 || spec.command.hasPrefix($0 + " ") }) { return false }
             if ["system close-plan", "system close-applications"].contains(spec.command) { return false }
             if spec.command == "skills export" { return false }
             #endif

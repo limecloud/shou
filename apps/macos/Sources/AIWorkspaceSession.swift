@@ -18,6 +18,7 @@ import ShouPlatform
     var goal=AIInvestigationGoal.investigate
     var showingInspector=false
     var connections: [AIConnection]=[]
+    var deletedConnections: [AIConnection]=[]
     var connectionId=UserDefaults.standard.string(forKey: "ShouAIConnection") ?? "" {
         didSet { UserDefaults.standard.set(connectionId, forKey: "ShouAIConnection") }
     }
@@ -29,6 +30,7 @@ import ShouPlatform
     var answers: [String: String]=[:]
     var issue: String?
     var running=false
+    var canManageConnections: Bool { !running && investigation?.status != .waiting }
     var importing=false
     var review: RuleRecord?
     var savedInvestigations: [AIInvestigation]=[]
@@ -47,27 +49,34 @@ import ShouPlatform
             catch { app.error=error.localizedDescription }
             return
         }
+        chooseLaunchFolder(app: app) { [weak self] path in self?.launch=AILaunchTarget(path: path) }
+    }
+    func chooseLaunchFolder(app: AppModel, initial: String? = nil, selected: @escaping (String) -> Void) {
+        guard directoryPanel == nil else { return }
         let panel=NSOpenPanel(); panel.canChooseFiles=false; panel.canChooseDirectories=true; panel.allowsMultipleSelection=false
+        if let initial { panel.directoryURL=URL(fileURLWithPath: initial) }
         panel.message=app.t("Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation.")
         directoryPanel=panel
         panel.begin { [weak self, weak app] response in
             guard let self else { return }
             self.directoryPanel=nil
             guard response == .OK, let url=panel.url else { return }
-            do { self.launch=AILaunchTarget(path: try NativeDirectorySelection.path(for: url)) }
+            do { selected(try NativeDirectorySelection.path(for: url)) }
             catch { app?.error=error.localizedDescription }
         }
     }
     func canReuse(_ target: String, app: AppModel) -> Bool {
         guard let scan=app.space.scan, !app.space.hasChanges else { return false }
-        return target == scan.rootPath || target.hasPrefix(scan.rootPath + "/")
+        let prefix=scan.rootPath == "/" ? "/" : scan.rootPath + "/"
+        return target == scan.rootPath || target.hasPrefix(prefix)
     }
     func launchTarget(_ target: String, app: AppModel) {
         launch=nil
         Task {
             if running { stop(); await task?.value }
             if canReuse(target, app: app), let scan=app.space.scan {
-                let scope=target == scan.rootPath ? "." : String(target.dropFirst(scan.rootPath.count + 1))
+                let prefix=scan.rootPath == "/" ? "/" : scan.rootPath + "/"
+                let scope=target == scan.rootPath ? "." : String(target.dropFirst(prefix.count))
                 do {
                     _ = try await app.engine?.storageDirectory(scanId: scan.id, path: scope)
                     app.section="storage"; prepare(app: app, scope: scope); showingInspector=true
@@ -89,9 +98,24 @@ import ShouPlatform
 
     func loadConnections() {
         do {
-            connections=try AIConnectionStore(store: LocalRecordStore()).connections()
-            if !connections.contains(where: { $0.id == connectionId }) { connectionId=connections.first?.id ?? "" }
+            let store=try AIConnectionStore(store: LocalRecordStore())
+            connections=try store.connections(); deletedConnections=try store.connections(deleted: true)
+            if !connections.contains(where: { $0.id == connectionId && $0.usesMainModel }) { connectionId=connections.first(where: \.usesMainModel)?.id ?? "" }
         } catch { issue=error.localizedDescription }
+    }
+    func setDecisionEnabled(_ enabled: Bool, connection: AIConnection) {
+        guard canManageConnections else { return }
+        do {
+            var value=connection
+            if enabled, value.decision == nil { value.decision=DecisionConnection() }
+            value.routingStrategy=enabled ? .decisionFirst : .mainOnly
+            try AIConnectionStore(store: LocalRecordStore()).save(value); loadConnections()
+        } catch { issue=error.localizedDescription }
+    }
+    func setConnectionDeleted(_ deleted: Bool, connection: AIConnection) {
+        guard canManageConnections else { return }
+        do { try AIConnectionStore(store: LocalRecordStore()).setDeleted(deleted, id: connection.id); loadConnections() }
+        catch { issue=error.localizedDescription }
     }
     func open(app: AppModel) {
         showingInspector=true; loadConnections()
@@ -112,7 +136,7 @@ import ShouPlatform
     }
     func loadHistory(app: AppModel) {
         guard !running, !loadingHistory else { return }
-        loadingHistory=true; showingHistory=true
+        loadingHistory=true; showingHistory=true; issue=nil
         Task {
             defer { loadingHistory=false }
             do { savedInvestigations=try await service(app: app).list().filter { $0.status != .running } }
@@ -120,8 +144,10 @@ import ShouPlatform
         }
     }
     func restore(_ state: AIInvestigation, app: AppModel) {
-        guard !running, investigation?.status != .waiting, let engine=app.engine else { return }
+        guard !running, !loadingHistory, investigation?.status != .waiting, let engine=app.engine else { return }
+        loadingHistory=true; issue=nil
         Task {
+            defer { loadingHistory=false }
             do {
                 let scan=try await engine.storageScan(state.scanId)
                 let service=try service(app: app)

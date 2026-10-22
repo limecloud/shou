@@ -38,7 +38,7 @@ enum SDKRuntime {
             for try await chunk in response.body.makeStream() {
                 try Task.checkCancellation()
                 guard data.count + chunk.count <= 1_048_576 else {
-                    throw ShouError("ai_budget_exceeded", "The model response exceeded its size budget.")
+                    throw AIEvidencePolicy.budgetExceeded(.response)
                 }
                 data.append(chunk)
             }
@@ -92,6 +92,7 @@ private actor ProbeResult {
 public enum AIConnectionTest {
     /// Synthetic data only. Proves a tool execution followed by another model turn.
     public static func run(connection: AIConnection, credentials: any AICredentialStore, permit: AIRequestPermit = .unrestricted) async throws {
+        let connection=try connection.validated()
         if PortableModelRuntime.preferred { try await PortableModelRuntime.test(connection: connection, credentials: credentials, permit: permit); return }
         try permit.check()
         let key=try credentials.key(for: connection)

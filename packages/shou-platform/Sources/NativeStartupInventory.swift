@@ -141,6 +141,8 @@ public struct NativeStartupInventory: StartupInventoryReading {
         return StartupInventory(checkedAt: Date(), includeSystem: options.includeSystem, sources: sources,
             items: items.sorted { ($0.label, $0.path) < ($1.label, $1.path) }, issues: issues,
             scope: includeRegistrations ? "macos_startup_items" : "launchd_definitions", unavailableSources: unavailable)
+        #elseif os(Windows)
+        return try WindowsStartupInventory().read(options: options)
         #else
         throw ShouError("unsupported_platform", "Startup discovery is currently available only on macOS.")
         #endif

@@ -12,7 +12,7 @@ Users should understand where major storage is used, what is worth handling unde
 
 | Area | Current working-tree evidence | Required next behavior |
 | --- | --- | --- |
-| Connections | Default-off switch, native editor, independent decision provider, optional main model and tests implemented | Live credential access and complete states tracked per package |
+| Connections | Default-off switch, native editor, switchable decision provider, required main model and configuration CRUD implemented | Live credential access and complete states tracked per package |
 | Investigation | Shared launch, fixed scope, questions, evidence, suggestions and service usage implemented | Quality and full accessibility combinations pending |
 | Page entry points | Smart Cleanup, Space, large-file parent and Rules share one coordinator; external tools are labeled separately | Bind each context and conflict to UI evidence |
 | Rules | Generated fixture passed native investigation, preview, fresh scan, Trash receipt and restoration | Keep live-service evidence separate from fixture behavior |
@@ -38,7 +38,7 @@ The desktop master switch is implemented, persisted locally and defaults off. Ex
 | US-AI12 | As a cost-conscious user, I use Jev first for suitable decisions | Zero main-model calls when local code/Jev suffice; visible escalation reasons, destinations and separate usage | P0 |
 | US-AI13 | As a keyboard, VoiceOver or other-language user, I complete the same tasks | Meaningful labels/focus/status in English and Chinese without color-only meaning | P0 |
 | US-AI14 | As a Rules user, I begin investigation inside Shou | Explicit built-in action, with clearly labeled external tools as another route | P0 |
-| US-AI15 | As an interrupted user, I recover a waiting investigation | Original time/scope/connection and expiration; desktop recovery remains pending | P1 |
+| US-AI15 | As an interrupted user, I recover a waiting investigation | Original time/scope/connection and expiration; both desktops implement local records/waiting continuation; interrupted-running recovery is tracked separately | P1 |
 | US-AI16 | As an Uninstall/Startup/Privacy user, I understand source and impact | Domain facts and review flows are required; folder investigation cannot impersonate them | P1 |
 | US-AI17 | As a cost-conscious user, I can replace the decision provider | Common contract, separate credentials and legacy compatibility; active tasks keep their provider; only Jev ships today | P0 |
 
@@ -56,7 +56,7 @@ With a decision provider configured, the default is **Structured Decisions First
 | Unfamiliar meaning, complex retention, free-text explanation | Main model | Same scope/evidence; returned intent still validated locally |
 | New model hypothesis or higher-risk draft | Jev review when needed | Avoid reviewing unchanged, already-checked evidence repeatedly; never grants deletion permission |
 
-Settings expose **Structured Decisions First / Main Model Only**. Configured decisions run first; missing setup offers configuration or an explicit Main Model Only choice. The main model can be disabled independently, and Jev-only profiles work. Tasks requiring an unavailable main model retain the evidence gap.
+Every usable configuration requires a main model. **Enable Decision Service** selects `decision_first` when on and `main_only` when off. Jev assists the main model, while sufficient fixed-choice tasks can finish without a main-model request. Disabling Jev retains its settings and key and lets the main model take over. Jev-only profiles cannot start; legacy profiles remain readable for repair or recoverable removal.
 
 Disclose all possible destinations before Start. Show actual **Structured decision** or **Main-model understanding needed: reason** stages. Semantic escalation within the already disclosed scope does not require repeated confirmation. New destinations, expanded scope or content reads require a new explicit choice. Jev network/authentication/format failures remain failures; do not silently route them to a more expensive provider. Distinguish uncertain evidence from unavailable services.
 
@@ -77,7 +77,7 @@ Use **Enable AI Investigation** in Settings → AI Investigation. New installati
 | Disable Jev | Explain Main Model Only for subsequent tasks; preserve Jev credentials and active task configuration |
 | Change the default connection | Affect new investigations only; never silently transfer an existing conversation |
 
-Disabling cannot retract requests already received by a provider or erase provider records. Stopping is not rollback. Synchronous Keychain operations can wait for user-controlled system approval and cannot promise immediate interruption; recheck cancellation/enablement before any subsequent network work.
+Disabling cannot retract requests already received by a provider or erase provider records. Stopping is not rollback. Local credential reads need no system authorization. Legacy Keychain access is noninteractive, with in-app guidance to local storage on failure; cancellation and enablement are rechecked before subsequent network work.
 
 The switch is a desktop network preference, not API-key revocation or an OS network permission. Explicit CLI `ai` network commands use their own invocation authorization and currently do not read desktop preferences. UI/help must explain this. Offline commands, scanning, previews and existing cleanup remain independent.
 
@@ -87,7 +87,7 @@ Use **AI Investigation** for the built-in feature, with concrete **Investigate T
 
 | Page/location | Entry | Scope and contextual interaction | Status |
 | --- | --- | --- | --- |
-| Settings | Enable AI; connections; add/edit/test | Switch, destination, protocol, model, credentials, optional Jev and test results | Implemented; default-off and Jev-only editor observed |
+| Settings | Enable AI; configurations; add/edit/delete/restore/test | Switch, destination, protocol, model, credentials, optional Jev and test results | Implemented; default-off observed; current configuration acceptance is tracked separately |
 | Smart Cleanup empty state | Investigate a Folder with AI… | Native folder picker; local measurement followed by explicit network start | Implemented; contextual UI acceptance tracked separately |
 | Smart Cleanup results | Investigate Other Usage…; folder context action | Exact folder, no automatic home expansion; sparse cleanup scans are not full indexes | Implemented; contextual UI acceptance tracked separately |
 | Space Analysis empty state | Scan before AI investigation | Folder/measurement flow without an unusable Start Investigation action | Local scan guidance implemented |
@@ -115,7 +115,7 @@ Preconditions: new installation, AI off, no profile.
 4. Test with synthetic data and see separate main-model tool-round-trip/Jev outcomes.
 5. Save and choose the connection for later investigations.
 
-Cancellation does not save form changes. Failed saves preserve input and show a cause. Keychain waits leave the UI responsive while the user handles system approval. Test success belongs to the tested configuration and resets after edits. No real folder is uploaded or cleaned.
+Cancellation does not save form changes. Failed saves preserve input and show a cause. Saving, testing, investigating and continuing do not request the login Keychain password. Legacy configurations can switch to local storage with one-time key re-entry. Test success belongs to the tested configuration and resets after edits. No real folder is uploaded or cleaned.
 
 ### UC-AI02: Investigate usage from Smart Cleanup
 
@@ -167,13 +167,13 @@ Authentication failures lead to connection editing. Network/timeout failures off
 
 ### UC-AI07: Jev-first handling and escalation
 
-1. Configure Jev, select Structured Decisions First and optionally configure a main-model escalation connection.
+1. Configure the required main model, then configure and enable Jev to select Structured Decisions First.
 2. Disclose possible destinations; compute measurements/scope locally.
 3. Let Jev classify/review rebuildability while local code selects bounded evidence actions; local templates complete sufficient cases without main-model calls.
 4. Show the reason before invoking an already disclosed main model for open-ended understanding; review new hypotheses as needed without repeated checks of unchanged evidence.
 5. `supported` only supports draft review; uncertainty gathers evidence and retention keeps content. Show separate actual usage.
 
-Jev failures preserve findings without automatic main-model forwarding. Repair or explicitly change strategy for a new task. If escalation is needed without a main-model connection, retain the gap and offer setup. Routing and per-service usage are implemented; synthetic cases pass while live quality/cost comparisons remain pending.
+Jev failures preserve findings without automatic main-model forwarding. Repair or explicitly change strategy for a new task. Legacy profiles missing a main model must be repaired before starting or continuing. Routing and per-service usage are implemented; synthetic cases pass while live quality/cost comparisons remain pending.
 
 ### UC-AI08: Reuse offline next time
 
@@ -225,7 +225,7 @@ Story **US-AI17**: As a user controlling cost and service choice, I want to repl
 
 | ID | Story | Acceptance |
 | --- | --- | --- |
-| US-AI18 | As a terminal/external-agent user, discover providers, configure/test, investigate/answer, list/cancel and import one draft | Twelve discoverable operations; stdin-only credentials; cancellation reaches the running worker; cleanup retains terminal confirmation |
+| US-AI18 | As a terminal/external-agent user, discover providers, configure/test, investigate/answer, list/cancel and import one draft | Fifteen discoverable operations; stdin-only credentials; cancellation reaches the running worker; cleanup retains terminal confirmation |
 | US-AI19 | As a Windows user, complete a native AI journey with the same investigation/rule semantics as macOS/CLI | Fluent UI, default-off switch, PasswordBox/Credential Manager, four contextual entries, complete states and existing rule previews; native runtime claims require this revision’s CI |
 
 ### UC-AI09: Independent CLI investigation and cancellation
@@ -245,3 +245,30 @@ Story **US-AI17**: As a user controlling cost and service choice, I want to repl
 5. Closing explains loss of unsent text. After restart, local records open saved questions and continue within 24 hours on the original connection. Expired/missing-index/incompatible-runtime records require a new investigation.
 
 Cross-builds, native CI and WPF interaction are distinct evidence. CLI and desktops share business services; desktop preferences do not silently override explicit terminal network authorization.
+
+## Credential, configuration and scope interaction additions
+
+As a daily user, I save each key once and reuse it across desktop tests, investigations, continuation and CLI without login Keychain password prompts after app upgrades. macOS defaults to private local storage; legacy connections migrate through one-time in-app key re-entry. Keys are excluded from profiles, history, exports and logs. The editor distinguishes file permission protection from system credential encryption.
+
+As a cost-conscious user, I see Jev and the main model together, with decision-first and on-demand roles, models and destinations. Choices show actual active services. New desktop configurations enable both services; the main model is required and Jev can be switched on or off.
+
+As a disk browser user, I explicitly select all scanned folders or one folder. The macOS toolbar prefers one checked directory, then the highlighted directory, then the browsed directory. The launch sheet can change the scope and choose another physical folder. All means the current scan root and descendants, not other volumes. Cancel preserves the current task, and scope never changes cleanup selection. Local measurement or index reuse precedes explicit investigation start.
+
+Limits show their exact reason, retained evidence and next action. Processing time excludes credential loading and user-answer waits. Tokens, steps, decision requests, tools, evidence, response size and overview directories have separate reasons. Internal limits do not imply exhausted provider balances; historical records without a reason are not rewritten.
+
+## 12. Required main model, Jev switch and configuration management
+
+| ID | Story | Observable acceptance | Priority |
+| --- | --- | --- | --- |
+| US-AI20 | As a multi-service user, I switch Jev on/off and manage complete configurations | Main model required; disabled Jev reads no decision key and sends no request; create/read/update/default/delete/restore available | P0 |
+
+### UC-AI11: Manage configurations and switch Jev
+
+1. Create a named configuration with a required main model and optional Jev assistance. Each service has its own URL, model and credential. Saving is local only.
+2. Inspect names, active services and default selection; edit or select a default. Main-model fields stay visible and cannot be disabled.
+3. Disable **Enable Decision Service**: new investigations use the main model directly, retaining decision settings/keys without reading or sending them. Re-enable later; missing Jev setup opens the editor first.
+4. Blank key input preserves the saved key. Edits clear test success; connection tests verify enabled services only.
+5. Deletion names the configuration and explains recovery. Confirmation removes it from choices; choose another complete default or show setup when none remains. Cancellation changes nothing.
+6. Restore from **Deleted Configurations** to reuse the original credentials. Deleted profiles cannot be edited, tested or started until restored.
+
+Running tasks retain their connection snapshot. Desktop configuration mutations are disabled during running/waiting work. CLI changes affect new investigations; continuation keeps its original snapshot. Legacy profiles missing a main model remain readable for repair or removal but cannot run Jev alone.

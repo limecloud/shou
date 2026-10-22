@@ -42,6 +42,12 @@ try {
             } finally { Pop-Location }
             python -B "scripts/verify-ai-investigation.py" (Join-Path $bin "shou.exe")
             if ($LASTEXITCODE -ne 0) { throw "AI provider, lifecycle and privacy contracts failed." }
+            python -B "scripts/verify-windows-startup.py" (Join-Path $bin "shou.exe")
+            if ($LASTEXITCODE -ne 0) { throw "Windows startup read-only source and confirmation checks failed." }
+            python -B "scripts/verify-windows-applications.py" (Join-Path $bin "shou.exe")
+            if ($LASTEXITCODE -ne 0) { throw "Windows application registration inventory checks failed." }
+            python -B "scripts/verify-rule-authoring.py" (Join-Path $bin "shou.exe")
+            if ($LASTEXITCODE -ne 0) { throw "Personal rule authoring, preview and immutable revision checks failed." }
             python -B "scripts/verify-desktop-bridge.py" --engine (Join-Path $bin "shou.exe") --native-permanent
             if ($LASTEXITCODE -ne 0) { throw "Real desktop protocol integration failed." }
         } finally {

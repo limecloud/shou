@@ -8,10 +8,13 @@ enum AICLI {
         .init("ai providers", "read", [], [], "Discover installed structured decision providers and default profiles. No network request."),
         .init("ai list", "read", [], [], "List the latest 100 saved investigations with status, questions and suggestions. No network request."),
         .init("ai cancel", "configuration", ["investigation-id"], [], "Cancel a waiting or running investigation across processes. Pending network work stops cooperatively; saved evidence remains available."),
-        .init("ai connections list", "read", [], [], "List model connections without keys. No network request."),
-        .init("ai connections save", "configuration", ["file"], [], "Save one AIConnection JSON profile (at most 16 KiB), containing only a Keychain reference or an explicit environment-variable name. Never accepts API keys."),
+        .init("ai connections list", "read", [], ["state"], "List AI configurations without keys. state is active (default), deleted or all. No network request."),
+        .init("ai connections show", "read", ["connection-id"], [], "Read one AI configuration, including a recoverably deleted profile, without keys. No network request."),
+        .init("ai connections delete", "configuration", ["connection-id"], [], "Recoverably remove one configuration from active choices. Saved investigations and their credential references are retained. Use restore to undo."),
+        .init("ai connections restore", "configuration", ["connection-id"], [], "Restore one recoverably deleted AI configuration. No network request."),
+        .init("ai connections save", "configuration", ["file"], [], "Save one AIConnection JSON profile (at most 16 KiB), containing only a credential reference or an explicit environment-variable name. Authentication is local, keychain, environment or none. Never accepts API keys."),
         .init("ai connections test", "network", ["connection-id"], [], "Send synthetic data to the selected service and verify a complete tool-calling round trip; never reads a scan."),
-        .init("ai connections credential save", "configuration", ["connection-id"], ["service"], "Save an API key from standard input directly to the system credential store (macOS Keychain or Windows Credential Manager). service is model (default) or decision; jev is a legacy alias for the Jev provider. Never pass keys as arguments or in profile files."),
+        .init("ai connections credential save", "configuration", ["connection-id"], ["service"], "Save an API key from standard input to the profile's local or system credential store. macOS defaults to private local files; Windows defaults to Credential Manager (keychain). service is model (default) or decision; jev is a Jev-only legacy alias. Never pass keys as arguments or in profile files."),
         .init("ai connections decision test", "network", ["connection-id"], [], "Verify the selected structured decision provider with synthetic evidence only."),
         .init("ai investigate", "network", ["scan-id", "connection-id"], ["path", "request", "goal"], "Investigate a saved space-analysis directory with bounded relative metadata. Sends evidence to the selected service and saves a local checkpoint. No file content, Shell or deletion tools."),
         .init("ai show", "read", ["investigation-id"], [], "Read a local investigation, pending questions and independent rule suggestions. No model request."),
@@ -21,7 +24,7 @@ enum AICLI {
     static func run(_ args: Arguments, engine: ShouEngine, store: any RecordStore) async throws -> Bool {
         guard args.command.hasPrefix("ai ") else { return false }
         let connections=AIConnectionStore(store: store)
-        let credentials=SystemAICredentials()
+        let credentials=SystemAICredentials(directory: (store as? LocalRecordStore)?.directory ?? LocalRecordStore.defaultDirectory)
         let service=AIInvestigationService(engine: engine, store: store, credentials: credentials)
         func connection() throws -> AIConnection {
             guard let value=try connections.connections().first(where: { $0.id == args.value("connection-id") }) else {
@@ -35,7 +38,15 @@ enum AICLI {
         case "ai list": value=try .from(await service.list())
         case "ai cancel":
             try await service.cancel(args.value("investigation-id")); value=try .from(await service.read(args.value("investigation-id")))
-        case "ai connections list": value=try .from(connections.connections())
+        case "ai connections list":
+            let state=args.value("state")
+            guard ["", "active", "deleted", "all"].contains(state) else { throw ShouError("invalid_argument", "Choose active, deleted or all as the configuration state.") }
+            value=try .from(state == "all" ? connections.connections() + connections.connections(deleted: true) : connections.connections(deleted: state == "deleted"))
+        case "ai connections show": value=try .from(connections.connection(args.value("connection-id"), includingDeleted: true))
+        case "ai connections delete", "ai connections restore":
+            let deleted=args.command == "ai connections delete"
+            try connections.setDeleted(deleted, id: args.value("connection-id"))
+            value = .object(["status": .string(deleted ? "deleted" : "restored"), "recoverable": .bool(true), "connection_id": .string(args.value("connection-id"))])
         case "ai connections save":
             let data=try boundedFile(args.value("file"))
             let profile=try AIConnectionStore.profile(Codec.decode(JSONValue.self, from: data))
@@ -48,8 +59,8 @@ enum AICLI {
             let isDecision=["decision", "jev"].contains(selected)
             guard ["", "model", "decision", "jev"].contains(selected), !isDecision || profile.decision != nil,
                   selected != "jev" || profile.decision?.providerID == "jev",
-                  (isDecision ? profile.decision?.authentication : profile.authentication) == .keychain else {
-                throw ShouError("invalid_argument", "Choose a configured system credential service: model or decision.")
+                  (isDecision ? profile.decision?.authentication : profile.authentication)?.storesKey == true else {
+                throw ShouError("invalid_argument", "Choose a configured local or system credential service: model or decision.")
             }
             let data=try FileHandle.standardInput.read(upToCount: 8193) ?? Data()
             guard data.count <= 8192, let key=String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -57,7 +68,8 @@ enum AICLI {
                 throw ShouError("invalid_ai_key", "Provide one API key of at most 8 KiB on standard input.")
             }
             try credentials.save(key, for: profile, decision: isDecision)
-            value = .object(["status": .string("saved_in_keychain"), "service": .string(isDecision ? selected : "model")])
+            let authentication=isDecision ? profile.decision!.authentication : profile.authentication
+            value = .object(["status": .string(authentication == .local ? "saved_locally" : "saved_in_keychain"), "service": .string(isDecision ? selected : "model"), "authentication": .string(authentication.rawValue)])
         case "ai connections decision test":
             let review=try await StructuredDecisionService().test(connection: connection(), credentials: credentials)
             value=try .from(review)

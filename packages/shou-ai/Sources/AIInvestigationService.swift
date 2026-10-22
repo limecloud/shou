@@ -72,6 +72,7 @@ public actor AIInvestigationService {
         do {
             let lease=try store.lock(); defer { lease.release() }
             checkpoint=try load(id)
+            _ = try checkpoint.state.connection.validated()
             guard checkpoint.state.status == .waiting, Date().timeIntervalSince(checkpoint.state.createdAt) < 86400,
                   Set(answers.keys) == Set(checkpoint.state.questions.map(\.id)),
                   answers.values.allSatisfy({ !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && $0.count <= 2000 }) else {
@@ -160,9 +161,9 @@ public actor AIInvestigationService {
                 }
                 try await evidence.replaceMessages(current.messages)
             }
-            if current.runtime == "portable" { return try await PortableModelRuntime.run(evidence, credentials: credentials, permit: permit) }
+            if current.runtime == "portable" { return try await PortableModelRuntime.run(evidence, permit: permit) }
             #if canImport(SwiftAISDK)
-            let key=try credentials.key(for: current.state.connection)
+            let key=try await evidence.credential()
             try permit.check()
             let model=try SDKRuntime.model(current.state.connection, key: key, permit: permit, onRequest: { try await evidence.mainRequest() })
             let initial=try JSONDecoder().decode([ModelMessage].self, from: current.messages)
