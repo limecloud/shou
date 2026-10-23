@@ -2,6 +2,8 @@
 
 Updated / 更新：2026-10-24。Windows implementation is in progress; native acceptance is pending / Windows 实现进行中，原生验收待完成。
 
+Latest native CI / 最新原生 CI：[Windows Server 2025 x64](https://github.com/limecloud/shou/actions/runs/39985996918), source `79c97033744d38a653829cefc34120fcc466e41a`: Core 587 and Presentation 174 passed; Platform 191 passed, 22 failed and 11 opt-in skipped. CLI and packaging did not run after failure. Fixture timeout/ownership/ACL assumptions and native lock/cleanup/WOW64 gaps require follow-up; production safety gates remain closed. This is not Windows 11 or ARM64 acceptance / 领域与页面状态通过；平台 22 项失败、11 项选择性测试跳过，后续 CLI 与打包未运行。夹具及原生缺口详见[验收记录](docs/zh-CN/engineering/acceptance-and-testing.md#windows-ci-原生缺口)，不能作为 Windows 11、ARM64 或产品发布验收。
+
 [English implementation plan](docs/engineering/windows-native-plan.md) | [中文实施方案](docs/zh-CN/engineering/windows-native-plan.md)
 
 ## Baseline / 基线

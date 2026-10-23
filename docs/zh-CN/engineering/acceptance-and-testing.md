@@ -187,3 +187,9 @@ Core 模拟用例见 `CombinedCleanupTests.cs`，Presentation 用例见 `Combine
 Core 内存夹具覆盖固定／重定向来源、整数纪元边界、发现所有者／预算／变化、包含 sidecar 的排除、保守浏览器活动、汇总证据、发布期限／配置变化、取消和严格记录读取。生成 SQLite 文件覆盖有限范围的包含边界、未定年 Cookie、Firefox 下载访问保留、不支持的结构／外键／时间、结构摘要、只读字节保持、脱敏错误及取消／结果预算。Mac 仅在测试程序集将 `winsqlite3.dll` 映射至 macOS 系统 SQLite 以验证 SQL，不能据此声明 Windows SQLite、原生句柄或 ACL 通过。
 
 Presentation 检查明确开始、范围、完整／部分覆盖、失效、停止与迟到结果、错误和销毁。原生生成夹具另需在 Windows 检查共享写入／禁止删除句柄、ACL／身份、WAL／SHM 及硬链接拒绝。WinUI XAML／PRI、真实控件／可访问性、各架构运行及全部隐私变更验收仍待完成，不将真实浏览器配置用作回归样本。
+
+## Windows CI 原生缺口
+
+2026-10-24 对源码 `79c97033744d38a653829cefc34120fcc466e41a` 的 [Windows Server 2025 x64 CI](https://github.com/limecloud/shou/actions/runs/39985996918) 通过 Core 587 项与 Presentation 174 项；Platform 191 项通过、22 项失败、11 项显式选择测试跳过。CLI 测试及后续 App／CLI 打包未执行，不能登记为通过。
+
+失败包含同步用例错误使用 xUnit 超时属性、提升权限宿主下生成夹具的所有者／ACL 假设，以及占用文件元数据、清理和 WOW64 进程观察。先修正夹具及运行条件，再依据独立证据处理适配器；不能放宽生产所有者、ACL、链接或活动状态检查来使测试通过。真实 WinUI、Windows 11 双架构、签名、安装与更新仍需单独验收；本次 macOS 发行不包含 Windows 产物。
