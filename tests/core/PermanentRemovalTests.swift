@@ -1,6 +1,105 @@
 import Foundation
 import ShouCore
 import ShouPlatform
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
+
+func permanentRemovalContinuesPastPermissionFailuresAndLaterTargets() async throws {
+    guard getuid() != 0 else { return }
+    let fixture=try Fixture()
+    try fixture.put("generated/z-locked/file.bin", "cannot unlink from a read-only directory")
+    try fixture.put("generated/a-writable/file.bin", "remove this sibling")
+    try fixture.put("later-cache/file.bin", "continue the selected batch")
+    let locked=fixture.workspace.appendingPathComponent("generated/z-locked")
+    try FileManager.default.setAttributes([.posixPermissions: 0o555], ofItemAtPath: locked.path)
+    defer { try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: locked.path) }
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["generated", "later-cache"], action: "permanent")
+    let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "permission-fixture")
+    try expect(receipt.state == "partial" && receipt.items.count == 2)
+    try expect(receipt.items[0].state == "failed" && receipt.items[1].state == "purged")
+    try expect(receipt.items[0].error?.contains("z-locked/file.bin") == true)
+    try expect(FileManager.default.fileExists(atPath: locked.appendingPathComponent("file.bin").path))
+    try expect(!FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("generated/a-writable").path))
+    try expect(!FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("later-cache").path))
+    try await expectThrows { try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "permission-fixture") }
+}
+
+func nativePermanentRemovalRejectsReplacedCachedDirectories() throws {
+    for replacement in ["nested", "root", "ancestor"] {
+        let fixture=try Fixture()
+        try fixture.put("generated/nested/z.bin", "first removal")
+        try fixture.put("generated/nested/a.bin", "must survive replacement")
+        let outside=fixture.base.appendingPathComponent("outside")
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        try Data("outside scope".utf8).write(to: outside.appendingPathComponent("a.bin"))
+        let target=fixture.workspace.appendingPathComponent("generated")
+        let replaced=replacement == "ancestor" ? fixture.workspace : replacement == "root" ? target : target.appendingPathComponent("nested")
+        let detached=fixture.base.appendingPathComponent("detached")
+        let manifest=try fixture.fs.inspectTarget(target.path, budget: ScanBudget(), cancelled: { false })
+        var mutationError: Error?, replacedOnce=false
+        try expectThrows {
+            try fixture.fs.purge(target.path, expected: manifest.entries, progress: { completed, _, _ in
+                guard completed == 1, !replacedOnce else { return }
+                replacedOnce=true
+                do {
+                    try FileManager.default.moveItem(at: replaced, to: detached)
+                    try FileManager.default.createSymbolicLink(at: replaced, withDestinationURL: outside)
+                } catch { mutationError=error }
+            })
+        }
+        if let mutationError { throw mutationError }
+        try expect(replacedOnce)
+        let retained=detached.appendingPathComponent(replacement == "ancestor" ? "generated/nested/a.bin" : replacement == "root" ? "nested/a.bin" : "a.bin")
+        try expect(try String(contentsOf: retained, encoding: .utf8) == "must survive replacement")
+        try expect(try String(contentsOf: outside.appendingPathComponent("a.bin"), encoding: .utf8) == "outside scope")
+    }
+}
+
+func nativePermanentRemovalPreservesNewUnplannedFiles() throws {
+    let fixture=try Fixture()
+    let target=fixture.workspace.appendingPathComponent("project/target")
+    let manifest=try fixture.fs.inspectTarget(target.path, budget: ScanBudget(), cancelled: { false })
+    let added=target.appendingPathComponent("unplanned.bin")
+    var mutationError: Error?
+    try expectThrows {
+        try fixture.fs.purge(target.path, expected: manifest.entries, progress: { completed, _, _ in
+            guard completed == 1 else { return }
+            do { try Data("keep new content".utf8).write(to: added) }
+            catch { mutationError=error }
+        })
+    }
+    if let mutationError { throw mutationError }
+    try expect(try String(contentsOf: added, encoding: .utf8) == "keep new content")
+}
+
+func nativePermanentRemovalReportsProgressForDeepDirectories() throws {
+    let fixture=try Fixture()
+    let prefix="generated/" + Array(repeating: "nested", count: 12).joined(separator: "/")
+    let directory=fixture.workspace.appendingPathComponent(prefix)
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    let bytes=Data("generated".utf8)
+    for index in 0..<10_000 {
+        try bytes.write(to: directory.appendingPathComponent("file-\(index).bin"))
+    }
+    let target=fixture.workspace.appendingPathComponent("generated").path
+    let manifest=try fixture.fs.inspectTarget(target, budget: ScanBudget(), cancelled: { false })
+    try expect(manifest.complete)
+    let started=Date()
+    var previous=0, updates=0, validProgress=true
+    try fixture.fs.purge(target, expected: manifest.entries, progress: { completed, total, _ in
+        validProgress = validProgress && total == manifest.entries.count && completed > previous
+        previous=completed; updates += 1
+    })
+    try expect(validProgress && previous == manifest.entries.count && updates >= 2)
+    try expect(!FileManager.default.fileExists(atPath: target))
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+    print("permanent removal: entries=\(manifest.entries.count) depth=12 elapsed=\(String(format: "%.3f", Date().timeIntervalSince(started)))s")
+}
 
 func nativePermanentRemovalHandlesNestedAndRetainedHardLinks() throws {
     let fixture=try Fixture()

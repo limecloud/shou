@@ -1,7 +1,8 @@
 {
   "name": "@limecloud/shou",
-  "version": "0.11.0",
-  "description": "Native macOS cleanup CLI with inspectable rules, explicit confirmation, and AI agent integration",
+  "version": "0.12.0",
+  "private": true,
+  "description": "Native cleanup CLI with inspectable rules, explicit confirmation, and AI agent integration",
   "license": "Apache-2.0",
   "homepage": "https://github.com/limecloud/shou#readme",
   "repository": {
@@ -17,12 +18,12 @@
   },
   "files": [
     "bin/",
-    "vendor/",
+    "lib/",
     "BUILD.json",
     "LICENSE",
-    "SwiftAISDK-LICENSE.txt"
+    "README.md"
   ],
-  "os": ["darwin"],
+  "os": ["darwin", "win32"],
   "cpu": ["arm64", "x64"],
   "engines": {
     "node": ">=18"
@@ -31,5 +32,5 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
-  "keywords": ["shou", "macos", "cleanup", "disk", "cli", "ai-agent"]
+  "keywords": ["shou", "macos", "windows", "cleanup", "disk", "cli", "ai-agent"]
 }

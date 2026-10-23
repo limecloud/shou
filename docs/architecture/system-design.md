@@ -2,20 +2,20 @@
 
 English | [简体中文](../zh-CN/architecture/system-design.md)
 
-Status: macOS has source implementations. Windows follows the [native implementation plan](../engineering/windows-native-plan.md); its runtime and distribution are pending.
+Status: macOS has source implementations. Windows is in progress under the [native implementation plan](../engineering/windows-native-plan.md), with location discovery, application registration and startup browsing, built-in/personal-rule configuration, storage browsing, cleanup review and read-only history source; native runtime and distribution acceptance are pending.
 
 ## System context
 
 ```mermaid
 flowchart TB
     User[User] --> Mac[macOS native application]
-    User --> Win[Windows native application - planned]
+    User --> Win[Windows native application - in development]
     Agent[Authorized external agent] --> CLI[Platform-native CLI]
     Mac --> Swift[Swift domain services]
-    Win --> CS[C# domain services - planned]
+    Win --> CS[CSharp domain services]
     CLI --> Services[Services of the current platform]
     Swift --> MacOS[macOS system adapters]
-    CS --> Windows[Windows system adapters - planned]
+    CS --> Windows[Windows adapters - native acceptance pending]
     Shared[Product contracts and declarative resources] --> Swift
     Shared --> CS
     Services --> Local[Platform-local records and filesystem]
@@ -72,7 +72,34 @@ Known roots and declarative rule data are maintained in JSON. `ShouEngine` regis
 
 WinUI App → Presentation → C# Core is the UI dependency chain. Windows Platform implements Core-owned filesystem, registry, process, credential and record interfaces. App and .NET CLI compose these implementations directly. The C# domain uses an explicit Windows path model, with real Win32 behavior verified separately. Module names, framework targets and stage exits are specified in the [Windows plan](../engineering/windows-native-plan.md).
 
+Core's `BuiltinRuleCatalog` produces current applicable definitions from shared JSON; configuration stores built-in enablement preferences and exact personal-rule versions. `ScanLocationService` discovers and reinspects bounded locations, then registers the batch in one configuration transaction before scanning. The GUI can scan one location or the exact configured locations listed on the page; the CLI can discover, register and scan a batch. Both share sequential scan budgets. GUI source aggregates categories, rules and paths across locations while filters retain global selection. Core validates sources under one lease and saves one multi-location plan, binding execution to one current confirmation, all-source preflight and item journals; public execution remains closed. Both use the same protection and planning services. Changed definitions after a resource upgrade invalidate old plans, and default scan participation never grants execution consent.
+
+```mermaid
+flowchart LR
+    UI[WinUI cleanup page] --> Review[Presentation categories, filters and global selection]
+    Review --> Service[CleanupService multi-source plans, current confirmation and execution]
+    CLI[Native CLI] --> Service
+    Sources[Immutable per-location scan evidence] --> Service
+    Resources[Shared categories and rule resources] --> Review
+    Service --> Native[Platform root identities, activity and exact manifest operations]
+    Service --> Store[Configuration, plans and item journals under one lease]
+    Service --> Results[One plan digest and one execution record]
+```
+
+Application management has a separate read-only path: applications page or CLI → `ApplicationCatalog` → `IApplicationInventory` → registry/current-user MSIX. Core validates registration facts and queries immutable snapshots; Platform owns fixed-source budgets and gaps. This path does not open cleanup records or convert registration identity into deletion permission. The [application contract](../product/application-uninstall.md#windows-application-discovery-and-uninstall-boundaries) owns sources, estimates and future system-uninstall boundaries.
+
+Uninstall preparation uses `ApplicationUninstallReviewer` and a Core installation-identity port implemented by Platform's exact MSI/MSIX reads. `ApplicationUninstallPlanner` reinspects, binds the reviewed digest/current user/separate data acknowledgement and saves a plan under the existing private-store lease. Presentation owns review/acknowledgement/cancellation state; App and CLI assemble the same services. Inspection does not open storage, and plans grant no execution. `ApplicationActivityService` reuses scan/file-use ports, while `WindowsApplicationProcesses` reads matching image paths with query-only rights. Active or unknown observations block planning. `ApplicationUninstallService` now implements current single-use consent, the mutation lease, fresh identity/activity checks, durable intent and outcome reads. Platform's `WindowsApplicationUninstallMutation` owns fixed MSI invocation, current-user MSIX deployment and independent identity observation. WinUI source now assembles separate confirmation, stop-and-wait, read-only outcomes and window lifecycle handling. GUI and CLI share a disabled execution gate; native acceptance, additional residuals and restore remain pending.
+
+Startup discovery has its own read-only path: WinUI `StartupViewModel` or `startup list` → `StartupInventoryService` → `IStartupInventory` → `WindowsStartupInventory`. Core validates bounded metadata and queries an immutable snapshot; Platform reads six fixed registry sources, two local Startup folders and boot/logon scheduled tasks visible to the current identity and current-user registered package startup declarations. Arguments never enter Core, and registration presence does not establish enablement, activity or deletion/control permission. The path opens no cleanup store. Sources, exclusions and native evidence requirements belong to the [startup contract](../product/startup-items.md#windows-startup-contract).
+
+Recognized scheduled tasks additionally expose a separate task-engine status observation. Platform double-reads public enablement/state and rechecks path/XML; Core rejects invalid source/state claims. A missing status preserves the registration with explicit coverage gaps. This observation does not establish effective startup conditions, application activity or control authorization.
+
+
+Privacy scan source uses its own fixed-browser policy, integer time windows and read-only SQLite/identity adapters. `PrivacyScanViewModel` and CLI share `PrivacyScanService`; observations persist through the existing configuration lease. Core's `PrivacyCleanupService` implements exact-source plans, separate Cookie impact acknowledgement, current single-use confirmation, intent-first orchestration and sanitized receipts. Native transactional mutation, public integration and native acceptance remain pending. See [privacy boundaries](../engineering/privacy-cleaning.md#windows-platform-boundary).
+
 ## Cleanup and concurrency
+
+Windows UI uses a separate `CleanupExecutionViewModel` for one current plan's confirmation attempt and record lookup. App composes the same Core confirmation, execution and record reads. GUI and CLI share the disabled Platform gate and do not request execution confirmation before native acceptance. Source includes UI-thread confirmation defaulting to Cancel, scope/navigation protection during execution, and stop-and-wait for normal closing. This state grants no recovery or automatic retry. See [confirmation and lifecycle](../engineering/windows.md#file-cleanup-confirmation-and-window-lifecycle).
 
 Read operations are cancellable and bounded. Whole-tree completeness and complete target subtrees are separate facts; only complete, current target evidence can authorize mutation. Sparse cleanup scans cannot stand in for full space analysis.
 
@@ -108,3 +135,5 @@ Text, design tokens, brand assets and rule resources use one canonical source pe
 Build the smallest feature slice with explicit capabilities. Keep domain interfaces narrow and introduce them only for current operations. Avoid universal plugin systems and duplicated policy in UI.
 
 Mac-hosted tests establish domain/state semantics. Windows native integration establishes Windows system behavior. UI, accessibility, signing, installation and updates each require independent evidence. Every supported capability must identify its platform, architecture, exact revision and executed checks; see [acceptance](../engineering/acceptance-and-testing.md).
+
+Windows scheduled-task switches use separate `StartupControlReviewer` / `StartupControlService` and narrow inspection, confirmation and mutation ports. Platform implements exact COM reads and Enabled setting, Presentation owns review/execution/lookup state, and App/CLI compose the same services. Discovery opens no storage; confirmed control persists intent. Both entries share a disabled public gate. The [startup contract](../product/startup-items.md#scheduled-task-switch-review-and-control) defines scope.

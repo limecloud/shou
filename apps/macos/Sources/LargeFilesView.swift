@@ -22,9 +22,6 @@ struct LargeFilesView: View {
         .onChange(of: model.busy) { _, busy in if !busy { session.loadIfNeeded(app: model) } }
         .onChange(of: session.minimumBytes) { _, _ in session.load(app: model) }
         .onChange(of: session.type) { _, _ in session.load(app: model) }
-        .sheet(isPresented: Binding(get: { storage.plan != nil }, set: { if !$0 { storage.plan=nil } })) {
-            if let plan=storage.plan { StorageRemovalConfirmation(model: model, session: storage, plan: plan) }
-        }
         .quickLookPreview($previewURL)
         .toolbar {
             ToolbarItemGroup {
@@ -184,14 +181,7 @@ struct LargeFilesView: View {
                     Button(model.t("Select All Matching Files")) { session.selectAll(app: model) }
                     Button(model.t("Clear Selection")) { storage.selected=[] }
                 }.fixedSize().disabled(model.busy || session.loading || !session.hasLoaded)
-                Menu {
-                    Button(model.t("Move Selected to Trash…")) { storage.review(app: model, action: "trash") }
-                    Button(model.t("Permanently Clean Selected…"), role: .destructive) { storage.review(app: model, action: "permanent") }
-                } label: { Text(model.t("Clean & Free Space")) }
-                    primaryAction: { storage.review(app: model, action: "permanent") }
-                    .buttonStyle(.borderedProminent).controlSize(.large).fixedSize()
-                    .disabled(storage.selected.isEmpty || model.busy || session.loading)
-                    .accessibilityIdentifier("large-files.clean")
+                StorageRemovalButton(model: model, session: storage, disabled: session.loading, identifier: "large-files.clean")
             }.padding(.horizontal, 20).padding(.vertical, 12)
         }.background(.bar)
     }

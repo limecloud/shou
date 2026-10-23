@@ -1,0 +1,157 @@
+using System.Reflection;
+using System.Text.Json;
+using Shou.Windows.Core;
+using Shou.Windows.Platform;
+
+namespace Shou.Windows.Cli;
+
+internal static class Program
+{
+    private static readonly string Version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "development";
+    private static bool HostSupported => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) && Environment.Is64BitProcess;
+
+    private static async Task<int> Main(string[] args)
+    {
+        var requestId = "request_" + Guid.NewGuid().ToString("N");
+        using var cancelled = new CancellationTokenSource();
+        Console.CancelKeyPress += (_, eventArgs) => { eventArgs.Cancel = true; cancelled.Cancel(); };
+        try
+        {
+            var arguments = new List<string>(args);
+            var json = RemoveFlag(arguments, "--json");
+            var locale = RemoveOption(arguments, "--locale") ?? "en";
+            if (locale is not ("en" or "en-US" or "zh-CN" or "zh-Hans")) throw Input("Unsupported locale.");
+            var help = RemoveFlag(arguments, "--help");
+            if (arguments.Count == 0 || help || CommandDiscovery.IsGroup(string.Join(' ', arguments)))
+            {
+                var command = string.Join(' ', arguments);
+                if (json) return Write(requestId, new { command = "shou", version = Version, commands = CommandDiscovery.Matching(command) });
+                Console.WriteLine(CommandDiscovery.Help(command));
+                return 0;
+            }
+            if (arguments.SequenceEqual(["--version"]))
+            {
+                if (json) return Write(requestId, new { version = Version });
+                Console.WriteLine(Version);
+                return 0;
+            }
+            var request = CommandDiscovery.Parse(arguments);
+            request.Validate();
+            if (request.Command == "capabilities")
+                return Write(requestId, new
+                {
+                    application_version = Version, api_version = "1.0", rule_schema_version = "1.0",
+                    platform = "windows", architectures = new[] { "x64", "arm64" }, runtime_locales = new[] { "en", "zh-CN" },
+                    host_supported = HostSupported, commands = CommandDiscovery.Matching(request.Optional("command") ?? ""),
+                    trash_available = false, mutation_available = CliServices.MutationAvailable, application_uninstall_available = CliServices.ApplicationUninstallAvailable, confirmation = "interactive_current_scope",
+                    startup_control_available = CliServices.StartupControlAvailable,
+                    limits = new { rule_bytes = RuleSchemaValidator.MaximumRuleBytes, scan_entries = 100_000, scan_entries_max = 1_000_000,
+                        scan_seconds = 120, scan_seconds_max = 3600, scan_depth_max = 64, page_size = 500,
+                        snapshot_bytes = CleanupScanService.MaximumSnapshotBytes, history_directory_entries = CleanupHistoryService.MaximumDirectoryEntries,
+                        application_entries = 4000, application_entries_max = 20_000, application_seconds = 10, application_seconds_max = 60,
+                        startup_entries = 2000, startup_entries_max = 10_000, startup_seconds = 5, startup_seconds_max = 60,
+                        startup_task_xml_characters = 262_144, startup_task_folder_depth = 32,
+                        startup_manifest_bytes = 4_194_304,
+                        privacy_sources = PrivacySourceDiscovery.MaximumSources, privacy_profiles = PrivacySourceDiscovery.MaximumProfiles,
+                        privacy_discovery_entries = PrivacySourceDiscovery.MaximumEntries, privacy_scan_bytes = PrivacyScanService.MaximumScanBytes,
+                        privacy_scan_seconds = 120, privacy_query_seconds = 15,
+                        application_activity_entries = ApplicationActivityService.MaximumEntries, application_activity_seconds = ApplicationActivityService.Duration.TotalSeconds,
+                        application_activity_depth = ApplicationActivityService.MaximumDepth, application_executable_names = ApplicationActivityService.MaximumExecutableNames,
+                        history_list_bytes = CleanupHistoryService.MaximumListBytes, history_list_seconds = CleanupHistoryService.ListDuration.TotalSeconds },
+                    limitations = new[] { "Local NTFS/ReFS only", "Native acceptance pending", "Target mutation commands unavailable", "Rule previews do not grant execution" }
+                });
+            if (request.Command == "rules schema") return Write(requestId, RuleResources.CreateValidator().ExportSchema());
+            if (request.Command == "rules catalog" && request.Optional("workspace") is null)
+            {
+                var home = WindowsPath.Parse("C:/ShouCatalogValidation");
+                var catalog = RuleResources.CreateCatalog(RuleResources.CreateValidator(), new(home, home.Append("AppData/Local"), home.Append("AppData/Roaming")));
+                return Write(requestId, catalog.Templates);
+            }
+            RequireWindows();
+            if (request.Command == "startup list")
+            {
+                var snapshot = await new StartupInventoryService(new WindowsStartupInventory()).ReadAsync(request.StartupBudget, cancelled.Token);
+                var page = StartupInventoryService.Page(snapshot, request.StartupQuery);
+                return Write(requestId, page, page.State == ScanState.Complete ? "success" : "partial", page.State == ScanState.Complete ? 0 : 6);
+            }
+            if (request.Command == "startup inspect")
+                return Write(requestId, await CliServices.StartupReviewer.InspectAsync(request.Required("task-path"), request.StartupAction, cancelled.Token));
+            if (request.Command == "applications summary")
+            {
+                var snapshot = await new ApplicationCatalog(new WindowsApplicationInventory()).ReadAsync(request.ApplicationBudget, cancelled.Token);
+                var page = ApplicationCatalog.Page(snapshot, request.ApplicationQuery);
+                return Write(requestId, page, page.State == ScanState.Complete ? "success" : "partial", page.State == ScanState.Complete ? 0 : 6);
+            }
+            if (request.Command == "applications inspect")
+                return Write(requestId, await CliServices.ApplicationReviewer.InspectAsync(request.Required("application-id"), cancelled.Token));
+            if (request.Command == "rules validate")
+            {
+                var rule = RuleResources.CreateValidator().Parse(await CliServices.ReadRuleAsync(request.Required("file"), cancelled.Token));
+                return Write(requestId, new { valid = true, rule_id = rule.Id, version = rule.Version, digest = rule.Digest, runtime_verified = false });
+            }
+            if (request.Command == "analysis scan")
+            {
+                var result = await new StorageScanner(new WindowsFileSystem()).ScanAsync(request.Path!, request.Budget, null, cancelled.Token);
+                return Write(requestId, result, result.State switch { ScanState.Complete => "success", ScanState.Cancelled => "cancelled", _ => "partial" },
+                    result.State switch { ScanState.Complete => 0, ScanState.Cancelled => 130, _ => 6 });
+            }
+            var response = await LocalCommands.ExecuteAsync(request, new CliServices(), locale, cancelled.Token);
+            return Write(requestId, response.Data, response.Status, response.ExitCode, nextActions: response.NextActions);
+        }
+        catch (OperationCanceledException) when (cancelled.IsCancellationRequested)
+        {
+            return Write(requestId, null, "cancelled", 130, new { code = "cancelled", message = "The operation was cancelled.", details = new { }, retryable = true });
+        }
+        catch (Exception error) when (error is ShouException or UnauthorizedAccessException or IOException)
+        {
+            var code = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error";
+            var message = error is ShouException ? error.Message : "The local operation could not be completed.";
+            var exit = code switch
+            {
+                "invalid_argument" or "invalid_path" or "invalid_rule" or "unsupported_schema" => 2,
+                "permission_denied" => 3,
+                "source_changed" or "active_or_inaccessible" or "version_conflict" or "store_busy" or "plan_stale" or "plan_consumed" or "active_target" or "activity_unknown" or "preview_only" or "application_changed" or "startup_changed" => 4,
+                "time_limit" or "resource_limit" or "application_discovery_incomplete" => 6,
+                "confirmation_required" or "installer_data_consent_required" => 7,
+                "unsupported_platform" or "unsupported_filesystem" or "unsupported_location" or "unsupported_capability" => 8,
+                _ => 5
+            };
+            return Write(requestId, null, "error", exit, new { code, message, details = new { }, retryable = code == "store_busy" });
+        }
+    }
+
+    private static int Write(string requestId, object? data, string status = "success", int exit = 0, object? error = null, object[]? nextActions = null)
+    {
+        Console.WriteLine(JsonSerializer.Serialize(new
+        {
+            api_version = "1.0", request_id = requestId, ok = status == "success", status, data,
+            warnings = Array.Empty<object>(), error, next_actions = nextActions ?? []
+        }, ContractJson.Options));
+        return exit;
+    }
+
+    private static bool RemoveFlag(List<string> arguments, string flag)
+    {
+        var count = arguments.Count(value => value == flag);
+        if (count > 1) throw Input("Duplicate arguments are not supported.");
+        return arguments.Remove(flag);
+    }
+
+    private static string? RemoveOption(List<string> arguments, string name)
+    {
+        var index = arguments.IndexOf(name);
+        if (index < 0) return null;
+        if (arguments.Count(value => value == name) != 1 || index + 1 >= arguments.Count || arguments[index + 1].StartsWith("--", StringComparison.Ordinal))
+            throw Input("An option is missing a value or was repeated.");
+        var value = arguments[index + 1];
+        arguments.RemoveRange(index, 2);
+        return value;
+    }
+
+    private static ShouException Input(string message) => new("invalid_argument", message);
+
+    private static void RequireWindows()
+    {
+        if (!HostSupported) throw new ShouException("unsupported_platform", "This native CLI requires 64-bit Windows 11.");
+    }
+}

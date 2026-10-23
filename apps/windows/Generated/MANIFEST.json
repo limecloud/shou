@@ -1,0 +1,30 @@
+{
+  "generator_version": 1,
+  "locales": [
+    "en-US",
+    "zh-CN"
+  ],
+  "location_count": 23,
+  "outputs": {
+    "Design.xaml": "fc9d0dd955e6fdc28421417ef9d9dc2292472ea507273200897a2f0c5db6ea30",
+    "Strings/en-US/Resources.resw": "70335e4c4223c3f7932f526087a842e702fb37381f4f3f2c7bed0b29754aacd8",
+    "Strings/zh-CN/Resources.resw": "3739d7fb6ad127e9033ac90a8d957390b17da9ca3fb6fc77d8d3fe053095044c",
+    "Text.en-US.json": "fce242fec3e36b9e682fa9ce163733ad8af6c6888d29c382b83648e63f1bbe0c",
+    "Text.zh-CN.json": "12d75e9fc7115abfc5340a587d185355c1e8545e575c94930c7f9fc0ba22392b",
+    "builtin-rules.json": "4ede840982abb5584ff77eb51d6792450ed4b7380c9a30ba549c8cb03a894982",
+    "known-locations.json": "e2ff07ea8055b22a884b4563ee15d87efd4fb06231ffcf3f4c26039d982e260b",
+    "project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
+    "rule.schema.json": "be7cc8bd28e1f18fa0be08c5afeb04a3b7b344407bd013efd91ac0cfe05ff2c3"
+  },
+  "rule_count": 39,
+  "sources": {
+    "assets/design/tokens.json": "5ebaee12822614e73366c70c9f79177f2ea69fad2fce06f96f75faefea6f8006",
+    "packages/shou-contracts/rule.schema.json": "be7cc8bd28e1f18fa0be08c5afeb04a3b7b344407bd013efd91ac0cfe05ff2c3",
+    "packages/shou-core/Localizable.xcstrings": "60bfd66a2a67322d50fc7ba92a22698d06f979ca159ca8a884592543bf9c5457",
+    "packages/shou-core/Sources/Resources/builtin-rules.json": "86eda3953e5d3eea976d2f99a5cd73a4b2f5fc9f2743e924d8baf6f1ef0a86e3",
+    "packages/shou-core/Sources/Resources/known-locations.json": "c338241a1e5d6844436df579336da76f5dd8575d77b9f2e3d2b9de3d722d8d16",
+    "packages/shou-core/Sources/Resources/project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
+    "scripts/design_tokens.py": "feafdd82ddc244a6dbcaf5c1dd4acdddde27fef6d9b421734973f4dbf23a724f",
+    "scripts/generate-windows-resources.py": "35e0b5f36cf59c9216271296d1ae1561b633a6fe397e0749b5f9eec497bb9ca9"
+  }
+}

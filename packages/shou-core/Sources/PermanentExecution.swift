@@ -37,11 +37,16 @@ enum PermanentExecution {
                 if Task.isCancelled { receipt.state="cancelled"; break }
                 receipt.items[index].state="failed"; receipt.items[index].error=TrashExecution.diagnostic(error)
                 try save()
+                if ["permission_denied", "io_error"].contains((error as? ShouError)?.code ?? "") {
+                    progress(ExecutionProgress(stage: "preflight", processedCount: index + 1, itemCount: items.count, path: path))
+                    continue
+                }
                 break
             }
             // A lost result write must leave a durable started-item intent.
             receipt.items[index].state="purging"
             try save()
+            var partialRemoval=false
             do {
                 try filesystem.purge(path, expected: receipt.items[index].manifest, context: &removalContext, progress: { completed, total, current in
                     progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: current,
@@ -49,12 +54,13 @@ enum PermanentExecution {
                 })
                 receipt.items[index].state="purged"
             } catch {
+                partialRemoval=["partial_removal", "permission_denied", "io_error"].contains((error as? ShouError)?.code ?? "")
                 receipt.items[index].state=["cancelled", "purge_outcome_unknown"].contains((error as? ShouError)?.code ?? "") ? "unknown" : "failed"
                 receipt.items[index].error=TrashExecution.diagnostic(error)
             }
             try save()
             progress(ExecutionProgress(stage: "purging", processedCount: index + 1, itemCount: items.count, path: path))
-            if receipt.items[index].state != "purged" { break }
+            if receipt.items[index].state != "purged" && !partialRemoval { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "purged" } ? "completed" : "partial" }
         progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "purging"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))

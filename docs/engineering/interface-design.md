@@ -18,6 +18,14 @@ The desktop defaults to permanent cleanup. Confirm the current exact selection, 
 
 macOS uses SwiftUI/AppKit and Windows uses WinUI 3. Generate shared colors, typography, spacing, radii and text resources while using native keyboard, focus, dialogs, window and accessibility conventions. Validate light/dark, high contrast, reduced motion, long translations and DPI scaling. UI state may remain portable within a platform; UI framework types stay in the application layer.
 
+## Shared design resources
+
+Edit only `assets/design/tokens.json` for extracted design values. Run `python3 "scripts/generate-windows-resources.py"`, then add `--check` to verify reproducibility. The command generates `apps/windows/Generated/Design.xaml` and `apps/macos/Sources/ShouDesign.generated.swift`; neither file is edited manually. The manifest records canonical source and generator digests, and the Swift header records its source digest.
+
+Schema version 1 supports named sRGB colors (`#AARRGGBB`), numbers, uniform radii and uniform padding. Names must start with `Shou` followed by an uppercase letter and contain only ASCII letters/digits. Names are unique across groups. Numeric values must be finite, nonnegative and at most 4096; booleans, strings, duplicate JSON keys and unsupported groups are rejected. Generated Swift colors retain all four channels; numeric values use `CGFloat`. Design resources do not enter Core or CLI dependencies.
+
+Eight values are currently extracted, including primary-action minimum width and content height. SwiftUI uses the accent, settings spacing/card radius and scan-location sheet padding; WinUI pages use item/section/page spacing and page padding. Windows accent/radius integration and other visual values remain pending. Fluent control colors, platform typography, focus and high-contrast behavior remain native. Compilation and resource checks do not prove layout, DPI or accessibility acceptance.
+
 ## Validation
 
 Use generated data to verify empty, loading, partial, ready, confirming, running, stopping, failed and completed states. Test source-page return, fresh rescanning, selection preservation, confirmation cancellation and accessible labels. Actual UI evidence is separate from state tests. See [workflows](../architecture/workflows-and-sequences.md) and [acceptance](acceptance-and-testing.md).

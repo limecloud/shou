@@ -2,7 +2,7 @@
 
 [English](../../engineering/windows-native-plan.md) | 简体中文
 
-状态：设计已确定；Windows 应用、CLI、资源生成器和构建自动化均未实现。本文定义后续实现合同。
+状态：实现进行中。源码已包含 Core/Platform/Presentation 扫描链路、应用注册发现与浏览、工作区与规则服务、持久化普通扫描与草稿预览、计划和执行日志编排、.NET CLI、WinUI 配置／空间／应用／清理审阅／历史页面与资源生成器。CLI 与界面已组装计划审阅，终端确认有纯逻辑测试，执行入口保持关闭。Windows 运行、目标变更能力与签名分发尚未通过验收。本文定义实施合同，当前证据记录于 [SYNC.md](../../../SYNC.md)。
 
 ## 产品目标
 
@@ -63,6 +63,7 @@ apps/windows/
     Shou.Windows.Core.Tests/
     Shou.Windows.Presentation.Tests/
     Shou.Windows.Platform.Tests/
+    Shou.Windows.Cli.Tests/
     Shou.Windows.App.Tests/
 ```
 
@@ -84,11 +85,21 @@ npm 入口保持 `@limecloud/shou`，命令保持 `shou`，由平台启动器选
 
 Windows 使用当前用户私有数据根、ACL、原子写入、持久化日志和跨进程变更锁。Schema 与记录版本由 Windows 实现拥有。产品错误语义与夹具预期和 macOS 对齐；二进制存储布局、平台身份 DTO 分别定义。
 
+当前配置、位置发现、内置规则、扫描、计划创建、终端确认、界面审阅、只读历史与私有记录的命令、预算和流程见 [Windows 开发](windows.md)，记录格式见[数据合同](../architecture/data-model.md#windows-原生记录)。草稿不能成为计划来源；CLI 默认回收站动作不可用，永久计划须明确选择。Core 计划、当前确认、逐项日志及历史查询／现场核对已有模拟测试；Presentation 已覆盖个人规则配置、具体版本绑定、内置规则偏好、发现后配置核对、排除预览、写入核对、证据失效、选择、取消与历史观察。位置发现使用共享声明，整批登记保留已有范围与偏好；CLI 与界面批量扫描顺序共享预算；界面已汇总跨位置类别、规则与路径并保留筛选外选择；一个多位置计划绑定全部来源，使用一次当前确认、全部来源预检和逐项日志，公共执行门禁仍关闭。Platform 已有相对句柄永久移除、Restart Manager 文件占用和项目范围工具进程观察源码；内部进程 ABI、竞态、中断和实际终端行为仍待原生验收。CLI 与界面共用 Platform 中关闭的执行门禁。WinUI 确认、停止等待、结果查询及正常关闭保护已有源码；原生验收和恢复仍待完成。
+
+应用发现由 Core `ApplicationCatalog` / `IApplicationInventory`、Platform `WindowsApplicationInventory`、Presentation `ApplicationsViewModel`、WinUI `ApplicationsPage` 和 CLI `applications summary` 分担。注册发现只读，不依赖清理存储；MSI、MSIX、其他安装程序和残留组件的变更合同不能混同。来源、预算、估算及当前分页限制见[应用卸载](../product/application-uninstall.md#windows-应用发现与卸载边界)。
+
+源码另有 `ApplicationUninstallReviewer`／`ApplicationUninstallPlanner`、`WindowsApplicationUninstallInspector` 与 `ApplicationUninstallViewModel`，CLI 和应用页共用精确身份审阅及限时计划。准备计划要求单独同意安装程序管理的数据变化，并重新核对原摘要；审阅只读，计划复用现有记录租约。`ApplicationActivityService` 已结合安装目录扫描、Restart Manager 文件占用与查询权限的进程映像观察，运行中或未知活动阻止计划；`ApplicationUninstallService` 和 `WindowsApplicationUninstallMutation` 已有确认、租约、先写意图、MSI／MSIX 调用及独立结果观察源码，CLI 提供执行入口和只读结果查询；WinUI 源码已接入独立确认、停止等待、记录结果和正常关闭保护，GUI 与 CLI 共用关闭的执行门禁。额外残留和恢复仍待完成。原生身份、安装程序数据影响、中断和 UI 须独立验收，不能把逻辑测试当作卸载支持。
+
+启动项已有独立的 `StartupInventoryService`／`IStartupInventory`、固定来源 `WindowsStartupInventory`、`StartupViewModel`、WinUI 页面及 `startup list` 源码。该链路只读，不打开清理记录，启用／活动状态保持未知；Task Scheduler 开机／登录任务与当前用户打包启动声明发现已有源码，原生验收及公开启停支持仍待完成，当前来源及证据边界以[启动项合同](../product/startup-items.md#windows-启动项合同)为准。
+
+开机／登录计划任务另已接通公开 `RegisteredTask.Enabled`／`State` 的独立观察，贯通 Core、CLI 与 WinUI 详情。状态缺失／变化时保留已复核定义的注册并标明部分覆盖；任务状态不等于实际启动激活或应用进程活动。可移植逻辑与引用编译仍须另做原生 COM／权限／UI 验收。
+
 ## 资源同步
 
 规则 Schema、规则目录 JSON、品牌资产、文案 key 与语义夹具统一维护。生成 Windows 资源时记录源摘要和生成版本。将已确认的颜色、字号、间距、圆角和动效值提取为统一 token 源，生成 XAML；不复制 Swift 界面代码。遵循各平台键盘、窗口、DPI 和可访问性习惯。
 
-每个功能或安全变化都在 [SYNC.md](../../../SYNC.md) 记录精确 macOS 源提交、路径、合同摘要、Windows 实现提交、差异和证据。CI 拒绝缺失 key、占位符不一致、Schema 无效与未经审查的生成差异。资源生成器属于计划交付物，当前没有对应可用命令。
+每个功能或安全变化都在 [SYNC.md](../../../SYNC.md) 记录精确 macOS 源提交、路径、合同摘要、Windows 实现提交、差异和证据。执行 `python3 scripts/generate-windows-resources.py --check` 拒绝缺失 key、占位符不一致与生成差异；规则 Schema 独立检查。生成及纯逻辑、原生验证命令见[开发指南](windows.md)。
 
 ## 研发拓扑
 
@@ -127,6 +138,8 @@ Windows ARM64 虚拟机可借助已安装工具链生成 x64 产物，但不能�
 
 macOS 运行纯领域和页面状态测试，Windows 运行 Platform 集成和 WinUI 检查。自动变更测试使用生成的临时目录与模拟工具。共享夹具必须包括过期身份、祖先替换、不完整目标、保护子项、伪造输入、确认重放、日志失败和跨进程争用。真实个人数据不作为回归夹具。
 
+系统卸载另有[生成 MSI 原生入口](windows.md#生成-msi-的原生卸载验收)：从头构建当前用户包，单独启用五项用例并保留源摘要、TRX、安装日志、哈希和私有记录。默认跳过，不接受现有产品身份，不开放产品执行门禁；目前仅 Mac 编译与跳过行为通过，真实 Windows 运行仍待取证。MSIX、交互取消、WinUI 及发布仍须独立验证。
+
 分别生成 `win-x64`、`win-arm64` 资产。按选定打包工具的要求，对可执行文件与安装、更新产物签名，添加时间戳，核验最终字节后计算校验和。最终签名后不得修改产物。测试中断或无效更新，不能扩大清理权限。有效签名与 SmartScreen 信誉分别观察和记录。
 
 选择符合实际开发者身份和发布环境的证书服务，在 WN01 验证硬件或云端签名、会话过期、续期与无人值守能力。如需要交互认证，流水线停在准备好的未签名产物交接点，明确完成签名后继续验证。不在仓库保存私钥或一次性验证码。
@@ -134,3 +147,7 @@ macOS 运行纯领域和页面状态测试，Windows 运行 Platform 集成和 W
 ## AI 开发执行规范
 
 实现前阅读本方案、对应产品文档、[安全规范](../security/cleanup-safety.md)和对齐表中的目标项。仅修改所属模块与确定性生成产物。每次实现最小可用纵向链路，不增加跨端运行时胶水、通用插件宿主或未来数据迁移。提交对应单元、原生和 UI 验证证据；使用具体原因报告不支持的行为，并同步更新中英文文档。
+
+计划任务开关的 Core／Platform／Presentation／CLI／WinUI 源码已接通，公开门禁关闭；原生 COM、安全描述符、并发、中断和界面须单独验收。Windows 控制尚未公开可用。资格、流程、记录与待验证项由[启动项合同](../product/startup-items.md#计划任务开关审阅与控制)维护。
+
+计划任务控制的[生成任务原生入口](windows.md#生成计划任务的原生控制验收)已有六项用例与独立取证脚本，默认跳过；脚本必须明确启用，要求源码稳定、全部实际通过及生成任务清理回执。Mac 编译和拒绝检查不替代 Windows 运行，也不开放产品门禁。

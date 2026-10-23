@@ -124,7 +124,6 @@ struct StorageLocation: Identifiable {
     var reviewing=false
     var reviewProgress: ExecutionProgress?
     var loadingDirectory=false
-    var plan: StorageRemovalPlan?
     var elapsed: TimeInterval=0
     var startedAt=Date()
     private var task: Task<Void, Never>?
@@ -282,7 +281,7 @@ struct StorageLocation: Identifiable {
         loadingDirectory=false; scan=result; location=result.rootPath
         index=StorageIndex(entries: []); entries=[:]; loadedDirectories=[]; removedNodes=[]
         directoryOffsets=[:]; directoryTotals=[:]; presentation=nil; presentationCache=[:]; extensionFilter=nil
-        selected=[]; plan=nil; path="."; back=[]; forward=[]
+        selected=[]; path="."; back=[]; forward=[]
         merge(directory)
     }
     private func loadDirectory(_ next: String) {
@@ -312,7 +311,7 @@ struct StorageLocation: Identifiable {
         }
         self.engine=engine; application=app; directoryTask?.cancel(); loadingDirectory=false
         let root=location, previous=retainPath ? path : ".", token=UUID(); operation=token
-        app.busy=true; scanning=true; stopRequested=false; progress=nil; selected=[]; plan=nil; startedAt=Date()
+        app.busy=true; scanning=true; stopRequested=false; progress=nil; selected=[]; startedAt=Date()
         app.statusKey="Scanning disk usage…"
         task=Task {
             defer { if operation == token { app.busy=false; scanning=false; stopRequested=false } }
@@ -374,22 +373,27 @@ struct StorageLocation: Identifiable {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path), forType: .string)
     }
-    func review(app: AppModel, action: String) {
+    func removeSelected(app: AppModel, action: String) {
         guard let engine=app.engine, let scan, !selected.isEmpty, !app.busy else { return }
-        let paths=Array(selected), sourceSection=app.section
+        // The inline action confirms this exact selection. Freeze it before
+        // preparing the plan so subsequent UI changes cannot expand the scope.
+        let paths=StorageSelection.normalized(selected).sorted(), sourceSection=app.section
         reviewing=true; reviewProgress=nil; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
         task=Task {
-            defer { reviewing=false; app.busy=false; stopRequested=false }
+            defer { reviewing=false; app.busy=false; app.isExecuting=false; app.stopRequested=false; stopRequested=false }
             do {
-                plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths, action: action, progress: { [weak self] update in
+                let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths, action: action, progress: { [weak self] update in
                     Task { @MainActor in
                         guard let self, self.reviewing, !self.stopRequested else { return }
                         self.reviewProgress=update
                     }
                 })
-                app.statusKey="Ready to review"
+                guard !Task.isCancelled else { return }
+                reviewing=false
+                try await execute(app: app, engine: engine, plan: plan, sourceSection: sourceSection)
             } catch {
-                if !Task.isCancelled {
+                app.operationHadError=app.isExecuting
+                if !Task.isCancelled || app.isExecuting {
                     let details=(error as? ShouError)?.details ?? [:]
                     let failure=([error.localizedDescription] + [details["path"], details["reasons"]].compactMap { $0 }).joined(separator: "\n")
                     app.completion=CleanupCompletion(receipts: [], failures: [failure], sourceSection: sourceSection)
@@ -398,45 +402,34 @@ struct StorageLocation: Identifiable {
             }
         }
     }
-    func execute(app: AppModel, plan: StorageRemovalPlan) {
-        guard let engine=app.engine, !app.busy else { return }
-        self.plan=nil; app.busy=true
-        let sourceSection=app.section
+    private func execute(app: AppModel, engine: ShouEngine, plan: StorageRemovalPlan, sourceSection: String) async throws {
         let execution=app.beginExecution(total: plan.items.count)
-        task=Task {
-            do {
-                let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { update in
-                    Task { @MainActor in app.updateExecutionProgress(update, operation: execution) }
-                })
-                let removed=receipt.items.filter { ["trashed", "purged"].contains($0.state) }.map(\.relativePath)
-                app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
-                if var current=scan {
-                    let removedNow=removed.compactMap { index.nodes[$0] }
-                    var nodes=index.nodes
-                    for key in Array(nodes.keys) {
-                        if removed.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { nodes.removeValue(forKey: key); entries.removeValue(forKey: key); continue }
-                        guard var node=nodes[key] else { continue }
-                        for item in removedNow where key == "." || item.path.hasPrefix(key + "/") {
-                            node.logicalBytes=max(0, node.logicalBytes - item.logicalBytes)
-                            node.allocatedBytes=max(0, node.allocatedBytes - item.allocatedBytes)
-                            node.fileCount=max(0, node.fileCount - item.fileCount)
-                            node.isComplete=false
-                        }
-                        nodes[key]=node
-                    }
-                    removedNodes.append(contentsOf: removedNow)
-                    current.tree.complete=false; scan=current; index=StorageIndex(nodes: Array(nodes.values))
-                    while path != "." && index.nodes[path] == nil { path=StorageIndex.parent(path) }
+        let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { update in
+            Task { @MainActor in app.updateExecutionProgress(update, operation: execution) }
+        })
+        let removed=receipt.items.filter { ["trashed", "purged"].contains($0.state) }.map(\.relativePath)
+        app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
+        if var current=scan {
+            let removedNow=removed.compactMap { index.nodes[$0] }
+            var nodes=index.nodes
+            for key in Array(nodes.keys) {
+                if removed.contains(where: { key == $0 || key.hasPrefix($0 + "/") }) { nodes.removeValue(forKey: key); entries.removeValue(forKey: key); continue }
+                guard var node=nodes[key] else { continue }
+                for item in removedNow where key == "." || item.path.hasPrefix(key + "/") {
+                    node.logicalBytes=max(0, node.logicalBytes - item.logicalBytes)
+                    node.allocatedBytes=max(0, node.allocatedBytes - item.allocatedBytes)
+                    node.fileCount=max(0, node.fileCount - item.fileCount)
+                    node.isComplete=false
                 }
-                selected=[]; focus=nil
-                app.completion=CleanupCompletion(receipts: [receipt], sourceSection: sourceSection)
-                app.statusKey=receipt.state == "completed" ? "Selected items processed. Refresh to measure current disk usage." : "Some items could not be removed. Review the result."
-                await app.refresh()
-            } catch {
-                app.operationHadError=true
-                app.completion=CleanupCompletion(receipts: [], failures: [error.localizedDescription], sourceSection: sourceSection)
+                nodes[key]=node
             }
-            app.busy=false; app.isExecuting=false; app.stopRequested=false
+            removedNodes.append(contentsOf: removedNow)
+            current.tree.complete=false; scan=current; index=StorageIndex(nodes: Array(nodes.values))
+            while path != "." && index.nodes[path] == nil { path=StorageIndex.parent(path) }
         }
+        selected=[]; focus=nil
+        app.completion=CleanupCompletion(receipts: [receipt], sourceSection: sourceSection)
+        app.statusKey=receipt.state == "completed" ? "Selected items processed. Refresh to measure current disk usage." : "Some items could not be removed. Review the result."
+        await app.refresh()
     }
 }

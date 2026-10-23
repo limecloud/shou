@@ -19,7 +19,7 @@ struct SettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: ShouDesign.pageSpacing) {
                 group("General") {
                     row("Interface language", "Choose the language used in Shou.", icon: "character.bubble") {
                         LanguagePicker(model: model).labelsHidden().frame(width: 200)
@@ -92,16 +92,16 @@ struct SettingsView: View {
     }
 
     private func group<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: ShouDesign.itemSpacing) {
             Text(model.t(title)).font(.caption).foregroundStyle(.secondary)
             VStack(spacing: 0, content: content)
-                .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.primary.opacity(0.08)))
+                .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: ShouDesign.cardRadius))
+                .overlay(RoundedRectangle(cornerRadius: ShouDesign.cardRadius).strokeBorder(.primary.opacity(0.08)))
         }
     }
 
     private func row<Control: View>(_ title: String, _ subtitle: String, icon: String, @ViewBuilder control: () -> Control) -> some View {
-        HStack(spacing: 16) {
+        HStack(spacing: ShouDesign.sectionSpacing) {
             Image(systemName: icon).font(.system(size: 19, weight: .regular)).foregroundStyle(.secondary).frame(width: 26)
             VStack(alignment: .leading, spacing: 5) {
                 Text(model.t(title)).font(.system(size: 13, weight: .semibold))

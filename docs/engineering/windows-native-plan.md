@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/windows-native-plan.md)
 
-Status: approved design; no Windows application, CLI, generators or build automation is implemented. This document defines the implementation contract.
+Status: implementation in progress. Source includes Core/Platform/Presentation scanning, application registration discovery/browsing, workspace/rule services, persisted regular scans and draft previews, planning and item-journal orchestration, .NET CLI, WinUI configuration/storage/applications/cleanup-review/history pages and resource generation. CLI and UI assemble plan review; terminal confirmation has portable logic tests, while execution remains disabled. Windows runtime, target mutation and signed distribution are not accepted. This document defines the implementation contract; [SYNC.md](../../SYNC.md) records current evidence.
 
 ## Product goal
 
@@ -63,6 +63,7 @@ apps/windows/
     Shou.Windows.Core.Tests/
     Shou.Windows.Presentation.Tests/
     Shou.Windows.Platform.Tests/
+    Shou.Windows.Cli.Tests/
     Shou.Windows.App.Tests/
 ```
 
@@ -84,11 +85,21 @@ The desktop product defaults to permanent removal with an exact-scope irreversib
 
 Use a current-user private Windows data root, ACLs, atomic writes, durable journals and cross-process mutation leases. Schema and record versions are owned by the Windows implementation. Product error semantics and fixture expectations align with macOS; stored binary layouts and platform identity DTOs are independent.
 
+See [Windows development](windows.md) for configuration, location discovery, built-ins, scans, plan creation, terminal confirmation, UI review, read-only history and private-store commands, budgets and flow, and the [data contract](../architecture/data-model.md#windows-native-records) for record formats. Drafts cannot become plan sources. The CLI's default Trash action is unavailable; permanent plans require explicit selection. Core planning, current confirmation, item journals and history queries/inspection have simulated-port tests. Presentation covers personal-rule configuration, exact-version bindings, built-in preferences, configuration reconciliation after discovery, exclusion preview, write reconciliation, evidence invalidation, selection, cancellation and history observations. Discovery uses shared declarations and batch registration preserves scopes and preferences. CLI and GUI batch scans share budgets sequentially. GUI source aggregates categories, rules and paths across locations and retains filtered-out selections. One multi-location plan binds every source, one current confirmation, all-source preflight and item journals; public execution remains closed. Platform has relative-handle permanent-removal, Restart Manager file-use and project-scoped tool-process observation source. The internal process ABI, races, interruption and actual terminal behavior await native acceptance. CLI/UI share the disabled Platform execution gate. WinUI confirmation, stop-and-wait, recorded outcomes and normal-close protection have source implementations; native acceptance and recovery remain pending.
+
+Application discovery spans Core `ApplicationCatalog` / `IApplicationInventory`, Platform `WindowsApplicationInventory`, Presentation `ApplicationsViewModel`, WinUI `ApplicationsPage` and CLI `applications summary`. Registration discovery is read-only and independent of cleanup storage. MSI, MSIX, other installers and residual-component mutations need distinct contracts. See [application uninstall](../product/application-uninstall.md#windows-application-discovery-and-uninstall-boundaries) for sources, budgets, estimates and current paging limits.
+
+Source also includes `ApplicationUninstallReviewer`/`ApplicationUninstallPlanner`, `WindowsApplicationUninstallInspector` and `ApplicationUninstallViewModel`. CLI and the page share exact installation review and expiring plans. Planning requires separate acknowledgement of installer-managed data effects and a matching reinspection digest; inspection stays read-only and planning reuses the record lease. `ApplicationActivityService` combines installation-directory scanning, Restart Manager file use and query-only process image observations; active or unknown observations block planning. `ApplicationUninstallService` and `WindowsApplicationUninstallMutation` now provide consent, lease, durable intent, MSI/MSIX invocation and independent outcome-observation source; CLI has an execution entry and read-only result query. WinUI source connects separate confirmation, stop-and-wait, recorded outcomes and normal-close protection; GUI and CLI share a disabled execution gate. Additional residual selection and restore remain pending. Native identity, installer data effects, interruption and UI require independent acceptance; logic tests do not establish uninstall support.
+
+Startup discovery now has separate `StartupInventoryService` / `IStartupInventory`, fixed-source `WindowsStartupInventory`, `StartupViewModel`, WinUI page and `startup list` source. The chain is read-only, does not open cleanup records and leaves enablement/activity unknown. Task Scheduler boot/logon and current-user packaged startup-declaration discovery have source implementations; native acceptance and public control support remain pending; the [startup contract](../product/startup-items.md#windows-startup-contract) defines the current source and evidence boundary.
+
+Scheduled boot/logon tasks now have separate public `RegisteredTask.Enabled` / `State` observations in Core, CLI and WinUI details. Missing/changed status preserves a definition-rechecked registration with partial coverage; task status is not effective startup activation or application process state. Portable logic and reference compilation require separate native COM/permission/UI acceptance.
+
 ## Resource synchronization
 
 Maintain the shared rule schema, catalog JSON, brand assets, text keys and semantic fixtures in one source location. Generate Windows resources with source digest and generation version. Extract approved colors, typography, spacing, radii and motion values into a canonical token source; generate XAML without copying Swift UI code. Preserve native keyboard, window, DPI and accessibility conventions.
 
-For every feature or safety change, record the exact macOS source commit, paths, contract digest, Windows implementation commit, differences and evidence in [SYNC.md](../../SYNC.md). Reject missing keys, mismatched placeholders, invalid schema and unreviewed generated diffs in CI. Resource generation is a planned deliverable, not an available command today.
+For every feature or safety change, record the exact macOS source commit, paths, contract digest, Windows implementation commit, differences and evidence in [SYNC.md](../../SYNC.md). Run `python3 scripts/generate-windows-resources.py --check` to reject missing keys, mismatched placeholders and generated differences. Rule-schema checks remain independent. See the [development commands](windows.md) for generation and portable/native verification.
 
 ## Development topology
 
@@ -127,6 +138,8 @@ Do not implement all pages before the first read-only vertical slice works. Unve
 
 Run pure domain/state tests on macOS, Platform integration and WinUI checks on Windows. Use generated disposable directories and fake owner tools for automated mutations. Shared fixtures must include stale identities, replaced ancestors, partial targets, protected descendants, forged input, replayed confirmation, journal failure and cross-process contention. Real personal data is not a regression fixture.
 
+System uninstall has a separate [generated MSI entry](windows.md#native-uninstall-acceptance-with-generated-msi-packages): it authors fresh per-user packages, opts into five cases and retains source digests, TRX, installer logs, hashes and private records. It skips by default, accepts no existing product identities and does not open public execution. Only Mac compilation and explicit skipping have passed; real Windows execution remains pending. MSIX, interactive cancellation, WinUI and release require separate verification.
+
 Produce separate `win-x64` and `win-arm64` assets. Sign shipped executables and installer/update artifacts as required by the selected packaging tool, timestamp and verify the final bytes, and then compute checksums. Never modify an artifact after its final signature. Test interrupted and invalid updates without broadening cleanup permissions. SmartScreen reputation is independent of a valid signature and is recorded as an observation.
 
 Select a certificate service available to the actual developer identity and release environment. Verify hardware/cloud signing access, session expiry, renewal and unattended support during WN01. If interactive authentication is required, the release pipeline stops at a prepared unsigned-artifact handoff; signing and verification resume explicitly. Never store private keys or one-time passwords in the repository.
@@ -134,3 +147,7 @@ Select a certificate service available to the actual developer identity and rele
 ## AI implementation contract
 
 Before implementing a feature, read this plan, its product specification, [safety rules](../security/cleanup-safety.md) and the matching ledger row. Touch only owned modules and deterministic generated outputs. Implement the smallest working vertical slice; do not introduce cross-platform runtime glue, generic plugin hosts or future data migrations. Include the relevant unit, native and UI evidence. Report unsupported behavior with concrete reasons and update both language editions together.
+
+Scheduled-task switch Core/Platform/Presentation/CLI/WinUI source is connected with a disabled public gate. Native COM, security descriptors, races, interruption and UI require separate acceptance. This records implementation progress without claiming available Windows controls. The [startup contract](../product/startup-items.md#scheduled-task-switch-review-and-control) owns eligibility, flow, records and remaining checks.
+
+Scheduled-task control now has a [generated-task native entry](windows.md#native-startup-control-acceptance-with-generated-tasks), six cases and a separate evidence script. Cases skip by default; explicit opt-in requires stable source, all executed passes and teardown receipts. Mac compilation/refusal checks do not establish Windows execution or enable the product gate.

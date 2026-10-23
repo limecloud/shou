@@ -77,6 +77,7 @@ enum TrashExecution {
     static func diagnostic(_ error: Error) -> String {
         let reasons=(error as? ShouError)?.details["reasons"]?.split(separator: ",").map(String.init) ?? []
         let observed=(error as? ShouError)?.details["resulting_path"].flatMap { $0.isEmpty ? nil : "Observed result: " + $0 }
-        return ([error.localizedDescription] + reasons + (observed.map { [$0] } ?? [])).joined(separator: "\n")
+        let failures=(error as? ShouError)?.details["failures"].map { [$0] } ?? []
+        return ([error.localizedDescription] + reasons + failures + (observed.map { [$0] } ?? [])).joined(separator: "\n")
     }
 }

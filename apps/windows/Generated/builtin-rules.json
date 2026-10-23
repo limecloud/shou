@@ -1,0 +1,706 @@
+[
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.rust-target",
+    "limitation": "High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Generated source is allowed only inside verified build-script OUT_DIR after Git and process checks. Preserve manual edits, custom deliverables and files that cannot be rebuilt.",
+    "location": "projects",
+    "marker": "Cargo.toml",
+    "name": "Rust build outputs",
+    "patterns": [
+      "**/target"
+    ],
+    "rebuildNote": "Cargo normally regenerates compiled outputs and build-script generated source on the next build.",
+    "risk": "high",
+    "version": "1.1.0"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "dependencies",
+    "id": "shou.builtin.node-dependencies",
+    "limitation": "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.",
+    "location": "projects",
+    "marker": "package.json",
+    "name": "Node.js dependencies",
+    "patterns": [
+      "**/node_modules"
+    ],
+    "rebuildNote": "Reinstall dependencies with the project's package manager.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.node-build-cache",
+    "limitation": "Stop development servers first. Review deployment outputs and locally generated data.",
+    "location": "projects",
+    "marker": "package.json",
+    "name": "Node.js build caches",
+    "patterns": [
+      "**/.next",
+      "**/.nuxt",
+      "**/.turbo",
+      "**/.parcel-cache"
+    ],
+    "rebuildNote": "The framework recreates these outputs during development or the next build.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.swift-build",
+    "limitation": "High risk: review and select explicitly. Stop Swift builds first. Only verified debug or release product directories are targeted; source checkouts, repositories, credentials and package configuration are retained. Preserve custom products and manual edits to generated source.",
+    "location": "projects",
+    "marker": null,
+    "name": "Swift package build outputs",
+    "patterns": [
+      "**/.build/debug",
+      "**/.build/release",
+      "**/.build/*/debug",
+      "**/.build/*/release"
+    ],
+    "rebuildNote": "Swift Package Manager normally regenerates compiled products and derived source on the next build.",
+    "risk": "high",
+    "version": "1.1.0"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "cache",
+    "id": "shou.builtin.python-bytecode",
+    "limitation": "Review the directory contents and stop active Python tasks first.",
+    "location": "projects",
+    "marker": null,
+    "name": "Python bytecode caches",
+    "patterns": [
+      "**/__pycache__"
+    ],
+    "rebuildNote": "Python regenerates bytecode when modules are imported.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "cache",
+    "id": "shou.builtin.pytest-cache",
+    "limitation": "Previous test-state information will be lost.",
+    "location": "projects",
+    "marker": "pyproject.toml",
+    "name": "Python test caches",
+    "patterns": [
+      "**/.pytest_cache"
+    ],
+    "rebuildNote": "Pytest recreates test-state caches on the next run.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.gradle-build",
+    "limitation": "High risk: select explicitly and stop Gradle or Java tasks first. Only projects with a Gradle build file qualify. Tracked files, credentials and authored source remain protected; preserve custom deliverables and offline dependencies.",
+    "location": "projects",
+    "marker": "build.gradle",
+    "name": "Gradle build outputs and project caches",
+    "patterns": [
+      "**/build",
+      "**/.gradle"
+    ],
+    "rebuildNote": "Gradle normally recreates project caches and generated build outputs on the next build.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.gradle-kotlin-build",
+    "limitation": "High risk: select explicitly and stop Gradle or Java tasks first. Only projects with a Gradle build file qualify. Tracked files, credentials and authored source remain protected; preserve custom deliverables and offline dependencies.",
+    "location": "projects",
+    "marker": "build.gradle.kts",
+    "name": "Gradle Kotlin build outputs and project caches",
+    "patterns": [
+      "**/build",
+      "**/.gradle"
+    ],
+    "rebuildNote": "Gradle normally recreates project caches and generated build outputs on the next build.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.flutter-build",
+    "limitation": "High risk: select explicitly and stop Flutter, Dart and platform builds first. A pubspec.yaml project marker is required. Tracked files, credentials and authored source remain protected; preserve deployment outputs and local edits.",
+    "location": "projects",
+    "marker": "pubspec.yaml",
+    "name": "Flutter build outputs and Dart tool caches",
+    "patterns": [
+      "**/build",
+      "**/.dart_tool"
+    ],
+    "rebuildNote": "Flutter and Dart normally recreate generated build outputs and tool metadata on the next build.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.cmake-build",
+    "limitation": "High risk: select explicitly and stop CMake, Ninja, Make and compiler tasks first. Compiler probe source is allowed only in a verified CMake layout. Preserve authored files, custom binaries and outputs that cannot be rebuilt.",
+    "location": "projects",
+    "marker": "CMakeLists.txt",
+    "name": "CMake build outputs",
+    "patterns": [
+      "**/build",
+      "**/cmake-build-debug",
+      "**/cmake-build-release"
+    ],
+    "rebuildNote": "CMake normally regenerates configured build outputs from the retained project sources.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.maven-build",
+    "limitation": "High risk: select explicitly and stop Maven or Java tasks first. Generated source requires Maven build metadata. Tracked files, credentials and authored source remain protected; preserve custom deliverables and local edits.",
+    "location": "projects",
+    "marker": "pom.xml",
+    "name": "Maven build outputs",
+    "patterns": [
+      "**/target"
+    ],
+    "rebuildNote": "Maven normally recreates compiled outputs and generated source on the next build.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.node-build-outputs",
+    "limitation": "High risk: select explicitly and stop Node.js tasks first. Build and dist can contain published deliverables. Only recognized generated bundle names may bypass source protection; preserve authored scripts, tracked files, credentials and outputs that cannot be rebuilt.",
+    "location": "projects",
+    "marker": "package.json",
+    "name": "Node.js build and distribution outputs",
+    "patterns": [
+      "**/build",
+      "**/dist"
+    ],
+    "rebuildNote": "The project's build tool can recreate generated distribution outputs when the build inputs remain available.",
+    "risk": "high"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.node-local-cache",
+    "limitation": "Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt.",
+    "location": "projects",
+    "marker": "package.json",
+    "name": "Node.js local tool caches",
+    "patterns": [
+      "**/.cache"
+    ],
+    "rebuildNote": "Node.js development tools normally recreate local caches on their next run.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.python-analysis-cache",
+    "limitation": "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.",
+    "location": "projects",
+    "marker": "pyproject.toml",
+    "name": "Python analysis caches",
+    "patterns": [
+      "**/.mypy_cache",
+      "**/.ruff_cache"
+    ],
+    "rebuildNote": "Python analysis and test tools recreate cached state on their next run.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.python-setup-cache",
+    "limitation": "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.",
+    "location": "projects",
+    "marker": "setup.py",
+    "name": "Python setup project caches",
+    "patterns": [
+      "**/.pytest_cache",
+      "**/.mypy_cache",
+      "**/.ruff_cache"
+    ],
+    "rebuildNote": "Python analysis and test tools recreate cached state on their next run.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "build",
+    "id": "shou.builtin.python-requirements-cache",
+    "limitation": "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.",
+    "location": "projects",
+    "marker": "requirements.txt",
+    "name": "Python requirements project caches",
+    "patterns": [
+      "**/.pytest_cache",
+      "**/.mypy_cache",
+      "**/.ruff_cache"
+    ],
+    "rebuildNote": "Python analysis and test tools recreate cached state on their next run.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.google.Chrome"
+    ],
+    "category": "browser",
+    "id": "shou.builtin.windows-chrome",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-chrome",
+    "name": "Chrome caches",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.microsoft.edgemac"
+    ],
+    "category": "browser",
+    "id": "shou.builtin.windows-edge",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-edge",
+    "name": "Edge caches",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-npm",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-npm",
+    "name": "npm download caches",
+    "patterns": [
+      "_cacache",
+      "_logs"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-pip",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-pip",
+    "name": "pip download caches",
+    "patterns": [
+      "http",
+      "http-v2",
+      "wheels"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-gradle",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-gradle",
+    "name": "Gradle generated caches",
+    "patterns": [
+      "caches"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-nuget",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-nuget",
+    "name": "NuGet download caches",
+    "patterns": [
+      "v3-cache",
+      "plugins-cache",
+      "http-cache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-cargo",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-cargo",
+    "name": "Cargo download archives",
+    "patterns": [
+      "registry/cache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.microsoft.VSCode"
+    ],
+    "category": "developer",
+    "id": "shou.builtin.windows-vscode",
+    "limitation": "Only explicit cache subdirectories are included. Preserve profiles, credentials, environments and source projects. Close the owning tool before cleanup.",
+    "location": "windows-vscode",
+    "name": "Visual Studio Code caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "CachedData"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "Generated caches are recreated by the owning tool; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.brave.Browser"
+    ],
+    "category": "browser",
+    "id": "shou.builtin.windows-brave",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-brave",
+    "name": "Brave caches",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.vivaldi.Vivaldi"
+    ],
+    "category": "browser",
+    "id": "shou.builtin.windows-vivaldi",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-vivaldi",
+    "name": "Vivaldi caches",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "org.mozilla.firefox"
+    ],
+    "category": "browser",
+    "id": "shou.builtin.windows-firefox",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-firefox",
+    "name": "Firefox caches",
+    "patterns": [
+      "*/cache2",
+      "*/startupCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.tinyspeck.slackmacgap"
+    ],
+    "category": "application",
+    "id": "shou.builtin.windows-slack",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-slack",
+    "name": "Slack caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.hnc.Discord"
+    ],
+    "category": "application",
+    "id": "shou.builtin.windows-discord",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-discord",
+    "name": "Discord caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "notion.id"
+    ],
+    "category": "application",
+    "id": "shou.builtin.windows-notion",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-notion",
+    "name": "Notion caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.postmanlabs.mac"
+    ],
+    "category": "developer",
+    "id": "shou.builtin.windows-postman",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-postman",
+    "name": "Postman caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "Partitions/*/Cache",
+      "Partitions/*/Code Cache",
+      "Partitions/*/GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.microsoft.VSCodeInsiders"
+    ],
+    "category": "developer",
+    "id": "shou.builtin.windows-vscode-insiders",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-vscode-insiders",
+    "name": "Visual Studio Code Insiders caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "CachedData"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.todesktop.230313mzl4w4u92"
+    ],
+    "category": "developer",
+    "id": "shou.builtin.windows-cursor",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-cursor",
+    "name": "Cursor caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache",
+      "CachedData"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-yarn",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-yarn",
+    "name": "Yarn download caches",
+    "patterns": [
+      "Cache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [],
+    "category": "developer",
+    "id": "shou.builtin.windows-uv",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-uv",
+    "name": "uv download caches",
+    "patterns": [
+      "cache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "org.chromium.Chromium"
+    ],
+    "category": "browser",
+    "id": "shou.builtin.windows-chromium",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-chromium",
+    "name": "Chromium caches",
+    "patterns": [
+      "Default/Cache",
+      "Default/Code Cache",
+      "Default/GPUCache",
+      "Profile */Cache",
+      "Profile */Code Cache",
+      "Profile */GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review",
+    "version": "1.0.0"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "md.obsidian"
+    ],
+    "category": "application",
+    "id": "shou.builtin.windows-obsidian",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-obsidian",
+    "name": "Obsidian caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review",
+    "version": "1.0.0"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.github.GitHubClient"
+    ],
+    "category": "developer",
+    "id": "shou.builtin.windows-github-desktop",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-github-desktop",
+    "name": "GitHub Desktop caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review",
+    "version": "1.0.0"
+  },
+  {
+    "applicationBundleIdentifiers": [
+      "com.insomnia.app"
+    ],
+    "category": "developer",
+    "id": "shou.builtin.windows-insomnia",
+    "limitation": "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.",
+    "location": "windows-insomnia",
+    "name": "Insomnia caches",
+    "patterns": [
+      "Cache",
+      "Code Cache",
+      "GPUCache"
+    ],
+    "platforms": [
+      "windows"
+    ],
+    "rebuildNote": "The owning application regenerates these caches; future launches or builds may require downloads.",
+    "risk": "review",
+    "version": "1.0.0"
+  }
+]

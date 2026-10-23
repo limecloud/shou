@@ -8,12 +8,13 @@ struct ExecutionProgressView: View {
 
     var body: some View {
         let update=model.executionProgress
-        OperationProgressView(title: model.executionTitle,
+        let checking=update?.stage == "preflight" || (update?.stage == "purging" && update?.currentItemCount == nil && (update?.processedCount ?? 0) < (update?.itemCount ?? 0))
+        OperationProgressView(title: checking ? model.t("Checking selected items…") : model.executionTitle,
             subtitle: model.t("Tidy up. That's it."),
-            symbol: update?.stage == "restoring" ? "folder.fill" : ["moving", "purging", "finalizing"].contains(update?.stage ?? "") ? "trash" : model.executionUsesSources ? "hand.raised.fill" : "doc.text.magnifyingglass",
+            symbol: checking ? "doc.text.magnifyingglass" : update?.stage == "restoring" ? "folder.fill" : ["moving", "purging", "finalizing"].contains(update?.stage ?? "") ? "trash" : model.executionUsesSources ? "hand.raised.fill" : "doc.text.magnifyingglass",
             currentPath: update?.path ?? "",
             countText: update.map { String(format: model.t(model.executionUsesSources ? "%lld of %lld sources processed" : "%lld of %lld items processed"), locale: model.language.locale, $0.currentItemProcessedCount ?? $0.processedCount, $0.currentItemCount ?? $0.itemCount) } ?? model.t("Preparing cleanup…"),
-            fraction: update.flatMap { $0.stage == "preflight" ? nil : $0.fractionCompleted },
+            fraction: checking ? nil : update?.fractionCompleted,
             stopRequested: model.stopRequested,
             stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping at a safe boundary…"), onStop: model.cancel)
     }

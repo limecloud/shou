@@ -98,7 +98,7 @@ Shared examples use English base text; personal rule text may use any language. 
 
 ### Bundled artifact evidence
 
-The catalog contains 74 templates and 35 fixed locations. The bundled Rust target and Swift build-product definitions are version `1.1.0`; this is a template version, not a change to rule-format `1.0`.
+The catalog and fixed locations are counted by the [rule coverage check](../engineering/rule-coverage.md). The bundled Rust target and Swift build-product definitions are version `1.1.0`; this is a template version, not a change to rule-format `1.0`.
 
 Generated-source exceptions require an exact bundled definition and read-only native facts. An imported rule, familiar ID or directory name cannot enable them. Rust requires the recognized `target` layout and limits generated source to build-script `OUT_DIR` under verified debug/release products with fingerprints. Swift targets generated products under `.build` debug/release paths with package/workspace/product evidence; source checkouts and the entire `.build` tree are not exempted.
 

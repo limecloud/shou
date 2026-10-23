@@ -11,7 +11,7 @@ Simple/Detailed switching, extension aggregates, nested maps and same-snapshot a
 - Browse a size-sorted directory list and proportional treemap. Single click inspects, double click opens a directory. Back, Forward, Up, breadcrumbs, per-folder filtering, and size/name/file-count ordering support navigation. Space opens native Quick Look, ⌘A selects visible eligible entries, and Escape clears the selection while browsing. Text-field editing keeps its own shortcuts.
 - The page title lives in the native toolbar. A single 42-point row contains navigation, breadcrumbs, the coverage icon, Refresh and Start Over. Coverage details open on demand; after removal, the Refresh tooltip explains that sizes need measuring again. The list and treemap fill the remaining height. Windows native presentation is planned under its implementation contract.
 - Check individual files or directories in either view. Select All applies to selectable entries in the current filtered folder; Clear Selection applies to the whole selection. Selection persists across navigation. Directory context menus can open Customize with AI with the exact directory in the copied Agent request. Parent selections subsume descendants. Unchecking a covered child preserves its siblings.
-- The primary action is Delete Permanently and opens one exact-scope irreversible confirmation. Move to Trash remains an explicit menu alternative; it does not free space. All listed paths and freshly measured size estimates are reviewed before mutation. Creating a removal plan is an internal implementation step, not a separate desktop task.
+- The action bar shows only the selected count, size estimate, Clear Selection and a large red Delete Permanently button, without repeating paths. The checked list/map defines the reviewed scope; the button tooltip and accessibility hint explain irreversibility. Clicking it confirms that exact scope and proceeds through validation and execution without another dialog or selection step. Move to Trash remains in a separate adjacent menu; it does not free space. The click freezes the paths and action; an internal complete-manifest plan is prepared and reverified before mutation. Validation failures never expand the scope or trigger automatic retries.
 - Results report individual success, failure, cancellation and unknown outcomes. Completed items disappear from both views. Refresh obtains a new authoritative measurement; pruning completed items is not a fresh scan. History supports verified Trash restoration without overwrite and separately confirmed purge.
 
 ## Shared architecture
@@ -34,6 +34,8 @@ flowchart LR
 ```
 
 `StorageSession` caches visited directories and loads file lists on demand, without a full-volume UI dictionary. `ShouEngine` owns immutable analysis records, directory queries and explicit removal validation. The platform streams local metadata and subtree totals to a shared SQLite index. Removal independently obtains complete target manifests and reuses native mutation, locking, journals and history. This implemented scan/removal path needs no model, daemon or privileged helper. Next-stage built-in cleanup AI consumes its evidence and reuses the same confirmation/execution contracts; see [integration design](../engineering/embedded-ai-investigation.md).
+
+Permanent removal reuses native handles for the current directory ancestry, rechecking each attachment before mutation instead of reopening an absolute path for every file. New files, replaced directories and links still prevent out-of-scope mutation. Preflight displays a checking phase; the first actual removed entry reports immediately, followed by throttled updates, so verification time is not presented as deletion stuck at 0%. Individual permission or ordinary I/O errors are recorded while other manifest entries and later selected targets continue. Incomplete directories remain, and results report partial completion with bounded failure details. Identity changes, link replacement, cancellation, unknown outcomes and journal failures still stop the affected execution.
 
 ## Flow
 
@@ -84,11 +86,11 @@ sequenceDiagram
     User->>UI: Open coverage icon
     UI-->>User: Coverage details and available actions
   end
-  User->>UI: Select items, delete
+  User->>UI: Review checked selection, click Delete Permanently
   UI->>Engine: createStorageRemovalPlan(paths, mode)
   Engine->>FS: Fresh complete manifests for selected targets
-  Engine-->>User: Exact scope, estimates and confirmation
-  User->>Engine: Confirm plan digest
+  Engine-->>UI: Complete plan for the frozen selection
+  UI->>Engine: Execute with that plan digest, no second dialog
   Engine->>Store: Acquire mutation lease, record intent
   Engine->>FS: Reverify current targets, remove
   Engine->>Store: Save each outcome
@@ -134,7 +136,7 @@ The native **Large Files** page queries ordinary files across an entire saved an
 - Order: charged allocation descending, then full relative path in binary UTF-8 order. Hard links follow the saved scan's accounting.
 - Type and threshold changes query saved evidence. Pages contain at most 500 rows and a cursor bound to the scan and filters. No whole-volume UI dictionary is required.
 - Row selection, loaded-row selection, **Select All Matching Files**, Clear Selection, Quick Look, Finder and path copying are available. Selecting all walks every query page and selects only eligible files; it is cancellable and publishes the selection only after finishing.
-- The bottom action shows the authoritative selected count and allocation. Permanent removal opens the shared exact-path confirmation; Trash remains optional. Both use the existing fresh-manifest validation, execution journal and history.
+- The bottom action shows the authoritative selected count, allocation estimate and actions without repeating paths; the permanent-removal button provides an irreversible warning. Clicking its large permanent-removal button confirms and validates execution without another dialog; Trash remains optional. Both use the existing fresh-manifest validation, execution journal and history.
 - Leaving and returning to the page loads a completed scan if needed, while preserving already loaded filters and selection. Cancelled result reads remain visibly unfinished and can be resumed; reusing an analysis exposes progress and Stop.
 - After removal, completed rows disappear. The page requests a new scan before showing updated totals. The original catalog remains immutable. An inaccessible location stays a coverage gap rather than zero bytes.
 

@@ -102,6 +102,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--permanent-removal-only"] {
             do {
+                try nativePermanentRemovalReportsProgressForDeepDirectories()
+                try nativePermanentRemovalRejectsReplacedCachedDirectories()
+                try nativePermanentRemovalPreservesNewUnplannedFiles()
+                try await permanentRemovalContinuesPastPermissionFailuresAndLaterTargets()
                 try nativePermanentRemovalHandlesNestedAndRetainedHardLinks()
                 try await permanentRuleBatchHandlesHardLinksAcrossTargets()
                 try await permanentStorageBatchHandlesSharedFilesAndDirectories()
@@ -109,7 +113,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try permanentRemovalContextRejectsUnrelatedMetadataChanges()
                 try await permanentBatchRefusesExternalChangeAfterItsOwnUnlink()
                 try await trashFollowUpPurgesHardLinksAcrossRecordedTargets()
-                print("7/7 native permanent-removal checks passed; generated fixtures only.")
+                print("11/11 native permanent-removal checks passed; generated fixtures only.")
             } catch { print("FAIL permanent removal: \(error)"); Foundation.exit(1) }
             return
         }
@@ -626,6 +630,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Record retention groups publications and rejects changed evidence", { try await recordRetentionPreservesDependenciesAndRejectsChangedRecords() }),
             ("History summaries page and reject stale caches", { try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence() }),
             ("Full descendant manifest invalidation", { try await fullManifestDetectsDescendantChange() }),
+            ("Native purge reports progress for deep directories", { try nativePermanentRemovalReportsProgressForDeepDirectories() }),
+            ("Native purge rejects replaced cached directories", { try nativePermanentRemovalRejectsReplacedCachedDirectories() }),
+            ("Native purge preserves unplanned files", { try nativePermanentRemovalPreservesNewUnplannedFiles() }),
+            ("Permanent removal continues past permission failures and later targets", { try await permanentRemovalContinuesPastPermissionFailuresAndLaterTargets() }),
             ("Native purge handles nested and retained hard links", { try nativePermanentRemovalHandlesNestedAndRetainedHardLinks() }),
             ("Permanent rule batch handles hard links across targets", { try await permanentRuleBatchHandlesHardLinksAcrossTargets() }),
             ("Permanent storage batch handles shared files and directories", { try await permanentStorageBatchHandlesSharedFilesAndDirectories() }),

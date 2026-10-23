@@ -27,7 +27,7 @@ flowchart TD
     Issue --> Results
     State -->|Yes| Activity[Check application activity and protection]
     Activity --> Results[Per-root reviewable and blocked results]
-    Results --> Select[Select candidates in one root]
+    Results --> Select[Select complete targets with source bindings]
     Select --> Preview[Prepare concrete plan and confirm]
     Preview --> Recheck[Recheck files and application before each move]
     Recheck --> Receipt[Record moved, skipped, failed or unknown]
@@ -274,6 +274,8 @@ Installation, access setup, limited-scope scanning and update identity follow th
 
 ## Application batches and privacy
 
+Windows currently implements fixed-source discovery → registration validation → immutable snapshot → search/sort/pages/details. A selected application can then undergo exact MSI/MSIX identity review, separate installer-data acknowledgement, matching reinspection and fifteen-minute plan publication. Review and planning recheck activity within the installation directory and block active or unknown observations. Core, CLI and WinUI also have current confirmation, durable intent, system uninstall and outcome-query source. WinUI includes stop-and-wait and window lifecycle protection; GUI and CLI share a disabled public gate, with native acceptance pending. The [Windows application contract](../product/application-uninstall.md#windows-application-discovery-and-uninstall-boundaries) owns discovery/planning/controlled-execution flowcharts and sequences. The following batch-uninstall flow does not establish Windows support.
+
 Application uninstall follows incremental summaries → inline components → multi-application selection → one confirmation → batch preflight → per-component execution → shared history. Filtering preserves other selections. Permanent removal is the desktop default, with an explicit Trash alternative. See [application uninstall](../product/application-uninstall.md) for its flow, sequence and personal-data boundaries.
 
 Privacy follows source/time-range scan → initially empty selection → separate Cookie consent → exact plan → irreversible confirmation → full preflight → per-source database transactions → aggregate receipt. Each source commits independently; later failures do not roll back already committed sources. There is no restore entry. See [privacy cleaning](../engineering/privacy-cleaning.md) for the architecture, flow and sequence diagrams.
@@ -407,14 +409,14 @@ The independent personal-rule flow and sequence—major-consumer investigation, 
 
 ## Windows native cleanup sequence
 
-Status: target contract; implementation pending.
+Status: target cleanup contract. Bounded read-only scan and presentation source exist; native acceptance, rule classification, plans and mutations remain pending.
 
 ```mermaid
 sequenceDiagram
     actor User
     participant App as WinUI App
     participant VM as Presentation
-    participant Core as C# Core
+    participant Core as CSharp Core
     participant Platform as Windows Platform
     participant Store as Local journal
     User->>App: Scan explicit scope
@@ -481,3 +483,54 @@ sequenceDiagram
 ```
 
 Signing authentication and publishing remain explicit release gates. No Windows release pipeline exists yet.
+
+## Windows scheduled-task switches
+
+These diagrams describe implemented source and the disabled public gate. Native system control, terminal and UI acceptance remain pending. The [startup contract](../product/startup-items.md#scheduled-task-switch-review-and-control) owns scope and eligibility.
+
+```mermaid
+flowchart TD
+    Task[Choose exact boot or logon task and action] --> Review[Read current actor, definition and switch]
+    Review --> Eligible{Eligible and change needed?}
+    Eligible -->|No| Block[Show blocking reasons]
+    Eligible -->|Yes| Gate{Public gate passed native acceptance?}
+    Gate -->|Currently no| Pending[Review only, change unavailable]
+    Gate -->|Yes| Confirm[Recheck digest and confirm current task and action]
+    Confirm --> Lease[Reverify under mutation lease]
+    Lease --> Intent[Persist applying intent first]
+    Intent --> Native[Set only task Enabled]
+    Native --> Observe[Await real result, reread definition, identity and switch]
+    Observe --> Journal[Save completed, not-started or unknown result]
+    Journal --> Lookup[Retain operation ID for read-only lookup, never replay]
+```
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Entry as WinUI or CLI
+    participant Core as StartupControlReviewer and Service
+    participant Store as Current-user private records
+    participant OS as Local Task Scheduler
+    User->>Entry: Review exact task and enable or disable action
+    Entry->>Core: Read-only inspect without storage
+    Core->>OS: Read and recheck owner, principal, definition and switch
+    OS-->>Core: Current task facts
+    Core-->>Entry: Five-minute in-memory review and blocking reasons
+    User->>Entry: Request change
+    alt Current public gate disabled
+        Entry-->>User: Change unavailable, no confirmation requested
+    else Gate enabled after native acceptance
+        Entry->>Core: Execute current in-memory review
+        Core->>OS: Recheck exact task digest
+        Core->>User: Confirm exact task and action at current entry
+        User-->>Core: Confirm for at most one minute
+        Core->>Store: Acquire mutation lease, reject existing intent
+        Core->>OS: Recheck identity, definition, switch and expiry
+        Core->>Store: Persist applying intent
+        Core->>OS: Set only Enabled, await real return after dispatch
+        OS-->>Core: Call result and reread observations
+        Core->>Store: Save result and release lease
+        Core-->>Entry: Operation ID and completed, not-started or unknown result
+    end
+    Note over Entry,OS: Stop retains actual results. No automatic retry or rollback. Tasks are never run or deleted
+```

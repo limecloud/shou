@@ -4,6 +4,72 @@ English | [简体中文](../zh-CN/product/unified-cleanup.md)
 
 Shou saves the user time by discovering cleanup targets together. Project Cleanup is no longer a primary destination, and the sidebar does not ask users to register workspaces. Smart Cleanup covers application caches, developer caches, project artifacts and enabled personal rules in one scan and one exact-scope cleanup confirmation.
 
+## Windows scanning and review
+
+Windows source includes Scan All Locations and Scan Selected Location. All-location scanning uses only the configured locations currently listed on the page; Find Scan Locations remains a separate discovery and registration action. New registrations cannot silently expand an in-flight scan, and removed or changed registrations invalidate the old scope. Only source and Mac-hosted logic/reference checks have passed; native WinUI/system acceptance is pending and cleanup execution remains unavailable.
+
+Locations run sequentially under one entry allowance and monotonic time budget. Each retains its own snapshot and coverage. Exhausted or failed locations report gaps; absent results do not mean empty directories. When a failure leaves entry consumption unknown, the remaining allowance is not reused for later locations. Stopping preserves previously published snapshots without presenting unfinished locations as successful.
+
+The page shows observed and total location counts. Results initially span all observed locations, with filters for location, canonical built-in category, rule name and full path. Personal rules have their own category; rule groups and matching results expose tri-state selection. Filters retain selections in other locations and pages, and the footer counts the entire selection. A request selects at most 256 targets. Limit or overlap failures leave a whole group operation unchanged, without truncation.
+
+**Select Recommended Items** explicitly replaces the current selection with reviewable, complete, non-high-risk targets from complete scans without analysis gaps. Partial or stopped batches offer no recommendations, although independently complete, unblocked targets remain manually selectable. Recommendations change selection without granting execution. Categories come from shared resources rather than path-based safety guesses. Grouping, search and combined review have source implementations; native WinUI/filesystem behavior still requires acceptance.
+
+Review submits the selected `scan_id → candidate_ids` bindings to Core once. Under one configuration lease, Core reinspects every source, rule, complete manifest and activity state, rejecting repeated scans, multiple snapshots of one location, foreign-source candidates, overlapping paths and duplicate file identities. It saves one plan and digest for all locations. Each source binds its root identity and rules, and each item names its source. One current confirmation binds every exact path, action and the same digest; it does not create reusable per-location approvals.
+
+Plan creation and each execution have one shared measured-entry and time budget, using the largest selected source limit for each dimension rather than summing limits by location. Execution preflights every source under one mutation lease before saving any execution intent; each subsequent mutation still rechecks its item and saves item intent first. Stopping prevents further dispatch while retaining returned outcomes. Unknown outcomes stop later items; querying never restores authority. Public execution remains disabled, and simulated checks do not establish real deletion or release readiness.
+
+Configuration invalidation, page disposal and newer scans isolate late responses. Failed plan revalidation discards the reusable batch and selection and requires a fresh scan. Scanning, selection, recommendations and review cannot replace current-entry confirmation.
+
+```mermaid
+flowchart TD
+    Start[Scan all configured locations] --> Read[Sequential shared budget and per-location evidence]
+    Read --> Results[Aggregate categories, rules, paths and coverage gaps]
+    Results --> Filter[Filters preserve exact selections across locations]
+    Filter --> Select[Manual selection or explicit eligible recommendations]
+    Select --> Verify[One lease rechecks all sources, targets and activity]
+    Verify --> Plan[One multi-location plan and digest]
+    Plan --> Gate{Public native gate open?}
+    Gate -->|Currently closed| Review[Review only; no execution]
+    Gate -->|Native acceptance complete| Confirm[One current exact-scope confirmation]
+    Confirm --> Preflight[Preflight every location under mutation lease]
+    Preflight --> Intent[Persist execution and item intent first]
+    Intent --> Mutation[Recheck and mutate each item; retain returned outcomes on stop]
+    Mutation --> Receipt[One execution record; unknown stops later dispatch]
+```
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as WinUI and Presentation
+    participant Core as Cleanup Core
+    participant Native as Platform reads and mutation
+    participant Store as Private records
+    User->>UI: Scan all locations, filter and select
+    UI->>Core: Selected scan IDs and their candidate IDs
+    Core->>Store: Lease and verify one current configuration
+    loop Each explicit source
+        Core->>Native: Shared-budget scan, identity and activity rechecks
+    end
+    Core->>Store: Save one plan and digest for every source
+    Core-->>UI: All exact paths, action, estimates and expiry
+    UI-->>User: Combined review without execution authority
+    Note over UI,Native: Public execution is currently closed, subsequent steps describe the gated service contract
+    opt Native acceptance complete and user confirms current digest
+        UI->>Core: Single current confirmation
+        Core->>Store: Mutation lease, replay and configuration checks
+        Core->>Native: Preflight every selected source and activity
+        Core->>Store: Persist combined execution record
+        loop Each item until stopped or unknown
+            Core->>Native: Recheck exact item evidence and activity
+            Core->>Store: Persist item intent
+            Core->>Native: Mutate only its bound location and manifest
+            Native-->>Core: Real outcome or unknown
+            Core->>Store: Save item outcome
+        end
+        Core-->>UI: One execution ID and all recorded facts
+    end
+```
+
 ## User experience
 
 1. Open Smart Cleanup and choose Start Scan. The adjacent menu offers Scan & Free Space and Scan Locations.

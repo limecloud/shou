@@ -4,6 +4,226 @@
 
 应用卸载独立于可重建缓存规则。桌面与 CLI 共用应用摘要、组件审阅、批量计划、原生执行和历史；卸载执行不依赖模型；下一阶段内置清理 AI 不能绕过组件选择、个人数据同意和实际卸载确认。当前实现和实际验收分别记录，测试范围见[验收记录](../engineering/acceptance-and-testing.md)。
 
+平台状态：macOS 已有应用包、组件审阅与卸载源码；Windows 已有应用注册发现、安装身份审阅、显式数据影响同意和限时计划的 CLI 与界面源码，原生验收待完成，尚不提供卸载执行。下文的应用包、Library、Finder 和废纸篓细节属于 macOS；Windows 的独立合同见下节。
+
+## Windows 应用发现与卸载边界
+
+Windows 使用本平台的 `ApplicationCatalog`，桌面和 CLI 共用一次有界观察。发现结果保留来源与精确注册标识，不以名称合并不同安装。
+
+| 来源 | 范围与限制 |
+| --- | --- |
+| 当前用户注册表 | `HKCU/Software/Microsoft/Windows/CurrentVersion/Uninstall`；该路径在受支持系统共享视图，只读取一次 |
+| 整机 64 位注册表 | `HKLM` 对应卸载路径的 64 位视图；不代表其中每个应用都是 64 位 |
+| 整机 32 位注册表 | `HKLM` 对应路径的 32 位视图；保持与另一视图分离 |
+| 当前用户 MSIX | `PackageManager.FindPackagesForUser("")`；不枚举其他用户或预配包，排除框架、资源包和 bundle 容器 |
+
+注册表中标为系统组件、带父项关联的组件和明确更新项不作为独立应用展示。MSIX 系统签名作为平台事实展示，不推断通用卸载资格。便携应用、自定义安装位置和完全无注册记录的软件不在发现覆盖范围内。来源枚举完成只表示读完本次已声明来源，不代表找到电脑上的全部应用。
+
+四个来源共享默认 4,000 条、10 秒预算，上限 20,000 条、60 秒；隐藏和不展示的条目也消耗条数。注册表键名和每个值分别有固定读取上限，值最多 8 KiB，不读取卸载命令或命令行。来源逐个报告 `complete`、`partial`、`unavailable` 或 `not_read` 及原因。权限失败、导致条目无法展示的无效值、条目上限和超时不能报告为完整发现；仅安装位置格式无效时保留应用，并单独标明该字段不可用。观察不提供系统范围的原子快照。被内核阻塞的读取继续占用有界 worker 槽，调用方停止等待不意味着原生调用已被强制中断。
+
+名称、版本、发布者和稳定注册 ID 可用于搜索；界面还可搜索已登记位置。默认按名称排序，可选择注册大小降序。`RegisteredEstimatedBytes` 来自安装程序登记的 KiB，不读取应用目录计算，不等于实际分配容量或卸载后释放空间；缺失保持未知。安装位置不展开环境变量、不跟随目录、不证明独占归属。MSIX 包标识不转换为可直接删除的安装目录。
+
+如果原生调用阻塞而调用方达到等待期限，来源标为 `unavailable`、原因 `time_limit`，`inspected_entries` 为 `null`，表示无法取得可信进度；不能编造零条或声称从未尝试读取。正常获得的部分结果保留已知计数。
+
+界面在同一不可变快照上搜索、排序和分页。CLI 每次调用重新观察，返回 `snapshot_id`、`observed_at`、`total`、`offset`、`items`、`has_next`、逐来源覆盖和限制；跨调用的偏移页不保证属于同一快照。CLI 单页最多 500 项，目前不保存跨调用快照；超过单页的一致性查询尚不支持，不得把不同快照拼成一份完整观察。只读查询不创建清理存储、不保存计划、不请求管理员权限。取消和刷新隔离迟到结果，关窗取消当前请求。
+
+```mermaid
+flowchart TD
+  Entry[应用页面或 applications summary] --> Catalog[ApplicationCatalog]
+  Catalog --> Inventory[WindowsApplicationInventory]
+  Inventory --> Registry[当前用户与整机两个注册表视图]
+  Inventory --> MSIX[当前用户 MSIX 包]
+  Registry --> Coverage[共享预算与逐来源覆盖]
+  MSIX --> Coverage
+  Coverage --> Snapshot[不可变注册快照]
+  Snapshot --> Query[搜索 排序 分页与详情]
+```
+
+```mermaid
+sequenceDiagram
+  actor User as 用户
+  participant Entry as 应用页面或CLI
+  participant Core as ApplicationCatalog
+  participant Native as Windows 原生适配
+  User->>Entry: 刷新应用
+  Entry->>Core: ReadAsync 有界预算与取消
+  Core->>Native: 读取四个固定来源
+  loop 每个来源
+    Native->>Native: 有界读取与覆盖记录
+  end
+  Native-->>Core: 注册事实及来源缺口
+  Core->>Core: 校验文本与路径 保留注册身份
+  Core-->>Entry: 不可变快照与明确限制
+  Entry-->>User: 应用列表及来源覆盖
+  User->>Entry: 搜索 排序 翻页或选择详情
+  Entry->>Core: 在当前快照上查询
+  Core-->>Entry: 页面结果
+  Note over Entry,Core: 桌面复用快照<br/>CLI 每次重新发现
+```
+
+### 安装身份审阅与计划
+
+`applications inspect --application-id <id>` 重新发现精确注册项，由 `ApplicationUninstallReviewer` 与 `WindowsApplicationUninstallInspector` 读取系统安装身份。审阅只读、不打开记录库，默认观察预算之外另有十秒安装核验期限。超时、权限不足和身份冲突返回明确阻断原因。已安装目录只在可核验时附带目录身份；缺失显示警告，不凭注册路径授予文件权限。
+
+| 安装类型 | 核验与绑定 |
+| --- | --- |
+| MSI | `WindowsInstaller=1` 仅是线索；通过 `MsiGetProductInfoExW` 查询当前用户 managed、unmanaged 和 machine 上下文，必须恰好一个上下文为已安装，且与注册来源相符；绑定 ProductCode、PackageCode、上下文、用户 SID、系统名称、版本与发布者 |
+| MSIX | 重新查询当前用户的精确 package full name，绑定 family name 与当前用户 SID；系统签名、框架、资源包和 bundle 容器保持受保护 |
+| 其他安装程序 | 返回不支持，既不读取也不执行 `UninstallString`，不拼接 Shell |
+
+MSI 自定义动作和普通 MSIX 移除可能改变安装程序管理的数据。不能把“不额外清理残留”表述为“个人数据一定保留”；MSIX 系统操作还可能移除该用户不再需要的依赖包。界面默认不勾选数据影响同意，CLI 必须明确传入 `--allow-installer-data-changes true` 才能准备计划。该同意仅覆盖系统安装程序的数据影响，不授予额外残留清理或执行权限。
+
+计划创建再次审阅，要求安装事实摘要与用户已审阅的 `review_digest` 完全一致；观察时间不进入摘要。变化返回 `application_changed`，受保护或无法核验的安装不能保存计划。计划使用当前用户私有记录库及跨进程租约，期限十五分钟。选择变化、刷新、新审阅或计划错误清除旧审阅／同意；取消和关窗隔离迟到结果。
+
+审阅与计划重查均调用 `ApplicationActivityService`。它以已核验安装目录为范围，在共用十秒期限内扫描最多 20,000 个条目、32 层；全部目录必须完整，扫描前后身份一致，未知 reparse point、跨卷、不可读条目和多重硬链接使观察不可用。Restart Manager 查询范围内所有普通文件的占用；从实际观察到的 `.exe`／`.com` 文件提取最多 128 个名称，在最多 16,384 个进程的快照中查询匹配进程的完整映像路径，最多读取 256 个匹配进程。名称只用于缩小查询，不能单独证明归属。相同名称但映像位于其他目录不阻断；位于安装目录内的当前 Shou 进程也不豁免。
+
+映像读取只申请查询及同步权限，不读取工作目录、进程内存、参数或环境变量，也不提权、请求退出或终止进程。检查结束重新读取已观察条目，目录新增、文件替换或写入使观察不可用。只有完整且未观察到文件或映像用户时报告 `idle`；活动为 `active`，未知为 `unknown`。后两者均阻止计划，缺少安装目录同样阻断。`activity` 状态和原因进入审阅摘要，因此审阅后启动应用会使原摘要失效。该证据只覆盖安装目录，外部组件不在范围内，不能作为未来执行授权。真实 Windows 文件占用、映像查询和 UI 仍待原生验收。
+
+```mermaid
+flowchart TD
+  Select[选择精确应用注册项] --> Inspect[重新发现并读取系统安装身份]
+  Inspect --> Activity[有界扫描 文件占用与匹配进程映像检查]
+  Activity --> Valid{身份受支持 活动空闲且无阻断?}
+  Valid -->|否| Explain[展示受保护 不支持或无法核验的原因]
+  Valid -->|是| Review[展示身份 数据影响及无法恢复的提示]
+  Review --> Consent{单独允许安装程序的数据影响?}
+  Consent -->|否| Stay[保留只读审阅]
+  Consent -->|是| Recheck[再次审阅并比较原摘要]
+  Recheck --> Match{安装事实相同?}
+  Match -->|否| Again[清除同意并要求重新审阅]
+  Match -->|是| Save[在私有记录库保存十五分钟计划]
+  Save --> Show[查询计划 当前不提供执行]
+```
+
+```mermaid
+sequenceDiagram
+  actor User as 用户
+  participant Entry as 应用页面或CLI
+  participant Review as ApplicationUninstallReviewer
+  participant Native as Windows 安装身份适配
+  participant Activity as 安装目录活动检查
+  participant Plan as ApplicationUninstallPlanner
+  participant Store as 私有记录库
+  User->>Entry: 审阅所选应用
+  Entry->>Review: 精确 application_id
+  Review->>Native: 重新核验 MSI 或 MSIX 安装事实
+  Native-->>Review: 安装身份 保护状态及问题
+  Review->>Activity: 扫描安装目录 查询文件及映像用户
+  Activity-->>Review: 空闲 活动或未知及原因
+  Review-->>Entry: 审阅及稳定事实摘要
+  Entry-->>User: 数据影响警告及独立同意选项
+  User->>Entry: 明确允许并准备计划
+  Entry->>Plan: 应用ID 原摘要 数据影响同意
+  Plan->>Review: 再次审阅
+  Review->>Native: 重新读取安装事实
+  Native-->>Review: 当前观察
+  Review->>Activity: 重新核验当前目录活动
+  Activity-->>Review: 当前有界观察
+  Review-->>Plan: 当前摘要与阻断
+  alt 摘要相同且无阻断
+    Plan->>Store: 获取租约并保存限时计划
+    Store-->>Plan: 保存结果
+    Plan-->>Entry: 计划ID 摘要及期限
+  else 安装变化或无法核验
+    Plan-->>Entry: 结构化错误 不保存计划
+  end
+  Note over Entry,Store: 计划不构成执行确认<br/>活动只覆盖安装目录 当前不能执行或恢复
+```
+
+### 系统卸载执行与结果
+
+源码已接入 `ApplicationUninstallService`、`WindowsApplicationUninstallMutation`、CLI 的终端确认／结果查询与 WinUI 执行交互。GUI 与 CLI 共用 `WindowsApplicationUninstallMutation.PublicExecutionAvailable`，当前为 `false`；界面禁用执行，公开 `applications uninstall` 返回 `unsupported_capability`／退出码 8，不提示确认或启动安装程序。原生卸载、安装程序数据影响与中断行为尚未验收。
+
+确认前重新核验身份和安装目录活动，展示完整计划、系统身份、数据影响、可能停止安装程序管理的应用或服务以及无法由 Shou 恢复的后果。CLI 必须输入 `UNINSTALL <uninstall_plan_id>`；WinUI 使用默认取消的独立对话框，明确展示应用、安装身份和系统影响后，用户主动点击“卸载”。数据影响复选框不替代执行确认；没有无人值守同意选项。确认只存在于签发服务实例，绑定计划 ID 和摘要，最多有效一分钟且不超过计划期限，只能消费一次。
+
+执行持有现有跨进程变更租约，重新读取并校验计划、确认和当前审阅；失效不写执行意图。随后先持久化 `uninstalling`，再交给 Platform 复核当前用户、身份、活动及授权期限后调用系统安装程序。系统 API 不提供覆盖身份检查与卸载的原子事务；外部安装变化与安装程序自定义动作仍需原生验证，不能声称冻结了系统安装。
+
+| 安装类型 | 调用及取消合同 |
+| --- | --- |
+| MSI | 直接启动 Windows 系统目录的 `msiexec.exe`，固定参数数组 `/x <ProductCode> /qb /norestart REBOOT=ReallySuppress MSIRESTARTMANAGERCONTROL=Disable`；不拼接 Shell，不读取注册表卸载命令。保留安装程序基本界面及取消按钮，不请求系统重启或 Restart Manager 关闭应用。启动后的 Shou 取消不杀死进程，等待安装程序实际退出；可在其界面取消 |
+| MSIX | 对当前用户的精确 full name 调用 `RemovePackageAsync`，不添加其他用户或全用户标志；Shou 取消只请求部署取消，继续等待原生终态。系统可能关闭包内运行程序、移除受管理数据与不再使用的依赖 |
+
+两种路径均不额外递归删除残留，不自行提权或终止进程。安装程序可管理服务、进程和自定义数据，其影响不能由安装目录的只读活动检查完全约束。正常结果等待结束前保留变更租约；无法获取可靠结果时记为未知，不推断未发生变更。
+
+结果分别记录安装程序的 `outcome`、原生状态码、`restart_required` 与后续精确安装身份的 `presence`。身份复核单独限制为十秒；只有安装程序报告成功且原身份已不存在才记 `completed`。成功但仍存在、变化或无法核验均为 `unknown`；失败和取消保留各自原生事实，不承诺数据完整或自动回滚。MSI 的 3010 记录需重启，但 Shou 不主动重启。
+
+`applications execution show --uninstall-plan-id <id>` 只读保存的意图与结果，不重新观察、不修复日志、不执行重试。任意已有意图，包括损坏日志和结果发布失败留下的 `uninstalling`，都阻止重放同一计划。日志不等于安装程序事务，读取日志也不能证明当前安装状态；未知结果需后续独立核验。系统卸载不可由 Shou 恢复。残留清理仍需要独立组件审阅、当前归属、个人数据同意与精确范围计划，共享和未知归属保持受保护。
+
+```mermaid
+flowchart TD
+  Plan[读取精确限时计划] --> Fresh[重查身份 活动及已消费状态]
+  Fresh --> Confirm{当前交互明确确认?}
+  Confirm -->|否| Stop[不启动安装程序]
+  Confirm -->|是| Lease[获取变更租约并重查计划和当前事实]
+  Lease --> Valid{计划与一次性确认仍有效?}
+  Valid -->|否| Stop
+  Valid -->|是| Intent[持久化 uninstalling 意图]
+  Intent --> Boundary{平台重查用户 身份 活动及期限通过?}
+  Boundary -->|否| NoStart[记录未启动]
+  NoStart --> Save
+  Boundary -->|是| Native[受控系统安装程序 等待真实终态]
+  Native --> Observe[独立观察原安装身份]
+  Observe --> Save[保存安装程序结果与身份观察]
+  Save --> History[只读结果 禁止同一计划重放]
+```
+
+```mermaid
+sequenceDiagram
+  actor User as 用户
+  participant CLI as CLI
+  participant Core as 卸载服务
+  participant Store as 私有记录与租约
+  participant Native as Windows 卸载适配
+  CLI->>Core: ConfirmAsync 精确计划
+  Core->>Core: 重查身份 活动及期限
+  Core-->>User: 完整计划 系统影响及当前确认短语
+  User->>Core: 当前确认
+  Core-->>CLI: 一次性进程内确认
+  CLI->>Core: ExecuteAsync
+  Core->>Store: 获取租约 重读计划并检查未消费
+  Core->>Core: 消费确认 再核对身份及活动
+  Core->>Store: 持久化 uninstalling
+  Core->>Native: 精确审阅 当前用户 授权期限
+  Native->>Native: 重查事实后调用系统安装程序
+  Note over Core,Native: MSI 不杀死安装程序 MSIX 仅请求合作取消<br/>正常结果等待期间保留变更租约
+  Native->>Native: 读取终态并观察原身份是否存在
+  Native-->>Core: 原生结果与独立身份观察
+  Core->>Store: 保存真实结果
+  Core-->>CLI: 完成 失败 取消或未知
+  Note over CLI,Store: 公开执行入口当前关闭 仅逻辑与引用检查通过
+```
+
+### WinUI 确认与窗口生命周期
+
+应用页把安装程序数据影响同意、准备计划和当前执行确认分开。执行时清除可再次执行的页面计划与同意状态，保留精确计划 ID 供只读查询；计划过期或时钟回退不能派发执行。确认适配通过 DispatcherQueue 回到 UI 线程，取消、页面失效和调度失败都不能产生同意。原生 UI 仍待验证。
+
+从确认开始到执行任务返回，应用页禁用选择、刷新和其他页面导航。点击停止或正常关闭窗口会请求取消，保持窗口打开并等待实际结果；MSI 仍需在安装程序界面取消。返回的真实结果即使晚于停止请求，也必须展示。正常结束后用户可以再关闭窗口；强制终止进程可能只留下 `uninstalling`，不能据此判断安装程序是否继续或完成。
+
+结果区明确显示保存时间、安装程序结果和当时的身份观察；不会自动重启、重试、恢复或清理额外残留。结果发布失败仍保留“读取卸载记录”，该查询只读取绑定计划的保存记录，不刷新现场，也不修复意图。新选择或刷新会清除页面内的记录查询上下文；CLI 可按原计划 ID 查询。
+
+```mermaid
+sequenceDiagram
+  actor User as 用户
+  participant Page as 应用页
+  participant VM as 页面状态
+  participant Service as 卸载服务
+  participant Dialog as UI 确认
+  User->>Page: 执行已准备计划
+  Page->>VM: ExecuteAsync 独立确认适配
+  VM->>VM: 保存查询 ID 清空计划 禁止重放
+  VM->>Service: 确认并执行精确计划
+  Service->>Dialog: DispatcherQueue 请求确认
+  Dialog-->>User: 默认取消 展示身份及影响
+  User->>Dialog: 主动确认卸载
+  Dialog-->>Service: 当前确认
+  User->>Page: 停止或正常关闭窗口
+  Page->>VM: 请求取消 保持窗口和导航
+  VM->>Service: 传递取消 继续等待
+  Service-->>VM: 保存的真实结果或记录错误
+  VM-->>Page: 展示结果或保留只读查询
+  Note over Page,Service: 当前执行门禁关闭 原生 UI 和安装程序行为待验收
+```
+
 ## 背景、目的与收益
 
 用户需要一次选中多个不再使用的应用，直接看清程序包、缓存与个人数据，统一确认和卸载。反复进入单应用详情页会增加操作成本，也不便比较大小。列表以应用为单位展示图标、版本、确切标识、状态、应用本体分配容量估算和系统最近使用记录；展开或选择时再测量关联文件，不为整个应用目录预先保存所有删除清单。

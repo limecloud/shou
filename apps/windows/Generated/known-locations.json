@@ -1,0 +1,163 @@
+[
+  {
+    "category": "browser",
+    "id": "windows-chrome",
+    "platform": "windows",
+    "relativePath": "AppData/Local/Google/Chrome/User Data",
+    "title": "Chrome caches"
+  },
+  {
+    "category": "browser",
+    "id": "windows-edge",
+    "platform": "windows",
+    "relativePath": "AppData/Local/Microsoft/Edge/User Data",
+    "title": "Edge caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-npm",
+    "platform": "windows",
+    "relativePath": "AppData/Local/npm-cache",
+    "title": "npm download caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-pip",
+    "platform": "windows",
+    "relativePath": "AppData/Local/pip/Cache",
+    "title": "pip download caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-gradle",
+    "platform": "windows",
+    "relativePath": ".gradle",
+    "title": "Gradle generated caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-nuget",
+    "platform": "windows",
+    "relativePath": "AppData/Local/NuGet",
+    "title": "NuGet download caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-cargo",
+    "platform": "windows",
+    "relativePath": ".cargo",
+    "title": "Cargo download archives"
+  },
+  {
+    "category": "developer",
+    "id": "windows-vscode",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Code",
+    "title": "Visual Studio Code caches"
+  },
+  {
+    "category": "browser",
+    "id": "windows-brave",
+    "platform": "windows",
+    "relativePath": "AppData/Local/BraveSoftware/Brave-Browser/User Data",
+    "title": "Brave caches"
+  },
+  {
+    "category": "browser",
+    "id": "windows-vivaldi",
+    "platform": "windows",
+    "relativePath": "AppData/Local/Vivaldi/User Data",
+    "title": "Vivaldi caches"
+  },
+  {
+    "category": "browser",
+    "id": "windows-firefox",
+    "platform": "windows",
+    "relativePath": "AppData/Local/Mozilla/Firefox/Profiles",
+    "title": "Firefox caches"
+  },
+  {
+    "category": "application",
+    "id": "windows-slack",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Slack",
+    "title": "Slack caches"
+  },
+  {
+    "category": "application",
+    "id": "windows-discord",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/discord",
+    "title": "Discord caches"
+  },
+  {
+    "category": "application",
+    "id": "windows-notion",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Notion",
+    "title": "Notion caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-postman",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Postman",
+    "title": "Postman caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-vscode-insiders",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Code - Insiders",
+    "title": "Visual Studio Code Insiders caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-cursor",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Cursor",
+    "title": "Cursor caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-yarn",
+    "platform": "windows",
+    "relativePath": "AppData/Local/Yarn",
+    "title": "Yarn download caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-uv",
+    "platform": "windows",
+    "relativePath": "AppData/Local/uv",
+    "title": "uv download caches"
+  },
+  {
+    "category": "browser",
+    "id": "windows-chromium",
+    "platform": "windows",
+    "relativePath": "AppData/Local/Chromium/User Data",
+    "title": "Chromium caches"
+  },
+  {
+    "category": "application",
+    "id": "windows-obsidian",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/obsidian",
+    "title": "Obsidian caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-github-desktop",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/GitHub Desktop",
+    "title": "GitHub Desktop caches"
+  },
+  {
+    "category": "developer",
+    "id": "windows-insomnia",
+    "platform": "windows",
+    "relativePath": "AppData/Roaming/Insomnia",
+    "title": "Insomnia caches"
+  }
+]

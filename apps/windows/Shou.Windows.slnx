@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Shou.Windows.App/Shou.Windows.App.csproj" />
+    <Project Path="src/Shou.Windows.Cli/Shou.Windows.Cli.csproj" />
+    <Project Path="src/Shou.Windows.Core/Shou.Windows.Core.csproj" />
+    <Project Path="src/Shou.Windows.Platform/Shou.Windows.Platform.csproj" />
+    <Project Path="src/Shou.Windows.Presentation/Shou.Windows.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Shou.Windows.Platform.Tests/Shou.Windows.Platform.Tests.csproj" />
+    <Project Path="tests/Shou.Windows.Cli.Tests/Shou.Windows.Cli.Tests.csproj" />
+    <Project Path="tests/Shou.Windows.Core.Tests/Shou.Windows.Core.Tests.csproj" />
+    <Project Path="tests/Shou.Windows.Presentation.Tests/Shou.Windows.Presentation.Tests.csproj" />
+  </Folder>
+</Solution>

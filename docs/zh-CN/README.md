@@ -9,7 +9,7 @@ Shou 提供空间分析、可审查清理与可复用规则。AI 调查是可选
 | 范围 | 状态 |
 | --- | --- |
 | macOS | SwiftUI/AppKit 应用、Swift 领域服务和独立 CLI 已有源码；验收以实际证据为准 |
-| Windows | C# / .NET 10 LTS / WinUI 3 架构已定义；应用、CLI 与分发待实现 |
+| Windows | C# / .NET 10 LTS / WinUI 3 实现进行中；原生运行与分发验收待完成 |
 | 运行时语言 | 简体中文、英文 |
 | 文档 | 11 种 README 语言；英文、简体中文技术文档 |
 

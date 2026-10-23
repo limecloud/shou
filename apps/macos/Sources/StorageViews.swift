@@ -46,7 +46,6 @@ private struct StorageAnalysisView: View {
         .onChange(of: session.hasChanges) { _, changed in if changed { model.ai.stop() } }
         .task { session.loadLocations() }
         .task(id: "\(session.scan?.id ?? ""):\(session.path):\(session.detailed)") { session.loadPresentation(app: model) }
-        .sheet(item: $session.plan) { plan in StorageRemovalConfirmation(model: model, session: session, plan: plan) }
         .sheet(item: $agentContext) { AgentRuleSetupView(model: model, contextPath: $0.path) }
         .quickLookPreview($previewURL)
     }
@@ -287,13 +286,7 @@ private struct StorageAnalysisView: View {
                 ProgressView().controlSize(.small)
                 Button(model.t("Stop")) { session.stop() }
             } else {
-                Menu {
-                    Button(model.t("Delete Permanently…"), role: .destructive) { session.review(app: model, action: "permanent") }
-                    Button(model.t("Move to Trash…")) { session.review(app: model, action: "trash") }
-                } label: { Label(model.t("Delete Permanently…"), systemImage: "trash") }
-                    primaryAction: { session.review(app: model, action: "permanent") }
-                    .menuStyle(.borderlessButton).fixedSize().buttonStyle(.borderedProminent).controlSize(.regular)
-                    .disabled(session.selected.isEmpty || model.busy).accessibilityIdentifier("storage.delete")
+                StorageRemovalButton(model: model, session: session)
             }
         }.padding(.horizontal, 14).padding(.vertical, 8).background(.bar)
     }

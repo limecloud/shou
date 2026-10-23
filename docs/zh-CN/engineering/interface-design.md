@@ -18,6 +18,14 @@
 
 macOS 使用 SwiftUI/AppKit，Windows 使用 WinUI 3。共享颜色、字号、间距、圆角与文案通过资源生成，同时遵循平台键盘、焦点、对话框、窗口和可访问性习惯。验证明暗、高对比度、减少动效、长翻译和 DPI 缩放。页面状态可在本平台内独立测试，UI 框架类型只留在应用层。
 
+## 共享设计资源
+
+已提取的设计值只修改 `assets/design/tokens.json`。运行 `python3 "scripts/generate-windows-resources.py"` 生成，再加 `--check` 校验可重复性。同一命令输出 `apps/windows/Generated/Design.xaml` 和 `apps/macos/Sources/ShouDesign.generated.swift`，均不手工修改。清单记录规范来源与生成器摘要，Swift 文件头记录来源摘要。
+
+Schema 版本 1 支持命名 sRGB 颜色（`#AARRGGBB`）、数值、统一圆角与统一内边距。名称以 `Shou` 加大写字母开头，仅包含 ASCII 字母／数字，在各组间唯一。数值须有限、非负且不超过 4096；拒绝布尔值、字符串、重复 JSON key 与未知分组。Swift 颜色保留四个通道，数值使用 `CGFloat`。设计资源不进入 Core 或 CLI 依赖。
+
+当前提取八项值，新增主操作按钮的最小宽度与内容高度。SwiftUI 使用强调色、设置间距／卡片圆角及扫描位置面板内边距，WinUI 页面使用项目／分区／页面间距和页面内边距。Windows 强调色／圆角接入和其余视觉值仍待完成。Fluent 控件颜色、平台字体、焦点与高对比度行为保持原生。编译和资源检查不能作为布局、DPI 或可访问性验收。
+
 ## 验证
 
 使用生成数据检查空、加载、部分、就绪、确认、执行、停止中、失败与完成状态。检查返回来源页、重新扫描、选择保持、确认取消和辅助标签。真实 UI 证据与状态测试分别记录。见[流程](../architecture/workflows-and-sequences.md)和[验收](acceptance-and-testing.md)。

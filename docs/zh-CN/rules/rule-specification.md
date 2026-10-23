@@ -109,7 +109,7 @@ npm 示例要求父目录同时有 `package.json` 与 `package-lock.json`，但�
 
 ### 内置产物证据
 
-当前目录包含 74 条模板与 35 个固定位置。内置 Rust target 与 Swift 构建产品规则版本为 `1.1.0`；这是模板版本，不改变规则格式 `1.0`。
+规则目录与固定位置数量由[规则覆盖检查](../engineering/rule-coverage.md)统计。内置 Rust target 与 Swift 构建产品规则版本为 `1.1.0`；这是模板版本，不改变规则格式 `1.0`。
 
 生成源码例外必须同时满足与包内完全一致的规则定义及只读原生事实；个人规则、熟悉的 ID 或目录名不能开启例外。Rust 要求已识别的 `target` 布局，仅允许具有 fingerprint 证据的 debug／release 产品中构建脚本 `OUT_DIR` 下的生成源码。Swift 定位 `.build` 下 debug／release 生成产品，要求 package、workspace 和产品证据；源码检出及整个 `.build` 树不被豁免。
 

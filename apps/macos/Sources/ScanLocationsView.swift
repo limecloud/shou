@@ -21,7 +21,7 @@ struct ScanLocationsView: View {
                     ForEach(model.projectLocations) { location in
                         HStack(spacing: 12) {
                             locationLabel(location, symbol: "hammer")
-                            if let root=model.projectWorkspaces.first(where: { $0.path == location.path }), !isConventional(root.path) {
+                            if let root=model.projectWorkspaces.first(where: { $0.path == location.path }), canStopIncluding(root.path) {
                                 Button { removing=root } label: { Image(systemName: "minus.circle") }
                                     .buttonStyle(.borderless).help(model.t("Stop Including Folder"))
                                     .accessibilityLabel(model.t("Stop Including Folder") + " " + root.path)
@@ -42,7 +42,7 @@ struct ScanLocationsView: View {
                 Spacer()
                 Button(model.t("Done")) { dismiss() }.keyboardShortcut(.cancelAction).disabled(model.busy)
             }
-        }.padding(24).frame(width: 680, height: 600)
+        }.padding(ShouDesign.pagePadding).frame(width: 680, height: 600)
             .task { await model.refresh() }
             .interactiveDismissDisabled(model.busy)
             .alert(model.t("Stop including this folder?"), isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing=nil } })) {
@@ -68,7 +68,8 @@ struct ScanLocationsView: View {
         }.padding(.vertical, 6)
     }
 
-    private func isConventional(_ path: String) -> Bool {
-        ProjectLocations.isConventional(path, homeDirectory: FileManager.default.homeDirectoryForCurrentUser, platform: "macos")
+    private func canStopIncluding(_ path: String) -> Bool {
+        // Unavailable hints cannot establish that a saved folder is removable.
+        (try? ProjectLocations.isConventional(path, homeDirectory: FileManager.default.homeDirectoryForCurrentUser, platform: "macos")) == false
     }
 }

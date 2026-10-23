@@ -30,7 +30,7 @@ open "dist/Shou.app"
 sh "scripts/test.sh"
 ```
 
-This runs localization/catalog/document checks, a Swift build, domain and generated native-fixture tests, public CLI contracts, synthetic AI protocols, terminal confirmation and relevant cleanup domains. Default native checks move generated targets to Trash and restore them without purging. No test enumerates or empties the user's Trash.
+This runs localization/catalog/document checks, a Swift build, domain and generated native-fixture tests, public CLI contracts, synthetic AI protocols, terminal confirmation and relevant cleanup domains. Native Trash fixtures exercise moving and restoration; some default CLI checks permanently remove only their own generated temporary files. No test enumerates or empties the user's Trash.
 
 Focused checks after a successful build:
 
@@ -54,6 +54,7 @@ Record exact revision, OS, architecture, executed checks, outcomes and limitatio
 | `packages/shou-core/Sources/Resources/builtin-rules.json` | Versioned declarative rule catalog |
 | `packages/shou-core/Sources/Resources/known-locations.json` | Exact platform-scoped discovery roots |
 | `packages/shou-core/Localizable.xcstrings` | Canonical English/Simplified Chinese text |
+| `assets/design/tokens.json` | Eight design values generating WinUI XAML and SwiftUI constants; both checked by the resource generator |
 | `assets/brand` | Native brand sources |
 
 Generate and check localization resources with:
@@ -61,11 +62,12 @@ Generate and check localization resources with:
 ```sh
 python3 "scripts/update-localizations.py"
 python3 "scripts/update-localizations.py" --check
+python3 "scripts/generate-windows-resources.py" --check
 python3 "scripts/verify-rule-catalog.py" --self-test
 python3 "scripts/verify-docs.py"
 ```
 
-Do not hand-edit generated `.strings`. Language changes cannot alter IDs, matching, digests or execution decisions. Windows text/design generation remains a planned deliverable.
+Do not hand-edit generated `.strings`, `apps/windows/Generated` or `apps/macos/Sources/ShouDesign.generated.swift`. Language changes cannot alter IDs, matching, digests or execution decisions. After changing shared sources, regenerate native resources with `python3 scripts/generate-windows-resources.py` and check the resulting digests. The regular macOS test entry also checks these generated resources.
 
 ## Local data and isolation
 
@@ -79,4 +81,4 @@ Use generated disposable files for native mutation tests. Do not scan or modify 
 
 ## Windows development boundary
 
-Mac-hosted .NET checks will cover C# Core and Presentation. WinUI compilation and Windows-native adapters require Windows; physical x64 and ARM64 acceptance remain separate. Source, artifacts, cache and toolchain ownership follow the [native plan](windows-native-plan.md). Current Windows build commands and packages are not available.
+Run `sh scripts/test-windows-core.sh` on Mac for C# Core/Presentation tests, Platform reference compilation, bundled-resource checks and framework-dependent CLI contracts. Windows-native tests explicitly skip on Mac. WinUI compilation and native behavior require Windows; x64 and ARM64 acceptance remain separate. Windows-local build/test commands are in the [Windows guide](windows.md); no Windows release package is available. Source, artifacts, cache and toolchain ownership follow the [native plan](windows-native-plan.md).

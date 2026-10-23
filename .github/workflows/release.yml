@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.11.0
+        default: v0.12.0
 
 permissions:
   contents: read
@@ -72,6 +72,23 @@ jobs:
           python3 scripts/verify-installed-cache-cli.py dist/Shou.app/Contents/Helpers/shou --permanent
       - name: Packaged read worker exits after its requesting parent
         run: python3 scripts/verify-read-worker-lifecycle.py --bin dist/Shou.app/Contents/Helpers/shou --evidence "$RUNNER_TEMP/shou-read-worker-lifecycle"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Stage and verify native npm package
+        run: |
+          case "$(uname -m)" in arm64) task_target=darwin-arm64 ;; x86_64) task_target=darwin-x64 ;; *) exit 1 ;; esac
+          task_version="${SHOU_RELEASE_TAG#v}"
+          mkdir -p "$RUNNER_TEMP/shou-npm-notices"
+          cp .build/checkouts/swift-ai-sdk/LICENSE "$RUNNER_TEMP/shou-npm-notices/SwiftAISDK-LICENSE.txt"
+          python3 scripts/package-npm.py platform --version "$task_version" --platform "$task_target" --payload dist/Shou.app/Contents/Helpers --licenses "$RUNNER_TEMP/shou-npm-notices" --output "dist/npm/$task_target"
+          python3 scripts/package-npm.py launcher --version "$task_version" --platform-package "dist/npm/$task_target" --output "$RUNNER_TEMP/shou-npm-launcher"
+          python3 scripts/verify-npm-distribution.py --launcher "$RUNNER_TEMP/shou-npm-launcher" --platform-package "dist/npm/$task_target" --output "$RUNNER_TEMP/shou-npm-verification"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shou-npm-${{ matrix.runner }}
+          if-no-files-found: error
+          path: dist/npm/
 
   package:
     needs: [source, verify]
@@ -85,6 +102,29 @@ jobs:
           ref: ${{ needs.source.outputs.commit }}
       - name: Toolchain
         run: swift --version | grep -E 'Swift version 6[.]2[.]3([[:space:]]|$)'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: shou-npm-*
+          merge-multiple: true
+          path: dist/npm
+      - name: Assemble exact-version npm launcher and tarballs
+        run: |
+          task_version="${SHOU_RELEASE_TAG#v}"
+          chmod +x dist/npm/darwin-*/vendor/shou
+          python3 scripts/package-npm.py launcher --version "$task_version" --platform-package dist/npm/darwin-arm64 --platform-package dist/npm/darwin-x64 --output dist/npm/launcher
+          python3 scripts/verify-npm-distribution.py --launcher dist/npm/launcher --platform-package dist/npm/darwin-arm64 --output "$RUNNER_TEMP/shou-npm-final-verification"
+          mkdir -p dist/npm/tarballs
+          for task_package in darwin-arm64 darwin-x64 launcher; do
+            npm pack "./dist/npm/$task_package" --pack-destination dist/npm/tarballs
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shou-npm-release
+          if-no-files-found: error
+          path: dist/npm/
       - name: Build, test, package, and sign universal updates
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}

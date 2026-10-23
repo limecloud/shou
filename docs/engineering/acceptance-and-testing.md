@@ -9,6 +9,7 @@ English | [简体中文](../zh-CN/engineering/acceptance-and-testing.md)
 | Layer | Verifies | Does not establish |
 | --- | --- | --- |
 | Documentation/schema | Links, JSON, structural examples, translation consistency | Runtime matching or application builds |
+| Shared design resources | Token types, native resource generation, no-diff checks and known resource references | WinUI XAML/PRI compilation, layout, DPI or accessibility |
 | Core tests | Patterns, conditions, states, risks, deduplication | Native filesystem/permission behavior |
 | Filesystem integration | Temporary roots, links, identities, Trash, journals | UI or agent compatibility |
 | CLI contracts | JSON, exits, pages, cancellation, confirmation | GUI accessibility |
@@ -115,7 +116,7 @@ Record hardware, OS, build, storage, entries, cache state, time, memory, and err
 
 ## 9. Windows acceptance
 
-Windows implementation is pending. Execute WN01–WN06 from the [native plan](windows-native-plan.md), with separate x64 and ARM64 results.
+Windows scanning, configuration and review-preview implementation is in progress. Portable logic, bundled resources and framework-dependent CLI contracts can be checked on macOS; native filesystem and private-store cases skip there. Execute WN01–WN06 from the [native plan](windows-native-plan.md), with separate x64 and ARM64 results in [SYNC.md](../../SYNC.md).
 
 | Layer | Required evidence | Does not establish |
 | --- | --- | --- |
@@ -126,6 +127,26 @@ Windows implementation is pending. Execute WN01–WN06 from the [native plan](wi
 
 Record exact commit, working-tree digest, OS, architecture, commands, result and evidence. Unexecuted checks remain pending.
 
+Uninstall preparation separately checks registration identity, MSI context/PackageCode, exact current-user MSIX packages, system protection, independent data acknowledgement, changed reinspection digests, corrupt plans, cancellation and disposal. Mac simulations verify domain/state contracts. Native read-only cases query a randomly absent MSI identity, generated HKCU fixtures and pre-cancellation without uninstalling real software. Simulated activity contracts cover same-name image isolation, file use, unknown sources, changed directories, budgets, timeout and cancellation. Separate native cases read the current image and generated directory and still require Windows execution; no private process memory or command lines are read. Execution simulations now cover single-use process-local consent, expiry including preflight expiry, changed identity/activity, failed intent/result publication, unknown outcomes, cancellation retaining the lease and corrupt records never granting replay. Terminal checks cover exact phrases, installer identity, Chinese warnings and control characters; fixed MSI argument checks launch no installer. WinUI page-state checks additionally cover exact plan/separate confirmation forwarding, selection protection during execution, real outcomes after Stop, read-only queries after journal failure, mismatched bindings, late-read isolation, disposed notifications, expiry and clock rollback. App C# reference compilation cannot replace native verification of dialog dispatch, default Cancel, stop/close races, navigation protection, layout, keyboard or assistive technology. System invocation and durable outcomes have source; GUI and CLI share a disabled execution gate. Real generated MSI/MSIX packages/data fixtures, interruption, system permissions and installer data effects still require separate Windows evidence.
+
+Generated MSI acceptance has a [separate entry](windows.md#native-uninstall-acceptance-with-generated-msi-packages). Five source cases cover full system uninstall, replay rejection, declined confirmation, identity disappearance after confirmation, changed actors and file use. The generator accepts no existing software input, packages contain no custom actions and teardown rechecks exact fixture identity. Default/Mac runs explicitly skip; the script refuses to count skipped cases as passing. Evidence combines TRX, source digests, toolchain, MSI, installation/teardown logs, stage file hashes and private journals. Only compilation and explicit skipping have passed so far; real MSI installation/uninstallation remains unverified. MSIX and UI are outside this entry.
+
 ## 10. Reporting
 
 Reports include build/contract versions, platform/client/locale, executed/pass/fail/skip cases, logs, limits, and reproductions without private data. Documentation checks establish only static document/schema validity, never MVP completion or runtime safety.
+
+Scheduled-task control has a [generated-task native entry](windows.md#native-startup-control-acceptance-with-generated-tasks). Six cases register/control only newly generated current-user tasks with triggers and demand starts disabled; tasks are never run. Teardown rechecks exact identity/definition and preserves generated files/records. Acceptance requires six executed passes, stable source digests and complete initial-disabled/final-removal receipts. Default/Mac skips do not count as native passes. Only compilation, skipping, PowerShell syntax and missing-opt-in/unsupported-host/existing-target-argument refusal have been checked so far. Real COM, permissions, races/interruption, terminal and UI still require separate evidence; the public gate stays disabled.
+
+## Windows multi-location cleanup acceptance
+
+Core simulated-port cases are in `CombinedCleanupTests.cs`; Presentation cases are in `CombinedCleanupReviewTests.cs`. They cover all-source bindings in one plan/confirmation/execution record, all-source preflight, changed evidence, forged/repeated sources, shared budgets, stop/unknown outcomes, canonical categories, global selection across filters, tri-state selection, recommendation eligibility and atomic group limit/overlap failure. Mutations use in-memory ports without touching real user files.
+
+`SYNC.md` records the matching source, checks and payload evidence. These tests cannot open public execution. Generated fixtures must separately verify native multiple-root/cross-volume operations, cancellation/interruption and races, with actual WinUI filters, selection, combined confirmation and window lifecycle acceptance.
+
+## Windows privacy scan acceptance
+
+The 47 memory orchestration cases in `PrivacyCleanupTests.cs` verify exact selection, evidence/configuration changes, separate Cookie impact and current confirmation, expiry/clock rollback, replay prevention, batch/item journal failure, waiting for actual cancellation outcomes, stopping after unknown outcomes and strict sanitized receipt reads. These cases perform no native transactional deletion and cannot establish Windows mutation acceptance.
+
+Generated-memory Core cases cover fixed/redirected sources, integer epoch bounds, discovery ownership/limits/changes, exclusions including sidecars, conservative browser activity, aggregate evidence, publication expiry/configuration changes, cancellation and strict saved-record reads. Generated SQLite files test inclusive finite ranges, undated cookies, preserved Firefox download visits, unsupported structures/foreign keys/timestamps, schema digests, read-only preservation, redacted failures and cancellation/result budgets. macOS maps the test assembly's `winsqlite3.dll` import to macOS system SQLite solely for SQL tests; this does not validate Windows SQLite, filesystem handles or ACLs.
+
+Presentation tests check explicit scanning, selected ranges, complete/partial coverage, invalidation, stopped and late results, errors and disposal. Native generated fixtures separately require Windows for shared-write/no-delete pins, ACL/identity checks, WAL/SHM access and hard-link rejection. WinUI XAML/PRI, real controls/accessibility, per-architecture runtime and all privacy mutation acceptance remain pending. No real browser profiles are regression samples.

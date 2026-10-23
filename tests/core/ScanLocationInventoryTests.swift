@@ -25,11 +25,11 @@ func scanLocationInventoryDistinguishesAutomaticIncludedAndCacheRoots() async th
 
 func conventionalLocationScopeUsesPlatformPathBoundaries() throws {
     let home=URL(fileURLWithPath: "/C:/Users/fixture", isDirectory: true)
-    try expect(ProjectLocations.isConventional("c:\\USERS\\fixture\\PROJECTS\\one", homeDirectory: home, platform: "windows"))
-    try expect(ProjectLocations.isConventional("C:/Users/fixture/Documents/dev", homeDirectory: home, platform: "windows"))
-    try expect(!ProjectLocations.isConventional("C:/Users/fixture/Projects-archive", homeDirectory: home, platform: "windows"))
-    try expect(!ProjectLocations.isConventional("D:/Users/fixture/Projects", homeDirectory: home, platform: "windows"))
+    try expect(try ProjectLocations.isConventional("c:\\USERS\\fixture\\PROJECTS\\one", homeDirectory: home, platform: "windows"))
+    try expect(try ProjectLocations.isConventional("C:/Users/fixture/Documents/dev", homeDirectory: home, platform: "windows"))
+    try expect(try !ProjectLocations.isConventional("C:/Users/fixture/Projects-archive", homeDirectory: home, platform: "windows"))
+    try expect(try !ProjectLocations.isConventional("D:/Users/fixture/Projects", homeDirectory: home, platform: "windows"))
     let macHome=URL(fileURLWithPath: "/Users/fixture", isDirectory: true)
-    try expect(ProjectLocations.isConventional("/Users/fixture/Projects/one", homeDirectory: macHome, platform: "macos"))
-    try expect(!ProjectLocations.isConventional("/Users/fixture/PROJECTS/one", homeDirectory: macHome, platform: "macos"))
+    try expect(try ProjectLocations.isConventional("/Users/fixture/Projects/one", homeDirectory: macHome, platform: "macos"))
+    try expect(try !ProjectLocations.isConventional("/Users/fixture/PROJECTS/one", homeDirectory: macHome, platform: "macos"))
 }

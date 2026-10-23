@@ -447,7 +447,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         func report(_ current: String) {
             processed += 1
             let time=ProcessInfo.processInfo.systemUptime
-            if processed == expected.count || time - lastReport >= 0.1 {
+            if processed == 1 || processed == expected.count || time - lastReport >= 0.1 {
                 progress(processed, expected.count, current); lastReport=time
             }
         }
@@ -468,31 +468,48 @@ public struct NativeFileSystem: PlatformFileSystem {
             throw ShouError("capability_unavailable", "Permanent removal of file targets is unavailable.")
         }
         try verify(path, reconciled, trashReceipt: true)
-        // Only known manifest entries are removed. New entries cause rmdir to fail.
-        // Verification above compared this manifest with a lexically ordered
-        // tree. Its reverse is postorder without another sort or path splitting.
-        for entry in expected.reversed() where entry.path != "." {
-            if Task.isCancelled { throw ShouError("cancelled", "Permanent removal cancelled; inspect the partial result.") }
-            let full = path + "/" + entry.path
-            let (fd, name) = try SecurePaths.parent(full); defer { close(fd) }
-            var info=stat()
-            guard fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect receipt entry", path: full) }
-            let current = SecurePaths.entry(info, path: entry.path)
-            let saved=context.reconciled([entry])[0]
-            guard current.sameObject(as: saved), entry.kind == "directory" || current == saved else { throw ShouError("plan_stale", "Receipt entry changed; permanent removal stopped.") }
-            if entry.kind == "file" {
-                try unlinkFile(parent: fd, name: name, path: full, expected: saved, context: &context)
-            } else {
-                guard unlinkat(fd, name, entry.kind == "directory" ? AT_REMOVEDIR : 0) == 0 else { throw SecurePaths.failure("Remove receipt entry", path: full) }
+        let directories=try PermanentRemovalDirectories(path: path, manifest: reconciled)
+        var failures=[String](), failureCount=0, removed=0
+        func attempt(_ full: String, _ mutation: () throws -> Void) throws {
+            do { try mutation(); removed += 1 }
+            catch let error as ShouError where ["permission_denied", "io_error"].contains(error.code) {
+                failureCount += 1
+                if failures.count < 10 { failures.append(full + ": " + error.message) }
             }
             report(full)
         }
-        let (fd, name) = try SecurePaths.parent(path); defer { close(fd) }
+        // Only known manifest entries are removed. New entries cause rmdir to fail.
+        // Verification above compared this manifest with a lexically ordered
+        // tree. Its reverse is postorder without another sort.
+        for entry in expected.reversed() where entry.path != "." {
+            if Task.isCancelled { throw ShouError("cancelled", "Permanent removal cancelled; inspect the partial result.") }
+            let full = path + "/" + entry.path
+            try attempt(full) {
+                let (fd, name) = try directories.parent(of: entry)
+                var info=stat()
+                guard fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect receipt entry", path: full) }
+                let current = SecurePaths.entry(info, path: entry.path)
+                let saved=context.reconciled([entry])[0]
+                guard current.sameObject(as: saved), entry.kind == "directory" || current == saved else { throw ShouError("plan_stale", "Receipt entry changed; permanent removal stopped.") }
+                if entry.kind == "file" {
+                    try unlinkFile(parent: fd, name: name, path: full, expected: saved, context: &context)
+                } else {
+                    guard unlinkat(fd, name, entry.kind == "directory" ? AT_REMOVEDIR : 0) == 0 else { throw SecurePaths.failure("Remove receipt entry", path: full) }
+                }
+            }
+        }
+        guard let original=expected.first(where: { $0.path == "." }) else { throw ShouError("plan_stale", "Receipt root changed.") }
+        let (fd, name) = try directories.parent(of: original)
         var info=stat()
-        guard let original = expected.first(where: { $0.path == "." }), fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0,
+        guard fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0,
               SecurePaths.entry(info, path: ".").sameObject(as: original) else { throw ShouError("plan_stale", "Receipt root changed.") }
-        guard unlinkat(fd, name, AT_REMOVEDIR) == 0 else { throw SecurePaths.failure("Remove receipt target", path: path) }
-        report(path)
+        try attempt(path) {
+            guard unlinkat(fd, name, AT_REMOVEDIR) == 0 else { throw SecurePaths.failure("Remove receipt target", path: path) }
+        }
+        if !failures.isEmpty {
+            throw ShouError("partial_removal", "Some files could not be permanently removed. Other eligible files were processed.",
+                details: ["removed_entries": String(removed), "failed_entries": String(failureCount), "failures": failures.joined(separator: "\n")])
+        }
     }
 
     private func unlinkFile(parent: Int32, name: String, path: String, expected: FileEntry, context: inout PermanentRemovalContext) throws {
@@ -512,7 +529,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         }
         guard unlinkat(parent, name, 0) == 0 else { throw SecurePaths.failure("Remove receipt file", path: path) }
         if descriptor >= 0 {
-            guard fstat(descriptor, &metadata) == 0 else { throw SecurePaths.failure("Inspect unlinked file", path: path) }
+            guard fstat(descriptor, &metadata) == 0 else { throw ShouError("purge_outcome_unknown", "The file was unlinked but its remaining hard links could not be verified.", details: ["path": path]) }
             try context.recordUnlink(before: expected, after: SecurePaths.entry(metadata, path: expected.path))
         }
     }

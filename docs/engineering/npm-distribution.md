@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/npm-distribution.md)
 
-Status: `@limecloud/shou@0.11.0` supports macOS only. The shared cross-platform entry described here is a distribution design; Windows payloads and platform-package automation are not implemented.
+Release scope: `@limecloud/shou@0.12.0` supports macOS through exact-version ARM64 and x64 platform packages. The source implements platform routing, native-package staging and an offline installation verifier; the source template is private `0.12.0`. Windows self-contained development payloads can be built. Native Windows npm acceptance, signing and registry publication remain pending.
 
 ## Public entry
 
@@ -18,19 +18,23 @@ The package address and command can stay the same when Windows support becomes a
 
 Node.js runs the npm launcher. The native CLI does not require Node.js when installed through an independent native archive. npm installation does not install the desktop application or grant system permissions.
 
+A shared installation entry does not require shared native code. macOS uses the Swift CLI and Windows uses an independent C# CLI; each calls its platform's desktop domain services. The launcher owns no business logic and does not install both native runtimes on every computer.
+
+The public package and all platform packages it references use the same release version. Platform features can ship at their own pace: `capabilities --json` reports available commands, and a shared version does not imply full feature parity. Desktop applications release independently and do not need to update alongside the npm CLI.
+
 ## Package ownership
 
-The target design is a small JavaScript launcher with platform-specific `optionalDependencies`. Native packages declare matching npm `os` and `cpu` values. Each dependency uses the exact public-package version; never resolve a different version or download `latest` at runtime.
+The design uses a small JavaScript launcher with platform-specific `optionalDependencies`. Native packages declare matching npm `os` and `cpu` values. Each dependency uses the exact public-package version; never resolve a different version or download `latest` at runtime.
 
 | Package | `os` / `cpu` | Payload | Status |
 | --- | --- | --- | --- |
-| `@limecloud/shou` | Supported OS/CPU pairs | Launcher, documentation and exact dependency versions | Current package contains a macOS universal payload; platform routing is pending |
-| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI and required resources | Planned |
-| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI and required resources | Planned |
-| `@limecloud/shou-win32-arm64` | `win32` / `arm64` | Self-contained .NET CLI and required resources | Planned |
-| `@limecloud/shou-win32-x64` | `win32` / `x64` | Self-contained .NET CLI and required resources | Planned |
+| `@limecloud/shou` | OS/CPU pairs included in this staged artifact | Launcher, documentation and exact dependency versions | v0.12.0 macOS release scope |
+| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI and required resources | v0.12.0; native installation checked per architecture by release CI |
+| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI and required resources | v0.12.0; native installation checked per architecture by release CI |
+| `@limecloud/shou-win32-arm64` | `win32` / `arm64` | Self-contained .NET CLI and required resources | Development staging implemented; native npm acceptance pending |
+| `@limecloud/shou-win32-x64` | `win32` / `x64` | Self-contained .NET CLI and required resources | Development staging implemented; native npm acceptance pending |
 
-These platform-package names are planned and are not installation instructions. Only include a platform in the public manifest after its payload has passed acceptance and is available in the registry. Keep the current manifest macOS-only until that condition is met.
+Only the two macOS platform packages are included in v0.12.0. Windows packages remain development output. The source template sets `private=true` and is not published directly. Staging generates main-package dependencies only from supplied platform packages; development mode always stays private. Release artifacts must pass acceptance and their platform packages must be available in the registry before the corresponding main package is published. Source routing does not establish published platform support.
 
 ```mermaid
 flowchart TD
@@ -54,6 +58,37 @@ flowchart TD
 
 Command semantics, errors, capability discovery and interactive safety follow the [CLI contract](../ai/agent-and-cli-contract.md). Each native CLI uses its own platform's domain and system services. Differences are recorded in [SYNC.md](../../SYNC.md).
 
+Platform packages export `payload.json` and `package.json`. Descriptor version 1 contains the exact version, `platform`, `arch` and fixed `vendor/shou` or `vendor/shou.exe` entry. The launcher checks metadata, resource directories and critical dependencies, refusing links that resolve outside the package. Minimum releases are Darwin 23 and Windows `10.0.22000`. The Windows console delivers Ctrl+C to both processes; the launcher waits for the native exit rather than forcefully terminating it through `child.kill(SIGINT)`. Actual Windows console behavior still requires native verification.
+
+## Local staging and verification
+
+`scripts/package-npm.py` provides `platform` and `launcher` subcommands and never publishes. For an existing self-contained Windows development payload:
+
+```sh
+python3 "scripts/package-npm.py" platform --development --version 0.12.0-dev \
+  --platform win32-x64 --payload ".build/windows/publish/win-x64/cli" \
+  --licenses ".build/windows/publish/win-x64/cli/notices" --output ".build/npm/win32-x64"
+python3 "scripts/package-npm.py" launcher --development --version 0.12.0-dev \
+  --platform-package ".build/npm/win32-x64" --output ".build/npm/launcher"
+node --test "tests/npm/launcher.test.cjs"
+python3 "tests/npm/test-packaging.py"
+```
+
+Use the corresponding platform name and payload for ARM64. macOS input contains a thin Swift executable and its three adjacent resource bundles; the dependency-notice directory includes `SwiftAISDK-LICENSE.txt`. Windows build entry points generate .NET licenses, third-party notices and Windows SDK origin/license links from the actual restored packages into `notices`; staging copies them intact. Native versions must match the npm version. The macOS app, CLI and npm release use `0.12.0`. Windows remains `0.12.0-dev` and is excluded from this release. Align a Windows native payload with its npm version before including it in a future release.
+
+Each artifact records source commit/tree, working-tree content digest, dirty status, native/signature checks and final file hashes. Main-package staging rejects different versions, different source states and modified native packages. Release mode requires a clean checkout, matching native OS/architecture, native version/resource queries and signature verification. Development mode permits cross-host static checks and does not record them as native acceptance. Staging never rewrites, resigns or compresses native executables.
+
+After staging a matching main/native pair, run on its native platform:
+
+```sh
+python3 "scripts/verify-npm-distribution.py" --launcher "/path/to/launcher" \
+  --platform-package "/path/to/native-package" --output "/path/to/new-evidence-directory"
+```
+
+The verifier packs and installs local tarballs offline with isolated cache, configuration and prefixes. It checks local installation, a temporary global command, `npx`-equivalent `npm exec`, versions/rule resources and the `--omit=optional` failure. It does not read the registry or install into the normal global directory, and writes `verification.json`. These checks do not replace clean-system, interactive-terminal or registry acceptance. Windows CI is configured to use the same private staging/install entry; actual CI results must be recorded separately.
+
+Current Mac evidence includes 14 launcher tests, 10 packaging tests and actual ARM64 Swift CLI checks for offline installation, the global entry, `npm exec`, resources, a read-only generated fixture scan and missing optional dependencies. Windows platform packages have development staging and final-byte checks; native Windows npm, signing and console acceptance have not run. See [SYNC.md](../../SYNC.md) for the evidence scope.
+
 ## Payload and update boundaries
 
 macOS packages include the executable, Swift resource bundles, rules, schemas, localization and required licenses. Windows packages include the `win-x64` or `win-arm64` self-contained .NET CLI, runtime dependencies, rules, schemas, localization and required licenses. Preserve resource paths when packing and installing.
@@ -70,4 +105,4 @@ npm owns CLI installation, upgrade and removal. Sparkle and Velopack own their r
 4. Publish and verify all platform packages referenced by the release before publishing the public package. Publish the public package only when all supported pairs resolve the exact version. Record registry integrity and native source revision in release receipts.
 5. Install the public package from the registry on each supported pair and verify the resulting command. Record results in the platform ledger. A successful macOS install does not establish Windows support.
 
-These steps define the future release process and do not authorize publication. Current macOS staging remains documented in [packages/shou-npm](../../packages/shou-npm/README.md); desktop publication is described in [Releases](releasing.md).
+Publication requires the user's release instruction. Current macOS staging remains documented in [packages/shou-npm](../../packages/shou-npm/README.md); desktop publication is described in [Releases](releasing.md).

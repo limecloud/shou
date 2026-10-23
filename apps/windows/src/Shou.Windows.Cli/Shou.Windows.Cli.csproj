@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>shou</AssemblyName>
+    <Version>0.12.0-dev</Version>
+    <TargetFramework>net10.0-windows10.0.22000.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <SelfContained Condition="'$(RuntimeIdentifier)' != ''">true</SelfContained>
+    <SelfContained Condition="'$(RuntimeIdentifier)' == ''">false</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishAot>false</PublishAot>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Shou.Windows.Cli.Tests" />
+    <ProjectReference Include="../Shou.Windows.Core/Shou.Windows.Core.csproj" />
+    <ProjectReference Include="../Shou.Windows.Platform/Shou.Windows.Platform.csproj" />
+  </ItemGroup>
+</Project>

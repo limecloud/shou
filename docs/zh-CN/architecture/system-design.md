@@ -2,20 +2,20 @@
 
 [English](../../architecture/system-design.md) | 简体中文
 
-状态：macOS 已有源码实现。Windows 按[原生实施方案](../engineering/windows-native-plan.md)推进，运行与分发均待实现和验证。
+状态：macOS 已有源码实现。Windows 按[原生实施方案](../engineering/windows-native-plan.md)开发中，已有位置发现、应用注册与启动项浏览、内置与个人规则配置、空间浏览、清理审阅与只读历史源码，原生运行与分发验收待完成。
 
 ## 系统上下文
 
 ```mermaid
 flowchart TB
     User[用户] --> Mac[macOS 原生应用]
-    User --> Win[Windows 原生应用 - 待实现]
+    User --> Win[Windows 原生应用 - 开发中]
     Agent[获得授权的外部 Agent] --> CLI[当前平台原生 CLI]
     Mac --> Swift[Swift 领域服务]
-    Win --> CS[C# 领域服务 - 待实现]
+    Win --> CS[CSharp 领域服务]
     CLI --> Services[当前平台领域服务]
     Swift --> MacOS[macOS 系统适配]
-    CS --> Windows[Windows 系统适配 - 待实现]
+    CS --> Windows[Windows 系统适配 - 原生验收待完成]
     Shared[产品合同与声明式资源] --> Swift
     Shared --> CS
     Services --> Local[平台本地记录与文件系统]
@@ -72,7 +72,34 @@ macOS 适配使用有界原生元数据读取、SQLite 磁盘索引，并按需�
 
 WinUI App → Presentation → C# Core 为界面依赖链。Windows Platform 实现 Core 声明的文件系统、注册表、进程、凭据与记录接口。App 与 .NET CLI 直接组装这些实现。C# 领域使用显式 Windows 路径模型，真实 Win32 行为另行原生验证。模块名、目标框架与阶段退出标准见[Windows 方案](../engineering/windows-native-plan.md)。
 
+Core 的 `BuiltinRuleCatalog` 从共享 JSON 生成当前适用定义；配置只保存内置启停偏好与个人规则的明确版本。`ScanLocationService` 有界发现并复核位置，在一次配置事务中登记整批目录后才开始扫描。界面可扫描单个位置或页面列出的全部已配置位置，CLI 可发现、登记后扫描整批位置；两端复用顺序扫描的共享预算、保护与计划服务。界面汇总多位置类别、规则与路径，筛选保留全局选择；Core 在同一租约内核对来源并保存一个多位置计划，由一次当前摘要确认、全部来源预检和逐项日志约束执行，公共门禁仍关闭。资源升级后的定义变化使旧计划失效，默认参与扫描不表示执行授权。
+
+```mermaid
+flowchart LR
+    UI[WinUI 清理页] --> Review[Presentation 分类、筛选与全局选择]
+    Review --> Service[CleanupService 多来源计划、当前确认与执行]
+    CLI[原生 CLI] --> Service
+    Sources[各位置不可变扫描证据] --> Service
+    Resources[共享类别与规则资源] --> Review
+    Service --> Native[Platform 根身份、活动与精确清单操作]
+    Service --> Store[同一租约内的配置、计划及逐项日志]
+    Service --> Results[一个计划摘要与一个执行记录]
+```
+
+应用管理使用独立只读链路：应用页或 CLI → `ApplicationCatalog` → `IApplicationInventory` → 注册表与当前用户 MSIX。Core 校验注册事实并提供不可变快照查询；Platform 报告固定来源的预算和缺口。该链路不打开清理记录，不把注册身份转换为删除权限。来源、估算与后续系统卸载边界见[应用合同](../product/application-uninstall.md#windows-应用发现与卸载边界)。
+
+卸载准备由 `ApplicationUninstallReviewer` 调用 Core 的安装身份接口，Platform 读取 MSI／MSIX 的精确事实；`ApplicationUninstallPlanner` 重新审阅并绑定原摘要、当前用户与独立数据影响同意，再使用现有私有记录租约保存计划。Presentation 持有审阅／同意／取消状态，App 与 CLI 组装同一服务。审阅不打开存储，计划不授予执行；`ApplicationActivityService` 复用扫描与文件占用接口，`WindowsApplicationProcesses` 使用只读查询权限获取匹配映像路径；活动或未知状态阻止准备计划。`ApplicationUninstallService` 已实现一次性当前确认、变更租约、身份／活动重查、先写意图及结果查询；Platform 的 `WindowsApplicationUninstallMutation` 负责固定 MSI 调用与当前用户 MSIX 部署及独立身份观察。WinUI 已组装独立确认、停止等待、只读结果与窗口生命周期源码；GUI 与 CLI 共用关闭的执行门禁。原生验收、额外残留和恢复仍待完成。
+
+启动项发现使用独立只读链路：WinUI `StartupViewModel` 或 `startup list` → `StartupInventoryService` → `IStartupInventory` → `WindowsStartupInventory`。Core 校验有界元数据并查询不可变快照，Platform 读取六个固定注册表来源、两个本地启动文件夹及当前身份可见的开机／登录计划任务，以及当前用户已注册包的启动声明。参数不进入 Core，存在注册不代表启用、活动或删除／控制权限，该链路不打开清理存储。来源、范围外项目与原生证据要求见[启动项合同](../product/startup-items.md#windows-启动项合同)。
+
+识别出的计划任务另有独立的任务引擎状态观察。Platform 双读公开的开关／状态并复核路径与 XML，Core 拒绝无效来源或状态。状态缺失时保留注册并报告覆盖缺口，不据此判断实际启动条件、应用活动或控制授权。
+
+
+隐私扫描使用独立固定浏览器策略、整数时间边界及只读 SQLite／身份适配。`PrivacyScanViewModel` 和 CLI 共用 `PrivacyScanService`，经现有配置租约保存观察。Core 的 `PrivacyCleanupService` 已实现确切来源计划、独立 Cookie 影响同意、当前单次确认、意图先行的编排与脱敏回执；原生事务删除适配、公开入口接入和原生验收待完成。见[隐私边界](../engineering/privacy-cleaning.md#windows-平台边界)。
+
 ## 清理与并发
+
+Windows 界面用独立的 `CleanupExecutionViewModel` 持有一次当前计划的确认与结果查询；App 直接组装同一 Core 的确认、执行和记录读取。GUI 与 CLI 共用 Platform 的关闭门禁，原生验收前不请求执行确认。源码包含默认取消的 UI 线程确认、执行中范围与导航保护，以及正常关窗请求停止并等待真实结果；该状态不提供恢复或自动重试。详见[确认与生命周期](../engineering/windows.md#文件清理确认与窗口生命周期)。
 
 读取操作可取消且有预算限制。全树完整性与目标子树完整性分别表达；只有完整、当前的目标证据才能授权变更。稀疏清理扫描不能代替完整空间分析。
 
@@ -108,3 +135,5 @@ flowchart TD
 以最小功能链路和明确能力实施，领域接口保持小而专一，仅服务于当前操作，避免通用插件系统和 UI 中重复的策略。
 
 Mac 测试证明领域和状态语义，Windows 原生集成证明该平台系统行为。UI、可访问性、签名、安装与更新分别需要独立证据。每项已支持能力必须注明平台、架构、精确版本与实际检查，见[验收规范](../engineering/acceptance-and-testing.md)。
+
+Windows 计划任务开关使用独立的 `StartupControlReviewer`／`StartupControlService` 与小型检查、确认、变更接口，由 Platform 实现精确 COM 读取和 Enabled 设置，Presentation 持有审阅／执行／查询状态，App 与 CLI 组装同一服务。发现不打开存储，确认后的控制链路持久化意图；两入口共用关闭的公共门禁。具体范围见[启动项合同](../product/startup-items.md#计划任务开关审阅与控制)。

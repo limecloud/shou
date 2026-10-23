@@ -1,0 +1,48 @@
+<UserControl
+    x:Class="Shou.Windows.App.HistoryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="{StaticResource ShouPagePadding}" RowSpacing="{StaticResource ShouSectionSpacing}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Spacing="{StaticResource ShouItemSpacing}">
+            <TextBlock x:Name="PageTitle" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock x:Name="Description" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Grid.Row="1" Spacing="{StaticResource ShouItemSpacing}">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ShouItemSpacing}">
+                <Button x:Name="RefreshButton" Click="RefreshHistory" />
+                <Button x:Name="NextButton" Click="NextHistoryPage" />
+                <Button x:Name="InspectButton" Click="InspectLocations" />
+                <Button x:Name="CancelButton" Click="CancelOperation" />
+            </StackPanel>
+            <ProgressBar x:Name="Progress" IsIndeterminate="True" Visibility="Collapsed" />
+            <InfoBar x:Name="CoverageNotice" IsClosable="False" IsOpen="False" Severity="Warning" />
+            <TextBlock x:Name="Status" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+        </StackPanel>
+        <Grid Grid.Row="2" ColumnSpacing="{StaticResource ShouSectionSpacing}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+            <ListView x:Name="HistoryList" IsItemClickEnabled="True" ItemClick="OpenExecution" SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Padding="8,10" Spacing="4" AutomationProperties.Name="{Binding AccessibleName}">
+                            <TextBlock Text="{Binding Started}" />
+                            <TextBlock Text="{Binding Action}" />
+                            <TextBlock Text="{Binding State}" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding Count}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <ScrollViewer Grid.Column="1">
+                <StackPanel x:Name="DetailRows" Spacing="{StaticResource ShouSectionSpacing}" />
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -4,7 +4,21 @@
 
 状态：接口 `1.0` 开发合同。命令已提供源码实现；请通过能力发现核验当前二进制，并按[本地开发指南](../engineering/development.md)构建。发布验收尚未完成。
 
+下文命令面描述产品合同与 macOS 源码实现。Windows CLI 源码提供能力发现、规则静态校验、工作区、排除、规则导入与启停、持久化启用规则扫描及草稿预览、分页结果、`plan create/show` 和只读 `history list/show/inspect`，另有不持久化的 `analysis scan`。Windows 当前 `scan` 仅接受工作区和预算，不支持 `--location`、`--scope`；草稿通过 `preview_only=true` 与普通扫描隔离。`plan create` 默认 `trash`，当前该动作不可用；明确 `--mode permanent` 可创建计划而不删除目标。`plan execute` 可发现但标为 `available=false`、`unavailable_reason=native_acceptance_pending`，当前返回 `unsupported_capability`、退出码 `8`，不发起确认或删除；终端确认源码仅完成纯逻辑测试，恢复未实现。`rules export` 当前只通过结果信封返回定义。能力发现使用相同字段名并返回实际限制。Windows 的计划流程、历史字段、预算及刻意差异以 [Windows 指南](../engineering/windows.md)为准，原生验收与其余能力见 [SYNC.md](../../../SYNC.md)。
+
+Windows `plan create` 保留单扫描的明确选择参数。保存的 `CleanupPlan` 使用版本 2：`sources` 数组分别绑定扫描 ID、工作区身份与规则，每项通过 `scan_id` 绑定来源。界面的跨位置选择由同一 Core 保存为一个计划，`plan show`、记录查询与受控执行读取同一摘要。CLI 不接受任意路径、批准字段或隐式跨来源候选；详见[多位置审阅合同](../product/unified-cleanup.md#windows-扫描与审阅)。
+
 ## 1. 两个一等入口
+
+Windows `startup list` 是不依赖清理存储的只读查询，覆盖固定 Run／RunOnce、启动文件夹和本机可见的开机／登录计划任务及当前用户包清单启动声明来源。支持来源／搜索筛选及偏移分页，返回明确的来源覆盖和未知启用／活动状态，不返回参数，也不授予启动项控制。`capabilities` 提供 `startup_control_available=false` 与实际预算；来源参数、解析及范围外项目由 [Windows 启动项合同](../product/startup-items.md#windows-启动项合同)统一维护，下文 macOS 的 `startup control` 合同不代表 Windows 已支持控制。
+
+识别出的计划任务可通过可空 `scheduled_task` 返回公开任务开关 `enabled` 和引擎 `state`（`unknown`、`disabled`、`queued`、`ready`、`running`）。这些值不替代实际启动／应用状态，也不授予控制权限；状态缺失／变化保留注册并返回条目／来源问题。命令描述说明此区别，具体读取协议由 Windows 启动项合同维护。
+
+Windows 另有 `rules catalog [--workspace <id>]`、`system locations [--include-projects true|false]` 与 `system scan` 源码。Windows 的只读位置查询命名为 `system locations`，默认不包含项目目录；批量扫描先整批登记再顺序共享扫描预算，返回逐位置扫描摘要与问题。适用内置规则默认参与匹配，`rules list` 使用 `builtin_templates_available=true`，完整模板单独查询。具体数据形状与剩余限制见 [Windows 位置发现](../engineering/windows.md#位置发现与内置规则)，不能根据下文 macOS 命令面推定字段或功能全部相同。
+
+Windows `applications summary` 是不打开清理存储的只读注册查询，包含逐来源覆盖及安装程序估算大小；支持搜索、名称／注册大小排序及偏移分页。每次调用重新观察，尚无跨调用的稳定应用 cursor。原生发现、分页限制及未开放的卸载能力见 [Windows 应用发现](../engineering/windows.md#应用注册发现)。
+
+Windows `applications inspect --application-id <id>` 为只读安装身份审阅；`applications plan --application-id <id> --review-digest <digest> --allow-installer-data-changes true|false` 的副作用为 `plan`，只有明确允许安装程序数据影响并复核同一摘要时才保存计划；`applications plan show --uninstall-plan-id <id>` 为只读记录查询。三者不提供实际卸载，数据影响同意不构成执行授权。`applications execution show --uninstall-plan-id <id>` 只读安装程序意图与结果，不刷新现场或重试。`applications uninstall --uninstall-plan-id <id>` 已有受控执行源码，但公开能力关闭，返回 `unsupported_capability`／8，不提示确认或启动安装程序。开放前必须完成原生验收；当前终端确认短语为 `UNINSTALL <id>`，不能传入无人值守批准字段。参数、错误和限制见[Windows 卸载审阅](../engineering/windows.md#卸载审阅与计划)，不能照搬下文 macOS 的路径、组件或计划参数。
 
 Shou 支持原生桌面端与独立 CLI。两者共享工作区、规则、扫描、计划、保护策略与历史；CLI 完成清理不需要 GUI 进程。
 
@@ -253,6 +267,8 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 
 ## 隐私记录
 
+Windows 当前仅实现 `privacy scan` 与 `privacy scan show`，使用 `privacy_scan_` 身份和现有结果封套。下列其他隐私命令描述 macOS 与目标产品合同；Windows 计划、确认、删除和回执仍不可用。
+
 `privacy scan [--range last-hour|last-day|last-seven-days|all-time]` 保存汇总数量与各来源可用状态；`privacy scan show --scan-id <id>` 不返回浏览记录内容。`privacy plan --scan-id <id> --source <id>... [--acknowledge-sign-out true]` 明确选择可处理来源，Cookie 需要独立接受退出登录影响。`privacy plan show --plan-id <id>` 返回时间范围和摘要。
 
 `privacy execute --plan-id <id>` 经终端确认永久删除记录，全计划预检后按来源独立事务执行并复核运行状态、结构和身份。`privacy history` 仅返回汇总结果，不保存网址、域名与 Cookie 值。数据库逻辑删除不进入废纸篓、无法恢复，也不保证物理擦除或释放容量。详见[隐私支持与架构](../engineering/privacy-cleaning.md)。
@@ -271,3 +287,5 @@ shou analysis children --scan-id "scan_example" --path "." --limit 50 --json
 `records preview`／`records collect` 仅维护 Shou 可重新生成的证据，保护活跃计划及恢复日志。`history summaries --offset N --limit N` 分页读取不含 manifest 的摘要，执行与恢复始终重读权威回执。
 
 macOS 提供 `tools scan|plan|execute|history` 固定 Docker／Homebrew／Conda／Rust 操作，以及 `applications leftovers scan|plan|show|execute` 精确的缺失所属应用关联审阅。公共 CLI 执行仍需终端确认当前范围。JSON 规则不可提供可执行文件、参数或 shell 片段。工具结果使用独立回执与估计值，超时／unknown 不允许重放。`system close-plan` 和 `system close-applications` 请求正常退出，不删除文件、不强制结束进程。
+
+Windows 另有 `startup inspect --task-path <任务标识> --action enable|disable`（read）、`startup control --task-path <任务标识> --action enable|disable --review-digest <摘要>`（destructive，当前 unavailable）及 `startup execution show --startup-operation-id <id>`（read）。不使用下文 macOS 的 plist 路径或标签确认合同。审阅为内存事实，执行批准不能从 JSON 恢复；当前 control 返回 `unsupported_capability`／8，日志不确定时返回查询线索。参数与结果见[Windows 计划任务开关](../engineering/windows.md#计划任务开关)。

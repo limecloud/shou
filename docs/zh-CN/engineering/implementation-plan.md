@@ -2,7 +2,7 @@
 
 [English](../../engineering/implementation-plan.md) | 简体中文
 
-状态：macOS 源码持续开发；Windows 实现待开始。[验收规范](acceptance-and-testing.md)定义验证要求，[SYNC.md](../../../SYNC.md)跟踪跨端对齐。
+状态：macOS 源码持续开发；Windows 只读链路开发中，原生验收待完成。[验收规范](acceptance-and-testing.md)定义验证要求，[SYNC.md](../../../SYNC.md)跟踪跨端对齐。
 
 ## 产品决策
 
@@ -30,7 +30,7 @@ flowchart LR
     WN05 --> WN06[分发验收]
 ```
 
-macOS 优先保证扫描正确性、证据时效、不可变计划、持久化逐项回执、恢复、有界性能与原生交互。产品改进拆成可独立验证的小链路。Windows 阶段和退出标准由[原生方案](windows-native-plan.md)定义，当前均未标记完成。
+macOS 优先保证扫描正确性、证据时效、不可变计划、持久化逐项回执、恢复、有界性能与原生交互。产品改进拆成可独立验证的小链路。Windows 阶段和退出标准由[原生方案](windows-native-plan.md)定义；纯逻辑与只读源码已开始实现，各阶段所需原生验收尚未完成。
 
 ## AI 工作包
 

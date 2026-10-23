@@ -26,7 +26,7 @@ extension ShouEngine {
         for location in try projectLocations() {
             try Task.checkCancellation()
             let workspace=config.workspaces.first { $0.id == location.id }
-            let conventional=ProjectLocations.isConventional(location.path, homeDirectory: homeDirectory, platform: filesystem.platform)
+            let conventional=try ProjectLocations.isConventional(location.path, homeDirectory: homeDirectory, platform: filesystem.platform)
             var availability=location.exists ? "available" : "unavailable", issue=location.availabilityIssue
             if workspace != nil {
                 switch filesystem.locationAvailability(location.path) {

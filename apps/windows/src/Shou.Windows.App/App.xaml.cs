@@ -1,0 +1,25 @@
+using Microsoft.UI.Xaml;
+using Shou.Windows.Platform;
+
+namespace Shou.Windows.App;
+
+public partial class App : Application
+{
+    private Window? window;
+
+    public App()
+    {
+        InitializeComponent();
+        UnhandledException += (_, args) => NativeDiagnostics.Write(args.Exception);
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            if (args.ExceptionObject is Exception error) NativeDiagnostics.Write(error);
+        };
+    }
+
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        window = new MainWindow();
+        window.Activate();
+    }
+}

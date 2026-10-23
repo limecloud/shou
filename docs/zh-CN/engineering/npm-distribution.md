@@ -2,7 +2,7 @@
 
 [English](../../engineering/npm-distribution.md) | 简体中文
 
-状态：`@limecloud/shou@0.11.0` 当前仅支持 macOS。本文规定跨平台统一入口的分发设计；Windows 产物与分平台包自动化均未实现。
+发布范围：`@limecloud/shou@0.12.0` 通过精确版本的 ARM64 与 x64 平台包支持 macOS。当前源码已实现平台启动器、分平台打包及离线安装验证入口，源码模板为私有的 `0.12.0`。Windows 自包含 CLI 开发产物已可构建；Windows 原生 npm 验收、签名与 registry 发布仍待完成。
 
 ## 公开入口
 
@@ -18,19 +18,23 @@ Windows 支持完成后，包地址与命令均可保持一致，但需要发布
 
 Node.js 只负责运行 npm 启动器。通过独立原生压缩包安装 CLI 时不需要 Node.js。npm 安装不包含桌面应用，也不授予系统权限。
 
+统一安装入口不要求共享原生代码。macOS 使用 Swift CLI，Windows 使用独立的 C# CLI；各自调用本平台桌面应用使用的领域服务。启动器不承载业务逻辑，也不把两套运行时打包到每台电脑上。
+
+公开包与本次引用的平台子包使用同一发布版本。双端功能可以按各自进度交付，实际可用命令以 `capabilities --json` 为准；统一版本不表示功能已经全部对齐。桌面应用独立发布，不要求与 npm CLI 同时升级。
+
 ## 包职责
 
-目标方案采用轻量 JavaScript 启动器和分平台 `optionalDependencies`。原生子包声明对应的 npm `os`、`cpu`。所有依赖精确匹配公开包版本，不在运行时选择其他版本或下载 `latest`。
+采用轻量 JavaScript 启动器和分平台 `optionalDependencies`。原生子包声明对应的 npm `os`、`cpu`。所有依赖精确匹配公开包版本，不在运行时选择其他版本或下载 `latest`。
 
 | 包名 | `os` / `cpu` | 内容 | 状态 |
 | --- | --- | --- | --- |
-| `@limecloud/shou` | 已支持的系统与架构组合 | 启动器、文档、精确依赖版本 | 当前包内包含 macOS universal 产物；平台路由待实现 |
-| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI 与必要资源 | 规划中 |
-| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI 与必要资源 | 规划中 |
-| `@limecloud/shou-win32-arm64` | `win32` / `arm64` | 自包含 .NET CLI 与必要资源 | 规划中 |
-| `@limecloud/shou-win32-x64` | `win32` / `x64` | 自包含 .NET CLI 与必要资源 | 规划中 |
+| `@limecloud/shou` | 本次产物包含的系统与架构组合 | 启动器、文档、精确依赖版本 | v0.12.0 macOS 发布范围 |
+| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI 与必要资源 | v0.12.0；发布 CI 分架构验证原生安装 |
+| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI 与必要资源 | v0.12.0；发布 CI 分架构验证原生安装 |
+| `@limecloud/shou-win32-arm64` | `win32` / `arm64` | 自包含 .NET CLI 与必要资源 | 开发打包已实现，原生 npm 验收待完成 |
+| `@limecloud/shou-win32-x64` | `win32` / `x64` | 自包含 .NET CLI 与必要资源 | 开发打包已实现，原生 npm 验收待完成 |
 
-上述子包名称属于规划，不是当前安装指引。平台产物通过验收并在 registry 可用后，才能将该平台加入公开包声明；此前保留当前仅支持 macOS 的声明。
+v0.12.0 仅包含上述两个 macOS 平台包，Windows 子包仍为开发产物。源码模板设置 `private=true`，不直接发布。打包脚本只按实际输入的平台包生成主包依赖；开发模式始终私有。正式产物须通过验收并确认平台子包在 registry 可用，才能发布相应主包。源码中的路由能力不代表已发布平台支持。
 
 ```mermaid
 flowchart TD
@@ -54,6 +58,37 @@ flowchart TD
 
 命令语义、错误、能力发现与交互安全遵循 [CLI 合同](../ai/agent-and-cli-contract.md)。每端原生 CLI 调用本平台的领域和系统服务，刻意差异记录于 [SYNC.md](../../../SYNC.md)。
 
+平台包以 `exports` 暴露 `payload.json` 和 `package.json`。描述符版本为 1，包含精确版本、`platform`、`arch` 及固定的 `vendor/shou` 或 `vendor/shou.exe`。启动器验证元数据、资源目录和关键依赖，拒绝目录外的链接目标。macOS 最低 Darwin 23，Windows 最低 `10.0.22000`。Windows 控制台自身向父子进程传递 Ctrl+C；启动器等待原生退出，避免调用 `child.kill(SIGINT)` 强制终止。Windows 控制台实际行为仍需原生验证。
+
+## 本地打包与验证
+
+`scripts/package-npm.py` 提供 `platform` 与 `launcher` 两个子命令，不执行发布。Windows 示例使用已有自包含开发产物：
+
+```sh
+python3 "scripts/package-npm.py" platform --development --version 0.12.0-dev \
+  --platform win32-x64 --payload ".build/windows/publish/win-x64/cli" \
+  --licenses ".build/windows/publish/win-x64/cli/notices" --output ".build/npm/win32-x64"
+python3 "scripts/package-npm.py" launcher --development --version 0.12.0-dev \
+  --platform-package ".build/npm/win32-x64" --output ".build/npm/launcher"
+node --test "tests/npm/launcher.test.cjs"
+python3 "tests/npm/test-packaging.py"
+```
+
+ARM64 使用对应平台名与产物目录。macOS 输入为单架构 Swift CLI 和相邻三个资源 bundle，依赖声明目录须包含 `SwiftAISDK-LICENSE.txt`。Windows 构建入口从实际还原包生成 .NET 许可证、第三方声明和 Windows SDK 来源及许可链接到 `notices`，打包完整复制。两端原生版本必须与本次 npm 版本一致；macOS 应用、CLI 与 npm 本次使用 `0.12.0`，Windows 仍为 `0.12.0-dev` 且不纳入本次发布。未来纳入 Windows 时，须先对齐实际原生产物与 npm 版本。
+
+每个产物记录源提交、提交树、工作区内容摘要、是否有未提交变更、原生检查及签名检查结果和最终文件哈希。主包拒绝不同版本、不同源码状态或验后变化的平台包。正式模式要求干净的源码 checkout，在匹配原生系统与架构查询版本和资源并验证签名；开发模式允许跨平台静态检查，但不会记录为原生验收通过。打包不修改、重签名或压缩原生可执行文件。
+
+在匹配平台准备主包和原生包后，执行：
+
+```sh
+python3 "scripts/verify-npm-distribution.py" --launcher "/path/to/launcher" \
+  --platform-package "/path/to/native-package" --output "/path/to/new-evidence-directory"
+```
+
+验证器离线打包与安装本地 tarball，使用隔离缓存、配置和安装前缀，验证本地安装、临时全局命令、等价于 `npx` 的 `npm exec`、版本和规则资源，以及 `--omit=optional` 的错误。它不读取 registry，不安装到日常全局目录；输出 `verification.json`。这些检查不替代干净系统、交互终端或 registry 发布验收。Windows CI 已配置同一私有打包与安装入口，实际 CI 结果须单独登记。
+
+本次 Mac 验证通过 14 项启动器测试、10 项打包测试，以及实际 ARM64 Swift CLI 的离线安装、全局入口、`npm exec`、资源查询、生成夹具只读扫描和可选依赖缺失检查。Windows 平台包已做开发打包与最终字节核对；未运行 Windows 原生 npm、签名或控制台验收。完整证据范围见 [SYNC.md](../../../SYNC.md)。
+
 ## 产物与更新边界
 
 macOS 子包包含可执行文件、Swift 资源 bundle、规则、Schema、文案及必要许可证。Windows 子包包含 `win-x64` 或 `win-arm64` 自包含 .NET CLI、运行时依赖、规则、Schema、文案及必要许可证。打包与安装后保持资源相对路径有效。
@@ -70,4 +105,4 @@ npm 管理 CLI 的安装、升级与移除；Sparkle、Velopack 分别管理对�
 4. 先发布并核验本次版本引用的所有平台子包，再发布公开包。全部支持组合可解析到精确版本后才发布公开包，发布回执记录 registry 完整性和原生源提交。
 5. 在各支持组合从 registry 安装公开包并验证命令，将结果登记到平台对齐表。macOS 安装成功不能作为 Windows 支持证据。
 
-以上规定后续发布流程，不代表当前执行发布。当前 macOS 打包见 [packages/shou-npm](../../../packages/shou-npm/README.md)，桌面发布见[发布规范](releasing.md)。
+发布需有用户明确的发布指令。当前 macOS 打包见 [packages/shou-npm](../../../packages/shou-npm/README.md)，桌面发布见[发布规范](releasing.md)。

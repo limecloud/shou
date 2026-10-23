@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/implementation-plan.md)
 
-Status: macOS source development is active. Windows implementation is pending. Use [acceptance](acceptance-and-testing.md) for verification criteria and [SYNC.md](../../SYNC.md) for platform alignment.
+Status: macOS source development is active. Windows read-only implementation is in progress; native acceptance is pending. Use [acceptance](acceptance-and-testing.md) for verification criteria and [SYNC.md](../../SYNC.md) for platform alignment.
 
 ## Product decisions
 
@@ -30,7 +30,7 @@ flowchart LR
     WN05 --> WN06[Distribution acceptance]
 ```
 
-macOS priorities are scan correctness, current evidence, immutable plans, durable item receipts, recovery, bounded performance and native interaction. Implement product improvements in small independently verifiable slices. Windows stages and their exit criteria are defined in the [native plan](windows-native-plan.md); none is marked implemented.
+macOS priorities are scan correctness, current evidence, immutable plans, durable item receipts, recovery, bounded performance and native interaction. Implement product improvements in small independently verifiable slices. Windows stages and their exit criteria are defined in the [native plan](windows-native-plan.md). Portable logic and read-only source work have started; no stage has completed its required native acceptance.
 
 ## AI work packages
 

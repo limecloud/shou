@@ -1,15 +1,14 @@
 # @limecloud/shou
 
-Shou's native cleanup CLI for **macOS 14 or later**, on Apple Silicon and Intel.
-The package contains a universal executable, cleanup rules, schemas, localization
-and the Shou rule-authoring Skill. No Swift compiler, desktop app, install scripts,
-or additional binary downloads are required. Node.js 18 or later is required for
-the npm launcher.
+One installation entry and one `shou` command for platform-native cleanup tools.
+The launcher selects an exact-version native package for the current system and
+Node.js architecture. macOS uses Swift; Windows uses a self-contained .NET CLI.
+Node.js 18 or later is required for the launcher. No compiler, desktop application,
+install script or additional binary download is required to run a staged package.
 
 ```sh
-npx @limecloud/shou@0.11.0 --version
-npx @limecloud/shou@0.11.0 --help
-npx @limecloud/shou@0.11.0 capabilities --json
+npx @limecloud/shou --help
+npx @limecloud/shou capabilities --json
 ```
 
 For a persistent terminal command:
@@ -17,7 +16,7 @@ For a persistent terminal command:
 ```sh
 npm install --global @limecloud/shou
 shou --help
-shou skills read --json
+shou capabilities --json
 ```
 
 Cleanup and restoration retain the native CLI's explicit interactive confirmation.
@@ -26,45 +25,51 @@ Full Disk Access, or enable AI connections. Ordinary scanning and cleanup run
 locally without a model. Optional AI investigation uses an explicitly configured
 service.
 
-The executable is ad-hoc signed and not Apple-notarized. Terminal privacy access
-and desktop privacy access are independent. This release supports macOS only.
-Windows support is planned under the same `@limecloud/shou` package name and
-`shou` command, using a native .NET CLI. Windows packages are not available yet.
+Version `0.12.0` supports **macOS 14 or later only**, on Apple Silicon
+and Intel, using an ad-hoc signed executable without Apple notarization. Terminal
+and desktop privacy access are independent. Windows packages are not published.
+The source template is private and must be staged before publication. Routing and
+packaging source do not establish Windows release support. Minimum Windows support is Windows 11 build
+22000 on x64 or ARM64, subject to native acceptance.
 
 The [npm distribution plan](https://github.com/limecloud/shou/blob/main/docs/engineering/npm-distribution.md) defines
-platform selection, native payloads and release acceptance. The current package
-manifest and staging script remain macOS-only until those checks pass.
+platform selection, local staging, native payloads and release acceptance.
+Each binary reports its actual features through `capabilities --json`.
 
 - [Shou project and desktop downloads](https://github.com/limecloud/shou)
-- [CLI contract](https://github.com/limecloud/shou/blob/7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc/docs/ai/agent-and-cli-contract.md)
-- [Installation and permissions](https://github.com/limecloud/shou/blob/7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc/docs/product/installation-and-access.md)
+- [CLI contract](https://github.com/limecloud/shou/blob/main/docs/ai/agent-and-cli-contract.md)
+- [Installation and permissions](https://github.com/limecloud/shou/blob/main/docs/product/installation-and-access.md)
 
 ## Building this package
 
-The published npm `0.11.0` payload was built from commit
-`7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc`. npm versions are immutable;
-later repairs to the GitHub `v0.11.0` release do not replace that npm payload.
-The receipt in `releases/0.11.0.json` records its source and registry integrity.
-Updated native code requires a new npm version before it can be published.
+Each release records native source state and final hashes in `BUILD.json`.
+Registry publication receipts live in `releases/`. npm versions are immutable;
+updated native code requires a new npm version.
 
-Build both CLI architectures from an unchanged checkout of the recorded commit
-(or the matching release tag for an unpublished npm version) with Swift 6.2.3 or later:
-
-```sh
-swift build --jobs 4 -c release --arch arm64 --product shou
-swift build --jobs 4 -c release --arch x86_64 --product shou
-```
-
-From the repository root, stage the npm payload and pack it:
+Do not publish this source template directly. From the repository root, stage
+one native package per OS/architecture, then stage the launcher with their exact
+versions. For an existing Windows x64 development payload:
 
 ```sh
-python3 "scripts/package-npm.py" --source "/path/to/tag-checkout" --output ".build/npm-0.11.0"
-npm pack "./.build/npm-0.11.0" --pack-destination ".build"
+sh "scripts/build-windows-cli.sh" win-x64
+python3 "scripts/package-npm.py" platform --development --version 0.12.0-dev \
+  --platform win32-x64 --payload ".build/windows/publish/win-x64/cli" \
+  --licenses ".build/windows/publish/win-x64/cli/notices" --output ".build/npm/win32-x64"
+python3 "scripts/package-npm.py" launcher --development --version 0.12.0-dev \
+  --platform-package ".build/npm/win32-x64" --output ".build/npm/launcher"
 ```
 
-The staging script verifies that the source matches the recorded commit or release tag, combines
-both architectures, signs the executable, and checks its version and resources.
-`BUILD.json` records the native source commit and payload hashes. Publish only
-after testing the packed tarball in an isolated npm installation.
+On the matching native system, verify the local tarballs and installation:
 
-Apache-2.0. The bundled Swift AI SDK license is included separately.
+```sh
+python3 "scripts/verify-npm-distribution.py" --launcher ".build/npm/launcher" \
+  --platform-package ".build/npm/win32-x64" --output ".build/npm/verification"
+```
+
+Development output remains private and is never promoted to a release by this
+script. `BUILD.json` records source state, architecture, native/signature checks
+and hashes of final files. Release staging requires matching native execution,
+pre-signed artifacts and a clean source checkout. It preserves executable bytes.
+Complete all release checks before publishing native packages, then the launcher.
+
+Apache-2.0. Native platform packages include their dependency notices.

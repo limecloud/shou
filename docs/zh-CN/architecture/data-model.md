@@ -6,6 +6,8 @@ AI 连接、调查、证据、Jev 判断及检查点的已有字段，以及总�
 
 状态：开发合同。[Swift 模型](../../../packages/shou-core/Sources/Models.swift)已实现当前实体；完整状态流转与中断验收仍待完成。
 
+本文件的实体与安全语义跨端对齐，Swift 字段和已有记录读取策略属于 macOS 存储合同。Windows 使用独立的 C# 记录格式，见 [Windows 原生记录](#windows-原生记录)，不把平台存储布局作为共享 ABI。
+
 ## 1. 实体关系
 
 ```mermaid
@@ -59,6 +61,41 @@ erDiagram
 | PrivacyScan | 固定范围、用户目录及配置身份、来源汇总观察、过期时间 | 仅数量与来源描述，来源可用不授予删除权限 |
 | PrivacyPlan | 确切可用来源、固定边界、证据、退出登录确认、摘要及状态 | 永久删除记录，仍需当前执行确认；最长有效五分钟 |
 | PrivacyReceipt / PrivacyItemResult | 来源 ID、固定边界、数量、逐项状态与脱敏错误 | 独立于文件删除历史，无记录内容、废纸篓路径或恢复能力 |
+
+## Windows 原生记录
+
+当前源码使用严格的版本化 JSON：拒绝未知或重复字段、无效引用、摘要不一致和不支持的版本。落盘确认字段不能授予执行权限。
+
+| 记录 | 版本／限制 | 合同 |
+| --- | --- | --- |
+| `Configuration` | 1／16 MiB | 修订、工作区根与身份、导入定义、绑定及全局排除；最多 256 个工作区、512 个规则版本、4,096 个绑定，每组排除最多 1,024 条模式 |
+| `Workspace` | 属于配置 | `ws_` ID、`root_ref`、Windows 绝对路径、卷／File ID／owner SID、目录大小写行为、自身排除与 UTC 注册时间；根替换后不静默重绑定 |
+| `CleanupScan` | 1／128 MiB | `scan_` ID、完整工作区、扫描预算、配置修订与摘要、确切规则定义与摘要数组、测量树、候选、分析缺口及 `preview_only` |
+| `ScanSnapshot` | 属于扫描 | 根身份、UTC 开始时间、条目、问题及必填的 `completed_directories`；逐目录正向完整证据保留部分覆盖中的完整兄弟目标 |
+| `CleanupPlan` | 2／128 MiB | `plan_` ID、`sources` 中的扫描 ID／工作区身份／规则、共同配置与预算、动作、目标清单及上下文和摘要；每个项目的 `scan_id` 绑定一个来源，总计明确选择 1–256 个互不重叠目标，有效十分钟 |
+| `CleanupExecution` | 1／1 MiB | 与计划一一对应的 `execution_` ID、计划摘要、动作、UTC 时间、总体及逐项状态；意图存在后禁止重放 |
+| `ApplicationUninstallPlan` | 1／128 KiB | `uninstall_plan_` ID、当前用户 SID、UTC 创建／过期时间、完整安装审阅、显式安装程序数据影响同意与摘要；有效十五分钟，公开执行入口关闭 |
+| `ApplicationUninstallExecution` | 1／16 KiB | 每计划一个 `uninstall_execution_` ID、计划摘要／用户／UTC 时间、`uninstalling` 意图及分离的原生结果／安装身份观察；任何意图阻止重放 |
+
+同 ID／版本导入不同内容返回 `version_conflict`；导入新版本不自动升级已有绑定。扫描合并全局、工作区和规则排除。配置变化生成新修订，扫描发布时在存储租约内重读并比较当前配置摘要。普通扫描冻结全部启用版本；草稿预览仅包含指定规则并标记 `preview_only=true`，不能成为计划来源。
+
+内置定义仅从当前包内目录生成，默认启用。内置 `RuleBinding` 按工作区和稳定规则 ID 保存 `Enabled` 偏好；其中版本与摘要是上次选择的元数据，不是可注入的定义，也不固定后续扫描使用旧资源。资源升级保留停用偏好，未知但格式有效的历史偏好不产生规则。个人规则不能导入 `shou.builtin.` 命名空间。普通扫描冻结实际使用的当前内置定义；规划与确认重新比较有效规则版本及摘要，资源变化使旧证据失效。
+
+位置发现返回配置修订、候选路径、来源、可用状态、问题及已核验身份，属于临时观察。整批登记先重查身份，并在同一配置事务中拒绝修订变化或重叠范围；不将发现清单当作持久授权。批量扫描按每个工作区分别保存 `CleanupScan`，不存在合并主目录计划。临时 `SystemScan` 仅组合这些快照、`issues` 和 `state`；界面已配置位置批次可返回 `complete`、`partial` 或 `cancelled`。取消保留此前已发布扫描，不授予计划或执行权限。
+
+应用注册发现不独立落盘。`ApplicationCatalogSnapshot` 由 `applications_` 观察 ID、UTC 时间、状态、应用数组、逐来源覆盖和限制组成。每个应用的稳定 `application_` ID 取来源与精确注册键的 SHA-256；包含 `source`、`registration_key`、`name`、可空版本／发布者／未核验安装位置／注册大小、`is_system_package`、`uses_windows_installer` 与问题。注册大小单位为 bytes，仅转换安装程序 KiB 估计。ID 不是文件身份或卸载许可。`ApplicationCatalogPage` 返回 `snapshot_id`、筛选总数、偏移、条目和 `has_next`；GUI 保留快照，CLI 跨调用不保留。来源和预算合同见[应用发现](../product/application-uninstall.md#windows-应用发现与卸载边界)。
+
+`ApplicationUninstallReview` 保存精确注册、系统安装身份、可空目录身份、保护与问题、`activity` 状态／原因、UTC 观察时间、阻断、警告及摘要。摘要排除观察时间，绑定其余事实；MSI 身份包括 ProductCode／PackageCode／上下文／SID，MSIX 包括精确 full name／family name／SID。审阅不独立落盘，创建计划时重新观察并作为计划内容保存。可准备计划必须具有已核验目录身份与 `idle` 活动观察；该观察只描述当次安装目录，不授予未来执行。计划使用同一私有存储租约，拒绝未知／重复字段、无效身份、错误所有者、缺少同意及摘要不一致；本地摘要不是防篡改签名。读取计划不复核当前安装，也不授予执行；`execution_available` 为只读的 `false`，篡改 JSON 布尔值不能改变能力。`ApplicationUninstallConsent` 为不可序列化的进程内一次性确认，绑定精确计划／摘要，有效期不超过一分钟和计划期限。`ApplicationUninstallExecution` 分别保存 `outcome` 与独立的 `presence`、原生状态码、重启要求和原因；只有安装程序成功且原身份不存在才为 `completed`，未完成意图或未知结果要求后续核验。`RetryAvailable` 与 `RestoreAvailable` 始终为 false；只读结果查询验证计划绑定，不刷新现场或授予重放。
+
+候选保存身份、相对路径、分配／逻辑容量估计、最新修改时间、风险、覆盖、阻止原因，以及完整目标的目录清单摘要。`review` 表示可供审阅；公开 CLI 仍返回 `execution_available=false`，变更能力须等待原生验收。分页结果保留配置来源与草稿标记，游标绑定扫描 ID、保存字节与偏移；已保存观察不能代替执行前实时核验。
+
+`ApplicationUninstallViewModel` 的 `ExecutionPlanId` 仅为页面内查询上下文，不是存储授权。执行开始即清空可执行计划、审阅与数据同意；`Executing` 持续到领域任务返回，停止请求不能丢弃真实执行结果。`ReadingExecution` 可取消并丢弃迟到读取，结果必须匹配计划 ID、摘要和用户。错误保留查询上下文，刷新、重新选择或销毁会清除它。
+
+Core 计划与执行编排已用模拟能力接口测试。CLI 已组装计划创建和原生适配，执行入口保持关闭，等待原生验收。规划时重新观察确切文件占用，以及固定工具已核验工作目录与项目的重叠；未知活动阻断，活动观察不作为可复用的确认记录。计划摘要绑定所有冻结字段；当前确认仅存在于服务实例中，最长一分钟、单次消费且不超过计划期限，不能从存储恢复。执行日志与大清单分开保存；逐项先记录 `purging`／`moving`，再记录实际结果。日志失败停止派发，未完成意图保持不确定，不能根据缺失回执重放。
+
+历史列表仅验证执行日志结构，明确返回 `plan_verified=false`；详情与现场核对须重读计划，校验摘要、动作、当前用户身份、时间与逐项结果。`trashed` 回执要求零移除计数、新位置和原始根身份；最终总体状态必须与逐项状态一致。列表游标绑定整个日志集合的原始字节摘要与页大小。核对持同一只读租约，共用所有位置的条目与时间预算；观察不更新日志、不授予恢复、不将未完成意图升级为成功。命令、位置状态和现场评估见 [Windows 历史指南](../engineering/windows.md#历史查询与现场核对)。恢复仍未实现。
+
+Windows 自主管理数据根和 ACL，发布保证单条记录原子替换，不保证多记录事务。当前格式与限制独立于 macOS 存储版本、CLI API `1.0` 和规则 Schema `1.0`。命令、预算与私有存储行为见 [Windows 开发](../engineering/windows.md)，验证证据见 [SYNC.md](../../../SYNC.md)。
 
 ## 3. 规则状态
 
@@ -212,6 +249,10 @@ stateDiagram-v2
 
 ## 11. 启动项发现
 
+Windows 使用独立的临时 `StartupSnapshot`／`StartupPage`，包含 `startup_` 观察 ID、UTC 时间、状态、十项来源覆盖、条目及明确限制。`startup_item_` ID 对来源与注册 key 求摘要；注册表名称与计划任务标识忽略大小写，文件夹路径保留观察到的大小写；调度器路径不是文件路径，XML 和任务参数不进入条目；打包声明的 key 绑定包版本、应用 ID 和区分大小写的 TaskId 摘要，不能根据清单 Enabled 推断实际状态。条目不含命令行、参数或环境变量值。可空的可执行／配置路径仅是元数据线索，`enablement=unknown`、`running_state=not_observed`、`is_orphan=null`、`control_available=false`。来源状态为 `complete`、`missing`、`partial`、`unavailable`、`not_read`，超时来源计数可以为 null。界面查询同一不可变快照，CLI 每次重新观察，不提供跨调用 cursor。观察不持久化，也不授予变更权限。来源、预算及解析以 [Windows 启动项合同](../product/startup-items.md#windows-启动项合同)为准。
+
+`StartupItem.scheduled_task` 为 null 或含布尔 `enabled` 与 `state`（`unknown`、`disabled`、`queued`、`ready`、`running`）的 `ScheduledTaskStatus`，仅允许 `scheduled_tasks` 来源提供。Platform 双读公开任务属性并复核定义，Core 校验来源与枚举。状态缺口保留注册，在条目与来源记录问题并标为 partial。任务引擎状态不改变 `enablement`、`running_state`、残留或控制字段；新快照不继承旧状态。
+
 `StartupInventory` 是独立于清理存储的临时读取结果。`StartupDefinition` 保留来源／确切路径、标签、可选的绝对可执行路径、触发线索和仅来自定义的 Disabled 提示。当前用户 LaunchAgent 的配置状态与运行状态是有界、瞬时的 `launchctl` 观察；查询不可用或超时仍为 `unknown`，这些事实不产生执行权限。`StartupSourceCoverage` 区分已检查、不存在、部分完成、不可用及未检查。`launchd_definitions` 范围和明确列出的范围外来源，避免把完整读取指定目录误认为完整枚举 macOS 注册。见[启动项发现](../product/startup-items.md)。
 
 
@@ -258,3 +299,19 @@ macOS 空间索引按 device/inode/owner 记录原生身份，按现有格式版
 | 项目 | `pending` → `executing` → `completed` 或 `failed`；尚未开始的项目可转为 `cancelled`。逐项意图前的身份或活动检查失败可由 `pending` 直接转为 `failed` |
 
 先保存计划执行意图，再保存回执；事务前先保存逐项意图。崩溃或结果写入失败可能留下 `executing` 或 `pending`，这些状态均不能证明未发生变更，不升级为成功，也不自动重试。数据库独立提交，后续来源失败不撤销先前已完成的来源。隐私没有恢复后续操作模型；逻辑删除记录不证明法证擦除或空间释放。
+
+## Windows 计划任务开关记录
+
+`StartupControlTask` 保存确切任务标识、不透明定义摘要、当前执行者 SID、开关及所有者／主体／上下文资格；其他账号只保留不匹配布尔值。`StartupControlReview` 格式版本为 1，ID 为 `startup_control_<32 hex>`，包含动作、任务事实、UTC 创建／五分钟过期时间、阻断原因和摘要。摘要绑定动作、事实与阻断原因，不含随机 ID 或时间。审阅只在内存存在；持久化对象不包含可恢复的执行批准。
+
+`StartupControlExecution` 以相同 ID 保存格式版本 1、内嵌审阅、开始／更新时间、`applying|completed|failed|cancelled|unknown` 与可空结果。结果分别保存原生 `applied|not_started|unknown`、可空 `observed_enabled`、`definition_matches` 及结构化原因。只有原生已返回且定义／身份一致、开关符合请求才是 completed；applying／unknown 要求独立观察。记录限制 256 KiB，使用当前用户私有存储与现有变更租约；已有意图拒绝再次执行，查询不会重放或恢复授权。此链路与不打开存储的启动发现分开。具体资格和生命周期以[启动项合同](../product/startup-items.md#计划任务开关审阅与控制)为准。
+
+## Windows 隐私观察
+
+Windows 经现有私有 `IRecordStore` 保存 `privacy_scan_<id>`。`PrivacyScan` 版本 1 包含 `id`、UTC `created_at`／`expires_at`、固定 `window`（`range`、可空 `start`、`end`）、`configuration_digest`、`sources`、`issues`、`complete` 和 `digest`；摘要计算清空自身字段。本平台 JSON 的范围枚举为 `last_hour`、`last_day`、`last_seven_days`、`all_time`，CLI 参数继续使用连字符。过期观察仍可读取供审阅，不授予操作权限。
+
+来源绑定标准 `PrivacySourceDefinition`（`id`、浏览器、profile、种类、固定数据库位置及路径）、状态、可空数量／原因／结构摘要和身份／ACL 证据。`ready`、`empty` 必须包含非负数量、结构摘要、AppData anchor 至父级的完整目录证据、一个主数据库及可选非空 WAL。全部条目身份唯一、当前用户所有且同卷，文件只允许一个硬链接。其他状态（`browser_running`、`activity_unknown`、`permission_required`、`schema_unsupported`、`unavailable`、`excluded`）仅含脱敏原因，不含数量或证据。缺口仅为浏览器／错误码。读取严格校验版本、未知字段、固定来源、状态、完整证据及摘要，损坏记录不能变成可用观察；记录上限 16 MiB。
+
+`PrivacyPlan` 版本 1 另存为 `privacy_plan_<id>`，绑定扫描 ID／摘要、当前用户 SID、UTC 创建／过期时间、固定窗口、配置摘要、确切来源观察、Cookie 影响同意及自身摘要。最多选择 256 个具有正数量的 ready 来源，记录上限 8 MiB；来源顺序及证据必须与原扫描一致。保存的同意字段不能替代内存中的 `PrivacyConsent`；后者绑定当前服务、计划与摘要，一分钟内单次使用，且不能超过计划期限。
+
+`PrivacyReceipt` 使用从计划 ID 确定的 `privacy_receipt_<id>`，版本 1，记录计划 ID／摘要、窗口、UTC 开始／更新时间、整批 `executing|completed|partial`、逐项状态及自身摘要，上限 128 KiB。逐项仅含来源 ID、`pending|executing|completed|failed|cancelled|skipped|unknown`、可空移除数量和受控原因码。回执不保存路径、profile、SID、SQL 或浏览记录。整批意图存在即禁止重放；逐项意图及结果写入失败不推定操作未开始，查询也不授予重试权。原生事务适配和公开入口接入待实现，见[隐私实施边界](../engineering/privacy-cleaning.md#windows-平台边界)。

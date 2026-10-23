@@ -13,15 +13,15 @@
 
 让现有 AI Agent 为你定制清理规则的原生 macOS 清理工具。告诉 Codex、Claude Code 或 WorkBuddy 哪些目录占空间、哪些内容要保留，由它追问、分析并编写可复用规则；Shou 在本地完成扫描、校验、预览与清理。
 
-Shou v0.11.0 为 macOS 新增可选内置 AI 调查、按应用分组的启动项控制，并扩展开发缓存规则。支持流程与验收边界见 [AI 实现记录](docs/zh-CN/engineering/embedded-ai-implementation.md)和[验收矩阵](docs/zh-CN/engineering/embedded-ai-acceptance.md)。
+Shou v0.12.0 改进选中文件的清理操作、永久删除进度与共享设计资源。npm CLI 使用统一安装入口和精确版本的原生平台包。详见[发布说明](https://github.com/limecloud/shou/releases/tag/v0.12.0)和[npm 分发](docs/zh-CN/engineering/npm-distribution.md)。
 
 ## 下载与安装
 
-下载 Shou v0.11.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
+下载 Shou v0.12.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
 
-[**Shou v0.11.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.11.0/Shou-0.11.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.11.0/shou-0.11.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.12.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.12.0/shou-0.12.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-v0.11.0 仅发布 macOS 版本。Windows 采用 WinUI 3/.NET 原生方案，当前尚无构建与发行包，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
+v0.12.0 仅发布 macOS 版本。Windows 采用独立的 WinUI 3/.NET 10 原生实现，当前开发中，发行包待原生验收完成，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
 
 此版本使用 ad-hoc 签名，尚未经过 Apple 公证。如 macOS 阻止首次打开，请先确认下载来源，再查看**系统设置 → 隐私与安全性 → 仍要打开**。
 

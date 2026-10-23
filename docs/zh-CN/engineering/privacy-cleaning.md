@@ -6,7 +6,7 @@
 
 ## 来源支持
 
-| 来源 | 已实现范围 | 边界 |
+| 来源 | macOS 已实现范围 | 边界 |
 | --- | --- | --- |
 | Chrome、Chromium、Edge、Brave 历史 | 标准 `Default`、`Profile N` 配置；访问记录及已知关联表；校准剩余 URL 数量与时间 | 按结构校验数据库，拒绝浏览器专用触发器；保留下载历史 |
 | Chromium Cookie | 精确的旧版 `Cookies` 或新版 `Network/Cookies` 数据库 | 时间依据最后访问时间，非创建或过期时间；必须另外确认退出登录影响 |
@@ -19,7 +19,81 @@
 
 ### Windows 平台边界
 
-Windows 隐私能力待实现，使用独立 C# 来源策略、系统访问与数据库适配。必须明确 profile、数据种类、时间范围与退出登录同意，并验证 ACL、句柄、reparse point、SQLite sidecar 与当前身份。macOS 的 Swift 适配不用于 Windows。见[原生方案](windows-native-plan.md)。
+Windows 已有独立 C# 只读扫描、CLI 和 WinUI 页面源码。支持固定位置的 Chrome、Chromium、Edge、Brave 历史及 Cookie，以及 Firefox 基础历史结构与 Cookie；不包含 Safari。页面初始不扫描，由用户选择时间范围并明确开始。Core 已实现独立隐私计划、当前确认、执行编排与脱敏回执；原生事务删除适配及其 CLI／WinUI 接入待实现，只读数量不能作为删除授权。原生运行、ACL、SQLite sidecar 和界面验收待完成。见[原生方案](windows-native-plan.md)。
+
+`PrivacyCleanupService` 复用现有记录租约，绑定同一扫描中的确切来源、时间窗口、配置及身份／结构／数量证据。计划最长五分钟，且不超过扫描期限；Cookie 退出登录影响同意独立于当前进程的一分钟单次执行确认。全部来源预检先于整批意图，逐项意图先于原生派发。停止会等待已派发操作的真实结果，日志失败禁止启动后续操作，未知结果停止后续来源。任何已有整批意图都阻止计划重放；脱敏回执仅供查询，不能恢复执行资格。
+
+```mermaid
+flowchart LR
+    Scan[不可变隐私扫描] --> Plan[确切来源与有期限计划]
+    Plan --> Consent[当前单次确认与 Cookie 影响同意]
+    Consent --> Preflight[租约内复核全部来源]
+    Preflight --> Intent[持久化整批及逐项意图]
+    Intent --> Native[原生事务接口 - 适配待实现]
+    Native --> Receipt[持久化脱敏结果]
+    Receipt --> Next{还有来源且结果确定且未停止?}
+    Next -->|是| Intent
+    Next -->|否| Stop[结束或停止并保留记录]
+```
+
+内存测试验证上述编排合同。该服务尚未接入公开入口，不提供 Windows 删除能力，也没有原生事务验收证据。
+
+`WindowsPrivacySourcePolicy` 使用系统实际返回的 Local/Roaming AppData，允许受支持的重定向本地目录。Chromium 只识别 `Default` 或 `Profile N`；Firefox 只识别固定 `Mozilla/Firefox/Profiles` 下的合法单组件目录，不读取外部 profile 配置。发现仅枚举元数据，最多 2,048 次条目工作、256 个 profile 和 768 个来源，十秒截止；发现缺口保持部分覆盖。完整扫描共享两分钟预算，保存十五分钟有效的版本 1 观察记录。
+
+`PrivacyScanService` 应用全局与相关工作区的祖先排除，保护自身数据及数据库、WAL、SHM、journal 的确切路径。每次查询前后检查已知浏览器进程名；运行中或观察未知时不发布可用数量。进程快照不证明数据库独占。`WindowsPrivacyDatabaseInspection` 固定从 AppData anchor 到数据库父级的普通目录和文件句柄，拒绝 reparse、外部所有者、数据库硬链接、跨卷和可由非信任身份写入的 ACL。数据库及 sidecar 句柄允许共享写入以兼容 SQLite，但始终不共享删除；目录、ACL、主数据库和非空 WAL 的前后证据必须一致。
+
+数据库适配使用 Windows 系统 `winsqlite3.dll` 的只读、无 CREATE、NOFOLLOW 连接和静态结构校验，只返回汇总数量与结构摘要，不读取网址、域名或 Cookie 值。拒绝触发器、视图、虚拟表、未知跨界外键、非整数时间和不支持的派生结构。单查询连接使用一秒繁忙等待、十五秒／五千万 VM 指令预算；取消后等待原生工作释放句柄。缺少必要 WAL 辅助文件时保持不可用，不使用写连接修复。此扫描不修改浏览器记录，不备份配置，也不提供清理按钮。
+
+```mermaid
+flowchart LR
+    GUI[WinUI 隐私页] --> State[Presentation 范围与扫描状态]
+    State --> Service[Core PrivacyScanService]
+    CLI[privacy scan / scan show] --> Service
+    Service --> Policy[Core 固定来源、时间与排除]
+    Service --> Activity[已知浏览器进程快照]
+    Service --> Native[Platform 当前身份、ACL 与固定句柄]
+    Native --> SQL[系统 SQLite 只读结构与 COUNT]
+    Service --> Store[同一记录存储内的配置租约与扫描摘要]
+```
+
+```mermaid
+flowchart TD
+    Start[用户选择范围并开始] --> Fixed[固定 UTC 边界与配置摘要]
+    Fixed --> Discover[有界发现固定 profile 元数据]
+    Discover --> Protect{来源允许且浏览器关闭?}
+    Protect -->|否或未知| Gap[记录脱敏来源状态与覆盖缺口]
+    Protect -->|是| Inspect[固定安全身份后只读汇总]
+    Inspect --> Recheck{身份、结构与活动复核通过?}
+    Recheck -->|否| Gap
+    Recheck -->|是| Count[保留数量、结构摘要与身份证据]
+    Gap --> Publish[租约内复核配置与期限]
+    Count --> Publish
+    Publish --> Result[保存观察并展示完整或部分覆盖]
+```
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Client as WinUI 或 CLI
+    participant Core as PrivacyScanService
+    participant Native as Windows 身份与活动适配
+    participant DB as 系统 SQLite
+    participant Store as RecordStore
+    User->>Client: 明确开始只读扫描
+    Client->>Core: 固定时间范围
+    Core->>Store: 读取配置摘要
+    Core->>Native: 有界发现及排除、活动检查
+    loop 每个允许且关闭的来源
+        Core->>Native: 固定目录、数据库与辅助文件句柄
+        Native->>DB: 只读结构校验与汇总 COUNT
+        DB-->>Native: 数量和结构摘要
+        Native-->>Core: 前后相同的身份、ACL 及数据证据
+        Core->>Native: 再查浏览器活动
+    end
+    Core->>Store: 租约内复核配置及期限，保存观察
+    Core-->>Client: 数量、来源状态与覆盖缺口
+    Client-->>User: 仅展示观察，不授予删除
+```
 
 ## 范围与执行
 
@@ -38,6 +112,8 @@ Windows 隐私能力待实现，使用独立 C# 来源策略、系统访问与�
 这是逻辑删除记录，不是法证擦除。SQLite 空闲页、WAL/回滚日志、备份及浏览器同步仍可能保留痕迹。Shou 不执行 `VACUUM`，不承诺释放空间，不将隐私记录移入废纸篓，也不提供恢复。文件身份检查降低替换风险，但不能对抗恶意进程持续替换祖先目录形成操作系统级事务；请关闭其他会写入同一浏览器数据库的工具。
 
 ## 架构
+
+以下结构描述 macOS 实现；Windows 只读链路见上文平台边界。
 
 ```mermaid
 flowchart LR

@@ -2,16 +2,24 @@ import Foundation
 
 /// Conventional project collections are discovery hints, never deletion rules.
 public enum ProjectLocations {
-    public static let relativePaths = [
-        "Developer", "Projects", "Code", "code", "dev", "src", "repos", "GitHub",
-        "Workspace", "Workspaces", "workspace", "workspaces", "Development", "Source", "Sources", "Git", "Repos",
-        "Documents/Developer", "Documents/Projects", "Documents/Code", "Documents/dev", "Documents/GitHub",
-        "Documents/Workspace", "Documents/Workspaces", "Documents/Development", "Documents/repos", "Documents/src",
-        "Desktop/Projects", "Desktop/Code", "Desktop/dev"
-    ]
+    private static let definitions: Result<[String], Error> = Result {
+        guard let url=CoreResources.bundle.url(forResource: "project-locations", withExtension: "json") else {
+            throw ShouError("io_error", "Project location hints are unavailable.")
+        }
+        let paths=try JSONDecoder().decode([String].self, from: Data(contentsOf: url))
+        guard !paths.isEmpty, paths.count <= 64, Set(paths).count == paths.count else {
+            throw ShouError("invalid_rule", "Project location hints are invalid.")
+        }
+        for path in paths {
+            try PathPattern.validate(path)
+            guard !path.contains("*"), !path.contains("?") else { throw ShouError("invalid_rule", "Project location hints must be exact relative paths.") }
+        }
+        return paths
+    }
+    public static var relativePaths: [String] { get throws { try definitions.get() } }
 
-    public static func isConventional(_ path: String, homeDirectory: URL, platform: String) -> Bool {
-        relativePaths.contains { pathsOverlap(path, homeDirectory.appendingPathComponent($0).path, platform: platform) }
+    public static func isConventional(_ path: String, homeDirectory: URL, platform: String) throws -> Bool {
+        try relativePaths.contains { pathsOverlap(path, homeDirectory.appendingPathComponent($0).path, platform: platform) }
     }
     static func pathsOverlap(_ first: String, _ second: String, platform: String) -> Bool {
         let a=KnownLocations.pathKey(first, platform: platform), b=KnownLocations.pathKey(second, platform: platform)
@@ -28,7 +36,7 @@ extension ShouEngine {
         let roots=try configuration().workspaces.filter { !cachePaths.contains(KnownLocations.pathKey($0.path, platform: filesystem.platform)) }
         var locations=roots.map { projectLocation(path: $0.path, id: $0.id) }
         var identities=roots.map(\.identity)
-        for relative in ProjectLocations.relativePaths {
+        for relative in try ProjectLocations.relativePaths {
             if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
             let path=homeDirectory.appendingPathComponent(relative, isDirectory: true).path
             guard !locations.contains(where: { ProjectLocations.pathsOverlap($0.path, path, platform: filesystem.platform) }) else { continue }

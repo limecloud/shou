@@ -16,8 +16,8 @@ import Accessibility
             ContentView(model: model)
                 .environment(\.locale, model.language.locale)
                 .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
-                .tint(Color(red: 0.78, green: 0.34, blue: 0.03))
-                .accentColor(Color(red: 0.78, green: 0.34, blue: 0.03))
+                .tint(ShouDesign.accent)
+                .accentColor(ShouDesign.accent)
                 .frame(minWidth: 900, minHeight: 620)
                 .background(OperationWindowGuard(model: model))
                 .task { applicationDelegate.model=model; await model.initialize() }

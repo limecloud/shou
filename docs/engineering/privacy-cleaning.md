@@ -6,7 +6,7 @@ Privacy cleaning is a separate, manual domain. It queries aggregate counts and t
 
 ## Source support
 
-| Source | Implemented scope | Boundary |
+| Source | macOS implemented scope | Boundary |
 | --- | --- | --- |
 | Chrome, Chromium, Edge, Brave history | Standard `Default` and `Profile N` profiles; visits and their known associations; remaining URL counts and timestamps are updated | Structural schema validation; browser-specific triggers are rejected. Download history is preserved |
 | Chromium cookies | Exact legacy `Cookies` or current `Network/Cookies` database | Time filter uses last access, not creation or expiry. Separate sign-out consent is required |
@@ -19,7 +19,81 @@ Custom profile locations, Firefox external profiles, beta/channel variants with 
 
 ### Windows platform boundary
 
-Windows privacy is planned, with independent C# source policy, access and database adapters. Define profile, data kinds, time range and sign-out consent explicitly, and verify ACLs, handles, reparse points, SQLite sidecars and current identities. The macOS Swift adapter does not implement Windows. See the [native plan](windows-native-plan.md).
+Windows has independent C# read-only scan, CLI and WinUI page source. Fixed Chrome, Chromium, Edge and Brave history/cookies and supported basic Firefox history/cookie structures are covered; Safari is outside this scope. Navigation does not scan automatically: the user chooses a range and starts scanning. Core implements separate privacy plans, current confirmation, execution orchestration and sanitized receipts. Native transactional mutation and its CLI/WinUI integration remain pending. Counts grant no deletion authority. Native runtime, ACL, SQLite sidecar and UI acceptance remain pending. See the [native plan](windows-native-plan.md).
+
+`PrivacyCleanupService` reuses the existing record lease and binds exact sources from one scan, the time window, configuration and identity/schema/count evidence. Plans last at most five minutes and never outlive the scan. Cookie sign-out acknowledgement is separate from the current process's single-use confirmation, which lasts at most one minute. All-source preflight precedes batch intent; item intent precedes native dispatch. Stopping waits for actual dispatched outcomes. Journal failure prevents further dispatch, and unknown outcomes stop later sources. Any durable batch intent blocks replay. Sanitized receipts support inspection without renewing execution authority.
+
+```mermaid
+flowchart LR
+    Scan[Immutable privacy scan] --> Plan[Exact sources and expiring plan]
+    Plan --> Consent[Current single-use confirmation and Cookie impact acknowledgement]
+    Consent --> Preflight[Recheck all sources under lease]
+    Preflight --> Intent[Persist batch and item intents]
+    Intent --> Native[Native transaction interface - adapter pending]
+    Native --> Receipt[Persist sanitized outcomes]
+    Receipt --> Next{More sources, known outcome and no stop?}
+    Next -->|Yes| Intent
+    Next -->|No| Stop[Finish or stop and retain records]
+```
+
+Memory tests verify this orchestration contract. The service is not wired to public entry points and provides no Windows deletion capability or native transaction acceptance evidence.
+
+`WindowsPrivacySourcePolicy` uses the actual Local/Roaming AppData returned by Windows, including supported redirected local directories. Chromium profiles are limited to `Default` or `Profile N`; Firefox uses valid single-component directories beneath fixed `Mozilla/Firefox/Profiles`, without external profile configuration. Discovery reads metadata only, with a ten-second deadline and limits of 2,048 entries of work, 256 profiles and 768 sources. Gaps remain partial coverage. The complete scan shares a two-minute budget and saves version 1 observations valid for fifteen minutes.
+
+`PrivacyScanService` applies global and matching workspace ancestor exclusions, protects its own data and checks exact database/WAL/SHM/journal paths. Known browser executable names are observed before and after each query. Active or unknown observations do not publish usable counts; process snapshots do not prove exclusive database access. `WindowsPrivacyDatabaseInspection` pins ordinary directories from the AppData anchor to the database parent and rejects reparse points, foreign owners, hard-linked databases, cross-volume evidence and ACLs writable by untrusted identities. Database/sidecar pins permit shared writes required by SQLite and never share deletion. Directory, ACL, main-database and nonempty-WAL evidence must match before and after inspection.
+
+The adapter uses Windows system `winsqlite3.dll` with read-only, no-CREATE, NOFOLLOW connections and static schema validation. Only aggregate counts and a schema digest are returned, without reading URLs, domains or cookie values. Triggers, views, virtual tables, unknown crossing foreign keys, noninteger timestamps and unsupported derived structures are rejected. Each connection has a one-second busy wait and fifteen-second/fifty-million-VM-instruction query budget. Cancellation waits for native work to release handles. Missing necessary WAL sidecars remain unavailable, without write-mode repairs. Scanning neither changes browser records nor backs up profiles, and the page exposes no cleanup action.
+
+```mermaid
+flowchart LR
+    GUI[WinUI privacy page] --> State[Presentation range and scan state]
+    State --> Service[Core PrivacyScanService]
+    CLI[privacy scan / scan show] --> Service
+    Service --> Policy[Core fixed sources, time and exclusions]
+    Service --> Activity[Known browser process snapshot]
+    Service --> Native[Platform current identity, ACL and pinned handles]
+    Native --> SQL[System SQLite read-only schema and COUNT]
+    Service --> Store[Shared record-store configuration lease and scan digest]
+```
+
+```mermaid
+flowchart TD
+    Start[User chooses range and starts] --> Fixed[Freeze UTC boundaries and configuration digest]
+    Fixed --> Discover[Bounded fixed-profile metadata discovery]
+    Discover --> Protect{Source allowed and browser closed?}
+    Protect -->|No or unknown| Gap[Record redacted source state and coverage gap]
+    Protect -->|Yes| Inspect[Pin safe identities and read aggregate]
+    Inspect --> Recheck{Identity, schema and activity recheck passed?}
+    Recheck -->|No| Gap
+    Recheck -->|Yes| Count[Keep count, schema digest and identity evidence]
+    Gap --> Publish[Recheck configuration and expiry under lease]
+    Count --> Publish
+    Publish --> Result[Save observation and show complete or partial coverage]
+```
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant Client as WinUI or CLI
+    participant Core as PrivacyScanService
+    participant Native as Windows identity and activity adapters
+    participant DB as System SQLite
+    participant Store as RecordStore
+    User->>Client: Explicitly start read-only scan
+    Client->>Core: Fixed time range
+    Core->>Store: Read configuration digest
+    Core->>Native: Bounded discovery, exclusions and activity checks
+    loop Each allowed closed-browser source
+        Core->>Native: Pin directories, database and sidecar handles
+        Native->>DB: Read-only schema validation and aggregate COUNT
+        DB-->>Native: Count and schema digest
+        Native-->>Core: Matching before/after identities, ACLs and data evidence
+        Core->>Native: Recheck browser activity
+    end
+    Core->>Store: Recheck configuration and expiry under lease, save observation
+    Core-->>Client: Counts, source states and coverage gaps
+    Client-->>User: Observation only, without deletion authority
+```
 
 ## Scope and execution
 
@@ -38,6 +112,8 @@ Each database uses its own immediate transaction. Any failed statement or verifi
 This is logical record deletion, not forensic erasure. SQLite free pages, WAL/journal history, backups and browser sync can retain traces. Shou does not run `VACUUM`, promise recovered disk space, move records to Trash or offer restoration for privacy executions. Filesystem identity checks reduce replacement risk; they do not provide an operating-system transaction against a hostile process repeatedly replacing ancestors. Close other tools that write the same browser database.
 
 ## Architecture
+
+This structure describes macOS. The Windows read-only chain is defined in the platform boundary above.
 
 ```mermaid
 flowchart LR

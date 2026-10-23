@@ -1,33 +1,21 @@
-Shou v0.11.0 for macOS adds optional built-in AI investigation, application-grouped startup management and expanded cleanup rules.
+Shou v0.12.0 improves macOS cleanup and introduces exact-version native packages behind the single `@limecloud/shou` npm entry.
 
-- Built-in AI investigation is off by default. Configure compatible Responses, Chat Completions or Anthropic Messages connections independently from structured decisions. Local answers and Jev decisions run before disclosed main-model escalation. The native inspector retains scope, questions, cancellation, findings and per-service request/token usage.
-- Start an investigation from Smart Cleanup, Space Analysis, Large Files or Rules. Tools read bounded saved-index metadata; they cannot run Shell commands or delete files. Suggestions import as independent disabled rules and reuse preview, explicit enablement, fresh scans and cleanup confirmation. Interrupted investigations retain findings and pending questions; connection removal is recoverable.
-- Group macOS startup registrations by verified application identity, filter enabled/disabled/leftover states and inspect registrations inline. Eligible agents, third-party system daemons and native login items have confirmed controls; system daemons require macOS administrator authorization. Unsupported or uncertain registrations remain explicit.
-- Expand developer cleanup to Gradle, Flutter/Dart, CMake, Maven, Node.js outputs, Python analysis caches, pnpm and browser-automation runtimes. Add an inspectable built-in rule catalog and targeted rule scans. Project markers, source/credential protection, activity checks and high-risk selection still apply.
-- Improve application Trash handling and cross-volume selection. Add reviewed external-agent Skill setup and preserve separate confirmation for cleanup and configuration changes.
+- Review checked files and directories in Space Analysis and Large Files, then confirm the frozen selection with the primary delete action. The action bar shows selection count and estimated size.
+- Permanent removal reports progress and reuses verified directory handles. Replaced roots, new entries and hard-link changes remain blocked. Ordinary permission/I/O failures retain partial results and allow independent selected targets to continue; unknown outcomes and journal failures stop further work.
+- Share deterministic design tokens, localized text and project-location resources between independent native platform implementations. Architecture, workflows, sequence diagrams and developer instructions describe platform ownership and verification requirements.
+- Install the CLI with `npm install --global @limecloud/shou@0.12.0` or `npx @limecloud/shou@0.12.0 --help`. The launcher selects the matching macOS ARM64 or x64 package at the exact same version, without a compiler or additional binary download.
 
-Ordinary scans and cleanup remain local and require no model connection. Starting AI investigation sends only the disclosed bounded metadata and user answers to the selected services; file contents are not exposed by these tools. Credentials use macOS Keychain or an explicitly selected authentication source. AI output and confidence never authorize cleanup.
+Requires macOS 14 or later. The universal app and standalone CLI support Apple Silicon and Intel. Assets include DMG, ZIP, CLI archive, Sparkle-signed update feed and SHA256SUMS. The app is ad-hoc signed and is not Apple-notarized; updating may require granting Full Disk Access again. Permanent removal cannot be undone through Shou; moving files to Trash does not immediately free disk space.
 
-Requires macOS 14 or later. The universal app and independent CLI support Apple Silicon and Intel. Assets include DMG, ZIP, CLI archive, signed update feed and SHA256SUMS. Windows compilation and release packages are paused for reconstruction; v0.11.0 publishes macOS only.
+Windows uses independent C#/.NET 10 and WinUI 3 source. Native runtime, UI, signing, installation and update acceptance remain pending. This release contains no Windows downloads or Windows npm payloads.
 
-Permanent removal and owner-tool cleanup cannot be undone through Shou. Moving items to Trash does not immediately free disk space. The macOS app is ad-hoc signed and not Apple-notarized; updating may require granting Full Disk Access again. Existing macOS installations can use Check for Updates with signed archive/feed verification.
+简体中文：Shou v0.12.0 改进 macOS 清理体验，并为统一的 `@limecloud/shou` npm 入口提供精确版本的原生平台包。
 
-AI evidence includes synthetic protocol/routing/cancellation checks and selected macOS 15.8.1 Apple Silicon fixture/live-provider observations. It does not establish decision accuracy, broad provider compatibility, macOS 14 hardware, complete accessibility coverage or desktop recovery after restart. Startup mutation checks use isolated fixtures and injected executors; changes to real installed registrations remain a separate acceptance task.
+- 空间分析与大文件页通过勾选审阅文件和目录，操作栏显示数量与估算容量，主删除按钮确认冻结的当前选择。
+- 永久删除显示进度并复用已核验目录句柄；根替换、新增内容和硬链接变化仍会阻断。普通权限／I/O 错误保留部分结果，继续处理独立目标；未知结果或日志失败停止后续操作。
+- 两端独立原生实现共享确定性设计值、文案和项目目录资源；架构、流程、时序图与开发指南明确模块归属和验收要求。
+- 使用 `npm install --global @limecloud/shou@0.12.0` 或 `npx @limecloud/shou@0.12.0 --help` 安装 CLI；启动器自动选择相同版本的 macOS ARM64／x64 平台包，无需编译或额外下载二进制。
 
-The separately published npm package `@limecloud/shou@0.11.0` is an immutable macOS CLI build from commit `7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc`. It predates these release repairs; the repaired GitHub artifacts include the later changes. npm does not permit replacing an existing version.
+支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、Sparkle 签名更新订阅与 SHA256SUMS。应用使用 ad-hoc 签名，未经 Apple 公证，升级后可能需要重新授予完全磁盘访问权限。永久删除无法通过 Shou 撤销，移入废纸篓不立即释放空间。
 
-简体中文：Shou v0.11.0 为 macOS 新增可选内置 AI 调查、按应用分组的启动项管理，并扩展清理规则。
-
-- 内置 AI 默认关闭；兼容 Responses、Chat Completions、Anthropic Messages 的主模型与结构化决策可独立配置。本地处理与 Jev 决策优先，确需主模型时说明原因。原生检查器保留固定范围、追问、取消状态、已有发现与分服务请求／Token 用量。
-- 从智能清理、空间分析、大文件或规则进入调查。工具仅查询有上限的已有索引元数据，不执行 Shell 或删除文件；建议逐条导入为禁用规则，继续复用预览、明确启用、重新扫描和清理确认。AI 中断时保留已有发现与待回答问题，连接配置支持可恢复删除。
-- macOS 启动项按已验证的应用身份分组，支持启用／停用／残留筛选与行内详情。符合条件的代理、第三方系统守护项和原生登录项提供确认后的控制；系统守护项需要 macOS 管理员授权，不支持或不确定的注册项明确显示边界。
-- 扩展 Gradle、Flutter/Dart、CMake、Maven、Node.js 产物、Python 分析缓存、pnpm 及浏览器自动化运行库，新增内置规则浏览和指定规则扫描；保留项目标记、源文件／凭据保护、活动检查和高风险选择要求。
-- 改进应用移入废纸篓及跨卷选择，新增经审阅的外部 Agent Skill 配置；清理与配置变更继续分别确认。
-
-常规扫描、清理无需模型连接且在本地执行；启动 AI 调查才会向所选服务发送已披露的有限元数据与用户回答，工具不读取文件内容。凭据通过 macOS 钥匙串或明确指定的认证来源读取；模型输出和置信度不构成删除授权。
-
-支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、签名更新订阅和 SHA256SUMS。Windows 编译与发行包暂停，准备重构；v0.11.0 仅发布 macOS 版本。永久移除及工具清理无法通过 Shou 撤销，移入废纸篓不立即释放空间。macOS 版本使用 ad-hoc 签名、未经 Apple 公证，更新后可能需要重新授予磁盘访问权限。
-
-AI 证据包含模拟协议／路由／取消检查，以及 macOS 15.8.1 Apple Silicon 上指定服务和生成夹具的观察，不代表决策准确性、所有服务、macOS 14 硬件、完整无障碍或重启后桌面恢复验收。启动项变更自动化使用隔离夹具和注入执行器，真实已安装注册项的变更仍需独立验收。
-
-独立发布的 npm 包 `@limecloud/shou@0.11.0` 固定来自提交 `7c7dd0b6aa3f09a3cfbfd3a3ea0e32a8b6ef09dc`，是本轮发布修复之前的 macOS CLI。修复后的 GitHub 产物包含后续更新；npm 不允许覆盖已存在版本。
+Windows 使用独立 C#/.NET 10 与 WinUI 3 实现，原生运行、界面、签名、安装及更新验收待完成。本次不提供 Windows 下载或 Windows npm 产物。

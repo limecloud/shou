@@ -27,7 +27,7 @@ flowchart TD
     Issue --> Results
     State -->|是| Activity[应用活动与保护检查]
     Activity --> Results[分别展示可审阅与被阻止结果]
-    Results --> Select[在单一根中选择候选项]
+    Results --> Select[选择完整目标并保留来源绑定]
     Select --> Preview[生成具体计划并确认]
     Preview --> Recheck[逐项复核文件与应用状态]
     Recheck --> Receipt[记录移入、跳过、失败或未知]
@@ -278,6 +278,8 @@ sequenceDiagram
 
 ## 应用批量与隐私领域
 
+Windows 当前实现为固定来源发现 → 注册事实校验 → 不可变快照 → 搜索／排序／分页与详情；选择应用后可重新核验 MSI／MSIX 身份、单独允许安装程序数据影响、重新比较摘要并保存十五分钟计划。审阅与规划重新核验安装目录内的活动，活动或未知状态阻断；Core、CLI 与 WinUI 已有当前确认、持久化意图、系统卸载和结果查询源码；WinUI 另有停止等待及窗口生命周期保护，GUI 与 CLI 共用关闭的执行门禁，原生验收待完成。发现、准备和受控执行的专用流程图、时序图见[Windows 应用合同](../product/application-uninstall.md#windows-应用发现与卸载边界)。以下批量卸载流程不能作为 Windows 已支持的依据。
+
 应用卸载以增量摘要 → 行内组件 → 多应用选择 → 一次确认 → 批量预检 → 逐组件执行 → 共享历史为主流程；筛选不清空其他应用选择。默认永久卸载，废纸篓为独立可选动作。完整流程图、时序图及个人数据边界见[应用卸载](../product/application-uninstall.md)。
 
 隐私以来源／时间范围扫描 → 空初始选择 → Cookie 独立同意 → 精确计划 → 永久确认 → 全计划预检 → 按来源数据库事务 → 汇总回执为主流程。各来源独立提交，部分成功不回滚其他已提交来源；无恢复入口。完整架构图、流程图和时序图见[隐私清理](../engineering/privacy-cleaning.md)。
@@ -411,14 +413,14 @@ sequenceDiagram
 
 ## Windows 原生清理时序
 
-状态：目标合同，实现待开始。
+状态：清理目标合同。有界只读扫描与页面状态已有源码；原生验收、规则分类、计划与变更仍待完成。
 
 ```mermaid
 sequenceDiagram
     actor User
     participant App as WinUI App
     participant VM as Presentation
-    participant Core as C# Core
+    participant Core as CSharp Core
     participant Platform as Windows Platform
     participant Store as Local journal
     User->>App: Scan explicit scope
@@ -485,3 +487,54 @@ sequenceDiagram
 ```
 
 签名认证与发布为明确交付门槛，当前尚无 Windows 发布流水线。
+
+## Windows 计划任务开关
+
+以下图描述已有源码及关闭的公共门禁；系统控制、终端与界面仍待原生验收。范围和资格由[启动项合同](../product/startup-items.md#计划任务开关审阅与控制)维护。
+
+```mermaid
+flowchart TD
+    Task[选择确切开机或登录任务与动作] --> Review[只读审阅当前用户身份、定义与开关]
+    Review --> Eligible{资格符合且需要变更?}
+    Eligible -->|否| Block[展示阻断原因]
+    Eligible -->|是| Gate{公共门禁已通过原生验收?}
+    Gate -->|当前否| Pending[仅审阅，变更不可用]
+    Gate -->|是| Confirm[重查摘要并确认当前任务与动作]
+    Confirm --> Lease[变更租约下再次核验]
+    Lease --> Intent[先持久化 applying 意图]
+    Intent --> Native[仅设置任务 Enabled]
+    Native --> Observe[等待真实结果并回查定义、身份与开关]
+    Observe --> Journal[保存完成、未开始或未知结果]
+    Journal --> Lookup[保留操作 ID，只读查询，禁止重放]
+```
+
+```mermaid
+sequenceDiagram
+    actor User as 用户
+    participant Entry as WinUI 或 CLI
+    participant Core as StartupControlReviewer 与 Service
+    participant Store as 当前用户私有记录
+    participant OS as 本机 Task Scheduler
+    User->>Entry: 审阅确切任务与启用或禁用
+    Entry->>Core: 只读 inspect，不打开存储
+    Core->>OS: 读取并回查所有者、主体、定义与开关
+    OS-->>Core: 当前任务事实
+    Core-->>Entry: 五分钟内存审阅与阻断原因
+    User->>Entry: 请求变更
+    alt 当前公共门禁关闭
+        Entry-->>User: 变更不可用，不请求确认
+    else 原生验收后门禁开放
+        Entry->>Core: 执行当前内存审阅
+        Core->>OS: 重查同一任务摘要
+        Core->>User: 当前入口确认确切任务与动作
+        User-->>Core: 确认，最长一分钟
+        Core->>Store: 获取变更租约，拒绝已有意图
+        Core->>OS: 再次复核身份、定义、开关与期限
+        Core->>Store: 持久化 applying 意图
+        Core->>OS: 仅设置 Enabled，派发后等待真实返回
+        OS-->>Core: 调用结果及回读观察
+        Core->>Store: 保存结果，释放租约
+        Core-->>Entry: 操作 ID 与完成、未开始或未知结果
+    end
+    Note over Entry,OS: 停止不伪造取消；不自动重试、回滚、运行或删除任务
+```
