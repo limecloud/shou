@@ -46,9 +46,9 @@ def resources():
         'packages/shou-core/Sources/Resources/project-locations.json',
         'scripts/design_tokens.py',
     ]
-    strings = json.loads((ROOT / inputs[0]).read_text())['strings']
+    strings = json.loads((ROOT / inputs[0]).read_text(encoding='utf-8'))['strings']
     for source in (ROOT / 'apps/windows/src').rglob('*.cs'):
-        for key in re.findall(r'\btext\.Get\("([^"\\]+)"\)', source.read_text()):
+        for key in re.findall(r'\btext\.Get\("([^"\\]+)"\)', source.read_text(encoding='utf-8')):
             if key not in strings:
                 raise ValueError(f'{source.relative_to(ROOT)}: missing catalog key {key!r}')
     outputs = {}
@@ -69,14 +69,14 @@ def resources():
         outputs[f'Strings/{windows_locale}/Resources.resw'] = ET.tostring(tree, encoding='utf-8', xml_declaration=True) + b'\n'
         outputs[f'Text.{windows_locale}.json'] = json_bytes(entries)
 
-    locations = json.loads((ROOT / inputs[2]).read_text())
+    locations = json.loads((ROOT / inputs[2]).read_text(encoding='utf-8'))
     locations = [entry for entry in locations if entry.get('platform') == 'windows']
     location_ids = {entry['id'] for entry in locations} | {'projects'}
-    rules = json.loads((ROOT / inputs[1]).read_text())
+    rules = json.loads((ROOT / inputs[1]).read_text(encoding='utf-8'))
     rules = [rule for rule in rules if rule['location'] in location_ids and 'windows' in rule.get('platforms', ['macos', 'windows'] if rule['location'] == 'projects' else ['macos'])]
     outputs['known-locations.json'] = json_bytes(locations)
     outputs['builtin-rules.json'] = json_bytes(rules)
-    projects = json.loads((ROOT / inputs[6]).read_text())
+    projects = json.loads((ROOT / inputs[6]).read_text(encoding='utf-8'))
     if not 1 <= len(projects) <= 64 or len(set(projects)) != len(projects):
         raise ValueError('Invalid project location hints')
     for path in projects:
@@ -103,7 +103,7 @@ def main():
     options = parser.parse_args()
     outputs = resources()
     changed = []
-    existing = {str(path.relative_to(OUTPUT)) for path in OUTPUT.rglob('*') if path.is_file()} if OUTPUT.exists() else set()
+    existing = {path.relative_to(OUTPUT).as_posix() for path in OUTPUT.rglob('*') if path.is_file()} if OUTPUT.exists() else set()
     unexpected = existing - outputs.keys()
     if unexpected:
         raise SystemExit('Unexpected generated files: ' + ', '.join(sorted(unexpected)))

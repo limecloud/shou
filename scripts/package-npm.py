@@ -24,7 +24,7 @@ SEMVER = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:
 
 
 def run(*args, cwd=ROOT, env=None):
-    return subprocess.check_output(args, cwd=cwd, env=env, text=True, timeout=60).strip()
+    return subprocess.check_output(args, cwd=cwd, env=env, text=True, encoding="utf-8", timeout=60).strip()
 
 
 def read(path):

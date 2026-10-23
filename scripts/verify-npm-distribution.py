@@ -19,9 +19,9 @@ def main():
     options = parser.parse_args()
     main_package = options.launcher.resolve()
     native_package = options.platform_package.resolve()
-    manifest = json.loads((main_package / "package.json").read_text())
-    native = json.loads((native_package / "package.json").read_text())
-    descriptor = json.loads((native_package / "payload.json").read_text())
+    manifest = json.loads((main_package / "package.json").read_text(encoding="utf-8"))
+    native = json.loads((native_package / "package.json").read_text(encoding="utf-8"))
+    descriptor = json.loads((native_package / "payload.json").read_text(encoding="utf-8"))
     host_system = {"Darwin": "darwin", "Windows": "win32"}.get(platform.system())
     host_arch = {"arm64": "arm64", "aarch64": "arm64", "x86_64": "x64", "amd64": "x64"}.get(platform.machine().lower())
     if (descriptor["platform"], descriptor["arch"]) != (host_system, host_arch):
@@ -42,12 +42,12 @@ def main():
                        npm_config_globalconfig=str(output / "global-npmrc"), npm_config_offline="true",
                        npm_config_audit="false", npm_config_fund="false", npm_config_update_notifier="false",
                        SHOU_DATA_DIR=str(output / "native records"))
-    (output / "npmrc").write_text("")
-    (output / "global-npmrc").write_text("")
+    (output / "npmrc").write_text("", encoding="utf-8")
+    (output / "global-npmrc").write_text("", encoding="utf-8")
     records = []
 
     def run(arguments, cwd=output, expected=0):
-        result = subprocess.run([str(value) for value in arguments], cwd=cwd, env=environment, text=True,
+        result = subprocess.run([str(value) for value in arguments], cwd=cwd, env=environment, text=True, encoding="utf-8",
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
         if result.returncode != expected:
             raise RuntimeError(f"Command returned {result.returncode}, expected {expected}: {arguments}\n{result.stderr}")
@@ -73,7 +73,7 @@ def main():
 
     local = output / "local install 路径"
     local.mkdir()
-    (local / "package.json").write_text('{"name":"shou-install-fixture","private":true}')
+    (local / "package.json").write_text('{"name":"shou-install-fixture","private":true}', encoding="utf-8")
     npm_run("install", "--prefix", str(local), "--offline", "--ignore-scripts", *map(str, tarballs))
     local_command = [node, local / "node_modules/@limecloud/shou/bin/shou.cjs"]
     verify(local_command, "local install and resources")
@@ -97,14 +97,14 @@ def main():
 
     missing = output / "missing optional dependency"
     missing.mkdir()
-    (missing / "package.json").write_text('{"name":"shou-missing-fixture","private":true}')
+    (missing / "package.json").write_text('{"name":"shou-missing-fixture","private":true}', encoding="utf-8")
     npm_run("install", "--prefix", str(missing), "--offline", "--ignore-scripts", "--omit=optional", str(tarballs[0]))
     failure = run([node, missing / "node_modules/@limecloud/shou/bin/shou.cjs", "capabilities", "--json"], expected=1)
     assert not failure.stdout and "--include=optional" in failure.stderr
     records.append({"check": "missing optional dependency preserves empty JSON stdout", "result": "passed"})
     evidence = {"host": {"platform": host_system, "architecture": host_arch, "system": platform.platform()},
                 "version": manifest["version"], "registry_access": False, "records": records}
-    (output / "verification.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n")
+    (output / "verification.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Offline npm tarballs, isolated local/global installs, npm exec, resources and missing dependency passed: {output}")
 
 

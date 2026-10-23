@@ -9,12 +9,12 @@ import xml.etree.ElementTree as ET
 
 
 def prepare(payload, assets):
-    configuration = json.loads((payload / "shou.runtimeconfig.json").read_text())
+    configuration = json.loads((payload / "shou.runtimeconfig.json").read_text(encoding="utf-8"))
     runtime = next(value["version"] for value in configuration["runtimeOptions"]["includedFrameworks"] if value["name"] == "Microsoft.NETCore.App")
-    dependencies = json.loads((payload / "shou.deps.json").read_text())
+    dependencies = json.loads((payload / "shou.deps.json").read_text(encoding="utf-8"))
     rid = dependencies["runtimeTarget"]["name"].rsplit("/", 1)[1]
     sdk = next(name.split("/", 1)[1] for name in dependencies["libraries"] if name.startswith("runtimepack.Microsoft.Windows.SDK.NET.Ref/"))
-    folders = json.loads(assets.read_text())["packageFolders"]
+    folders = json.loads(assets.read_text(encoding="utf-8"))["packageFolders"]
 
     def package(name, version):
         for folder in folders:

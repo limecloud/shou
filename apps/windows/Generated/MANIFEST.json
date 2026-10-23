@@ -25,6 +25,6 @@
     "packages/shou-core/Sources/Resources/known-locations.json": "c338241a1e5d6844436df579336da76f5dd8575d77b9f2e3d2b9de3d722d8d16",
     "packages/shou-core/Sources/Resources/project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
     "scripts/design_tokens.py": "feafdd82ddc244a6dbcaf5c1dd4acdddde27fef6d9b421734973f4dbf23a724f",
-    "scripts/generate-windows-resources.py": "35e0b5f36cf59c9216271296d1ae1561b633a6fe397e0749b5f9eec497bb9ca9"
+    "scripts/generate-windows-resources.py": "75db5b96c4e9ff99641232ed939ff4224a0366fc2406f56904fc8da76933ec46"
   }
 }
