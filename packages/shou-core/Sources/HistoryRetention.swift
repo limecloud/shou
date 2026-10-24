@@ -9,7 +9,8 @@ public struct HistoryCleanupPreview: Codable, Sendable {
 extension ShouEngine {
     public func historyCleanupPreview(executionIds: [String]? = nil, includeRecoverable: Bool = false) throws -> HistoryCleanupPreview {
         let requested=executionIds.map(Set.init), followups=try followUps()
-        let receipts=try history().filter { requested == nil || requested!.contains($0.id) }
+        let receipts=try store.ids("history").filter { requested == nil || requested!.contains($0) }
+            .map { try ReceiptJournal.load($0, store: store, includeManifests: false) }
         var ids=[String](), bytes=0
         let manifests=try store.records("history-manifests")
         for receipt in receipts {

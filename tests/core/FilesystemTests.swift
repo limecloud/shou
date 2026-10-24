@@ -47,6 +47,7 @@ struct FixtureFileSystem: PlatformFileSystem {
     let trash: URL
     var platform: String { "macos" }
     var supportsTrash: Bool { true }
+    var verifiesMutationManifest: Bool { true }
     func locationAvailability(_ path: String) -> LocationAvailability { native.locationAvailability(path) }
     func rootIdentity(_ path: String) throws -> FileEntry { try native.rootIdentity(path) }
     func applicationParentIdentity(_ path: String) throws -> FileEntry { try native.applicationParentIdentity(path) }
@@ -67,6 +68,9 @@ struct FixtureFileSystem: PlatformFileSystem {
     func purge(_ path: String, expected: [FileEntry]) throws { try native.purge(path, expected: expected) }
     func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws {
         try native.purge(path, expected: expected, context: &context, progress: progress)
+    }
+    func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void, checking: @Sendable (ScanProgress) -> Void) throws {
+        try native.purge(path, expected: expected, context: &context, progress: progress, checking: checking)
     }
 }
 

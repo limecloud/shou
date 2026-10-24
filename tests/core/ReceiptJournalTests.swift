@@ -2,14 +2,16 @@ import Foundation
 import ShouCore
 import ShouPlatform
 
-private final class JournalWriteStore: RecordStore, @unchecked Sendable {
+final class JournalWriteStore: RecordStore, @unchecked Sendable {
     let wrapped: LocalRecordStore
     let failingCollection: String?
     let failingWrite: Int
+    let maximumRecordBytes: Int?
     private let lockState=NSLock()
     private var writes: [String: [Int]]=[:]
-    init(_ wrapped: LocalRecordStore, failingCollection: String? = nil, failingWrite: Int = 0) {
+    init(_ wrapped: LocalRecordStore, failingCollection: String? = nil, failingWrite: Int = 0, maximumRecordBytes: Int? = nil) {
         self.wrapped=wrapped; self.failingCollection=failingCollection; self.failingWrite=failingWrite
+        self.maximumRecordBytes=maximumRecordBytes
     }
     var protectedPaths: [String] { wrapped.protectedPaths }
     func read(_ collection: String, id: String) throws -> Data? { try wrapped.read(collection, id: id) }
@@ -22,6 +24,7 @@ private final class JournalWriteStore: RecordStore, @unchecked Sendable {
     func write(_ collection: String, id: String, data: Data) throws {
         lockState.lock(); defer { lockState.unlock() }
         writes[collection, default: []].append(data.count)
+        if let maximumRecordBytes, data.count > maximumRecordBytes { throw ShouError("resource_limit", "Generated record-size budget exceeded.") }
         if collection == failingCollection, writes[collection]?.count == failingWrite { throw ShouError("journal_unavailable", "Injected journal boundary failure.") }
         try wrapped.write(collection, id: id, data: data)
     }

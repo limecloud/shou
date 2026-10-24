@@ -9841,6 +9841,22 @@
         }
       }
     },
+    "File manifest pages are missing or inconsistent.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File manifest pages are missing or inconsistent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件清单分页缺失或不一致。"
+          }
+        }
+      }
+    },
     "File metadata could not be verified.": {
       "localizations": {
         "en": {
@@ -24801,6 +24817,22 @@
         }
       }
     },
+    "Space analysis could not be completed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space analysis could not be completed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间分析未能完成。"
+          }
+        }
+      }
+    },
     "Space analysis entry pages are missing or inconsistent.": {
       "localizations": {
         "en": {
@@ -24813,6 +24845,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "空间分析记录缺失或不一致，请重新扫描。"
+          }
+        }
+      }
+    },
+    "Space analysis index is unavailable or inconsistent.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space analysis index is unavailable or inconsistent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间分析索引无法读取或不一致，请重新扫描。"
+          }
+        }
+      }
+    },
+    "Space analysis index size limit is invalid.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space analysis index size limit is invalid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间分析索引的容量限制无效。"
           }
         }
       }
@@ -27805,6 +27869,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。"
+          }
+        }
+      }
+    },
+    "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The space analysis index ran out of storage. Free some disk space or scan a smaller folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。"
           }
         }
       }

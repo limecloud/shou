@@ -15,9 +15,11 @@
 
 ## ダウンロードとインストール
 
-Shou v0.12.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
+Shou v0.13.0 は **macOS 14 以降**に対応。ユニバーサル版は Apple Silicon と Intel Mac で動作します。ディスクイメージから **Shou.app** を **Applications** に移動してください。UI は英語と簡体字中国語です。
 
-[**Shou v0.12.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.12.0/shou-0.12.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
 
 この版は ad-hoc 署名で、Apple の公証は受けていません。初回起動がブロックされた場合は、配布元を確認してから**システム設定 → プライバシーとセキュリティ**で開く許可を確認してください。
 

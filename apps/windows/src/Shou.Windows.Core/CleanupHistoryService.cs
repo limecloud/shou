@@ -12,6 +12,7 @@ public sealed class CleanupHistoryService(IRecordStore store, RuleSchemaValidato
     public const int MaximumListBytes = 33_554_432;
     public static readonly TimeSpan ListDuration = TimeSpan.FromSeconds(10);
     private readonly CleanupRecordCodec records = new(validator);
+    private readonly CleanupPlanRecords plans = new(new CleanupRecordCodec(validator));
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
 
     public async Task<CleanupHistoryPage> ListAsync(int limit = 50, string? cursor = null, CancellationToken cancellationToken = default)
@@ -173,8 +174,10 @@ public sealed class CleanupHistoryService(IRecordStore store, RuleSchemaValidato
 
     private async Task<CleanupPlan> ReadPlanAsync(IRecordReadLease? lease, string id, CancellationToken token)
     {
-        var bytes = lease is null ? null : await lease.ReadAsync(id, CleanupRecordCodec.MaximumPlanBytes, token);
-        var plan = records.DecodePlan(bytes ?? throw Missing(), id);
+        if (lease is null) throw Missing();
+        CleanupPlan plan;
+        try { plan = await plans.ReadAsync(lease, id, token); }
+        catch (ShouException error) when (error.Code == "invalid_argument") { throw Missing(); }
         if (plan.Sources.Any(source => source.Workspace.Identity.OwnerSid != ownerSid)) throw new ShouException("store_corrupt", "The plan belongs to a different user.");
         return plan;
     }

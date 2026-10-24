@@ -88,6 +88,21 @@ public sealed partial class CleanupPage : UserControl, IDisposable
         rendering = true;
         try
         {
+            var activity = execution.IsExecuting || model.State == CleanupReviewState.Preparing;
+            var stopping = execution.IsExecuting ? execution.StopRequested : model.StopRequested;
+            ExecutionActivity.Visibility = activity ? Visibility.Visible : Visibility.Collapsed;
+            ReviewControls.Visibility = ReviewStatus.Visibility = ReviewActions.Visibility = Candidates.Visibility = activity ? Visibility.Collapsed : Visibility.Visible;
+            ExecutionMotion.IsActive = activity && !stopping;
+            ExecutionTitle.Text = text.Get(stopping ? "Stopping at a safe boundary…" :
+                !execution.IsExecuting || execution.Progress?.Phase is null or "preflight" or "checking" ? "Checking selected files…" : "Cleaning…");
+            var fraction = execution.IsExecuting ? execution.FractionCompleted : null;
+            ExecutionMeter.IsIndeterminate = fraction is null;
+            ExecutionMeter.Value = (fraction ?? 0) * 100;
+            ExecutionPercentage.Text = fraction?.ToString("P0", System.Globalization.CultureInfo.CurrentCulture) ?? "";
+            ExecutionPath.Text = execution.IsExecuting ? execution.DisplayPath : "";
+            ToolTipService.SetToolTip(ExecutionPath, execution.CurrentPath);
+            ExecutionStop.Content = text.Get(stopping ? "Stopping at a safe boundary…" : "Stop");
+            ExecutionStop.IsEnabled = activity && !stopping;
             var selectedLocation = model.WorkspaceId;
             if (Locations.ItemsSource is not ScanLocationDisplay[] existing || !existing.Select(value => value.Workspace).SequenceEqual(model.Workspaces))
             {

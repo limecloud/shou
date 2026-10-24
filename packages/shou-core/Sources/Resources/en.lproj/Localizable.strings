@@ -614,6 +614,7 @@
 "Figma download caches" = "Figma download caches";
 "File Extensions" = "File Extensions";
 "File Type" = "File Type";
+"File manifest pages are missing or inconsistent." = "File manifest pages are missing or inconsistent.";
 "File metadata could not be verified." = "File metadata could not be verified.";
 "Files" = "Files";
 "Files are newer than the rule's retention period." = "Files are newer than the rule's retention period.";
@@ -1549,7 +1550,10 @@
 "Space Analysis" = "Space Analysis";
 "Space Map" = "Space Map";
 "Space analysis complete." = "Space analysis complete.";
+"Space analysis could not be completed." = "Space analysis could not be completed.";
 "Space analysis entry pages are missing or inconsistent." = "Space analysis entry pages are missing or inconsistent.";
+"Space analysis index is unavailable or inconsistent." = "Space analysis index is unavailable or inconsistent.";
+"Space analysis index size limit is invalid." = "Space analysis index size limit is invalid.";
 "Space by Directory" = "Space by Directory";
 "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt." = "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.";
 "Spacedrive caches" = "Spacedrive caches";
@@ -1737,6 +1741,7 @@
 "The selected items overlap. Choose either a folder or its contents." = "The selected items overlap. Choose either a folder or its contents.";
 "The selected structured decision provider is not installed. Edit the connection to choose an available provider." = "The selected structured decision provider is not installed. Edit the connection to choose an available provider.";
 "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder." = "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.";
+"The space analysis index ran out of storage. Free some disk space or scan a smaller folder." = "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.";
 "The startup scan reached the maximum folder depth." = "The startup scan reached the maximum folder depth.";
 "The structured decision API key is unavailable." = "The structured decision API key is unavailable.";
 "The structured decision provider did not pass the synthetic check." = "The structured decision provider did not pass the synthetic check.";

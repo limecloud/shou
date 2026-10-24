@@ -57,16 +57,20 @@ public sealed class RuleClassifier(CleanupProtectionContext protection)
 
     public RuleClassification Classify(Configuration configuration, Workspace workspace,
         CleanupRule rule, ScanSnapshot scan, CandidateAnalysisBudget budget, CancellationToken cancellationToken)
+        => Classify(configuration, workspace, rule, scan, new FileTreeIndex(scan), budget, cancellationToken);
+
+    internal RuleClassification Classify(Configuration configuration, Workspace workspace,
+        CleanupRule rule, ScanSnapshot scan, FileTreeIndex index, CandidateAnalysisBudget budget, CancellationToken cancellationToken)
     {
         if (!rule.AppliesToWindows || rule.RootReference != workspace.RootRef)
             throw new ShouException("invalid_rule", "The rule root or platform does not match this workspace.");
         if (scan.Root != workspace.Path || scan.RootIdentity != workspace.Identity)
             throw new ShouException("plan_stale", "The workspace identity changed. Register and review the current root.");
-        var entries = scan.Entries.Select(item => item.Entry).ToDictionary(entry => entry.Path);
+        var entries = index.Entries;
         if (!entries.TryGetValue(workspace.Path, out var root) || root.Kind != EntryKind.Directory || root.IsCaseSensitive != workspace.CaseSensitive)
             throw new ShouException("plan_stale", "The workspace case or root metadata changed.");
-        var children = entries.Values.Where(entry => entry.Path != scan.Root).GroupBy(entry => entry.Path.Parent!).ToDictionary(group => group.Key, group => group.ToArray());
-        var duplicateFiles = entries.Values.Where(entry => entry.Kind == EntryKind.File).GroupBy(entry => entry.Identity).Where(group => group.Count() > 1).Select(group => group.Key).ToHashSet();
+        var children = index.Children;
+        var duplicateFiles = index.DuplicateFiles;
         var exclusions = configuration.GlobalExclusions.Concat(workspace.Exclusions).Select(pattern => new RulePattern(pattern)).Concat(rule.Exclusions).ToArray();
         var candidates = ImmutableArray.CreateBuilder<RuleCandidate>();
         var analysisIssues = ImmutableArray.CreateBuilder<ScanIssue>();
@@ -108,7 +112,7 @@ public sealed class RuleClassifier(CleanupProtectionContext protection)
                 var relative = target.Path.RelativeTo(scan.Root, caseSensitive: true);
                 if (relative.Split('/').Length > rule.MaxDiscoveryDepth || !rule.Patterns.Any(pattern => Match(pattern, target))) continue;
                 var reasons = new HashSet<string>(StringComparer.Ordinal);
-                var complete = scan.IsCompleteAt(target.Path);
+                var complete = index.CompletedDirectories.Contains(target.Path);
                 if (!complete) reasons.Add("coverage_incomplete");
                 for (var ancestor = target.Path.Parent; ancestor is not null; ancestor = ancestor.Parent)
                 {

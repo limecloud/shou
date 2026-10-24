@@ -193,7 +193,7 @@ func uninstallPermanentRechecksActivityAtJournalBoundary() async throws {
     let plan=try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: selected.map(\.id), action: "permanent")
     let evidence=fixture.evidence
     let receipt=try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test", progress: { update in
-        if update.stage == "purging", update.processedCount == 0 { evidence.setRunning(true) }
+        if update.stage == "checking", update.processedCount == 0 { evidence.setRunning(true) }
     })
     try expect(receipt.operation == "application_permanent_uninstall" && receipt.state == "partial" && receipt.items.first?.state == "failed")
     try expect(try fixture.hashes() == before)

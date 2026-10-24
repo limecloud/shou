@@ -27,11 +27,13 @@ public struct StorageRemovalPlan: Codable, Sendable, Identifiable {
     public let createdAt: Date
     public let expiresAt: Date
     public let action: String
-    public let items: [StorageRemovalItem]
+    public var items: [StorageRemovalItem]
+    public var manifestFormatVersion: Int? = nil
     public var state: String = "ready"
     public var digest: String = ""
     public var allocatedBytesEstimate: Int64 { items.reduce(0) { $0 + $1.allocatedBytesEstimate } }
     public func calculatedDigest() throws -> String {
+        if manifestFormatVersion == 1 { return try StorageRemovalPlanRecords.digest(self) }
         var copy=self; copy.digest=""; copy.state="ready"
         return try Digest.of(copy)
     }
@@ -105,7 +107,15 @@ public enum StorageRemovalPolicy {
         relative == "." ? root : (root == "/" ? "/" : root + "/") + relative
     }
     public static func validRelative(_ path: String) -> Bool {
-        !path.isEmpty && !path.hasPrefix("/") && !path.contains("\0") && path.split(separator: "/", omittingEmptySubsequences: false).allSatisfy { !$0.isEmpty && $0 != "." && $0 != ".." }
+        var length=0, onlyDots=true
+        for byte in path.utf8 {
+            if byte == 0 { return false }
+            if byte == 47 {
+                if length == 0 || (onlyDots && length <= 2) { return false }
+                length=0; onlyDots=true
+            } else { length += 1; onlyDots = onlyDots && byte == 46 }
+        }
+        return length > 0 && !(onlyDots && length <= 2)
     }
     public static func reason(root: String, path: String, entry: FileEntry, home: String, protectedPaths: [String]) -> String? {
         guard validRelative(path), ["file", "directory"].contains(entry.kind) else { return "Links, special files and the scan root cannot be removed here." }
@@ -193,41 +203,18 @@ extension ShouEngine {
             entries[node.path].map { StorageCatalogItem(entry: $0, node: node) }
         })
     }
+    func storageReviewContext(scan: StorageScan) throws -> StorageReviewContext {
+        try StorageReviewContext(scan: scan, catalog: catalog(for: scan), configuration: configuration(), owner: scanOwner())
+    }
     public func storageRemovalReason(scan: StorageScan, path: String) -> String? {
-        guard let entry=try? storageEntry(scan: scan, path: path) else { return "Item is absent from this analysis." }
-        if entry.owner != scanOwner() { return "This item is not owned by the current user." }
-        if let reason=StorageRemovalPolicy.reason(root: scan.rootPath, path: path, entry: entry, home: homeDirectory.path, protectedPaths: store.protectedPaths) { return reason }
-        if scan.catalogId == nil { return storageExclusionReason(scan: scan, entries: scan.tree.entries.filter { $0.path == path || $0.path.hasPrefix(path + "/") }) }
-        guard let config=try? configuration() else { return "Cleanup exclusions could not be verified." }
-        let absolute=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path))
-        let relevant=config.workspaces.filter { root in
-            !(root.exclusions + (config.globalExclusions ?? [])).isEmpty && (absolute == root.path || absolute.hasPrefix(root.path + "/") || root.path.hasPrefix(absolute + "/"))
-        }
-        guard !relevant.isEmpty else { return nil }
-        do {
-            guard let catalog=try catalog(for: scan) else { return "Cleanup exclusions could not be verified." }
-            try catalog.forEachEntry(under: path) { entry in
-                if exclusionMatches(scan: scan, entry: entry, config: config) { throw ShouError("permission_denied", "This selection contains excluded content.") }
-            }
-            return nil
-        } catch let error as ShouError where error.code == "permission_denied" { return error.message }
+        do { return try storageRemovalReason(scan: scan, path: path, context: storageReviewContext(scan: scan)) }
         catch { return "Cleanup exclusions could not be verified." }
     }
-    private func exclusionMatches(scan: StorageScan, entry: FileEntry, config: Configuration) -> Bool {
-        let full=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: entry.path))
-        for root in config.workspaces {
-            let prefix=StorageRemovalPolicy.canonical(root.path) + "/"
-            if full.hasPrefix(prefix) {
-                let relative=String(full.dropFirst(prefix.count))
-                if ((config.globalExclusions ?? []) + root.exclusions).contains(where: { PathPattern.matches($0, relative, caseSensitive: scan.tree.caseSensitive) }) { return true }
-            }
-        }
-        return false
-    }
-    private func storageExclusionReason(scan: StorageScan, entries: [FileEntry]) -> String? {
-        guard let config=try? configuration() else { return "Cleanup exclusions could not be verified." }
-        if entries.contains(where: { exclusionMatches(scan: scan, entry: $0, config: config) }) { return "This selection contains excluded content." }
-        return nil
+    func storageRemovalReason(scan: StorageScan, path: String, entry: FileEntry? = nil, context: StorageReviewContext, checkDescendants: Bool = true) throws -> String? {
+        guard let entry=try entry ?? context.entry(path) else { return "Item is absent from this analysis." }
+        if entry.owner != context.owner { return "This item is not owned by the current user." }
+        if let reason=StorageRemovalPolicy.reason(root: scan.rootPath, path: path, entry: entry, home: homeDirectory.path, protectedPaths: store.protectedPaths) { return reason }
+        return try checkDescendants && context.containsExclusion(under: path) ? "This selection contains excluded content." : nil
     }
     private func scanOwner() -> UInt32 {
         // The platform supplies the current home identity without granting a cleanup root.
@@ -241,13 +228,17 @@ extension ShouEngine {
         let scan=try storageScan(scanId)
         guard try filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
         var items=[StorageRemovalItem]()
+        let context=try storageReviewContext(scan: scan)
         let selected=StorageSelection.normalized(Set(paths)).sorted()
         for path in selected {
             if Task.isCancelled { throw ShouError("cancelled", "Selection review stopped.") }
-            if let reason=storageRemovalReason(scan: scan, path: path) { throw ShouError("permission_denied", reason, details: ["path": path]) }
+            if let reason=try storageRemovalReason(scan: scan, path: path, context: context, checkDescendants: false) { throw ShouError("permission_denied", reason, details: ["path": path]) }
             let full=StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path)
-            progress(ExecutionProgress(stage: "preflight", processedCount: items.count, itemCount: selected.count, path: full))
-            let tree=try filesystem.inspectStorageTarget(full, budget: budget, cancelled: { Task.isCancelled })
+            progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: full))
+            let tree=try filesystem.inspectStorageTarget(full, budget: budget, cancelled: { Task.isCancelled }, progress: { update in
+                let current=update.currentPath.isEmpty ? full : update.currentPath.hasPrefix("/") ? update.currentPath : full + "/" + update.currentPath
+                progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: current))
+            })
             guard tree.complete else {
                 throw ShouError(tree.issues.contains("resource_limit") ? "resource_limit" : "incomplete_scan",
                     "This selection could not be completely read. Review access or scan again.", details: ["path": path, "reasons": tree.issues.prefix(10).joined(separator: ",")])
@@ -255,30 +246,33 @@ extension ShouEngine {
             // Discovery is a navigation snapshot. A fresh manifest determines the scope
             // shown for confirmation; replacing the selected object still invalidates it.
             guard let current=tree.entries.first(where: { $0.path == "." }),
-                  let saved=try storageEntry(scan: scan, path: path), current.sameObject(as: saved), current.hasSameOwner(as: saved),
+                  let saved=try context.entry(path), current.sameObject(as: saved), current.hasSameOwner(as: saved),
                   current.kind == "directory" || current.metadata == renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed. Scan again before removing it.", details: ["path": path]) }
-            if let reason=storageExclusionReason(scan: scan, entries: tree.entries.map { renamed($0, to: $0.path == "." ? path : path + "/" + $0.path) }) {
-                throw ShouError("permission_denied", reason, details: ["path": path])
+            if context.containsExclusion(path: path, manifest: tree.entries) {
+                throw ShouError("permission_denied", "This selection contains excluded content.", details: ["path": path])
             }
-            let bytes=StorageIndex(entries: tree.entries).nodes["."]?.allocatedBytes ?? 0
+            var charged=Set<String>(), bytes: Int64=0
+            for entry in tree.entries where entry.kind != "symlink" && entry.kind != "special" {
+                if entry.links <= 1 || charged.insert(entry.objectIdentityKey).inserted { bytes += max(0, entry.allocatedBytes) }
+            }
             items.append(StorageRemovalItem(path: path, manifest: tree.entries, allocatedBytesEstimate: bytes))
-            progress(ExecutionProgress(stage: "preflight", processedCount: items.count, itemCount: selected.count, path: full))
+            progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: full))
         }
         var plan=StorageRemovalPlan(id: Codec.id("storage-plan"), scanId: scan.id, rootPath: scan.rootPath, identity: scan.identity, createdAt: now(), expiresAt: now().addingTimeInterval(900), action: action, items: items)
-        plan.digest=try plan.calculatedDigest()
-        try store.write("storage-plans", id: plan.id, data: Codec.encode(plan))
+        try StorageRemovalPlanRecords.save(&plan, store: store, progress: { current in
+            progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: current))
+        })
         return plan
     }
     private func renamed(_ entry: FileEntry, to path: String) -> FileEntry { var copy=entry; copy.path=path; return copy }
     public func storageRemovalPlan(_ id: String) throws -> StorageRemovalPlan {
-        guard let data=try store.read("storage-plans", id: id) else { throw ShouError("invalid_argument", "Unknown space removal plan.") }
-        return try Codec.decode(StorageRemovalPlan.self, from: data)
+        try StorageRemovalPlanRecords.load(id, store: store)
     }
     public func executeStorageRemoval(planId: String, confirmedDigest: String, entryPoint: String, progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> ExecutionReceipt {
         let lease=try store.lock(); defer { lease.release() }
         let plan=try storageRemovalPlan(planId)
         guard plan.state == "ready" else { throw ShouError("already_executed", "This removal was already started.") }
-        guard plan.expiresAt > now(), try plan.calculatedDigest() == plan.digest, plan.digest == confirmedDigest else { throw ShouError("confirmation_required", "Removal confirmation expired or does not match.") }
+        guard plan.expiresAt > now(), plan.digest == confirmedDigest else { throw ShouError("confirmation_required", "Removal confirmation expired or does not match.") }
         let scan=try storageScan(plan.scanId)
         guard plan.rootPath == scan.rootPath, plan.identity.sameObject(as: scan.identity),
               ["trash", "permanent"].contains(plan.action), !plan.items.isEmpty,
@@ -287,23 +281,28 @@ extension ShouEngine {
         let workspace=Workspace(id: scan.id, rootRef: "space-analysis", path: scan.rootPath, identity: scan.identity, exclusions: [], addedAt: scan.createdAt)
         let items=plan.items.map { ItemReceipt(id: Codec.id("item"), originalPath: StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path), relativePath: $0.path, trashPath: nil, manifest: $0.manifest, state: "pending", allocatedBytesEstimate: $0.allocatedBytesEstimate, error: nil) }
         let began: (ExecutionReceipt) throws -> Void = { _ in
-            var started=plan; started.state="executing"
-            try self.store.write("storage-plans", id: started.id, data: Codec.encode(started))
+            try StorageRemovalPlanRecords.updateState(plan, store: self.store)
         }
+        let context=try storageReviewContext(scan: scan)
         let validate: (Int, [FileEntry]) throws -> String? = { index, manifest in
             guard try self.filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
             let item=plan.items[index]
-            if let reason=self.storageRemovalReason(scan: scan, path: item.path) { return reason }
-            let tree=try self.filesystem.inspectStorageTarget(items[index].originalPath, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), cancelled: { Task.isCancelled })
-            guard tree.complete, tree.entries == manifest,
-                  let saved=try self.storageEntry(scan: scan, path: item.path),
-                  tree.entries.first(where: { $0.path == "." })?.sameObject(as: saved) == true else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
-            if let reason=self.storageExclusionReason(scan: scan, entries: tree.entries.map { self.renamed($0, to: $0.path == "." ? item.path : item.path + "/" + $0.path) }) { return reason }
+            if let reason=try self.storageRemovalReason(scan: scan, path: item.path, context: context, checkDescendants: false) { return reason }
+            guard let saved=try context.entry(item.path), manifest.first?.sameObject(as: saved) == true else {
+                throw ShouError("plan_stale", "Selected item changed since confirmation.")
+            }
+            try FileManifestVerification.beforeMutation(filesystem: self.filesystem, path: items[index].originalPath,
+                manifest: manifest, budget: ScanBudget(maxEntries: 1_000_000, maxSeconds: 600))
+            if context.containsExclusion(path: item.path, manifest: manifest) { return "This selection contains excluded content." }
             return nil
         }
+        let receipt: ExecutionReceipt
         if plan.action == "permanent" {
-            return try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_permanent_removal", progress: progress, didBegin: began, validateItem: validate)
+            receipt=try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_permanent_removal", progress: progress, didBegin: began, validateItem: validate)
+        } else {
+            receipt=try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_removal", progress: progress, didBegin: began, validateItem: { index in try validate(index, plan.items[index].manifest) })
         }
-        return try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_removal", progress: progress, didBegin: began, validateItem: { index in try validate(index, plan.items[index].manifest) })
+        try StorageRemovalPlanRecords.updateState(plan, store: store, state: receipt.state)
+        return receipt
     }
 }

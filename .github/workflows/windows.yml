@@ -4,6 +4,7 @@ on:
   push:
     branches: ['**']
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,15 +35,21 @@ jobs:
           node-version: '22'
       - name: Core, presentation, native filesystem, private records and CLI
         run: ./scripts/windows/test.ps1 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/tests"
-      - name: Publish x64 desktop and CLI development payloads
+      - name: Publish x64 desktop and CLI payloads
         run: ./scripts/windows/build.ps1 -Runtime win-x64 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/win-x64"
-      - name: Cross-publish ARM64 desktop and CLI development payloads
+      - name: Verify native x64 CLI and WinUI startup
+        run: |
+          [xml]$Properties = Get-Content apps/windows/Directory.Build.props
+          ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish" -Version $Properties.Project.PropertyGroup.Version
+      - name: Cross-publish ARM64 desktop and CLI payloads
         run: ./scripts/windows/build.ps1 -Runtime win-arm64 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/win-arm64"
       - name: Stage and install private x64 npm tarballs offline
         run: |
-          python scripts/package-npm.py platform --development --version 0.12.0-dev --platform win32-x64 --payload "$env:RUNNER_TEMP/ShouBuild/win-x64/publish/cli" --licenses "$env:RUNNER_TEMP/ShouBuild/win-x64/publish/cli/notices" --output "$env:RUNNER_TEMP/ShouBuild/npm/native"
+          [xml]$Properties = Get-Content apps/windows/Directory.Build.props
+          $Version = $Properties.Project.PropertyGroup.Version
+          python scripts/package-npm.py platform --development --version $Version --platform win32-x64 --payload "$env:RUNNER_TEMP/ShouBuild/win-x64/publish/cli" --licenses "$env:RUNNER_TEMP/ShouBuild/win-x64/publish/cli/notices" --output "$env:RUNNER_TEMP/ShouBuild/npm/native"
           if ($LASTEXITCODE -ne 0) { throw 'Native npm staging failed.' }
-          python scripts/package-npm.py launcher --development --version 0.12.0-dev --platform-package "$env:RUNNER_TEMP/ShouBuild/npm/native" --output "$env:RUNNER_TEMP/ShouBuild/npm/launcher"
+          python scripts/package-npm.py launcher --development --version $Version --platform-package "$env:RUNNER_TEMP/ShouBuild/npm/native" --output "$env:RUNNER_TEMP/ShouBuild/npm/launcher"
           if ($LASTEXITCODE -ne 0) { throw 'npm launcher staging failed.' }
           python scripts/verify-npm-distribution.py --launcher "$env:RUNNER_TEMP/ShouBuild/npm/launcher" --platform-package "$env:RUNNER_TEMP/ShouBuild/npm/native" --output "$env:RUNNER_TEMP/ShouBuild/npm/verification"
           if ($LASTEXITCODE -ne 0) { throw 'npm installation verification failed.' }

@@ -168,7 +168,7 @@ import ShouPlatform
     func execute(_ reviewed: ApplicationUninstallBatchPlan, app: AppModel) {
         guard let engine=app.engine, !app.busy, plan?.id == reviewed.id else { return }
         plan=nil; app.busy=true
-        let execution=app.beginExecution(total: reviewed.plans.reduce(0) { $0 + $1.components.count })
+        let execution=app.beginExecution(total: reviewed.plans.reduce(0) { $0 + $1.components.count }, action: reviewed.action)
         let token=UUID(); operation=token
         task=Task {
             defer { app.busy=false; app.isExecuting=false; app.stopRequested=false }

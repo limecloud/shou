@@ -14,7 +14,7 @@
             <TextBlock x:Name="PageTitle" Style="{StaticResource TitleTextBlockStyle}" />
             <TextBlock x:Name="Description" TextWrapping="Wrap" />
         </StackPanel>
-        <StackPanel Grid.Row="1" Spacing="{StaticResource ShouItemSpacing}">
+        <StackPanel x:Name="ReviewControls" Grid.Row="1" Spacing="{StaticResource ShouItemSpacing}">
             <Grid ColumnSpacing="{StaticResource ShouItemSpacing}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -48,7 +48,7 @@
                 <Button x:Name="ClearSelectionButton" Click="ClearSelection" />
             </StackPanel>
         </StackPanel>
-        <StackPanel Grid.Row="2" Spacing="{StaticResource ShouItemSpacing}">
+        <StackPanel x:Name="ReviewStatus" Grid.Row="2" Spacing="{StaticResource ShouItemSpacing}">
             <ProgressBar x:Name="Progress" IsIndeterminate="True" Visibility="Collapsed" />
             <InfoBar x:Name="CoverageNotice" IsClosable="False" IsOpen="False" Severity="Warning" />
             <TextBlock x:Name="BatchSummary" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
@@ -79,7 +79,7 @@
                 </Style>
             </ListView.ItemContainerStyle>
         </ListView>
-        <StackPanel Grid.Row="4" Spacing="{StaticResource ShouItemSpacing}">
+        <StackPanel x:Name="ReviewActions" Grid.Row="4" Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="UnavailableNotice" TextWrapping="Wrap" />
             <Grid ColumnSpacing="{StaticResource ShouItemSpacing}">
                 <Grid.ColumnDefinitions>
@@ -99,6 +99,15 @@
             <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
                 <TextBlock x:Name="ExecutionDetails" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.LiveSetting="Polite" />
             </ScrollViewer>
+        </StackPanel>
+        <StackPanel x:Name="ExecutionActivity" Grid.Row="1" Grid.RowSpan="4" Visibility="Collapsed"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouSectionSpacing}">
+            <ProgressRing x:Name="ExecutionMotion" IsActive="False" HorizontalAlignment="Center" />
+            <TextBlock x:Name="ExecutionTitle" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
+            <TextBlock x:Name="ExecutionPercentage" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" />
+            <ProgressBar x:Name="ExecutionMeter" Minimum="0" Maximum="100" IsIndeterminate="True" HorizontalAlignment="Stretch" />
+            <TextBlock x:Name="ExecutionPath" FontFamily="Consolas" MaxLines="1" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+            <Button x:Name="ExecutionStop" Click="CancelOperation" HorizontalAlignment="Center" />
         </StackPanel>
     </Grid>
 </UserControl>

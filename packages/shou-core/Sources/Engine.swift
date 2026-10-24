@@ -440,7 +440,11 @@ public actor ShouEngine {
             try PathPattern.validate(item.candidate.relativePath)
             guard currentCandidates.contains(where: { $0.relativePath == item.candidate.relativePath && $0.eligible && $0.manifestDigest == item.candidate.manifestDigest && $0.ruleVersions == item.candidate.ruleVersions }),
                   try Digest.of(item.manifest) == item.candidate.manifestDigest else { throw ShouError("plan_stale", "Current policy or full manifest no longer permits this target.") }
-            try verify(path: plan.workspace.path + "/" + item.candidate.relativePath, manifest: item.manifest)
+            // The candidate above was reproduced from this operation's fresh,
+            // complete tree. Its verified manifest digest already proves equality;
+            // native mutation still rechecks the exact target at its boundary.
+            try FileManifestVerification.beforeMutation(filesystem: filesystem,
+                path: plan.workspace.path + "/" + item.candidate.relativePath, manifest: item.manifest, budget: budget)
         }
         let items=plan.items.map {
             ItemReceipt(id: $0.id, originalPath: plan.workspace.path + "/" + $0.candidate.relativePath, relativePath: $0.candidate.relativePath, trashPath: nil, manifest: $0.manifest, state: "pending", allocatedBytesEstimate: $0.candidate.allocatedBytesEstimate, error: nil)
@@ -517,12 +521,13 @@ public actor ShouEngine {
         }
     }
     private func verify(path: String, manifest: [FileEntry], trashReceipt: Bool = false) throws {
+        // Follow-up eligibility must fail before publishing a new intent. The
+        // native check later protects the separate mutation boundary.
         let budget=ScanBudget(maxEntries: max(100_000, manifest.count + 1), maxSeconds: 180)
         let current = try trashReceipt ? filesystem.inspectTrashTarget(path, budget: budget, cancelled: { Task.isCancelled }) : filesystem.inspectStorageTarget(path, budget: budget, cancelled: { Task.isCancelled })
-        guard current.complete, current.entries.count == manifest.count,
-              zip(current.entries, manifest).allSatisfy({ observed, saved in
-                  observed == saved || (trashReceipt && observed.matchesTrashRoot(as: saved))
-              }) else { throw ShouError("plan_stale", "Target identity or full directory manifest changed.", details: ["path": path]) }
+        guard current.complete, FileManifestVerification.matches(current.entries, manifest, allowingTrashRootChanges: trashReceipt) else {
+            throw ShouError("plan_stale", "Target identity or full directory manifest changed.", details: ["path": path])
+        }
     }
     public func history() throws -> [ExecutionReceipt] { try store.ids("history").map { try history($0) }.sorted { $0.createdAt > $1.createdAt } }
     public func history(_ id: String) throws -> ExecutionReceipt { try ReceiptJournal.load(id, store: store) }

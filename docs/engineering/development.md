@@ -54,7 +54,7 @@ Record exact revision, OS, architecture, executed checks, outcomes and limitatio
 | `packages/shou-core/Sources/Resources/builtin-rules.json` | Versioned declarative rule catalog |
 | `packages/shou-core/Sources/Resources/known-locations.json` | Exact platform-scoped discovery roots |
 | `packages/shou-core/Localizable.xcstrings` | Canonical English/Simplified Chinese text |
-| `assets/design/tokens.json` | Eight design values generating WinUI XAML and SwiftUI constants; both checked by the resource generator |
+| `assets/design/tokens.json` | Shared design values, including cleanup artwork size, path width and motion period, generating WinUI XAML and SwiftUI constants; both checked by the resource generator |
 | `assets/brand` | Native brand sources |
 
 Generate and check localization resources with:

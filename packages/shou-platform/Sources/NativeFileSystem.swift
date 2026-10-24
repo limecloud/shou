@@ -28,6 +28,7 @@ public struct NativeFileSystem: PlatformFileSystem {
     // bind a protocol existential to PlatformFileSystem's fallback implementation when the
     // streaming methods live in a later source-file extension.
     public var supportsStorageCatalog: Bool { true }
+    public var verifiesMutationManifest: Bool { true }
     public var maximumConcurrentReadOperations: Int { readWorkerExecutable == nil ? 4 : NativeReadClient.maximumConcurrentChildren }
     public func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool,
                                progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
@@ -145,6 +146,9 @@ public struct NativeFileSystem: PlatformFileSystem {
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true, largeFile: true)
     }
+    public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true, largeFile: true, progress: progress)
+    }
     public func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only an exact system Trash item can be inspected.") }
         // Inspect the recorded direct child, never unrelated Trash contents.
@@ -152,14 +156,14 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: false, largeFile: true,
             privacyPolicy: ScanPrivacyPolicy(status: .notRequired, home: scanPrivacyPolicy.home))
     }
-    private func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, useWorker: Bool, largeFile: Bool = false, privacyPolicy: ScanPrivacyPolicy? = nil) throws -> TreeSnapshot {
+    private func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, useWorker: Bool, largeFile: Bool = false, privacyPolicy: ScanPrivacyPolicy? = nil, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> TreeSnapshot {
         let (parent, name)=try SecurePaths.parent(path, cancelled: cancelled)
         defer { close(parent) }
         var metadata=stat()
         guard fstatat(parent, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect target", path: path) }
         if metadata.st_mode & S_IFMT == S_IFDIR {
-            if useWorker { return try inspect(path, budget: budget, cancelled: cancelled) }
-            return try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: { _ in }, privacyPolicy: privacyPolicy)
+            if useWorker { return try inspect(path, budget: budget, cancelled: cancelled, progress: progress) }
+            return try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: progress, privacyPolicy: privacyPolicy)
         }
         guard metadata.st_mode & S_IFMT == S_IFREG else { throw ShouError("invalid_argument", "Only a regular file or directory can be inspected as a target.") }
         guard (1...1_000_000).contains(budget.maxEntries), budget.maxSeconds.isFinite, (1...600).contains(budget.maxSeconds), (1...128).contains(budget.maxDepth) else { throw ShouError("resource_limit", "The target read budget was exhausted.") }
@@ -222,9 +226,9 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try inspectCleanupTree(path, rules: rules, budget: budget, cancelled: cancelled, progress: progress)
     }
     func measureCleanupTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
-        try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: progress, boundedEnumeration: true)
+        try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: progress)
     }
-    private func inspectTree(_ path: String, cleanupRules: [CleanupRule]?, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void, privacyPolicy: ScanPrivacyPolicy? = nil, boundedEnumeration: Bool = false) throws -> TreeSnapshot {
+    private func inspectTree(_ path: String, cleanupRules: [CleanupRule]?, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void, privacyPolicy: ScanPrivacyPolicy? = nil) throws -> TreeSnapshot {
         let privacy=privacyPolicy ?? scanPrivacyPolicy
         try privacy.checkRoot(path)
         let root = try SecurePaths.directory(path, cancelled: cancelled); defer { close(root) }
@@ -252,25 +256,34 @@ public struct NativeFileSystem: PlatformFileSystem {
             do {
                 var before=stat()
                 guard fstat(descriptor, &before) == 0 else { throw SecurePaths.failure("Inspect directory", path: relative) }
-                let names: [String], truncated: Bool
-                if boundedEnumeration {
-                    let listing=try NativeDefinitionFiles.names(descriptor, limit: max(0, budget.maxEntries - visitedCount),
-                        deadline: .now.advanced(by: .seconds(max(0, deadline.timeIntervalSinceNow))), cancelled: cancelled)
-                    names=listing.names; truncated=listing.truncated
-                } else { names=try SecurePaths.names(descriptor); truncated=false }
-                for name in names {
+                func checkpoint() throws {
+                    if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
+                    if stopped || Date() > deadline || visitedCount >= budget.maxEntries { throw ShouError("resource_limit", "The target read budget was exhausted.") }
+                }
+                func consume(_ batch: [NativeDirectoryEntry]) throws {
+                for item in batch {
+                    let name=item.name
                     if stopped { break }
                     if cancelled() || Date() > deadline || visitedCount >= budget.maxEntries { issues.append(cancelled() ? "cancelled" : "resource_limit"); stopped=true; break }
                     let child = relative.isEmpty ? name : relative + "/" + name
                     if !measuring && prunedNames.contains(name.lowercased()) { continue }
-                    var info=stat()
-                    guard fstatat(descriptor, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { issues.append("unreadable: " + child); continue }
+                    var observed: FileEntry, flags=item.flags
+                    if let metadata=item.entry, metadata.kind == "file" {
+                        observed=metadata; observed.path=child
+                    } else {
+                        var info=stat()
+                        guard fstatat(descriptor, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { issues.append("unreadable: " + child); continue }
+                        observed=SecurePaths.entry(info, path: child)
+                        #if canImport(Darwin)
+                        flags=info.st_flags
+                        #endif
+                    }
                     visitedCount += 1
                     #if canImport(Darwin)
-                    if info.st_flags & UInt32(SF_DATALESS) != 0 { issues.append("cloud_placeholder: " + child); continue }
+                    if flags & UInt32(SF_DATALESS) != 0 { issues.append("cloud_placeholder: " + child); continue }
                     #endif
-                    guard info.st_dev == device else { issues.append("cross_filesystem: " + child); continue }
-                    let directory=info.st_mode & S_IFMT == S_IFDIR
+                    guard observed.device == UInt64(device) else { issues.append("cross_filesystem: " + child); continue }
+                    let directory=observed.kind == "directory"
                     let target: Bool, discover: Bool
                     if measuring {
                         target=true; discover=directory
@@ -279,7 +292,7 @@ public struct NativeFileSystem: PlatformFileSystem {
                         target=prepared.contains { parts.count <= $0.1 && $0.0.matches(parts) }
                         discover=target || prepared.contains { parts.count < $0.1 && $0.0.couldMatchDescendant(of: parts) }
                     } else { target=false; discover=false }
-                    if measuring || target || discover || markerNames.contains(name) { entries.append(SecurePaths.entry(info, path: child)) }
+                    if measuring || target || discover || markerNames.contains(name) { entries.append(observed) }
                     if visitedCount % 128 == 0 && Date().timeIntervalSince(lastReported) >= 0.25 {
                         progress(ScanProgress(stage: "scanning", entryCount: visitedCount, currentPath: child)); lastReported=Date()
                     }
@@ -290,11 +303,22 @@ public struct NativeFileSystem: PlatformFileSystem {
                         let sub = openat(descriptor, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                         guard sub >= 0 else { issues.append("unreadable_directory: " + child); continue }
                         var opened=stat()
-                        if fstat(sub, &opened) == 0 && opened.st_ino == info.st_ino && opened.st_dev == info.st_dev { visit(sub, child, depth+1, measuring: target) }
+                        if fstat(sub, &opened) == 0 && UInt64(opened.st_ino) == observed.inode && UInt64(opened.st_dev) == observed.device { visit(sub, child, depth+1, measuring: target) }
                         else { issues.append("changed_directory: " + child) }
                         close(sub)
                     }
                 }
+                }
+                let truncated: Bool
+                #if canImport(Darwin)
+                truncated=try NativeDirectoryReader.enumerate(descriptor, limit: max(0, budget.maxEntries - visitedCount),
+                    deadline: .now.advanced(by: .seconds(max(0, deadline.timeIntervalSinceNow))), cancelled: cancelled, checkpoint: checkpoint, consume: consume)
+                #else
+                let listing=try NativeDefinitionFiles.names(descriptor, limit: max(0, budget.maxEntries - visitedCount),
+                    deadline: .now.advanced(by: .seconds(max(0, deadline.timeIntervalSinceNow))), cancelled: cancelled)
+                try consume(listing.names.map { NativeDirectoryEntry(name: $0, entry: nil, flags: 0) })
+                truncated=listing.truncated
+                #endif
                 if truncated { issues.append("resource_limit"); stopped=true }
                 var after=stat()
                 if fstat(descriptor, &after) != 0 || SecurePaths.entry(before, path: ".") != SecurePaths.entry(after, path: ".") { issues.append("changed_during_scan: " + relative) }
@@ -306,6 +330,8 @@ public struct NativeFileSystem: PlatformFileSystem {
                     completedPaths.removeSubrange(completedStart...)
                     completedPaths.append(completePath)
                 }
+            } catch let error as ShouError where ["cancelled", "resource_limit"].contains(error.code) {
+                issues.append(error.code); stopped=true
             } catch { issues.append("\(relative): \(error)") }
         }
         visit(root, "", 0, measuring: cleanupRules == nil)
@@ -330,22 +356,26 @@ public struct NativeFileSystem: PlatformFileSystem {
         return false
         #endif
     }
-    private func verify(_ path: String, _ expected: [FileEntry], trashReceipt: Bool = false) throws {
-        let current = try inspectMutationTarget(path, entryCount: expected.count)
-        guard current.complete, current.entries.count == expected.count,
-              zip(current.entries, expected).allSatisfy({ observed, saved in
-                  observed == saved || (trashReceipt && observed.matchesTrashRoot(as: saved))
-              }) else { throw ShouError("plan_stale", "The target or its descendants changed.", details: ["path": path]) }
+    private func verify(_ path: String, _ expected: [FileEntry], trashReceipt: Bool = false,
+                        cancelled: @Sendable () -> Bool = { false }, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws {
+        let current = try inspectMutationTarget(path, entryCount: expected.count, cancelled: cancelled, progress: progress)
+        if cancelled() { throw ShouError("cancelled", "Scan cancelled.") }
+        guard current.complete, FileManifestVerification.matches(current.entries, expected, allowingTrashRootChanges: trashReceipt) else {
+            throw ShouError("plan_stale", "The target or its descendants changed.", details: ["path": path])
+        }
     }
-    private func inspectMutationTarget(_ path: String, entryCount: Int) throws -> TreeSnapshot {
+    private func inspectMutationTarget(_ path: String, entryCount: Int, cancelled: @Sendable () -> Bool = { false }, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> TreeSnapshot {
         // Once the caller journals an operation, finish its native verification
         // without delegating to a cancellable scan worker. Stop between items.
         // The broad-scan policy deliberately skips Trash without FDA. A recorded
         // direct child needs an actual OS access attempt to verify/restore it;
         // this does not enumerate Trash or bypass filesystem permissions.
         let budget=ScanBudget(maxEntries: max(100_000, entryCount + 1), maxSeconds: 180)
-        if isTrashLocation(path) { return try inspectTrashTarget(path, budget: budget, cancelled: { false }) }
-        return try inspectTarget(path, budget: budget, cancelled: { false }, useWorker: false, largeFile: true)
+        if isTrashLocation(path) {
+            return try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: false, largeFile: true,
+                privacyPolicy: ScanPrivacyPolicy(status: .notRequired, home: scanPrivacyPolicy.home), progress: progress)
+        }
+        return try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: false, largeFile: true, progress: progress)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
         try moveToTrashChecked(path,expected:expected,applicationRecycler:nil)
@@ -443,6 +473,9 @@ public struct NativeFileSystem: PlatformFileSystem {
         try purge(path, expected: expected, context: &context, progress: progress)
     }
     public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws {
+        try purge(path, expected: expected, context: &context, progress: progress, checking: { _ in })
+    }
+    public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void, checking: @Sendable (ScanProgress) -> Void) throws {
         var processed=0, lastReport=ProcessInfo.processInfo.systemUptime
         func report(_ current: String) {
             processed += 1
@@ -453,7 +486,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         }
         let reconciled=context.reconciled(expected)
         if reconciled.count == 1, let file=reconciled.first, file.kind == "file", file.contentDigest != nil {
-            try verify(path, reconciled, trashReceipt: true)
+            try verify(path, reconciled, trashReceipt: true, cancelled: { Task.isCancelled }, progress: checking)
             let (fd, name)=try SecurePaths.parent(path); defer { close(fd) }
             var current=stat()
             guard fstatat(fd, name, &current, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect selected file", path: path) }
@@ -467,7 +500,7 @@ public struct NativeFileSystem: PlatformFileSystem {
         guard expected.first(where: { $0.path == "." })?.kind == "directory" else {
             throw ShouError("capability_unavailable", "Permanent removal of file targets is unavailable.")
         }
-        try verify(path, reconciled, trashReceipt: true)
+        try verify(path, reconciled, trashReceipt: true, cancelled: { Task.isCancelled }, progress: checking)
         let directories=try PermanentRemovalDirectories(path: path, manifest: reconciled)
         var failures=[String](), failureCount=0, removed=0
         func attempt(_ full: String, _ mutation: () throws -> Void) throws {
@@ -489,7 +522,7 @@ public struct NativeFileSystem: PlatformFileSystem {
                 var info=stat()
                 guard fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect receipt entry", path: full) }
                 let current = SecurePaths.entry(info, path: entry.path)
-                let saved=context.reconciled([entry])[0]
+                let saved=context.reconciled(entry)
                 guard current.sameObject(as: saved), entry.kind == "directory" || current == saved else { throw ShouError("plan_stale", "Receipt entry changed; permanent removal stopped.") }
                 if entry.kind == "file" {
                     try unlinkFile(parent: fd, name: name, path: full, expected: saved, context: &context)

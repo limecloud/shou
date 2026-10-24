@@ -22,7 +22,6 @@ import ShouCore
     }
     private var loadedQuery: Query?
 
-    init() { storage.location=FileManager.default.homeDirectoryForCurrentUser.path }
     var visibleItems: [StorageCatalogItem] { items.filter { storage.index.nodes[$0.node.path] != nil } }
     var selectedItems: [StorageCatalogItem] { visibleItems.filter { storage.isSelected($0.node.path) } }
 

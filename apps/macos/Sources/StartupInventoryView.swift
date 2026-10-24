@@ -24,8 +24,7 @@ struct StartupInventoryView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 if model.startupLoading && model.startupInventory == nil {
-                    OperationProgressView(title: model.t("Reading startup definitions…"), symbol: "power",
-                        countText: model.t("Discovering startup items…"), stopRequested: model.stopRequested,
+                    OperationProgressView(title: model.t("Reading startup definitions…"), symbol: "power", stopRequested: model.stopRequested,
                         stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
                 } else {
                     workspace(compact: geometry.size.width < 760)

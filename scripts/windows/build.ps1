@@ -24,6 +24,8 @@ Push-Location $WindowsRoot
 try {
     Invoke-Dotnet -Arguments @('restore', $AppProject, "-p:RuntimeIdentifier=$Runtime", '--locked-mode', "-p:ArtifactsPath=$ArtifactsRoot", "-p:Platform=$Architecture")
     Invoke-Dotnet -Arguments @('publish', $AppProject, '-c', 'Release', '-r', $Runtime, '--no-restore', "-p:ArtifactsPath=$ArtifactsRoot", "-p:Platform=$Architecture", '-o', (Join-Path $PublishRoot 'app'))
+    & python (Join-Path $SourceRoot 'scripts/prepare-windows-cli-notices.py') --payload (Join-Path $PublishRoot 'app') --assets (Join-Path $ArtifactsRoot 'obj/Shou.Windows.App/project.assets.json') --name Shou.Windows.App
+    if ($LASTEXITCODE -ne 0) { throw 'Application dependency notices could not be prepared.' }
     Invoke-Dotnet -Arguments @('restore', $CliProject, "-p:RuntimeIdentifier=$Runtime", '--locked-mode', "-p:ArtifactsPath=$ArtifactsRoot")
     Invoke-Dotnet -Arguments @('publish', $CliProject, '-c', 'Release', '-r', $Runtime, '--no-restore', "-p:ArtifactsPath=$ArtifactsRoot", '-o', (Join-Path $PublishRoot 'cli'))
     & python (Join-Path $SourceRoot 'scripts/prepare-windows-cli-notices.py') --payload (Join-Path $PublishRoot 'cli') --assets (Join-Path $ArtifactsRoot 'obj/Shou.Windows.Cli/project.assets.json')

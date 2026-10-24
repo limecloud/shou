@@ -8,6 +8,7 @@ struct ReceiptJournal {
         let id: String
         let count: Int
         let digest: String
+        var pages: [FileManifestPage]? = nil
     }
     private struct Record: Codable {
         let formatVersion: Int
@@ -24,15 +25,25 @@ struct ReceiptJournal {
             let reference: Reference
             if let previous=saved[item.id], previous.entries == item.manifest { reference=previous.reference }
             else {
-                let data=try Codec.encode(item.manifest), digest=Digest.sha256(data)
-                let id=receipt.id + "_" + String(index) + "_" + digest.dropFirst(7).prefix(24)
-                reference=Reference(itemId: item.id, id: id, count: item.manifest.count, digest: digest)
-                try store.write("history-manifests", id: id, data: data)
+                let prefix=receipt.id + "_" + String(index)
+                if item.manifest.count > FileManifestRecords.pageSize {
+                    let pages=try FileManifestRecords.pages(item.manifest, prefix: prefix, consume: { page, data in
+                        try store.write("history-manifests", id: page.id, data: data)
+                    })
+                    let digest=try Digest.of(pages)
+                    reference=Reference(itemId: item.id, id: prefix + "_" + digest.dropFirst(7).prefix(24), count: item.manifest.count, digest: digest, pages: pages)
+                } else {
+                    let data=try Codec.encode(item.manifest), digest=Digest.sha256(data)
+                    let id=prefix + "_" + digest.dropFirst(7).prefix(24)
+                    reference=Reference(itemId: item.id, id: id, count: item.manifest.count, digest: digest)
+                    try store.write("history-manifests", id: id, data: data)
+                }
                 saved[item.id]=(item.manifest, reference)
             }
             compact.items[index].manifest=[]; references.append(reference)
         }
-        let data=try references.isEmpty ? Codec.encode(receipt) : Codec.encode(Record(formatVersion: 1, receipt: compact, manifests: references))
+        let version=references.contains { $0.pages != nil } ? 2 : 1
+        let data=try references.isEmpty ? Codec.encode(receipt) : Codec.encode(Record(formatVersion: version, receipt: compact, manifests: references))
         try store.write("history", id: receipt.id, data: data)
     }
 
@@ -45,7 +56,7 @@ struct ReceiptJournal {
             catch { throw corrupt() }
         }
         var receipt=record.receipt
-        guard record.formatVersion == 1, receipt.id == id, !record.manifests.isEmpty,
+        guard [1, 2].contains(record.formatVersion), receipt.id == id, !record.manifests.isEmpty,
               Set(receipt.items.map(\.id)).count == receipt.items.count,
               Set(record.manifests.map(\.itemId)).count == record.manifests.count else { throw corrupt() }
         for reference in record.manifests {
@@ -53,7 +64,13 @@ struct ReceiptJournal {
                   receipt.items[index].manifest.isEmpty, reference.count > 1024, reference.count <= 1_000_001,
                   reference.digest.range(of: "^sha256:[a-f0-9]{64}$", options: .regularExpression) != nil,
                   reference.id == id + "_" + String(index) + "_" + reference.digest.dropFirst(7).prefix(24) else { throw corrupt() }
-            if includeManifests {
+            if let pages=reference.pages {
+                guard record.formatVersion == 2, try Digest.of(pages) == reference.digest else { throw corrupt() }
+                if includeManifests {
+                    receipt.items[index].manifest=try FileManifestRecords.load(pages, count: reference.count,
+                        prefix: id + "_" + String(index), collection: "history-manifests", store: store)
+                }
+            } else if includeManifests {
                 guard let bytes=try store.read("history-manifests", id: reference.id), Digest.sha256(bytes) == reference.digest,
                       let entries=try? Codec.decode([FileEntry].self, from: bytes), entries.count == reference.count,
                       entries.first?.path == "." else { throw corrupt() }

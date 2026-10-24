@@ -294,10 +294,9 @@ extension ShouEngine {
                     throw ShouError("ownership_unverified", "Another application may share this component.")
                 }
             }
-            let tree=try filesystem.inspectTarget(component.path, budget: plan.budget, cancelled: { Task.isCancelled })
+            try FileManifestVerification.beforeMutation(filesystem: filesystem, path: component.path, manifest: component.manifest, budget: plan.budget)
             let authorizedBundle=action == "trash" && component.requiresAdministrator && filesystem.supportsAuthorizedApplicationTrash
-            guard tree.complete, tree.entries == component.manifest,
-                  !tree.entries.contains(where: { ($0.owner != facts.currentUser && !(authorizedBundle && $0.owner == 0)) || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) else {
+            guard !component.manifest.contains(where: { ($0.owner != facts.currentUser && !(authorizedBundle && $0.owner == 0)) || $0.kind == "special" || ($0.kind == "file" && $0.links != 1) }) else {
                 throw ShouError("plan_stale", "Application component changed; preview again.")
             }
             return nil

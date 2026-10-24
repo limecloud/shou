@@ -9,6 +9,7 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly ConfigurationCodec configurationCodec = new(validator);
     private readonly CleanupRecordCodec records = new(validator);
+    private readonly CleanupPlanRecords plans = new(new CleanupRecordCodec(validator));
     private readonly CleanupScanService scans = new(store, validator, scanner, protection, timeProvider, catalog);
     private readonly Guid confirmationIssuer = Guid.NewGuid();
 
@@ -32,13 +33,13 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         await using var lease = await store.AcquireLeaseAsync(cancellationToken);
         var configuration = await ReadConfigurationAsync(lease, cancellationToken);
         var sources = new List<(CleanupScan Scan, ImmutableArray<string> Selected)>();
-        long sourceBytes = 0;
+        var sourceEntries = 0;
         foreach (var value in selection.OrderBy(value => value.ScanId, StringComparer.Ordinal))
         {
             var sourceRecordBytes = await lease.ReadAsync(value.ScanId, CleanupScanService.MaximumSnapshotBytes, cancellationToken) ?? throw Input("The scan does not exist.");
-            sourceBytes += sourceRecordBytes.Length;
-            if (sourceBytes > CleanupRecordCodec.MaximumPlanBytes) throw new ShouException("resource_limit", "The combined scan evidence exceeds the read budget. Select fewer locations.");
-            var source = scans.Decode(sourceRecordBytes, value.ScanId, cancellationToken);
+            var source = await CleanupScanRecords.ReadAsync(sourceRecordBytes, value.ScanId, lease, scans, cancellationToken);
+            sourceEntries = checked(sourceEntries + source.Scan.Entries.Length);
+            if (sourceEntries > 1_000_000) throw new ShouException("resource_limit", "The combined scan evidence exceeds the read budget. Select fewer locations.");
             if (source.PreviewOnly) throw new ShouException("preview_only", "Draft previews cannot authorize a plan. Import, explicitly enable and scan the rule first.");
             _ = CurrentWorkspace(configuration, source.Workspace, source.ConfigurationDigest);
             if (sources.Any(value => value.Scan.WorkspaceId == source.WorkspaceId)) throw Input("Choose one current scan per location.");
@@ -53,9 +54,10 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         foreach (var (source, selected) in sources)
         {
             var workspace = source.Workspace;
+            var sourceIndex = new FileTreeIndex(source.Scan);
             var enabled = scans.EnabledRules(configuration, workspace.Id);
             if (!SameRules(source.Rules, enabled)) throw Stale();
-            var reproduced = scans.Classify(configuration, workspace, enabled, source.Scan, validation.Remaining(), cancellationToken);
+            var reproduced = scans.Classify(configuration, workspace, enabled, source.Scan, validation.Remaining(), cancellationToken, sourceIndex);
             var original = selected.Select(id =>
             {
                 if (!source.Candidates.Any(candidate => candidate.Id == id)) throw Input("The selected candidate is not in its bound scan.");
@@ -71,10 +73,10 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
                 RequireCandidate(observed);
                 if (candidate.ManifestDigest != observed.ManifestDigest) throw Stale();
                 var rule = enabled.Single(rule => rule.Id == candidate.RuleId);
-                var context = Context(source.Scan, candidate.Path, rule);
-                RequireContext(context, current.Scan);
+                var context = Context(source.Scan, sourceIndex, candidate.Path, rule);
+                RequireContext(context, current.Index);
                 var item = new CleanupPlanItem(RecordKey.New("item"), source.Id, candidate.Id, rule.Id, rule.Version, candidate.RelativePath, candidate.Path,
-                    Manifest(current.Scan, candidate.Path), context, observed.ManifestDigest!, observed.AllocatedBytes, observed.LogicalBytes, observed.Risk);
+                    current.Index.Manifest(candidate.Path), context, observed.ManifestDigest!, observed.AllocatedBytes, observed.LogicalBytes, observed.Risk);
                 await RequireIdleAsync(workspace, item, cancellationToken);
                 items.Add(item);
             }
@@ -87,16 +89,16 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         var plan = new CleanupPlan(2, RecordKey.New("plan"), planSources.ToImmutable(), budget, configuration.Revision,
             configurationCodec.Digest(configuration), now, now + CleanupRecordCodec.PlanLifetime, action, items.ToImmutable(), "");
         plan = plan with { Digest = CleanupRecordCodec.PlanDigest(plan) };
-        var bytes = records.EncodePlan(plan);
         if (await lease.ReadAsync(plan.Id, CleanupRecordCodec.MaximumPlanBytes, cancellationToken) is not null) throw new ShouException("version_conflict", "A plan with this identifier already exists.");
-        await lease.WriteAsync(plan.Id, bytes, cancellationToken);
+        await plans.SaveAsync(lease, plan, cancellationToken);
         return plan;
     }
 
     public async Task<CleanupPlan> PlanAsync(string planId, CancellationToken cancellationToken = default)
     {
         ValidatePlanId(planId);
-        return records.DecodePlan(await store.ReadAsync(planId, CleanupRecordCodec.MaximumPlanBytes, cancellationToken) ?? throw Input("The plan does not exist."), planId);
+        await using var lease = await store.AcquireReadLeaseAsync(cancellationToken) ?? throw Input("The plan does not exist.");
+        return await plans.ReadAsync(lease, planId, cancellationToken);
     }
 
     public async Task<CleanupExecution?> ExecutionAsync(string planId, CancellationToken cancellationToken = default)
@@ -127,10 +129,11 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
     public async Task<CleanupExecution> ExecuteAsync(string planId, CleanupConsent? consent, IProgress<CleanupProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
+        progress = progress is null ? null : new ThrottledProgress(progress, clock);
         ValidatePlanId(planId);
         if (consent is null) throw new ShouException("confirmation_required", "Confirm the current plan before execution.");
         await using var lease = await store.AcquireLeaseAsync(cancellationToken);
-        var plan = records.DecodePlan(await lease.ReadAsync(planId, CleanupRecordCodec.MaximumPlanBytes, cancellationToken) ?? throw Input("The plan does not exist."), planId);
+        var plan = await plans.ReadAsync(lease, planId, cancellationToken);
         RequireCurrentTime(plan);
         RequireSupported(plan.Action);
         if (await lease.ReadAsync(CleanupRecordCodec.ExecutionId(plan.Id), CleanupRecordCodec.MaximumExecutionBytes, cancellationToken) is not null) throw Consumed();
@@ -143,7 +146,8 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         // Revalidate every selected location before persisting intent or changing any target.
         foreach (var source in plan.Sources)
         {
-            var preflight = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken);
+            var preflight = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken,
+                new InlineProgress<ScanProgress>(value => Report(progress, new("checking", null, value.CurrentPath, 0, plan.Items.Length, 0, plan.Items.Sum(item => item.Manifest.Length)))));
             foreach (var item in plan.Items.Where(item => item.ScanId == source.ScanId))
             {
                 VerifyItem(item, preflight);
@@ -168,11 +172,12 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
             try
             {
                 RequireCurrentTime(plan);
-                configuration = await ReadConfigurationAsync(lease, cancellationToken);
-                RequireSources(configuration, plan);
-                RequireBindings(configuration, plan);
-                var current = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken);
-                VerifyItem(item, current);
+                // Configuration is stable under this lease. Native adapters own the final exact-tree check.
+                if (!mutation.VerifiesMutationManifest)
+                {
+                    var current = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken);
+                    VerifyItem(item, current);
+                }
                 await RequireIdleAsync(source.Workspace, item, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -194,7 +199,10 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
             CleanupItemResult result;
             try
             {
+                var completedEntries = execution.Items.Sum(result => result.RemovedEntries);
                 var observed = await mutation.ApplyAsync(source.Workspace, item, plan.Action,
+                    new InlineProgress<CleanupMutationProgress>(value => Report(progress, new(value.Phase, item.Id, value.Path, index, plan.Items.Length,
+                        completedEntries + value.RemovedEntries, plan.Items.Sum(target => target.Manifest.Length)))),
                     plan.Action == CleanupAction.Permanent ? cancellationToken : CancellationToken.None);
                 result = MutationResult(item, plan.Action, observed);
             }
@@ -205,7 +213,7 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
             }
             execution = SetItem(execution, index, result);
             await SaveExecutionAsync(lease, execution, plan);
-            Report(progress, new("recorded", item.Id, item.Path, index + 1, plan.Items.Length));
+            Report(progress, new("recorded", item.Id, item.Path, index + 1, plan.Items.Length, execution.Items.Sum(result => result.RemovedEntries), plan.Items.Sum(target => target.Manifest.Length)));
             if (result.State == CleanupItemState.Unknown)
             {
                 execution = StopRemaining(execution, index + 1, CleanupItemState.Skipped, "verification_required");
@@ -225,23 +233,24 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         return execution;
     }
 
-    private async Task<(ScanSnapshot Scan, RuleClassification Classification)> ObserveAsync(Configuration configuration, Workspace workspace,
-        CleanupRule[] rules, ValidationBudget budget, CancellationToken cancellationToken)
+    private async Task<(ScanSnapshot Scan, RuleClassification Classification, FileTreeIndex Index)> ObserveAsync(Configuration configuration, Workspace workspace,
+        CleanupRule[] rules, ValidationBudget budget, CancellationToken cancellationToken, IProgress<ScanProgress>? progress = null)
     {
-        var scan = await scanner.ScanAsync(workspace.Path, budget.NextScan(), null, cancellationToken);
+        var scan = await scanner.ScanAsync(workspace.Path, budget.NextScan(), progress, cancellationToken);
         budget.Observe(scan);
         cancellationToken.ThrowIfCancellationRequested();
         if (scan.Root != workspace.Path || scan.RootIdentity != workspace.Identity ||
             scan.Entries.FirstOrDefault(entry => entry.Entry.Path == workspace.Path)?.Entry is not { Kind: EntryKind.Directory } root || root.IsCaseSensitive != workspace.CaseSensitive) throw Stale();
-        return (scan, scans.Classify(configuration, workspace, rules, scan, budget.Remaining(), cancellationToken));
+        var index = new FileTreeIndex(scan);
+        return (scan, scans.Classify(configuration, workspace, rules, scan, budget.Remaining(), cancellationToken, index), index);
     }
 
-    private static void VerifyItem(CleanupPlanItem item, (ScanSnapshot Scan, RuleClassification Classification) current)
+    private static void VerifyItem(CleanupPlanItem item, (ScanSnapshot Scan, RuleClassification Classification, FileTreeIndex Index) current)
     {
         var candidate = FindCurrent(current.Classification, item.RuleId, item.Path);
         RequireCandidate(candidate);
         if (candidate.ManifestDigest != item.ManifestDigest) throw Stale();
-        RequireContext(item.Context, current.Scan);
+        RequireContext(item.Context, current.Index);
     }
 
     private Workspace CurrentWorkspace(Configuration configuration, Workspace expected, string digest)
@@ -287,12 +296,9 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         if (!candidate.Complete || candidate.State != "review" || candidate.BlockedReasons.Length != 0 || candidate.ManifestDigest is null) throw Stale();
     }
 
-    private static ImmutableArray<FileEntry> Manifest(ScanSnapshot scan, WindowsPath target) => scan.Entries.Select(item => item.Entry)
-        .Where(entry => entry.Path.IsWithin(target, caseSensitive: true)).OrderBy(entry => entry.Path.Value, StringComparer.Ordinal).ToImmutableArray();
-
-    private static ImmutableArray<FileEntry> Context(ScanSnapshot scan, WindowsPath target, CleanupRule rule)
+    private static ImmutableArray<FileEntry> Context(ScanSnapshot scan, FileTreeIndex index, WindowsPath target, CleanupRule rule)
     {
-        var entries = scan.Entries.ToDictionary(item => item.Entry.Path, item => item.Entry);
+        var entries = index.Entries;
         var context = new List<FileEntry>();
         for (var parent = target.Parent!; ; parent = parent.Parent!)
         {
@@ -306,9 +312,9 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         return context.DistinctBy(entry => entry.Path).OrderBy(entry => entry.Path.Value, StringComparer.Ordinal).ToImmutableArray();
     }
 
-    private static void RequireContext(ImmutableArray<FileEntry> expected, ScanSnapshot current)
+    private static void RequireContext(ImmutableArray<FileEntry> expected, FileTreeIndex current)
     {
-        var entries = current.Entries.ToDictionary(item => item.Entry.Path, item => item.Entry);
+        var entries = current.Entries;
         foreach (var entry in expected)
             if (!entries.TryGetValue(entry.Path, out var found) || (entry.Kind == EntryKind.Directory
                 ? found.Kind != EntryKind.Directory || found.Identity != entry.Identity || found.IsCaseSensitive != entry.IsCaseSensitive
@@ -377,6 +383,20 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         if (now < plan.CreatedAt || now >= plan.ExpiresAt) throw Stale();
     }
     private static void ValidatePlanId(string id) { if (!RecordKey.IsId(id, "plan")) throw Input("Choose a valid plan identifier."); }
+    private sealed class InlineProgress<T>(Action<T> report) : IProgress<T> { public void Report(T value) => report(value); }
+    private sealed class ThrottledProgress(IProgress<CleanupProgress> target, TimeProvider clock) : IProgress<CleanupProgress>
+    {
+        private CleanupProgress? previous;
+        private long timestamp;
+        public void Report(CleanupProgress value)
+        {
+            var now = clock.GetTimestamp();
+            if (previous is { } before && before.Phase == value.Phase && before.ItemId == value.ItemId && before.ProcessedItems == value.ProcessedItems &&
+                clock.GetElapsedTime(timestamp, now) < TimeSpan.FromMilliseconds(40) && value.Phase != "recorded") return;
+            previous = value; timestamp = now;
+            target.Report(value);
+        }
+    }
     private static void Report(IProgress<CleanupProgress>? progress, CleanupProgress value)
     {
         // Progress is advisory; a consumer failure cannot discard durable execution facts.

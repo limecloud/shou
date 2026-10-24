@@ -13,15 +13,17 @@
 
 A native macOS cleaner with cleanup rules tailored by your existing AI agent. Tell Codex, Claude Code, or WorkBuddy what takes space and what to keep; it asks the missing questions and drafts reusable rules. Shou scans, validates, previews, and cleans locally.
 
-Shou v0.12.0 improves selected-file cleanup, permanent-removal progress and shared design resources. The npm CLI uses one installation entry with exact-version native platform packages. See the [release notes](https://github.com/limecloud/shou/releases/tag/v0.12.0) and [npm distribution](docs/engineering/npm-distribution.md).
+Shou v0.13.0 unifies native traversal, pages large cleanup manifests and keeps measured cleanup progress in the main window. The npm CLI uses one installation entry with exact-version native platform packages. See the [release notes](https://github.com/limecloud/shou/releases/tag/v0.13.0) and [npm distribution](docs/engineering/npm-distribution.md).
 
 ## Download and install
 
-Download Shou v0.12.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.13.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.12.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.12.0/shou-0.12.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-v0.12.0 is a macOS release. Windows uses an independent WinUI 3/.NET 10 implementation in development; release packages await native acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
+
+v0.13.0 includes unsigned, self-contained Windows portable previews with independent WinUI 3/.NET 10 implementations. Extract the app ZIP and run Shou.Windows.App.exe. Native cleanup, uninstall and startup mutation gates remain closed; ARM64 runtime, signing, installation and updates await separate acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
 
 This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
 

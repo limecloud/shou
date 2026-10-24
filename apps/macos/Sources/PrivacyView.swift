@@ -17,7 +17,6 @@ struct PrivacyView: View {
         VStack(alignment: .leading, spacing: 12) {
             if session.working {
                 OperationProgressView(title: app.t(app.statusKey), symbol: "hand.raised.fill", currentPath: session.progress?.path ?? "",
-                    countText: session.progress.map { String(format: app.t("%lld of %lld sources processed"), locale: app.language.locale, $0.processedCount, $0.itemCount) } ?? app.t("Preparing privacy sources…"),
                     fraction: session.progress.flatMap { $0.itemCount > 0 ? Double($0.processedCount) / Double($0.itemCount) : nil },
                     stopRequested: app.stopRequested, stopLabel: app.t("Stop"), stoppingLabel: app.t("Stopping…"), onStop: session.cancel)
             } else {

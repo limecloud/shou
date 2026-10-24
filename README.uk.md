@@ -15,9 +15,11 @@
 
 ## Завантаження та встановлення
 
-Shou v0.12.0 потребує **macOS 14 або новішої**. Універсальна програма працює на Apple Silicon та Intel. Перетягніть **Shou.app** з образу диска до **Applications**. Інтерфейс доступний англійською та спрощеною китайською.
+Shou v0.13.0 потребує **macOS 14 або новішої**. Універсальна програма працює на Apple Silicon та Intel. Перетягніть **Shou.app** з образу диска до **Applications**. Інтерфейс доступний англійською та спрощеною китайською.
 
-[**Shou v0.12.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.12.0/shou-0.12.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
 
 Версія має підпис ad-hoc і не нотаризована Apple. У разі блокування запуску перевірте джерело та відкрийте **Системні параметри → Приватність і безпека**, щоб дозволити запуск.
 

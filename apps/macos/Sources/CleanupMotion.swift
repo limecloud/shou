@@ -129,33 +129,11 @@ struct CapacityDots: View {
 
 struct ScanActivity: View {
     var model: AppModel
-    @ReduceMotion private var reduceMotion
-    private var stage: Int { model.scanProgress?.stage == "saving" ? 2 : model.scanProgress?.stage == "analysis" ? 1 : 0 }
-    private let stages=["Discover files", "Match rules", "Save results"]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            if model.scanningLocation == nil { HStack(spacing: 22) {
-                ForEach(stages.indices, id: \.self) { index in
-                    HStack(spacing: 7) {
-                        Image(systemName: index < stage ? "checkmark.circle.fill" : index == stage ? "circle.inset.filled" : "circle")
-                        Text(model.t(stages[index]))
-                    }.foregroundStyle(index <= stage ? Color.accentColor : Color.secondary)
-                }
-                Spacer(minLength: 0)
-            }.font(.system(size: 12, weight: .medium))
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: stage)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(model.t("Scan progress"))
-                .accessibilityValue(model.t(stages[stage]))
-                .accessibilityIdentifier("scan.stage")
-            }
-            OperationProgressView(title: model.t(model.scanningCleanupPath != nil ? "Scanning this directory…" : model.scanningLocation == nil ? stages[stage] : "Scan Common Locations"),
-                subtitle: model.scanningCleanupPath ?? model.scanningLocation.map { model.t($0.title) + " · " + model.t(stages[stage]) } ?? "",
-                currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningCleanupPath ?? model.scanningLocation?.path ?? model.workspace?.path ?? "",
-                countText: String(format: model.t("%lld items discovered"), locale: model.language.locale, model.scanEntryCount),
-                fraction: model.scanProgress?.fractionCompleted,
-                stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
-        }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        OperationProgressView(title: model.t(model.scanningCleanupPath != nil || model.scanningLocation == nil ? "Scanning this directory…" : "Scan Common Locations"),
+            currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningCleanupPath ?? model.scanningLocation?.path ?? model.workspace?.path ?? "",
+            fraction: model.scanProgress?.fractionCompleted,
+            stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
     }
 }

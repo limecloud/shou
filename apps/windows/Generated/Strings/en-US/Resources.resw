@@ -1845,6 +1845,9 @@
   <data name="s8456352791573730647909c9" xml:space="preserve">
     <value>File Type</value>
   </data>
+  <data name="sc1ff65a1391c23018abc1098" xml:space="preserve">
+    <value>File manifest pages are missing or inconsistent.</value>
+  </data>
   <data name="s0fc20e4dbfda19a2bac35e61" xml:space="preserve">
     <value>File metadata could not be verified.</value>
   </data>
@@ -4650,8 +4653,17 @@
   <data name="s04a9bf61e7edb512efc2105e" xml:space="preserve">
     <value>Space analysis complete.</value>
   </data>
+  <data name="sd90327db63c322372562b1a2" xml:space="preserve">
+    <value>Space analysis could not be completed.</value>
+  </data>
   <data name="s075eb48d8189e0071a6d4acd" xml:space="preserve">
     <value>Space analysis entry pages are missing or inconsistent.</value>
+  </data>
+  <data name="s45759680304222f445deeaa6" xml:space="preserve">
+    <value>Space analysis index is unavailable or inconsistent.</value>
+  </data>
+  <data name="s260b0ded37031ab9dc408bc0" xml:space="preserve">
+    <value>Space analysis index size limit is invalid.</value>
   </data>
   <data name="s232b3656cd4a488fb5d3d98a" xml:space="preserve">
     <value>Space by Directory</value>
@@ -5213,6 +5225,9 @@
   </data>
   <data name="s12ab9774c069a12b903e0b3b" xml:space="preserve">
     <value>The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.</value>
+  </data>
+  <data name="s58b0b32e13932ab618db36b7" xml:space="preserve">
+    <value>The space analysis index ran out of storage. Free some disk space or scan a smaller folder.</value>
   </data>
   <data name="sab76f538320df296f639b3a1" xml:space="preserve">
     <value>The startup scan reached the maximum folder depth.</value>

@@ -7,7 +7,7 @@ import Foundation
 enum PermanentExecution {
     static func run(planId: String, workspace: Workspace, items: [ItemReceipt], entryPoint: String,
                     store: any RecordStore, filesystem: any PlatformFileSystem, now: Date, operation: String = "permanent_cleanup",
-                    progress: (ExecutionProgress) -> Void,
+                    progress: @Sendable (ExecutionProgress) -> Void,
                     didBegin: (ExecutionReceipt) throws -> Void,
                     validateItem: (Int, [FileEntry]) throws -> String?) throws -> ExecutionReceipt {
         if Task.isCancelled { throw ShouError("cancelled", "Permanent cleanup stopped before any files were removed.") }
@@ -23,7 +23,7 @@ enum PermanentExecution {
         for index in receipt.items.indices {
             if Task.isCancelled { receipt.state="cancelled"; break }
             let path=receipt.items[index].originalPath
-            progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: path))
+            progress(ExecutionProgress(stage: "checking", processedCount: index, itemCount: items.count, path: path))
             do {
                 let skip=try validateItem(index, removalContext.reconciled(receipt.items[index].manifest))
                 if Task.isCancelled { receipt.state="cancelled"; break }
@@ -51,6 +51,9 @@ enum PermanentExecution {
                 try filesystem.purge(path, expected: receipt.items[index].manifest, context: &removalContext, progress: { completed, total, current in
                     progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: current,
                         currentItemProcessedCount: completed, currentItemCount: total))
+                }, checking: { update in
+                    let current=update.currentPath.isEmpty ? path : update.currentPath.hasPrefix("/") ? update.currentPath : path + "/" + update.currentPath
+                    progress(ExecutionProgress(stage: "checking", processedCount: index, itemCount: items.count, path: current))
                 })
                 receipt.items[index].state="purged"
             } catch {

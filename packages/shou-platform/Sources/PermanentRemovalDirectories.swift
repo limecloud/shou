@@ -19,8 +19,15 @@ final class PermanentRemovalDirectories {
     private let anchorPath: String?
     private let directories: [String: FileEntry]
     private var frames=[Frame]()
+    private var currentParent: String?
 
     init(path: String, manifest: [FileEntry]) throws {
+        var previous: String?
+        for entry in manifest {
+            guard entry.path == "." || StorageRemovalPolicy.validRelative(entry.path),
+                  previous.map({ $0 < entry.path }) ?? true else { throw ShouError("plan_stale", "Receipt entry path is invalid.") }
+            previous=entry.path
+        }
         directories=Dictionary(uniqueKeysWithValues: manifest.filter { $0.kind == "directory" }.map { ($0.path, $0) })
         let components: [String]
         #if canImport(Darwin)
@@ -71,15 +78,20 @@ final class PermanentRemovalDirectories {
         // reopening it for every file. Relative attachments are checked below.
         guard try Self.directoryPath(filesystemRoot) == anchorPath else { throw ShouError("plan_stale", "Receipt root changed.") }
         #endif
-        let parts=entry.path.split(separator: "/").map(String.init)
-        guard entry.path == "." || StorageRemovalPolicy.validRelative(entry.path), let name=parts.last else {
-            throw ShouError("plan_stale", "Receipt entry path is invalid.")
-        }
-        let ancestry=entry.path == "." ? [] : Array(parts.dropLast())
-        var shared=0
+        let separator=entry.path.lastIndex(of: "/")
+        let relativeParent=separator.map { String(entry.path[..<$0]) } ?? ""
+        let name=separator.map { String(entry.path[entry.path.index(after: $0)...]) } ?? entry.path
         let rootCount=targetDepth + 1
-        while shared < ancestry.count, shared + rootCount < frames.count, frames[shared + rootCount].name == ancestry[shared] { shared += 1 }
-        while frames.count > shared + rootCount { close(frames.removeLast().descriptor) }
+        let ancestry: [String], shared: Int
+        if currentParent == relativeParent {
+            ancestry=[]; shared=0
+        } else {
+            ancestry=relativeParent.isEmpty ? [] : relativeParent.split(separator: "/").map(String.init)
+            var count=0
+            while count < ancestry.count, count + rootCount < frames.count, frames[count + rootCount].name == ancestry[count] { count += 1 }
+            shared=count
+            while frames.count > shared + rootCount { close(frames.removeLast().descriptor) }
+        }
         var parent=filesystemRoot
         for frame in frames {
             try verify(parent: parent, name: frame.name, expected: frame.identity)
@@ -91,6 +103,7 @@ final class PermanentRemovalDirectories {
             let frame=try openDirectory(parent: parent, name: ancestry[depth], expected: expected)
             frames.append(frame); parent=frame.descriptor
         }
+        currentParent=relativeParent
         let rootParent=targetDepth == 0 ? filesystemRoot : frames[targetDepth - 1].descriptor
         return entry.path == "." ? (rootParent, frames[targetDepth].name) : (parent, name)
     }

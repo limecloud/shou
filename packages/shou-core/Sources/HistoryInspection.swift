@@ -49,7 +49,7 @@ enum HistoryInspector {
                 remainingEntries=max(0, remainingEntries - tree.entries.count)
                 if Task.isCancelled { throw ShouError("cancelled", "History verification cancelled.") }
                 guard tree.complete else { return HistoryObjectObservation(path: path, state: "unavailable", issue: "incomplete_manifest") }
-                let matches=tree.entries.count == manifest.count && zip(tree.entries, manifest).allSatisfy { $0 == $1 || $0.matchesTrashRoot(as: $1) }
+                let matches=FileManifestVerification.matches(tree.entries, manifest, allowingTrashRootChanges: true)
                 return HistoryObjectObservation(path: path, state: matches ? "matches" : "changed", issue: matches ? nil : "manifest_changed")
             } catch let error as ShouError where error.code == "cancelled" { throw error }
             catch { return HistoryObjectObservation(path: path, state: "unavailable", issue: "inspection_failed") }

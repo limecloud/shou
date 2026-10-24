@@ -13,15 +13,17 @@
 
 让现有 AI Agent 为你定制清理规则的原生 macOS 清理工具。告诉 Codex、Claude Code 或 WorkBuddy 哪些目录占空间、哪些内容要保留，由它追问、分析并编写可复用规则；Shou 在本地完成扫描、校验、预览与清理。
 
-Shou v0.12.0 改进选中文件的清理操作、永久删除进度与共享设计资源。npm CLI 使用统一安装入口和精确版本的原生平台包。详见[发布说明](https://github.com/limecloud/shou/releases/tag/v0.12.0)和[npm 分发](docs/zh-CN/engineering/npm-distribution.md)。
+Shou v0.13.0 统一原生遍历、大清单分页和页面内清理进度，减少准备与执行的重复工作。npm CLI 使用统一安装入口和精确版本的原生平台包。详见[发布说明](https://github.com/limecloud/shou/releases/tag/v0.13.0)和[npm 分发](docs/zh-CN/engineering/npm-distribution.md)。
 
 ## 下载与安装
 
-下载 Shou v0.12.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
+下载 Shou v0.13.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
 
-[**Shou v0.12.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.12.0/shou-0.12.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-v0.12.0 仅发布 macOS 版本。Windows 采用独立的 WinUI 3/.NET 10 原生实现，当前开发中，发行包待原生验收完成，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
+
+v0.13.0 同时提供独立 WinUI 3/.NET 10 的 Windows 自包含便携预览包；解压后运行 Shou.Windows.App.exe。Windows 清理、卸载和启动项变更门禁仍关闭，ARM64 运行、签名、安装和更新另行验收，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
 
 此版本使用 ad-hoc 签名，尚未经过 Apple 公证。如 macOS 阻止首次打开，请先确认下载来源，再查看**系统设置 → 隐私与安全性 → 仍要打开**。
 

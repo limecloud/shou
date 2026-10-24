@@ -122,7 +122,6 @@ struct StorageLocation: Identifiable {
     var scanning=false
     var stopRequested=false
     var reviewing=false
-    var reviewProgress: ExecutionProgress?
     var loadingDirectory=false
     var elapsed: TimeInterval=0
     var startedAt=Date()
@@ -349,7 +348,13 @@ struct StorageLocation: Identifiable {
                 focus=nil; hovered=nil; back=[]; forward=[]
                 elapsed=Date().timeIntervalSince(startedAt)
                 app.statusKey=result.tree.complete ? "Space analysis complete." : "Some locations could not be measured. Review scan coverage."
-            } catch { if !Task.isCancelled { app.error=error.localizedDescription }; app.statusKey="Scan stopped." }
+            } catch {
+                if Task.isCancelled { app.statusKey="Scan stopped." }
+                else {
+                    app.error=error.localizedDescription
+                    app.statusKey="Space analysis could not be completed."
+                }
+            }
         }
     }
     func stop() { if scanning || reviewing { stopRequested=true }; task?.cancel() }
@@ -378,19 +383,20 @@ struct StorageLocation: Identifiable {
         // The inline action confirms this exact selection. Freeze it before
         // preparing the plan so subsequent UI changes cannot expand the scope.
         let paths=StorageSelection.normalized(selected).sorted(), sourceSection=app.section
-        reviewing=true; reviewProgress=nil; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
+        reviewing=true; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
+        let execution=app.beginExecution(total: paths.count, action: action, stage: "preparing")
         task=Task {
             defer { reviewing=false; app.busy=false; app.isExecuting=false; app.stopRequested=false; stopRequested=false }
             do {
                 let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths, action: action, progress: { [weak self] update in
                     Task { @MainActor in
                         guard let self, self.reviewing, !self.stopRequested else { return }
-                        self.reviewProgress=update
+                        app.updateExecutionProgress(update, operation: execution)
                     }
                 })
                 guard !Task.isCancelled else { return }
                 reviewing=false
-                try await execute(app: app, engine: engine, plan: plan, sourceSection: sourceSection)
+                try await execute(app: app, engine: engine, plan: plan, sourceSection: sourceSection, execution: execution)
             } catch {
                 app.operationHadError=app.isExecuting
                 if !Task.isCancelled || app.isExecuting {
@@ -402,8 +408,7 @@ struct StorageLocation: Identifiable {
             }
         }
     }
-    private func execute(app: AppModel, engine: ShouEngine, plan: StorageRemovalPlan, sourceSection: String) async throws {
-        let execution=app.beginExecution(total: plan.items.count)
+    private func execute(app: AppModel, engine: ShouEngine, plan: StorageRemovalPlan, sourceSection: String, execution: UUID) async throws {
         let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { update in
             Task { @MainActor in app.updateExecutionProgress(update, operation: execution) }
         })

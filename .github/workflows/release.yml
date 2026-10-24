@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.12.0
+        default: v0.13.0
 
 permissions:
   contents: read
@@ -146,8 +146,61 @@ jobs:
             dist/release-*/appcast.xml
             dist/release-*/SHA256SUMS
 
+  windows:
+    needs: source
+    name: Windows preview (${{ matrix.runtime }})
+    runs-on: windows-2025
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.source.outputs.commit }}
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/windows/global.json
+          cache: true
+          cache-dependency-path: apps/windows/**/packages.lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Native x64 core, presentation, platform and CLI acceptance
+        if: matrix.runtime == 'win-x64'
+        run: ./scripts/windows/test.ps1 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/tests"
+      - name: Build self-contained WinUI and CLI payloads
+        run: ./scripts/windows/build.ps1 -Runtime '${{ matrix.runtime }}' -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/payload"
+      - name: Native x64 CLI and WinUI startup
+        if: matrix.runtime == 'win-x64'
+        run: |
+          $Version = $env:SHOU_RELEASE_TAG.Substring(1)
+          ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/payload/publish" -Version $Version
+      - name: Verify architecture, runtime, resources, version and archives
+        run: |
+          $Arguments = @('--payload-root', "$env:RUNNER_TEMP/ShouBuild/payload/publish", '--output', 'dist/windows', '--version', $env:SHOU_RELEASE_TAG.Substring(1), '--runtime', '${{ matrix.runtime }}', '--source', '${{ needs.source.outputs.commit }}')
+          if ('${{ matrix.runtime }}' -eq 'win-x64') { $Arguments += '--native-checked' }
+          python scripts/package-windows.py @Arguments
+          if ($LASTEXITCODE -ne 0) { throw 'Windows release archive validation failed.' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shou-release-windows-${{ matrix.runtime }}
+          if-no-files-found: error
+          path: dist/windows/
+      - name: Retain native acceptance evidence
+        if: always() && matrix.runtime == 'win-x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shou-release-windows-test-results
+          if-no-files-found: ignore
+          path: ${{ runner.temp }}/ShouBuild/tests/results
+
   publish:
-    needs: [source, package]
+    needs: [source, package, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -159,6 +212,11 @@ jobs:
         with:
           name: shou-release
           path: release-assets
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: shou-release-windows-win-*
+          merge-multiple: true
+          path: windows-assets
       - name: Publish verified release assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -167,6 +225,8 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHOU_RELEASE_TAG" --jq .sha)" = "$SHOU_SOURCE_COMMIT" || { echo 'Release tag moved; publish the new verified source instead'; exit 1; }
           task_asset_dir="$(dirname "$(find release-assets -name SHA256SUMS -print -quit)")"
           test -f "$task_asset_dir/SHA256SUMS"
+          cp windows-assets/*.zip "$task_asset_dir/"
+          cat windows-assets/SHA256SUMS-windows-* >> "$task_asset_dir/SHA256SUMS"
           (cd "$task_asset_dir" && sha256sum -c SHA256SUMS)
           if gh release view "$SHOU_RELEASE_TAG" --json isDraft --jq .isDraft > "$RUNNER_TEMP/shou-release-state" 2>/dev/null; then
             test "$(cat "$RUNNER_TEMP/shou-release-state")" = true || { echo 'Published releases cannot be replaced'; exit 1; }

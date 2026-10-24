@@ -30,6 +30,9 @@ public sealed class CleanupExecutionTests
         public string? ReadPlan;
         public ICleanupConfirmation? Confirmation;
         public CancellationToken Token;
+        public IProgress<CleanupProgress>? Progress;
+        public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, IProgress<CleanupProgress>? progress, CancellationToken token)
+        { Progress = progress; return ExecuteAsync(planId, confirmation, token); }
         public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, CancellationToken cancellationToken)
         {
             ExecutedPlan = planId; Confirmation = confirmation; Token = cancellationToken;
@@ -197,4 +200,63 @@ public sealed class CleanupExecutionTests
         Assert.True(operations.Token.IsCancellationRequested); Assert.Equal(0, changes);
         Assert.Null(model.Execution); Assert.Null(model.Plan); Assert.Null(model.AttemptedPlan);
     }
+    private sealed class ImmediateContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback callback, object? state) => callback(state);
+    }
+
+    [Fact]
+    public async Task EntryProgressNeverRegressesAndLateCallbacksCannotChangeResults()
+    {
+        var previous = SynchronizationContext.Current;
+        var response = new TaskCompletionSource<CleanupExecution>();
+        var operations = new Operations { Run = _ => response.Task };
+        using var model = new CleanupExecutionViewModel(operations, new Clock());
+        var plan = Prepared();
+        plan = plan with { Items = plan.Items.Select(item => item with
+        {
+            Manifest = [new(item.Path, new(1, new string('1', 32), "S-1-5-21-1000"), EntryKind.Directory, 0, 0, DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch)]
+        }).ToImmutableArray() };
+        Task task;
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(new ImmediateContext());
+            model.BindPlan(plan);
+            task = model.ExecuteAsync(new Confirmation());
+            var total = plan.Items.Sum(item => item.Manifest.Length);
+            Assert.Null(model.FractionCompleted);
+            operations.Progress!.Report(new("checking", plan.Items[0].Id, plan.Items[0].Path, 0, plan.Items.Length, 0, total));
+            operations.Progress.Report(new("purging", plan.Items[0].Id, plan.Items[0].Path, 0, plan.Items.Length, 1, total));
+            var fraction = model.FractionCompleted;
+            Assert.True(fraction > 0);
+            operations.Progress.Report(new("checking", plan.Items[0].Id, plan.Items[0].Path, 0, plan.Items.Length, 0, total));
+            operations.Progress.Report(new("purging", plan.Items[0].Id, plan.Items[0].Path, 0, plan.Items.Length, 1, total + 1));
+            Assert.Equal(fraction, model.FractionCompleted);
+            model.Cancel();
+            operations.Progress.Report(new("recorded", plan.Items[1].Id, plan.Items[1].Path, plan.Items.Length, plan.Items.Length, total, total));
+            Assert.Equal(fraction, model.FractionCompleted);
+            response.SetResult(Result(plan));
+        }
+        finally { SynchronizationContext.SetSynchronizationContext(previous); }
+        await task;
+        var finalProgress = model.Progress;
+        operations.Progress!.Report(new("preflight", null, null, 0, plan.Items.Length));
+        Assert.Equal(finalProgress, model.Progress);
+        Assert.Equal(CleanupExecutionPageState.Result, model.State);
+        model.BindPlan(plan with { Id = Id("plan", 2) });
+        Assert.Null(model.Progress);
+    }
+
+    [Fact]
+    public void CompactPathsRetainTheirEndsWithoutControlCharactersOrBrokenUnicode()
+    {
+        var path = "C:\\Users\\Dev\\" + string.Concat(Enumerable.Repeat("目录😀/", 70)) + "generated-cache.bin";
+        var compact = OperationProgressPresentation.CompactPath(path);
+        Assert.StartsWith("C:\\Users\\Dev", compact);
+        Assert.EndsWith("generated-cache.bin", compact);
+        Assert.Contains("…", compact);
+        Assert.DoesNotContain("�", compact);
+        Assert.Equal("C:/a b", OperationProgressPresentation.CompactPath("C:/a\nb"));
+    }
+
 }

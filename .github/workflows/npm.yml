@@ -28,3 +28,4 @@ jobs:
         run: |
           node --test tests/npm/launcher.test.cjs
           python tests/npm/test-packaging.py
+          python tests/npm/test-windows-release.py

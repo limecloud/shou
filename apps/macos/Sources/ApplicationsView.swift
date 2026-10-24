@@ -82,7 +82,8 @@ struct ApplicationsView: View {
                     Divider()
                     if session.scanning && session.items.isEmpty {
                         VStack(spacing: 14) {
-                            OperationActivityArtwork(symbol: "app.dashed", stopped: session.stopRequested).frame(width: 196, height: 138)
+                            OperationActivityArtwork(symbol: "app.dashed", stopped: session.stopRequested)
+                                .scaleEffect(0.7).frame(width: ShouDesign.cleanupArtworkWidth, height: 138)
                             Text(model.t("Measuring application sizes…")).foregroundStyle(.secondary)
                         }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
@@ -155,9 +156,10 @@ struct ApplicationsView: View {
             if session.scanning || session.preparing {
                 VStack(alignment: .leading, spacing: 5) {
                     OperationProgressMeter(fraction: session.applicationCount > 0 ? Double(session.processedCount) / Double(session.applicationCount) : nil,
-                        countText: session.stopRequested ? model.t("Stopping…") : session.applicationCount > 0 ? String(format: model.t("%lld of %lld applications checked"), locale: model.language.locale, session.processedCount, session.applicationCount) : model.t("Reviewing application components…"), compact: true)
+                        label: session.stopRequested ? model.t("Stopping…") : session.applicationCount > 0 ? String(format: model.t("%lld of %lld applications checked"), locale: model.language.locale, session.processedCount, session.applicationCount) : model.t("Reviewing application components…"), compact: true)
                     Text(session.currentPath).font(.caption2.monospaced()).foregroundStyle(.secondary)
                         .lineLimit(1).truncationMode(.middle).help(session.currentPath)
+                        .transaction { $0.animation=nil }
                 }.frame(width: 270)
             } else if session.hasChanges {
                 Button(model.t("Scan again to update sizes and status")) { session.scan(app: model) }.buttonStyle(.link).font(.caption)

@@ -152,4 +152,42 @@ public sealed class WindowsCleanupTests
         Assert.Equal(ActivityState.Idle, (await activity.InspectAsync(resources, default)).State);
         Assert.Equal(new byte[] { 1, 2, 3 }, File.ReadAllBytes(path));
     }
+    private sealed class Progress(Action<CleanupMutationProgress> report) : IProgress<CleanupMutationProgress>
+    { public void Report(CleanupMutationProgress value) => report(value); }
+
+    [WindowsFact]
+    public async Task StoppingInsideExactManifestVerificationDoesNotRemoveAnyFixtureEntry()
+    {
+        using var fixture = new NativeFixture();
+        Populate(fixture);
+        var observed = await Observe(fixture);
+        using var stopped = new CancellationTokenSource();
+        var updates = new List<CleanupMutationProgress>();
+        var result = await new WindowsCleanupMutation().ApplyAsync(observed.Workspace, observed.Item, CleanupAction.Permanent,
+            new Progress(value => { updates.Add(value); if (value.Phase == "checking") stopped.Cancel(); }), stopped.Token);
+        Assert.Equal(CleanupMutationOutcome.Cancelled, result.Outcome);
+        Assert.Equal(0, result.RemovedEntries);
+        Assert.Contains(updates, value => value.Phase == "checking");
+        Assert.Equal(new byte[] { 1, 2, 3 }, File.ReadAllBytes(Path.Combine(fixture.Root, "project/target/cache.bin")));
+        Assert.Equal(new byte[] { 4, 5, 6 }, File.ReadAllBytes(Path.Combine(fixture.Root, "project/target/子目录 with spaces/nested.bin")));
+    }
+
+    [WindowsFact]
+    public async Task MultipleDirectoryPagesAndDeepParentsKeepExactProgressAndPreserveSources()
+    {
+        using var fixture = new NativeFixture();
+        Populate(fixture);
+        var tail = string.Join('/', Enumerable.Repeat("nested", 12));
+        for (var index = 0; index < 1200; index++) fixture.Write("project/target/" + tail + "/generated-" + index + ".bin", [3, 2, 1]);
+        var observed = await Observe(fixture);
+        var updates = new List<CleanupMutationProgress>();
+        var result = await new WindowsCleanupMutation().ApplyAsync(observed.Workspace, observed.Item, CleanupAction.Permanent, new Progress(updates.Add), default);
+        Assert.Equal(CleanupMutationOutcome.Completed, result.Outcome);
+        Assert.Equal(observed.Item.Manifest.Length, result.RemovedEntries);
+        Assert.Equal(Enumerable.Range(1, result.RemovedEntries), updates.Where(value => value.Phase == "purging").Select(value => value.RemovedEntries));
+        Assert.False(Directory.Exists(observed.Item.Path.Value));
+        Assert.True(File.Exists(Path.Combine(fixture.Root, "project/Cargo.toml")));
+        Assert.Equal(new byte[] { 9, 8, 7 }, File.ReadAllBytes(Path.Combine(fixture.Root, "project/src/main.rs")));
+    }
+
 }

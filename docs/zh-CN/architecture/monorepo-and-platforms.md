@@ -49,7 +49,7 @@ Windows 目标工程树由实施方案定义。按实际能力增加接口与工
 
 规则 Schema 的唯一来源为 `packages/shou-contracts/rule.schema.json`。内置规则与扫描位置 JSON 统一维护于 `packages/shou-core/Sources/Resources`，Windows 生成器筛选适用声明到 `apps/windows/Generated`。平台适用字段只描述数据范围，不代表对应平台已经支持运行。
 
-文案当前唯一来源为 `packages/shou-core/Localizable.xcstrings`。Windows 生成器转换当前两种运行时语言，并校验占位符及源摘要。`assets/design/tokens.json` 维护已提取的强调色、间距、圆角、内边距与主操作尺寸共八项值，同一生成器输出 WinUI 的 `Design.xaml` 和 SwiftUI 的 `ShouDesign.generated.swift`，原生视图使用生成常量。共享设计值仅进入应用层，字号、动效及其他视觉值仍待提取。品牌资产放在 `assets/brand`。生成过程确定、可重复，支持无差异校验；新增复数或格式类型必须先增加显式支持和夹具。
+文案当前唯一来源为 `packages/shou-core/Localizable.xcstrings`。Windows 生成器转换当前两种运行时语言，并校验占位符及源摘要。`assets/design/tokens.json` 维护已提取的强调色、间距、圆角、内边距、主操作尺寸与清理动效值，同一生成器输出 WinUI 的 `Design.xaml` 和 SwiftUI 的 `ShouDesign.generated.swift`，原生视图使用生成常量。共享设计值仅进入应用层，字号及其他视觉值仍待提取。生成清理动效值不代表 Windows 已实现动画。品牌资产放在 `assets/brand`。生成过程确定、可重复，支持无差异校验；新增复数或格式类型必须先增加显式支持和夹具。
 
 共享验收案例描述输入证据、预期选择、阻断原因、确认与结果。文件身份、访问权限与竞态必须分别在原生环境验证。两个运行时不读取对方平台的本地记录。
 

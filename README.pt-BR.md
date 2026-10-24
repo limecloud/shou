@@ -15,9 +15,11 @@ Um limpador nativo do macOS para caches, projetos de desenvolvimento e pastas qu
 
 ## Download e instalação
 
-Shou v0.12.0 requer **macOS 14 ou posterior**. O app universal funciona em Apple Silicon e Intel. Arraste **Shou.app** da imagem de disco para **Applications**. A interface está em inglês e chinês simplificado.
+Shou v0.13.0 requer **macOS 14 ou posterior**. O app universal funciona em Apple Silicon e Intel. Arraste **Shou.app** da imagem de disco para **Applications**. A interface está em inglês e chinês simplificado.
 
-[**Shou v0.12.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.12.0/Shou-0.12.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.12.0/shou-0.12.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
 
 Esta versão tem assinatura ad-hoc e não é notarizada pela Apple. Se a abertura for bloqueada, verifique a origem e consulte **Ajustes do Sistema → Privacidade e Segurança → Abrir Mesmo Assim**.
 

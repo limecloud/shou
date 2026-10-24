@@ -45,6 +45,12 @@ Desktop and CLI are independent product entry points within each operating syste
 
 Core owns these decisions and required capability interfaces. Platform owns native access, identities, processes and persistence. UI owns navigation, selection, rendering and scheduling. The Windows Presentation layer keeps state independently testable on macOS. See [repository boundaries](monorepo-and-platforms.md).
 
+## Shared traversal boundaries
+
+Within each platform, directory enumeration, manifest comparison and immutable page storage are reusable lower-level capabilities. macOS measurement and target inspection share `NativeDirectoryReader`; Windows scanning and native verification share the handle-based `NativeDirectoryReader`. Core builds request-local indexes and policy contexts once and reuses them for classification, selection and review. They do not survive the operation or grant future authority.
+
+Batch policy preflight remains distinct from the final mutation boundary. Adapters explicitly declaring complete manifest verification own that final tree read; Core avoids another immediately redundant traversal. The default capability is false, retaining conservative checks for other adapters. Native mutation still checks the complete current manifest, identities, context and each unlink. History inspection always obtains a fresh observation. Installer-managed Windows uninstall and SQLite privacy operations retain their separate system contracts.
+
 ## macOS implementation
 
 `apps/macos` composes SwiftUI/AppKit, `ShouCore`, `ShouPlatform`, `ShouAI` and bundled agent instructions. `apps/cli` independently composes the same Swift services and terminal confirmation. `Package.swift` builds the macOS products; it does not define Windows targets.

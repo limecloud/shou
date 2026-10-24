@@ -38,16 +38,18 @@ public final class StorageCatalog {
     private var schemaVersion: Int32 = 2
     private var cachedParent: (path: String, id: Int64)?
     private let transient=unsafeBitCast(-1, to: sqlite3_destructor_type.self)
-    public init(url: URL, create: Bool = false, prepareNewFile: () throws -> Void = {}) throws {
+    public init(url: URL, create: Bool = false, maximumBytes: Int64 = 4_294_967_296, prepareNewFile: () throws -> Void = {}) throws {
         writable=create
-        guard !create || !FileManager.default.fileExists(atPath: url.path) else { throw Self.failure() }
+        guard (65_536...4_294_967_296).contains(maximumBytes) else { throw ShouError("invalid_argument", "Space analysis index size limit is invalid.") }
+        guard !create || !FileManager.default.fileExists(atPath: url.path) else { throw failure() }
         // Platforms can exclusively create the empty file with native ownership
         // after the existing-file check and before SQLite opens it.
         if create { try prepareNewFile() }
         let flags=(create ? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE : SQLITE_OPEN_READONLY) | SQLITE_OPEN_NOFOLLOW | SQLITE_OPEN_NOMUTEX
         guard sqlite3_open_v2(url.path, &database, flags, nil) == SQLITE_OK else {
+            let error=failure()
             if let database { sqlite3_close(database) }; database=nil
-            throw Self.failure()
+            throw error
         }
         do {
             try execute("PRAGMA trusted_schema=OFF; PRAGMA cache_size=-8192; PRAGMA mmap_size=0;")
@@ -55,7 +57,7 @@ public final class StorageCatalog {
                 try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
                 // A killed scan is never published. The final transaction and
                 // metadata are durable before the engine publishes its record.
-                try execute("PRAGMA journal_mode=OFF; PRAGMA synchronous=FULL; PRAGMA page_size=4096; PRAGMA max_page_count=1048576; PRAGMA user_version=2;")
+                try execute("PRAGMA journal_mode=OFF; PRAGMA synchronous=FULL; PRAGMA page_size=4096; PRAGMA max_page_count=\(maximumBytes / 4096); PRAGMA user_version=2;")
                 // Full paths are stored once per directory. File rows keep only
                 // their name and parent ID, avoiding gigabytes of repeated prefixes.
                 try execute("CREATE TABLE entries(id INTEGER PRIMARY KEY,path TEXT,parent INTEGER NOT NULL,name TEXT NOT NULL,kind TEXT NOT NULL,device INTEGER,inode INTEGER,logical INTEGER,allocated INTEGER,modified INTEGER,changed INTEGER,mode INTEGER,owner INTEGER,links INTEGER,total_logical INTEGER,total_allocated INTEGER,files INTEGER,newest INTEGER,complete INTEGER); CREATE UNIQUE INDEX directories ON entries(path) WHERE path IS NOT NULL;")
@@ -72,9 +74,9 @@ public final class StorageCatalog {
                 try execute("PRAGMA query_only=ON;")
                 let version=try prepare("PRAGMA user_version")
                 defer { sqlite3_finalize(version) }
-                guard sqlite3_step(version) == SQLITE_ROW else { throw Self.failure() }
+                guard sqlite3_step(version) == SQLITE_ROW else { throw failure() }
                 schemaVersion=sqlite3_column_int(version, 0)
-                guard [1, 2].contains(schemaVersion) else { throw Self.failure() }
+                guard [1, 2].contains(schemaVersion) else { throw failure() }
             }
         } catch { close(); throw error }
     }
@@ -86,26 +88,36 @@ public final class StorageCatalog {
         sqlite3_finalize(parentLookup); parentLookup=nil
         if let database { sqlite3_close(database) }; database=nil
     }
-    private static func failure() -> ShouError { ShouError("store_corrupt", "Space analysis index is unavailable or inconsistent.") }
+    private func failure() -> ShouError {
+        let status=sqlite3_errcode(database)
+        let details=database == nil || status == SQLITE_OK || status == SQLITE_ROW || status == SQLITE_DONE ? [:] : [
+            "sqlite_code": String(status), "sqlite_extended_code": String(sqlite3_extended_errcode(database))
+        ]
+        if status == SQLITE_FULL {
+            return ShouError("storage_full", "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.",
+                details: details, retryable: true)
+        }
+        return ShouError("store_corrupt", "Space analysis index is unavailable or inconsistent.", details: details)
+    }
     private func execute(_ sql: String) throws {
-        guard sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK else { throw Self.failure() }
+        guard sqlite3_exec(database, sql, nil, nil, nil) == SQLITE_OK else { throw failure() }
     }
     private func prepare(_ sql: String) throws -> OpaquePointer {
         var statement: OpaquePointer?
-        guard sqlite3_prepare_v2(database, sql, -1, &statement, nil) == SQLITE_OK, let statement else { throw Self.failure() }
+        guard sqlite3_prepare_v2(database, sql, -1, &statement, nil) == SQLITE_OK, let statement else { throw failure() }
         return statement
     }
     private func bind(_ value: String, _ index: Int32, to statement: OpaquePointer) throws {
-        guard sqlite3_bind_text(statement, index, value, -1, transient) == SQLITE_OK else { throw Self.failure() }
+        guard sqlite3_bind_text(statement, index, value, -1, transient) == SQLITE_OK else { throw failure() }
     }
     private func bind(_ values: [Int64], startingAt start: Int32, to statement: OpaquePointer) throws {
         for (index, value) in values.enumerated() {
-            guard sqlite3_bind_int64(statement, start + Int32(index), value) == SQLITE_OK else { throw Self.failure() }
+            guard sqlite3_bind_int64(statement, start + Int32(index), value) == SQLITE_OK else { throw failure() }
         }
     }
     private func finish(_ statement: OpaquePointer) throws {
         defer { sqlite3_reset(statement); sqlite3_clear_bindings(statement) }
-        guard sqlite3_step(statement) == SQLITE_DONE else { throw Self.failure() }
+        guard sqlite3_step(statement) == SQLITE_DONE else { throw failure() }
     }
     /// Only multiply-linked files need a deduplication set. It stays on disk.
     public func append(_ entry: FileEntry, complete: Bool? = nil) throws -> StorageNode {
@@ -115,10 +127,10 @@ public final class StorageCatalog {
     }
     private func directoryID(_ path: String) throws -> Int64 {
         if cachedParent?.path == path { return cachedParent!.id }
-        guard let parentLookup else { throw Self.failure() }
+        guard let parentLookup else { throw failure() }
         defer { sqlite3_reset(parentLookup); sqlite3_clear_bindings(parentLookup) }
         try bind(path, 1, to: parentLookup)
-        guard sqlite3_step(parentLookup) == SQLITE_ROW else { throw Self.failure() }
+        guard sqlite3_step(parentLookup) == SQLITE_ROW else { throw failure() }
         let id=sqlite3_column_int64(parentLookup, 0)
         cachedParent=(path, id)
         return id
@@ -126,7 +138,7 @@ public final class StorageCatalog {
     /// Traversal already knows the parent and basename. Reuse them instead of
     /// splitting every full path and resolving its parent through SQLite.
     public func append(_ entry: FileEntry, name: String, parentID: Int64, complete: Bool? = nil) throws -> (id: Int64, node: StorageNode) {
-        guard writable, let insert else { throw Self.failure() }
+        guard writable, let insert else { throw failure() }
         var charged=entry.kind != "symlink" && entry.kind != "special"
         if charged && entry.kind == "file" && entry.links > 1, let hardLink {
             try bind(entry.objectIdentityKey, 1, to: hardLink)
@@ -152,7 +164,7 @@ public final class StorageCatalog {
         try setTotals(node, id: directoryID(node.path))
     }
     public func setTotals(_ node: StorageNode, id: Int64) throws {
-        guard writable, let update else { throw Self.failure() }
+        guard writable, let update else { throw failure() }
         try bind([node.logicalBytes, node.allocatedBytes, Int64(node.fileCount), node.newestModifiedNanoseconds, node.isComplete == true ? 1 : 0], startingAt: 1, to: update)
         try bind([id], startingAt: 6, to: update)
         try finish(update)
@@ -190,12 +202,12 @@ public final class StorageCatalog {
     private var columns: String { Self.columns }
     private static let source=" FROM entries e LEFT JOIN entries d ON d.id=e.parent "
     private func item(_ statement: OpaquePointer) throws -> StorageCatalogItem {
-        guard let pathBytes=sqlite3_column_text(statement, 0), let kindBytes=sqlite3_column_text(statement, 1) else { throw Self.failure() }
+        guard let pathBytes=sqlite3_column_text(statement, 0), let kindBytes=sqlite3_column_text(statement, 1) else { throw failure() }
         let path=String(cString: pathBytes), kind=String(cString: kindBytes)
-        guard (path == "." || StorageRemovalPolicy.validRelative(path)), ["directory", "file", "symlink", "special"].contains(kind) else { throw Self.failure() }
+        guard (path == "." || StorageRemovalPolicy.validRelative(path)), ["directory", "file", "symlink", "special"].contains(kind) else { throw failure() }
         func integer(_ index: Int32) -> Int64 { sqlite3_column_int64(statement, index) }
         guard (4...5).allSatisfy({ integer(Int32($0)) >= 0 }), (11...13).allSatisfy({ integer(Int32($0)) >= 0 }),
-              (0...Int64(UInt32.max)).contains(integer(8)), (0...Int64(UInt32.max)).contains(integer(9)) else { throw Self.failure() }
+              (0...Int64(UInt32.max)).contains(integer(8)), (0...Int64(UInt32.max)).contains(integer(9)) else { throw failure() }
         let entry=FileEntry(path: path, kind: kind, device: UInt64(bitPattern: integer(2)), inode: UInt64(bitPattern: integer(3)),
             logicalBytes: integer(4), allocatedBytes: integer(5), modifiedNanoseconds: integer(6), changedNanoseconds: integer(7),
             mode: UInt32(integer(8)), owner: UInt32(integer(9)), links: UInt64(bitPattern: integer(10)))
@@ -211,13 +223,13 @@ public final class StorageCatalog {
         try bind(path == "." ? "." : String(path.split(separator: "/").last ?? ""), 3, to: statement)
         let status=sqlite3_step(statement)
         if status == SQLITE_DONE { return nil }
-        guard status == SQLITE_ROW else { throw Self.failure() }
+        guard status == SQLITE_ROW else { throw failure() }
         return try item(statement)
     }
     /// Immediate directories have already been discovered. Page by immutable
     /// names so descendant inserts and aggregate updates cannot shift offsets.
     public func forEachChildDirectory(parentID: Int64, _ consume: (Int64, StorageCatalogItem) throws -> Void) throws {
-        guard writable else { throw Self.failure() }
+        guard writable else { throw failure() }
         var after=""
         while true {
             var rows=[(Int64, StorageCatalogItem)]()
@@ -228,7 +240,7 @@ public final class StorageCatalog {
                 while true {
                     let status=sqlite3_step(statement)
                     if status == SQLITE_DONE { break }
-                    guard status == SQLITE_ROW else { throw Self.failure() }
+                    guard status == SQLITE_ROW else { throw failure() }
                     rows.append((sqlite3_column_int64(statement, 19), try item(statement)))
                 }
             }
@@ -246,7 +258,7 @@ public final class StorageCatalog {
             if result.count % 4096 == 0, Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
             let status=sqlite3_step(statement)
             if status == SQLITE_DONE { return result }
-            guard status == SQLITE_ROW else { throw Self.failure() }
+            guard status == SQLITE_ROW else { throw failure() }
             result.append(try item(statement))
         }
     }
@@ -269,7 +281,7 @@ public final class StorageCatalog {
         let count=try prepare("SELECT COUNT(*) FROM entries e WHERE " + predicate)
         defer { sqlite3_finalize(count) }
         try bind(path, 1, to: count); try bind(nameFilter, 2, to: count)
-        guard sqlite3_step(count) == SQLITE_ROW else { throw Self.failure() }
+        guard sqlite3_step(count) == SQLITE_ROW else { throw failure() }
         let total=Int(sqlite3_column_int64(count, 0))
         guard offset <= total else { throw ShouError("invalid_argument", "Invalid directory offset.") }
         let statement=try prepare("SELECT " + columns + Self.source + "WHERE " + predicate + " ORDER BY e.total_allocated DESC,e.name LIMIT ?3 OFFSET ?4")
@@ -280,7 +292,7 @@ public final class StorageCatalog {
             if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
             let status=sqlite3_step(statement)
             if status == SQLITE_DONE { break }
-            guard status == SQLITE_ROW else { throw Self.failure() }
+            guard status == SQLITE_ROW else { throw failure() }
             rows.append(try item(statement))
         }
         let end=offset + rows.count
@@ -290,14 +302,14 @@ public final class StorageCatalog {
         guard sqlite3_create_function_v2(database, "shou_name_matches", 2, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nil, { context, count, values in
             guard count == 2, let values, let name=sqlite3_value_text(values[0]), let query=sqlite3_value_text(values[1]) else { sqlite3_result_int(context, 0); return }
             sqlite3_result_int(context, String(cString: name).localizedCaseInsensitiveContains(String(cString: query)) ? 1 : 0)
-        }, nil, nil, nil) == SQLITE_OK else { throw Self.failure() }
+        }, nil, nil, nil) == SQLITE_OK else { throw failure() }
     }
     private func registerExtensionFunction() throws {
         guard sqlite3_create_function_v2(database, "shou_extension", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nil, { context, count, values in
             guard count == 1, let values, let bytes=sqlite3_value_text(values[0]) else { sqlite3_result_null(context); return }
             let suffix=StorageExtensionStat.suffix(String(cString: bytes))
             suffix.withCString { sqlite3_result_text(context, $0, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self)) }
-        }, nil, nil, nil) == SQLITE_OK else { throw Self.failure() }
+        }, nil, nil, nil) == SQLITE_OK else { throw failure() }
     }
     func extensionSummary(under path: String) throws -> StorageExtensionSummary {
         try registerExtensionFunction()
@@ -316,7 +328,7 @@ public final class StorageCatalog {
         while true {
             let status=sqlite3_step(statement)
             if status == SQLITE_DONE { break }
-            guard status == SQLITE_ROW, let text=sqlite3_column_text(statement, 0) else { throw checkpoint.error ?? Self.failure() }
+            guard status == SQLITE_ROW, let text=sqlite3_column_text(statement, 0) else { throw checkpoint.error ?? failure() }
             let row=StorageExtensionStat(suffix: String(cString: text), allocatedBytes: sqlite3_column_int64(statement, 1), logicalBytes: sqlite3_column_int64(statement, 2), fileCount: Int(sqlite3_column_int64(statement, 3)))
             if rows.count < 100 { rows.append(row) } else { omitted.allocatedBytes += row.allocatedBytes; omitted.logicalBytes += row.logicalBytes; omitted.fileCount += row.fileCount }
         }
@@ -324,7 +336,7 @@ public final class StorageCatalog {
     }
     /// Assigns files to their closest displayed ancestor with one index traversal.
     func mapFileExtensionGroups(scope: String, visibleDirectories: [String]) throws -> (groups: [StorageMapAggregate], extensions: StorageExtensionSummary) {
-        guard !visibleDirectories.isEmpty, visibleDirectories.count <= 8193 else { throw Self.failure() }
+        guard !visibleDirectories.isEmpty, visibleDirectories.count <= 8193 else { throw failure() }
         try registerExtensionFunction()
         let checkpoint=CatalogCheckpoint { if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") } }
         sqlite3_progress_handler(database, 4096, { pointer in
@@ -343,7 +355,7 @@ public final class StorageCatalog {
             while true {
                 let status=sqlite3_step(query)
                 if status == SQLITE_DONE { break }
-                guard status == SQLITE_ROW else { throw checkpoint.error ?? Self.failure() }
+                guard status == SQLITE_ROW else { throw checkpoint.error ?? failure() }
                 visible.ids.insert(sqlite3_column_int64(query,0))
             }
         }
@@ -351,7 +363,7 @@ public final class StorageCatalog {
             guard count == 1, let values, let pointer=sqlite3_user_data(context) else { sqlite3_result_int(context,0); return }
             let visible=Unmanaged<CatalogMapDirectories>.fromOpaque(pointer).takeUnretainedValue()
             sqlite3_result_int(context,visible.ids.contains(sqlite3_value_int64(values[0])) ? 1 : 0)
-        },nil,nil,nil) == SQLITE_OK else { throw Self.failure() }
+        },nil,nil,nil) == SQLITE_OK else { throw failure() }
         defer {
             withExtendedLifetime(visible) {
                 _ = sqlite3_create_function_v2(database,"shou_map_visible",1,SQLITE_UTF8,nil,nil,nil,nil,nil)
@@ -385,7 +397,7 @@ public final class StorageCatalog {
             if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
             let status=sqlite3_step(statement)
             if status == SQLITE_DONE { return (rows,ShouEngine.extensionSummary(types)) }
-            guard status == SQLITE_ROW, let path=sqlite3_column_text(statement,1), let suffix=sqlite3_column_text(statement,2) else { throw checkpoint.error ?? Self.failure() }
+            guard status == SQLITE_ROW, let path=sqlite3_column_text(statement,1), let suffix=sqlite3_column_text(statement,2) else { throw checkpoint.error ?? failure() }
             let name=String(cString:suffix), allocated=sqlite3_column_int64(statement,3), logical=sqlite3_column_int64(statement,4), count=Int(sqlite3_column_int64(statement,5))
             if sqlite3_column_int(statement,0) == 1 {
                 types.append(StorageExtensionStat(suffix:name,allocatedBytes:allocated,logicalBytes:logical,fileCount:count))
@@ -401,7 +413,7 @@ public final class StorageCatalog {
             guard count == 1, let values, let bytes=sqlite3_value_text(values[0]) else { sqlite3_result_null(context); return }
             let type=StorageFileType.classify(name: String(cString: bytes)).rawValue
             type.withCString { sqlite3_result_text(context, $0, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self)) }
-        }, nil, nil, nil) == SQLITE_OK else { throw Self.failure() }
+        }, nil, nil, nil) == SQLITE_OK else { throw failure() }
         let context=CatalogCheckpoint(StorageLargeFileQuery.checkpoint)
         sqlite3_progress_handler(database, 4096, { pointer in
             guard let pointer else { return 1 }
@@ -420,9 +432,9 @@ public final class StorageCatalog {
             defer { sqlite3_finalize(totals) }
             try bind([query.minimumBytes], startingAt: 1, to: totals)
             try bind(query.type.rawValue, 2, to: totals)
-            guard sqlite3_step(totals) == SQLITE_ROW else { throw Self.failure() }
+            guard sqlite3_step(totals) == SQLITE_ROW else { throw failure() }
             let count=sqlite3_column_int64(totals, 0), allocated=sqlite3_column_int64(totals, 1)
-            guard count >= 0, count <= Int64(Int.max), allocated >= 0 else { throw Self.failure() }
+            guard count >= 0, count <= Int64(Int.max), allocated >= 0 else { throw failure() }
             let after=" AND (?3 IS NULL OR e.total_allocated<?3 OR (e.total_allocated=?3 AND " + Self.pathColumn + " COLLATE BINARY>?4 COLLATE BINARY))"
             let statement=try prepare("SELECT " + columns + Self.source + condition + after +
                 " ORDER BY e.total_allocated DESC," + Self.pathColumn + " COLLATE BINARY ASC LIMIT ?5")
@@ -433,7 +445,7 @@ public final class StorageCatalog {
                 try bind([cursor.allocatedBytes], startingAt: 3, to: statement)
                 try bind(cursor.path, 4, to: statement)
             } else {
-                guard sqlite3_bind_null(statement, 3) == SQLITE_OK, sqlite3_bind_null(statement, 4) == SQLITE_OK else { throw Self.failure() }
+                guard sqlite3_bind_null(statement, 3) == SQLITE_OK, sqlite3_bind_null(statement, 4) == SQLITE_OK else { throw failure() }
             }
             try bind([Int64(query.limit + 1)], startingAt: 5, to: statement)
             var items=[StorageCatalogItem]()
@@ -441,7 +453,7 @@ public final class StorageCatalog {
                 try StorageLargeFileQuery.checkpoint()
                 let status=sqlite3_step(statement)
                 if status == SQLITE_DONE { break }
-                guard status == SQLITE_ROW else { throw Self.failure() }
+                guard status == SQLITE_ROW else { throw failure() }
                 items.append(try item(statement))
             }
             return try query.page(items, totalCount: Int(count), totalAllocatedBytes: allocated)
@@ -460,7 +472,7 @@ public final class StorageCatalog {
             if Task.isCancelled { throw ShouError("cancelled", "Directory loading stopped.") }
             let status=sqlite3_step(statement)
             if status == SQLITE_DONE { return }
-            guard status == SQLITE_ROW else { throw Self.failure() }
+            guard status == SQLITE_ROW else { throw failure() }
             try body(try item(statement).entry)
         }
     }

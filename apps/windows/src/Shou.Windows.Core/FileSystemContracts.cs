@@ -37,6 +37,7 @@ public sealed record FileEntry(
 
 public interface IWindowsFileSystem
 {
+    bool VerifiesDirectoryEntries => false;
     ValueTask<FileEntry> InspectAsync(WindowsPath path, CancellationToken cancellationToken);
     IAsyncEnumerable<DirectoryReadItem> ReadDirectoryAsync(WindowsPath directory, CancellationToken cancellationToken);
 }

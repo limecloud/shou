@@ -9,6 +9,7 @@ namespace Shou.Windows.Platform;
 
 public sealed class WindowsFileSystem : IWindowsFileSystem
 {
+    public bool VerifiesDirectoryEntries => true;
     public ValueTask<byte[]> ReadRuleFileAsync(WindowsPath path, CancellationToken cancellationToken) =>
         NativeOperationScheduler.RunAsync(() => ReadMetadataFile(path, RuleSchemaValidator.MaximumRuleBytes, requireSingleLink: true, cancellationToken), cancellationToken);
 
@@ -55,31 +56,28 @@ public sealed class WindowsFileSystem : IWindowsFileSystem
             SingleWriter = true, SingleReader = true, FullMode = BoundedChannelFullMode.Wait
         });
         await NativeOperationScheduler.Slots.WaitAsync(token).ConfigureAwait(false);
-        var producer = Task.Run(async () =>
+        var producer = Task.Run(() =>
         {
             try
             {
-                using var pinned = PinPath(directory);
-                if (ReadEntry(directory, pinned.Final).Kind != EntryKind.Directory)
+                using var pinned = PinPath(directory, finalAccess: NativeMethods.ReadData);
+                var root = ReadEntry(directory, pinned.Final);
+                if (root.Kind != EntryKind.Directory)
                     throw new ShouException("unsupported_location", "The selected object is not an accessible directory.");
-                var options = new EnumerationOptions
+                NativeDirectoryReader.Read(pinned.Final, root.IsCaseSensitive, 1_000_000, token.ThrowIfCancellationRequested, name =>
                 {
-                    RecurseSubdirectories = false, IgnoreInaccessible = false,
-                    ReturnSpecialDirectories = false, AttributesToSkip = 0
-                };
-                foreach (var nativePath in Directory.EnumerateFileSystemEntries(Extended(directory), "*", options))
-                {
-                    token.ThrowIfCancellationRequested();
-                    var path = directory.Append(Path.GetFileName(nativePath));
+                    var path = directory.Append(name);
                     DirectoryReadItem item;
                     try
                     {
-                        using var handle = Open(path);
+                        using var handle = NativeFileHandles.OpenChild(pinned.Final, path, root.IsCaseSensitive, directory: false);
                         item = DirectoryReadItem.Found(ReadEntry(path, handle));
                     }
                     catch (ShouException error) { item = DirectoryReadItem.Unavailable(path, error.Code); }
-                    await channel.Writer.WriteAsync(item, token).ConfigureAwait(false);
-                }
+                    channel.Writer.WriteAsync(item, token).AsTask().GetAwaiter().GetResult();
+                });
+                if (ReadEntry(directory, pinned.Final) != root)
+                    throw new ShouException("directory_changed", "The workspace case or root metadata changed.");
                 channel.Writer.TryComplete();
             }
             catch (Exception error) { channel.Writer.TryComplete(error); }

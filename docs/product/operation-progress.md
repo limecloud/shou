@@ -2,29 +2,35 @@
 
 English | [简体中文](../zh-CN/product/operation-progress.md)
 
-Scanning, rule cleanup, application uninstall, storage analysis, large-file removal, history restore and privacy cleaning share progress components. Users can see the current action, measured counts and stopping state.
+Scanning, rule cleanup, application uninstall, storage analysis, large-file removal, history restore and privacy cleaning share one flat file-convergence animation and concise progress presentation: action, measured percentage when available, one middle-truncated path and Stop. Detailed progress counts and elapsed time are omitted; domain events and result evidence retain their full values.
 
 ## Display contract
 
 | Workflow | Count source | Presentation |
 | --- | --- | --- |
-| Smart scan | Core accumulates the highest measured count per location | One cumulative count; overall completed discovery/matching/persistence phases across registered locations; current location and phase as context |
+| Smart scan | Core accumulates the highest measured count per location | Overall completed discovery/matching/persistence phases across registered locations, plus one current path; cumulative discovery remains in domain events and footer context |
 | Single-workspace rule scan | Highest measured discovery count | Unknown discovery stays indeterminate; matching starts at 1/3, persistence at 2/3, and completion follows the saved snapshot |
-| Storage and large-file scan | Measured entries; known work during sealing, transfer and saving | Count, middle-truncated path, elapsed time; percentage for a named stage with a known total |
-| Application scan and component review | Known application set and checked applications | Percentage, processed/total, current application; results stream into the list |
-| Rule cleanup, uninstall, direct removal and restore | Reviewed independent targets and durable outcomes | Central progress screen, percentage, processed/total, path and Stop |
-| Privacy scan and deletion | Discovered or reviewed database sources and transaction outcomes | Source counts and percentage; browser and profile names only |
+| Storage and large-file scan | Measured entries; known work during sealing, transfer and saving | Shared animation and middle-truncated path; percentage for a named stage with a known total |
+| Application scan and component review | Known application set and checked applications | Measured percentage and one current application path; results stream into the list |
+| Rule cleanup, uninstall, direct removal and restore | Reviewed independent targets and durable outcomes | One page from preparation through execution; stage title, decorative intake animation, percentage, thin progress bar, rapidly updated middle-truncated path and Stop |
+| Privacy scan and deletion | Discovered or reviewed database sources and transaction outcomes | Scan shows measured percentage and sanitized source context; deletion uses the same execution page without paths or browsing content |
 | Startup discovery and plan preparation | Total not yet established | Current action, indeterminate progress and Stop |
 
 Percentages describe processed work in a known set, rather than elapsed time, successful cleanup or reclaimed disk space. A selected directory is one reviewed target. Permanent removal can report actual manifest entries inside the current target; this subprogress is combined with the batch position without marking the target durably complete before its receipt is saved. No file-level count is invented when its descendants have no progress events. Unknown discovery totals remain indeterminate. Sealing, transfer and saving may show their named stage's percentage, including 100% when saving a partial scan; coverage remains explicit and is not a percentage.
 
-Rule scanning uses three completed processing phases per registered location: discovery, rule matching and snapshot persistence. Worker sealing and transfer belong to discovery; their local percentages do not overwrite the overall value. A smart batch fixes its denominator after registration, offsets each location's phase count, and carries discovered entries forward across locations, including a location that fails after reading entries. The failure stays in the result and is not counted as successful coverage. Cancellation does not complete unprocessed phases. The desktop rejects regressive callbacks within the current operation. Its footer and central count use the same cumulative evidence; numeric text changes immediately so frequent events cannot overlap rolling digits. The progress bar can still animate.
+Rule scanning uses three completed processing phases per registered location: discovery, rule matching and snapshot persistence. Worker sealing and transfer belong to discovery; their local percentages do not overwrite the overall value. A smart batch fixes its denominator after registration, offsets each location's phase count, and carries discovered entries forward across locations, including a location that fails after reading entries. The failure stays in the result and is not counted as successful coverage. Cancellation does not complete unprocessed phases. The desktop rejects regressive callbacks within the current operation. Its footer uses cumulative evidence; percentage text changes immediately so frequent events cannot overlap rolling digits. The progress bar can still animate.
 
 Progress paths retain their origin and filename and omit only the middle when space is insufficient. Keep a single ellipsis, use Unicode text boundaries and provide the full original value through hover/accessibility; CLI and domain data keep complete paths.
 
-Preflight never advances deletion counts. Executors advance counts after persisting individual outcomes; failures and skipped targets are processed outcomes, while completion separately reports success, failure and remaining work. Final receipt handling displays “Finishing cleanup”. Partial results and cancellation never receive a fabricated 100%.
+Preflight never advances deletion counts. Executors advance counts after persisting individual outcomes; failures and skipped targets are processed outcomes, while completion separately reports success, failure and remaining work. Final receipt handling retains the confirmed action title. Partial results and cancellation never receive a fabricated 100%.
 
 Multi-location cleanup keeps one denominator throughout the operation. Each subsequent plan starts from durable outcomes in the preceding plans, excluding unprocessed tails. Operation identifiers reject stale callbacks, and older counts cannot overwrite newer progress.
+
+macOS cleanup stays in the main content page. Files converge into a central intake and fade away above the current action title. Below it are the measured percentage, a thin progress bar, one rapidly updated path and Stop. Preparation, per-item rechecks, removal and receipt persistence share the same page; preparation and manifest checks show “Checking selected files…” while removal shows the cleanup action. Unknown preparation totals show indeterminate motion without a false 0%; known removal progress retains its actual percentage; storage and large-file removal enter it before plan preparation. The footer retains the selected action. No item list, elapsed time or detailed item counts are displayed during execution. Percentage text updates directly without rolling digits.
+
+Paths keep a fixed one-line area below the bar, retain the beginning and end, and omit only the middle when needed. Updates replace text directly, without rolling or cross-fading. Full paths remain available through hover and accessibility. The animation is decorative, never a count of deleted files. Late events cannot change the denominator, lower durable counts or erase nested progress across stages. The result page distinguishes actual outcomes.
+
+Stop directly requests cooperative cancellation and keeps the page visible until the real safe boundary; processed outcomes are not rolled back. Existing window-close/quit protection still requests stop and waits. The execution display adds no modal dialog. The separate confirmation of exact scope and irreversible consequences before execution is retained. Scans use the same concise layout and animation, with task-specific icons. Known stage percentages keep their stage title; unknown totals stay indeterminate.
 
 ## Component architecture
 
@@ -35,7 +41,9 @@ flowchart LR
   Execute[Shared executors and privacy transactions] --> Events
   Events --> Sessions[AppModel and page sessions]
   Sessions --> Aggregate[Batch counts and operation identity checks]
-  Aggregate --> Full[OperationProgressView central screen]
+  Aggregate --> Page[ExecutionProgressView stable execution page]
+  Page --> Full
+  Normalize --> Full[OperationProgressView scan screen]
   Aggregate --> Inline[OperationProgressMeter inline presentation]
   Sessions --> Path[Full single-line path; omit middle at layout width]
   Path --> Full
@@ -45,7 +53,7 @@ flowchart LR
   Cancel --> Execute
 ```
 
-Decorative motion does not drive measured progress. It pauses when stopping, when the window is inactive, or when either Reduce Motion preference is enabled. Native typography, controls, accent color and accessibility identifiers accompany monospaced numbers that update directly, while the progress bar can animate. Short windows use a compact layout that retains percentage, counts, path and Stop. Smart scanning exposes one Stop action and labels its main count as cumulative discovery.
+Decorative motion does not drive measured progress. It pauses when stopping or when either Reduce Motion preference is enabled. Visible progress keeps animating when the window loses focus. Native typography, controls, accent color and accessibility identifiers accompany directly updated text, while the progress bar can animate. Short windows use a compact layout that retains the action, percentage, path and Stop; detailed counts remain in domain events and results. Smart scanning exposes one Stop action.
 
 ## State flow
 
@@ -115,7 +123,7 @@ sequenceDiagram
     Core->>Core: Revalidate and execute
     opt Permanent target with a measured manifest
       Core-->>Session: Actual entries processed inside current target
-      Session-->>UI: Current item count and combined batch fraction
+      Session-->>UI: Current path and combined batch fraction
     end
     Core->>Store: Persist individual outcome
     Core-->>Session: Actual processed count
@@ -141,8 +149,10 @@ The normal successful path is intentionally short: completion icon, measured byt
 
 ## Verification scope
 
-`shou-tests --operation-progress-only` covers batch totals, partial-plan boundaries, integer limits, privacy source progress, committed transactions, cancellation and durable restore boundaries. The installed desktop also requires checks of scanning, execution, stopping, Reduce Motion and runtime language switching. Automated mutation tests use generated data only.
+`shou-tests --operation-progress-only` covers batch totals, partial-plan boundaries, integer limits, late-stage and nested-entry callbacks, privacy source progress, committed transactions, cancellation and durable restore boundaries. The installed desktop also requires checks of scanning, execution, stopping, Reduce Motion and runtime language switching. Automated mutation tests use generated data only.
 
 `shou-tests --rule-scan-progress-only` covers worker-stage resets, cross-location cumulative counts and percentages, failed locations, cancellation before completion, registration ordering and existing partial-result behavior.
 
 Related: [system architecture](../architecture/system-design.md), [unified cleanup](unified-cleanup.md), [acceptance and testing](../engineering/acceptance-and-testing.md). Third-party references belong in [acknowledgments](../../README.md#acknowledgements).
+
+Windows execution source uses the same main-content interaction: an animated native activity ring, stage title, actual entry percentage, one middle-abbreviated path and direct cooperative Stop. Preparation remains indeterminate, callbacks are throttled and late/backward updates are rejected. WinUI visuals, reduced motion and native execution require Windows acceptance; the public execution gate remains closed.

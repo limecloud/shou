@@ -54,7 +54,7 @@ python3 "scripts/verify-ai-investigation.py"
 | `packages/shou-core/Sources/Resources/builtin-rules.json` | 版本化声明式规则目录 |
 | `packages/shou-core/Sources/Resources/known-locations.json` | 精确的平台发现根 |
 | `packages/shou-core/Localizable.xcstrings` | 中英文文案唯一来源 |
-| `assets/design/tokens.json` | 八项设计值生成 WinUI XAML 与 SwiftUI 常量，由资源生成器同时检查 |
+| `assets/design/tokens.json` | 共享设计值包含清理动效尺寸、路径宽度与动效周期，生成 WinUI XAML 与 SwiftUI 常量，由资源生成器同时检查 |
 | `assets/brand` | 原生品牌源文件 |
 
 生成与检查资源：

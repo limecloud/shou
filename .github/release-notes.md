@@ -1,21 +1,21 @@
-Shou v0.12.0 improves macOS cleanup and introduces exact-version native packages behind the single `@limecloud/shou` npm entry.
+Shou v0.13.0 improves cleanup responsiveness and adds Windows portable preview builds.
 
-- Review checked files and directories in Space Analysis and Large Files, then confirm the frozen selection with the primary delete action. The action bar shows selection count and estimated size.
-- Permanent removal reports progress and reuses verified directory handles. Replaced roots, new entries and hard-link changes remain blocked. Ordinary permission/I/O failures retain partial results and allow independent selected targets to continue; unknown outcomes and journal failures stop further work.
-- Share deterministic design tokens, localized text and project-location resources between independent native platform implementations. Architecture, workflows, sequence diagrams and developer instructions describe platform ownership and verification requirements.
-- Install the CLI with `npm install --global @limecloud/shou@0.12.0` or `npx @limecloud/shou@0.12.0 --help`. The launcher selects the matching macOS ARM64 or x64 package at the exact same version, without a compiler or additional binary download.
+- Shared native directory readers and operation-local indexes reduce repeated work across analysis, rules, cleanup and history inspection. Final identity, activity, exact-scope and per-file mutation checks remain enforced.
+- Large cleanup manifests use digest-verified pages; progress/result writes update compact metadata. On the generated 20,026-entry workload, three paired Release runs reduced median preparation by 63%, execution by 43% and total time from 17.06 s to 9.17 s. These measurements used a busy host and warm caches, rather than a full-disk benchmark.
+- Cleanup stays in the main content area with flat animation, measured percentages, one shortened path and direct stopping. Storage analysis defaults to the startup disk; storage exhaustion has a distinct diagnostic and preserves earlier analyses.
+- Windows downloads include self-contained WinUI 3/.NET 10 app and CLI ZIPs for x64 and ARM64. Extract the app archive and run `Shou.Windows.App.exe`; use the separate `shou-cli` archive for terminal access. Per-archive `BUILD.json` and `SHA256SUMS` identify the exact source and bytes.
 
-Requires macOS 14 or later. The universal app and standalone CLI support Apple Silicon and Intel. Assets include DMG, ZIP, CLI archive, Sparkle-signed update feed and SHA256SUMS. The app is ad-hoc signed and is not Apple-notarized; updating may require granting Full Disk Access again. Permanent removal cannot be undone through Shou; moving files to Trash does not immediately free disk space.
+macOS requires version 14 or later and supports Apple Silicon and Intel. Assets include universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. The app uses an ad-hoc signature and is not Apple-notarized. Permanent deletion cannot be undone through Shou.
 
-Windows uses independent C#/.NET 10 and WinUI 3 source. Native runtime, UI, signing, installation and update acceptance remain pending. This release contains no Windows downloads or Windows npm payloads.
+Windows downloads are unsigned portable previews requiring Windows 11. Public cleanup, application uninstall and startup mutation gates remain closed. x64 CI checks native behavior and application startup; ARM64 is cross-built, with ARM64 runtime, full UI/accessibility, signing, installer and update acceptance pending. Windows npm packages remain private development artifacts; GitHub publication does not publish packages to npm.
 
-简体中文：Shou v0.12.0 改进 macOS 清理体验，并为统一的 `@limecloud/shou` npm 入口提供精确版本的原生平台包。
+简体中文：Shou v0.13.0 优化清理响应，并增加 Windows 便携预览版构建与发布。
 
-- 空间分析与大文件页通过勾选审阅文件和目录，操作栏显示数量与估算容量，主删除按钮确认冻结的当前选择。
-- 永久删除显示进度并复用已核验目录句柄；根替换、新增内容和硬链接变化仍会阻断。普通权限／I/O 错误保留部分结果，继续处理独立目标；未知结果或日志失败停止后续操作。
-- 两端独立原生实现共享确定性设计值、文案和项目目录资源；架构、流程、时序图与开发指南明确模块归属和验收要求。
-- 使用 `npm install --global @limecloud/shou@0.12.0` 或 `npx @limecloud/shou@0.12.0 --help` 安装 CLI；启动器自动选择相同版本的 macOS ARM64／x64 平台包，无需编译或额外下载二进制。
+- 分析、规则、清理与历史检查共用原生目录读取和操作内索引，减少重复工作；身份、活动、精确范围及逐项变更核验继续保留。
+- 大清单分页并验证摘要，进度和结果仅更新精简元数据。20,026 条生成夹具的三轮 Release 配对中，准备耗时中位数降低 63%、执行降低 43%，全流程从 17.06 秒降至 9.17 秒。测试使用繁忙主机和暖缓存，不代表全盘性能。
+- 清理在主内容区显示平面动画、实际百分比、单行缩略路径与直接停止；空间分析默认启动盘，存储耗尽独立诊断并保留之前分析。
+- Windows 提供 x64／ARM64 的 WinUI 3/.NET 10 自包含应用与 CLI ZIP；应用解压后运行 `Shou.Windows.App.exe`，终端使用单独的 `shou-cli` 包。归档内 `BUILD.json` 与 `SHA256SUMS` 记录确切源码及文件摘要。
 
-支持 macOS 14+、Apple Silicon 与 Intel，提供 DMG、ZIP、独立 CLI、Sparkle 签名更新订阅与 SHA256SUMS。应用使用 ad-hoc 签名，未经 Apple 公证，升级后可能需要重新授予完全磁盘访问权限。永久删除无法通过 Shou 撤销，移入废纸篓不立即释放空间。
+macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新及校验和；应用使用 ad-hoc 签名，未经 Apple 公证。永久删除无法通过 Shou 撤销。
 
-Windows 使用独立 C#/.NET 10 与 WinUI 3 实现，原生运行、界面、签名、安装及更新验收待完成。本次不提供 Windows 下载或 Windows npm 产物。
+Windows 下载为未签名便携预览，要求 Windows 11。清理、应用卸载和启动项变更的公开门禁仍关闭。x64 CI 核验原生行为和应用启动；ARM64 当前交叉构建，ARM64 运行、完整界面／辅助功能、签名、安装及更新另行验收。Windows npm 产物仍为私有开发模式，GitHub 发布不会自动发布 npm 包。

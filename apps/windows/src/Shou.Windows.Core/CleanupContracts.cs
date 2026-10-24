@@ -33,7 +33,10 @@ public sealed record CleanupMutationResult(CleanupMutationOutcome Outcome, int R
 public sealed record CleanupReviewItem(string ItemId, WindowsPath Path, string RuleId, string Risk, long AllocatedBytes, int ManifestEntries);
 public sealed record CleanupReview(string PlanId, string Digest, CleanupAction Action, DateTimeOffset ExpiresAt,
     ImmutableArray<CleanupReviewItem> Items);
-public sealed record CleanupProgress(string Phase, string? ItemId, WindowsPath? Path, int ProcessedItems, int TotalItems);
+public sealed record CleanupProgress(string Phase, string? ItemId, WindowsPath? Path, int ProcessedItems, int TotalItems,
+    int ProcessedEntries = 0, int TotalEntries = 0);
+
+public sealed record CleanupMutationProgress(string Phase, WindowsPath Path, int RemovedEntries);
 
 public interface ICleanupConfirmation
 {
@@ -48,8 +51,11 @@ public interface ICleanupActivity
 /// <summary>Implementations reverify identities and exact manifests at native mutation boundaries; never recurse by path.</summary>
 public interface ICleanupMutation
 {
+    bool VerifiesMutationManifest => false;
     bool Supports(CleanupAction action);
     Task<CleanupMutationResult> ApplyAsync(Workspace workspace, CleanupPlanItem item, CleanupAction action, CancellationToken cancellationToken);
+    Task<CleanupMutationResult> ApplyAsync(Workspace workspace, CleanupPlanItem item, CleanupAction action,
+        IProgress<CleanupMutationProgress>? progress, CancellationToken cancellationToken) => ApplyAsync(workspace, item, action, cancellationToken);
 }
 
 /// <summary>Current-call confirmation. It cannot be constructed or restored from a stored approval value.</summary>

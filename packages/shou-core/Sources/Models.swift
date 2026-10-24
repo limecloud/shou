@@ -311,11 +311,15 @@ public protocol PlatformFileSystem: Sendable {
     func applicationParentIdentity(_ path: String) throws -> FileEntry
     func analysisRootIdentity(_ path: String) throws -> FileEntry
     var supportsStorageCatalog: Bool { get }
+    /// Every native mutation compares the complete manifest immediately before
+    /// changing files, in addition to pinning identity and refusing links.
+    var verifiesMutationManifest: Bool { get }
     func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
+    func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot
     func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot
     func availableBytes(_ path: String) -> Int64?
@@ -326,8 +330,13 @@ public protocol PlatformFileSystem: Sendable {
     func purge(_ path: String, expected: [FileEntry]) throws
     func purge(_ path: String, expected: [FileEntry], progress: (Int, Int, String) -> Void) throws
     func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void) throws
+    func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void, checking: @Sendable (ScanProgress) -> Void) throws
 }
 extension PlatformFileSystem {
+    public var verifiesMutationManifest: Bool { false }
+    public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void, checking: @Sendable (ScanProgress) -> Void) throws {
+        try purge(path, expected: expected, context: &context, progress: progress)
+    }
     public var maximumConcurrentReadOperations: Int { 4 }
     public var supportsAuthorizedApplicationTrash: Bool { false }
     public func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
@@ -350,6 +359,12 @@ extension PlatformFileSystem {
     public func cleanupTargetIdentity(_ path: String) throws -> FileEntry { try rootIdentity(path) }
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspectTarget(path, budget: budget, cancelled: cancelled)
+    }
+    public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        progress(ScanProgress(stage: "scanning", entryCount: 0, currentPath: path))
+        let tree=try inspectStorageTarget(path, budget: budget, cancelled: cancelled)
+        progress(ScanProgress(stage: "analysis", entryCount: tree.entries.count, currentPath: path))
+        return tree
     }
     public func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only an exact system Trash item can be inspected.") }

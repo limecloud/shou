@@ -210,7 +210,7 @@ func installedApplicationCachesRecheckAtEachMutationBoundary() async throws {
     let permanent=try InstalledCacheFixture(), (_, permanentScan)=try await permanent.scan(), permanentCandidate=try permanent.candidate(permanentScan)
     let permanentPlan=try await permanent.engine.createPlan(scanId: permanentScan.id, candidateIds: [permanentCandidate.id], action: "permanent")
     let skipped=try await permanent.engine.execute(planId: permanentPlan.id, confirmedDigest: permanentPlan.digest, entryPoint: "generated-cache-permanent-boundary", progress: { update in
-        if update.stage == "purging" && update.processedCount == 0 { permanent.activity.set(unavailable: true) }
+        if update.stage == "checking" && update.processedCount == 0 { permanent.activity.set(unavailable: true) }
     })
     try expect(skipped.operation == "permanent_cleanup" && skipped.items[0].state == "skipped" && skipped.items[0].error == "application_activity_unavailable")
 
@@ -218,7 +218,7 @@ func installedApplicationCachesRecheckAtEachMutationBoundary() async throws {
         let coverage=try InstalledCacheFixture(), (_, complete)=try await coverage.scan(), completeCandidate=try coverage.candidate(complete)
         let coveragePlan=try await coverage.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id], action: action)
         let interrupted=try await coverage.engine.execute(planId: coveragePlan.id, confirmedDigest: coveragePlan.digest, entryPoint: "generated-cache-coverage-boundary", progress: { update in
-            if update.stage == (action == "trash" ? "moving" : "purging") && update.processedCount == 0 {
+            if update.stage == (action == "trash" ? "moving" : "checking") && update.processedCount == 0 {
                 coverage.catalog.set(issues: [coverage.unrelatedIssue])
             }
         })
@@ -230,7 +230,7 @@ func installedApplicationCachesRecheckAtEachMutationBoundary() async throws {
         let (_, partial)=try await duplicate.scan(), selected=try duplicate.candidate(partial), lateOwner=try duplicate.duplicateOwner()
         let duplicatePlan=try await duplicate.engine.createPlan(scanId: partial.id, candidateIds: [selected.id], action: action)
         let refused=try await duplicate.engine.execute(planId: duplicatePlan.id, confirmedDigest: duplicatePlan.digest, entryPoint: "generated-cache-duplicate-boundary", progress: { update in
-            if update.stage == (action == "trash" ? "moving" : "purging") && update.processedCount == 0 {
+            if update.stage == (action == "trash" ? "moving" : "checking") && update.processedCount == 0 {
                 duplicate.catalog.set(additions: [lateOwner], issues: [duplicate.unrelatedIssue])
             }
         })

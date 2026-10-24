@@ -2,6 +2,66 @@ import Foundation
 import ShouCore
 import ShouPlatform
 
+private struct FullStorageCatalogFileSystem: PlatformFileSystem {
+    let native: NativeFileSystem
+    let failWhileSealing: Bool
+    var platform: String { native.platform }
+    var supportsTrash: Bool { false }
+    var supportsStorageCatalog: Bool { true }
+    func rootIdentity(_ path: String) throws -> FileEntry { try native.rootIdentity(path) }
+    func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
+        try native.inspect(path, budget: budget, cancelled: cancelled)
+    }
+    func availableBytes(_ path: String) -> Int64? { native.availableBytes(path) }
+    func isTrashLocation(_ path: String) -> Bool { false }
+    func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult { throw CheckFailure(description: "Read-only index fixture.") }
+    func restore(_ path: String, to destination: String, expected: [FileEntry]) throws { throw CheckFailure(description: "Read-only index fixture.") }
+    func purge(_ path: String, expected: [FileEntry]) throws { throw CheckFailure(description: "Read-only index fixture.") }
+    func measureStorage(_ path: String, catalog url: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
+        let catalog=try StorageCatalog(url: url, create: true, maximumBytes: 65_536)
+        let root=try native.analysisRootIdentity(path)
+        _ = try catalog.append(root)
+        do {
+            for index in 0..<(failWhileSealing ? 100 : 1000) {
+                var entry=root
+                entry.path=String(repeating: "generated-", count: 16) + String(index)
+                entry.kind="file"; entry.links=1; entry.inode += UInt64(index + 1)
+                _ = try catalog.append(entry)
+            }
+        } catch {
+            if failWhileSealing { throw CheckFailure(description: "The sealing fixture must finish appending before it exhausts storage.") }
+            throw error
+        }
+        guard failWhileSealing else { throw CheckFailure(description: "The generated index must exhaust its row storage.") }
+        progress(ScanProgress(stage: "analysis", entryCount: 101, currentPath: path))
+        try catalog.seal()
+        throw CheckFailure(description: "The generated index must exhaust storage while sealing.")
+    }
+}
+
+func storageCatalogFullFailureNeverReplacesPreviousAnalysis() async throws {
+    for failWhileSealing in [false, true] {
+        let fixture=try Fixture(), native=NativeFileSystem()
+        let initial=ShouEngine(store: fixture.store, filesystem: native)
+        let previous=try await initial.scanStorage(path: fixture.workspace.path)
+        let original=try Data(contentsOf: require(fixture.store.storageCatalogURL(id: previous.id)))
+        let engine=ShouEngine(store: fixture.store, filesystem: FullStorageCatalogFileSystem(native: native, failWhileSealing: failWhileSealing))
+        do {
+            _ = try await engine.scanStorage(path: fixture.workspace.path)
+            throw CheckFailure(description: "A full index must not publish a new analysis.")
+        } catch let error as ShouError {
+            print("Generated catalog exhaustion during \(failWhileSealing ? "sealing" : "append"): \(error.code), \(error.details)")
+            try expect(error.code == "storage_full")
+            try expect(error.details["sqlite_code"] == "13" && error.retryable)
+        }
+        try expect(try fixture.store.ids("storage-scans") == [previous.id])
+        let catalogDirectory=try require(fixture.store.storageCatalogURL(id: previous.id)).deletingLastPathComponent()
+        try expect(try FileManager.default.contentsOfDirectory(atPath: catalogDirectory.path) == [previous.id + ".sqlite"])
+        try expect(try Data(contentsOf: require(fixture.store.storageCatalogURL(id: previous.id))) == original)
+        try expect(try await initial.storageDirectory(scanId: previous.id).item.node.path == ".")
+    }
+}
+
 func storageCatalogPreparesPrivateFilesAfterExistingFileRefusal() throws {
     let fixture=try Fixture(), url=try require(fixture.store.storageCatalogURL(id: "prepared-private-file"))
     let root=try fixture.fs.analysisRootIdentity(fixture.workspace.path)
@@ -26,6 +86,14 @@ func storageCatalogPreparesPrivateFilesAfterExistingFileRefusal() throws {
         throw CheckFailure(description: "File preparation failure must stop SQLite creation.")
     } catch let error as ShouError { try expect(error.code == "cancelled") }
     try expect(!FileManager.default.fileExists(atPath: cancelled.path))
+    let corrupt=try require(fixture.store.storageCatalogURL(id: "corrupt-index"))
+    let corruptBytes=Data("generated invalid SQLite index".utf8)
+    try corruptBytes.write(to: corrupt)
+    do {
+        _ = try StorageCatalog(url: corrupt)
+        throw CheckFailure(description: "A corrupt index must remain unavailable.")
+    } catch let error as ShouError { try expect(error.code == "store_corrupt" && error.details["sqlite_code"] != "13") }
+    try expect(try Data(contentsOf: corrupt) == corruptBytes)
 }
 
 func storageCatalogScansLaterSiblingsAndLoadsExactDirectories() async throws {

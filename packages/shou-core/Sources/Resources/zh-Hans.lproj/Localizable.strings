@@ -614,6 +614,7 @@
 "Figma download caches" = "Figma 下载缓存";
 "File Extensions" = "文件扩展名";
 "File Type" = "文件类型";
+"File manifest pages are missing or inconsistent." = "文件清单分页缺失或不一致。";
 "File metadata could not be verified." = "无法核验文件元数据。";
 "Files" = "文件";
 "Files are newer than the rule's retention period." = "文件尚未达到规则要求的保留期限。";
@@ -1549,7 +1550,10 @@
 "Space Analysis" = "空间分析";
 "Space Map" = "空间图";
 "Space analysis complete." = "空间分析完成。";
+"Space analysis could not be completed." = "空间分析未能完成。";
 "Space analysis entry pages are missing or inconsistent." = "空间分析记录缺失或不一致，请重新扫描。";
+"Space analysis index is unavailable or inconsistent." = "空间分析索引无法读取或不一致，请重新扫描。";
+"Space analysis index size limit is invalid." = "空间分析索引的容量限制无效。";
 "Space by Directory" = "目录空间分布";
 "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt." = "占用空间并不代表可以删除。确认内容能够重新生成后，可为此目录添加规则。";
 "Spacedrive caches" = "Spacedrive 缓存";
@@ -1737,6 +1741,7 @@
 "The selected items overlap. Choose either a folder or its contents." = "所选项目范围重叠，请选择文件夹或其内部项目。";
 "The selected structured decision provider is not installed. Edit the connection to choose an available provider." = "尚未安装所选结构化决策适配器，请编辑连接并选择可用服务。";
 "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder." = "服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。";
+"The space analysis index ran out of storage. Free some disk space or scan a smaller folder." = "空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。";
 "The startup scan reached the maximum folder depth." = "启动项扫描已达到文件夹深度上限。";
 "The structured decision API key is unavailable." = "结构化决策服务的 API 密钥不可用。";
 "The structured decision provider did not pass the synthetic check." = "结构化决策服务未通过合成数据测试。";

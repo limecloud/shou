@@ -7,6 +7,8 @@ public interface ICleanupExecutionOperations
 {
     bool ExecutionAvailable { get; }
     Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, CancellationToken cancellationToken);
+    Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, IProgress<CleanupProgress>? progress,
+        CancellationToken cancellationToken) => ExecuteAsync(planId, confirmation, cancellationToken);
     Task<CleanupExecution?> ReadExecutionAsync(string planId, CancellationToken cancellationToken);
 }
 
@@ -26,6 +28,10 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
     public CleanupExecution? Execution { get; private set; }
     public string? ErrorCode { get; private set; }
     public bool StopRequested { get; private set; }
+    public CleanupProgress? Progress { get; private set; }
+    public double? FractionCompleted => Progress is { TotalEntries: > 0 } value ? Math.Clamp((double)value.ProcessedEntries / value.TotalEntries, 0, 1) : null;
+    public string CurrentPath => Progress?.Path?.Value ?? "";
+    public string DisplayPath => OperationProgressPresentation.CompactPath(CurrentPath);
     public bool ExecutionAvailable => operations.ExecutionAvailable;
     public bool IsExecuting => State == CleanupExecutionPageState.Executing;
     public bool IsBusy => IsExecuting || State == CleanupExecutionPageState.Reading;
@@ -42,6 +48,7 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
         operation = null;
         Plan = plan?.Id == AttemptedPlan?.Id ? null : plan;
         StopRequested = false;
+        Progress = null;
         if (Plan is not null)
         {
             AttemptedPlan = null;
@@ -81,12 +88,22 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
         Execution = null;
         ErrorCode = null;
         StopRequested = false;
+        Progress = null;
         State = reading ? CleanupExecutionPageState.Reading : CleanupExecutionPageState.Executing;
         Notify();
         try
         {
             var result = reading ? await operations.ReadExecutionAsync(expected.Id, current.Token) :
-                await operations.ExecuteAsync(expected.Id, confirmation!, current.Token);
+                await operations.ExecuteAsync(expected.Id, confirmation!, new Progress<CleanupProgress>(value =>
+                {
+                    if (disposed || currentGeneration != generation || !IsExecuting || StopRequested ||
+                        value.TotalItems != expected.Items.Length || value.ProcessedItems < 0 || value.ProcessedItems > value.TotalItems ||
+                        value.ProcessedEntries < 0 || value.TotalEntries < 0 || value.ProcessedEntries > value.TotalEntries ||
+                        value.TotalEntries != 0 && value.TotalEntries != expected.Items.Sum(item => item.Manifest.Length) ||
+                        Progress is { } previous && (value.ProcessedItems < previous.ProcessedItems || value.ProcessedEntries < previous.ProcessedEntries || value.TotalEntries < previous.TotalEntries)) return;
+                    Progress = value;
+                    Notify();
+                }), current.Token);
             if (disposed || currentGeneration != generation) return;
             if (reading) current.Token.ThrowIfCancellationRequested();
             if (result is null)
@@ -138,6 +155,7 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
         Execution = null;
         ErrorCode = null;
         StopRequested = false;
+        Progress = null;
         State = CleanupExecutionPageState.Empty;
         GC.SuppressFinalize(this);
     }

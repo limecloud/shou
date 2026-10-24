@@ -43,7 +43,7 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
         return execution;
     });
 
-    private void ValidatePlan(CleanupPlan plan)
+    internal void ValidatePlan(CleanupPlan plan)
     {
         if (plan.Version != 2 || !RecordKey.IsId(plan.Id, "plan") || plan.Budget is null || plan.Sources.IsDefaultOrEmpty ||
             plan.Sources.Length > MaximumPlanItems || !RecordKey.IsId(plan.ConfigurationRevision, "config") ||

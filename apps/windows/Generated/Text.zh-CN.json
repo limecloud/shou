@@ -3074,6 +3074,11 @@
     "resource_id": "s8456352791573730647909c9",
     "text": "文件类型"
   },
+  "File manifest pages are missing or inconsistent.": {
+    "format": "文件清单分页缺失或不一致。",
+    "resource_id": "sc1ff65a1391c23018abc1098",
+    "text": "文件清单分页缺失或不一致。"
+  },
   "File metadata could not be verified.": {
     "format": "无法核验文件元数据。",
     "resource_id": "s0fc20e4dbfda19a2bac35e61",
@@ -7749,10 +7754,25 @@
     "resource_id": "s04a9bf61e7edb512efc2105e",
     "text": "空间分析完成。"
   },
+  "Space analysis could not be completed.": {
+    "format": "空间分析未能完成。",
+    "resource_id": "sd90327db63c322372562b1a2",
+    "text": "空间分析未能完成。"
+  },
   "Space analysis entry pages are missing or inconsistent.": {
     "format": "空间分析记录缺失或不一致，请重新扫描。",
     "resource_id": "s075eb48d8189e0071a6d4acd",
     "text": "空间分析记录缺失或不一致，请重新扫描。"
+  },
+  "Space analysis index is unavailable or inconsistent.": {
+    "format": "空间分析索引无法读取或不一致，请重新扫描。",
+    "resource_id": "s45759680304222f445deeaa6",
+    "text": "空间分析索引无法读取或不一致，请重新扫描。"
+  },
+  "Space analysis index size limit is invalid.": {
+    "format": "空间分析索引的容量限制无效。",
+    "resource_id": "s260b0ded37031ab9dc408bc0",
+    "text": "空间分析索引的容量限制无效。"
   },
   "Space by Directory": {
     "format": "目录空间分布",
@@ -8688,6 +8708,11 @@
     "format": "服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。",
     "resource_id": "s12ab9774c069a12b903e0b3b",
     "text": "服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。"
+  },
+  "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.": {
+    "format": "空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。",
+    "resource_id": "s58b0b32e13932ab618db36b7",
+    "text": "空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。"
   },
   "The startup scan reached the maximum folder depth.": {
     "format": "启动项扫描已达到文件夹深度上限。",

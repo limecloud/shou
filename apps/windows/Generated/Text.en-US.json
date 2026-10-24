@@ -3074,6 +3074,11 @@
     "resource_id": "s8456352791573730647909c9",
     "text": "File Type"
   },
+  "File manifest pages are missing or inconsistent.": {
+    "format": "File manifest pages are missing or inconsistent.",
+    "resource_id": "sc1ff65a1391c23018abc1098",
+    "text": "File manifest pages are missing or inconsistent."
+  },
   "File metadata could not be verified.": {
     "format": "File metadata could not be verified.",
     "resource_id": "s0fc20e4dbfda19a2bac35e61",
@@ -7749,10 +7754,25 @@
     "resource_id": "s04a9bf61e7edb512efc2105e",
     "text": "Space analysis complete."
   },
+  "Space analysis could not be completed.": {
+    "format": "Space analysis could not be completed.",
+    "resource_id": "sd90327db63c322372562b1a2",
+    "text": "Space analysis could not be completed."
+  },
   "Space analysis entry pages are missing or inconsistent.": {
     "format": "Space analysis entry pages are missing or inconsistent.",
     "resource_id": "s075eb48d8189e0071a6d4acd",
     "text": "Space analysis entry pages are missing or inconsistent."
+  },
+  "Space analysis index is unavailable or inconsistent.": {
+    "format": "Space analysis index is unavailable or inconsistent.",
+    "resource_id": "s45759680304222f445deeaa6",
+    "text": "Space analysis index is unavailable or inconsistent."
+  },
+  "Space analysis index size limit is invalid.": {
+    "format": "Space analysis index size limit is invalid.",
+    "resource_id": "s260b0ded37031ab9dc408bc0",
+    "text": "Space analysis index size limit is invalid."
   },
   "Space by Directory": {
     "format": "Space by Directory",
@@ -8688,6 +8708,11 @@
     "format": "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.",
     "resource_id": "s12ab9774c069a12b903e0b3b",
     "text": "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder."
+  },
+  "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.": {
+    "format": "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.",
+    "resource_id": "s58b0b32e13932ab618db36b7",
+    "text": "The space analysis index ran out of storage. Free some disk space or scan a smaller folder."
   },
   "The startup scan reached the maximum folder depth.": {
     "format": "The startup scan reached the maximum folder depth.",

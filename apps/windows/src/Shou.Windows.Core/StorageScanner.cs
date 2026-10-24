@@ -81,7 +81,7 @@ public sealed class StorageScanner(IWindowsFileSystem fileSystem, TimeProvider? 
                     {
                         try
                         {
-                            if (await fileSystem.InspectAsync(entry.Path, token) == entry) completedEntries.Add(entry.Path);
+                            if (fileSystem.VerifiesDirectoryEntries || await fileSystem.InspectAsync(entry.Path, token) == entry) completedEntries.Add(entry.Path);
                             else issues.Add(new(entry.Path, "entry_changed"));
                         }
                         catch (ShouException error) { issues.Add(new(entry.Path, error.Code)); }

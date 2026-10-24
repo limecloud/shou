@@ -4,6 +4,14 @@ English | [简体中文](../zh-CN/engineering/storage-scan-performance.md)
 
 Shou's full storage analysis is a read-only inventory. Its hot path is filesystem metadata I/O, not CPU arithmetic. A scan therefore becomes faster when independent directory reads overlap and each directory is fetched with fewer syscalls. Increasing thread count without a bound makes APFS, cloud placeholders, network volumes and the desktop compete for the same resources, so Shou uses a bounded reader pool.
 
+## Reuse across operations
+
+The directory reader is shared by full measurement and bounded target/cleanup/history inspection. macOS reuses `getattrlistbulk` pages, with no-follow fallback for missing metadata. Windows uses the same bounded 64 KiB handle-based name reader for observation and native manifest verification; child metadata comes from relative handles pinned against replacement. A platform may mark entries verified only when its enumeration contract provides that evidence; other adapters retain a second metadata inspection.
+
+Windows `FileTreeIndex` builds parent/child, identity and completion indexes once per observation and shares them across rule classification, planning and context validation. Native execution does one batch policy scan, then one exact target verification at each mutation boundary, instead of scanning the whole workspace again for every target. Current activity checks, immutable scope and per-unlink verification remain. macOS uses the same capability boundary for rule cleanup, direct removal, uninstall components and orphan cleanup; browse/selection reuse request-local policy and catalog contexts. History list summaries avoid loading full manifests; explicit inspection still reads current files.
+
+Large manifests are immutable digest-verified pages shared by plans and history. State/result writes update compact metadata instead of rewriting the complete inventory. Progress is advisory and throttled; validation paths remain visible while unknown preparation totals stay indeterminate. Release builds are required for performance comparisons. The MangoDisk analysis-removal fast path uses a different cancellation/manifest contract; it is not copied as a recursive fallback.
+
 ## Current pipeline
 
 ```mermaid
@@ -83,6 +91,8 @@ References and acknowledgements: MangoDisk's `mangodisk-platform/src/macos/analy
 
 Progress is aggregated by entry count and throttled to at most one update per 250 ms after every 128 entries. UI updates never run once per filesystem record. Cancellation is checked before and during each bulk page, before opening children and while sealing SQLite. A cancelled or corrupt scan is discarded and never published. A time limit records `resource_limit`, seals a truthful partial catalog and sets `limitReached`; it does not masquerade as a complete scan.
 
+The final SQLite index sorts can exhaust storage even after traversal has finished. `StorageCatalog` retains SQLite result codes and maps `SQLITE_FULL` to `storage_full`; native traversal must propagate this fatal storage error instead of treating it as an unreadable directory or a time-budget partial result. Generated 64 KiB catalog fixtures exercise exhaustion during row writes and sealing, verify that no new scan is published, and compare the previous index bytes and queries. The production limit remains 4 GiB; the lower constructor budget supports bounded, reproducible checks.
+
 The following boundaries remain explicit:
 
 - symlinks are never followed;
@@ -132,6 +142,23 @@ Saved large-file queries were compared on isolated copies of a 7,083,140-row cat
 | At least 1 MiB, video | 5.5245 s | 0.2588 s |
 
 This compares compatible saved formats; existing catalogs obtain the new index on rescan. The source scan remains partial and the benchmark does not prove full-disk coverage. The first harness incorrectly required exit 0 for a partial result; it was corrected to accept the documented exit 6 while still comparing all returned data. Evidence: `paired-large-files.json`, `paired-large-files-final.log`; the failed harness log is retained separately.
+
+## Cleanup pipeline Release measurements (2026-10-24)
+
+The host is a MacBookPro17,1 with 8 cores, 16 GB RAM, macOS 15.8.1 ARM64, APFS and Swift 6.2.3. Both binaries use Release. Three pairs alternate old/new, new/old and old/new; each run regenerates two targets with 12 nested directories and 10,000 files each, totaling 20,026 manifest entries. Timings include scanning, preparing a permanent-removal plan and execution after exact confirmation; every run checks that unrelated source files survive. Fixture creation is excluded and system caches are not flushed.
+
+| Metric | Before median | After median | Reduction |
+| --- | ---: | ---: | ---: |
+| Scan | 0.429 s | 0.402 s | 6.4% |
+| Prepare | 4.918 s | 1.833 s | 62.7% |
+| Execute | 12.832 s | 7.295 s | 43.2% |
+| Total | 17.064 s | 9.173 s | 46.2% |
+| Plan metadata | 6,405,554 bytes | 2,080 bytes | 99.97% |
+| Largest record | 6,405,558 bytes | 1,310,267 bytes | 79.5% |
+
+The compact plan separately references immutable manifest pages; 2,080 bytes is not its total disk footprint. There was substantial host CPU contention, and the first baseline overlapped a small installed-cache CLI retry. Old total times range from 17.056–29.126 s and new times from 8.367–15.520 s. All three raw pairs and medians are retained; they do not establish performance on every disk or native Windows. This fixture principally exercises preparation/removal and record writes; the small scan difference does not establish a full-disk scanning improvement.
+
+Evidence is under `.build/cleanup-performance/paired-release.json`, `paired-release-*.log`, `baseline-source.json`, `source-before-release-package.json` and build logs. The local `paired-release.py` reproduces the same generated fixture and records both Release binary hashes. Earlier installed Debug timings are excluded. See [SYNC.md](../../SYNC.md) for final validation and installation facts.
 
 ## Platform scope
 

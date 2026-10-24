@@ -123,7 +123,7 @@ struct CleanupCompletion: Identifiable {
     var isExecuting=false
     var stopRequested=false
     var executionProgress: ExecutionProgress?
-    private(set) var executionUsesSources=false
+    private(set) var executionAction="permanent"
     private var executionOperation=UUID()
     var error: String?
     var statusKey=""
@@ -165,6 +165,7 @@ struct CleanupCompletion: Identifiable {
     func diagnostic(_ message: String) -> String { message.components(separatedBy: "\n").map(t).joined(separator: "\n") }
     var displayTitle: String { language == .simplifiedChinese ? "Shou · 收拾一下" : "Shou" }
     var status: String {
+        if isExecuting { return stopRequested ? t("Stopping at a safe boundary…") : executionTitle }
         if space.scanning { return t(space.progressTitle) }
         if scanning, let progress=scanProgress {
             if progress.stage == "preparing" { return t("Preparing common app scan…") }
@@ -174,26 +175,24 @@ struct CleanupCompletion: Identifiable {
         return t(statusKey)
     }
     var executionTitle: String {
-        switch executionProgress?.stage {
-        case "moving": t("Moving items to Trash…")
-        case "restoring": t("Restoring selected items…")
-        case "purging": t("Permanently removing selected items…")
-        case "privacy-cleaning": t("Cleaning browser privacy…")
-        case "finalizing": t("Finishing cleanup…")
-        default: t("Checking selected items…")
+        if ["preparing", "checking"].contains(executionProgress?.stage ?? "") { return t("Checking selected files…") }
+        return switch executionAction {
+        case "trash": t("Moving items to Trash…")
+        case "restore": t("Restoring selected items…")
+        case "privacy": t("Cleaning browser privacy…")
+        case "tool": t("Cleaning tool-managed storage…")
+        default: t("Permanently removing selected items…")
         }
     }
-    func beginExecution(total: Int, sources: Bool = false) -> UUID {
+    func beginExecution(total: Int, action: String = "permanent", stage: String = "preflight") -> UUID {
         executionOperation=UUID(); isExecuting=true; stopRequested=false; operationHadError=false
-        executionUsesSources=sources
-        executionProgress=ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: total)
+        executionAction=action
+        executionProgress=ExecutionProgress(stage: stage, processedCount: 0, itemCount: total)
         return executionOperation
     }
     func updateExecutionProgress(_ update: ExecutionProgress, operation: UUID) {
-        guard isExecuting, executionOperation == operation,
-              update.processedCount >= (executionProgress?.processedCount ?? 0) else { return }
-        if let current=executionProgress, current.stage == update.stage,
-           let previous=current.fractionCompleted, let next=update.fractionCompleted, next < previous { return }
+        guard isExecuting, executionOperation == operation else { return }
+        if let current=executionProgress, !update.canFollow(current) { return }
         executionProgress=update
     }
     func date(_ value: Date) -> String { value.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(language.locale)) }
@@ -771,7 +770,7 @@ struct CleanupCompletion: Identifiable {
     func executeToolCleanup(_ plan: ToolCleanupPlan, service: ToolCleanupService) {
         guard !busy else { return }
         busy=true
-        let operation=beginExecution(total: 1)
+        let operation=beginExecution(total: 1, action: "tool")
         statusKey="Cleaning tool-managed storage…"
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
@@ -785,7 +784,7 @@ struct CleanupCompletion: Identifiable {
     func executeApplicationOrphans(_ plan: ApplicationOrphanPlan) {
         guard !busy, let engine else { return }
         busy=true
-        let operation=beginExecution(total: plan.components.count)
+        let operation=beginExecution(total: plan.components.count, action: plan.action)
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
             do {
@@ -803,7 +802,7 @@ struct CleanupCompletion: Identifiable {
         guard let engine, !busy else { return }
         let sourceSection=section
         prompt=nil; busy=true; scanProgress=nil
-        let execution=beginExecution(total: review.itemIds.isEmpty ? review.paths.count : review.itemIds.count)
+        let execution=beginExecution(total: review.itemIds.isEmpty ? review.paths.count : review.itemIds.count, action: review.action)
         let operation=UUID(); operationID=operation
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
@@ -913,8 +912,6 @@ struct ContentView: View {
         if model.isExecuting { ExecutionProgressView(model: model) }
         else if let result=model.toolCompletion { ToolCleanupResultView(model: model, result: result) }
         else if let result=model.completion { CleanupResultView(model: model, result: result).id(result.id) }
-        else if model.space.reviewing { StorageReviewProgressView(model: model, session: model.space) }
-        else if model.largeFiles.storage.reviewing { StorageReviewProgressView(model: model, session: model.largeFiles.storage) }
         else { sectionContent }
     }
     @ViewBuilder private var sectionContent: some View {

@@ -24,10 +24,11 @@ extension ShouEngine {
         }
         let page=try storageDirectoryPage(scanId: scanId, path: path, offset: offset, limit: 200, nameFilter: query)
         let scan=try storageScan(scanId)
+        let context=try storageReviewContext(scan: scan)
         var reasons=[String: String]()
         for item in page.children {
             try Task.checkCancellation()
-            if let reason=storageRemovalReason(scan: scan, path: item.node.path) { reasons[item.node.path]=reason }
+            if let reason=try storageRemovalReason(scan: scan, path: item.node.path, entry: item.entry, context: context) { reasons[item.node.path]=reason }
         }
         return StorageBrowsePage(directory: page, removalReasons: reasons, query: query, queryDigest: digest)
     }
@@ -41,6 +42,7 @@ extension ShouEngine {
             throw ShouError("invalid_argument", "Select at most 5,000 exact, distinct analysis paths.")
         }
         let scan=try storageScan(scanId), catalog=try catalog(for: scan), existing=Set(paths)
+        let context=try storageReviewContext(scan: scan)
         let inline=catalog == nil ? StorageIndex(tree: scan.tree) : nil
         func node(_ path: String) throws -> StorageNode? {
             if let catalog { return try catalog.entry(at: path)?.node }
@@ -84,7 +86,7 @@ extension ShouEngine {
         for path in result {
             try Task.checkCancellation()
             guard let item=try node(path) else { throw ShouError("invalid_argument", "Item is absent from this analysis.") }
-            if let reason=storageRemovalReason(scan: scan, path: path) { throw ShouError("permission_denied", reason) }
+            if let reason=try storageRemovalReason(scan: scan, path: path, context: context) { throw ShouError("permission_denied", reason) }
             bytes += item.allocatedBytes
         }
         return StorageSelectionSummary(paths: result.sorted(), allocatedBytes: bytes)

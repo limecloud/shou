@@ -31,7 +31,7 @@ public struct RecordRetentionPreview: Codable, Sendable {
 /// Reproducible evidence and detached journal dependencies. Manifest files with
 /// a live history parent are always protected, including unfinished operations.
 public enum DerivedRecords {
-    public static let collections=["scans", "plans", "storage-scans", "storage-scan-entries", "storage-plans", "storage-catalogs", "history-summaries", "history-manifests", "application-close-plans", "tool-scans", "tool-plans", "orphan-reviews", "orphan-plans"]
+    public static let collections=["scans", "plans", "storage-scans", "storage-scan-entries", "storage-plans", "storage-plan-manifests", "storage-catalogs", "history-summaries", "history-manifests", "application-close-plans", "tool-scans", "tool-plans", "orphan-reviews", "orphan-plans"]
 }
 
 extension ShouEngine {
@@ -48,6 +48,12 @@ extension ShouEngine {
             throw ShouError("invalid_argument", "Record retention limits must be finite and nonnegative.")
         }
         struct PlanReference: Decodable { let scanId: String; let expiresAt: Date; let state: String }
+        struct PlanEnvelope: Decodable {
+            struct Manifest: Decodable { struct Page: Decodable { let id: String }; let pages: [Page] }
+            let formatVersion: Int
+            let plan: PlanReference
+            let manifests: [Manifest]
+        }
         struct ToolPlanReference: Decodable { let expiresAt: Date; let state: String }
         struct StorageReference: Decodable {
             struct Scan: Decodable { let catalogId: String? }
@@ -59,12 +65,21 @@ extension ShouEngine {
         let records=try DerivedRecords.collections.flatMap { try store.records($0) }
         let timestamp=now(), grace=timestamp.addingTimeInterval(-policy.graceSeconds)
         var protected=Set<String>(), issues=[String]()
+        var parents=[String: String]()
         func key(_ collection: String, _ id: String) -> String { collection + "/" + id }
         for collection in ["plans", "storage-plans"] {
             for record in records where record.collection == collection {
-                guard let data=try store.read(collection, id: record.id), let plan=try? Codec.decode(PlanReference.self, from: data) else {
+                guard let data=try store.read(collection, id: record.id) else {
                     issues.append("unreadable_plan:" + collection + "/" + record.id); continue
                 }
+                let plan: PlanReference
+                if let inline=try? Codec.decode(PlanReference.self, from: data) { plan=inline }
+                else if collection == "storage-plans", let envelope=try? Codec.decode(PlanEnvelope.self, from: data), envelope.formatVersion == 1 {
+                    plan=envelope.plan
+                    for manifest in envelope.manifests {
+                        for page in manifest.pages { parents[key("storage-plan-manifests", page.id)]=key(collection, record.id) }
+                    }
+                } else { issues.append("unreadable_plan:" + collection + "/" + record.id); continue }
                 if plan.state == "executing" || (plan.state == "ready" && plan.expiresAt > timestamp) {
                     protected.insert(key(collection, record.id))
                     protected.insert(key(collection == "plans" ? "scans" : "storage-scans", plan.scanId))
@@ -85,7 +100,6 @@ extension ShouEngine {
                 protected.insert(key(collection, latest.id))
             }
         }
-        var parents=[String: String]()
         for record in records where record.collection == "storage-scans" {
             guard let data=try store.read(record.collection, id: record.id), let scan=try? Codec.decode(StorageReference.self, from: data) else {
                 issues.append("unreadable_storage_scan:" + record.id); continue
@@ -117,7 +131,7 @@ extension ShouEngine {
             if group.allSatisfy({ timestamp.timeIntervalSince($0.modifiedAt) >= policy.maxAgeSeconds }) || remaining > policy.maxBytes {
                 // Unpublish a scan before its dependent pages/catalog. An
                 // interrupted collection can leave only inert orphan data.
-                let sorted=group.sorted { ($0.collection == "storage-scans" ? 0 : 1) < ($1.collection == "storage-scans" ? 0 : 1) }
+                let sorted=group.sorted { (["storage-scans", "storage-plans"].contains($0.collection) ? 0 : 1) < (["storage-scans", "storage-plans"].contains($1.collection) ? 0 : 1) }
                 removal.append(contentsOf: sorted); remaining -= group.reduce(0) { $0 + $1.byteCount }
             }
         }

@@ -59,12 +59,15 @@ internal sealed class NativeReviewOperations : ICleanupReviewOperations, ICleanu
     public Task<CleanupPlan> CreatePlanAsync(ImmutableArray<CleanupSelection> selections, CleanupAction action, CancellationToken cancellationToken) =>
         Task.Run(() => cleanup.CreatePlanAsync(selections, action, cancellationToken), cancellationToken);
     public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, CancellationToken cancellationToken)
+        => ExecuteAsync(planId, confirmation, null, cancellationToken);
+
+    public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, IProgress<CleanupProgress>? progress, CancellationToken cancellationToken)
     {
         if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Cleanup execution awaits native Windows acceptance.");
         return Task.Run(async () =>
         {
             var consent = await cleanup.ConfirmAsync(planId, confirmation, cancellationToken).ConfigureAwait(false);
-            return await cleanup.ExecuteAsync(planId, consent, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await cleanup.ExecuteAsync(planId, consent, progress, cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
     public Task<CleanupExecution?> ReadExecutionAsync(string planId, CancellationToken cancellationToken) =>

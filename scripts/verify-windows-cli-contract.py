@@ -39,10 +39,13 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         checks += 1
         return envelope
 
-    assert run(['--version', '--json'])['data']['version'].startswith('0.12.0-dev')
+    import xml.etree.ElementTree as ET
+    expected_version = ET.parse(Path(__file__).resolve().parents[1] / 'apps/windows/Directory.Build.props').findtext('.//Version')
+    assert expected_version
+    assert run(['--version', '--json'])['data']['version'].split('+', 1)[0] == expected_version
     capabilities = run(['capabilities', '--json'])['data']
     assert capabilities['platform'] == 'windows'
-    assert capabilities['application_version'].startswith('0.12.0-dev')
+    assert capabilities['application_version'].split('+', 1)[0] == expected_version
     assert capabilities['api_version'] == '1.0' and capabilities['rule_schema_version'] == '1.0'
     assert capabilities['mutation_available'] is False and capabilities['trash_available'] is False and capabilities['application_uninstall_available'] is False
     assert capabilities['startup_control_available'] is False

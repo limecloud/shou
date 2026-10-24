@@ -139,11 +139,12 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         if Array(CommandLine.arguments.dropFirst()) == ["--operation-progress-only"] {
             do {
                 try executionProgressKeepsBatchTotalsAndPartialBoundaries()
+                try executionProgressRejectsLateStageAndEntryCallbacks()
                 try await privacyProgressTracksSourcesAndCommittedOutcomes()
                 try await privacyProgressCancellationPreservesRemainingSources()
                 try await followUpProgressPreservesDurableCancellationBoundary()
                 try await followUpProgressCountsFailedOutcomeWithoutOverwriting()
-                print("5/5 operation progress, partial batches, privacy transactions and cancellation tests passed; generated fixtures only.")
+                print("6/6 operation progress, late callbacks, partial batches, privacy transactions and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL operation progress: \(error)"); Foundation.exit(1) }
             return
         }
@@ -223,12 +224,13 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-catalog-only"] {
             do {
+                try await storageCatalogFullFailureNeverReplacesPreviousAnalysis()
                 try storageCatalogPreparesPrivateFilesAfterExistingFileRefusal()
                 try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories()
                 try await storageCatalogAccountsHardLinksAndOpaqueLinks()
                 try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings()
                 try await storageCatalogCancellationNeverPublishesAScan()
-                print("5/5 streaming storage catalog, private file creation, legacy schemas, directory paging, sibling coverage, hard links, permissions and cancellation tests passed; generated fixtures only.")
+                print("6/6 streaming storage catalog, storage exhaustion, private files, directory paging, sibling coverage, hard links, permissions and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage catalog: \(error)"); Foundation.exit(1) }
             return
         }
@@ -262,6 +264,20 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try storageIndexCanCancelAndKeepsAccounting()
                 print("6/6 storage progress, compact paths, paged transport, persistence and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage progress: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-cleanup-performance-only"] {
+            do { try await storageCleanupPipelineBenchmark() }
+            catch { print("FAIL storage cleanup benchmark: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-manifests-only"] {
+            do {
+                try await storageManifestPagesVerifyCorruptionAndRetention()
+                try await storageManifestInterruptedPublicationAndLegacyPlans()
+                try await permanentVerificationCancellationDoesNotRemoveFiles()
+                print("3/3 bounded manifest pages, corruption, publication, retention, legacy and cancellation checks passed; generated fixtures only.")
+            } catch { print("FAIL storage manifests: \(error)"); Foundation.exit(1) }
             return
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-removal-only"] {
@@ -424,7 +440,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Paged storage manifests preserve corruption and retention boundaries", { try await storageManifestPagesVerifyCorruptionAndRetention() }),
+            ("Storage manifest publication failures and legacy plans remain safe", { try await storageManifestInterruptedPublicationAndLegacyPlans() }),
+            ("Cancelling permanent verification never removes files", { try await permanentVerificationCancellationDoesNotRemoveFiles() }),
             ("Execution progress preserves batch totals and partial boundaries", { try executionProgressKeepsBatchTotalsAndPartialBoundaries() }),
+            ("Execution progress rejects late stages and nested-entry regressions", { try executionProgressRejectsLateStageAndEntryCallbacks() }),
             ("Privacy progress follows committed source outcomes", { try await privacyProgressTracksSourcesAndCommittedOutcomes() }),
             ("Privacy progress cancellation preserves remaining sources", { try await privacyProgressCancellationPreservesRemainingSources() }),
             ("Installed application caches use ordinary cleanup and preserve applications", { try await installedApplicationCachesUseNormalCleanupWithoutUninstalling() }),
@@ -446,6 +466,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Nested map bounds, omissions, area and cancellation", { try await storageNestedMapIsBoundedAndPreservesParentArea() }),
             ("Storage catalog deduplicates hard links without following symlinks", { try await storageCatalogAccountsHardLinksAndOpaqueLinks() }),
             ("Storage catalog prepares private files after existing-file refusal", { try storageCatalogPreparesPrivateFilesAfterExistingFileRefusal() }),
+            ("Full storage catalog preserves the previous analysis", { try await storageCatalogFullFailureNeverReplacesPreviousAnalysis() }),
             ("Storage catalog exposes unreadable directory coverage", { try await storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() }),
             ("Cancelled storage catalog is never published", { try await storageCatalogCancellationNeverPublishesAScan() }),
             ("Large-file filters reuse saved evidence without rescanning", { try await storageLargeFilesFilterSavedEvidenceWithoutRescanning() }),

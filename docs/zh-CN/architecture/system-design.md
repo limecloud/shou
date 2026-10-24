@@ -45,6 +45,12 @@ flowchart TB
 
 Core 拥有这些决策及所需能力接口；Platform 负责原生访问、身份、进程和存储；UI 负责导航、选择、呈现与调度。Windows Presentation 保持页面状态可在 macOS 独立测试。见[仓库边界](monorepo-and-platforms.md)。
 
+## 统一遍历边界
+
+各平台内部把目录读取、清单比较与不可变分页记录作为可复用底层能力。macOS 计量与目标检查共用 `NativeDirectoryReader`；Windows 扫描与原生核验共用基于句柄的 `NativeDirectoryReader`。Core 在一次请求内建立索引和策略上下文，供分类、选择与审阅复用，不跨操作缓存授权证据。
+
+整批策略预检与最终变更边界分别承担职责。明确声明会完整核验清单的适配器负责最后一次现场读树，Core 省去紧邻的重复遍历；其他适配器默认保留保守核验。原生变更仍检查完整当前清单、身份、上下文和逐项移除。历史现场核对始终重新观察；Windows 安装程序卸载与 SQLite 隐私操作继续使用各自系统合同。
+
 ## macOS 实现
 
 `apps/macos` 组装 SwiftUI/AppKit、`ShouCore`、`ShouPlatform`、`ShouAI` 与内置 Agent 指令。`apps/cli` 独立组装相同 Swift 服务和终端确认。`Package.swift` 构建 macOS 产品，不定义 Windows target。

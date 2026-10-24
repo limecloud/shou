@@ -7,13 +7,16 @@ public struct PermanentRemovalContext {
     public init() {}
 
     public func reconciled(_ manifest: [FileEntry]) -> [FileEntry] {
-        manifest.map { entry in
-            guard let change=unlinks[entry.objectIdentityKey], normalized(entry) == change.original else { return entry }
-            var updated=entry
-            updated.links=change.current.links
-            updated.changedNanoseconds=change.current.changedNanoseconds
-            return updated
-        }
+        guard !unlinks.isEmpty else { return manifest }
+        return manifest.map(reconciled)
+    }
+    public func reconciled(_ entry: FileEntry) -> FileEntry {
+        guard entry.kind == "file", entry.links > 1, !unlinks.isEmpty,
+              let change=unlinks[entry.objectIdentityKey], normalized(entry) == change.original else { return entry }
+        var updated=entry
+        updated.links=change.current.links
+        updated.changedNanoseconds=change.current.changedNanoseconds
+        return updated
     }
 
     /// The platform must pin the file, verify it before unlink, then observe the

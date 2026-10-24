@@ -34,13 +34,12 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
         var classification = Classify(configuration, workspace, rules, scan, budget.Duration - clock.GetElapsedTime(started), cancellationToken);
         var preview = new CleanupScan(1, scan.Id, workspace, budget, configuration.Revision, codec.Digest(configuration),
             rules.Select(rule => new ScanRule(rule.Definition, rule.Digest)).ToImmutableArray(), scan, classification.Candidates, classification.AnalysisIssues, draft is not null);
-        var payload = RecordJson.Encode(preview, MaximumSnapshotBytes);
         await store.UpdateAsync(transaction =>
         {
             var current = codec.Decode(transaction.Read("configuration", ConfigurationCodec.MaximumBytes));
             if (codec.Digest(current) != preview.ConfigurationDigest) throw new ShouException("plan_stale", "Configuration changed during preview. Review and scan again.");
             if (transaction.Read(preview.Id, MaximumSnapshotBytes) is not null) throw new ShouException("version_conflict", "A scan with this identifier already exists.");
-            transaction.Write(preview.Id, payload);
+            CleanupScanRecords.Write(transaction, preview, cancellationToken);
             return true;
         }, cancellationToken);
         return preview;
@@ -49,8 +48,9 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
     public async Task<CandidatePage> ResultsAsync(string scanId, int limit = 50, string? cursor = null, CancellationToken cancellationToken = default)
     {
         if (!RecordKey.IsId(scanId, "scan") || limit is < 1 or > 500) throw Input("Choose a valid scan identifier and page limit.");
-        var bytes = await store.ReadAsync(scanId, MaximumSnapshotBytes, cancellationToken) ?? throw Input("The scan does not exist.");
-        var preview = Decode(bytes, scanId, cancellationToken);
+        await using var lease = await store.AcquireReadLeaseAsync(cancellationToken) ?? throw Input("The scan does not exist.");
+        var bytes = await lease.ReadAsync(scanId, MaximumSnapshotBytes, cancellationToken) ?? throw Input("The scan does not exist.");
+        var preview = await CleanupScanRecords.ReadAsync(bytes, scanId, lease, this, cancellationToken);
         var offset = 0;
         if (cursor is not null)
         {
@@ -83,14 +83,15 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
         .Select(record => validator.Parse(Encoding.UTF8.GetBytes(record.Rule.GetRawText())))).OrderBy(rule => rule.Id, StringComparer.Ordinal).ToArray();
 
     internal RuleClassification Classify(Configuration configuration, Workspace workspace, IEnumerable<CleanupRule> rules,
-        ScanSnapshot scan, TimeSpan duration, CancellationToken cancellationToken)
+        ScanSnapshot scan, TimeSpan duration, CancellationToken cancellationToken, FileTreeIndex? treeIndex = null)
     {
         var candidates = ImmutableArray.CreateBuilder<RuleCandidate>();
         var issues = ImmutableArray.CreateBuilder<ScanIssue>();
         var analysis = new CandidateAnalysisBudget(duration, clock);
+        var index = treeIndex ?? new FileTreeIndex(scan);
         foreach (var rule in rules)
         {
-            var result = new RuleClassifier(protection).Classify(configuration, workspace, rule, scan, analysis, cancellationToken);
+            var result = new RuleClassifier(protection).Classify(configuration, workspace, rule, scan, index, analysis, cancellationToken);
             candidates.AddRange(result.Candidates);
             issues.AddRange(result.AnalysisIssues);
             if (result.AnalysisIssues.Length > 0) break;
@@ -112,7 +113,7 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
     }
 
     // Saved observations are untrusted input and never serve as an execution authorization.
-    private void ValidateRecord(CleanupScan preview, string scanId, CancellationToken cancellationToken)
+    internal void ValidateRecord(CleanupScan preview, string scanId, CancellationToken cancellationToken)
     {
         if (preview.Version != 1 || preview.Id != scanId || preview.Scan is not { } scan || scan.Id != scanId ||
             preview.Workspace is null || preview.Budget is null || !RecordKey.IsId(preview.WorkspaceId, "ws") || !RecordKey.IsId(preview.ConfigurationRevision, "config") || !RecordJson.IsDigest(preview.ConfigurationDigest) ||

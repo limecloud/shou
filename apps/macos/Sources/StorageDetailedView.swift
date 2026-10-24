@@ -64,55 +64,12 @@ private struct StorageNestedMap: View {
     var model: AppModel
     var body: some View {
         GeometryReader { geometry in
-            let nodes=session.presentation?.items.compactMap { session.index.nodes[$0.node.path] } ?? []
-            let lookup=Dictionary(uniqueKeysWithValues: nodes.map { ($0.path, $0) })
-            let scope=session.index.nodes[session.path]
-            let tiles=scope.map { SpaceMap.nested(nodes, scope: $0, width: geometry.size.width, height: geometry.size.height, aggregates: session.presentationAggregates) } ?? []
+            let nodes: [StorageNode]=session.presentation?.items.compactMap { session.index.nodes[$0.node.path] } ?? []
+            let lookup: [String: StorageNode]=Dictionary(uniqueKeysWithValues: nodes.map { ($0.path, $0) })
+            let scope: StorageNode?=session.index.nodes[session.path]
+            let tiles: [NestedSpaceTile]=scope.map { SpaceMap.nested(nodes, scope: $0, width: geometry.size.width, height: geometry.size.height, aggregates: session.presentationAggregates) } ?? []
             Canvas { context, _ in
-                for item in tiles {
-                    let tile=item.tile, node=lookup[tile.id]
-                    let rect=CGRect(x: tile.x + 0.35, y: tile.y + 0.35, width: max(0,tile.width - 0.7), height: max(0,tile.height - 0.7))
-                    guard rect.width >= 0.5, rect.height >= 0.5 else { continue }
-                    let directory=node?.kind == "directory", suffix=item.aggregate?.suffix ?? StorageExtensionStat.suffix(node?.name ?? "")
-                    let matching=(node?.kind == "file" || item.aggregate != nil) && suffix == session.extensionFilter
-                    let shape=Path(rect)
-                    if directory || item.remainder {
-                        let level=0.19 + Double(item.depth % 4) * 0.025
-                        context.fill(shape, with: .color(Color(white: level)))
-                    } else {
-                        var surface=context
-                        surface.opacity=session.extensionFilter == nil || matching ? 1 : 0.25
-                        surface.fill(shape, with: .linearGradient(Gradient(stops: [
-                            .init(color: storageExtensionColor(suffix, brightness: 0.45), location: 0),
-                            .init(color: storageExtensionColor(suffix, brightness: 1.15), location: 0.48),
-                            .init(color: storageExtensionColor(suffix, brightness: 0.42), location: 1)
-                        ]), startPoint: CGPoint(x: rect.midX, y: rect.minY), endPoint: CGPoint(x: rect.midX, y: rect.maxY)))
-                        surface.fill(shape, with: .linearGradient(Gradient(stops: [
-                            .init(color: .black.opacity(0.45), location: 0), .init(color: .clear, location: 0.5), .init(color: .black.opacity(0.45), location: 1)
-                        ]), startPoint: CGPoint(x: rect.minX, y: rect.midY), endPoint: CGPoint(x: rect.maxX, y: rect.midY)))
-                    }
-                    if rect.width > 64, rect.height > 15 {
-                        var labelContext=context; labelContext.clip(to: shape)
-                        let title=item.remainder ? model.t("Other Entries") : item.aggregate.map { ($0.suffix.isEmpty ? model.t("No Extension") : "." + $0.suffix) + " × " + $0.fileCount.formatted() } ?? node?.name ?? ""
-                        let size=model.bytes(item.aggregate?.allocatedBytes ?? node?.allocatedBytes ?? 0)
-                        let label=Text(directory ? title + " (" + size + ")" : title).font(.system(size: 9, weight: .medium)).foregroundColor(.white.opacity(directory ? 0.9 : 1))
-                        labelContext.draw(labelContext.resolve(label), in: CGRect(x: rect.minX + 3, y: rect.minY, width: rect.width - 6, height: 12))
-                        if !directory && rect.height > 34 {
-                            labelContext.draw(labelContext.resolve(Text(size).font(.system(size: 9)).foregroundColor(.white.opacity(0.8))), at: CGPoint(x: rect.minX+3,y:rect.minY+13), anchor: .topLeading)
-                        }
-                    }
-                }
-                // Draw linked highlights last so nested surfaces never cover them.
-                for item in tiles where !item.remainder {
-                    let path=item.id, node=lookup[path]
-                    let matching=session.extensionFilter != nil && (node?.kind == "file" || item.aggregate != nil) && (item.aggregate?.suffix ?? StorageExtensionStat.suffix(node?.name ?? "")) == session.extensionFilter
-                    if session.focus == path || session.isSelected(path) || matching || session.hovered == path {
-                        let tile=item.tile
-                        let rect=CGRect(x:tile.x+1,y:tile.y+1,width:max(0,tile.width-2),height:max(0,tile.height-2))
-                        let color: Color=session.isSelected(path) ? .cyan : session.focus == path ? .white : matching ? Color(red:1,green:0.24,blue:0.22) : .white.opacity(0.7)
-                        context.stroke(Path(rect),with:.color(color),lineWidth:session.isSelected(path) || session.focus == path ? 2 : 1)
-                    }
-                }
+                renderMap(&context, tiles: tiles, lookup: lookup)
             }
             .contentShape(Rectangle())
             .gesture(SpatialTapGesture(count: 2).onEnded { event in
@@ -135,6 +92,53 @@ private struct StorageNestedMap: View {
             .accessibilityLabel(model.t("Space Map"))
             .accessibilityHint(model.t("Browse the directory tree for keyboard access to map items."))
         }.background(Color(white: 0.10))
+    }
+    // Keep drawing outside the view builder so its types can be checked independently.
+    private func renderMap(_ context: inout GraphicsContext, tiles: [NestedSpaceTile], lookup: [String: StorageNode]) {
+        for item in tiles {
+            let tile=item.tile, node=lookup[tile.id]
+            let rect=CGRect(x: tile.x + 0.35, y: tile.y + 0.35, width: max(0,tile.width - 0.7), height: max(0,tile.height - 0.7))
+            guard rect.width >= 0.5, rect.height >= 0.5 else { continue }
+            let directory=node?.kind == "directory", suffix=item.aggregate?.suffix ?? StorageExtensionStat.suffix(node?.name ?? "")
+            let matching=(node?.kind == "file" || item.aggregate != nil) && suffix == session.extensionFilter
+            let shape=Path(rect)
+            if directory || item.remainder {
+                let level=0.19 + Double(item.depth % 4) * 0.025
+                context.fill(shape, with: .color(Color(white: level)))
+            } else {
+                var surface=context
+                surface.opacity=session.extensionFilter == nil || matching ? 1 : 0.25
+                surface.fill(shape, with: .linearGradient(Gradient(stops: [
+                    .init(color: storageExtensionColor(suffix, brightness: 0.45), location: 0),
+                    .init(color: storageExtensionColor(suffix, brightness: 1.15), location: 0.48),
+                    .init(color: storageExtensionColor(suffix, brightness: 0.42), location: 1)
+                ]), startPoint: CGPoint(x: rect.midX, y: rect.minY), endPoint: CGPoint(x: rect.midX, y: rect.maxY)))
+                surface.fill(shape, with: .linearGradient(Gradient(stops: [
+                    .init(color: .black.opacity(0.45), location: 0), .init(color: .clear, location: 0.5), .init(color: .black.opacity(0.45), location: 1)
+                ]), startPoint: CGPoint(x: rect.minX, y: rect.midY), endPoint: CGPoint(x: rect.maxX, y: rect.midY)))
+            }
+            if rect.width > 64, rect.height > 15 {
+                var labelContext=context; labelContext.clip(to: shape)
+                let title=item.remainder ? model.t("Other Entries") : item.aggregate.map { ($0.suffix.isEmpty ? model.t("No Extension") : "." + $0.suffix) + " × " + $0.fileCount.formatted() } ?? node?.name ?? ""
+                let size=model.bytes(item.aggregate?.allocatedBytes ?? node?.allocatedBytes ?? 0)
+                let label=Text(directory ? title + " (" + size + ")" : title).font(.system(size: 9, weight: .medium)).foregroundColor(.white.opacity(directory ? 0.9 : 1))
+                labelContext.draw(labelContext.resolve(label), in: CGRect(x: rect.minX + 3, y: rect.minY, width: rect.width - 6, height: 12))
+                if !directory && rect.height > 34 {
+                    labelContext.draw(labelContext.resolve(Text(size).font(.system(size: 9)).foregroundColor(.white.opacity(0.8))), at: CGPoint(x: rect.minX+3,y:rect.minY+13), anchor: .topLeading)
+                }
+            }
+        }
+        // Draw linked highlights last so nested surfaces never cover them.
+        for item in tiles where !item.remainder {
+            let path=item.id, node=lookup[path]
+            let matching=session.extensionFilter != nil && (node?.kind == "file" || item.aggregate != nil) && (item.aggregate?.suffix ?? StorageExtensionStat.suffix(node?.name ?? "")) == session.extensionFilter
+            if session.focus == path || session.isSelected(path) || matching || session.hovered == path {
+                let tile=item.tile
+                let rect=CGRect(x:tile.x+1,y:tile.y+1,width:max(0,tile.width-2),height:max(0,tile.height-2))
+                let color: Color=session.isSelected(path) ? .cyan : session.focus == path ? .white : matching ? Color(red:1,green:0.24,blue:0.22) : .white.opacity(0.7)
+                context.stroke(Path(rect),with:.color(color),lineWidth:session.isSelected(path) || session.focus == path ? 2 : 1)
+            }
+        }
     }
     private func hit(_ point: CGPoint, _ tiles: [NestedSpaceTile]) -> String? {
         guard let tile=tiles.last(where: { !$0.remainder && CGRect(x: $0.tile.x, y: $0.tile.y, width: $0.tile.width, height: $0.tile.height).contains(point) }) else { return nil }

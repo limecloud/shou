@@ -10,16 +10,20 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
 {
     // GUI and CLI share this gate; enable only after native mutation, interruption and UI/terminal acceptance.
     public static bool PublicExecutionAvailable => false;
+    public bool VerifiesMutationManifest => true;
     public bool Supports(CleanupAction action) => action == CleanupAction.Permanent &&
         OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) && IntPtr.Size == 8;
 
+    public Task<CleanupMutationResult> ApplyAsync(Workspace workspace, CleanupPlanItem item, CleanupAction action, CancellationToken cancellationToken) =>
+        ApplyAsync(workspace, item, action, null, cancellationToken);
+
     public async Task<CleanupMutationResult> ApplyAsync(Workspace workspace, CleanupPlanItem item, CleanupAction action,
-        CancellationToken cancellationToken)
+        IProgress<CleanupMutationProgress>? progress, CancellationToken cancellationToken)
     {
         if (!Supports(action)) throw new ShouException("unsupported_capability", "This native cleanup action is unavailable.");
         try
         {
-            return await NativeOperationScheduler.RunToCompletionAsync(() => Apply(workspace, item, cancellationToken), cancellationToken).ConfigureAwait(false);
+            return await NativeOperationScheduler.RunToCompletionAsync(() => Apply(workspace, item, progress, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -28,7 +32,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         }
     }
 
-    private static CleanupMutationResult Apply(Workspace workspace, CleanupPlanItem item, CancellationToken token)
+    private static CleanupMutationResult Apply(Workspace workspace, CleanupPlanItem item, IProgress<CleanupMutationProgress>? progress, CancellationToken token)
     {
         var started = Stopwatch.GetTimestamp();
         void Check()
@@ -44,32 +48,34 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
             Check();
             using var scope = Scope.Open(workspace, item, Check);
             // A complete native preflight precedes the first disposition. Later checks bind each individual unlink.
-            scope.VerifyTree(scope.Target, scope.TargetEntry, Check);
+            scope.VerifyTree(scope.Target, scope.TargetEntry, Check, path => Report(progress, new("checking", path, 0)));
             scope.VerifyContext();
-            foreach (var expected in scope.Manifest.Values.OrderByDescending(entry => entry.Path.Value.Count(character => character == '\\'))
-                         .ThenBy(entry => entry.Path.Value, StringComparer.Ordinal))
+            void Remove(FileEntry expected, SafeFileHandle handle, SafeFileHandle parent, bool parentCaseSensitive)
             {
                 Check();
-                scope.VerifyContext();
-                var root = expected.Path == item.Path;
-                using var parents = scope.OpenParents(expected.Path, Check);
-                var handle = root ? scope.Target : NativeFileHandles.OpenChild(parents.Final, expected.Path,
-                    parents.CaseSensitive, expected.Kind == EntryKind.Directory, deletion: true);
-                try
+                RequireEntry(expected, WindowsFileSystem.ReadEntry(expected.Path, handle), strictDirectory: true);
+                foreach (var child in scope.Children(expected.Path))
                 {
-                    RequireEntry(expected, WindowsFileSystem.ReadEntry(expected.Path, handle), strictDirectory: false);
-                    if (expected.Kind == EntryKind.Directory && NativeFileHandles.Names(handle, expected.IsCaseSensitive, 0, Check).Count != 0) throw Stale();
                     Check();
-                    NativeFileHandles.MarkForRemoval(handle);
-                    pending = true;
-                    handle.Dispose();
-                    // Once disposition succeeds, verify this item without observing a new cancellation boundary.
-                    RequireUnlinked(parents.Final, expected, parents.CaseSensitive);
-                    pending = false;
-                    removed++;
+                    using var childHandle = NativeFileHandles.OpenChild(handle, child.Path, expected.IsCaseSensitive,
+                        child.Kind == EntryKind.Directory, deletion: true);
+                    Remove(child, childHandle, handle, expected.IsCaseSensitive);
                 }
-                finally { if (!root) handle.Dispose(); }
+                scope.VerifyContext();
+                RequireEntry(expected, WindowsFileSystem.ReadEntry(expected.Path, handle), strictDirectory: false);
+                if (expected.Kind == EntryKind.Directory && NativeFileHandles.Names(handle, expected.IsCaseSensitive, 0, Check).Count != 0) throw Stale();
+                Check();
+                NativeFileHandles.MarkForRemoval(handle);
+                pending = true;
+                handle.Dispose();
+                // Ancestors remain pinned until all children finish; verify this unlink before observing cancellation.
+                RequireUnlinked(parent, expected, parentCaseSensitive);
+                pending = false;
+                removed++;
+                Report(progress, new("purging", expected.Path, removed));
             }
+            var targetParent = scope.TargetParent;
+            Remove(scope.TargetEntry, scope.Target, targetParent.Handle, targetParent.Entry.IsCaseSensitive);
             return new(CleanupMutationOutcome.Completed, removed);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -94,11 +100,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
 
     private static void RequireEntry(FileEntry expected, FileEntry actual, bool strictDirectory)
     {
-        if (expected.Kind == EntryKind.Directory && !strictDirectory)
-        {
-            if (actual.Kind != EntryKind.Directory || actual.Identity != expected.Identity || actual.IsCaseSensitive != expected.IsCaseSensitive) throw Stale();
-        }
-        else if (actual != expected) throw Stale();
+        if (!FileManifestVerification.MatchesEntry(actual, expected, allowingDirectoryChanges: !strictDirectory)) throw Stale();
     }
 
     private sealed class Scope : IDisposable
@@ -111,6 +113,8 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         internal Dictionary<WindowsPath, FileEntry> Manifest { get; }
         internal SafeFileHandle Target { get; private set; } = null!;
         internal FileEntry TargetEntry => Manifest[item.Path];
+        internal (FileEntry Entry, SafeFileHandle Handle) TargetParent => context[item.Path.Parent!];
+        internal FileEntry[] Children(WindowsPath path) => children.GetValueOrDefault(path) ?? [];
 
         private Scope(WindowsFileSystem.PinnedPath workspace, CleanupPlanItem item, Dictionary<WindowsPath, FileEntry> manifest)
         {
@@ -177,7 +181,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
             catch { scope.Dispose(); throw; }
         }
 
-        internal void VerifyTree(SafeFileHandle directory, FileEntry expected, Action check)
+        internal void VerifyTree(SafeFileHandle directory, FileEntry expected, Action check, Action<WindowsPath> progress)
         {
             check();
             RequireEntry(expected, WindowsFileSystem.ReadEntry(expected.Path, directory), strictDirectory: true);
@@ -187,9 +191,10 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
             foreach (var child in direct)
             {
                 check();
+                progress(child.Path);
                 using var handle = NativeFileHandles.OpenChild(directory, child.Path, expected.IsCaseSensitive, child.Kind == EntryKind.Directory);
                 RequireEntry(child, WindowsFileSystem.ReadEntry(child.Path, handle), strictDirectory: true);
-                if (child.Kind == EntryKind.Directory) VerifyTree(handle, child, check);
+                if (child.Kind == EntryKind.Directory) VerifyTree(handle, child, check, progress);
             }
             RequireEntry(expected, WindowsFileSystem.ReadEntry(expected.Path, directory), strictDirectory: true);
         }
@@ -198,33 +203,6 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         {
             foreach (var (entry, handle) in context.Values)
                 RequireEntry(entry, WindowsFileSystem.ReadEntry(entry.Path, handle), strictDirectory: false);
-        }
-
-        internal ParentHandles OpenParents(WindowsPath path, Action check)
-        {
-            if (path == item.Path)
-            {
-                var parent = context[path.Parent!];
-                return new(parent.Handle, parent.Entry.IsCaseSensitive);
-            }
-            var parents = new ParentHandles(Target, TargetEntry.IsCaseSensitive);
-            try
-            {
-                var current = item.Path;
-                var relativeParent = path.Parent!.RelativeTo(item.Path, caseSensitive: true);
-                if (relativeParent != ".")
-                    foreach (var name in relativeParent.Split('/'))
-                    {
-                        check();
-                        current = current.Append(name);
-                        if (!Manifest.TryGetValue(current, out var expected) || expected.Kind != EntryKind.Directory) throw Stale();
-                        var handle = NativeFileHandles.OpenChild(parents.Final, current, parents.CaseSensitive, directory: true);
-                        parents.Add(handle, expected.IsCaseSensitive);
-                        RequireEntry(expected, WindowsFileSystem.ReadEntry(current, handle), strictDirectory: false);
-                    }
-                return parents;
-            }
-            catch { parents.Dispose(); throw; }
         }
 
         private static void RequireSafeEntry(FileEntry entry, Workspace root)
@@ -241,13 +219,9 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         }
     }
 
-    private sealed class ParentHandles(SafeFileHandle first, bool caseSensitive) : IDisposable
+    private static void Report(IProgress<CleanupMutationProgress>? progress, CleanupMutationProgress value)
     {
-        private readonly List<SafeFileHandle> owned = [];
-        internal SafeFileHandle Final { get; private set; } = first;
-        internal bool CaseSensitive { get; private set; } = caseSensitive;
-        internal void Add(SafeFileHandle handle, bool sensitive) { owned.Add(handle); Final = handle; CaseSensitive = sensitive; }
-        public void Dispose() { for (var index = owned.Count - 1; index >= 0; index--) owned[index].Dispose(); }
+        try { progress?.Report(value); } catch (Exception error) when (error is not OutOfMemoryException) { }
     }
 
     private static ShouException Stale() => new("plan_stale", "The native identity, context or exact manifest changed.");
