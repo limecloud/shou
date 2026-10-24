@@ -2,7 +2,7 @@
 
 [English](../../engineering/windows.md) | 简体中文
 
-状态：实现进行中。扫描、平台适配、页面状态与 CLI 已有源码；WinUI 包含空间浏览、应用注册浏览、清理审阅和只读历史页面。原生运行与分发验收待完成；当前没有 Windows 发行包或更新源。
+状态：实现进行中。扫描、平台适配、页面状态与 CLI 已有源码；WinUI 包含空间浏览、应用注册浏览、清理审阅和只读历史页面。v0.13.0 发布流水线构建未签名的 x64／ARM64 自包含便携预览。Windows Server 2025 x64 原生测试和 CLI 合同已通过，启动／归档结果见 SYNC.md；ARM64 运行、完整 Windows 11 界面／辅助功能、签名、安装和更新仍待验收，公开变更门禁关闭。
 
 Shou Windows 端采用 C#、.NET 10 LTS 与 Windows App SDK 的 WinUI 3。桌面和 CLI 直接调用同一套 C# 领域服务。代码编辑和纯 .NET 测试在 macOS 完成；Windows 构建和运行验证在 Windows 完成。
 

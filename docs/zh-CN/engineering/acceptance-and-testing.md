@@ -190,6 +190,6 @@ Presentation 检查明确开始、范围、完整／部分覆盖、失效、停�
 
 ## Windows CI 原生缺口
 
-2026-10-24 对源码 `79c97033744d38a653829cefc34120fcc466e41a` 的 [Windows Server 2025 x64 CI](https://github.com/limecloud/shou/actions/runs/39985996918) 通过 Core 587 项与 Presentation 174 项；Platform 191 项通过、22 项失败、11 项显式选择测试跳过。CLI 测试及后续 App／CLI 打包未执行，不能登记为通过。
+2026-10-24 的 [Windows Server 2025 x64 CI](https://github.com/limecloud/shou/actions/runs/40084555963) 对源码 `098d7eaba1d86c357c5e9963e8ed333203d55e0d` 通过 1,026 项测试：Core 604、Presentation 176、原生 Platform 215、CLI 31；11 项需单独启用的 MSI／计划任务生成夹具明确跳过。210 项原生 CLI 合同全部通过，包含正向计划创建和持久化读取。双架构 WinUI／CLI 自包含编译与实际归档检查通过，x64 原生 WinUI 主窗口启动和正常关闭通过。x64 私有 npm 包安装独立核验，未发布到 registry。
 
-失败包含同步用例错误使用 xUnit 超时属性、提升权限宿主下生成夹具的所有者／ACL 假设，以及占用文件元数据、清理和 WOW64 进程观察。先修正夹具及运行条件，再依据独立证据处理适配器；不能放宽生产所有者、ACL、链接或活动状态检查来使测试通过。真实 WinUI、Windows 11 双架构、签名、安装与更新仍需单独验收；本次 macOS 发行不包含 Windows 产物。
+已修复生成夹具所有者／私有 ACL、原生共享保护、NT 相对句柄记录发布和无关工具目录活动判断，保留所有者、ACL、链接、确认与活动保护。v0.13.0 发布流水线增加 x64／ARM64 未签名便携预览归档及逐文件摘要；ARM64 仅交叉构建。Windows 11 双架构运行、完整 WinUI／辅助功能、签名、安装和更新仍需独立验收，公开清理／卸载／启动项变更门禁保持关闭。最新构建与发行回执见 [SYNC.md](../../../SYNC.md)。

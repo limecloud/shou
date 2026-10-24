@@ -9,7 +9,7 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 | Area | Status |
 | --- | --- |
 | macOS | SwiftUI/AppKit application, Swift domain services and independent CLI have source implementations; acceptance remains evidence-specific |
-| Windows | C# / .NET 10 LTS / WinUI 3 implementation in progress; native runtime and distribution acceptance pending |
+| Windows | C# / .NET 10 LTS / WinUI 3 portable preview builds; x64 native CI evidence in SYNC.md; ARM64 runtime, full UI and signed distribution pending |
 | Runtime languages | Simplified Chinese and English |
 | Documentation | 11 README languages; English and Simplified Chinese technical editions |
 

@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/windows.md)
 
-Status: implementation in progress. Scanning, platform adapters, presentation and CLI have source implementations; WinUI includes storage browsing, application registration browsing, cleanup review and read-only history pages. Native runtime and distribution acceptance remain pending; no Windows release package or update feed is available.
+Status: implementation in progress. Scanning, platform adapters, presentation and CLI have source implementations; WinUI includes storage browsing, application registration browsing, cleanup review and read-only history pages. The v0.13.0 release workflow builds unsigned, self-contained x64/ARM64 portable previews. Native x64 tests and CLI contracts passed on Windows Server 2025; startup/archive results are recorded in SYNC.md. ARM64 runtime, full Windows 11 UI/accessibility, signing, installation and updates remain pending; public mutation gates stay closed.
 
 Shou for Windows uses C#, .NET 10 LTS and WinUI 3 from Windows App SDK. The GUI and CLI call the same C# domain services directly. Source editing and portable tests run on macOS; Windows builds and runtime checks run on Windows.
 
