@@ -158,6 +158,15 @@
         <Setter Property="Padding" Value="0" />
         <Setter Property="Foreground" Value="{ThemeResource ShouLinkBrush}" />
     </Style>
+    <Style x:Key="ShouLinkActionButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Foreground" Value="{ThemeResource ShouLinkBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
     <Style x:Key="ShouScanButton" TargetType="Button" BasedOn="{StaticResource ShouPrimaryButton}">
         <Setter Property="Background" Value="{ThemeResource ShouAccentBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
