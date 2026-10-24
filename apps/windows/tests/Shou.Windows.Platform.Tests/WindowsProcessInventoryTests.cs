@@ -35,7 +35,7 @@ public sealed class WindowsProcessInventoryTests
     public async Task Wow64ProcessDirectoryIsReadWithoutReadingArgumentsOrEnvironment()
     {
         using var fixture = new NativeFixture();
-        var executable = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SysWOW64/cmd.exe");
+        var executable = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SysWOW64", "cmd.exe");
         Assert.True(File.Exists(executable));
         var start = new ProcessStartInfo(executable) { WorkingDirectory = fixture.Root, UseShellExecute = false,
             CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };

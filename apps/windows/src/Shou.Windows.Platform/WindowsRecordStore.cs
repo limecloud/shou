@@ -87,7 +87,10 @@ public sealed class WindowsRecordStore : IRecordStore
                 if (container is not null) EnsureDirectory(container, requirePrivate: false);
                 EnsureDirectory(root, requirePrivate: true);
             }
-            pinned = WindowsFileSystem.PinPath(root, finalAccess: create ? 0x00100003u : 1);
+            // NT rename may open the destination directory for adding a file. Share writes on
+            // this retained directory while the private mutation.lock serializes record operations.
+            // Delete sharing stays disabled, so the publication parent cannot be renamed away.
+            pinned = WindowsFileSystem.PinPath(root, finalAccess: create ? 0x00100003u : 1, allowFinalSharedWrites: true);
         }
         catch (ShouException error) when (!create && error.Code == "not_found") { return null; }
         catch (ShouException error) when (error.Code == "active_or_inaccessible") { throw Busy(error); }
