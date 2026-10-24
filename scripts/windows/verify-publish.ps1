@@ -9,6 +9,7 @@ $Capabilities = & $Cli capabilities --json | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $Capabilities.data.mutation_available -or $Capabilities.data.application_uninstall_available -or $Capabilities.data.startup_control_available) {
     throw 'Unaccepted native mutation capabilities must remain unavailable.'
 }
+$Started = Get-Date
 $Process = Start-Process $App -PassThru
 try {
     if (-not $Process.WaitForInputIdle(20000)) { throw 'WinUI did not initialize within its startup budget.' }
@@ -27,4 +28,11 @@ try {
 } finally {
     if (-not $Process.HasExited) { $Process.Kill($true); $Process.WaitForExit() }
     $Process.Dispose()
+    if ($env:GITHUB_ACTIONS -eq 'true') {
+        $LogFile = Join-Path $env:LOCALAPPDATA 'Shou/Logs/application.jsonl'
+        if (Test-Path $LogFile) { Get-Content $LogFile -Tail 20 }
+        Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = $Started } -ErrorAction SilentlyContinue |
+            Where-Object { $_.Message -like '*Shou.Windows.App*' } |
+            Select-Object -First 5 TimeCreated, ProviderName, Id, Message | Format-List
+    }
 }

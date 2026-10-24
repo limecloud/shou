@@ -75,6 +75,20 @@ jobs:
         run: |
           [xml]$Properties = Get-Content apps/windows/Directory.Build.props
           ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish" -Version $Properties.Project.PropertyGroup.Version
+      - name: Verify portable preview archives
+        run: |
+          [xml]$Properties = Get-Content apps/windows/Directory.Build.props
+          $Source = git rev-parse HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Source commit is unavailable.' }
+          $Arguments = @('--payload-root', "$env:RUNNER_TEMP/ShouBuild/${{ matrix.runtime }}/publish", '--output', 'dist/windows', '--version', $Properties.Project.PropertyGroup.Version, '--runtime', '${{ matrix.runtime }}', '--source', $Source)
+          if ('${{ matrix.runtime }}' -eq 'win-x64') { $Arguments += '--native-checked' }
+          python scripts/package-windows.py @Arguments
+          if ($LASTEXITCODE -ne 0) { throw 'Windows preview archive validation failed.' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-preview-${{ matrix.runtime }}
+          path: dist/windows/
+          if-no-files-found: error
       - name: Stage and install private x64 npm tarballs offline
         if: matrix.runtime == 'win-x64'
         run: |

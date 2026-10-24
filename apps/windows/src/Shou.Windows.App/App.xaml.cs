@@ -9,12 +9,12 @@ public partial class App : Application
 
     public App()
     {
-        InitializeComponent();
         UnhandledException += (_, args) => NativeDiagnostics.Write(args.Exception);
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
             if (args.ExceptionObject is Exception error) NativeDiagnostics.Write(error);
         };
+        InitializeComponent();
     }
 
     protected override void OnLaunched(LaunchActivatedEventArgs args)
