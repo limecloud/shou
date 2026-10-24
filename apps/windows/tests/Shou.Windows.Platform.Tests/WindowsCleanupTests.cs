@@ -32,7 +32,7 @@ public sealed class WindowsCleanupTests
         fixture.Write("project/src/main.rs", [9, 8, 7]);
         fixture.Write("project/target/cache.bin", [1, 2, 3]);
         fixture.Write("project/target/子目录 with spaces/nested.bin", [4, 5, 6]);
-        Directory.CreateDirectory(Path.Combine(fixture.Root, "project/target/empty"));
+        fixture.CreateDirectory("project/target/empty");
     }
 
     [WindowsFact]
@@ -42,7 +42,7 @@ public sealed class WindowsCleanupTests
         Populate(fixture);
         var observed = await Observe(fixture);
         var result = await new WindowsCleanupMutation().ApplyAsync(observed.Workspace, observed.Item, CleanupAction.Permanent, default);
-        Assert.Equal(CleanupMutationOutcome.Completed, result.Outcome);
+        Assert.True(result.Outcome == CleanupMutationOutcome.Completed, $"{result.Outcome}: {result.Reason}; removed {result.RemovedEntries}");
         Assert.Equal(observed.Item.Manifest.Length, result.RemovedEntries);
         Assert.False(Directory.Exists(observed.Item.Path.Value));
         Assert.Equal(new byte[] { 9, 8, 7 }, File.ReadAllBytes(Path.Combine(fixture.Root, "project/src/main.rs")));

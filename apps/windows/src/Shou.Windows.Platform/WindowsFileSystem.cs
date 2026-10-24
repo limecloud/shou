@@ -18,7 +18,7 @@ public sealed class WindowsFileSystem : IWindowsFileSystem
     {
         if (maximumBytes is < 1 or > 4 * 1024 * 1024) throw new ArgumentOutOfRangeException(nameof(maximumBytes));
         cancellationToken.ThrowIfCancellationRequested();
-        using var pinned = PinPath(path, readFinalData: true);
+        using var pinned = PinPath(path);
         var before = ReadEntry(path, pinned.Final);
         if (before.Kind != EntryKind.File || requireSingleLink && before.LinkCount != 1)
             throw new ShouException("unsafe_path", "Choose a regular metadata file without reparse points or cloud placeholders.");
@@ -70,7 +70,7 @@ public sealed class WindowsFileSystem : IWindowsFileSystem
                     DirectoryReadItem item;
                     try
                     {
-                        using var handle = NativeFileHandles.OpenChild(pinned.Final, path, root.IsCaseSensitive, directory: false);
+                        using var handle = NativeFileHandles.OpenChild(pinned.Final, path, root.IsCaseSensitive);
                         item = DirectoryReadItem.Found(ReadEntry(path, handle));
                     }
                     catch (ShouException error) { item = DirectoryReadItem.Unavailable(path, error.Code); }
@@ -98,7 +98,7 @@ public sealed class WindowsFileSystem : IWindowsFileSystem
         }
     }
 
-    internal static PinnedPath PinPath(WindowsPath path, bool readFinalData = false, uint finalAccess = 0,
+    internal static PinnedPath PinPath(WindowsPath path, uint finalAccess = 0,
         bool allowFinalSharedWrites = false)
     {
         var drive = new DriveInfo(path.Value[..3]);
@@ -114,7 +114,7 @@ public sealed class WindowsFileSystem : IWindowsFileSystem
             for (var index = -1; index < parts.Length; index++)
             {
                 if (index >= 0) current = current.Append(parts[index]);
-                var handle = Open(current, readFinalData && index == parts.Length - 1, index == parts.Length - 1 ? finalAccess : 0,
+                var handle = Open(current, index == parts.Length - 1 ? finalAccess : 0,
                     allowFinalSharedWrites && index == parts.Length - 1);
                 handles.Add(handle);
                 var basic = BasicInfo(handle);
@@ -131,9 +131,11 @@ public sealed class WindowsFileSystem : IWindowsFileSystem
         }
     }
 
-    private static SafeFileHandle Open(WindowsPath path, bool readData = false, uint additionalAccess = 0, bool allowSharedWrites = false)
+    private static SafeFileHandle Open(WindowsPath path, uint additionalAccess = 0, bool allowSharedWrites = false)
     {
-        var handle = NativeMethods.CreateFile(Extended(path), NativeMethods.ReadAttributes | NativeMethods.ReadControl | (readData ? NativeMethods.ReadData : 0) | additionalAccess,
+        // Attribute-only opens do not participate in Windows share checks. Request data/list access
+        // so every retained file and ancestor handle actually denies replacement and shared writes.
+        var handle = NativeMethods.CreateFile(Extended(path), NativeMethods.ReadData | NativeMethods.ReadAttributes | NativeMethods.ReadControl | additionalAccess,
             NativeMethods.ShareRead | (allowSharedWrites ? NativeMethods.ShareWrite : 0), 0, NativeMethods.OpenExisting,
             NativeMethods.OpenReparsePoint | NativeMethods.BackupSemantics | NativeMethods.OpenNoRecall, 0);
         if (!handle.IsInvalid) return handle;

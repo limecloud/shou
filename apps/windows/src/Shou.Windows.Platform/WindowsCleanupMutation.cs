@@ -57,8 +57,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
                 foreach (var child in scope.Children(expected.Path))
                 {
                     Check();
-                    using var childHandle = NativeFileHandles.OpenChild(handle, child.Path, expected.IsCaseSensitive,
-                        child.Kind == EntryKind.Directory, deletion: true);
+                    using var childHandle = NativeFileHandles.OpenChild(handle, child.Path, expected.IsCaseSensitive, deletion: true);
                     Remove(child, childHandle, handle, expected.IsCaseSensitive);
                 }
                 scope.VerifyContext();
@@ -90,7 +89,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
     private static void RequireUnlinked(SafeFileHandle parent, FileEntry expected, bool caseSensitive)
     {
         SafeFileHandle handle;
-        try { handle = NativeFileHandles.OpenChild(parent, expected.Path, caseSensitive, directory: false); }
+        try { handle = NativeFileHandles.OpenChild(parent, expected.Path, caseSensitive); }
         catch (ShouException error) when (error.Code == "not_found") { return; }
         using (handle)
             if (WindowsFileSystem.ReadEntry(expected.Path, handle).Identity == expected.Identity)
@@ -167,13 +166,13 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
                 {
                     check();
                     if (!scope.context.TryGetValue(entry.Path.Parent!, out var parent) || parent.Entry.Kind != EntryKind.Directory) throw Stale();
-                    var handle = NativeFileHandles.OpenChild(parent.Handle, entry.Path, parent.Entry.IsCaseSensitive, entry.Kind == EntryKind.Directory);
+                    var handle = NativeFileHandles.OpenChild(parent.Handle, entry.Path, parent.Entry.IsCaseSensitive);
                     scope.owned.Add(handle);
                     RequireEntry(entry, WindowsFileSystem.ReadEntry(entry.Path, handle), strictDirectory: false);
                     scope.context.Add(entry.Path, (entry, handle));
                 }
                 var targetParent = scope.context[item.Path.Parent!];
-                scope.Target = NativeFileHandles.OpenChild(targetParent.Handle, item.Path, targetParent.Entry.IsCaseSensitive, directory: true, deletion: true);
+                scope.Target = NativeFileHandles.OpenChild(targetParent.Handle, item.Path, targetParent.Entry.IsCaseSensitive, deletion: true);
                 scope.owned.Add(scope.Target);
                 RequireEntry(target, WindowsFileSystem.ReadEntry(item.Path, scope.Target), strictDirectory: true);
                 return scope;
@@ -192,7 +191,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
             {
                 check();
                 progress(child.Path);
-                using var handle = NativeFileHandles.OpenChild(directory, child.Path, expected.IsCaseSensitive, child.Kind == EntryKind.Directory);
+                using var handle = NativeFileHandles.OpenChild(directory, child.Path, expected.IsCaseSensitive);
                 RequireEntry(child, WindowsFileSystem.ReadEntry(child.Path, handle), strictDirectory: true);
                 if (child.Kind == EntryKind.Directory) VerifyTree(handle, child, check, progress);
             }

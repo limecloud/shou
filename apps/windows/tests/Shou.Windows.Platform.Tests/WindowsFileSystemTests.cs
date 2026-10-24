@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.Win32.SafeHandles;
 using Shou.Windows.Core;
@@ -154,13 +155,47 @@ public sealed class WindowsFileSystemTests
     internal sealed class NativeFixture : IDisposable
     {
         public string Root { get; } = Path.Combine(Path.GetTempPath(), "shou-native-generated-" + Guid.NewGuid().ToString("N"));
-        public NativeFixture() => Directory.CreateDirectory(Root);
+        public NativeFixture()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = new DirectorySecurity();
+            security.SetOwner(identity.User!);
+            security.SetAccessRuleProtection(true, false);
+            foreach (var sid in new[] { identity.User!, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
+                security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl,
+                    InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
+            new DirectoryInfo(Root).Create(security);
+        }
+        public string CreateDirectory(string relative)
+        {
+            var directory = new DirectoryInfo(Path.Combine(Root, relative.Replace('/', Path.DirectorySeparatorChar)));
+            if (directory.FullName == Root) return Root;
+            if (!directory.Exists)
+            {
+                CreateDirectory(Path.GetRelativePath(Root, directory.Parent!.FullName));
+                var security = new DirectorySecurity();
+                using var identity = WindowsIdentity.GetCurrent();
+                // Elevated tokens may default new objects to the Administrators group owner.
+                security.SetOwner(identity.User!);
+                directory.Create(security);
+            }
+            return directory.FullName;
+        }
         public string Write(string relative, byte[] content)
         {
             var path = Path.Combine(Root, relative.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            CreateDirectory(Path.GetRelativePath(Root, Path.GetDirectoryName(path)!));
             File.WriteAllBytes(path, content);
+            SetFileOwner(relative);
             return path;
+        }
+        public void SetFileOwner(string relative)
+        {
+            var file = new FileInfo(Path.Combine(Root, relative.Replace('/', Path.DirectorySeparatorChar)));
+            var security = file.GetAccessControl(AccessControlSections.Owner);
+            using var identity = WindowsIdentity.GetCurrent();
+            security.SetOwner(identity.User!);
+            file.SetAccessControl(security);
         }
         public void Dispose() => Directory.Delete(Root, recursive: true);
     }

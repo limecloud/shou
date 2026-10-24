@@ -11,7 +11,11 @@ public sealed class WindowsPrivacyDatabaseTests
     {
         using var fixture = new WindowsFileSystemTests.NativeFixture(); var file = fixture.Write("generated.sqlite", [1, 2, 3]);
         using (WindowsFileSystem.PinPath(WindowsPath.Parse(file)))
-            Assert.Throws<IOException>(() => new FileStream(file, FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
+        {
+            Assert.Throws<IOException>(() => { using var writer = new FileStream(file, FileMode.Open, FileAccess.Write, FileShare.ReadWrite); });
+            Assert.Throws<IOException>(() => File.Delete(file));
+            Assert.Throws<IOException>(() => Directory.Move(fixture.Root, fixture.Root + "-replaced"));
+        }
         using (WindowsFileSystem.PinPath(WindowsPath.Parse(file), allowFinalSharedWrites: true))
         {
             using var writer = new FileStream(file, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
@@ -43,6 +47,8 @@ public sealed class WindowsPrivacyDatabaseTests
         using var database = new PrivacySqlite(source.Path.Value, false, default);
         database.Execute("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; CREATE TABLE cookies(last_access_utc INTEGER); INSERT INTO cookies VALUES(1);");
         var wal = source.Path.Value + "-wal"; Assert.True(new FileInfo(wal).Length > 32);
+        foreach (var suffix in new[] { "-wal", "-shm" })
+            fixture.SetFileOwner(Path.GetRelativePath(fixture.Root, source.Path.Value + suffix));
         var before = SharedHash(wal);
         var observed = await new WindowsPrivacyDatabaseInspection(policy, WindowsIdentity.GetCurrent().User!.Value)
             .InspectAsync(source, PrivacyWindow.Create(PrivacyTimeRange.AllTime, DateTimeOffset.UtcNow), default);
@@ -65,7 +71,7 @@ public sealed class WindowsPrivacyDatabaseTests
     {
         var root = WindowsPath.Parse(fixture.Root); var policy = new WindowsPrivacySourcePolicy(new(root, root.Append("Local"), root.Append("Roaming")));
         var source = policy.Create(PrivacyBrowser.Chrome, "Default", PrivacyDatabaseLocation.NetworkCookies);
-        Directory.CreateDirectory(source.Path.Parent!.Value); File.WriteAllBytes(source.Path.Value, []);
+        fixture.Write(Path.GetRelativePath(fixture.Root, source.Path.Value), []);
         return (policy, source);
     }
     private static byte[] SharedHash(string path)

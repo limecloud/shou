@@ -8,7 +8,7 @@ namespace Shou.Windows.Platform;
 internal static class NativeFileHandles
 {
     internal static unsafe SafeFileHandle OpenChild(SafeFileHandle parent, WindowsPath path, bool caseSensitive,
-        bool directory, bool deletion = false)
+        bool deletion = false)
     {
         // WindowsPath validates a single basename before it reaches OBJECT_ATTRIBUTES.
         var name = path.Name;
@@ -29,8 +29,9 @@ internal static class NativeFileHandles
                     Length = (uint)Marshal.SizeOf<NativeMethods.ObjectAttributes>(), RootDirectory = parent.DangerousGetHandle(),
                     ObjectName = (nint)(&unicode), Attributes = caseSensitive ? 0 : NativeMethods.ObjectCaseInsensitive
                 };
-                var access = NativeMethods.ReadAttributes | NativeMethods.ReadControl | NativeMethods.SynchronizeAccess |
-                    (directory ? NativeMethods.ReadData : 0) | (deletion ? NativeMethods.DeleteAccess : 0);
+                // Data/list access is required for the share mask to protect both files and directories.
+                var access = NativeMethods.ReadData | NativeMethods.ReadAttributes | NativeMethods.ReadControl | NativeMethods.SynchronizeAccess |
+                    (deletion ? NativeMethods.DeleteAccess : 0);
                 var status = NativeMethods.OpenRelativeFile(out var handle, access, (nint)(&attributes), out _, 0, 0,
                     NativeMethods.ShareRead, NativeMethods.NtOpen,
                     NativeMethods.NtSynchronousNonAlert | NativeMethods.NtOpenReparsePoint | NativeMethods.NtOpenNoRecall,

@@ -37,7 +37,9 @@ Windows 上准备固定的 .NET SDK 与 Python 3，使用本地输出目录；�
 ./scripts/windows/build.ps1 -Runtime win-x64
 ```
 
-`test.ps1` 检查资源、执行 Core/Presentation/原生 Platform/CLI 测试并构建 CLI，再运行隔离数据根下的生成夹具合同。仓库的 Windows CI 配置调用同一入口，随后构建 x64 和 ARM64 桌面与 CLI。CI 配置尚未运行；Windows Server 构建机上的测试不能代替 Windows 11 桌面、ARM64 原生运行或真机体验验收。
+`test.ps1` 检查资源、执行 Core/Presentation/原生 Platform/CLI 测试并构建 CLI，再运行隔离数据根下的生成夹具合同。Windows CI 调用同一入口，检查原生 x64 CLI、WinUI 启动与正常关闭，再交叉构建 ARM64 桌面与 CLI。实际运行结果记于 [SYNC.md](../../../SYNC.md)；Windows Server 检查不能代替 Windows 11 桌面、ARM64 原生运行或真机体验验收。
+
+保留的文件系统句柄同时申请数据读取／目录列举和元数据权限，使共享掩码实际参与原生替换及写入保护。隐私检查仅对最终数据库与辅助文件明确允许共享写入，仍禁止删除；仅有元数据权限的句柄不能提供该保护。生成原生夹具显式设置当前用户所有者和私有继承 ACL，SQLite 辅助文件亦如此；提升权限的构建机令牌否则可能默认使用 Administrators 所有者。生产所有者与 ACL 核验保持严格。
 
 修改规范资源后执行 `python3 scripts/generate-windows-resources.py` 重新生成。生成器记录输入与输出摘要，并校验当前文案的占位符。`assets/design/tokens.json` 同时生成 WinUI `Design.xaml` 与 macOS `ShouDesign.generated.swift`，`--check` 检查两端。当前 WinUI 页面使用生成的项目／分区／页面间距与内边距；SwiftUI 使用共享强调色、设置间距／卡片圆角和扫描位置面板内边距。Fluent 控件颜色继续由系统管理；Windows 强调色／圆角接入、字号与动效提取待完成。详见[设计资源合同](interface-design.md#共享设计资源)。
 
