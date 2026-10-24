@@ -303,8 +303,11 @@ public sealed partial class CleanupPage : UserControl, IDisposable
 }
 
 [Microsoft.UI.Xaml.Data.Bindable]
-public sealed record CleanupCandidateDisplay(CleanupCandidateSelection Row, string RuleName, string Explanation)
+public sealed class CleanupCandidateDisplay(CleanupCandidateSelection row, string ruleName, string explanation)
 {
+    public CleanupCandidateSelection Row { get; } = row;
+    public string RuleName { get; } = ruleName;
+    public string Explanation { get; } = explanation;
     public string Id => Row.Candidate.Id;
     public string Path => Row.Candidate.Path.Value;
     public string Size => StorageRow.FormatBytes(Row.Candidate.AllocatedBytes);
@@ -313,4 +316,8 @@ public sealed record CleanupCandidateDisplay(CleanupCandidateSelection Row, stri
 }
 
 [Microsoft.UI.Xaml.Data.Bindable]
-public sealed record CleanupFilterDisplay(string? Id, string Title);
+public sealed class CleanupFilterDisplay(string? id, string title)
+{
+    public string? Id { get; } = id;
+    public string Title { get; } = title;
+}

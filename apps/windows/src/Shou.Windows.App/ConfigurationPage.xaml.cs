@@ -236,13 +236,15 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
 }
 
 [Microsoft.UI.Xaml.Data.Bindable]
-public sealed record RuleVersionDisplay(RuleVersionChoice Rule)
+public sealed class RuleVersionDisplay(RuleVersionChoice rule)
 {
+    public RuleVersionChoice Rule { get; } = rule;
     public string Label => Rule.Label;
 }
 
 [Microsoft.UI.Xaml.Data.Bindable]
-public sealed record ScanLocationDisplay(Workspace Workspace)
+public sealed class ScanLocationDisplay(Workspace workspace)
 {
+    public Workspace Workspace { get; } = workspace;
     public string Path => Workspace.Path.Value;
 }

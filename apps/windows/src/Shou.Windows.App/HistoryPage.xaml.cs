@@ -127,7 +127,12 @@ public sealed partial class HistoryPage : UserControl, IDisposable
 }
 
 [Microsoft.UI.Xaml.Data.Bindable]
-public sealed record CleanupHistoryDisplay(string ExecutionId, string Started, string Action, string State, string Count)
+public sealed class CleanupHistoryDisplay(string executionId, string started, string action, string state, string count)
 {
+    public string ExecutionId { get; } = executionId;
+    public string Started { get; } = started;
+    public string Action { get; } = action;
+    public string State { get; } = state;
+    public string Count { get; } = count;
     public string AccessibleName => Started + " · " + Action + " · " + State + " · " + Count;
 }
