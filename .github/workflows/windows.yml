@@ -107,3 +107,13 @@ jobs:
           name: windows-npm-verification
           path: ${{ runner.temp }}/ShouBuild/npm/verification/verification.json
           if-no-files-found: ignore
+      - name: Collect generated WinUI resources after failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-resource-diagnostics-${{ matrix.runtime }}
+          path: |
+            ${{ runner.temp }}/ShouBuild/${{ matrix.runtime }}/publish/app/*.pri
+            ${{ runner.temp }}/ShouBuild/${{ matrix.runtime }}/obj/Shou.Windows.App/**/*.xaml
+            ${{ runner.temp }}/ShouBuild/${{ matrix.runtime }}/obj/Shou.Windows.App/**/*.xbf
+          if-no-files-found: ignore

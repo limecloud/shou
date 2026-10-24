@@ -24,7 +24,7 @@ class WindowsReleaseTests(unittest.TestCase):
                      'Shou.Windows.Core.dll', 'Shou.Windows.Platform.dll', stem + '.exe', stem + '.dll',
                      'notices/DOTNET-LICENSE.txt', 'notices/DOTNET-THIRD-PARTY-NOTICES.txt', 'notices/WINDOWS-SDK-NOTICE.txt']
             if kind == 'app':
-                names += ['Microsoft.UI.Xaml.dll', 'resources.pri', 'Shou.Windows.Presentation.dll', 'notices/WINDOWS-APP-SDK-NOTICE.txt']
+                names += ['Microsoft.UI.Xaml.dll', stem + '.pri', 'Shou.Windows.Presentation.dll', 'notices/WINDOWS-APP-SDK-NOTICE.txt']
             image = b'MZ' + b'\0' * 58 + struct.pack('<I', 64) + b'PE\0\0' + struct.pack('<H', 0x8664)
             for name in names:
                 path = payload / name

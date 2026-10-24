@@ -33,7 +33,7 @@ def validate(payload, kind, version, runtime):
               'Shou.Windows.Core.dll', 'Shou.Windows.Platform.dll',
               'notices/DOTNET-LICENSE.txt', 'notices/DOTNET-THIRD-PARTY-NOTICES.txt', 'notices/WINDOWS-SDK-NOTICE.txt']
     if kind == 'app':
-        files += ['resources.pri', 'Microsoft.UI.Xaml.dll', 'Shou.Windows.Presentation.dll', 'notices/WINDOWS-APP-SDK-NOTICE.txt']
+        files += [stem + '.pri', 'Microsoft.UI.Xaml.dll', 'Shou.Windows.Presentation.dll', 'notices/WINDOWS-APP-SDK-NOTICE.txt']
     for name in files:
         if not (payload / name).is_file() or not (payload / name).stat().st_size:
             raise ValueError(f'Missing self-contained {kind} dependency: {name}')
