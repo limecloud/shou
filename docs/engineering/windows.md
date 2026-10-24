@@ -37,7 +37,7 @@ On Windows, prepare the pinned .NET SDK and Python 3, and use a local output dir
 ./scripts/windows/build.ps1 -Runtime win-x64
 ```
 
-`test.ps1` checks resources, runs Core/Presentation/native Platform/CLI tests, builds the CLI and runs generated-fixture contracts under an isolated data root. Windows CI invokes that same entry, checks native x64 CLI/WinUI startup and normal close, then cross-builds ARM64 desktop/CLI payloads. Actual run results are recorded in [SYNC.md](../../SYNC.md); Windows Server checks do not replace Windows 11 desktop, native ARM64 or physical-device acceptance.
+`test.ps1` checks resources, runs Core/Presentation/native Platform/CLI tests, builds the CLI and runs generated-fixture contracts under an isolated data root. Windows CI runs tests and both architecture builds as independent jobs; x64 also checks CLI/WinUI startup and normal close. Every job must pass. Actual run results are recorded in [SYNC.md](../../SYNC.md); Windows Server checks do not replace Windows 11 desktop, native ARM64 or physical-device acceptance.
 
 Retained filesystem handles request data-read/directory-list access as well as metadata access so their share masks participate in native replacement and write protection. Privacy inspection explicitly permits shared writes on the final database/sidecar, while denying deletion. Metadata-only handles cannot provide this protection. Generated native fixtures explicitly assign the current-user owner and private inherited ACLs, including SQLite sidecars; elevated build-agent tokens can otherwise assign Administrators as the default owner. Production ownership and ACL checks remain strict.
 
@@ -376,6 +376,8 @@ flowchart TD
 `WindowsCleanupActivity` combines two read-only observations: Restart Manager file use for target files and parent markers, and a fixed tool-process inventory whose verified working directories are checked for overlap with the target's parent project directory. Core owns the tool-name list; rules cannot supply process names. Shou's current process and processes confirmed exited through opened handles are ignored. No command lines or environments are read, and no elevation or process termination is attempted.
 
 Both checks share a ten-second deadline and bounded native workers. The inventory permits at most 16,384 snapshot rows and 64 matching-tool directory reads. Access failures, unknown directory identities, incomplete snapshots, excess work and timeouts cannot become idle. Positive activity takes precedence; otherwise any unknown blocks, and both observations must be idle to continue. Tools in other projects do not block globally merely by sharing a name.
+
+A directory positively verified outside the project/ancestor scope does not need the target owner's SID; it grants no cleanup authority. Missing directory evidence still blocks, and overlapping foreign-owner scopes remain unknown. Target, context and workspace ownership checks are unchanged.
 
 The directory adapter uses `NtQueryInformationProcess` and `ReadProcessMemory` to read PEB directory fields, rechecking pointers, directory bytes and filesystem identity before and after, with native 64-bit and WOW64 layouts. This internal ABI has no Windows runtime evidence yet. Working directories are activity clues: tools accessing a project through absolute arguments from unrelated directories may escape observation. This does not detect every use. Public mutation stays disabled pending native process, race, interruption and terminal acceptance.
 

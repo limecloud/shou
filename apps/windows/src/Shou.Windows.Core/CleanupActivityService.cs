@@ -97,10 +97,13 @@ public sealed class CleanupActivityService(ICleanupFileUse fileUse, IProcessInve
                     return Unknown("process_inventory_invalid");
                 if (!ToolNames.Contains(name) || process.Exited || process.IsCurrentProcess) continue;
                 var directory = process.WorkingDirectory;
-                if (directory is null || directory.Path is null || directory.Identity is null || directory.Kind != EntryKind.Directory ||
-                    directory.Identity.OwnerSid != workspace.Identity.OwnerSid) { unknown = true; continue; }
+                if (directory is null || directory.Path is null || directory.Identity is null || directory.Kind != EntryKind.Directory)
+                { unknown = true; continue; }
                 // Case-insensitive comparison conservatively treats ambiguous case variants as potentially overlapping.
-                if (directory.Path.IsWithin(project) || project.IsWithin(directory.Path)) active = true;
+                if (!directory.Path.IsWithin(project) && !project.IsWithin(directory.Path)) continue;
+                // A verified unrelated directory grants no target authority and need not share its owner.
+                if (directory.Identity.OwnerSid != workspace.Identity.OwnerSid) { unknown = true; continue; }
+                active = true;
             }
             if (active) return new(ActivityState.Active, "known_build_process_running");
             return !unknown ? new(ActivityState.Idle, "no_observed_project_tools") : Unknown("process_scope_unavailable");

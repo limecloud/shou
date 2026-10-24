@@ -76,6 +76,21 @@ public sealed class CleanupActivityTests
         Assert.Equal(ActivityState.Idle, (await service.InspectAsync(fixture.Workspace, plan.Items[0], default)).State);
     }
 
+    [Theory]
+    [InlineData("D:/Unrelated", ActivityState.Idle)]
+    [InlineData("C:/Users/Dev/Projects/project-01", ActivityState.Idle)]
+    [InlineData("C:/Users/Dev/Projects/project-0", ActivityState.Unknown)]
+    [InlineData("C:/Users/Dev/Projects", ActivityState.Unknown)]
+    public async Task VerifiedForeignOwnerDirectoriesDoNotGloballyBlockUnrelatedProjects(string path, ActivityState expected)
+    {
+        var fixture = await Fixture.Create();
+        var plan = await fixture.Plan();
+        var directory = plan.Items[0].Context[0] with
+        { Path = WindowsPath.Parse(path), Identity = new(1, new string('0', 32), "S-1-5-32-544") };
+        var processes = new Processes { Read = _ => Task.FromResult(new ProcessInventory(true, [new(42, "node.exe", directory)])) };
+        Assert.Equal(expected, (await new CleanupActivityService(new Files(), processes).InspectAsync(fixture.Workspace, plan.Items[0], default)).State);
+    }
+
     [Fact]
     public async Task CompleteNonMatchingSnapshotAndIdleFilesAreBothRequiredForIdle()
     {

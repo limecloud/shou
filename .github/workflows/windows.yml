@@ -35,15 +35,48 @@ jobs:
           node-version: '22'
       - name: Core, presentation, native filesystem, private records and CLI
         run: ./scripts/windows/test.ps1 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/tests"
-      - name: Publish x64 desktop and CLI payloads
-        run: ./scripts/windows/build.ps1 -Runtime win-x64 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/win-x64"
+      - name: Collect test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-test-results
+          path: ${{ runner.temp }}/ShouBuild/tests/results
+          if-no-files-found: ignore
+
+  build:
+    name: Build and verify (${{ matrix.runtime }})
+    runs-on: windows-2025
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/windows/global.json
+          cache: true
+          cache-dependency-path: apps/windows/**/packages.lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        if: matrix.runtime == 'win-x64'
+        with:
+          node-version: '22'
+      - name: Publish desktop and CLI payloads
+        run: ./scripts/windows/build.ps1 -Runtime '${{ matrix.runtime }}' -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/${{ matrix.runtime }}"
       - name: Verify native x64 CLI and WinUI startup
+        if: matrix.runtime == 'win-x64'
         run: |
           [xml]$Properties = Get-Content apps/windows/Directory.Build.props
           ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish" -Version $Properties.Project.PropertyGroup.Version
-      - name: Cross-publish ARM64 desktop and CLI payloads
-        run: ./scripts/windows/build.ps1 -Runtime win-arm64 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/win-arm64"
       - name: Stage and install private x64 npm tarballs offline
+        if: matrix.runtime == 'win-x64'
         run: |
           [xml]$Properties = Get-Content apps/windows/Directory.Build.props
           $Version = $Properties.Project.PropertyGroup.Version
@@ -53,15 +86,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'npm launcher staging failed.' }
           python scripts/verify-npm-distribution.py --launcher "$env:RUNNER_TEMP/ShouBuild/npm/launcher" --platform-package "$env:RUNNER_TEMP/ShouBuild/npm/native" --output "$env:RUNNER_TEMP/ShouBuild/npm/verification"
           if ($LASTEXITCODE -ne 0) { throw 'npm installation verification failed.' }
-      - name: Collect test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-native-test-results
-          path: ${{ runner.temp }}/ShouBuild/tests/results
-          if-no-files-found: ignore
       - name: Collect npm verification receipt
-        if: always()
+        if: always() && matrix.runtime == 'win-x64'
         uses: actions/upload-artifact@v4
         with:
           name: windows-npm-verification
