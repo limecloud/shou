@@ -44,7 +44,7 @@ internal sealed class GeneratedStartupTaskFixture : IAsyncDisposable
             throw new InvalidOperationException("Generated startup evidence requires a fixed local Windows drive.");
         Root = Path.Combine(parent.Value, "fixture-" + Guid.NewGuid().ToString("N"));
         if (Path.Exists(Root)) throw new InvalidOperationException("The random fixture output already exists; no task was registered.");
-        Directory.CreateDirectory(Root);
+        new DirectoryInfo(Root).Create(WindowsFileSystemTests.NativeFixture.PrivateDirectorySecurity());
         using var markerFile = new FileStream(Path.Combine(Root, "protected-generated-data.txt"), FileMode.CreateNew, FileAccess.Write, FileShare.None);
         markerFile.Write(Encoding.UTF8.GetBytes(marker));
     }
@@ -226,19 +226,33 @@ internal sealed class GeneratedStartupTaskFixture : IAsyncDisposable
         var xml = (string)native.Xml;
         var enabled = (bool)native.Enabled;
         var owner = new RawSecurityDescriptor((string)native.GetSecurityDescriptor(1)).Owner?.Value;
-        var facts = WindowsStartupControlInspector.Parse(path, xml, OwnerSid, enabled, owner);
+        var facts = WindowsStartupControlInspector.Parse(path, xml, OwnerSid, enabled, owner, LocalStartupTaskControlHandle.ReadRunLevel(task));
+        // Preserve generated definitions so scheduler normalization can be investigated without
+        // weakening the identity check or requiring another paid cloud session.
+        if (!requireDigest)
+            File.WriteAllText(Path.Combine(Root, "expected-definition.xml"), xml, Encoding.UTF8);
+        else if (definitionDigest is not null && facts.DefinitionDigest != definitionDigest)
+            File.WriteAllText(Path.Combine(Root, "mismatched-definition.xml"), xml, Encoding.UTF8);
         var root = XDocument.Parse(xml).Root!;
         var trigger = root.Element(Schema + "Triggers")?.Elements().SingleOrDefault();
         var action = root.Element(Schema + "Actions")?.Elements().SingleOrDefault();
         if (path != TaskPath || !facts.OwnerMatchesActor || !facts.PrincipalMatchesActor || !facts.InteractiveToken || !facts.LeastPrivilege ||
             root.Element(Schema + "RegistrationInfo")?.Element(Schema + "Source")?.Value != marker ||
             trigger?.Name != Schema + "LogonTrigger" || trigger.Element(Schema + "Enabled")?.Value != "false" ||
-            trigger.Element(Schema + "UserId")?.Value != OwnerSid ||
+            AccountSid(trigger.Element(Schema + "UserId")?.Value) != OwnerSid ||
             root.Element(Schema + "Settings")?.Element(Schema + "AllowStartOnDemand")?.Value != "false" ||
             action?.Name != Schema + "Exec" || action.Element(Schema + "Command")?.Value != NeverRunExecutable ||
             action.Element(Schema + "Arguments")?.Value != PrivateArgument || (int)native.State == 4 ||
             requireDigest && (definitionDigest is null || facts.DefinitionDigest != definitionDigest))
-            throw new InvalidOperationException("The task no longer matches this inert, current-user generated fixture. No teardown is authorized.");
+            throw new InvalidOperationException("The task no longer matches this inert, current-user generated fixture. No teardown is authorized. " +
+                JsonSerializer.Serialize(new { path_matches = path == TaskPath, facts.OwnerMatchesActor, facts.PrincipalMatchesActor,
+                    facts.InteractiveToken, facts.LeastPrivilege, source_matches = root.Element(Schema + "RegistrationInfo")?.Element(Schema + "Source")?.Value == marker,
+                    trigger_matches = trigger?.Name == Schema + "LogonTrigger", trigger_disabled = trigger?.Element(Schema + "Enabled")?.Value == "false",
+                    trigger_actor_matches = AccountSid(trigger?.Element(Schema + "UserId")?.Value) == OwnerSid,
+                    demand_disabled = root.Element(Schema + "Settings")?.Element(Schema + "AllowStartOnDemand")?.Value == "false",
+                    action_matches = action?.Name == Schema + "Exec", command_matches = action?.Element(Schema + "Command")?.Value == NeverRunExecutable,
+                    arguments_match = action?.Element(Schema + "Arguments")?.Value == PrivateArgument, task_state = (int)native.State,
+                    digest_matches = facts.DefinitionDigest == definitionDigest, expected_digest = definitionDigest, observed_digest = facts.DefinitionDigest }));
         if ((string)native.Path != path || (string)native.Xml != xml || (bool)native.Enabled != enabled ||
             new RawSecurityDescriptor((string)native.GetSecurityDescriptor(1)).Owner?.Value != owner)
             throw new InvalidOperationException("The generated task changed during fixture verification.");
@@ -250,6 +264,19 @@ internal sealed class GeneratedStartupTaskFixture : IAsyncDisposable
         if ((string)((dynamic)folder).Path != FolderPath ||
             new RawSecurityDescriptor((string)((dynamic)folder).GetSecurityDescriptor(1)).Owner?.Value != OwnerSid)
             throw new InvalidOperationException("The fixture task folder has a different identity or owner.");
+    }
+
+    private static string? AccountSid(string? account)
+    {
+        if (string.IsNullOrWhiteSpace(account)) return null;
+        try
+        {
+            return account.StartsWith("S-1-", StringComparison.Ordinal)
+                ? new SecurityIdentifier(account).Value
+                : ((SecurityIdentifier)new NTAccount(account).Translate(typeof(SecurityIdentifier))).Value;
+        }
+        catch (IdentityNotMappedException) { return null; }
+        catch (ArgumentException) { return null; }
     }
 
     private string Definition() => new XDocument(new XElement(Schema + "Task", new XAttribute("version", "1.2"),
@@ -275,14 +302,15 @@ internal sealed class GeneratedStartupTaskFixture : IAsyncDisposable
     private static object? FindFolder(object service, string path)
     {
         try { return (object)((dynamic)service).GetFolder(path); }
-        catch (COMException error) when (Missing(error)) { return null; }
+        catch (Exception error) when (Missing(error)) { return null; }
     }
     private static object? FindTask(object folder, string name)
     {
         try { return (object)((dynamic)folder).GetTask(name); }
-        catch (COMException error) when (Missing(error)) { return null; }
+        catch (Exception error) when (Missing(error)) { return null; }
     }
-    private static bool Missing(COMException error) => error.HResult is unchecked((int)0x80070002) or unchecked((int)0x80070003);
+    private static bool Missing(Exception error) => (error is COMException or FileNotFoundException or DirectoryNotFoundException) &&
+        (error.HResult is unchecked((int)0x80070002) or unchecked((int)0x80070003));
     private static string Hash(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
     private static void Release(params object?[] values) { foreach (var value in values) LocalScheduledTaskReader.Release(value); }
     private static void RequireEnabled()

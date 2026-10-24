@@ -1,0 +1,46 @@
+<UserControl x:Class="Shou.Windows.App.StoragePageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Shou.Windows.App">
+    <Grid x:Name="PageLayout">
+        <StackPanel x:Name="PageToolbar" Orientation="Horizontal" Spacing="8">
+            <Button x:Name="InfoButton" Style="{StaticResource ShouToolbarButton}" AutomationProperties.Name="Information"><FontIcon Glyph="&#xE946;" /><Button.Flyout><Flyout><TextBlock x:Name="ScopeNotice" TextWrapping="Wrap" MaxWidth="360" /></Flyout></Button.Flyout></Button>
+            <Button x:Name="RescanButton" Click="StartScan" Style="{StaticResource ShouToolbarButton}" />
+        </StackPanel>
+        <StackPanel x:Name="StartContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouStartSpacing}" MaxWidth="520" Margin="30">
+            <ContentControl x:Name="StartIcon" HorizontalAlignment="Center" />
+            <StackPanel Spacing="10"><TextBlock x:Name="StartTitle" FontSize="{StaticResource ShouStartTitleSize}" FontWeight="SemiBold" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" /><TextBlock x:Name="StartDescription" TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel>
+            <Button x:Name="VolumeButton" Width="{StaticResource ShouVolumePickerWidth}" HorizontalAlignment="Center" Style="{StaticResource ShouBorderedButton}" Padding="14,8">
+                <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="VolumeIcon" VerticalAlignment="Center" /><TextBlock Grid.Column="1" x:Name="VolumeLabel" TextTrimming="CharacterEllipsis" /><FontIcon Grid.Column="2" Glyph="&#xE70D;" FontSize="12" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></Grid>
+                <Button.Flyout><MenuFlyout x:Name="VolumeMenu" /></Button.Flyout>
+            </Button>
+            <ComboBox x:Name="Volumes" DisplayMemberPath="Name" Visibility="Collapsed" SelectionChanged="SelectVolume" />
+            <HyperlinkButton x:Name="ChooseButton" AutomationProperties.AutomationId="storage.choose" Style="{StaticResource ShouLinkButton}" Click="ChooseFolder" HorizontalAlignment="Center" />
+            <Button x:Name="StartButton" AutomationProperties.AutomationId="storage.start" Click="StartScan" Style="{StaticResource ShouScanButton}" HorizontalAlignment="Center" />
+            <TextBlock x:Name="ReadOnlyNotice" Style="{StaticResource ShouCaption}" TextAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
+        <local:OperationProgressView x:Name="ScanActivity" StopAutomationId="storage.stop" StopClicked="StopScan" />
+        <Grid x:Name="ResultContent" Visibility="Collapsed">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Grid MinHeight="{StaticResource ShouStorageNavigationHeight}" Padding="12,6" ColumnSpacing="8" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="2"><Button x:Name="BackButton" Click="GoBack" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE76B;" FontSize="12" /></Button><Button x:Name="ForwardButton" Click="GoForward" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE76C;" FontSize="12" /></Button><Button x:Name="UpButton" Click="GoUp" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE74A;" /></Button></StackPanel>
+                <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"><StackPanel x:Name="Breadcrumb" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" /></ScrollViewer>
+                <TextBlock x:Name="CurrentPath" Visibility="Collapsed" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4"><TextBlock x:Name="ViewLabel" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" Margin="0,0,4,0" /><ToggleButton x:Name="SimpleView" AutomationProperties.AutomationId="storage.simple" Tag="simple" Style="{StaticResource ShouFilterPill}" Click="ChangeViewMode" /><ToggleButton x:Name="DetailedView" AutomationProperties.AutomationId="storage.detailed" Tag="detailed" Style="{StaticResource ShouFilterPill}" Click="ChangeViewMode" /></StackPanel>
+                <TextBlock Grid.Column="3" x:Name="TotalSize" VerticalAlignment="Center" FontWeight="SemiBold" />
+            </Grid>
+            <InfoBar Grid.Row="1" x:Name="CoverageNotice" IsOpen="False" IsClosable="False" Severity="Warning" />
+            <ContentControl Grid.Row="3" x:Name="StorageResultsHost" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+            <ListView Grid.Row="3" x:Name="LargeFilesList" AutomationProperties.AutomationId="large.results" Visibility="Collapsed" SelectionMode="Single" SelectionChanged="InspectLargeFile" ItemContainerStyle="{StaticResource ShouListItem}" Margin="16,0,16,12">
+                <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="12" Padding="4,2"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><CheckBox Tag="{Binding}" Loaded="LoadLargeCheck" Click="ToggleLargeFile" MinWidth="0" VerticalAlignment="Center" /><FontIcon Grid.Column="1" Glyph="&#xE8A5;" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /><StackPanel Grid.Column="2" Spacing="3"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Path.Value}" TextTrimming="CharacterEllipsis" Style="{StaticResource ShouCaption}" ToolTipService.ToolTip="{Binding Path.Value}" /></StackPanel><TextBlock Grid.Column="3" Text="{Binding DisplaySize}" FontWeight="SemiBold" VerticalAlignment="Center" /></Grid></DataTemplate></ListView.ItemTemplate>
+            </ListView>
+            <Grid Grid.Row="4" MinHeight="{StaticResource ShouStorageSelectionHeight}" Padding="14,8" ColumnSpacing="14" Background="{ThemeResource ShouTitlebarBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,1,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <FontIcon Glyph="&#xE930;" FontSize="20" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <TextBlock Grid.Column="1" x:Name="SelectionDetails" AutomationProperties.AutomationId="storage.selection" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Style="{StaticResource ShouCaption}" />
+                <Button Grid.Column="2" x:Name="ClearSelectionButton" Click="ClearStorageSelection" Style="{StaticResource ShouToolbarButton}" />
+                <Button Grid.Column="3" x:Name="PreviousButton" Click="Previous" Style="{StaticResource ShouToolbarButton}" /><Button Grid.Column="4" x:Name="NextButton" Click="Next" Style="{StaticResource ShouToolbarButton}" />
+                <Button Grid.Column="5" x:Name="RemoveButton" AutomationProperties.AutomationId="storage.remove" Click="RemoveSelected" IsEnabled="False" Style="{StaticResource ShouPrimaryButton}" />
+            </Grid>
+        </Grid>
+        <InfoBar x:Name="FailureNotice" IsOpen="False" IsClosable="False" Severity="Error" VerticalAlignment="Bottom" Margin="16" />
+    </Grid>
+</UserControl>

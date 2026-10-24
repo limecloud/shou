@@ -41,8 +41,8 @@ public sealed class TerminalStartupControlTests
     public void PublicCommandCannotBypassConfirmationOrNativeAcceptance()
     {
         var command = Assert.Single(CommandDiscovery.Matching("startup control"));
-        Assert.False(command.Available);
-        Assert.False(CliServices.StartupControlAvailable);
+        Assert.Equal(Shou.Windows.Platform.NativeWindowsSupport.IsSupported, command.Available);
+        Assert.Equal(Shou.Windows.Platform.NativeWindowsSupport.IsSupported, CliServices.StartupControlAvailable);
         Assert.Empty(command.Optional);
         Assert.Throws<ShouException>(() => CommandDiscovery.Parse(["startup", "control", "--task-path", @"\Fixture", "--action", "enable", "--review-digest", Review().Digest, "--yes"]));
     }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shou Windows 云端测试"
+  short_description: "直接复用无影 Windows 环境测试 Shou，CLI 驱动并截图，按选择关机或释放"
+  default_prompt: "使用 $shou-windows-cloud-test 复用已保存的云电脑测试当前工作区，通过本地无影客户端截图，按本次预算及保留选择关机或释放。"

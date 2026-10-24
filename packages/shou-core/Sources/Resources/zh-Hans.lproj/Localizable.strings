@@ -32,6 +32,7 @@
 "%lld records · %@ of local data" = "%lld 条记录 · 本地数据 %@";
 "%lld registered applications" = "%lld 个已注册应用";
 "%lld requests · %lld reported tokens" = "%lld 次请求 · %lld 个报告 token";
+"%lld rules" = "%lld 条规则";
 "%lld startup entries" = "%lld 项";
 "%lld startup programs" = "%lld 个自动启动程序";
 "%lld startup registrations" = "%lld 项启动注册";
@@ -64,6 +65,7 @@
 "AI configuration not found." = "未找到此 AI 配置。";
 "AI credential storage must be private to the current user (0700)." = "AI 凭据目录必须仅限当前用户访问（0700）。";
 "AI investigation is disabled. Enable it in Settings before making a new request." = "AI 调查已关闭，请在设置中开启后再发起新请求。";
+"AI investigation is not available in this Windows preview." = "此 Windows 预览版尚不支持 AI 调查。";
 "AI is off. Local scanning and cleanup remain available." = "AI 已关闭，仍可使用本地扫描和清理。";
 "AI-generated suggestion. Rebuild conditions and personal value must be verified before cleanup." = "此建议由 AI 生成。清理前必须核实重建条件及内容的个人价值。";
 "API Base URL" = "API 基础地址";
@@ -71,6 +73,7 @@
 "API Key in Keychain" = "将 API 密钥存入钥匙串";
 "API Key in Local Storage" = "API Key（本地私有存储）";
 "API Protocol" = "API 协议";
+"About Shou" = "关于 Shou";
 "Access required" = "需要访问权限";
 "Access to this location is unavailable." = "无法访问此位置。";
 "Access to this startup source was denied." = "没有权限读取此启动项来源。";
@@ -208,6 +211,7 @@
 "Authentication Required" = "需要身份验证";
 "Autofill" = "自动填充";
 "Automatic update checks" = "自动检查更新";
+"Automatic updates are not available in this Windows preview." = "此 Windows 预览版尚不支持自动更新。";
 "Available" = "可用";
 "Available on this Mac" = "本机可用位置";
 "Available on volume" = "卷可用容量";
@@ -226,9 +230,11 @@
 "Brave caches" = "Brave 缓存";
 "Brave download caches" = "Brave 下载缓存";
 "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings." = "浏览 Run、RunOnce、启动文件夹、开机或登录计划任务，以及打包应用的启动声明。此页面不会更改启动设置。";
+"Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage." = "查看已注册的应用，不包含便携应用和其他用户的应用。大小来自安装程序估算，并非实际磁盘占用。";
 "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet." = "查看已注册的应用，不包含便携应用和其他用户的应用。大小来自安装程序估算，并非实际磁盘占用。卸载功能尚未开放。";
 "Browse startup registrations and review eligible current-user scheduled tasks." = "浏览启动项注册，并审阅符合条件的当前用户计划任务。";
 "Browse the directory tree for keyboard access to map items." = "可使用键盘浏览目录树中的相同项目。";
+"Browse the rule catalog. Choose a scan location to change applicable rules." = "浏览规则目录。选择扫描位置后，可更改适用规则的开关。";
 "Browser Caches" = "浏览器缓存";
 "Browser Data" = "浏览器数据";
 "Browser activity could not be verified." = "无法确认浏览器是否已关闭。";
@@ -320,6 +326,7 @@
 "Choose a .zip file for the Skill package." = "请使用 .zip 文件名保存技能包。";
 "Choose a development workspace. Scanning does not delete files." = "选择开发工作区。扫描不会删除文件。";
 "Choose a disk or folder to analyze." = "选择要分析的磁盘或文件夹。";
+"Choose a disk or folder to explore its storage usage." = "选择磁盘或文件夹，探索其空间占用。";
 "Choose a folder inside the selected workspace, not the workspace itself." = "请选择工作区内部的目录，不能选择工作区本身。";
 "Choose a folder or enter a relative pattern." = "请选择目录或输入相对路径模式。";
 "Choose a project folder to inspect build outputs and caches." = "选择项目目录，检查构建产物与缓存。";
@@ -331,12 +338,15 @@
 "Choose a workspace to inspect storage." = "选择工作区，查看空间占用。";
 "Choose active, deleted or all as the configuration state." = "配置状态请选择 active、deleted 或 all。";
 "Choose an absolute Skill path without traversal components." = "请选择不包含上级或当前目录跳转的绝对 Skill 路径。";
+"Choose an applicable scan location" = "请选择适用的扫描位置";
 "Choose an unused rule version. Existing versions cannot be overwritten." = "请使用尚未存在的版本号，已有版本不能覆盖。";
 "Choose extra folders to remember for future cleanup scans." = "选择额外文件夹，今后的清理扫描会自动包含这些位置。";
 "Choose items to review. High-risk items require your selection." = "请选择要审阅的项目。高风险项目需要手动选择。";
+"Choose light, dark, or follow your system settings." = "选择浅色、深色或跟随系统设置。";
 "Choose local storage or system credentials before saving an API key." = "保存 API 密钥前，请选择本地存储或系统凭据。";
 "Choose the app components to move to Trash. Personal data is retained unless you enable it separately." = "选择要移入废纸篓的应用组件。个人数据默认保留，需单独允许后选择。";
 "Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation." = "选择要调查的精确文件夹。测量在本地完成，点击“开始调查”后才会调用 AI。";
+"Choose the language used by Shou." = "选择 Shou 的界面语言。";
 "Choose the language used in Shou." = "选择 Shou 使用的界面语言。";
 "Choose your own service to begin an investigation." = "选择你自己的服务以开始调查。";
 "Choose your project collection. Shou finds build outputs and caches with built-in rules, then shows exactly what can be reviewed." = "选择存放项目的目录，收会通过内置规则识别构建产物和缓存，并展示可以审阅的清理项。";
@@ -391,6 +401,7 @@
 "Clear search" = "清除搜索";
 "Click to inspect. Double-click a folder to open it." = "单击查看详情，双击进入文件夹。";
 "Close" = "关闭";
+"Close Details" = "关闭详情";
 "Close Inspector" = "关闭检查器";
 "Close browser first" = "请先关闭浏览器";
 "Close browsers, choose a time range, and scan supported history and cookies." = "请关闭浏览器，选择时间范围，再扫描受支持的历史记录和 Cookie。";
@@ -411,6 +422,7 @@
 "Common locations are found automatically. Extra folders only need to be included once." = "常用位置自动发现，其他文件夹只需包含一次，以后会一起扫描。";
 "Common locations are found automatically. No project setup needed." = "自动发现常用位置，无需逐个添加项目。";
 "Completed" = "已完成";
+"Completed operations and their recorded results will appear here." = "已完成的操作及其结果记录会显示在这里。";
 "Component" = "组件";
 "Component parent changed; preview again." = "组件父目录已变化，请重新预览。";
 "Composer download cache" = "Composer 下载缓存";
@@ -476,6 +488,7 @@
 "Current-user MSIX package" = "当前用户 MSIX 包";
 "Current-user installation" = "当前用户安装";
 "Cursor caches" = "Cursor 缓存";
+"Customize cleanup rules for Windows" = "为你的 Windows 定制清理规则";
 "Customize with AI" = "通过 AI 定制";
 "Customize with AI…" = "通过 AI 定制…";
 "DaVinci Resolve caches" = "DaVinci Resolve 缓存";
@@ -521,9 +534,11 @@
 "Developer tools download or rebuild cached data when needed." = "开发工具会在需要时重新下载或构建缓存。";
 "Dia caches" = "Dia 缓存";
 "Dia download caches" = "Dia 下载缓存";
+"Diagnostic reference: %@" = "诊断编号：%@";
 "DingTalk web caches" = "钉钉网页缓存";
 "Direct control is limited to this user's LaunchAgents. The definition hint and launchd override can differ; recheck after changing it." = "直接控制仅限当前用户的 LaunchAgents。定义文件提示与 launchd 覆盖可能不同，修改后请重新核验。";
 "Directory" = "目录";
+"Directory Tree" = "目录树";
 "Directory names, sizes, and lockfiles do not prove data can be rebuilt." = "目录名、大小和锁文件不能证明内容可重建。";
 "Directory scan failed. Previous results were kept." = "目录扫描失败，已保留之前的结果。";
 "Directory scanned. Review it before selecting." = "目录扫描完成，请检查结果后勾选。";
@@ -578,6 +593,7 @@
 "Enabled rule definition is missing." = "缺少已启用规则的定义。";
 "Enabled version: %@" = "已启用版本：%@";
 "Enablement is unknown. Running state was not checked." = "启用状态未知，未检查运行状态。";
+"Enablement unknown" = "启用状态未知";
 "Enter a nonnegative whole number for minimum MB." = "最小容量请输入非负整数，单位为 MB。";
 "Enter a rule name." = "请输入规则名称。";
 "Enter a search without control characters." = "请输入不含控制字符的搜索内容。";
@@ -614,6 +630,7 @@
 "Figma download caches" = "Figma 下载缓存";
 "File Extensions" = "文件扩展名";
 "File Type" = "文件类型";
+"File Types" = "文件类型";
 "File manifest pages are missing or inconsistent." = "文件清单分页缺失或不一致。";
 "File metadata could not be verified." = "无法核验文件元数据。";
 "Files" = "文件";
@@ -625,6 +642,8 @@
 "Final Cut Pro caches" = "Final Cut Pro 缓存";
 "Find Scan Locations" = "查找扫描位置";
 "Find known app caches without choosing folders." = "自动查找常用软件缓存，无需选择目录。";
+"Find large files" = "查找大文件";
+"Find reviewable caches and build artifacts in known locations." = "扫描已知位置，查看可审阅的缓存与构建产物。";
 "Find the files taking up the most space" = "找出占空间的大文件";
 "Find what is ready to tidy up" = "查找可清理内容";
 "Find what is taking up space." = "找到空间，都用在了哪里。";
@@ -664,6 +683,7 @@
 "Global Exclusions" = "全局排除";
 "Global patterns apply relative to every current and future workspace. Earlier builds cannot read the upgraded configuration." = "全局模式相对于当前及未来所有扫描位置生效，旧版应用无法读取升级后的配置。";
 "Global protections also apply to future locations. Excluded content protects the whole containing cleanup target." = "全局保护也适用于以后添加的位置。清理目标包含被排除的内容时，整个目标都会受到保护。";
+"Go Up" = "上一级";
 "Go build cache" = "Go 构建缓存";
 "Go module download cache" = "Go 模块下载缓存";
 "Google Chrome caches" = "Google Chrome 缓存";
@@ -700,6 +720,7 @@
 "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download." = "Homebrew 按 30 天策略清理过期版本与下载缓存。重新安装旧版本可能需要下载。";
 "How can these files be rebuilt?" = "如何重新生成这些文件？";
 "I accept that websites may sign me out." = "我接受可能退出网站登录。";
+"I understand deleting cookies may sign me out." = "我理解删除 Cookie 可能使我退出登录。";
 "I understand that clearing cookies can sign me out of websites." = "我理解清理 Cookie 可能使我退出网站登录。";
 "I understand that deletion is permanent and has no restore." = "我理解这将永久删除，且无法恢复。";
 "I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan." = "我已了解系统安装程序可能移除其管理的数据。本计划不包含 Shou 额外发现的残留文件。";
@@ -723,6 +744,7 @@
 "Incomplete scan — choose a smaller folder to review cleanup." = "扫描未完成，请选择较小的目录进行清理审阅。";
 "Incomplete scan. Inspect issues; execution is blocked." = "扫描不完整。请查看问题；当前结果不可执行。";
 "Incomplete scan: " = "扫描不完整：";
+"Information" = "信息";
 "Inherited Global Exclusions" = "继承的全局排除";
 "Inherited global protections: %@" = "继承的全局保护：%@";
 "Input Source Pro caches" = "Input Source Pro 缓存";
@@ -751,6 +773,7 @@
 "Installer result: not started." = "安装程序结果：未启动。";
 "Installer result: succeeded." = "安装程序结果：成功。";
 "Installer result: unknown." = "安装程序结果：未知。";
+"Interface Language" = "界面语言";
 "Interface language" = "界面语言";
 "Invalid logical workspace root reference." = "工作区根目录引用无效。";
 "Invalid record identifier." = "记录标识无效。";
@@ -934,6 +957,7 @@
 "No known cleanup items found" = "未发现已知清理项";
 "No known locations were found" = "未发现已知位置";
 "No matching applications" = "没有匹配的应用";
+"No matching applications." = "没有匹配的应用。";
 "No matching cleanup items" = "未发现匹配的清理项目";
 "No matching cleanup items were found." = "未找到符合规则的清理项目。";
 "No matching items." = "没有匹配的项目。";
@@ -942,11 +966,13 @@
 "No matching rules" = "没有匹配的规则";
 "No matching startup definitions" = "没有匹配的启动项配置";
 "No matching startup items" = "没有匹配的启动项";
+"No matching startup items." = "没有匹配的启动项。";
 "No path was recorded" = "未记录路径";
 "No reclaimable tool-managed storage found." = "未发现可回收的工具缓存。";
 "No recorded location" = "未记录位置";
 "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation." = "暂无规则建议。保留内容或证据不足均为有效结果，可查看调查发现或缩小范围重新调查。";
 "No scan locations are configured yet." = "尚未配置扫描位置。";
+"No scan locations were found. Add a folder in Scan Locations to continue." = "未找到扫描位置。请在“扫描位置”中添加文件夹后继续。";
 "No search results" = "没有搜索结果";
 "No startup items found" = "未发现启动项";
 "No uninstall record was found for this plan. This does not confirm the current installation state." = "未找到此计划的卸载记录。这不能证明当前安装的状态。";
@@ -1116,6 +1142,7 @@
 "Previous test-state information will be lost." = "先前的测试状态信息将丢失。";
 "Privacy" = "隐私清理";
 "Privacy cleaning completed" = "隐私清理完成";
+"Privacy history could not be loaded. Try again." = "无法加载隐私清理历史，请重试。";
 "Privacy operation failed." = "隐私操作未完成。";
 "Privacy operation stopped." = "隐私操作已停止。";
 "Privacy scanning is read-only. Record deletion is not available yet." = "隐私扫描仅供查看，暂不支持删除记录。";
@@ -1256,6 +1283,7 @@
 "Requested rule is not enabled in this workspace." = "此工作区尚未启用所请求的规则。";
 "Required for uninstall" = "卸载必选";
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "重新安装需要网络或本地包缓存。请保留经过修改、链接、私有或未发布的包。";
+"Rescan" = "重新扫描";
 "Rescan This Folder" = "重新扫描当前文件夹";
 "Restore" = "恢复";
 "Restore destination already exists; nothing was overwritten." = "还原位置已存在，未覆盖任何内容。";
@@ -1310,6 +1338,7 @@
 "Review the directory contents and stop active Python tasks first." = "请先审阅目录内容并停止正在运行的 Python 任务。";
 "Review the exact scope above. Type %@ to confirm; any other input cancels." = "请核对以上具体范围。输入 %@ 确认，其他输入取消。";
 "Review the exact task and confirm the requested switch before this review expires." = "请在本次审阅过期前，核对确切任务并确认所请求的开关变更。";
+"Review the installer data changes before preparing an uninstall plan." = "请先审阅安装程序对数据的影响，再创建卸载计划。";
 "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected." = "请检查项目缓存内容，并先停止 Python、测试与分析任务。版本控制中的文件、凭据和源码会受到保护。";
 "Review the tool's current state before trying again. The previous operation may have changed data." = "请先检查工具当前状态，再重试。上次操作可能已更改部分数据。";
 "Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt." = "请检查此项目的 .cache 内容，并先停止 Node.js 任务。版本控制中的文件、凭据和源码会受到保护；请保留无法重新生成的本地数据。";
@@ -1325,6 +1354,7 @@
 "Rule Scope" = "规则范围";
 "Rule Source" = "规则来源";
 "Rule Suggestions" = "规则建议";
+"Rule Versions and Locations" = "版本与位置";
 "Rule changed; preview again before saving." = "规则已变化，请重新预览后再保存。";
 "Rule does not conform to the bundled schema." = "规则不符合内置格式规范。";
 "Rule exceeds the 256 KiB limit." = "规则超过 256 KiB 大小限制。";
@@ -1378,6 +1408,7 @@
 "Scan Privacy Sources" = "扫描隐私来源";
 "Scan Selected Location" = "扫描所选位置";
 "Scan Workspace" = "扫描工作区";
+"Scan a disk or folder, then review the largest files." = "扫描磁盘或文件夹，查看占用空间最多的文件。";
 "Scan again or review discovery coverage." = "请重新扫描或查看扫描覆盖范围。";
 "Scan again to update sizes and status" = "重新扫描以更新大小与状态";
 "Scan app caches, developer build outputs, and your personal cleanup rules together." = "应用缓存、开发构建产物与个人规则，一次扫描，一起收好。";
@@ -1386,11 +1417,14 @@
 "Scan cancelled." = "扫描已取消。";
 "Scan complete" = "扫描完成";
 "Scan complete. Review candidates before cleanup." = "扫描完成。请先审阅候选项。";
+"Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations." = "没有位置通过访问与所有者校验，扫描未开始。请在“扫描位置”中选择当前用户所有的文件夹。";
 "Scan evidence changed. Scan again before continuing." = "扫描依据已变化，请重新扫描后继续。";
+"Scan failed." = "扫描失败。";
 "Scan is incomplete. Cleanup is unavailable; you can still explore measured space." = "扫描未完成，清理暂不可用。仍可查看已测量的空间。";
 "Scan is read-only. Clean Recommended opens one confirmation." = "扫描只读；清理推荐项目只需一次确认。";
 "Scan limit reached. Preparing the measured results; coverage is incomplete." = "已达到本次扫描上限，正在整理已统计的部分结果。";
 "Scan progress" = "扫描进度";
+"Scan setup failed." = "扫描准备失败。";
 "Scan stopped." = "扫描已停止。";
 "Scan to find build outputs, dependencies, and large unclassified directories. Nothing is selected automatically." = "扫描构建产物、依赖和未分类大目录。不会自动勾选任何项目。";
 "Scan to see aggregate counts and availability. Browsing records are never displayed." = "扫描后显示汇总数量和可用状态，不展示浏览记录内容。";
@@ -1410,6 +1444,7 @@
 "Scope & Retention" = "范围与保留条件";
 "Scope and retained items" = "范围与保留项目";
 "ScreenFlow caches" = "ScreenFlow 缓存";
+"Search" = "搜索";
 "Search app names, identifiers or paths" = "搜索应用名称、标识或路径";
 "Search applications or paths" = "搜索应用、标识或路径";
 "Search applications…" = "搜索应用…";
@@ -1419,6 +1454,7 @@
 "Search startup items…" = "搜索启动项…";
 "Search startup names or paths" = "搜索启动项名称或路径";
 "See large files across folders, then choose what to remove." = "跨目录汇总大文件，查看后选择要清理的内容。";
+"See where your space goes" = "查看空间用在哪里";
 "Select" = "选择";
 "Select All" = "全选";
 "Select All Eligible Items" = "选择全部可清理项目";
@@ -1436,12 +1472,14 @@
 "Select a directory to inspect matching evidence and rebuild requirements." = "选择目录，查看匹配依据与重建条件。";
 "Select a folder to see its storage usage." = "选择文件夹，查看空间占用。";
 "Select a previously matched, incomplete cleanup directory." = "请选择之前已匹配但尚未完整扫描的清理目录。";
+"Select an application to inspect its installation. System uninstall is unavailable in this preview." = "选择应用查看安装详情。此预览版暂不支持系统卸载。";
 "Select an application to view its registration details." = "选择应用以查看注册详情。";
 "Select an incomplete cleanup scan." = "请选择尚未完成的清理扫描。";
 "Select an item to see its details and available actions." = "选择项目，查看详情和可用操作。";
 "Select an operation to view its recorded results." = "请选择一项操作以查看已记录的结果。";
 "Select applications in this view" = "全选当前列表中的可卸载应用";
 "Select available items in this cleanup" = "选择本次清理中可操作的项目";
+"Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out." = "请选择具体隐私来源。永久删除无法撤销；删除 Cookie 可能使你退出登录。";
 "Select explicit receipt items and a supported action." = "请明确选择执行记录中的项目及受支持的操作。";
 "Select files or folders to remove" = "选择需要删除的文件或文件夹";
 "Select for Removal" = "选择卸载";
@@ -1473,6 +1511,7 @@
 "Settings" = "设置";
 "Settings changes require a new scan. They do not start cleanup." = "修改设置后需要重新扫描。保存设置不会开始清理。";
 "Settings could not be reloaded. Refresh before making more changes." = "无法重新读取设置。请先刷新，再继续修改。";
+"Settings could not be saved. Try again." = "设置未能保存，请重试。";
 "Settings…" = "设置…";
 "Setup Guide…" = "设置引导…";
 "Share a problem or suggest an improvement." = "反馈使用中遇到的问题或提出建议。";
@@ -1488,6 +1527,7 @@
 "Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou." = "Shou 已附带 Skill 与 CLI，直接使用现有 Agent，无需在 Shou 中配置模型。";
 "Shou is available under the Apache License 2.0." = "Shou 采用 Apache License 2.0 许可证。";
 "Shou is installed in Applications. Updates keep the same location." = "Shou 已安装到应用程序，后续更新沿用此位置。";
+"Show More" = "显示更多";
 "Show More (%lld remaining)" = "显示更多（剩余 %lld 项）";
 "Show Shou in Finder" = "在访达中显示 Shou";
 "Show Skill in Finder…" = "在访达中显示 Skill…";
@@ -1500,10 +1540,12 @@
 "Showing the first 200 measured folders. Counts include all measured rows." = "显示前 200 个已测量目录，统计包含全部已测量行。";
 "Showing the first 40 paths. Use a smaller folder for a focused investigation." = "显示前 40 个路径。缩小文件夹范围可进行更有针对性的调查。";
 "Showing the first 50 scan notes." = "当前显示前 50 条扫描说明。";
+"Sidebar" = "侧边栏";
 "Simple" = "简洁";
 "Site storage" = "站点存储";
 "Size" = "大小";
 "Size on Disk" = "占用空间";
+"Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion." = "容量显示已测量的分配空间。部分覆盖不能代表整个磁盘，空间浏览不授予删除权限。";
 "Sketch caches" = "Sketch 缓存";
 "Skill ZIP exported. Upload it in WorkBuddy to finish installation." = "技能包已导出，请在 WorkBuddy 中上传以完成安装。";
 "Skill installation cannot write through symbolic links." = "Skill 安装不能通过符号链接写入，请选择实际目录。";
@@ -1571,6 +1613,7 @@
 "Startup Leftovers" = "残留项";
 "Startup Options" = "启动项选项";
 "Startup State" = "启动状态";
+"Startup changes are unavailable in this preview. Observed task status is shown where available." = "此预览版暂不支持更改启动项；仅在已读取时显示任务状态。";
 "Startup control failed." = "启动项控制失败。";
 "Startup definition" = "启动配置";
 "Startup definition disabled." = "启动项定义已停用。";
@@ -1616,6 +1659,7 @@
 "Stopping; waiting for the task change result…" = "正在停止，等待任务变更结果…";
 "Stopping…" = "正在停止…";
 "Storage" = "存储空间";
+"Storage browsing is read-only in this Windows preview." = "此 Windows 预览版仅支持只读空间浏览。";
 "Stored record is invalid." = "已保存的记录无效。";
 "Stored rule digest verification failed." = "已保存规则的摘要校验失败。";
 "Stremio caches" = "Stremio 缓存";
@@ -1625,6 +1669,7 @@
 "Structured evidence review failed." = "结构化证据复核失败。";
 "Structured evidence review failed. Check the decision connection before investigating again." = "结构化证据复核失败。请检查决策服务连接后重新调查。";
 "Support" = "支持";
+"Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned." = "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置。不会清理网站存储、保存的密码、自动填充、自定义配置、扩展或云端副本。";
 "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned." = "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置，以及 Safari 历史。不清理 Safari Cookie、站点存储、保存的密码、自动填充、自定义配置、扩展数据和云端副本。";
 "Swift Package Manager caches" = "Swift Package Manager 缓存";
 "Swift Package Manager downloads dependencies and rebuilds the package." = "Swift Package Manager 会下载依赖并重新构建。";
@@ -1639,6 +1684,7 @@
 "System RunOnce (64-bit)" = "系统 RunOnce（64 位）";
 "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually." = "无法打开系统设置，请手动前往“隐私与安全性 → 完全磁盘访问权限”。";
 "System Settings…" = "系统设置…";
+"System package" = "系统应用";
 "System state not checked" = "系统状态未核验";
 "System suggestions cache" = "系统建议索引缓存";
 "System uninstall is unavailable until native Windows verification is complete." = "完成 Windows 原生验证前，系统卸载不可用。";
@@ -1717,6 +1763,7 @@
 "The owner or leftover scope changed. Scan again." = "所属应用或残留范围已变化，请重新扫描。";
 "The owning application regenerates these caches; future launches or builds may require downloads." = "所属应用会重新生成这些缓存；之后启动或构建时可能需要重新下载。";
 "The packaged CLI is unavailable. Install Shou in Applications first." = "找不到应用内的 CLI，请先将 Shou 安装到应用程序。";
+"The page could not be loaded. Try again." = "页面无法加载，请重试。";
 "The previous source used an unknown portion of the scan budget." = "无法确定上一个来源已消耗的扫描预算。";
 "The project's build tool can recreate generated distribution outputs when the build inputs remain available." = "在构建所需的输入仍然可用时，项目构建工具可以重新生成发布产物。";
 "The read worker could not be started." = "无法启动扫描，请重试。";
@@ -1873,6 +1920,7 @@
 "Use an exact relative project directory. Leave the pattern empty to protect the whole project." = "填写确切的项目相对目录。模式留空时保护整个项目。";
 "Use light, dark, or your system appearance." = "选择亮色、暗色或跟随系统设置。";
 "Use relative patterns such as **/target/** or **/keep/**. Absolute paths and parent traversal are not allowed." = "使用 **/target/** 或 **/keep/** 等相对模式。不允许绝对路径或向上访问父目录。";
+"Use static indicators and immediate transitions. Otherwise, follow Windows animation settings." = "使用静态指示与即时切换；关闭时跟随 Windows 动画设置。";
 "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion." = "使用静态指示和即时切换；关闭时遵循 macOS 的“减少动态效果”设置。";
 "Use the arrow keys to browse and expand groups. Press Space to change the focused selection, or Shift-F10 for path actions." = "使用方向键浏览和展开分类，按空格更改当前项的勾选状态，按 Shift-F10 打开路径操作菜单。";
 "Use your own model service. API keys stay in Keychain; ordinary scans work offline." = "使用你自己的模型服务。API 密钥保存在钥匙串中，普通扫描仍可离线使用。";
@@ -1917,6 +1965,8 @@
 "What should be kept? (optional)" = "哪些内容需要保留？（可选）";
 "WhatsApp caches" = "WhatsApp 缓存";
 "Windows identifies this as a system package." = "Windows 将此应用识别为系统软件包。";
+"Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete." = "Windows 便携预览版。清理、系统卸载与启动项变更将在原生验收完成后开放。";
+"Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete." = "Windows 便携预览版。原生操作需要审阅和本次确认；完整 Windows 验收尚未完成。";
 "WorkBuddy caches" = "WorkBuddy 缓存";
 "Workspace" = "扫描位置";
 "Workspace Exclusions" = "位置排除项";

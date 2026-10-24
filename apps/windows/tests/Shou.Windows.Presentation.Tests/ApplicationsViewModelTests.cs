@@ -40,6 +40,71 @@ public sealed class ApplicationsViewModelTests
     }
 
     [Fact]
+    public async Task HonestFiltersUseRegisteredFactsAndKeepTheFullCatalogSummary()
+    {
+        var reader = new Reader();
+        using var model = new ApplicationsViewModel(new(reader));
+        var task = model.RefreshAsync();
+        reader.Calls.Dequeue().SetResult(MixedInventory());
+        await task;
+        Assert.Equal(4, model.CatalogCount);
+        Assert.Equal(3_000, model.RegisteredEstimatedBytes);
+        Assert.Equal(1, model.SystemPackageCount);
+        Assert.Equal(2, model.SizedCount);
+        Assert.Equal(2, model.CurrentUserCount);
+        Assert.Equal(4, model.Page!.Total);
+
+        model.SetPresentationFilter(ApplicationPresentationFilter.SystemPackage);
+        var system = Assert.Single(model.Page.Items);
+        Assert.Equal("system", system.Name);
+        Assert.True(system.IsSystemPackage);
+        Assert.Equal(4, model.CatalogCount);
+        Assert.Equal(3_000, model.RegisteredEstimatedBytes);
+
+        model.SetPresentationFilter(ApplicationPresentationFilter.HasRegisteredSize);
+        Assert.Equal(2, model.Page.Total);
+        Assert.All(model.Page.Items, item => Assert.NotNull(item.RegisteredEstimatedBytes));
+
+        model.SetPresentationFilter(ApplicationPresentationFilter.CurrentUser);
+        Assert.Equal(2, model.Page.Total);
+        Assert.All(model.Page.Items, item => Assert.True(item.Source is ApplicationSource.CurrentUserRegistry or ApplicationSource.CurrentUserMsix));
+
+        model.SetPresentationFilter(ApplicationPresentationFilter.All);
+        Assert.Equal(4, model.Page.Total);
+        Assert.Single(reader.Tokens);
+    }
+
+    [Fact]
+    public async Task InitialCatalogShowsLargestRegisteredSizesFirstAndRetainsExplicitNameSort()
+    {
+        var reader = new Reader();
+        using var model = new ApplicationsViewModel(new(reader));
+        var task = model.RefreshAsync();
+        reader.Calls.Dequeue().SetResult(MixedInventory());
+        await task;
+
+        Assert.Equal(new[] { "system", "user-sized", "machine", "user-package" }, model.Page!.Items.Select(item => item.Name));
+        Assert.All(model.Page.Items.Skip(2), item => Assert.Null(item.RegisteredEstimatedBytes));
+        model.Filter("", ApplicationSort.Name);
+        Assert.Equal(new[] { "machine", "system", "user-package", "user-sized" }, model.Page.Items.Select(item => item.Name));
+        Assert.Single(reader.Tokens);
+    }
+
+    private static ApplicationInventory MixedInventory()
+    {
+        ApplicationRegistration Row(ApplicationSource source, string key, string name, long? bytes = null, bool system = false) =>
+            new(source, key, name, RegisteredEstimatedBytes: bytes, IsSystemPackage: system);
+        var registrations = ImmutableArray.Create(
+            Row(ApplicationSource.CurrentUserRegistry, "user-sized", "user-sized", 1_000),
+            Row(ApplicationSource.CurrentUserMsix, "user-package", "user-package"),
+            Row(ApplicationSource.MachineRegistry64, "system", "system", 2_000, system: true),
+            Row(ApplicationSource.MachineRegistry32, "machine", "machine"));
+        var counts = registrations.GroupBy(item => item.Source).ToDictionary(group => group.Key, group => group.Count());
+        return new(registrations, Enum.GetValues<ApplicationSource>().Select(source =>
+            new ApplicationSourceCoverage(source, ApplicationSourceState.Complete, counts.GetValueOrDefault(source), [])).ToImmutableArray());
+    }
+
+    [Fact]
     public async Task FilteringAndPagingDoNotStartAnotherNativeEnumeration()
     {
         var reader = new Reader();

@@ -19,6 +19,7 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
 
     public async Task<LocationDiscovery> DiscoverAsync(bool includeProjects = false, CancellationToken cancellationToken = default)
     {
+        using var diagnostic = OperationDiagnostics.Start("locations.discover");
         using var deadline = new CancellationTokenSource(DiscoveryDuration, clock);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         var token = linked.Token;
@@ -44,6 +45,8 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
                 try
                 {
                     var entry = await files.InspectAsync(location.Path, token).AsTask().WaitAsync(token);
+                    diagnostic.Step("location_identity", location.Path, entry.Identity.OwnerSid == ownerSid ? "current_user" :
+                        entry.Identity.OwnerSid == "S-1-5-18" ? "system" : entry.Identity.OwnerSid == "S-1-5-32-544" ? "administrators" : "other");
                     if (entry.Path != location.Path || entry.Kind != EntryKind.Directory || entry.Identity.OwnerSid != ownerSid)
                         throw new ShouException("permission_denied", "The location is not a verified current-user-owned directory.");
                     if (workspace is not null && (entry.Identity != workspace.Identity || entry.IsCaseSensitive != workspace.CaseSensitive))
@@ -55,25 +58,39 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
                 catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
                 {
                     var code = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error";
+                    diagnostic.Issue(code, "location_inspect", location.Path);
                     results.Add(new(location.Id, location.Title, location.Path, location.Category, origin, workspace?.Id,
                         code == "not_found" ? "missing" : "unavailable", workspace is null && code == "not_found" ? null : code));
                 }
             }
+            diagnostic.Complete(count: results.Count, issueCount: results.Count(location => location.Issue is not null));
             return new(saved.Revision, results.ToImmutable());
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
-        { throw new ShouException("time_limit", "Scan-location discovery reached its time budget."); }
+        {
+            var error = new ShouException("time_limit", "Scan-location discovery reached its time budget.");
+            diagnostic.Fail(error, "discovery_budget"); throw error;
+        }
+        catch (Exception error) { diagnostic.Fail(error, "discovery"); throw; }
     }
 
     public async Task<LocationPreparation> PrepareAsync(bool includeProjects = false, CancellationToken cancellationToken = default)
     {
-        var discovery = await DiscoverAsync(includeProjects, cancellationToken);
-        var issues = discovery.Locations.Where(location => location.Issue is not null).Select(location => new ScanIssue(location.Path, location.Issue!)).ToImmutableArray();
-        var proposed = discovery.Locations.Where(value => value.State == "available").Select(location =>
-            new Workspace(location.WorkspaceId ?? RecordKey.New("ws"), location.Origin == "included" ? "existing" : "shou-location-" + location.Id,
-                location.Path, location.Identity!, location.CaseSensitive, [], clock.GetUtcNow())).ToImmutableArray();
-        var workspaces = await configuration.RegisterDiscoveredAsync(proposed, discovery.ConfigurationRevision, cancellationToken);
-        return new(workspaces, issues);
+        using var diagnostic = OperationDiagnostics.Start("locations.prepare");
+        var stage = "discover";
+        try
+        {
+            var discovery = await DiscoverAsync(includeProjects, cancellationToken);
+            var issues = discovery.Locations.Where(location => location.Issue is not null).Select(location => new ScanIssue(location.Path, location.Issue!)).ToImmutableArray();
+            var proposed = discovery.Locations.Where(value => value.State == "available").Select(location =>
+                new Workspace(location.WorkspaceId ?? RecordKey.New("ws"), location.Origin == "included" ? "existing" : "shou-location-" + location.Id,
+                    location.Path, location.Identity!, location.CaseSensitive, [], clock.GetUtcNow())).ToImmutableArray();
+            stage = "configuration_register";
+            var workspaces = await configuration.RegisterDiscoveredAsync(proposed, discovery.ConfigurationRevision, cancellationToken);
+            diagnostic.Complete(count: workspaces.Length, issueCount: issues.Length);
+            return new(workspaces, issues);
+        }
+        catch (Exception error) { diagnostic.Fail(error, stage); throw; }
     }
 
     public async Task<SystemScan> ScanAsync(CleanupScanService scans, bool includeProjects, ScanBudget budget, CancellationToken cancellationToken = default)
@@ -104,6 +121,7 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
     private async Task<SystemScan> ScanWorkspacesAsync(CleanupScanService scans, ImmutableArray<Workspace> workspaces,
         ImmutableArray<ScanIssue> initialIssues, string revision, ScanBudget budget, CancellationToken cancellationToken)
     {
+        using var diagnostic = OperationDiagnostics.Start("cleanup.scan_locations");
         var issues = initialIssues.ToBuilder();
         var snapshots = ImmutableArray.CreateBuilder<CleanupScan>();
         var remaining = budget.MaxEntries;
@@ -139,14 +157,18 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
             catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
             {
                 var code = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error";
+                diagnostic.Issue(code, "workspace_scan_or_publish", workspace.Path);
                 issues.Add(new(workspace.Path, code));
                 // A failed publication may have consumed the entire remaining scan allowance.
                 remaining = 0;
                 stale = code == "plan_stale";
             }
         }
-        return new(snapshots.ToImmutable(), issues.Distinct().ToImmutableArray(), cancelled || cancellationToken.IsCancellationRequested ? "cancelled" :
-            issues.Count == 0 && snapshots.All(value => value.Scan.IsComplete && value.AnalysisIssues.IsEmpty) ? "complete" : "partial");
+        var state = cancelled || cancellationToken.IsCancellationRequested ? "cancelled" :
+            issues.Count == 0 && snapshots.All(value => value.Scan.IsComplete && value.AnalysisIssues.IsEmpty) ? "complete" : "partial";
+        foreach (var issue in issues.Distinct().Take(200)) diagnostic.Issue(issue.Code, "scan_coverage", issue.Path);
+        diagnostic.Complete(state, snapshots.Sum(value => (long)value.Scan.Entries.Length), issues.Count);
+        return new(snapshots.ToImmutable(), issues.Distinct().ToImmutableArray(), state);
     }
 
     private static bool Overlap(WindowsPath first, WindowsPath second) => first.IsWithin(second) || second.IsWithin(first);

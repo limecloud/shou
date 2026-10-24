@@ -10,6 +10,7 @@ if [ ! -x "$SHOU_TASK_DOTNET" ] && ! command -v "$SHOU_TASK_DOTNET" >/dev/null 2
     exit 2
 fi
 python3 "$SHOU_TASK_ROOT/scripts/generate-windows-resources.py" --check
+python3 "$SHOU_TASK_ROOT/tests/design/test-design-tokens.py"
 cd "$SHOU_TASK_ROOT/apps/windows"
 "$SHOU_TASK_DOTNET" test "tests/Shou.Windows.Core.Tests/Shou.Windows.Core.Tests.csproj" -c Release -p:RestoreLockedMode=true
 "$SHOU_TASK_DOTNET" test "tests/Shou.Windows.Presentation.Tests/Shou.Windows.Presentation.Tests.csproj" -c Release -p:RestoreLockedMode=true

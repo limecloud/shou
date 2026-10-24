@@ -3,8 +3,9 @@ using System.Text;
 
 namespace Shou.Windows.Core;
 
-public sealed class CleanupService(IRecordStore store, RuleSchemaValidator validator, IStorageScanner scanner,
-    CleanupProtectionContext protection, ICleanupActivity activity, ICleanupMutation mutation, TimeProvider? timeProvider = null, BuiltinRuleCatalog? catalog = null)
+public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidator validator, IStorageScanner scanner,
+    CleanupProtectionContext protection, ICleanupActivity activity, ICleanupMutation mutation, TimeProvider? timeProvider = null, BuiltinRuleCatalog? catalog = null,
+    IWindowsFileSystem? storageFiles = null)
 {
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly ConfigurationCodec configurationCodec = new(validator);
@@ -146,6 +147,11 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
         // Revalidate every selected location before persisting intent or changing any target.
         foreach (var source in plan.Sources)
         {
+            if (plan.Version == 3)
+            {
+                await VerifyStorageItemsAsync(configuration, source, plan.Items.Where(item => item.ScanId == source.ScanId), validation, cancellationToken);
+                continue;
+            }
             var preflight = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken,
                 new InlineProgress<ScanProgress>(value => Report(progress, new("checking", null, value.CurrentPath, 0, plan.Items.Length, 0, plan.Items.Sum(item => item.Manifest.Length)))));
             foreach (var item in plan.Items.Where(item => item.ScanId == source.ScanId))
@@ -173,7 +179,9 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
             {
                 RequireCurrentTime(plan);
                 // Configuration is stable under this lease. Native adapters own the final exact-tree check.
-                if (!mutation.VerifiesMutationManifest)
+                if (plan.Version == 3)
+                    await VerifyStorageItemsAsync(configuration, source, [item], validation, cancellationToken);
+                else if (!mutation.VerifiesMutationManifest)
                 {
                     var current = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken);
                     VerifyItem(item, current);
@@ -265,6 +273,7 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
 
     private void RequireBindings(Configuration configuration, CleanupPlan plan)
     {
+        if (plan.Version == 3) return;
         foreach (var source in plan.Sources)
         {
             var current = scans.EnabledRules(configuration, source.Workspace.Id);
@@ -276,6 +285,11 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
 
     private void RequireSources(Configuration configuration, CleanupPlan plan)
     {
+        if (plan.Version == 3)
+        {
+            if (configurationCodec.Digest(configuration) != plan.ConfigurationDigest || plan.Sources.Any(source => source.Workspace.Identity.OwnerSid != protection.OwnerSid)) throw Stale();
+            return;
+        }
         foreach (var source in plan.Sources) _ = CurrentWorkspace(configuration, source.Workspace, plan.ConfigurationDigest);
     }
     private static bool Overlap(WindowsPath first, WindowsPath second) => first.IsWithin(second) || second.IsWithin(first);
@@ -369,7 +383,11 @@ public sealed class CleanupService(IRecordStore store, RuleSchemaValidator valid
             budget with { MaxEntries = budget.MaxEntries - entries, MaxDuration = Remaining() };
         public void Observe(ScanSnapshot scan)
         {
-            entries = checked(entries + scan.Entries.Length);
+            ObserveEntries(scan.Entries.Length);
+        }
+        public void ObserveEntries(int count)
+        {
+            entries = checked(entries + count);
             if (entries > budget.MaxEntries) throw new ShouException("entry_limit", "Cleanup validation exceeded its shared entry budget.");
         }
     }

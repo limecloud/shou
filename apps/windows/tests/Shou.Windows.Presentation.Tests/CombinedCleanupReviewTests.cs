@@ -8,6 +8,42 @@ namespace Shou.Windows.Presentation.Tests;
 public sealed partial class CleanupReviewTests
 {
     [Fact]
+    public async Task ProductCountsDescribeRuleGroupsWhileSelectionKeepsEveryExactLocation()
+    {
+        var operations = new Operations { Locations = [Location(1), Location(2)],
+            BatchOperation = _ => Task.FromResult(new SystemScan([AtLocation(1), AtLocation(2)], [], "complete")) };
+        using var model = new CleanupReviewViewModel(operations);
+        await model.LoadAsync(); await model.ScanAllAsync();
+        Assert.Equal(2, model.ResultCount); Assert.Equal(1, model.ResultGroupCount);
+        Assert.Equal(1, model.FilteredGroupCount);
+        var category = Assert.Single(model.CategorySummaries);
+        Assert.Equal(2, category.Count); Assert.Equal(1, category.GroupCount);
+        Assert.True(model.SetCategorySelected(null, true));
+        Assert.Equal(2, model.SelectedCount); Assert.Equal(1, model.SelectedGroupCount);
+        model.SetFilter(null, null, "no-generated-match");
+        Assert.Equal(0, model.FilteredGroupCount); Assert.Equal(1, model.SelectedGroupCount);
+        Assert.Null(model.Plan);
+    }
+
+    [Fact]
+    public async Task ReviewableMenuReplacesSelectionWithoutSelectingHighRiskOrBlockedItemsOrChangingFilters()
+    {
+        var reviewed = Candidate(1) with { Risk = "review" };
+        var high = Candidate(2);
+        var blocked = Candidate(3, blocked: true) with { Risk = "review" };
+        var operations = new Operations { Result = Scan([reviewed, high, blocked]) };
+        using var model = new CleanupReviewViewModel(operations);
+        await model.LoadAsync(); await model.ScanAsync(Location().Id);
+        Assert.True(model.SetSelected(high.Id, true));
+        model.SetFilter(null, null, "no-generated-match");
+        Assert.True(model.SelectReviewable());
+        Assert.Equal("no-generated-match", model.Search); Assert.Empty(model.Rows);
+        model.SetFilter(null, null, "");
+        Assert.Equal(reviewed.Id, Assert.Single(model.Rows.Where(row => row.Selected)).Candidate.Id);
+        Assert.Null(operations.PlannedScan); Assert.Null(model.Plan);
+    }
+
+    [Fact]
     public async Task SelectionsFromTwoLocationsProduceOneExactPlanAndSurviveFilters()
     {
         var operations = new Operations { Locations = [Location(1), Location(2)],
@@ -25,6 +61,33 @@ public sealed partial class CleanupReviewTests
         Assert.All(model.Plan.Items, item => Assert.Contains(operations.Selections, source => source.ScanId == item.ScanId && source.CandidateIds.Contains(item.CandidateId)));
         model.ShowAllResults(); model.SetFilter(null, null, "");
         Assert.All(model.Rows, row => Assert.True(row.Selected));
+    }
+
+    [Fact]
+    public async Task CategorySummariesUseScannedBytesAndSelectionDoesNotPlanCleanup()
+    {
+        var cache = Candidate(1) with { RuleId = "shou.builtin.cache", Risk = "review", AllocatedBytes = 1_000 };
+        var personal = Candidate(2) with { AllocatedBytes = 2_500 };
+        var operations = new Operations { Result = Scan([cache, personal]) };
+        using var model = new CleanupReviewViewModel(operations, new Dictionary<string, string> { [cache.RuleId] = "cache" });
+        await model.LoadAsync();
+        await model.ScanAsync(Location().Id);
+        Assert.Equal(3_500, model.ResultAllocatedBytes);
+        Assert.Equal(0, model.SelectedAllocatedBytes);
+        Assert.Equal(("cache", 1, 1_000), Summary(model, "cache"));
+        Assert.Equal(("personal", 1, 2_500), Summary(model, "personal"));
+        Assert.True(model.SetCategorySelected("cache", true));
+        Assert.Equal(1_000, model.SelectedAllocatedBytes);
+        Assert.Equal(1_000, model.CategorySummaries.Single(summary => summary.Id == "cache").SelectedBytes);
+        Assert.Equal(0, model.CategorySummaries.Single(summary => summary.Id == "personal").SelectedBytes);
+        Assert.Null(operations.PlannedScan);
+        Assert.Null(model.Plan);
+    }
+
+    private static (string Id, int Count, long Bytes) Summary(CleanupReviewViewModel model, string id)
+    {
+        var summary = model.CategorySummaries.Single(value => value.Id == id);
+        return (summary.Id, summary.Count, summary.AllocatedBytes);
     }
 
     [Fact]

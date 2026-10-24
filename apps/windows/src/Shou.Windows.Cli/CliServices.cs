@@ -22,7 +22,7 @@ internal sealed class CliServices
     public CleanupHistoryService History => new(Store, Validator, Files, new StorageScanner(Files), Store.OwnerSid);
 
     public CleanupScanService Preview => new(Store, Validator, new StorageScanner(Files), Protection, catalog: Catalog);
-    public CleanupService Cleanup => new(Store, Validator, new StorageScanner(Files), Protection, new WindowsCleanupActivity(), new WindowsCleanupMutation(), catalog: Catalog);
+    public CleanupService Cleanup => new(Store, Validator, new StorageScanner(Files), Protection, new WindowsCleanupActivity(), new WindowsCleanupMutation(), catalog: Catalog, storageFiles: Files);
     public ScanLocationService Locations => new(Configuration, Catalog, Files, Store.OwnerSid);
     public static ApplicationUninstallReviewer ApplicationReviewer => new(new(new WindowsApplicationInventory()), new WindowsApplicationUninstallInspector(), new WindowsApplicationActivity());
     public ApplicationUninstallPlanner ApplicationPlans => new(Store, ApplicationReviewer, Store.OwnerSid);

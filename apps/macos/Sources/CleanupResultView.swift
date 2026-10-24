@@ -44,7 +44,7 @@ struct CleanupResultView: View {
         VStack(spacing: 0) {
             Spacer(minLength: 12)
             Image(systemName: complete ? "checkmark.circle" : cancelled ? "pause.circle" : "exclamationmark.triangle")
-                .font(.system(size: 78, weight: .light))
+                .font(.system(size: ShouDesign.completionIconSize, weight: .light))
                 .foregroundStyle(complete ? Color.green : cancelled ? Color.secondary : Color.orange)
                 .scaleEffect(reduceMotion || appeared ? 1 : 0.84)
                 .opacity(reduceMotion || appeared ? 1 : 0)
@@ -56,7 +56,7 @@ struct CleanupResultView: View {
 
             if !result.receipts.isEmpty {
                 Text(model.bytes(totalBytes))
-                    .font(.system(size: 42, weight: .semibold, design: .rounded))
+                    .font(.system(size: ShouDesign.completionFigureSize, weight: .semibold, design: .rounded))
                     .monospacedDigit().padding(.top, 28)
             }
             Text(model.t(cancelled ? "Removal stopped. Items not moved are kept in their original locations." : complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
@@ -93,8 +93,8 @@ struct CleanupResultView: View {
                     .accessibilityIdentifier("cleanup.result.close")
             }
         }
-        .padding(30)
-        .frame(maxWidth: 720)
+        .padding(ShouDesign.completionPadding)
+        .frame(maxWidth: ShouDesign.completionMaxWidth)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onExitCommand { model.completion=nil; model.section=result.sourceSection }
         .onAppear {
@@ -109,7 +109,7 @@ struct CleanupResultView: View {
             resultMetric(model.t("Skipped"), value: skipped, color: .secondary)
             resultMetric(model.t("Failed items"), value: failed, color: failed > 0 ? .red : .secondary)
             resultMetric(model.t("Needs verification"), value: unverified, color: unverified > 0 ? .orange : .secondary)
-        }.frame(maxWidth: 560)
+        }.frame(maxWidth: ShouDesign.completionMetricsWidth)
     }
 
     private var details: some View {
@@ -126,7 +126,7 @@ struct CleanupResultView: View {
                 }
             }
         }
-        .frame(maxHeight: 240)
+        .frame(maxHeight: ShouDesign.completionDetailsHeight)
         .background(.quaternary.opacity(0.26), in: RoundedRectangle(cornerRadius: 10))
         .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(.quaternary, lineWidth: 1) }
     }

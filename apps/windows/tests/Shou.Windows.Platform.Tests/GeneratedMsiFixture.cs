@@ -41,7 +41,7 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
         if (new DriveInfo(Path.GetPathRoot(parent.Value)!).DriveType != DriveType.Fixed)
             throw new InvalidOperationException("Generated MSI evidence requires a fixed local Windows drive.");
         Root = Path.Combine(parent.Value, "fixture-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(Root);
+        new DirectoryInfo(Root).Create(WindowsFileSystemTests.NativeFixture.PrivateDirectorySecurity());
         File.WriteAllBytes(Path.Combine(Root, "payload.txt"), payload);
         File.WriteAllBytes(ProtectedSibling, marker);
         SaveEvidence("created", null);
@@ -74,6 +74,7 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
     public async Task<InstalledApplication> DiscoverAsync()
     {
         var snapshot = await new ApplicationCatalog(new WindowsApplicationInventory()).ReadAsync();
+        File.WriteAllText(Path.Combine(Root, "discovery.json"), JsonSerializer.Serialize(snapshot, ContractJson.Options));
         var application = snapshot.Applications.SingleOrDefault(item => item.Source == ApplicationSource.CurrentUserRegistry &&
             item.RegistrationKey == ProductCode) ?? throw new InvalidOperationException(
                 "The generated per-user MSI was not discovered; inspect the fixture and source-coverage evidence.");
@@ -155,13 +156,15 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
         var log = Path.Combine(Root, $"{++sequence:D2}-{(install ? "install" : "teardown")}.log");
         var start = new ProcessStartInfo(Path.Combine(Environment.SystemDirectory, "msiexec.exe"))
         { UseShellExecute = false, WorkingDirectory = Root };
-        foreach (var argument in new[] { install ? "/i" : "/x", install ? PackagePath : ProductCode, "/qn", "/norestart",
-            "REBOOT=ReallySuppress", "MSIRESTARTMANAGERCONTROL=Disable", "/L*V", log }) start.ArgumentList.Add(argument);
+        // msiexec parses PROPERTY="value with spaces" itself, unlike CommandLineToArgvW.
+        // ArgumentList quotes the entire PROPERTY=value token, which MSI rejects with exit 1639.
+        // Paths are generated below a WindowsPath-validated root, which cannot contain quotes.
+        start.Arguments = (install ? "/i" : "/x") + " \"" + (install ? PackagePath : ProductCode) +
+            "\" /qn /norestart REBOOT=ReallySuppress MSIRESTARTMANAGERCONTROL=Disable /L*V \"" + log + "\"";
         if (install)
         {
             // Keep the database neutral/ASCII. Runtime directory properties exercise Unicode and spaces.
-            start.ArgumentList.Add("SHOUFIXTUREDIR=" + InstallDirectory + Path.DirectorySeparatorChar);
-            start.ArgumentList.Add("ARPINSTALLLOCATION=" + InstallDirectory);
+            start.Arguments += " ALLUSERS=2 MSIINSTALLPERUSER=1 SHOUFIXTUREDIR=\"" + InstallDirectory + "\" ARPINSTALLLOCATION=\"" + InstallDirectory + "\"";
         }
         using var process = Process.Start(start) ?? throw new InvalidOperationException("The generated MSI installer could not start.");
         // Never kill or abandon an installer on a test timeout. Retain its logs and wait for the real exit.

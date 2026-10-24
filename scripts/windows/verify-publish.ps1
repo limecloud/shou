@@ -6,8 +6,8 @@ $App = Join-Path $PublishRoot 'app/Shou.Windows.App.exe'
 $VersionResult = & $Cli --version --json | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $VersionResult.data.version.Split('+')[0] -ne $Version) { throw 'Published CLI version differs.' }
 $Capabilities = & $Cli capabilities --json | ConvertFrom-Json
-if ($LASTEXITCODE -ne 0 -or $Capabilities.data.mutation_available -or $Capabilities.data.application_uninstall_available -or $Capabilities.data.startup_control_available) {
-    throw 'Unaccepted native mutation capabilities must remain unavailable.'
+if ($LASTEXITCODE -ne 0 -or -not $Capabilities.data.host_supported -or -not $Capabilities.data.mutation_available -or -not $Capabilities.data.application_uninstall_available -or -not $Capabilities.data.startup_control_available) {
+    throw 'Published mutation capabilities must match the supported native Windows host.'
 }
 $Started = Get-Date
 $Process = Start-Process $App -PassThru
@@ -29,7 +29,7 @@ try {
     if (-not $Process.HasExited) { $Process.Kill($true); $Process.WaitForExit() }
     $Process.Dispose()
     if ($env:GITHUB_ACTIONS -eq 'true') {
-        $LogFile = Join-Path $env:LOCALAPPDATA 'Shou/Logs/application.jsonl'
+        $LogFile = Join-Path $env:LOCALAPPDATA 'Shou/Diagnostics/application.jsonl'
         if (Test-Path $LogFile) { Get-Content $LogFile -Tail 20 }
         Get-WinEvent -FilterHashtable @{ LogName = 'Application'; StartTime = $Started } -ErrorAction SilentlyContinue |
             Where-Object { $_.Message -like '*Shou.Windows.App*' } |

@@ -1,4 +1,4 @@
-Shou v0.13.0 improves cleanup responsiveness and adds Windows portable preview builds.
+Shou v0.14.0 improves cleanup responsiveness, privacy review, settings, and Windows portable preview builds.
 
 - Shared native directory readers and operation-local indexes reduce repeated work across analysis, rules, cleanup and history inspection. Final identity, activity, exact-scope and per-file mutation checks remain enforced.
 - Large cleanup manifests use digest-verified pages; progress/result writes update compact metadata. On the generated 20,026-entry workload, three paired Release runs reduced median preparation by 63%, execution by 43% and total time from 17.06 s to 9.17 s. These measurements used a busy host and warm caches, rather than a full-disk benchmark.
@@ -9,7 +9,7 @@ macOS requires version 14 or later and supports Apple Silicon and Intel. Assets 
 
 Windows downloads are unsigned portable previews requiring Windows 11. Public cleanup, application uninstall and startup mutation gates remain closed. x64 CI checks native behavior and application startup; ARM64 is cross-built, with ARM64 runtime, full UI/accessibility, signing, installer and update acceptance pending. Windows npm packages remain private development artifacts; GitHub publication does not publish packages to npm.
 
-简体中文：Shou v0.13.0 优化清理响应，并增加 Windows 便携预览版构建与发布。
+简体中文：Shou v0.14.0 优化清理响应、隐私审阅、设置页面，并增加 Windows 便携预览版构建与发布。
 
 - 分析、规则、清理与历史检查共用原生目录读取和操作内索引，减少重复工作；身份、活动、精确范围及逐项变更核验继续保留。
 - 大清单分页并验证摘要，进度和结果仅更新精简元数据。20,026 条生成夹具的三轮 Release 配对中，准备耗时中位数降低 63%、执行降低 43%，全流程从 17.06 秒降至 9.17 秒。测试使用繁忙主机和暖缓存，不代表全盘性能。

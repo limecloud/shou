@@ -30,14 +30,14 @@ class WindowsReleaseTests(unittest.TestCase):
                 path = payload / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(image if path.suffix in ['.exe', '.dll'] else b'generated fixture')
-            (payload / (stem + '.deps.json')).write_text(json.dumps({'runtimeTarget': {'name': '.NETCoreApp,Version=v10.0/win-x64'}, 'libraries': {stem + '/0.13.0': {}}}))
+            (payload / (stem + '.deps.json')).write_text(json.dumps({'runtimeTarget': {'name': '.NETCoreApp,Version=v10.0/win-x64'}, 'libraries': {stem + '/0.14.0': {}}}))
             (payload / (stem + '.runtimeconfig.json')).write_text(json.dumps({'runtimeOptions': {'includedFrameworks': [{'name': 'Microsoft.NETCore.App', 'version': '10.0.13'}]}}))
 
     def tearDown(self):
         self.temporary.cleanup()
 
     def package(self):
-        PACKAGE.package(self.root / 'publish', self.root / 'archives', '0.13.0', 'win-x64', 'a' * 40, True)
+        PACKAGE.package(self.root / 'publish', self.root / 'archives', '0.14.0', 'win-x64', 'a' * 40, True)
 
     def test_archives_bind_payload_bytes_version_source_and_capability_limits(self):
         self.package()
@@ -46,9 +46,9 @@ class WindowsReleaseTests(unittest.TestCase):
         for archive in archives:
             with zipfile.ZipFile(archive) as bundle:
                 receipt = json.loads(bundle.read('BUILD.json'))
-                self.assertEqual('0.13.0', receipt['version'])
+                self.assertEqual('0.14.0', receipt['version'])
                 self.assertEqual('a' * 40, receipt['source_commit'])
-                self.assertFalse(receipt['public_mutation_available'])
+                self.assertTrue(receipt['public_mutation_available'])
                 self.assertEqual('portable-preview', receipt['distribution'])
                 self.assertEqual('unsigned', receipt['signing'])
                 self.assertEqual(len(bundle.namelist()), len(set(bundle.namelist())))
@@ -56,7 +56,7 @@ class WindowsReleaseTests(unittest.TestCase):
 
     def test_wrong_architecture_is_rejected(self):
         with self.assertRaisesRegex(ValueError, 'Architecture mismatch'):
-            PACKAGE.validate(self.root / 'publish/app', 'app', '0.13.0', 'win-arm64')
+            PACKAGE.validate(self.root / 'publish/app', 'app', '0.14.0', 'win-arm64')
 
     def test_missing_native_runtime_is_rejected(self):
         (self.root / 'publish/app/hostfxr.dll').unlink()
@@ -65,7 +65,7 @@ class WindowsReleaseTests(unittest.TestCase):
 
     def test_wrong_version_is_rejected(self):
         with self.assertRaisesRegex(ValueError, 'RID/version'):
-            PACKAGE.validate(self.root / 'publish/cli', 'cli', '0.14.0', 'win-x64')
+            PACKAGE.validate(self.root / 'publish/cli', 'cli', '0.15.0', 'win-x64')
 
     def test_framework_dependent_payload_is_rejected(self):
         (self.root / 'publish/cli/shou.runtimeconfig.json').write_text('{"runtimeOptions": {}}')

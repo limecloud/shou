@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/windows-native-plan.md)
 
-Status: implementation in progress. Source includes Core/Platform/Presentation scanning, application registration discovery/browsing, workspace/rule services, persisted regular scans and draft previews, planning and item-journal orchestration, .NET CLI, WinUI configuration/storage/applications/cleanup-review/history pages and resource generation. CLI and UI assemble plan review; terminal confirmation has portable logic tests, while execution remains disabled. Windows runtime, target mutation and signed distribution are not accepted. This document defines the implementation contract; [SYNC.md](../../SYNC.md) records current evidence.
+Status: implementation in progress. Source includes Core/Platform/Presentation scanning, application registration discovery/browsing, workspace/rule services, persisted regular scans and draft previews, planning and item-journal orchestration, .NET CLI, WinUI configuration/storage/applications/cleanup-review/history pages and resource generation. CLI and UI assemble plan review; terminal confirmation has portable logic tests. Execution is disabled in the v0.13.0 baseline. The unreleased v0.14.0 working tree assembles native-platform-limited execution, but MSI, full desktop journeys and visual acceptance still fail or remain unverified and block release. Windows runtime, target mutation and signed distribution are not accepted. This document defines the implementation contract; [SYNC.md](../../SYNC.md) records current evidence.
 
 ## Product goal
 

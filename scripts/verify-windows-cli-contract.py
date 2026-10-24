@@ -60,8 +60,10 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
     assert capabilities['platform'] == 'windows'
     assert capabilities['application_version'].split('+', 1)[0] == expected_version
     assert capabilities['api_version'] == '1.0' and capabilities['rule_schema_version'] == '1.0'
-    assert capabilities['mutation_available'] is False and capabilities['trash_available'] is False and capabilities['application_uninstall_available'] is False
-    assert capabilities['startup_control_available'] is False
+    assert capabilities['mutation_available'] == capabilities['host_supported']
+    assert capabilities['application_uninstall_available'] == capabilities['host_supported']
+    assert capabilities['startup_control_available'] == capabilities['host_supported']
+    assert capabilities['trash_available'] is False
     read_commands = {'capabilities', 'rules schema', 'rules catalog', 'system locations', 'rules validate', 'analysis scan', 'applications summary', 'applications inspect', 'applications plan show', 'applications execution show', 'startup list', 'startup inspect', 'startup execution show',
                      'workspaces list', 'workspaces show', 'exclusions list',
                      'rules list', 'rules show', 'rules export', 'scan results',
@@ -76,9 +78,9 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
     for command in capabilities['commands']:
         expected = 'read' if command['command'] in read_commands else 'configuration' if command['command'] in configuration_commands else 'snapshot' if command['command'] in snapshot_commands else 'plan' if command['command'] in plan_commands else 'destructive'
         assert command['side_effect'] == expected
-        assert command['available'] == (command['command'] not in destructive_commands)
+        assert command['available'] == (command['command'] not in destructive_commands or capabilities['host_supported'])
         if command['command'] in destructive_commands:
-            assert command['unavailable_reason'] == 'native_acceptance_pending'
+            assert command['unavailable_reason'] == (None if capabilities['host_supported'] else 'unsupported_native_host')
     assert all({'required', 'optional', 'repeated', 'description'} <= item.keys() for item in capabilities['commands'])
     focused = run(['capabilities', '--command', 'rules', '--json'])['data']['commands']
     assert {item['command'] for item in focused} == {name for name in all_commands if name.startswith('rules ')}
@@ -293,7 +295,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
             assert run(arguments + ['--json'], 8)['error']['code'] == 'unsupported_platform'
         assert not data_directory.exists()
     else:
-        assert run(['startup', 'control', '--task-path', task_path, '--action', 'enable', '--review-digest', review_digest, '--json'], 8)['error']['code'] == 'unsupported_capability'
+        assert run(['startup', 'control', '--task-path', task_path, '--action', 'enable', '--review-digest', review_digest, '--json'], (5, 8))['error']['code'] in ('startup_task_unavailable', 'unsupported_capability', 'not_found')
         assert run(['startup', 'execution', 'show', '--startup-operation-id', startup_operation_id, '--json'], 5)['error']['code'] == 'not_found'
         assert not data_directory.exists()
         startup = run(['startup', 'list', '--max-entries', '1', '--limit', '1', '--json'], (0, 6))['data']
@@ -316,7 +318,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         assert not data_directory.exists()
         assert run(['applications', 'plan', 'show', '--uninstall-plan-id', uninstall_plan_id, '--json'], 5)['error']['code'] == 'not_found'
         assert run(['applications', 'execution', 'show', '--uninstall-plan-id', uninstall_plan_id, '--json'], 5)['error']['code'] == 'not_found'
-        assert run(['applications', 'uninstall', '--uninstall-plan-id', uninstall_plan_id, '--json'], 8)['error']['code'] == 'unsupported_capability'
+        assert run(['applications', 'uninstall', '--uninstall-plan-id', uninstall_plan_id, '--json'], 5)['error']['code'] == 'not_found'
         assert run(['applications', 'plan', '--application-id', application_id, '--review-digest', review_digest,
                     '--allow-installer-data-changes', 'false', '--json'], 7)['error']['code'] == 'installer_data_consent_required'
         assert not data_directory.exists()
@@ -376,13 +378,13 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         scan = run(['scan', '--workspace', workspace, '--json'])['data']
         assert scan['rules'] == preview['rules'] and scan['candidate_count'] == 1 and scan['preview_only'] is False
         scan_results = run(['scan', 'results', '--scan-id', scan['scan_id'], '--json'])['data']
-        assert scan_results['preview_only'] is False and scan_results['execution_available'] is False
+        assert scan_results['preview_only'] is False and scan_results['execution_available'] is True
         selected = scan_results['candidates'][0]['id']
         plan = run(['plan', 'create', '--scan-id', scan['scan_id'], '--candidate', selected, '--mode', 'permanent', '--json'])['data']
         plan_id = plan['id']
         assert plan['action'] == 'permanent' and len(plan['items']) == 1
         assert run(['plan', 'show', '--plan-id', plan_id, '--json'])['data']['digest'] == plan['digest']
-        assert run(['plan', 'execute', '--plan-id', plan_id, '--json'], 8)['error']['code'] == 'unsupported_capability'
+        assert run(['plan', 'execute', '--plan-id', plan_id, '--json'], 7)['error']['code'] == 'confirmation_required'
         assert run(['history', 'list', '--json'])['data']['entries'] == []
         assert run(['plan', 'create', '--scan-id', scan['scan_id'], '--candidate', selected, '--json'], 8)['error']['code'] == 'unsupported_capability'
         draft_candidate = results['candidates'][0]['id']

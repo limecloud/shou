@@ -15,10 +15,11 @@ public sealed class StorageViewModelTests
     {
         public Queue<TaskCompletionSource<ScanSnapshot>> Calls { get; } = new();
         public List<CancellationToken> Tokens { get; } = [];
+        public List<IProgress<ScanProgress>?> Progress { get; } = [];
         public Task<ScanSnapshot> ScanAsync(WindowsPath root, ScanBudget budget,
             IProgress<ScanProgress>? progress, CancellationToken cancellationToken)
         {
-            Tokens.Add(cancellationToken);
+            Tokens.Add(cancellationToken); Progress.Add(progress);
             var call = new TaskCompletionSource<ScanSnapshot>(TaskCreationOptions.RunContinuationsAsynchronously);
             Calls.Enqueue(call);
             return call.Task;
@@ -85,6 +86,26 @@ public sealed class StorageViewModelTests
         Assert.Equal(StoragePageState.Failed, model.State);
         Assert.Equal("permission_denied", model.ErrorCode);
         Assert.Null(model.Snapshot);
+    }
+
+    [Fact]
+    public async Task ProgressFromSupersededAndCompletedScansCannotLeakIntoCurrentPage()
+    {
+        var scanner = new Scanner();
+        using var model = new StorageViewModel(scanner);
+        var first = model.ScanAsync(Root); var old = scanner.Calls.Dequeue();
+        scanner.Progress[0]!.Report(new(12, Root.Append("old")));
+        var current = model.ScanAsync(Root); var completion = scanner.Calls.Dequeue();
+        Assert.Null(model.Progress);
+        scanner.Progress[0]!.Report(new(99, Root.Append("late")));
+        Assert.Null(model.Progress);
+        scanner.Progress[1]!.Report(new(3, Root.Append("current")));
+        completion.SetResult(Snapshot(ScanState.Complete)); await current;
+        var final = model.Progress;
+        scanner.Progress[1]!.Report(new(100, Root.Append("after")));
+        Assert.Equal(final, model.Progress);
+        old.SetResult(Snapshot(ScanState.Partial)); await first;
+        Assert.Equal(StoragePageState.Ready, model.State);
     }
 
     [Fact]

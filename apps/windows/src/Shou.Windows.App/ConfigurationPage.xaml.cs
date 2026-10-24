@@ -5,12 +5,17 @@ using Microsoft.UI.Xaml.Controls;
 using Shou.Windows.Core;
 using Shou.Windows.Platform;
 using Shou.Windows.Presentation;
-using Windows.Storage.Pickers;
+using Microsoft.Windows.Storage.Pickers;
 
 namespace Shou.Windows.App;
 
-public sealed partial class ConfigurationPage : UserControl, IDisposable
+public sealed partial class ConfigurationPage : UserControl, IPageChrome, IDisposable
 {
+    protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() =>
+        new Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer(this);
+
+    public FrameworkElement Toolbar => PageChrome.Detach(PageToolbar, PageLayout);
+    private readonly BuiltinRuleCatalog catalog;
     private readonly TextCatalog text = new();
     private readonly ConfigurationViewModel model;
     private readonly nint windowHandle;
@@ -28,9 +33,16 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
     {
         InitializeComponent();
         this.windowHandle = windowHandle;
+        this.catalog = catalog;
         model = new(operations, catalog);
         PageTitle.Text = text.Get("Cleanup Rules");
-        Description.Text = text.Get("Choose a scan location to manage built-in rules, or import a personal rule.");
+        CatalogBanner.Text = text.Get("Customize cleanup rules for Windows");
+        LocationLabel.Text = text.Get("Scan Location"); SourceLabel.Text = text.Get("Rule Source"); CatalogHeading.Text = text.Get("Cleanup Rules");
+        Description.Text = text.Get("Browse the rule catalog. Choose a scan location to change applicable rules.");
+        ExclusionsButton.Content = text.Get("Exclusions"); AdvancedButton.Content = text.Get("Rule Versions and Locations");
+        SourceFilter.ItemsSource = new[] { text.Get("All"), text.Get("Built-in Rules"), text.Get("Personal Rules") };
+        SourceFilter.SelectedIndex = 0; CatalogSearch.PlaceholderText = text.Get("Search rules or paths");
+        AutomationProperties.SetName(SourceFilter, text.Get("Rule Source")); AutomationProperties.SetName(CatalogSearch, text.Get("Search rules or paths"));
         ImportButton.Content = text.Get("Import Rule…");
         RefreshButton.Content = text.Get("Refresh");
         RulesHeading.Text = text.Get("Cleanup Rules");
@@ -62,6 +74,15 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
     }
 
     public Task EnsureLoadedAsync() => initialLoad ??= model.LoadAsync();
+    public void ShowScanLocations()
+    {
+        if (disposed || IsBusy) return;
+        Locations.Focus(FocusState.Programmatic); Locations.IsDropDownOpen = true;
+    }
+    public void ShowExclusions()
+    {
+        if (!disposed && !IsBusy) ExclusionsButton.Flyout.ShowAt(ExclusionsButton);
+    }
     public void InvalidateConfiguration() => initialLoad = null;
     private void InvalidateEvidence(object? sender, EventArgs args) => EvidenceInvalidated?.Invoke(this, args);
     private void Changed(object? sender, PropertyChangedEventArgs args) { Render(); BusyChanged?.Invoke(this, EventArgs.Empty); }
@@ -100,10 +121,24 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
             RemoveExclusionButton.IsEnabled = enabled && Exclusions.SelectedItem is string;
             InheritedProtections.Text = !AllLocations && !model.GlobalExclusions.IsEmpty ? text.Format("Inherited global protections: %@", string.Join(", ", model.GlobalExclusions)) : "";
             Progress.Visibility = IsBusy ? Visibility.Visible : Visibility.Collapsed;
+            CatalogList.IsEnabled = enabled;
+            var entries = model.Snapshot is { } configuration ? RuleCatalog.Read(catalog, configuration, model.SelectedWorkspace, SourceFilter.SelectedIndex switch { 1 => "builtin", 2 => "personal", _ => "all" }, CatalogSearch.Text) : [];
+            CatalogList.ItemsSource = entries.Select(entry => new RuleCatalogDisplay(entry, text.Get(entry.Name), text.Get(entry.Description),
+                string.IsNullOrEmpty(entry.Limitation) ? "" : text.Get(entry.Limitation),
+                string.IsNullOrEmpty(entry.Location) ? "" : text.Get(entry.Location), enabled)).ToArray();
+            CatalogCount.Text = text.Format("%lld rules", entries.Length);
             Status.Text = model.IsSaving ? text.Get("Saving settings…") : interactionError ?? (model.RefreshErrorCode is not null ? text.Get("Settings could not be reloaded. Refresh before making more changes.") :
                 model.ErrorCode is { } code ? ConfigurationError(code) : IsBusy ? text.Get("Loading…") : text.Get("Settings changes require a new scan. They do not start cleanup."));
         }
         finally { rendering = false; }
+    }
+
+    private void FilterCatalog(object sender, SelectionChangedEventArgs args) { if (model is not null && !rendering) Render(); }
+    private void SearchCatalog(object sender, TextChangedEventArgs args) { if (model is not null && !rendering) Render(); }
+    private async void ToggleCatalogRule(object sender, RoutedEventArgs args)
+    {
+        if (disposed || rendering || IsBusy || sender is not Microsoft.UI.Xaml.Controls.Primitives.ToggleButton { Tag: RuleCatalogEntry entry } toggle || toggle.IsChecked == entry.Enabled || !entry.Applicable) return;
+        await GuardAsync(async () => { model.SelectRule(entry.Id, entry.Version); await model.SetRuleAsync(toggle.IsChecked == true); });
     }
 
     private bool AllLocations => ExclusionScope.SelectedIndex == 0;
@@ -127,9 +162,8 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
 
     private async void ImportRule(object sender, RoutedEventArgs args) => await InteractAsync(async () =>
     {
-        var picker = new FileOpenPicker();
+        var picker = new FileOpenPicker(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle));
         picker.FileTypeFilter.Add(".json");
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, windowHandle);
         var file = await picker.PickSingleFileAsync();
         if (disposed || file is null) return;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -146,9 +180,7 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
 
     private async void AddLocation(object sender, RoutedEventArgs args) => await InteractAsync(async () =>
     {
-        var picker = new FolderPicker();
-        picker.FileTypeFilter.Add("*");
-        WinRT.Interop.InitializeWithWindow.Initialize(picker, windowHandle);
+        var picker = new FolderPicker(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle));
         var folder = await picker.PickSingleFolderAsync();
         if (!disposed && folder is not null) await model.AddLocationAsync(WindowsPath.Parse(folder.Path));
     });
@@ -225,6 +257,7 @@ public sealed partial class ConfigurationPage : UserControl, IDisposable
     public void Dispose()
     {
         if (disposed) return;
+        PageDiagnostics.Update(this, "configuration", model.State, model.ErrorCode);
         disposed = true;
         model.PropertyChanged -= Changed;
         model.EvidenceInvalidated -= InvalidateEvidence;
@@ -247,4 +280,13 @@ public sealed class ScanLocationDisplay(Workspace workspace)
 {
     public Workspace Workspace { get; } = workspace;
     public string Path => Workspace.Path.Value;
+}
+
+[Microsoft.UI.Xaml.Data.Bindable]
+public sealed class RuleCatalogDisplay(RuleCatalogEntry entry, string name, string summary, string limitation, string location, bool editable)
+{
+    public RuleCatalogEntry Entry { get; } = entry;
+    public string Name { get; } = name; public string Summary { get; } = summary;
+    public string Limitation { get; } = limitation; public string Location { get; } = location;
+    public string Patterns => Entry.Patterns; public bool Enabled => Entry.Enabled; public bool CanToggle => editable && Entry.Applicable;
 }

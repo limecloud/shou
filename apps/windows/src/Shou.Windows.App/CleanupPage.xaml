@@ -1,113 +1,110 @@
-<UserControl
-    x:Class="Shou.Windows.App.CleanupPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="{StaticResource ShouPagePadding}" RowSpacing="{StaticResource ShouSectionSpacing}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <StackPanel Spacing="{StaticResource ShouItemSpacing}">
-            <TextBlock x:Name="PageTitle" Style="{StaticResource TitleTextBlockStyle}" />
-            <TextBlock x:Name="Description" TextWrapping="Wrap" />
+<UserControl x:Class="Shou.Windows.App.CleanupPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:Shou.Windows.App">
+    <Grid x:Name="PageLayout">
+        <StackPanel x:Name="PageToolbar" Orientation="Horizontal" Spacing="8">
+            <Button Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE946;" /><Button.Flyout><Flyout><TextBlock x:Name="Description" MaxWidth="360" TextWrapping="Wrap" /></Flyout></Button.Flyout></Button>
+            <Button x:Name="LocationMenuButton" AutomationProperties.AutomationId="cleanup.locations" Style="{StaticResource ShouToolbarButton}"><Button.Flyout><Flyout><StackPanel Spacing="12" Width="420">
+                <ComboBox x:Name="Locations" DisplayMemberPath="Path" HorizontalAlignment="Stretch" />
+                <Button x:Name="DiscoverButton" Click="DiscoverLocations" /><Button x:Name="RefreshButton" Click="RefreshLocations" />
+                <Button x:Name="ScanAllButton" Click="ScanAllLocations" /><Button x:Name="ScanButton" Click="ScanLocation" />
+            </StackPanel></Flyout></Button.Flyout></Button>
         </StackPanel>
-        <StackPanel x:Name="ReviewControls" Grid.Row="1" Spacing="{StaticResource ShouItemSpacing}">
-            <Grid ColumnSpacing="{StaticResource ShouItemSpacing}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <ComboBox x:Name="Locations" HorizontalAlignment="Stretch" DisplayMemberPath="Path" />
-                <Button Grid.Column="1" x:Name="DiscoverButton" Click="DiscoverLocations" />
-                <Button Grid.Column="2" x:Name="RefreshButton" Click="RefreshLocations" />
+        <StackPanel x:Name="StartContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouStartSpacing}" MaxWidth="520" Margin="30">
+            <ContentControl x:Name="StartIcon" HorizontalAlignment="Center" />
+            <StackPanel Spacing="12"><TextBlock x:Name="PageTitle" FontSize="{StaticResource ShouStartTitleSize}" FontWeight="SemiBold" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+            <TextBlock x:Name="StartDescription" TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel>
+            <Border BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="1" CornerRadius="6" HorizontalAlignment="Center" Background="{ThemeResource ShouSurfaceBrush}">
+                <StackPanel Orientation="Horizontal" Spacing="0">
+                    <Button x:Name="StartButton" Click="StartCleanupScan" Style="{StaticResource ShouBorderedButton}" CornerRadius="6,0,0,6" BorderThickness="0" Background="Transparent" AutomationProperties.AutomationId="smart.start" />
+                    <Border Width="1" Background="{ThemeResource ShouDividerBrush}" />
+                    <Button x:Name="StartMenuButton" Style="{StaticResource ShouBorderedButton}" Padding="10,7" CornerRadius="0,6,6,0" BorderThickness="0" Background="Transparent"><FontIcon Glyph="&#xE70D;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" /><Button.Flyout><MenuFlyout><MenuFlyoutItem x:Name="CommonScanItem" Click="StartCleanupScan" /><MenuFlyoutItem x:Name="FreeSpaceItem" IsEnabled="False" /><MenuFlyoutItem x:Name="LocationsMenuItem" Click="ShowLocations" /></MenuFlyout></Button.Flyout></Button>
+                </StackPanel>
+            </Border>
+            <TextBlock x:Name="StartStatus" AutomationProperties.AutomationId="cleanup.start_status" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" />
+            <InfoBar x:Name="StartCoverageNotice" AutomationProperties.AutomationId="cleanup.start_coverage" IsClosable="False" Severity="Warning" MaxWidth="520" />
+            <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center"><HyperlinkButton x:Name="InvestigateLink" Style="{StaticResource ShouLinkButton}" IsEnabled="False" /><HyperlinkButton x:Name="ExternalToolsLink" Style="{StaticResource ShouLinkButton}" IsEnabled="False" /><HyperlinkButton x:Name="LocationsLink" Style="{StaticResource ShouLinkButton}" Click="ShowLocations" /></StackPanel>
+        </StackPanel>
+        <Grid x:Name="ResultsContent" AutomationProperties.AutomationId="cleanup.results" Visibility="Collapsed">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <Grid x:Name="ReviewControls" Padding="16,10" ColumnSpacing="16" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Spacing="4"><TextBlock x:Name="CapacitySummary" FontSize="{StaticResource ShouPageTitleSize}" FontWeight="SemiBold" /><TextBlock x:Name="FoundEstimate" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /><HyperlinkButton x:Name="CoverageDetailsButton" AutomationProperties.AutomationId="cleanup.coverage" Style="{StaticResource ShouLinkButton}" HorizontalAlignment="Left" Visibility="Collapsed"><HyperlinkButton.Flyout><Flyout><ScrollViewer MaxHeight="320" MaxWidth="380"><InfoBar x:Name="CoverageNotice" IsClosable="False" Severity="Warning" /></ScrollViewer></Flyout></HyperlinkButton.Flyout></HyperlinkButton></StackPanel>
+                <TextBlock Grid.Column="1" x:Name="ScanState" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /><Button Grid.Column="2" x:Name="RescanButton" Click="StartCleanupScan" Style="{StaticResource ShouBorderedButton}" VerticalAlignment="Center" />
             </Grid>
-            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ShouItemSpacing}">
-                <Button x:Name="ScanAllButton" Click="ScanAllLocations" Style="{StaticResource AccentButtonStyle}" />
-                <Button x:Name="ScanButton" Click="ScanLocation" />
-                <Button x:Name="CancelButton" Click="CancelOperation" />
-            </StackPanel>
-            <Grid ColumnSpacing="{StaticResource ShouItemSpacing}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="180" />
-                    <ColumnDefinition Width="240" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Button x:Name="AllResultsButton" Click="ShowAllResults" />
-                <ComboBox Grid.Column="1" x:Name="CategoryFilter" HorizontalAlignment="Stretch" DisplayMemberPath="Title" />
-                <ComboBox Grid.Column="2" x:Name="RuleFilter" HorizontalAlignment="Stretch" DisplayMemberPath="Title" />
-                <TextBox Grid.Column="3" x:Name="SearchFilter" MaxLength="512" TextChanged="ChangeSearch" />
-            </Grid>
-            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ShouItemSpacing}">
-                <CheckBox x:Name="FilteredSelection" IsThreeState="True" Click="ChangeFilteredSelection" />
-                <Button x:Name="RecommendedButton" Click="SelectRecommended" />
-                <Button x:Name="ClearSelectionButton" Click="ClearSelection" />
-            </StackPanel>
-        </StackPanel>
-        <StackPanel x:Name="ReviewStatus" Grid.Row="2" Spacing="{StaticResource ShouItemSpacing}">
-            <ProgressBar x:Name="Progress" IsIndeterminate="True" Visibility="Collapsed" />
-            <InfoBar x:Name="CoverageNotice" IsClosable="False" IsOpen="False" Severity="Warning" />
-            <TextBlock x:Name="BatchSummary" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
-            <TextBlock x:Name="Status" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
-        </StackPanel>
-        <ListView Grid.Row="3" x:Name="Candidates" SelectionMode="None">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="8,10" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="100" />
-                        </Grid.ColumnDefinitions>
-                        <CheckBox Tag="{Binding Id}" IsChecked="{Binding Selected, Mode=OneWay}" IsEnabled="{Binding Selectable}" Click="ChangeSelection" AutomationProperties.Name="{Binding Path}" VerticalAlignment="Center" />
-                        <StackPanel Grid.Column="1" Spacing="4">
-                            <TextBlock Text="{Binding Path}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Path}" />
-                            <TextBlock Text="{Binding RuleName}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                        <TextBlock Grid.Column="2" Text="{Binding Size}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            <StackPanel Grid.Row="1" x:Name="ReviewStatus"><TextBlock x:Name="Status" AutomationProperties.AutomationId="cleanup.status" Margin="20,4" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" /></StackPanel>
+            <Grid Grid.Row="2" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouCleanupCategoryWidth}" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Grid Background="{ThemeResource ShouSidebarBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,1,0" Padding="8,8,8,4"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Button x:Name="AllResultsButton" Click="ShowAllResults" HorizontalAlignment="Stretch" Style="{StaticResource ShouToolbarButton}" Margin="0,0,0,6" />
+                    <ListView Grid.Row="1" x:Name="CategoryFilter" SelectionMode="Single" ItemContainerStyle="{StaticResource ShouCleanupCategoryItem}" Padding="0">
+                        <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8" Padding="2,6"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="22" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <CheckBox Tag="{Binding Id}" IsThreeState="True" IsChecked="{Binding Selection, Mode=OneWay}" IsEnabled="{Binding CanToggle}" Click="ChangeCategorySelection" AutomationProperties.Name="{Binding Title}" VerticalAlignment="Center" />
+                            <ContentControl Grid.Column="1" Tag="{Binding Icon}" Loaded="LoadCategoryIcon" VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="2" Spacing="2"><TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Detail}" Style="{StaticResource ShouCaption}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding SelectedLine}" Style="{StaticResource ShouCaption}" Visibility="{Binding SelectedVisibility}" /></StackPanel>
+                        </Grid></DataTemplate></ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+                <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Grid Padding="16,10" ColumnSpacing="8" RowSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="CategoryHeading" FontWeight="SemiBold" /><TextBlock Grid.Column="1" x:Name="CategoryCount" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /><TextBlock Grid.Column="3" x:Name="CategoryMetrics" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /></Grid>
+                        <CheckBox Grid.Column="1" x:Name="FilteredSelection" IsThreeState="True" Click="ChangeFilteredSelection" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" x:Name="SearchFilter" AutomationProperties.AutomationId="cleanup.search" TextChanged="ChangeSearch" MaxLength="512" MaxWidth="300" HorizontalAlignment="Left" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" x:Name="RuleFilter" DisplayMemberPath="Title" Visibility="Collapsed" />
                     </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                </Style>
-            </ListView.ItemContainerStyle>
-        </ListView>
-        <StackPanel x:Name="ReviewActions" Grid.Row="4" Spacing="{StaticResource ShouItemSpacing}">
-            <TextBlock x:Name="UnavailableNotice" TextWrapping="Wrap" />
-            <Grid ColumnSpacing="{StaticResource ShouItemSpacing}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="SelectedCount" VerticalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-                <Button Grid.Column="1" x:Name="PreviousButton" Click="PreviousPage" />
-                <Button Grid.Column="2" x:Name="NextButton" Click="NextPage" />
-                <Button Grid.Column="3" x:Name="ReviewButton" Click="ReviewSelection" />
-                <Button Grid.Column="4" x:Name="CleanButton" Click="ExecuteCleanup" IsEnabled="False" />
+                    <Border Grid.Row="1" Background="{ThemeResource ShouSurfaceBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,1,0,0"><Grid><ListView x:Name="Candidates" AutomationProperties.AutomationId="cleanup.candidates" SelectionMode="None" ItemContainerStyle="{StaticResource ShouTableItem}" BorderThickness="0" Background="Transparent" Padding="0,8"><ListView.ItemTemplate><DataTemplate><Expander Style="{StaticResource ShouRowExpander}" Tag="{Binding Id}" AutomationProperties.AutomationId="{Binding Id}" Header="{Binding}" Loaded="LoadRuleGroup" Expanding="ExpandRuleGroup" Collapsed="CollapseRuleGroup">
+                        <Expander.HeaderTemplate><DataTemplate><Grid MinHeight="{StaticResource ShouCleanupRuleHeight}" Padding="0,8" ColumnSpacing="12" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><CheckBox Tag="{Binding Id}" IsThreeState="True" IsChecked="{Binding Selection, Mode=OneWay}" IsEnabled="{Binding CanToggle}" Click="ChangeGroupSelection" AutomationProperties.Name="{Binding Title}" /><ContentControl Grid.Column="1" Loaded="LoadGroupIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center"><TextBlock Text="{Binding Title}" FontWeight="SemiBold" /><TextBlock Text="{Binding Count}" Style="{StaticResource ShouCaption}" /><TextBlock Text="{Binding Notice}" Visibility="{Binding NoticeVisibility}" Style="{StaticResource ShouCaption}" Foreground="{Binding NoticeForeground}" /></StackPanel><StackPanel Grid.Column="3" Spacing="3" VerticalAlignment="Center"><TextBlock Text="{Binding Size}" HorizontalAlignment="Right" /><TextBlock Text="{Binding SelectedSize}" Visibility="{Binding SelectedVisibility}" Style="{StaticResource ShouCaption}" HorizontalAlignment="Right" /></StackPanel></Grid></DataTemplate></Expander.HeaderTemplate>
+                        <ListView ItemsSource="{Binding Items}" SelectionMode="None" ItemContainerStyle="{StaticResource ShouListItem}" Background="Transparent" BorderThickness="0">
+<ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <CheckBox Tag="{Binding Id}" IsChecked="{Binding Selected, Mode=OneWay}" IsEnabled="{Binding Selectable}" Click="ChangeSelection" AutomationProperties.Name="{Binding Path}" AutomationProperties.AutomationId="{Binding Id}" />
+                            <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Path}" TextTrimming="CharacterEllipsis" ToolTipService.ToolTip="{Binding Path}" Style="{StaticResource ShouCaption}" /><TextBlock Text="{Binding RuleName}" Style="{StaticResource ShouCaption}" /><TextBlock Text="{Binding Explanation}" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" /></StackPanel>
+                            <TextBlock Grid.Column="2" Text="{Binding Size}" VerticalAlignment="Center" />
+                        </Grid></DataTemplate></ListView.ItemTemplate>
+                        </ListView>
+                    </Expander></DataTemplate></ListView.ItemTemplate></ListView><StackPanel x:Name="EmptyResults" AutomationProperties.AutomationId="cleanup.empty" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" Margin="30" MaxWidth="360" Visibility="Collapsed"><ContentControl x:Name="EmptyResultIcon" HorizontalAlignment="Center" /><TextBlock x:Name="EmptyResultsTitle" FontWeight="SemiBold" TextAlignment="Center" TextWrapping="Wrap" /><TextBlock x:Name="EmptyResultsDescription" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap" /></StackPanel></Grid></Border>
+                </Grid>
             </Grid>
-            <Button x:Name="ReadExecutionButton" Click="ReadExecution" />
-            <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
-                <TextBlock x:Name="ExecutionDetails" TextWrapping="Wrap" IsTextSelectionEnabled="True" AutomationProperties.LiveSetting="Polite" />
+            <StackPanel Grid.Row="3" x:Name="ReviewActions" Spacing="8" Padding="20,12" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,1,0,0" Background="{ThemeResource ShouTitlebarBrush}">
+                <Grid ColumnSpacing="16"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <StackPanel Spacing="3"><TextBlock x:Name="SelectedCount" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" /><StackPanel Orientation="Horizontal" Spacing="6"><TextBlock x:Name="EstimatedHeading" FontWeight="SemiBold" FontSize="{StaticResource ShouCleanupSelectionFontSize}" VerticalAlignment="Center" /><TextBlock x:Name="EstimatedBytes" FontWeight="SemiBold" FontSize="{StaticResource ShouCleanupSelectionFontSize}" VerticalAlignment="Center" /></StackPanel></StackPanel>
+                    <Button Grid.Column="1" x:Name="PreviousButton" Click="PreviousPage" Style="{StaticResource ShouToolbarButton}" VerticalAlignment="Center" /><Button Grid.Column="2" x:Name="NextButton" Click="NextPage" Style="{StaticResource ShouToolbarButton}" VerticalAlignment="Center" />
+                    <Button Grid.Column="3" x:Name="SelectionMenuButton" AutomationProperties.AutomationId="cleanup.selection-menu" Style="{StaticResource ShouBorderedButton}" VerticalAlignment="Center"><Button.Flyout><MenuFlyout>
+                        <MenuFlyoutItem x:Name="RecommendedMenuItem" Click="SelectRecommended" /><MenuFlyoutItem x:Name="ReviewableMenuItem" Click="SelectReviewable" /><MenuFlyoutItem x:Name="AllEligibleMenuItem" Click="SelectAllEligible" /><MenuFlyoutSeparator /><MenuFlyoutItem x:Name="ClearSelectionMenuItem" AutomationProperties.AutomationId="cleanup.clear" Click="ClearSelection" />
+                    </MenuFlyout></Button.Flyout></Button>
+                    <Button Grid.Column="4" x:Name="CleanButton" AutomationProperties.AutomationId="cleanup.execute" Click="ExecuteCleanup" IsEnabled="False" Style="{StaticResource ShouPrimaryButton}" VerticalAlignment="Center" />
+                </Grid>
+                <TextBlock x:Name="UnavailableNotice" Style="{StaticResource ShouCaption}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+        <Grid x:Name="CompletionContent" AutomationProperties.AutomationId="cleanup.result" Visibility="Collapsed" MaxWidth="{StaticResource ShouCompletionMaxWidth}" Padding="{StaticResource ShouCompletionPadding}" HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" VerticalContentAlignment="Center" Padding="0,12,0,28">
+                <StackPanel HorizontalAlignment="Stretch">
+                    <ContentControl x:Name="CompletionIcon" HorizontalAlignment="Center" />
+                    <TextBlock x:Name="CompletionTitle" AutomationProperties.AutomationId="cleanup.result.title" AutomationProperties.HeadingLevel="Level1" AutomationProperties.LiveSetting="Polite" FontSize="{StaticResource ShouCompletionTitleSize}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap" Margin="0,18,0,0" />
+                    <TextBlock x:Name="CompletionDate" Style="{StaticResource ShouCaption}" HorizontalAlignment="Center" Margin="0,5,0,0" />
+                    <TextBlock x:Name="CompletionBytes" AutomationProperties.AutomationId="cleanup.result.bytes" FontSize="{StaticResource ShouCompletionFigureSize}" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,28,0,0" />
+                    <TextBlock x:Name="CompletionDescription" AutomationProperties.AutomationId="cleanup.result.description" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0" />
+                    <Grid x:Name="CompletionMetrics" MaxWidth="{StaticResource ShouCompletionMetricsWidth}" ColumnSpacing="10" Margin="0,22,0,0" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <Border Style="{StaticResource ShouCompletionMetric}"><StackPanel Spacing="4" VerticalAlignment="Center"><TextBlock x:Name="CompletionRemoved" Style="{StaticResource ShouCompletionMetricValue}" Foreground="{ThemeResource SystemFillColorSuccessBrush}" /><TextBlock x:Name="CompletionRemovedLabel" Style="{StaticResource ShouCompletionMetricLabel}" /></StackPanel></Border>
+                        <Border Grid.Column="1" Style="{StaticResource ShouCompletionMetric}"><StackPanel Spacing="4" VerticalAlignment="Center"><TextBlock x:Name="CompletionSkipped" Style="{StaticResource ShouCompletionMetricValue}" /><TextBlock x:Name="CompletionSkippedLabel" Style="{StaticResource ShouCompletionMetricLabel}" /></StackPanel></Border>
+                        <Border Grid.Column="2" Style="{StaticResource ShouCompletionMetric}"><StackPanel Spacing="4" VerticalAlignment="Center"><TextBlock x:Name="CompletionFailed" Style="{StaticResource ShouCompletionMetricValue}" /><TextBlock x:Name="CompletionFailedLabel" Style="{StaticResource ShouCompletionMetricLabel}" /></StackPanel></Border>
+                        <Border Grid.Column="3" Style="{StaticResource ShouCompletionMetric}"><StackPanel Spacing="4" VerticalAlignment="Center"><TextBlock x:Name="CompletionUnverified" Style="{StaticResource ShouCompletionMetricValue}" /><TextBlock x:Name="CompletionUnverifiedLabel" Style="{StaticResource ShouCompletionMetricLabel}" /></StackPanel></Border>
+                    </Grid>
+                    <HyperlinkButton x:Name="CompletionDetailsButton" AutomationProperties.AutomationId="cleanup.result.details" Click="ShowCompletionDetails" Style="{StaticResource ShouLinkButton}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                    <Border x:Name="CompletionDetails" Style="{StaticResource ShouCard}" Margin="0,12,0,0" Visibility="Collapsed" Padding="10">
+                        <ScrollViewer MaxHeight="{StaticResource ShouCompletionDetailsHeight}"><StackPanel Spacing="10">
+                            <TextBlock x:Name="ExecutionDetails" AutomationProperties.AutomationId="cleanup.execution" TextWrapping="Wrap" IsTextSelectionEnabled="True" Style="{StaticResource ShouCaption}" />
+                            <Button x:Name="ReadExecutionButton" AutomationProperties.AutomationId="cleanup.read" Click="ReadExecution" Style="{StaticResource ShouBorderedButton}" HorizontalAlignment="Left" />
+                        </StackPanel></ScrollViewer>
+                    </Border>
+                </StackPanel>
             </ScrollViewer>
-        </StackPanel>
-        <StackPanel x:Name="ExecutionActivity" Grid.Row="1" Grid.RowSpan="4" Visibility="Collapsed"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouSectionSpacing}">
-            <ProgressRing x:Name="ExecutionMotion" IsActive="False" HorizontalAlignment="Center" />
-            <TextBlock x:Name="ExecutionTitle" Style="{StaticResource SubtitleTextBlockStyle}" HorizontalAlignment="Center" AutomationProperties.LiveSetting="Polite" />
-            <TextBlock x:Name="ExecutionPercentage" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" />
-            <ProgressBar x:Name="ExecutionMeter" Minimum="0" Maximum="100" IsIndeterminate="True" HorizontalAlignment="Stretch" />
-            <TextBlock x:Name="ExecutionPath" FontFamily="Consolas" MaxLines="1" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-            <Button x:Name="ExecutionStop" Click="CancelOperation" HorizontalAlignment="Center" />
-        </StackPanel>
+            <Grid Grid.Row="1" ColumnSpacing="10"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <Button x:Name="CompletionScanButton" AutomationProperties.AutomationId="cleanup.result.scan-again" Click="ScanAfterCompletion" Style="{StaticResource ShouPrimaryButton}" />
+                <Button Grid.Column="1" x:Name="CompletionHistoryButton" AutomationProperties.AutomationId="cleanup.result.history" Click="ShowCompletionHistory" Style="{StaticResource ShouBorderedButton}" />
+                <Button Grid.Column="3" x:Name="CompletionBackButton" AutomationProperties.AutomationId="cleanup.result.close" Click="CloseCompletion" Style="{StaticResource ShouBorderedButton}" />
+            </Grid>
+        </Grid>
+        <local:OperationProgressView x:Name="ExecutionActivity" StopAutomationId="cleanup.stop" StopClicked="CancelOperation" />
+        <Button x:Name="CancelButton" Visibility="Collapsed" /><ProgressBar x:Name="Progress" Visibility="Collapsed" />
     </Grid>
 </UserControl>

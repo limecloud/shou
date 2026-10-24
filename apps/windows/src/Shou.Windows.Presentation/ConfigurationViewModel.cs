@@ -68,6 +68,7 @@ public sealed class ConfigurationViewModel(IConfigurationOperations operations, 
 
     public async Task LoadAsync()
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.configuration.load");
         EnsureIdle();
         State = ConfigurationPageState.Loading;
         ErrorCode = null;
@@ -90,10 +91,12 @@ public sealed class ConfigurationViewModel(IConfigurationOperations operations, 
         }
         catch (Exception error) when (Expected(error))
         {
+            diagnostic.Fail(error);
             if (!disposed) { Clear(); ErrorCode = Code(error); State = ConfigurationPageState.Failed; }
         }
         finally
         {
+            diagnostic.Complete(State.ToString().ToLowerInvariant());
             if (!disposed) { read = null; NotifyAll(); }
         }
     }
@@ -189,6 +192,7 @@ public sealed class ConfigurationViewModel(IConfigurationOperations operations, 
 
     private async Task SaveAsync(Func<Task<Action<Configuration>?>> save)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.configuration.save");
         EnsureIdle();
         if (!CanEdit) throw Invalid();
         State = ConfigurationPageState.Saving;
@@ -201,7 +205,7 @@ public sealed class ConfigurationViewModel(IConfigurationOperations operations, 
         var completed = false;
         try { after = await save(); completed = true; }
         catch (Exception error) when (Expected(error) || error is OperationCanceledException)
-        { if (!disposed) ErrorCode = Code(error); }
+        { diagnostic.Fail(error, "save"); if (!disposed) ErrorCode = Code(error); }
         finally
         {
             try
@@ -210,12 +214,13 @@ public sealed class ConfigurationViewModel(IConfigurationOperations operations, 
                 if (!disposed) { Apply(value); after?.Invoke(value); }
             }
             catch (Exception error) when (Expected(error) || error is OperationCanceledException)
-            { if (!disposed) { Clear(); RefreshErrorCode = Code(error); } }
+            { diagnostic.Fail(error, "read_after_save"); if (!disposed) { Clear(); RefreshErrorCode = Code(error); } }
             if (!disposed)
             {
                 State = completed && ErrorCode is null && RefreshErrorCode is null ? ConfigurationPageState.Ready : ConfigurationPageState.Failed;
                 NotifyAll();
             }
+            diagnostic.Complete(State.ToString().ToLowerInvariant());
         }
     }
 

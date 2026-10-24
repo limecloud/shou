@@ -24,7 +24,7 @@ struct SettingsView: View {
                     row("Interface language", "Choose the language used in Shou.", icon: "character.bubble") {
                         LanguagePicker(model: model).labelsHidden().frame(width: 200)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Appearance", "Use light, dark, or your system appearance.", icon: "circle.lefthalf.filled") {
                         Picker(model.t("Appearance"), selection: $appearance) {
                             Text(model.t("Follow System")).tag("system")
@@ -32,7 +32,7 @@ struct SettingsView: View {
                             Text(model.t("Dark")).tag("dark")
                         }.labelsHidden().frame(width: 200)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Reduce Motion", "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion.", icon: "pause.circle") {
                         Toggle(model.t("Reduce Motion"), isOn: $model.reduceMotion)
                             .labelsHidden().toggleStyle(.switch)
@@ -44,7 +44,7 @@ struct SettingsView: View {
                     row("Automatic update checks", "Get notified when a new version is available.", icon: "arrow.triangle.2.circlepath") {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.11.0"), "Updates are verified before installation.", icon: "shippingbox") {
                         Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
@@ -54,21 +54,21 @@ struct SettingsView: View {
                     row("Scan Locations", "App caches and developer projects are discovered automatically. Extra folders are remembered.", icon: "folder.badge.magnifyingglass") {
                         Button(model.t("View…")) { scanLocations=true }.disabled(model.busy)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Exclusions", "Keep chosen files and projects out of cleanup.", icon: "hand.raised") {
                         Button(model.t("Manage…")) { model.showingExclusions=true }.disabled(model.busy)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Full Disk Access", model.scanAccess.statusTitle, icon: "internaldrive") {
                         Button { model.scanAccess.showingSetup=true } label: {
                             Label(model.t("Setup Guide…"), systemImage: "list.bullet.rectangle")
                         }.disabled(model.busy)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Installation and CLI", "Review app installation, disk permissions, and the optional terminal command.", icon: "shippingbox") {
                         Button(model.t("Setup Guide…")) { model.scanAccess.showingSetup=true }.disabled(model.busy)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Local data", "Rules and cleanup history stay on this Mac.", icon: "externaldrive") {
                         RecordMaintenanceButton(model: model)
                         Button(model.t("Open Folder…")) { NSWorkspace.shared.open(LocalRecordStore.defaultDirectory) }
@@ -79,14 +79,14 @@ struct SettingsView: View {
                     row("Report an Issue", "Share a problem or suggest an improvement.", icon: "questionmark.circle") {
                         Link(model.t("Send Feedback…"), destination: URL(string: "https://github.com/limecloud/shou/issues")!)
                     }
-                    Divider().padding(.leading, 58)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Open Source", "Shou is available under the Apache License 2.0.", icon: "chevron.left.forwardslash.chevron.right") {
                         Link(model.t("GitHub"), destination: URL(string: "https://github.com/limecloud/shou")!)
                     }
                 }
                 Text(model.t("Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space."))
                     .font(.caption).foregroundStyle(.secondary)
-            }.padding(20).frame(maxWidth: 1040, alignment: .leading).frame(maxWidth: .infinity)
+            }.padding(ShouDesign.settingsPagePadding).frame(maxWidth: ShouDesign.settingsMaxWidth, alignment: .leading).frame(maxWidth: .infinity)
         }.background(colorScheme == .dark ? Color(nsColor: .windowBackgroundColor) : Color(red: 1, green: 0.976, blue: 0.945))
             .sheet(isPresented: $scanLocations) { ScanLocationsView(model: model) }
     }
@@ -102,13 +102,13 @@ struct SettingsView: View {
 
     private func row<Control: View>(_ title: String, _ subtitle: String, icon: String, @ViewBuilder control: () -> Control) -> some View {
         HStack(spacing: ShouDesign.sectionSpacing) {
-            Image(systemName: icon).font(.system(size: 19, weight: .regular)).foregroundStyle(.secondary).frame(width: 26)
+            Image(systemName: icon).font(.system(size: ShouDesign.settingsIconSize, weight: .regular)).foregroundStyle(.secondary).frame(width: ShouDesign.settingsIconWidth)
             VStack(alignment: .leading, spacing: 5) {
-                Text(model.t(title)).font(.system(size: 13, weight: .semibold))
-                Text(model.t(subtitle)).font(.system(size: 11)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(model.t(title)).font(.system(size: ShouDesign.bodyFontSize, weight: .semibold))
+                Text(model.t(subtitle)).font(.system(size: ShouDesign.settingsSubtitleSize)).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 24)
             control().controlSize(.regular)
-        }.padding(.horizontal, 18).padding(.vertical, 17)
+        }.padding(ShouDesign.settingsRowPadding)
     }
 }

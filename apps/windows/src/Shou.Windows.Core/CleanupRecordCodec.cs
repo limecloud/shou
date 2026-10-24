@@ -45,8 +45,8 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
 
     internal void ValidatePlan(CleanupPlan plan)
     {
-        if (plan.Version != 2 || !RecordKey.IsId(plan.Id, "plan") || plan.Budget is null || plan.Sources.IsDefaultOrEmpty ||
-            plan.Sources.Length > MaximumPlanItems || !RecordKey.IsId(plan.ConfigurationRevision, "config") ||
+        if (plan.Version is not (2 or 3) || !RecordKey.IsId(plan.Id, "plan") || plan.Budget is null || plan.Sources.IsDefaultOrEmpty ||
+            plan.Sources.Length > MaximumPlanItems || !(RecordKey.IsId(plan.ConfigurationRevision, "config") || plan.Version == 3 && plan.ConfigurationRevision == "config_unconfigured") ||
             !RecordJson.IsDigest(plan.ConfigurationDigest) || !RecordJson.IsDigest(plan.Digest) ||
             plan.Items.IsDefaultOrEmpty || plan.Items.Length > MaximumPlanItems || !Enum.IsDefined(plan.Action) ||
             plan.CreatedAt.Offset != TimeSpan.Zero || plan.ExpiresAt.Offset != TimeSpan.Zero || plan.ExpiresAt - plan.CreatedAt != PlanLifetime) throw Corrupt();
@@ -56,7 +56,8 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
         foreach (var source in plan.Sources)
         {
             if (source is null || !RecordKey.IsId(source.ScanId, "scan") || source.Workspace is null || !sources.TryAdd(source.ScanId, source) ||
-                source.Rules.IsDefaultOrEmpty || source.Rules.Length > ConfigurationCodec.MaximumRules || !plan.Items.Any(item => item?.ScanId == source.ScanId)) throw Corrupt();
+                source.Rules.IsDefault || (plan.Version == 2 ? source.Rules.IsEmpty : !source.Rules.IsEmpty || !source.Workspace.RootRef.StartsWith("storage-selection-", StringComparison.Ordinal) || source.Workspace.Path.IsVolumeRoot) ||
+                source.Rules.Length > ConfigurationCodec.MaximumRules || !plan.Items.Any(item => item?.ScanId == source.ScanId)) throw Corrupt();
             foreach (var definition in source.Rules)
             {
                 if (definition is null) throw Corrupt();
@@ -76,7 +77,8 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
             var workspace = source.Workspace;
             if (item is null || !RecordKey.IsId(item.Id, "item") || !RecordKey.IsId(item.CandidateId, "candidate") || !ids.Add(item.Id) || !candidateIds.Add(item.CandidateId) ||
                 item.Path is null || !item.Path.IsWithin(workspace.Path, caseSensitive: true, includeRoot: false) || item.RelativePath != item.Path.RelativeTo(workspace.Path, caseSensitive: true) ||
-                !rules.TryGetValue((item.ScanId, item.RuleId), out var rule) || item.RuleVersion != rule.Version || item.Manifest.IsDefaultOrEmpty || item.Context.IsDefaultOrEmpty ||
+                (plan.Version == 3 ? item.RuleId != "shou.storage-selection" || item.RuleVersion != "1.0.0" :
+                    !rules.TryGetValue((item.ScanId, item.RuleId), out var rule) || item.RuleVersion != rule.Version) || item.Manifest.IsDefaultOrEmpty || item.Context.IsDefaultOrEmpty ||
                 item.Risk is not ("review" or "high") || !RecordJson.IsDigest(item.ManifestDigest)) throw Corrupt();
             totalEntries = checked(totalEntries + item.Manifest.Length);
             if (totalEntries > plan.Budget.MaxEntries) throw Corrupt();
@@ -86,7 +88,7 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
                 RequireEntry(entry, workspace);
                 if (!entry.Path.IsWithin(item.Path, caseSensitive: true) || !entries.TryAdd(entry.Path, entry) || !identities.Add(entry.Identity)) throw Corrupt();
             }
-            if (!entries.TryGetValue(item.Path, out var target) || target.Kind != EntryKind.Directory || item.Manifest[0].Path != item.Path ||
+            if (!entries.TryGetValue(item.Path, out var target) || (plan.Version == 2 && target.Kind != EntryKind.Directory) || item.Manifest[0].Path != item.Path ||
                 !item.Manifest.Select(entry => entry.Path.Value).SequenceEqual(item.Manifest.Select(entry => entry.Path.Value).Order(StringComparer.Ordinal)) ||
                 item.ManifestDigest != RuleClassifier.ManifestDigest(item.Manifest) || item.AllocatedBytes != item.Manifest.Sum(entry => entry.AllocatedBytes) ||
                 item.LogicalBytes != item.Manifest.Sum(entry => entry.LogicalBytes)) throw Corrupt();

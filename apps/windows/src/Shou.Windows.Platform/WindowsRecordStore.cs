@@ -26,7 +26,7 @@ public sealed class WindowsRecordStore : IRecordStore
         OwnerSid = identity.User?.Value ?? throw new ShouException("permission_denied", "The current Windows user is unavailable.");
     }
 
-    private WindowsRecordStore(WindowsPath directory, WindowsPath container) : this(directory) => this.container = container;
+    internal WindowsRecordStore(WindowsPath directory, WindowsPath container) : this(directory) => this.container = container;
 
     public static WindowsRecordStore ForCurrentUser()
     {
@@ -35,6 +35,39 @@ public sealed class WindowsRecordStore : IRecordStore
         var local = WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData));
         var container = local.Append("Shou");
         return new(container.Append("Data"), container);
+    }
+
+    internal static WindowsRecordStore ForDiagnostics()
+    {
+        if (Environment.GetEnvironmentVariable("SHOU_DIAGNOSTICS_DIR") is { } selected)
+            return new(WindowsPath.Parse(selected));
+        var container = WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)).Append("Shou");
+        return new(container.Append("Diagnostics"), container);
+    }
+
+    internal WindowsFileSystem.PinnedPath PinPrivateDirectory()
+    {
+        if (container is not null) EnsureDirectory(container, requirePrivate: false);
+        EnsureDirectory(root, requirePrivate: true);
+        var pinned = WindowsFileSystem.PinPath(root, allowFinalSharedWrites: true);
+        try { RequireDirectory(root, pinned.Final, requirePrivate: true); return pinned; }
+        catch { pinned.Dispose(); throw; }
+    }
+
+    internal SafeFileHandle OpenDiagnosticFile(string name)
+    {
+        if (name is not ("application.jsonl" or "application.jsonl.previous")) throw new ArgumentException("Invalid diagnostic file.", nameof(name));
+        using var security = new PrivateSecurity(OwnerSid);
+        var path = root.Append(name);
+        var handle = NativeMethods.CreateFile(WindowsFileSystem.Extended(path), 0xC0000000 | NativeMethods.ReadControl | NativeMethods.ReadAttributes,
+            NativeMethods.ShareRead, security.Attributes, 4, NativeMethods.OpenReparsePoint | NativeMethods.OpenNoRecall, 0);
+        try
+        {
+            if (handle.IsInvalid) throw WindowsFileSystem.NativeError(Marshal.GetLastPInvokeError());
+            RequireRecord(WindowsFileSystem.ReadEntry(path, handle), handle, 1_048_576);
+            return handle;
+        }
+        catch { handle.Dispose(); throw; }
     }
 
     public ValueTask<byte[]?> ReadAsync(string key, int maximumBytes, CancellationToken cancellationToken) =>
@@ -77,6 +110,18 @@ public sealed class WindowsRecordStore : IRecordStore
     }
 
     private Lease? OpenLease(bool create, CancellationToken cancellationToken)
+    {
+        using var diagnostic = OperationDiagnostics.Start("records.open");
+        try
+        {
+            var lease = OpenLeaseCore(create, cancellationToken);
+            diagnostic.Complete(lease is null ? "missing" : "opened");
+            return lease;
+        }
+        catch (Exception error) { diagnostic.Fail(error, "root_or_lock"); throw; }
+    }
+
+    private Lease? OpenLeaseCore(bool create, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         WindowsFileSystem.PinnedPath pinned;
@@ -121,26 +166,78 @@ public sealed class WindowsRecordStore : IRecordStore
 
     private void EnsureDirectory(WindowsPath directory, bool requirePrivate)
     {
-        using var parent = WindowsFileSystem.PinPath(directory.Parent!);
-        var parentEntry = WindowsFileSystem.ReadEntry(directory.Parent!, parent.Final);
-        if (parentEntry.Kind != EntryKind.Directory || parentEntry.Identity.OwnerSid != OwnerSid)
-            throw new ShouException("permission_denied", "The application data parent must be owned by the current user.");
-        using var security = new PrivateSecurity(OwnerSid);
-        if (!NativeMethods.CreateDirectory(WindowsFileSystem.Extended(directory), security.Attributes))
+        using var diagnostic = OperationDiagnostics.Start("records.ensure_directory");
+        var stage = "parent_pin";
+        try
         {
-            var error = Marshal.GetLastPInvokeError();
-            if (error != 183) throw WindowsFileSystem.NativeError(error);
+            using var parent = WindowsFileSystem.PinPath(directory.Parent!);
+            var parentEntry = WindowsFileSystem.ReadEntry(directory.Parent!, parent.Final);
+            stage = "parent_security";
+            diagnostic.Step(stage, directory.Parent, OwnerKind(parentEntry.Identity.OwnerSid));
+            if (container is not null) RequireTrustedContainer(parentEntry, parent.Final);
+            else if (parentEntry.Kind != EntryKind.Directory || parentEntry.Identity.OwnerSid != OwnerSid)
+                throw new ShouException("permission_denied", "The application data parent must be owned by the current user.");
+            stage = "directory_create";
+            using var security = new PrivateSecurity(OwnerSid);
+            if (!NativeMethods.CreateDirectory(WindowsFileSystem.Extended(directory), security.Attributes))
+            {
+                var error = Marshal.GetLastPInvokeError();
+                if (error != 183) throw WindowsFileSystem.NativeError(error);
+            }
+            stage = "directory_security";
+            using var pinned = WindowsFileSystem.PinPath(directory);
+            RequireDirectory(directory, pinned.Final, requirePrivate);
+            diagnostic.Complete();
         }
-        using var pinned = WindowsFileSystem.PinPath(directory);
-        RequireDirectory(directory, pinned.Final, requirePrivate);
+        catch (Exception error) { diagnostic.Fail(error, stage); throw; }
     }
 
     private void RequireDirectory(WindowsPath path, SafeFileHandle handle, bool requirePrivate)
     {
         var entry = WindowsFileSystem.ReadEntry(path, handle);
+        if (!requirePrivate && container is not null) { RequireTrustedContainer(entry, handle); return; }
         if (entry.Kind != EntryKind.Directory || entry.Identity.OwnerSid != OwnerSid)
             throw new ShouException("permission_denied", "Application records require a directory owned by the current user.");
         if (requirePrivate) RequirePrivateAcl(handle, protectedAcl: true);
+    }
+
+    private string OwnerKind(string sid) => sid == OwnerSid ? "current_user" : sid switch
+    { "S-1-5-18" => "system", "S-1-5-32-544" => "administrators", _ => "other" };
+
+    // A provisioned per-user Known Folder may be owned by SYSTEM/Administrators. Accept only
+    // a pinned, non-reparse ancestor with no other write principals. Never repair its ACL/owner.
+    // The Data/Diagnostics leaf and every file still require current-user ownership and a private ACL.
+    private void RequireTrustedContainer(FileEntry entry, SafeFileHandle handle)
+    {
+        if (entry.Kind != EntryKind.Directory || OwnerKind(entry.Identity.OwnerSid) == "other") throw PrivateAccess();
+        var security = ReadSecurity(handle);
+        if (security.Owner?.Value != entry.Identity.OwnerSid || security.DiscretionaryAcl is not { } acl) throw PrivateAccess();
+        foreach (var item in acl)
+        {
+            if (item is not CommonAce ace) throw PrivateAccess();
+            if (ace.AceQualifier == AceQualifier.AccessDenied) continue;
+            if (ace.AceQualifier != AceQualifier.AccessAllowed) throw PrivateAccess();
+            if (ace.SecurityIdentifier.Value == "S-1-3-0" && (ace.AceFlags & AceFlags.InheritOnly) != 0) continue;
+            const int writeRights = 0x500D0156;
+            // Include inherit-only grants: they can create writable descendants in this ancestor.
+            if ((ace.AccessMask & writeRights) != 0 && OwnerKind(ace.SecurityIdentifier.Value) == "other") throw PrivateAccess();
+        }
+    }
+
+    private static RawSecurityDescriptor ReadSecurity(SafeFileHandle handle)
+    {
+        var result = NativeMethods.GetPrivateSecurityInfo(handle, 1, 5, out _, 0, out _, 0, out var descriptor);
+        if (result != 0) throw WindowsFileSystem.NativeError((int)result);
+        try
+        {
+            var length = NativeMethods.SecurityDescriptorLength(descriptor);
+            if (length is 0 or > 65_536) throw PrivateAccess();
+            var bytes = new byte[length];
+            Marshal.Copy(descriptor, bytes, 0, bytes.Length);
+            return new(bytes, 0);
+        }
+        catch (ArgumentException error) { throw new ShouException("store_corrupt", "The record security descriptor is invalid.", error); }
+        finally { NativeMethods.LocalFree(descriptor); }
     }
 
     private void RequireRecord(FileEntry entry, SafeFileHandle handle, int maximumBytes)
@@ -152,29 +249,18 @@ public sealed class WindowsRecordStore : IRecordStore
 
     private void RequirePrivateAcl(SafeFileHandle handle, bool protectedAcl)
     {
-        var result = NativeMethods.GetPrivateSecurityInfo(handle, 1, 5, out _, 0, out _, 0, out var descriptor);
-        if (result != 0) throw WindowsFileSystem.NativeError((int)result);
-        try
+        var security = ReadSecurity(handle);
+        if (security.Owner?.Value != OwnerSid || security.DiscretionaryAcl is not { } acl ||
+            protectedAcl && (security.ControlFlags & ControlFlags.DiscretionaryAclProtected) == 0) throw PrivateAccess();
+        var ownerAccess = false;
+        foreach (var entry in acl)
         {
-            var length = NativeMethods.SecurityDescriptorLength(descriptor);
-            if (length is 0 or > 65_536) throw PrivateAccess();
-            var bytes = new byte[length];
-            Marshal.Copy(descriptor, bytes, 0, bytes.Length);
-            var security = new RawSecurityDescriptor(bytes, 0);
-            if (security.Owner?.Value != OwnerSid || security.DiscretionaryAcl is not { } acl ||
-                protectedAcl && (security.ControlFlags & ControlFlags.DiscretionaryAclProtected) == 0) throw PrivateAccess();
-            var ownerAccess = false;
-            foreach (var entry in acl)
-            {
-                if (entry is not CommonAce ace || ace.AceQualifier != AceQualifier.AccessAllowed ||
-                    ace.SecurityIdentifier.Value != OwnerSid && ace.SecurityIdentifier.Value != "S-1-5-18" ||
-                    (ace.AceFlags & AceFlags.InheritOnly) != 0 || (ace.AccessMask & 0x001F01FF) != 0x001F01FF) throw PrivateAccess();
-                if (ace.SecurityIdentifier.Value == OwnerSid) ownerAccess = true;
-            }
-            if (!ownerAccess) throw PrivateAccess();
+            if (entry is not CommonAce ace || ace.AceQualifier != AceQualifier.AccessAllowed ||
+                ace.SecurityIdentifier.Value != OwnerSid && ace.SecurityIdentifier.Value != "S-1-5-18" ||
+                (ace.AceFlags & AceFlags.InheritOnly) != 0 || (ace.AccessMask & 0x001F01FF) != 0x001F01FF) throw PrivateAccess();
+            if (ace.SecurityIdentifier.Value == OwnerSid) ownerAccess = true;
         }
-        catch (ArgumentException error) { throw new ShouException("store_corrupt", "The record security descriptor is invalid.", error); }
-        finally { NativeMethods.LocalFree(descriptor); }
+        if (!ownerAccess) throw PrivateAccess();
     }
 
     private sealed class Lease(WindowsRecordStore store, WindowsFileSystem.PinnedPath pinned, SafeFileHandle mutationLock,

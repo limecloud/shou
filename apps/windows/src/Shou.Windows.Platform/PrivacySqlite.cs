@@ -45,6 +45,14 @@ internal sealed class PrivacySqlite : IDisposable
         if (Native.Exec(database, sql, 0, 0, 0) != 0) throw Failure();
         Check();
     }
+    // A cancelled query must still release its transaction before returning. No caller SQL is accepted.
+    internal bool Rollback()
+    {
+        if (database == 0) return false;
+        Native.ProgressHandler(database, 0, null, 0);
+        try { return Native.Exec(database, "ROLLBACK;", 0, 0, 0) == 0; }
+        finally { Native.ProgressHandler(database, 1000, callback, 0); }
+    }
 
     internal List<object?[]> Query(string sql, params object[] arguments)
     {

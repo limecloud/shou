@@ -8,18 +8,30 @@ using Shou.Windows.Presentation;
 
 namespace Shou.Windows.App;
 
-public sealed partial class HistoryPage : UserControl, IDisposable
+public sealed partial class HistoryPage : UserControl, IPageChrome, IDisposable
 {
+    protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() =>
+        new Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer(this);
+
+    public FrameworkElement Toolbar => PageChrome.Detach(PageToolbar, PageLayout);
+    private bool inspectorClosed;
     private readonly TextCatalog text = new();
     private readonly CleanupHistoryViewModel model;
     private bool disposed;
     private Task? initialLoad;
+    private readonly InlineDetails inlineDetails;
+    private Expander? requestedDetail;
 
     public HistoryPage(ICleanupHistoryOperations operations)
     {
         InitializeComponent();
+        inlineDetails = new(Inspector, PageLayout);
         model = new(operations);
         PageTitle.Text = text.Get("History");
+        EmptyTitle.Text = text.Get("No cleanup history yet.");
+        EmptyDescription.Text = text.Get("Completed operations and their recorded results will appear here.");
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(InfoButton, text.Get("Information"));
+        Microsoft.UI.Xaml.Automation.AutomationProperties.SetName(CloseInspectorButton, text.Get("Close Details"));
         Description.Text = text.Get("History observations do not change completed operations or retry unfinished work.");
         RefreshButton.Content = text.Get("Refresh");
         NextButton.Content = text.Get("Next");
@@ -31,17 +43,25 @@ public sealed partial class HistoryPage : UserControl, IDisposable
     }
 
     public Task EnsureLoadedAsync() => initialLoad ??= model.RefreshAsync();
+    public void InvalidateHistory() => initialLoad = null;
     private void Changed(object? sender, PropertyChangedEventArgs args) => Render();
 
     private void Render()
     {
         if (disposed) return;
+        PageDiagnostics.Update(this, "history", model.State, model.ErrorCode);
         RefreshButton.IsEnabled = !model.IsBusy;
         NextButton.IsEnabled = !model.IsBusy && model.HasNext;
         InspectButton.IsEnabled = model.CanInspect;
         CancelButton.IsEnabled = model.IsBusy && !model.StopRequested;
         HistoryList.IsEnabled = !model.IsBusy;
         Progress.Visibility = model.IsBusy ? Visibility.Visible : Visibility.Collapsed;
+        Progress.IsIndeterminate = model.IsBusy && AppearanceSettings.AnimationsEnabled;
+        CancelButton.Visibility = model.IsBusy ? Visibility.Visible : Visibility.Collapsed;
+        NextButton.Visibility = model.HasNext ? Visibility.Visible : Visibility.Collapsed;
+        EmptyContent.Visibility = !model.IsBusy && model.Page?.Entries.IsEmpty == true ? Visibility.Visible : Visibility.Collapsed;
+        var inspect = model.Detail is not null && !inspectorClosed;
+        if (!inspect) inlineDetails.Hide();
         CoverageNotice.IsOpen = model.State == CleanupHistoryState.Partial;
         Status.Text = model.ErrorCode is { } error ? ReviewText.Error(text, error) : model.StopRequested ? text.Get("Stopping…") : model.State switch
         {
@@ -52,12 +72,16 @@ public sealed partial class HistoryPage : UserControl, IDisposable
             _ => ""
         };
         var selectedId = model.Detail?.Execution.Id;
-        HistoryList.ItemsSource = model.Page?.Entries.Select(row => new CleanupHistoryDisplay(row.ExecutionId,
+        var displays = model.Page?.Entries.Select(row => new CleanupHistoryDisplay(row.ExecutionId,
             row.StartedAt.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo(text.Locale)),
             text.Get(row.Action == CleanupAction.Permanent ? "Permanent cleanup" : "Move to Recycle Bin"),
             text.Get("Recorded result") + ": " + ReviewText.ExecutionState(text, row.RecordedState) +
                 (row.Unfinished || row.NeedsVerification ? " · " + text.Get("Needs Verification") : ""),
-            text.Format("%lld of %lld items completed", row.CompletedItems, row.ItemCount))).ToArray();
+            text.Format("%lld of %lld items completed", row.CompletedItems, row.ItemCount),
+            text.Get("Details"))).ToArray();
+        if (HistoryList.ItemsSource is not CleanupHistoryDisplay[] previous || displays is null ||
+            !previous.Select(value => value.AccessibleName).SequenceEqual(displays.Select(value => value.AccessibleName)))
+        { inlineDetails.Hide(); HistoryList.ItemsSource = displays; }
         if (selectedId is not null && HistoryList.ItemsSource is CleanupHistoryDisplay[] rows)
             HistoryList.SelectedItem = rows.FirstOrDefault(row => row.ExecutionId == selectedId);
         RenderDetails();
@@ -103,9 +127,24 @@ public sealed partial class HistoryPage : UserControl, IDisposable
     private void CancelOperation(object sender, RoutedEventArgs args) => model.Cancel();
     private async void OpenExecution(object sender, ItemClickEventArgs args)
     {
-        if (args.ClickedItem is CleanupHistoryDisplay row) await GuardAsync(() => model.ShowAsync(row.ExecutionId));
+        if (args.ClickedItem is CleanupHistoryDisplay row) { inspectorClosed = false; await GuardAsync(() => model.ShowAsync(row.ExecutionId)); }
     }
 
+    private void CloseInspector(object sender, RoutedEventArgs args) { inspectorClosed = true; inlineDetails.Hide(); Render(); }
+    private async void ExpandExecution(Expander sender, ExpanderExpandingEventArgs args)
+    {
+        if (model.IsBusy || sender.Tag is not CleanupHistoryDisplay row) { sender.IsExpanded = false; return; }
+        requestedDetail = sender;
+        inspectorClosed = false;
+        await GuardAsync(() => model.ShowAsync(row.ExecutionId));
+        if (!disposed && !inspectorClosed && ReferenceEquals(requestedDetail, sender) && sender.IsExpanded) inlineDetails.Show(sender);
+    }
+    private void CollapseExecution(Expander sender, ExpanderCollapsedEventArgs args)
+    {
+        if (!ReferenceEquals(requestedDetail, sender)) return;
+        requestedDetail = null; inspectorClosed = true; inlineDetails.Hide();
+    }
+    private void LoadRowIcon(object sender, RoutedEventArgs args) { if (sender is ContentControl host) host.Content = ProductIcon.Create("history", 20); }
     private async Task GuardAsync(Func<Task> run)
     {
         try { await run(); }
@@ -127,12 +166,14 @@ public sealed partial class HistoryPage : UserControl, IDisposable
 }
 
 [Microsoft.UI.Xaml.Data.Bindable]
-public sealed class CleanupHistoryDisplay(string executionId, string started, string action, string state, string count)
+public sealed class CleanupHistoryDisplay(string executionId, string started, string action, string state, string count, string details)
 {
     public string ExecutionId { get; } = executionId;
     public string Started { get; } = started;
     public string Action { get; } = action;
     public string State { get; } = state;
     public string Count { get; } = count;
+    public string Details { get; } = details;
+    public string Meta => Started + " · " + State;
     public string AccessibleName => Started + " · " + Action + " · " + State + " · " + Count;
 }

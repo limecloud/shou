@@ -9,6 +9,7 @@
 - [平台边界](docs/zh-CN/architecture/monorepo-and-platforms.md)
 - [清理安全](docs/zh-CN/security/cleanup-safety.md)
 - Windows 工作另读[原生实施方案](docs/zh-CN/engineering/windows-native-plan.md)与 [SYNC.md](SYNC.md)。
+- 远程 Windows 验收与云电脑费用管理使用仓库技能 [shou-windows-cloud-test](.agents/skills/shou-windows-cloud-test/SKILL.md)；本地开发期间保持云电脑关机，准备好后集中开机验收。
 
 ## Implementation boundaries
 

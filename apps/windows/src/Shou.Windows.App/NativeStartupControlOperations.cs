@@ -11,7 +11,7 @@ internal sealed class NativeStartupControlOperations : IStartupControlOperations
         WindowsStartupControlInspector.CreateReviewer().InspectAsync(taskPath, action, token);
     public Task<StartupControlExecution> ExecuteAsync(StartupControlReview review, IStartupControlConfirmation confirmation, CancellationToken token)
     {
-        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Startup changes await native Windows acceptance.");
+        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Startup changes require a matching native Windows 11 process.");
         return Service().ExecuteAsync(review, confirmation, token);
     }
     public Task<StartupControlExecution> ReadAsync(string operationId, CancellationToken token) => Service().ShowAsync(operationId, token);

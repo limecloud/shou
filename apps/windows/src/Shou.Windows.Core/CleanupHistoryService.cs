@@ -138,6 +138,7 @@ public sealed class CleanupHistoryService(IRecordStore store, RuleSchemaValidato
             var root = await fileSystem.InspectAsync(path, token);
             var expected = item.Manifest[0] with { Path = path };
             if (root != expected) return new(path, HistoryLocationState.Changed, true, count, "identity_or_metadata_changed");
+            if (root.Kind == EntryKind.File) return new(path, HistoryLocationState.Matches, true, count);
             var remaining = budget.Duration - clock.GetElapsedTime(started);
             if (remaining <= TimeSpan.Zero) return new(path, HistoryLocationState.Unavailable, false, count, "time_limit");
             if (entriesLeft <= count) return new(path, HistoryLocationState.Unavailable, false, count, "entry_limit");

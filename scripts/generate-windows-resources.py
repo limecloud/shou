@@ -5,6 +5,7 @@ import argparse
 import hashlib
 import json
 import re
+import struct
 import xml.etree.ElementTree as ET
 import design_tokens
 
@@ -45,6 +46,10 @@ def resources():
         'scripts/generate-windows-resources.py',
         'packages/shou-core/Sources/Resources/project-locations.json',
         'scripts/design_tokens.py',
+        'assets/brand/Shou.iconset/icon_16x16.png',
+        'assets/brand/Shou.iconset/icon_32x32.png',
+        'assets/brand/Shou.iconset/icon_128x128.png',
+        'assets/brand/Shou.iconset/icon_256x256.png',
     ]
     strings = json.loads((ROOT / inputs[0]).read_text(encoding='utf-8'))['strings']
     for source in (ROOT / 'apps/windows/src').rglob('*.cs'):
@@ -86,6 +91,14 @@ def resources():
     outputs['rule.schema.json'] = (ROOT / inputs[3]).read_bytes()
 
     outputs['Design.xaml'] = design_tokens.xaml(design_tokens.load())
+    # ICO embeds the canonical PNG bytes, preserving the macOS brand artwork.
+    icons = [(size, (ROOT / f'assets/brand/Shou.iconset/icon_{size}x{size}.png').read_bytes()) for size in (16, 32, 128, 256)]
+    offset = 6 + 16 * len(icons)
+    directory = bytearray(struct.pack('<HHH', 0, 1, len(icons)))
+    for size, data in icons:
+        directory.extend(struct.pack('<BBBBHHII', size % 256, size % 256, 0, 0, 1, 32, len(data), offset))
+        offset += len(data)
+    outputs['Shou.ico'] = bytes(directory) + b''.join(data for _, data in icons)
     outputs['MANIFEST.json'] = json_bytes({
         'generator_version': 1,
         'sources': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in inputs},

@@ -34,7 +34,7 @@ struct OperationProgressView: View {
     let onStop: () -> Void
     var body: some View {
         GeometryReader { geometry in
-            content(compact: geometry.size.height < 490)
+            content(compact: geometry.size.height < ShouDesign.operationCompactThreshold)
         }
         .onAppear { AccessibilityNotification.Announcement(title).post() }
         .onChange(of: stopRequested) { _, stopping in
@@ -46,32 +46,35 @@ struct OperationProgressView: View {
         VStack(spacing: 0) {
             Spacer(minLength: compact ? 8 : 16)
             OperationActivityArtwork(symbol: symbol, stopped: stopRequested)
-                .scaleEffect(compact ? 0.7 : 1)
-                .frame(width: ShouDesign.cleanupArtworkWidth, height: compact ? 138 : ShouDesign.cleanupArtworkHeight)
-                .padding(.bottom, compact ? 8 : 20)
+                .scaleEffect(compact ? ShouDesign.operationCompactArtworkScale : 1)
+                .frame(width: ShouDesign.cleanupArtworkWidth, height: compact ? ShouDesign.operationCompactArtworkHeight : ShouDesign.cleanupArtworkHeight)
+                .padding(.bottom, compact ? ShouDesign.operationCompactArtworkBottom : ShouDesign.operationArtworkBottom)
             Text(stopRequested ? stoppingLabel : title)
-                .font(.system(size: compact ? 20 : 23, weight: .semibold)).multilineTextAlignment(.center)
+                .font(.system(size: compact ? ShouDesign.operationCompactTitleSize : ShouDesign.operationTitleSize, weight: .semibold)).multilineTextAlignment(.center)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("operation.title")
             OperationProgressMeter(fraction: fraction, label: title, compact: compact)
-                .padding(.top, compact ? 16 : 24)
+                .padding(.top, compact ? ShouDesign.operationCompactMeterTop : ShouDesign.operationMeterTop)
             Text(currentPath.isEmpty ? " " : ProgressPresentation.singleLinePath(currentPath))
                 .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
                 .lineLimit(1).truncationMode(.middle).help(currentPath)
                 .frame(maxWidth: ShouDesign.cleanupPathMaxWidth)
-                .frame(height: compact ? 18 : 22).padding(.top, compact ? 8 : 12)
+                .frame(height: compact ? ShouDesign.operationCompactPathHeight : ShouDesign.operationPathHeight)
+                .padding(.top, compact ? ShouDesign.operationCompactPathTop : ShouDesign.operationPathTop)
                 .accessibilityValue(currentPath)
                 .accessibilityIdentifier("operation.current-path")
                 .transaction { $0.animation=nil }
             Button(action: onStop) {
-                Text(stopRequested ? stoppingLabel : stopLabel).frame(minWidth: 140)
+                Text(stopRequested ? stoppingLabel : stopLabel).frame(minWidth: ShouDesign.operationStopTextWidth)
             }
                 .buttonStyle(.bordered).controlSize(.large).keyboardShortcut(".", modifiers: .command)
-                .disabled(stopRequested).padding(.top, compact ? 16 : 25)
+                .disabled(stopRequested).padding(.top, compact ? ShouDesign.operationCompactStopTop : ShouDesign.operationStopTop)
                 .accessibilityIdentifier("operation.stop")
             Spacer(minLength: compact ? 8 : 16)
         }
-        .frame(maxWidth: 520).padding(.horizontal, compact ? 24 : 36).padding(.vertical, compact ? 10 : 20)
+        .frame(maxWidth: ShouDesign.operationContentWidth)
+        .padding(.horizontal, compact ? ShouDesign.operationCompactHorizontalPadding : ShouDesign.operationHorizontalPadding)
+        .padding(.vertical, compact ? ShouDesign.operationCompactVerticalPadding : ShouDesign.operationVerticalPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
@@ -84,17 +87,17 @@ struct OperationProgressMeter: View {
     private var value: Double? { fraction.map { min(1, max(0, $0)) } }
 
     var body: some View {
-        VStack(spacing: compact ? 7 : 12) {
+        VStack(spacing: compact ? ShouDesign.operationCompactMeterSpacing : ShouDesign.operationMeterSpacing) {
             if let value {
                 Text(value, format: .percent.precision(.fractionLength(0)))
-                    .font(.system(size: compact ? 17 : 42, weight: .semibold, design: .rounded))
+                    .font(.system(size: compact ? ShouDesign.operationCompactPercentageSize : ShouDesign.operationPercentageSize, weight: .semibold, design: .rounded))
                     .monospacedDigit().contentTransition(.identity)
                     .transaction { $0.animation=nil }
                     .accessibilityIdentifier("operation.percentage")
             }
             Group {
                 if let value { ProgressView(value: value, total: 1) }
-                else if reduceMotion { Capsule().fill(.quaternary).frame(height: 6) }
+                else if reduceMotion { Capsule().fill(.quaternary).frame(height: ShouDesign.operationMeterHeight) }
                 else { ProgressView().progressViewStyle(.linear) }
             }
             .progressViewStyle(.linear).controlSize(compact ? .regular : .large)

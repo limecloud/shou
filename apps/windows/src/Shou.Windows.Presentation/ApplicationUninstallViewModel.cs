@@ -52,6 +52,7 @@ public sealed class ApplicationUninstallViewModel(IApplicationUninstallOperation
 
     private async Task RunAsync(Func<CancellationToken, Task<(ApplicationUninstallReview Review, ApplicationUninstallPlan? Plan)>> action, bool planning)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.application.review");
         ObjectDisposedException.ThrowIf(disposed, this);
         RequireNotExecuting();
         var currentGeneration = ++generation;
@@ -82,6 +83,7 @@ public sealed class ApplicationUninstallViewModel(IApplicationUninstallOperation
         }
         catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
         {
+            diagnostic.Fail(error);
             if (disposed || generation != currentGeneration) return;
             State = ApplicationUninstallPageState.Failed;
             ErrorCode = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error";
@@ -89,6 +91,7 @@ public sealed class ApplicationUninstallViewModel(IApplicationUninstallOperation
         }
         finally
         {
+            diagnostic.Complete(disposed || currentGeneration != generation ? "superseded" : State.ToString().ToLowerInvariant());
             if (!disposed && generation == currentGeneration) { operation = null; Notify(); }
         }
     }
@@ -97,7 +100,7 @@ public sealed class ApplicationUninstallViewModel(IApplicationUninstallOperation
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         ArgumentNullException.ThrowIfNull(confirmation);
-        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "System uninstall awaits native Windows acceptance.");
+        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "System uninstall requires a matching native Windows 11 process.");
         if (!CanExecute || Plan is not { } plan) throw new ShouException("plan_stale", "Prepare and confirm a current uninstall plan.");
         return RunExecutionAsync(plan, confirmation);
     }
@@ -111,6 +114,7 @@ public sealed class ApplicationUninstallViewModel(IApplicationUninstallOperation
 
     private async Task RunExecutionAsync(ApplicationUninstallPlan expected, IApplicationUninstallConfirmation? confirmation)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.application.execute");
         var reading = confirmation is null;
         var currentGeneration = ++generation;
         operation?.Cancel();
@@ -144,12 +148,14 @@ public sealed class ApplicationUninstallViewModel(IApplicationUninstallOperation
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
+            diagnostic.Fail(error);
             if (disposed || generation != currentGeneration) return;
             State = ApplicationUninstallPageState.Failed;
             ErrorCode = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : error is IOException ? "io_error" : "internal_error";
         }
         finally
         {
+            diagnostic.Complete(disposed || currentGeneration != generation ? "superseded" : State.ToString().ToLowerInvariant());
             if (!disposed && generation == currentGeneration) { operation = null; Notify(); }
         }
     }

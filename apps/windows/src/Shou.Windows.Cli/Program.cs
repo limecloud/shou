@@ -8,11 +8,23 @@ namespace Shou.Windows.Cli;
 internal static class Program
 {
     private static readonly string Version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "development";
-    private static bool HostSupported => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) && Environment.Is64BitProcess;
+    private static bool HostSupported => NativeWindowsSupport.IsSupported;
 
     private static async Task<int> Main(string[] args)
     {
-        var requestId = "request_" + Guid.NewGuid().ToString("N");
+        if (HostSupported) NativeDiagnostics.Initialize();
+        using var diagnostic = OperationDiagnostics.Start("cli.request");
+        try
+        {
+            var exit = await ExecuteAsync(args, "request_" + diagnostic.Id);
+            diagnostic.Complete(exit switch { 0 => "success", 6 => "partial", 130 => "cancelled", _ => "error" }, count: exit);
+            return exit;
+        }
+        catch (Exception error) { diagnostic.Fail(error); throw; }
+    }
+
+    private static async Task<int> ExecuteAsync(string[] args, string requestId)
+    {
         using var cancelled = new CancellationTokenSource();
         Console.CancelKeyPress += (_, eventArgs) => { eventArgs.Cancel = true; cancelled.Cancel(); };
         try
@@ -37,6 +49,8 @@ internal static class Program
             }
             var request = CommandDiscovery.Parse(arguments);
             request.Validate();
+            using (var commandDiagnostic = OperationDiagnostics.Start("cli.command"))
+            { commandDiagnostic.Step(request.Command.Replace(' ', '.')); commandDiagnostic.Complete("validated"); }
             if (request.Command == "capabilities")
                 return Write(requestId, new
                 {
@@ -58,7 +72,7 @@ internal static class Program
                         application_activity_entries = ApplicationActivityService.MaximumEntries, application_activity_seconds = ApplicationActivityService.Duration.TotalSeconds,
                         application_activity_depth = ApplicationActivityService.MaximumDepth, application_executable_names = ApplicationActivityService.MaximumExecutableNames,
                         history_list_bytes = CleanupHistoryService.MaximumListBytes, history_list_seconds = CleanupHistoryService.ListDuration.TotalSeconds },
-                    limitations = new[] { "Local NTFS/ReFS only", "Native acceptance pending", "Target mutation commands unavailable", "Rule previews do not grant execution" }
+                    limitations = new[] { "Local NTFS/ReFS only", "Trash and restore are unavailable", "Rule previews do not grant execution" }
                 });
             if (request.Command == "rules schema") return Write(requestId, RuleResources.CreateValidator().ExportSchema());
             if (request.Command == "rules catalog" && request.Optional("workspace") is null)
@@ -104,6 +118,7 @@ internal static class Program
         }
         catch (Exception error) when (error is ShouException or UnauthorizedAccessException or IOException)
         {
+            if (HostSupported) NativeDiagnostics.Write(error);
             var code = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error";
             var message = error is ShouException ? error.Message : "The local operation could not be completed.";
             var exit = code switch

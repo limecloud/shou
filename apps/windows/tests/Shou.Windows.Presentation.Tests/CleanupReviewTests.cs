@@ -93,7 +93,14 @@ public sealed partial class CleanupReviewTests
         using var model = new CleanupReviewViewModel(operations);
         await model.DiscoverAsync();
         Assert.Equal(CleanupReviewState.Failed, model.State); Assert.Equal("io_error", model.ErrorCode);
+        Assert.Equal("prepare_locations", model.ErrorStage);
+        Assert.Matches("^[a-f0-9]{32}$", model.DiagnosticReference!);
         Assert.Single(model.Workspaces); Assert.Null(model.Snapshot); Assert.False(model.CanPreparePlan);
+        var failedReference = model.DiagnosticReference;
+        operations.PrepareOperation = null;
+        await model.DiscoverAsync();
+        Assert.Null(model.ErrorCode); Assert.Null(model.ErrorStage);
+        Assert.NotEqual(failedReference, model.DiagnosticReference);
     }
 
     [Theory]

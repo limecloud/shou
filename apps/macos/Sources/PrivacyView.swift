@@ -14,7 +14,7 @@ struct PrivacyView: View {
             .toolbar { ToolbarItemGroup { header } }
     }
     private var pageContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: ShouDesign.privacySpacing) {
             if session.working {
                 OperationProgressView(title: app.t(app.statusKey), symbol: "hand.raised.fill", currentPath: session.progress?.path ?? "",
                     fraction: session.progress.flatMap { $0.itemCount > 0 ? Double($0.processedCount) / Double($0.itemCount) : nil },
@@ -27,7 +27,7 @@ struct PrivacyView: View {
             historyContent
             coverageFootnote
             }
-        }.padding(16)
+        }.padding(ShouDesign.privacyPagePadding)
     }
     private var deletionNotice: some View {
         Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically."))
@@ -83,7 +83,7 @@ struct PrivacyView: View {
             LazyVStack(spacing: 0) {
                 ForEach(scan.sources) { source in sourceRow(source) }
             }
-        }.background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 10))
+        }.background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: ShouDesign.catalogCardRadius))
     }
     private var cookieConsent: some View {
         Toggle(app.t("I understand that clearing cookies can sign me out of websites."), isOn: $session.allowCookieReview)
@@ -111,7 +111,7 @@ struct PrivacyView: View {
             ForEach(receipt.items) { item in
                 receiptItemRow(item)
             }
-        }.padding().background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 10))
+        }.padding(ShouDesign.privacyPagePadding).background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: ShouDesign.catalogCardRadius))
     }
     private func receiptItemRow(_ item: PrivacyItemResult) -> some View {
         HStack {
@@ -146,18 +146,18 @@ struct PrivacyView: View {
         return fields.joined(separator: " · ")
     }
     private func sourceRow(_ source: PrivacySource) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ShouDesign.privacySpacing) {
             Toggle("", isOn: selectionBinding(source.id))
                 .toggleStyle(.checkbox).labelsHidden().disabled(sourceDisabled(source)).accessibilityIdentifier("privacy.source.\(source.id)")
-            Image(systemName: source.definition.kind == .cookies ? "person.crop.circle.badge.exclamationmark" : "clock.arrow.circlepath").font(.title3).frame(width: 28)
+            Image(systemName: source.definition.kind == .cookies ? "person.crop.circle.badge.exclamationmark" : "clock.arrow.circlepath").font(.title3).frame(width: ShouDesign.privacyIconWidth)
             VStack(alignment: .leading, spacing: 4) {
                 Text(source.definition.browserName + " · " + source.definition.profile).font(.body.weight(.medium))
                 Text(kindTitle(source.definition.kind)).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
             Text(source.recordCount.map { String($0) } ?? "—").monospacedDigit()
-            Text(statusTitle(source.status)).font(.caption).foregroundStyle(source.eligible ? Color.secondary : Color.orange).frame(width: 140, alignment: .trailing)
-        }.padding(14).help(source.reason ?? "").overlay(alignment: .bottom) { Divider() }
+            Text(statusTitle(source.status)).font(.caption).foregroundStyle(source.eligible ? Color.secondary : Color.orange).frame(width: ShouDesign.privacyStatusWidth, alignment: .trailing)
+        }.padding(ShouDesign.privacyRowPadding).help(source.reason ?? "").overlay(alignment: .bottom) { Divider() }
     }
     private func selectionBinding(_ sourceID: String) -> Binding<Bool> {
         Binding(get: { session.selected.contains(sourceID) }, set: { selected in

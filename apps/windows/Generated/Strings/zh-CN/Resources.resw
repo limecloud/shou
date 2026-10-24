@@ -99,6 +99,9 @@
   <data name="s3cb3a1ae7e99a62e03c2156c" xml:space="preserve">
     <value>{0} 次请求 · {1} 个报告 token</value>
   </data>
+  <data name="s9cbe2bacb675df35838fb53e" xml:space="preserve">
+    <value>{0} 条规则</value>
+  </data>
   <data name="s331107e811b4edef4e078554" xml:space="preserve">
     <value>{0} 项</value>
   </data>
@@ -195,6 +198,9 @@
   <data name="sc050ca9926c928f81ba79795" xml:space="preserve">
     <value>AI 调查已关闭，请在设置中开启后再发起新请求。</value>
   </data>
+  <data name="s413c803b67cc57790743c619" xml:space="preserve">
+    <value>此 Windows 预览版尚不支持 AI 调查。</value>
+  </data>
   <data name="s19418a1844dcd1940790df58" xml:space="preserve">
     <value>AI 已关闭，仍可使用本地扫描和清理。</value>
   </data>
@@ -215,6 +221,9 @@
   </data>
   <data name="sc97df3b7d615cf6bc5be6380" xml:space="preserve">
     <value>API 协议</value>
+  </data>
+  <data name="se7cbee14fdd1677475f7101a" xml:space="preserve">
+    <value>关于 Shou</value>
   </data>
   <data name="sd27df137f79b64adebb9526b" xml:space="preserve">
     <value>需要访问权限</value>
@@ -627,6 +636,9 @@
   <data name="s243140d25d70c5b196dcd078" xml:space="preserve">
     <value>自动检查更新</value>
   </data>
+  <data name="s3d6b341f2ae705b962c2d41a" xml:space="preserve">
+    <value>此 Windows 预览版尚不支持自动更新。</value>
+  </data>
   <data name="se674447337e83c1346f6122e" xml:space="preserve">
     <value>可用</value>
   </data>
@@ -681,6 +693,9 @@
   <data name="sa3652e0db877bb4c17f98c59" xml:space="preserve">
     <value>浏览 Run、RunOnce、启动文件夹、开机或登录计划任务，以及打包应用的启动声明。此页面不会更改启动设置。</value>
   </data>
+  <data name="s03bbdf933944fe12283b5b62" xml:space="preserve">
+    <value>查看已注册的应用，不包含便携应用和其他用户的应用。大小来自安装程序估算，并非实际磁盘占用。</value>
+  </data>
   <data name="s635837d677696e057e5a8021" xml:space="preserve">
     <value>查看已注册的应用，不包含便携应用和其他用户的应用。大小来自安装程序估算，并非实际磁盘占用。卸载功能尚未开放。</value>
   </data>
@@ -689,6 +704,9 @@
   </data>
   <data name="s2984d4d84e4b5e0b81259b46" xml:space="preserve">
     <value>可使用键盘浏览目录树中的相同项目。</value>
+  </data>
+  <data name="se5c20ca083afcc7e49f85a21" xml:space="preserve">
+    <value>浏览规则目录。选择扫描位置后，可更改适用规则的开关。</value>
   </data>
   <data name="s5037c8b6b6c5a682129eaa8a" xml:space="preserve">
     <value>浏览器缓存</value>
@@ -963,6 +981,9 @@
   <data name="s61082e4f83b4126b0357c757" xml:space="preserve">
     <value>选择要分析的磁盘或文件夹。</value>
   </data>
+  <data name="s0a95f7fc20e389d2bcf23e63" xml:space="preserve">
+    <value>选择磁盘或文件夹，探索其空间占用。</value>
+  </data>
   <data name="s58ff8624c196423b156644fe" xml:space="preserve">
     <value>请选择工作区内部的目录，不能选择工作区本身。</value>
   </data>
@@ -996,6 +1017,9 @@
   <data name="sb734e42ebc552ff3582e22b4" xml:space="preserve">
     <value>请选择不包含上级或当前目录跳转的绝对 Skill 路径。</value>
   </data>
+  <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
+    <value>请选择适用的扫描位置</value>
+  </data>
   <data name="sd6224bb9f78c0f269d0a6e08" xml:space="preserve">
     <value>请使用尚未存在的版本号，已有版本不能覆盖。</value>
   </data>
@@ -1005,6 +1029,9 @@
   <data name="s34d8846a8767d96748d21f36" xml:space="preserve">
     <value>请选择要审阅的项目。高风险项目需要手动选择。</value>
   </data>
+  <data name="s4dae0193b7cd7ffaf542f429" xml:space="preserve">
+    <value>选择浅色、深色或跟随系统设置。</value>
+  </data>
   <data name="s1557540a887b465fc0502668" xml:space="preserve">
     <value>保存 API 密钥前，请选择本地存储或系统凭据。</value>
   </data>
@@ -1013,6 +1040,9 @@
   </data>
   <data name="sd08dcbcd3ba5d7b04dfa93a3" xml:space="preserve">
     <value>选择要调查的精确文件夹。测量在本地完成，点击“开始调查”后才会调用 AI。</value>
+  </data>
+  <data name="s1abd0b6009c104c1e510fb00" xml:space="preserve">
+    <value>选择 Shou 的界面语言。</value>
   </data>
   <data name="s105aae87dd457078d4a54bf5" xml:space="preserve">
     <value>选择 Shou 使用的界面语言。</value>
@@ -1176,6 +1206,9 @@
   <data name="s7d9eb7acb13e24625c404401" xml:space="preserve">
     <value>关闭</value>
   </data>
+  <data name="sd33f48d72e1e7da8fe27e343" xml:space="preserve">
+    <value>关闭详情</value>
+  </data>
   <data name="s69b8585486840cd9286bc426" xml:space="preserve">
     <value>关闭检查器</value>
   </data>
@@ -1235,6 +1268,9 @@
   </data>
   <data name="s22a970d2e5b1cc233e462be7" xml:space="preserve">
     <value>已完成</value>
+  </data>
+  <data name="s18bab71955b1b329cf571c46" xml:space="preserve">
+    <value>已完成的操作及其结果记录会显示在这里。</value>
   </data>
   <data name="sce54f0e22dbb39de8a6d9ae0" xml:space="preserve">
     <value>组件</value>
@@ -1431,6 +1467,9 @@
   <data name="s028d3d2e8399cb6648cde000" xml:space="preserve">
     <value>Cursor 缓存</value>
   </data>
+  <data name="s66a74c24c1c98ac4633df6b7" xml:space="preserve">
+    <value>为你的 Windows 定制清理规则</value>
+  </data>
   <data name="se172c68b0d2cad7130071130" xml:space="preserve">
     <value>通过 AI 定制</value>
   </data>
@@ -1566,6 +1605,9 @@
   <data name="s17fc814da5a13422a214f086" xml:space="preserve">
     <value>Dia 下载缓存</value>
   </data>
+  <data name="sd1bc1c34246f9d61f574b63e" xml:space="preserve">
+    <value>诊断编号：{0}</value>
+  </data>
   <data name="scd4ba293365d1a860a206d9a" xml:space="preserve">
     <value>钉钉网页缓存</value>
   </data>
@@ -1574,6 +1616,9 @@
   </data>
   <data name="sc8f84c3c5378b920b0ec2702" xml:space="preserve">
     <value>目录</value>
+  </data>
+  <data name="s25523ba32c7136d9f0713a70" xml:space="preserve">
+    <value>目录树</value>
   </data>
   <data name="s7d433ae64ef66603834a2410" xml:space="preserve">
     <value>目录名、大小和锁文件不能证明内容可重建。</value>
@@ -1737,6 +1782,9 @@
   <data name="sd612833e81d11bda95535a73" xml:space="preserve">
     <value>启用状态未知，未检查运行状态。</value>
   </data>
+  <data name="s5ffaff7696e3228a46c2eb21" xml:space="preserve">
+    <value>启用状态未知</value>
+  </data>
   <data name="s173d4b841f0b92bf3ae609b7" xml:space="preserve">
     <value>最小容量请输入非负整数，单位为 MB。</value>
   </data>
@@ -1845,6 +1893,9 @@
   <data name="s8456352791573730647909c9" xml:space="preserve">
     <value>文件类型</value>
   </data>
+  <data name="se6828a03e28caebffa7d5ae0" xml:space="preserve">
+    <value>文件类型</value>
+  </data>
   <data name="sc1ff65a1391c23018abc1098" xml:space="preserve">
     <value>文件清单分页缺失或不一致。</value>
   </data>
@@ -1877,6 +1928,12 @@
   </data>
   <data name="sbdc2b30ed8227e986f52f6ab" xml:space="preserve">
     <value>自动查找常用软件缓存，无需选择目录。</value>
+  </data>
+  <data name="s8f259f51f6ded0a1f9521d9a" xml:space="preserve">
+    <value>查找大文件</value>
+  </data>
+  <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
+    <value>扫描已知位置，查看可审阅的缓存与构建产物。</value>
   </data>
   <data name="s9f71d593604ba6278c97b2eb" xml:space="preserve">
     <value>找出占空间的大文件</value>
@@ -1995,6 +2052,9 @@
   <data name="sc3bdee0a17ead237528d8ce9" xml:space="preserve">
     <value>全局保护也适用于以后添加的位置。清理目标包含被排除的内容时，整个目标都会受到保护。</value>
   </data>
+  <data name="s40adf16015ab6c932a01e43f" xml:space="preserve">
+    <value>上一级</value>
+  </data>
   <data name="se27eca82faab3b05c8d74d83" xml:space="preserve">
     <value>Go 构建缓存</value>
   </data>
@@ -2103,6 +2163,9 @@
   <data name="sd667b28b9c0fa19f4ff58c11" xml:space="preserve">
     <value>我接受可能退出网站登录。</value>
   </data>
+  <data name="scb5f9a292108c8735bd32051" xml:space="preserve">
+    <value>我理解删除 Cookie 可能使我退出登录。</value>
+  </data>
   <data name="s545f01d465adcc7d1b638500" xml:space="preserve">
     <value>我理解清理 Cookie 可能使我退出网站登录。</value>
   </data>
@@ -2171,6 +2234,9 @@
   </data>
   <data name="s020abd1568ca4fb2ae0b42e3" xml:space="preserve">
     <value>扫描不完整：</value>
+  </data>
+  <data name="s1cb0ba125f84c982b00ba363" xml:space="preserve">
+    <value>信息</value>
   </data>
   <data name="sfd48566822d711f2d9dbd9d8" xml:space="preserve">
     <value>继承的全局排除</value>
@@ -2255,6 +2321,9 @@
   </data>
   <data name="s0b1af118424837caff496e92" xml:space="preserve">
     <value>安装程序结果：未知。</value>
+  </data>
+  <data name="sd1c76800f0871fca0f06e6eb" xml:space="preserve">
+    <value>界面语言</value>
   </data>
   <data name="s8027f432a7fb7c273a1a0fde" xml:space="preserve">
     <value>界面语言</value>
@@ -2805,6 +2874,9 @@
   <data name="s2840f771abf6f54c2ee2ad81" xml:space="preserve">
     <value>没有匹配的应用</value>
   </data>
+  <data name="s1093ee67a6f4d0f93a29213d" xml:space="preserve">
+    <value>没有匹配的应用。</value>
+  </data>
   <data name="sa040cca040a293335005da2a" xml:space="preserve">
     <value>未发现匹配的清理项目</value>
   </data>
@@ -2829,6 +2901,9 @@
   <data name="sf3c1ef70a052c6b020ac522f" xml:space="preserve">
     <value>没有匹配的启动项</value>
   </data>
+  <data name="s2d87853306d54111daae1aab" xml:space="preserve">
+    <value>没有匹配的启动项。</value>
+  </data>
   <data name="sce2ec5bc6e16950e532cae04" xml:space="preserve">
     <value>未记录路径</value>
   </data>
@@ -2843,6 +2918,9 @@
   </data>
   <data name="s86b215760a2e89f359b83617" xml:space="preserve">
     <value>尚未配置扫描位置。</value>
+  </data>
+  <data name="s84f729e71e725930584b12dd" xml:space="preserve">
+    <value>未找到扫描位置。请在“扫描位置”中添加文件夹后继续。</value>
   </data>
   <data name="s4767377fe6f475339eb01607" xml:space="preserve">
     <value>没有搜索结果</value>
@@ -3351,6 +3429,9 @@
   <data name="sef32f823eded11ec7810aa73" xml:space="preserve">
     <value>隐私清理完成</value>
   </data>
+  <data name="s51357d500d7825e2810f06cb" xml:space="preserve">
+    <value>无法加载隐私清理历史，请重试。</value>
+  </data>
   <data name="sdd9d046653d7debb0e42554c" xml:space="preserve">
     <value>隐私操作未完成。</value>
   </data>
@@ -3771,6 +3852,9 @@
   <data name="scc39a1523b75cbd54ed355c6" xml:space="preserve">
     <value>重新安装需要网络或本地包缓存。请保留经过修改、链接、私有或未发布的包。</value>
   </data>
+  <data name="sec4b3ecb7ae2ed8fae320f98" xml:space="preserve">
+    <value>重新扫描</value>
+  </data>
   <data name="sbd3d8f99bf8c7f43560a99a2" xml:space="preserve">
     <value>重新扫描当前文件夹</value>
   </data>
@@ -3933,6 +4017,9 @@
   <data name="s4798de4fb4f43b8e4c2535b0" xml:space="preserve">
     <value>请在本次审阅过期前，核对确切任务并确认所请求的开关变更。</value>
   </data>
+  <data name="se2517243d7246ec784dc2850" xml:space="preserve">
+    <value>请先审阅安装程序对数据的影响，再创建卸载计划。</value>
+  </data>
   <data name="sbce1120ad74fd688c9a2a5df" xml:space="preserve">
     <value>请检查项目缓存内容，并先停止 Python、测试与分析任务。版本控制中的文件、凭据和源码会受到保护。</value>
   </data>
@@ -3977,6 +4064,9 @@
   </data>
   <data name="s1711d71e77dc4ae1a9b79563" xml:space="preserve">
     <value>规则建议</value>
+  </data>
+  <data name="s337b14755089f01509c977ae" xml:space="preserve">
+    <value>版本与位置</value>
   </data>
   <data name="sd205d4db914351ae5a6c3636" xml:space="preserve">
     <value>规则已变化，请重新预览后再保存。</value>
@@ -4137,6 +4227,9 @@
   <data name="s6a2d5b0b32755b661d127fae" xml:space="preserve">
     <value>扫描工作区</value>
   </data>
+  <data name="s4c65a195267e52eff26bf50a" xml:space="preserve">
+    <value>扫描磁盘或文件夹，查看占用空间最多的文件。</value>
+  </data>
   <data name="s3febb1c7af79d4e9f6cc763e" xml:space="preserve">
     <value>请重新扫描或查看扫描覆盖范围。</value>
   </data>
@@ -4161,8 +4254,14 @@
   <data name="saf18c0200844b2e4ed2b705d" xml:space="preserve">
     <value>扫描完成。请先审阅候选项。</value>
   </data>
+  <data name="sc1b4a3a0c1569c78897ab915" xml:space="preserve">
+    <value>没有位置通过访问与所有者校验，扫描未开始。请在“扫描位置”中选择当前用户所有的文件夹。</value>
+  </data>
   <data name="s6db35232abf692159399d5b4" xml:space="preserve">
     <value>扫描依据已变化，请重新扫描后继续。</value>
+  </data>
+  <data name="sb0daf47f06fda541769b292a" xml:space="preserve">
+    <value>扫描失败。</value>
   </data>
   <data name="s35807dd57f6d0f259b0f3431" xml:space="preserve">
     <value>扫描未完成，清理暂不可用。仍可查看已测量的空间。</value>
@@ -4175,6 +4274,9 @@
   </data>
   <data name="s5387f6c92b3f506cf9e9db3d" xml:space="preserve">
     <value>扫描进度</value>
+  </data>
+  <data name="sd6fc37157e4d6ddd0060e8eb" xml:space="preserve">
+    <value>扫描准备失败。</value>
   </data>
   <data name="s16e69e6a7ead1c2acdb1b801" xml:space="preserve">
     <value>扫描已停止。</value>
@@ -4233,6 +4335,9 @@
   <data name="sc1cbcb13100d5ae3d91e8e06" xml:space="preserve">
     <value>ScreenFlow 缓存</value>
   </data>
+  <data name="s49c266baaaa70981ea188fa7" xml:space="preserve">
+    <value>搜索</value>
+  </data>
   <data name="s2986e4b0a88b8428dcb03db6" xml:space="preserve">
     <value>搜索应用名称、标识或路径</value>
   </data>
@@ -4259,6 +4364,9 @@
   </data>
   <data name="sa20ef7434ccdf23102b96094" xml:space="preserve">
     <value>跨目录汇总大文件，查看后选择要清理的内容。</value>
+  </data>
+  <data name="sbdc61a90c2f3be4c38187db7" xml:space="preserve">
+    <value>查看空间用在哪里</value>
   </data>
   <data name="s2a78025de6aae5e7ff88e5a9" xml:space="preserve">
     <value>选择</value>
@@ -4311,6 +4419,9 @@
   <data name="s67cd9b17270edf3d549e9f22" xml:space="preserve">
     <value>请选择之前已匹配但尚未完整扫描的清理目录。</value>
   </data>
+  <data name="s12aa4a7c55387a50d0095a5a" xml:space="preserve">
+    <value>选择应用查看安装详情。此预览版暂不支持系统卸载。</value>
+  </data>
   <data name="s407c96b1ef0dc6bebcba0b60" xml:space="preserve">
     <value>选择应用以查看注册详情。</value>
   </data>
@@ -4328,6 +4439,9 @@
   </data>
   <data name="sb0de9ca6d31a0f4a805b4da5" xml:space="preserve">
     <value>选择本次清理中可操作的项目</value>
+  </data>
+  <data name="s92b9ad257a055cbb99439741" xml:space="preserve">
+    <value>请选择具体隐私来源。永久删除无法撤销；删除 Cookie 可能使你退出登录。</value>
   </data>
   <data name="se03a0eb9a9620dd5ab208361" xml:space="preserve">
     <value>请明确选择执行记录中的项目及受支持的操作。</value>
@@ -4422,6 +4536,9 @@
   <data name="s76b71f52af7a4687b6236846" xml:space="preserve">
     <value>无法重新读取设置。请先刷新，再继续修改。</value>
   </data>
+  <data name="sc6cc6f474dfe21e5c0cab4ab" xml:space="preserve">
+    <value>设置未能保存，请重试。</value>
+  </data>
   <data name="s7a04083baf8daa20973e671f" xml:space="preserve">
     <value>设置…</value>
   </data>
@@ -4467,6 +4584,9 @@
   <data name="s8d424305fa272908b4273bb9" xml:space="preserve">
     <value>Shou 已安装到应用程序，后续更新沿用此位置。</value>
   </data>
+  <data name="sba8a80fdd7376631dea931d6" xml:space="preserve">
+    <value>显示更多</value>
+  </data>
   <data name="se063c6860f7c137ae9d38a4a" xml:space="preserve">
     <value>显示更多（剩余 {0} 项）</value>
   </data>
@@ -4503,6 +4623,9 @@
   <data name="s3d0b6747c5199f57596776b9" xml:space="preserve">
     <value>当前显示前 50 条扫描说明。</value>
   </data>
+  <data name="sf7efa7bc1fc535ab733d92a5" xml:space="preserve">
+    <value>侧边栏</value>
+  </data>
   <data name="s3fee95da5ab69ebfdc16ec89" xml:space="preserve">
     <value>简洁</value>
   </data>
@@ -4514,6 +4637,9 @@
   </data>
   <data name="sbf8b5843ee56f6498a9d8d9d" xml:space="preserve">
     <value>占用空间</value>
+  </data>
+  <data name="s44e6cff30738561d92e70906" xml:space="preserve">
+    <value>容量显示已测量的分配空间。部分覆盖不能代表整个磁盘，空间浏览不授予删除权限。</value>
   </data>
   <data name="s803eb25e504527e960baab76" xml:space="preserve">
     <value>Sketch 缓存</value>
@@ -4716,6 +4842,9 @@
   <data name="s2cc12e8bf4562e177ee69833" xml:space="preserve">
     <value>启动状态</value>
   </data>
+  <data name="sc95c6fe09c96e12fb748679f" xml:space="preserve">
+    <value>此预览版暂不支持更改启动项；仅在已读取时显示任务状态。</value>
+  </data>
   <data name="s54d45e2692514048ca9492b3" xml:space="preserve">
     <value>启动项控制失败。</value>
   </data>
@@ -4851,6 +4980,9 @@
   <data name="sa69c4dece144a46e40d43072" xml:space="preserve">
     <value>存储空间</value>
   </data>
+  <data name="s7e92a427c034a73aeba01c14" xml:space="preserve">
+    <value>此 Windows 预览版仅支持只读空间浏览。</value>
+  </data>
   <data name="s2fea50f0fdefd683b6c06860" xml:space="preserve">
     <value>已保存的记录无效。</value>
   </data>
@@ -4877,6 +5009,9 @@
   </data>
   <data name="sbe91940b79f469101df9a505" xml:space="preserve">
     <value>支持</value>
+  </data>
+  <data name="s0d0fcb6957e3fc51dcabbba3" xml:space="preserve">
+    <value>支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置。不会清理网站存储、保存的密码、自动填充、自定义配置、扩展或云端副本。</value>
   </data>
   <data name="s24cbca79e916ffa96baa40ad" xml:space="preserve">
     <value>支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置，以及 Safari 历史。不清理 Safari Cookie、站点存储、保存的密码、自动填充、自定义配置、扩展数据和云端副本。</value>
@@ -4919,6 +5054,9 @@
   </data>
   <data name="s85c35c367d93cc97e3b0e33f" xml:space="preserve">
     <value>系统设置…</value>
+  </data>
+  <data name="s26fb93cf8ad0bd95513d00c9" xml:space="preserve">
+    <value>系统应用</value>
   </data>
   <data name="s9fb49af00043be5d918bd3d0" xml:space="preserve">
     <value>系统状态未核验</value>
@@ -5153,6 +5291,9 @@
   </data>
   <data name="sa250c2fd54e809f2ccbb5345" xml:space="preserve">
     <value>找不到应用内的 CLI，请先将 Shou 安装到应用程序。</value>
+  </data>
+  <data name="s31a4fba6077c0392a7bb0235" xml:space="preserve">
+    <value>页面无法加载，请重试。</value>
   </data>
   <data name="s11bc471ce366625a22346288" xml:space="preserve">
     <value>无法确定上一个来源已消耗的扫描预算。</value>
@@ -5622,6 +5763,9 @@
   <data name="s0454c3b6fa8016bc5aea31bf" xml:space="preserve">
     <value>使用 **/target/** 或 **/keep/** 等相对模式。不允许绝对路径或向上访问父目录。</value>
   </data>
+  <data name="s3695fb1f8cfc4898500d526d" xml:space="preserve">
+    <value>使用静态指示与即时切换；关闭时跟随 Windows 动画设置。</value>
+  </data>
   <data name="s1b83298649c3d468fcf8dfd1" xml:space="preserve">
     <value>使用静态指示和即时切换；关闭时遵循 macOS 的“减少动态效果”设置。</value>
   </data>
@@ -5753,6 +5897,12 @@
   </data>
   <data name="s864fba32c0ce2d3db93b0090" xml:space="preserve">
     <value>Windows 将此应用识别为系统软件包。</value>
+  </data>
+  <data name="s34f7d2311c068a107c952b1b" xml:space="preserve">
+    <value>Windows 便携预览版。清理、系统卸载与启动项变更将在原生验收完成后开放。</value>
+  </data>
+  <data name="s3f6233c4b8b8d6a3505ef51f" xml:space="preserve">
+    <value>Windows 便携预览版。原生操作需要审阅和本次确认；完整 Windows 验收尚未完成。</value>
   </data>
   <data name="sc6f654a29ae4697d3d7241c7" xml:space="preserve">
     <value>WorkBuddy 缓存</value>

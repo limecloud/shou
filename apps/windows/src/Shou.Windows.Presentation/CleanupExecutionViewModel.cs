@@ -64,7 +64,7 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         ArgumentNullException.ThrowIfNull(confirmation);
-        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Cleanup execution awaits native Windows acceptance.");
+        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Cleanup execution requires a matching native Windows 11 process.");
         if (!CanExecute || Plan is not { } plan) throw new ShouException("plan_stale", "Prepare and confirm a current permanent-cleanup plan.");
         return RunAsync(plan, confirmation);
     }
@@ -78,6 +78,7 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
 
     private async Task RunAsync(CleanupPlan expected, ICleanupConfirmation? confirmation)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.cleanup.execute");
         var reading = confirmation is null;
         var currentGeneration = ++generation;
         operation?.Cancel();
@@ -127,12 +128,14 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
         }
         catch (Exception error) when (error is not OutOfMemoryException)
         {
+            diagnostic.Fail(error);
             if (disposed || currentGeneration != generation) return;
             ErrorCode = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : error is IOException ? "io_error" : "internal_error";
             State = CleanupExecutionPageState.Failed;
         }
         finally
         {
+            diagnostic.Complete(disposed || currentGeneration != generation ? "superseded" : State.ToString().ToLowerInvariant());
             if (!disposed && currentGeneration == generation) { operation = null; Notify(); }
         }
     }

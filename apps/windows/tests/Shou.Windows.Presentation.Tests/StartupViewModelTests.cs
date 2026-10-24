@@ -41,6 +41,51 @@ public sealed class StartupViewModelTests
     }
 
     [Fact]
+    public async Task EnablementFiltersUseOnlyScheduledTaskStatus()
+    {
+        var reader = new Reader();
+        using var model = new StartupViewModel(new(reader));
+        var task = model.RefreshAsync();
+        reader.Calls.Dequeue().SetResult(MixedInventory());
+        await task;
+        Assert.Equal(3, model.ItemCount);
+        Assert.Equal(1, model.KnownEnabledCount);
+        Assert.Equal(1, model.KnownDisabledCount);
+        Assert.Equal(1, model.UnknownEnablementCount);
+        Assert.All(model.Page!.Items, item =>
+        {
+            Assert.Null(item.IsOrphan);
+            Assert.False(item.ControlAvailable);
+            Assert.Equal("unknown", item.Enablement);
+        });
+
+        model.SetPresentationFilter(StartupPresentationFilter.Enabled);
+        Assert.True(Assert.Single(model.Page.Items).ScheduledTask!.Enabled);
+        model.SetPresentationFilter(StartupPresentationFilter.Disabled);
+        Assert.False(Assert.Single(model.Page.Items).ScheduledTask!.Enabled);
+        model.SetPresentationFilter(StartupPresentationFilter.Unknown);
+        Assert.Null(Assert.Single(model.Page.Items).ScheduledTask);
+        Assert.Equal(3, model.ItemCount);
+
+        model.Filter("", StartupSource.CurrentUserRun);
+        Assert.Equal(1, model.Count(StartupPresentationFilter.All));
+        Assert.Equal(0, model.Count(StartupPresentationFilter.Enabled));
+        Assert.Equal(1, model.Count(StartupPresentationFilter.Unknown));
+        Assert.Single(reader.Tokens);
+    }
+
+    private static StartupInventory MixedInventory()
+    {
+        var registrations = ImmutableArray.Create(
+            new StartupRegistration(StartupSource.ScheduledTasks, @"\Enabled", "enabled", ScheduledTask: new(true, ScheduledTaskState.Ready)),
+            new StartupRegistration(StartupSource.ScheduledTasks, @"\Disabled", "disabled", ScheduledTask: new(false, ScheduledTaskState.Disabled)),
+            new StartupRegistration(StartupSource.CurrentUserRun, "run", "run-item"));
+        var counts = registrations.GroupBy(item => item.Source).ToDictionary(group => group.Key, group => group.Count());
+        return new(registrations, Enum.GetValues<StartupSource>().Select(source =>
+            new StartupSourceCoverage(source, StartupSourceState.Complete, counts.GetValueOrDefault(source), [])).ToImmutableArray());
+    }
+
+    [Fact]
     public async Task FilteringAndPagingReuseOneSnapshot()
     {
         var reader = new Reader();

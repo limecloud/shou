@@ -1,0 +1,59 @@
+<UserControl x:Class="Shou.Windows.App.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Background="{ThemeResource ShouSettingsBrush}" HorizontalContentAlignment="Stretch">
+        <StackPanel Padding="{StaticResource ShouSettingsPagePadding}" Spacing="{StaticResource ShouPageSpacing}" MaxWidth="{StaticResource ShouSettingsMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
+            <TextBlock x:Name="GeneralHeading" Style="{StaticResource ShouCaption}" />
+            <Border Style="{StaticResource ShouCard}">
+                <StackPanel>
+                    <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ContentControl x:Name="LanguageIcon" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="LanguageTitle" FontWeight="SemiBold" /><TextBlock x:Name="LanguageDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel>
+                        <ComboBox Grid.Column="2" x:Name="LanguageBox" AutomationProperties.AutomationId="settings.language" Width="200" VerticalAlignment="Center" SelectionChanged="ChangePreference" />
+                    </Grid>
+                    <Border Style="{StaticResource ShouSettingsSeparator}" />
+                    <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ContentControl x:Name="ThemeIcon" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="ThemeTitle" FontWeight="SemiBold" /><TextBlock x:Name="ThemeDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel>
+                        <ComboBox Grid.Column="2" x:Name="ThemeBox" AutomationProperties.AutomationId="settings.theme" Width="200" VerticalAlignment="Center" SelectionChanged="ChangePreference" />
+                    </Grid>
+                    <Border Style="{StaticResource ShouSettingsSeparator}" />
+                    <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <ContentControl x:Name="MotionIcon" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="MotionTitle" FontWeight="SemiBold" /><TextBlock x:Name="MotionDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel>
+                        <ToggleButton Grid.Column="2" x:Name="MotionToggle" AutomationProperties.AutomationId="settings.motion" Style="{StaticResource ShouSwitch}" Click="ChangeMotion" VerticalAlignment="Center" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+            </StackPanel>
+            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
+            <TextBlock x:Name="AboutHeading" Style="{StaticResource ShouCaption}" />
+            <Border Style="{StaticResource ShouCard}"><Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="PackageIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="VersionText" FontWeight="SemiBold" /><TextBlock x:Name="PreviewNotice" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="UpdateButton" IsEnabled="False" VerticalAlignment="Center" /></Grid></Border>
+            </StackPanel>
+            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
+            <TextBlock x:Name="AiHeading" Style="{StaticResource ShouCaption}" />
+            <Border Style="{StaticResource ShouCard}"><Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><StackPanel Spacing="6"><TextBlock x:Name="AiTitle" FontWeight="SemiBold" /><TextBlock x:Name="AiNotice" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><ToggleButton Grid.Column="1" x:Name="AiToggle" Style="{StaticResource ShouSwitch}" IsEnabled="False" VerticalAlignment="Center" /></Grid></Border>
+            </StackPanel>
+            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
+            <TextBlock x:Name="ScanningHeading" Style="{StaticResource ShouCaption}" />
+            <Border Style="{StaticResource ShouCard}"><StackPanel>
+                <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="LocationsIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="LocationsTitle" FontWeight="SemiBold" /><TextBlock x:Name="LocationsDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="LocationsButton" AutomationProperties.AutomationId="settings.locations" Click="ViewScanLocations" VerticalAlignment="Center" /></Grid>
+                <Border Style="{StaticResource ShouSettingsSeparator}" />
+                    <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="ExclusionsIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="ExclusionsTitle" FontWeight="SemiBold" /><TextBlock x:Name="ExclusionsDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="ExclusionsButton" AutomationProperties.AutomationId="settings.exclusions" Click="ManageExclusions" VerticalAlignment="Center" /></Grid>
+                <Border Style="{StaticResource ShouSettingsSeparator}" />
+                    <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="LocalDataIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="LocalDataTitle" FontWeight="SemiBold" /><TextBlock x:Name="LocalDataDescription" Style="{StaticResource ShouSettingsSubtitle}" IsTextSelectionEnabled="True" /></StackPanel><Button Grid.Column="2" x:Name="OpenDataButton" Click="OpenLocalData" VerticalAlignment="Center" /></Grid>
+            </StackPanel></Border>
+            </StackPanel>
+            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
+            <TextBlock x:Name="SupportHeading" Style="{StaticResource ShouCaption}" />
+            <Border Style="{StaticResource ShouCard}"><StackPanel>
+                <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="FeedbackIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="FeedbackTitle" FontWeight="SemiBold" /><TextBlock x:Name="FeedbackDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><HyperlinkButton Grid.Column="2" x:Name="FeedbackLink" Style="{StaticResource ShouLinkButton}" NavigateUri="https://github.com/limecloud/shou/issues" VerticalAlignment="Center" /></Grid>
+                <Border Style="{StaticResource ShouSettingsSeparator}" />
+                    <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="SourceIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="SourceTitle" FontWeight="SemiBold" /><TextBlock x:Name="SourceDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><HyperlinkButton Grid.Column="2" x:Name="SourceLink" Style="{StaticResource ShouLinkButton}" NavigateUri="https://github.com/limecloud/shou" VerticalAlignment="Center" /></Grid>
+            </StackPanel></Border>
+            </StackPanel>
+            <TextBlock x:Name="ConfirmationCaption" Style="{StaticResource ShouCaption}" TextWrapping="Wrap" />
+            <InfoBar x:Name="SaveError" IsOpen="False" IsClosable="False" Severity="Error" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

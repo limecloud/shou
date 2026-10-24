@@ -40,7 +40,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-native-test-results
-          path: ${{ runner.temp }}/ShouBuild/tests/results
+          path: |
+            ${{ runner.temp }}/ShouBuild/tests/results
+            ${{ runner.temp }}/ShouBuild/tests/evidence
           if-no-files-found: ignore
 
   build:
@@ -75,6 +77,16 @@ jobs:
         run: |
           [xml]$Properties = Get-Content apps/windows/Directory.Build.props
           ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish" -Version $Properties.Project.PropertyGroup.Version
+      - name: Collect native x64 application diagnostics
+        if: always() && matrix.runtime == 'win-x64'
+        run: ./scripts/windows/collect-diagnostics.ps1 -OutputRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/diagnostics" -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish"
+      - name: Upload native x64 application diagnostics
+        if: always() && matrix.runtime == 'win-x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-application-diagnostics
+          path: ${{ runner.temp }}/ShouBuild/win-x64/diagnostics
+          if-no-files-found: warn
       - name: Verify portable preview archives
         run: |
           [xml]$Properties = Get-Content apps/windows/Directory.Build.props

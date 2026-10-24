@@ -99,6 +99,9 @@
   <data name="s3cb3a1ae7e99a62e03c2156c" xml:space="preserve">
     <value>{0} requests · {1} reported tokens</value>
   </data>
+  <data name="s9cbe2bacb675df35838fb53e" xml:space="preserve">
+    <value>{0} rules</value>
+  </data>
   <data name="s331107e811b4edef4e078554" xml:space="preserve">
     <value>{0} startup entries</value>
   </data>
@@ -195,6 +198,9 @@
   <data name="sc050ca9926c928f81ba79795" xml:space="preserve">
     <value>AI investigation is disabled. Enable it in Settings before making a new request.</value>
   </data>
+  <data name="s413c803b67cc57790743c619" xml:space="preserve">
+    <value>AI investigation is not available in this Windows preview.</value>
+  </data>
   <data name="s19418a1844dcd1940790df58" xml:space="preserve">
     <value>AI is off. Local scanning and cleanup remain available.</value>
   </data>
@@ -215,6 +221,9 @@
   </data>
   <data name="sc97df3b7d615cf6bc5be6380" xml:space="preserve">
     <value>API Protocol</value>
+  </data>
+  <data name="se7cbee14fdd1677475f7101a" xml:space="preserve">
+    <value>About Shou</value>
   </data>
   <data name="sd27df137f79b64adebb9526b" xml:space="preserve">
     <value>Access required</value>
@@ -627,6 +636,9 @@
   <data name="s243140d25d70c5b196dcd078" xml:space="preserve">
     <value>Automatic update checks</value>
   </data>
+  <data name="s3d6b341f2ae705b962c2d41a" xml:space="preserve">
+    <value>Automatic updates are not available in this Windows preview.</value>
+  </data>
   <data name="se674447337e83c1346f6122e" xml:space="preserve">
     <value>Available</value>
   </data>
@@ -681,6 +693,9 @@
   <data name="sa3652e0db877bb4c17f98c59" xml:space="preserve">
     <value>Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings.</value>
   </data>
+  <data name="s03bbdf933944fe12283b5b62" xml:space="preserve">
+    <value>Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage.</value>
+  </data>
   <data name="s635837d677696e057e5a8021" xml:space="preserve">
     <value>Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet.</value>
   </data>
@@ -689,6 +704,9 @@
   </data>
   <data name="s2984d4d84e4b5e0b81259b46" xml:space="preserve">
     <value>Browse the directory tree for keyboard access to map items.</value>
+  </data>
+  <data name="se5c20ca083afcc7e49f85a21" xml:space="preserve">
+    <value>Browse the rule catalog. Choose a scan location to change applicable rules.</value>
   </data>
   <data name="s5037c8b6b6c5a682129eaa8a" xml:space="preserve">
     <value>Browser Caches</value>
@@ -963,6 +981,9 @@
   <data name="s61082e4f83b4126b0357c757" xml:space="preserve">
     <value>Choose a disk or folder to analyze.</value>
   </data>
+  <data name="s0a95f7fc20e389d2bcf23e63" xml:space="preserve">
+    <value>Choose a disk or folder to explore its storage usage.</value>
+  </data>
   <data name="s58ff8624c196423b156644fe" xml:space="preserve">
     <value>Choose a folder inside the selected workspace, not the workspace itself.</value>
   </data>
@@ -996,6 +1017,9 @@
   <data name="sb734e42ebc552ff3582e22b4" xml:space="preserve">
     <value>Choose an absolute Skill path without traversal components.</value>
   </data>
+  <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
+    <value>Choose an applicable scan location</value>
+  </data>
   <data name="sd6224bb9f78c0f269d0a6e08" xml:space="preserve">
     <value>Choose an unused rule version. Existing versions cannot be overwritten.</value>
   </data>
@@ -1005,6 +1029,9 @@
   <data name="s34d8846a8767d96748d21f36" xml:space="preserve">
     <value>Choose items to review. High-risk items require your selection.</value>
   </data>
+  <data name="s4dae0193b7cd7ffaf542f429" xml:space="preserve">
+    <value>Choose light, dark, or follow your system settings.</value>
+  </data>
   <data name="s1557540a887b465fc0502668" xml:space="preserve">
     <value>Choose local storage or system credentials before saving an API key.</value>
   </data>
@@ -1013,6 +1040,9 @@
   </data>
   <data name="sd08dcbcd3ba5d7b04dfa93a3" xml:space="preserve">
     <value>Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation.</value>
+  </data>
+  <data name="s1abd0b6009c104c1e510fb00" xml:space="preserve">
+    <value>Choose the language used by Shou.</value>
   </data>
   <data name="s105aae87dd457078d4a54bf5" xml:space="preserve">
     <value>Choose the language used in Shou.</value>
@@ -1176,6 +1206,9 @@
   <data name="s7d9eb7acb13e24625c404401" xml:space="preserve">
     <value>Close</value>
   </data>
+  <data name="sd33f48d72e1e7da8fe27e343" xml:space="preserve">
+    <value>Close Details</value>
+  </data>
   <data name="s69b8585486840cd9286bc426" xml:space="preserve">
     <value>Close Inspector</value>
   </data>
@@ -1235,6 +1268,9 @@
   </data>
   <data name="s22a970d2e5b1cc233e462be7" xml:space="preserve">
     <value>Completed</value>
+  </data>
+  <data name="s18bab71955b1b329cf571c46" xml:space="preserve">
+    <value>Completed operations and their recorded results will appear here.</value>
   </data>
   <data name="sce54f0e22dbb39de8a6d9ae0" xml:space="preserve">
     <value>Component</value>
@@ -1431,6 +1467,9 @@
   <data name="s028d3d2e8399cb6648cde000" xml:space="preserve">
     <value>Cursor caches</value>
   </data>
+  <data name="s66a74c24c1c98ac4633df6b7" xml:space="preserve">
+    <value>Customize cleanup rules for Windows</value>
+  </data>
   <data name="se172c68b0d2cad7130071130" xml:space="preserve">
     <value>Customize with AI</value>
   </data>
@@ -1566,6 +1605,9 @@
   <data name="s17fc814da5a13422a214f086" xml:space="preserve">
     <value>Dia download caches</value>
   </data>
+  <data name="sd1bc1c34246f9d61f574b63e" xml:space="preserve">
+    <value>Diagnostic reference: {0}</value>
+  </data>
   <data name="scd4ba293365d1a860a206d9a" xml:space="preserve">
     <value>DingTalk web caches</value>
   </data>
@@ -1574,6 +1616,9 @@
   </data>
   <data name="sc8f84c3c5378b920b0ec2702" xml:space="preserve">
     <value>Directory</value>
+  </data>
+  <data name="s25523ba32c7136d9f0713a70" xml:space="preserve">
+    <value>Directory Tree</value>
   </data>
   <data name="s7d433ae64ef66603834a2410" xml:space="preserve">
     <value>Directory names, sizes, and lockfiles do not prove data can be rebuilt.</value>
@@ -1737,6 +1782,9 @@
   <data name="sd612833e81d11bda95535a73" xml:space="preserve">
     <value>Enablement is unknown. Running state was not checked.</value>
   </data>
+  <data name="s5ffaff7696e3228a46c2eb21" xml:space="preserve">
+    <value>Enablement unknown</value>
+  </data>
   <data name="s173d4b841f0b92bf3ae609b7" xml:space="preserve">
     <value>Enter a nonnegative whole number for minimum MB.</value>
   </data>
@@ -1845,6 +1893,9 @@
   <data name="s8456352791573730647909c9" xml:space="preserve">
     <value>File Type</value>
   </data>
+  <data name="se6828a03e28caebffa7d5ae0" xml:space="preserve">
+    <value>File Types</value>
+  </data>
   <data name="sc1ff65a1391c23018abc1098" xml:space="preserve">
     <value>File manifest pages are missing or inconsistent.</value>
   </data>
@@ -1877,6 +1928,12 @@
   </data>
   <data name="sbdc2b30ed8227e986f52f6ab" xml:space="preserve">
     <value>Find known app caches without choosing folders.</value>
+  </data>
+  <data name="s8f259f51f6ded0a1f9521d9a" xml:space="preserve">
+    <value>Find large files</value>
+  </data>
+  <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
+    <value>Find reviewable caches and build artifacts in known locations.</value>
   </data>
   <data name="s9f71d593604ba6278c97b2eb" xml:space="preserve">
     <value>Find the files taking up the most space</value>
@@ -1995,6 +2052,9 @@
   <data name="sc3bdee0a17ead237528d8ce9" xml:space="preserve">
     <value>Global protections also apply to future locations. Excluded content protects the whole containing cleanup target.</value>
   </data>
+  <data name="s40adf16015ab6c932a01e43f" xml:space="preserve">
+    <value>Go Up</value>
+  </data>
   <data name="se27eca82faab3b05c8d74d83" xml:space="preserve">
     <value>Go build cache</value>
   </data>
@@ -2103,6 +2163,9 @@
   <data name="sd667b28b9c0fa19f4ff58c11" xml:space="preserve">
     <value>I accept that websites may sign me out.</value>
   </data>
+  <data name="scb5f9a292108c8735bd32051" xml:space="preserve">
+    <value>I understand deleting cookies may sign me out.</value>
+  </data>
   <data name="s545f01d465adcc7d1b638500" xml:space="preserve">
     <value>I understand that clearing cookies can sign me out of websites.</value>
   </data>
@@ -2171,6 +2234,9 @@
   </data>
   <data name="s020abd1568ca4fb2ae0b42e3" xml:space="preserve">
     <value>Incomplete scan: </value>
+  </data>
+  <data name="s1cb0ba125f84c982b00ba363" xml:space="preserve">
+    <value>Information</value>
   </data>
   <data name="sfd48566822d711f2d9dbd9d8" xml:space="preserve">
     <value>Inherited Global Exclusions</value>
@@ -2255,6 +2321,9 @@
   </data>
   <data name="s0b1af118424837caff496e92" xml:space="preserve">
     <value>Installer result: unknown.</value>
+  </data>
+  <data name="sd1c76800f0871fca0f06e6eb" xml:space="preserve">
+    <value>Interface Language</value>
   </data>
   <data name="s8027f432a7fb7c273a1a0fde" xml:space="preserve">
     <value>Interface language</value>
@@ -2805,6 +2874,9 @@
   <data name="s2840f771abf6f54c2ee2ad81" xml:space="preserve">
     <value>No matching applications</value>
   </data>
+  <data name="s1093ee67a6f4d0f93a29213d" xml:space="preserve">
+    <value>No matching applications.</value>
+  </data>
   <data name="sa040cca040a293335005da2a" xml:space="preserve">
     <value>No matching cleanup items</value>
   </data>
@@ -2829,6 +2901,9 @@
   <data name="sf3c1ef70a052c6b020ac522f" xml:space="preserve">
     <value>No matching startup items</value>
   </data>
+  <data name="s2d87853306d54111daae1aab" xml:space="preserve">
+    <value>No matching startup items.</value>
+  </data>
   <data name="sce2ec5bc6e16950e532cae04" xml:space="preserve">
     <value>No path was recorded</value>
   </data>
@@ -2843,6 +2918,9 @@
   </data>
   <data name="s86b215760a2e89f359b83617" xml:space="preserve">
     <value>No scan locations are configured yet.</value>
+  </data>
+  <data name="s84f729e71e725930584b12dd" xml:space="preserve">
+    <value>No scan locations were found. Add a folder in Scan Locations to continue.</value>
   </data>
   <data name="s4767377fe6f475339eb01607" xml:space="preserve">
     <value>No search results</value>
@@ -3351,6 +3429,9 @@
   <data name="sef32f823eded11ec7810aa73" xml:space="preserve">
     <value>Privacy cleaning completed</value>
   </data>
+  <data name="s51357d500d7825e2810f06cb" xml:space="preserve">
+    <value>Privacy history could not be loaded. Try again.</value>
+  </data>
   <data name="sdd9d046653d7debb0e42554c" xml:space="preserve">
     <value>Privacy operation failed.</value>
   </data>
@@ -3771,6 +3852,9 @@
   <data name="scc39a1523b75cbd54ed355c6" xml:space="preserve">
     <value>Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.</value>
   </data>
+  <data name="sec4b3ecb7ae2ed8fae320f98" xml:space="preserve">
+    <value>Rescan</value>
+  </data>
   <data name="sbd3d8f99bf8c7f43560a99a2" xml:space="preserve">
     <value>Rescan This Folder</value>
   </data>
@@ -3933,6 +4017,9 @@
   <data name="s4798de4fb4f43b8e4c2535b0" xml:space="preserve">
     <value>Review the exact task and confirm the requested switch before this review expires.</value>
   </data>
+  <data name="se2517243d7246ec784dc2850" xml:space="preserve">
+    <value>Review the installer data changes before preparing an uninstall plan.</value>
+  </data>
   <data name="sbce1120ad74fd688c9a2a5df" xml:space="preserve">
     <value>Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.</value>
   </data>
@@ -3977,6 +4064,9 @@
   </data>
   <data name="s1711d71e77dc4ae1a9b79563" xml:space="preserve">
     <value>Rule Suggestions</value>
+  </data>
+  <data name="s337b14755089f01509c977ae" xml:space="preserve">
+    <value>Rule Versions and Locations</value>
   </data>
   <data name="sd205d4db914351ae5a6c3636" xml:space="preserve">
     <value>Rule changed; preview again before saving.</value>
@@ -4137,6 +4227,9 @@
   <data name="s6a2d5b0b32755b661d127fae" xml:space="preserve">
     <value>Scan Workspace</value>
   </data>
+  <data name="s4c65a195267e52eff26bf50a" xml:space="preserve">
+    <value>Scan a disk or folder, then review the largest files.</value>
+  </data>
   <data name="s3febb1c7af79d4e9f6cc763e" xml:space="preserve">
     <value>Scan again or review discovery coverage.</value>
   </data>
@@ -4161,8 +4254,14 @@
   <data name="saf18c0200844b2e4ed2b705d" xml:space="preserve">
     <value>Scan complete. Review candidates before cleanup.</value>
   </data>
+  <data name="sc1b4a3a0c1569c78897ab915" xml:space="preserve">
+    <value>Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations.</value>
+  </data>
   <data name="s6db35232abf692159399d5b4" xml:space="preserve">
     <value>Scan evidence changed. Scan again before continuing.</value>
+  </data>
+  <data name="sb0daf47f06fda541769b292a" xml:space="preserve">
+    <value>Scan failed.</value>
   </data>
   <data name="s35807dd57f6d0f259b0f3431" xml:space="preserve">
     <value>Scan is incomplete. Cleanup is unavailable; you can still explore measured space.</value>
@@ -4175,6 +4274,9 @@
   </data>
   <data name="s5387f6c92b3f506cf9e9db3d" xml:space="preserve">
     <value>Scan progress</value>
+  </data>
+  <data name="sd6fc37157e4d6ddd0060e8eb" xml:space="preserve">
+    <value>Scan setup failed.</value>
   </data>
   <data name="s16e69e6a7ead1c2acdb1b801" xml:space="preserve">
     <value>Scan stopped.</value>
@@ -4233,6 +4335,9 @@
   <data name="sc1cbcb13100d5ae3d91e8e06" xml:space="preserve">
     <value>ScreenFlow caches</value>
   </data>
+  <data name="s49c266baaaa70981ea188fa7" xml:space="preserve">
+    <value>Search</value>
+  </data>
   <data name="s2986e4b0a88b8428dcb03db6" xml:space="preserve">
     <value>Search app names, identifiers or paths</value>
   </data>
@@ -4259,6 +4364,9 @@
   </data>
   <data name="sa20ef7434ccdf23102b96094" xml:space="preserve">
     <value>See large files across folders, then choose what to remove.</value>
+  </data>
+  <data name="sbdc61a90c2f3be4c38187db7" xml:space="preserve">
+    <value>See where your space goes</value>
   </data>
   <data name="s2a78025de6aae5e7ff88e5a9" xml:space="preserve">
     <value>Select</value>
@@ -4311,6 +4419,9 @@
   <data name="s67cd9b17270edf3d549e9f22" xml:space="preserve">
     <value>Select a previously matched, incomplete cleanup directory.</value>
   </data>
+  <data name="s12aa4a7c55387a50d0095a5a" xml:space="preserve">
+    <value>Select an application to inspect its installation. System uninstall is unavailable in this preview.</value>
+  </data>
   <data name="s407c96b1ef0dc6bebcba0b60" xml:space="preserve">
     <value>Select an application to view its registration details.</value>
   </data>
@@ -4328,6 +4439,9 @@
   </data>
   <data name="sb0de9ca6d31a0f4a805b4da5" xml:space="preserve">
     <value>Select available items in this cleanup</value>
+  </data>
+  <data name="s92b9ad257a055cbb99439741" xml:space="preserve">
+    <value>Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.</value>
   </data>
   <data name="se03a0eb9a9620dd5ab208361" xml:space="preserve">
     <value>Select explicit receipt items and a supported action.</value>
@@ -4422,6 +4536,9 @@
   <data name="s76b71f52af7a4687b6236846" xml:space="preserve">
     <value>Settings could not be reloaded. Refresh before making more changes.</value>
   </data>
+  <data name="sc6cc6f474dfe21e5c0cab4ab" xml:space="preserve">
+    <value>Settings could not be saved. Try again.</value>
+  </data>
   <data name="s7a04083baf8daa20973e671f" xml:space="preserve">
     <value>Settings…</value>
   </data>
@@ -4467,6 +4584,9 @@
   <data name="s8d424305fa272908b4273bb9" xml:space="preserve">
     <value>Shou is installed in Applications. Updates keep the same location.</value>
   </data>
+  <data name="sba8a80fdd7376631dea931d6" xml:space="preserve">
+    <value>Show More</value>
+  </data>
   <data name="se063c6860f7c137ae9d38a4a" xml:space="preserve">
     <value>Show More ({0} remaining)</value>
   </data>
@@ -4503,6 +4623,9 @@
   <data name="s3d0b6747c5199f57596776b9" xml:space="preserve">
     <value>Showing the first 50 scan notes.</value>
   </data>
+  <data name="sf7efa7bc1fc535ab733d92a5" xml:space="preserve">
+    <value>Sidebar</value>
+  </data>
   <data name="s3fee95da5ab69ebfdc16ec89" xml:space="preserve">
     <value>Simple</value>
   </data>
@@ -4514,6 +4637,9 @@
   </data>
   <data name="sbf8b5843ee56f6498a9d8d9d" xml:space="preserve">
     <value>Size on Disk</value>
+  </data>
+  <data name="s44e6cff30738561d92e70906" xml:space="preserve">
+    <value>Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion.</value>
   </data>
   <data name="s803eb25e504527e960baab76" xml:space="preserve">
     <value>Sketch caches</value>
@@ -4716,6 +4842,9 @@
   <data name="s2cc12e8bf4562e177ee69833" xml:space="preserve">
     <value>Startup State</value>
   </data>
+  <data name="sc95c6fe09c96e12fb748679f" xml:space="preserve">
+    <value>Startup changes are unavailable in this preview. Observed task status is shown where available.</value>
+  </data>
   <data name="s54d45e2692514048ca9492b3" xml:space="preserve">
     <value>Startup control failed.</value>
   </data>
@@ -4851,6 +4980,9 @@
   <data name="sa69c4dece144a46e40d43072" xml:space="preserve">
     <value>Storage</value>
   </data>
+  <data name="s7e92a427c034a73aeba01c14" xml:space="preserve">
+    <value>Storage browsing is read-only in this Windows preview.</value>
+  </data>
   <data name="s2fea50f0fdefd683b6c06860" xml:space="preserve">
     <value>Stored record is invalid.</value>
   </data>
@@ -4877,6 +5009,9 @@
   </data>
   <data name="sbe91940b79f469101df9a505" xml:space="preserve">
     <value>Support</value>
+  </data>
+  <data name="s0d0fcb6957e3fc51dcabbba3" xml:space="preserve">
+    <value>Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.</value>
   </data>
   <data name="s24cbca79e916ffa96baa40ad" xml:space="preserve">
     <value>Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.</value>
@@ -4919,6 +5054,9 @@
   </data>
   <data name="s85c35c367d93cc97e3b0e33f" xml:space="preserve">
     <value>System Settings…</value>
+  </data>
+  <data name="s26fb93cf8ad0bd95513d00c9" xml:space="preserve">
+    <value>System package</value>
   </data>
   <data name="s9fb49af00043be5d918bd3d0" xml:space="preserve">
     <value>System state not checked</value>
@@ -5153,6 +5291,9 @@
   </data>
   <data name="sa250c2fd54e809f2ccbb5345" xml:space="preserve">
     <value>The packaged CLI is unavailable. Install Shou in Applications first.</value>
+  </data>
+  <data name="s31a4fba6077c0392a7bb0235" xml:space="preserve">
+    <value>The page could not be loaded. Try again.</value>
   </data>
   <data name="s11bc471ce366625a22346288" xml:space="preserve">
     <value>The previous source used an unknown portion of the scan budget.</value>
@@ -5622,6 +5763,9 @@
   <data name="s0454c3b6fa8016bc5aea31bf" xml:space="preserve">
     <value>Use relative patterns such as **/target/** or **/keep/**. Absolute paths and parent traversal are not allowed.</value>
   </data>
+  <data name="s3695fb1f8cfc4898500d526d" xml:space="preserve">
+    <value>Use static indicators and immediate transitions. Otherwise, follow Windows animation settings.</value>
+  </data>
   <data name="s1b83298649c3d468fcf8dfd1" xml:space="preserve">
     <value>Use static indicators and immediate transitions. When off, follow macOS Reduce Motion.</value>
   </data>
@@ -5753,6 +5897,12 @@
   </data>
   <data name="s864fba32c0ce2d3db93b0090" xml:space="preserve">
     <value>Windows identifies this as a system package.</value>
+  </data>
+  <data name="s34f7d2311c068a107c952b1b" xml:space="preserve">
+    <value>Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.</value>
+  </data>
+  <data name="s3f6233c4b8b8d6a3505ef51f" xml:space="preserve">
+    <value>Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.</value>
   </data>
   <data name="sc6f654a29ae4697d3d7241c7" xml:space="preserve">
     <value>WorkBuddy caches</value>

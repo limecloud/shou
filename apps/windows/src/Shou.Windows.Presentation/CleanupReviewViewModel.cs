@@ -16,9 +16,15 @@ public interface ICleanupReviewOperations
 public enum CleanupReviewState { Empty, Loading, Discovering, Scanning, Ready, Partial, Preparing, Review, Cancelled, Failed }
 public sealed record CleanupCandidateSelection(RuleCandidate Candidate, string ScanId, string WorkspaceId, string RuleName, string Category,
     bool Selected, bool Selectable, bool Recommended);
-public sealed record CleanupRuleGroup(string RuleId, string Name, string Category, int Count, int SelectableCount, int SelectedCount)
+public sealed record CleanupRuleGroup(string RuleId, string Name, string Category, int Count, int SelectableCount, int SelectedCount,
+    long AllocatedBytes, long SelectedBytes)
 {
     public bool? Selection => SelectedCount == 0 ? false : SelectedCount == SelectableCount ? true : null;
+}
+
+public sealed record CleanupCategorySummary(string Id, int Count, int SelectableCount, int SelectedCount, long AllocatedBytes, long SelectedBytes, int GroupCount = 0)
+{
+    public bool? Selection => SelectableCount == 0 || SelectedCount == 0 ? false : SelectedCount == SelectableCount ? true : null;
 }
 
 /// <summary>Reviewing and planning have no execution capability or reusable approval value.</summary>
@@ -39,8 +45,12 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     public SystemScan? Batch { get; private set; }
     public CleanupPlan? Plan { get; private set; }
     public string? ErrorCode { get; private set; }
+    public string? ErrorStage { get; private set; }
+    public string? DiagnosticReference { get; private set; }
     public string? SelectionErrorCode { get; private set; }
     public ImmutableArray<ScanIssue> DiscoveryIssues { get; private set; } = [];
+    public bool DiscoveryAttempted { get; private set; }
+    public bool NoUsableLocations => DiscoveryAttempted && Workspaces.IsEmpty && !IsBusy;
     public int Offset { get; private set; }
     public bool AllLocations { get; private set; }
     public string? Category { get; private set; }
@@ -62,10 +72,22 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     public ImmutableArray<CleanupCandidateSelection> Rows => Filtered.Skip(Offset).Take(PageSize)
         .Select(row => row with { Selected = selected.ContainsKey(row.Candidate.Id), Selectable = Selectable(row) }).ToImmutableArray();
     public ImmutableArray<string> Categories => results.Select(row => row.Category).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToImmutableArray();
+    public long ResultAllocatedBytes => SumBytes(results);
+    public int ResultGroupCount => results.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
+    public int SelectedGroupCount => selected.Values.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
+    public int FilteredGroupCount => Filtered.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
+    public long FilteredAllocatedBytes => SumBytes(Filtered);
+    public long FilteredSelectedBytes => SumBytes(Filtered.Where(row => selected.ContainsKey(row.Candidate.Id)));
+    public ImmutableArray<CleanupCategorySummary> CategorySummaries => results.GroupBy(row => row.Category, StringComparer.Ordinal)
+        .Select(group => new CleanupCategorySummary(group.Key, group.Count(), group.Count(Selectable),
+            group.Count(row => selected.ContainsKey(row.Candidate.Id)), SumBytes(group), SumBytes(group.Where(row => selected.ContainsKey(row.Candidate.Id))),
+            group.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count()))
+        .OrderBy(summary => summary.Id, StringComparer.Ordinal).ToImmutableArray();
     public ImmutableArray<CleanupRuleGroup> Groups => results.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
             (Category is null || row.Category == Category)).GroupBy(row => row.Candidate.RuleId)
         .Select(group => new CleanupRuleGroup(group.Key, group.First().RuleName, group.First().Category, group.Count(),
-            group.Count(Selectable), group.Count(row => selected.ContainsKey(row.Candidate.Id))))
+            group.Count(Selectable), group.Count(row => selected.ContainsKey(row.Candidate.Id)),
+            SumBytes(group), SumBytes(group.Where(row => selected.ContainsKey(row.Candidate.Id)))))
         .OrderBy(group => group.Name, StringComparer.Ordinal).ToImmutableArray();
     public bool? FilteredSelection => SelectionState(Filtered);
     private ImmutableArray<CleanupCandidateSelection> Filtered => results.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
@@ -100,7 +122,9 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
             Workspaces = locations.OrderBy(value => value.Path.Value, StringComparer.Ordinal).ToImmutableArray();
             WorkspaceId = Workspaces.Any(value => value.Id == WorkspaceId) ? WorkspaceId : Workspaces.FirstOrDefault()?.Id;
             DiscoveryIssues = result?.Issues ?? [];
+            DiscoveryAttempted = true;
             ErrorCode = failure;
+            ErrorStage = failure is null ? null : "prepare_locations";
             State = failure is null ? CleanupReviewState.Empty : CleanupReviewState.Failed;
         };
     }, () => { ClearScan(); Workspaces = []; WorkspaceId = null; });
@@ -164,6 +188,8 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         AllLocations = false;
         Snapshot = Batch?.Scans.FirstOrDefault(scan => scan.WorkspaceId == workspaceId);
         ErrorCode = null;
+        ErrorStage = null;
+        DiagnosticReference = null;
         SelectionErrorCode = null;
         State = CoverageState();
         NotifyAll();
@@ -220,9 +246,12 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         NotifyAll();
     }
 
+    public bool SetCategorySelected(string? category, bool value) => ChangeSelection(results.Where(row =>
+        (category is null || row.Category == category) && Selectable(row)), value);
     public bool SetFilteredSelected(bool value) => ChangeSelection(Filtered.Where(Selectable), value);
     public bool SetGroupSelected(string ruleId, bool value) => ChangeSelection(results.Where(row => row.Candidate.RuleId == ruleId && Selectable(row)), value);
     public bool SelectRecommended() => ChangeSelection(results.Where(row => row.Recommended && Selectable(row)), true, replace: true);
+    public bool SelectReviewable() => ChangeSelection(results.Where(row => row.Candidate.Risk != "high" && Selectable(row)), true, replace: true);
     public void ClearSelection() => ChangeSelection([], false, replace: true);
 
     private bool ChangeSelection(IEnumerable<CleanupCandidateSelection> rows, bool value, bool replace = false)
@@ -302,6 +331,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     private async Task RunAsync(CleanupReviewState busy, Func<CancellationToken, Task<Action>> run, Action? start = null, Action? failure = null,
         bool retainCompletedOnStop = false)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.cleanup." + busy.ToString().ToLowerInvariant());
         ObjectDisposedException.ThrowIf(disposed, this);
         var currentGeneration = ++generation;
         operation?.Cancel();
@@ -310,6 +340,8 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         start?.Invoke();
         State = busy;
         ErrorCode = null;
+        ErrorStage = null;
+        DiagnosticReference = diagnostic.Id;
         SelectionErrorCode = null;
         NotifyAll();
         try
@@ -326,17 +358,23 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         }
         catch (Exception error)
         {
+            diagnostic.Fail(error);
             if (disposed || currentGeneration != generation) return;
             failure?.Invoke();
             State = CleanupReviewState.Failed;
+            ErrorStage = busy.ToString().ToLowerInvariant();
             ErrorCode = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : error is IOException ? "read_failed" : "operation_failed";
         }
         finally
         {
+            diagnostic.Complete(disposed || currentGeneration != generation ? "superseded" : State.ToString().ToLowerInvariant(), ResultCount,
+                DiscoveryIssues.Length + (Batch?.Issues.Length ?? 0));
             if (!disposed && currentGeneration == generation) { operation = null; NotifyAll(); }
         }
     }
 
+    private static long SumBytes(IEnumerable<CleanupCandidateSelection> rows) => rows.Aggregate(0L, (total, row) =>
+        row.Candidate.AllocatedBytes > long.MaxValue - total ? long.MaxValue : total + row.Candidate.AllocatedBytes);
     private bool Selectable(CleanupCandidateSelection row) => !requiresRescan && !BatchRequiresRescan && row.Selectable;
     private bool? SelectionState(IEnumerable<CleanupCandidateSelection> rows)
     {
@@ -366,6 +404,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         ClearReview();
         Batch = null;
         DiscoveryIssues = [];
+        DiscoveryAttempted = false;
     }
     private void ClearReview()
     {

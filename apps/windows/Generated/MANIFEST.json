@@ -6,11 +6,12 @@
   ],
   "location_count": 23,
   "outputs": {
-    "Design.xaml": "6cbe5c9eb2c4c8460a03c5d72ca27fae73ff7fe9c5ef8a839700384b74b9a774",
-    "Strings/en-US/Resources.resw": "1e4f2c01416bf44e41e66bddc38ff6782176a71d092087c3f89781d302da91df",
-    "Strings/zh-CN/Resources.resw": "42c648123225d781e67c8131991517f551dbd16ca29e445ce0541108eacbdbbd",
-    "Text.en-US.json": "ffb97375f789498c354ddf5cfe631ef9785e7859e818b03194e7b1c2aa500a90",
-    "Text.zh-CN.json": "f963a23f5d4aca1d13576cb55c1f2350eeafa4359427558fc571a3a4bb8c7d3d",
+    "Design.xaml": "bddaa6f5e7a025fb1edd69c8af0953265a74b8cf5504e20050839230696b46e8",
+    "Shou.ico": "536d286c365d7133396a397d0b8bb849969e7af9030ad2d9ddf79fc67e85bcd7",
+    "Strings/en-US/Resources.resw": "80f1a163d801dca3ef693e1082d1d5ac462198804c69c0bce4ad1f80fa0796a0",
+    "Strings/zh-CN/Resources.resw": "b36e23a81302b7b50c955d28e5097458202fdf6aec7909957a8b1fda3871a9ac",
+    "Text.en-US.json": "9d0cd2eed4f6f189cbd6c6cc8e9779db419bc83f68001f08f93f02eacf30bcc2",
+    "Text.zh-CN.json": "733c064fffa4d64aae6c1f8614a706469bc4b6da5d11db596b0ed397547a5456",
     "builtin-rules.json": "4ede840982abb5584ff77eb51d6792450ed4b7380c9a30ba549c8cb03a894982",
     "known-locations.json": "e2ff07ea8055b22a884b4563ee15d87efd4fb06231ffcf3f4c26039d982e260b",
     "project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
@@ -18,13 +19,17 @@
   },
   "rule_count": 39,
   "sources": {
-    "assets/design/tokens.json": "8d38763db9832c67f19f3c5177878ccc8cc5efe1feaecadec69c3b6880a37468",
+    "assets/brand/Shou.iconset/icon_128x128.png": "83f7e851be1bcfdd6a51f61f5003efb5d90a624a85f510b4162b481ee076effc",
+    "assets/brand/Shou.iconset/icon_16x16.png": "8b107c711211c865439e2841823410d8d0beb7e69175e36859e0035a5100918b",
+    "assets/brand/Shou.iconset/icon_256x256.png": "90ac621b00c6c700924ccd7839df13f414962f3945e522e8eb2fc3a640b4b916",
+    "assets/brand/Shou.iconset/icon_32x32.png": "4dfb1c6dfab7ede35057ebb98a2e657cc53b81bca1aa48b29fca1208b9c3507e",
+    "assets/design/tokens.json": "27806c015cf417598457a8dd95c91055531f210499d009b4895e408beb05374a",
     "packages/shou-contracts/rule.schema.json": "be7cc8bd28e1f18fa0be08c5afeb04a3b7b344407bd013efd91ac0cfe05ff2c3",
-    "packages/shou-core/Localizable.xcstrings": "1d9eb35b37c3979d4ff989e5ff3ad40ba04404e17384464c47895795c5a823f5",
+    "packages/shou-core/Localizable.xcstrings": "43994a3ef2254b262827dd8121b673ad3d97b4ef592ec3410437f398baa92983",
     "packages/shou-core/Sources/Resources/builtin-rules.json": "86eda3953e5d3eea976d2f99a5cd73a4b2f5fc9f2743e924d8baf6f1ef0a86e3",
     "packages/shou-core/Sources/Resources/known-locations.json": "c338241a1e5d6844436df579336da76f5dd8575d77b9f2e3d2b9de3d722d8d16",
     "packages/shou-core/Sources/Resources/project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
-    "scripts/design_tokens.py": "feafdd82ddc244a6dbcaf5c1dd4acdddde27fef6d9b421734973f4dbf23a724f",
-    "scripts/generate-windows-resources.py": "75db5b96c4e9ff99641232ed939ff4224a0366fc2406f56904fc8da76933ec46"
+    "scripts/design_tokens.py": "f8f6b25c80ba7d46801d9a26788db1d0181325126d54744af4f493f4e3042363",
+    "scripts/generate-windows-resources.py": "c66fb79b4498712e3986ba59716399c6b7e3a91acaffc8d60983fa9e6b24a388"
   }
 }

@@ -29,31 +29,40 @@ public sealed class WindowsPrivacyDatabaseInspection(WindowsPrivacySourcePolicy 
         }, cancellationToken);
     }
 
-    private sealed class SourceAccess : IDisposable
+    internal sealed class SourceAccess : IDisposable
     {
         private readonly List<WindowsFileSystem.PinnedPath> pins = [];
         internal ImmutableArray<PrivacyFileEvidence> Evidence { get; private set; } = [];
-        internal static SourceAccess Acquire(WindowsPrivacySourcePolicy policy, PrivacySourceDefinition source, string owner, CancellationToken token)
+        internal static SourceAccess Acquire(WindowsPrivacySourcePolicy policy, PrivacySourceDefinition source, string owner, CancellationToken token, bool mutation = false, bool transactionJournal = false)
         {
+            if (transactionJournal && !mutation) throw new ArgumentException("Transaction journals are only valid inside the mutation transaction.");
             var root = policy.Validate(source);
             var access = new SourceAccess();
             var evidence = ImmutableArray.CreateBuilder<PrivacyFileEvidence>();
             try
             {
-                PrivacyFileEvidence Inspect(WindowsPath path, bool directory)
+                PrivacyFileEvidence Inspect(WindowsPath path, bool directory, bool journal = false)
                 {
                     token.ThrowIfCancellationRequested();
                     // SQLite may maintain SHM/WAL while querying. Never share delete/rename access.
                     var pinned = WindowsFileSystem.PinPath(path, allowFinalSharedWrites: !directory);
                     access.pins.Add(pinned);
                     var entry = WindowsFileSystem.ReadEntry(path, pinned.Final);
-                    if (entry.Kind != (directory ? EntryKind.Directory : EntryKind.File) || entry.Identity.OwnerSid != owner || !directory && entry.LinkCount != 1)
+                    var createdJournal = journal && transactionJournal && entry.Identity.OwnerSid is "S-1-5-32-544" or "S-1-5-18";
+                    if (entry.Kind != (directory ? EntryKind.Directory : EntryKind.File) || entry.Identity.OwnerSid != owner && !createdJournal || !directory && entry.LinkCount != 1)
                         throw Unsafe();
-                    var security = SecurityDigest(pinned.Final, owner);
+                    var security = SecurityDigest(pinned.Final, owner, createdJournal);
+                    if (journal && !transactionJournal && entry.LogicalBytes != 0) throw Unsafe();
+                    if (journal && mutation)
+                    {
+                        // SQLite owns the rollback journal lifecycle. Do not prevent COMMIT from unlinking it.
+                        ReleaseJournal(pinned);
+                    }
                     // Directory clocks are not content evidence; empty sidecar creation may update them.
                     if (directory) entry = entry with { LogicalBytes = 0, AllocatedBytes = 0, LastWriteUtc = DateTimeOffset.UnixEpoch, ChangeUtc = DateTimeOffset.UnixEpoch };
                     return new(entry, security);
                 }
+                void ReleaseJournal(WindowsFileSystem.PinnedPath pinned) { access.pins.Remove(pinned); pinned.Dispose(); }
                 var current = root.Anchor;
                 evidence.Add(Inspect(current, directory: true));
                 foreach (var part in source.Path.Parent!.RelativeTo(root.Anchor, caseSensitive: true).Split('/'))
@@ -61,7 +70,7 @@ public sealed class WindowsPrivacyDatabaseInspection(WindowsPrivacySourcePolicy 
                 foreach (var suffix in new[] { "", "-wal", "-shm", "-journal" })
                 {
                     PrivacyFileEvidence item;
-                    try { item = Inspect(WindowsPath.Parse(source.Path.Value + suffix), directory: false); }
+                    try { item = Inspect(WindowsPath.Parse(source.Path.Value + suffix), directory: false, journal: suffix == "-journal"); }
                     catch (ShouException error) when (suffix.Length > 0 && error.Code == "not_found") { continue; }
                     if (suffix.Length == 0 || suffix == "-wal" && item.Entry.LogicalBytes > 32) evidence.Add(item);
                 }
@@ -74,7 +83,7 @@ public sealed class WindowsPrivacyDatabaseInspection(WindowsPrivacySourcePolicy 
         public void Dispose() { for (var index = pins.Count - 1; index >= 0; index--) pins[index].Dispose(); pins.Clear(); }
     }
 
-    private static string SecurityDigest(SafeFileHandle handle, string owner)
+    private static string SecurityDigest(SafeFileHandle handle, string owner, bool allowSystemOwner = false)
     {
         var code = NativeMethods.GetPrivateSecurityInfo(handle, 1, 5, out _, 0, out _, 0, out var descriptor);
         if (code != 0) throw WindowsFileSystem.NativeError((int)code);
@@ -83,16 +92,16 @@ public sealed class WindowsPrivacyDatabaseInspection(WindowsPrivacySourcePolicy 
             var length = NativeMethods.SecurityDescriptorLength(descriptor);
             if (length is 0 or > 65_536) throw Unsafe();
             var bytes = new byte[length]; Marshal.Copy(descriptor, bytes, 0, bytes.Length);
-            ValidateSecurityDescriptor(new RawSecurityDescriptor(bytes, 0), owner);
+            ValidateSecurityDescriptor(new RawSecurityDescriptor(bytes, 0), owner, allowSystemOwner);
             return "sha256:" + Convert.ToHexStringLower(SHA256.HashData(bytes));
         }
         catch (ArgumentException) { throw Unsafe(); }
         finally { NativeMethods.LocalFree(descriptor); }
     }
 
-    internal static void ValidateSecurityDescriptor(RawSecurityDescriptor descriptor, string owner)
+    internal static void ValidateSecurityDescriptor(RawSecurityDescriptor descriptor, string owner, bool allowSystemOwner = false)
     {
-        if (descriptor.Owner?.Value != owner || descriptor.DiscretionaryAcl is not { } acl) throw Unsafe();
+        if (descriptor.Owner?.Value != owner && !(allowSystemOwner && descriptor.Owner?.Value is "S-1-5-18" or "S-1-5-32-544") || descriptor.DiscretionaryAcl is not { } acl) throw Unsafe();
         foreach (var value in acl)
         {
             if (value is not CommonAce ace || ace.IsCallback) throw Unsafe();

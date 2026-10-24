@@ -61,7 +61,7 @@ public sealed class GeneratedStartupControlTests(ITestOutputHelper output)
         GeneratedStartupTaskFixture fixture, Action? beforeDispatch = null)
     {
         output.WriteLine("Generated startup evidence: " + fixture.Root);
-        Assert.False(WindowsStartupControlMutation.PublicExecutionAvailable);
+        Assert.True(WindowsStartupControlMutation.PublicExecutionAvailable);
         var store = new WindowsRecordStore(WindowsPath.Parse(Path.Combine(fixture.Root, "private-records")));
         Assert.Equal(fixture.OwnerSid, store.OwnerSid);
         var mutation = new TrackedMutation(fixture, beforeDispatch);
@@ -75,6 +75,7 @@ public sealed class GeneratedStartupControlTests(ITestOutputHelper output)
         var prepared = Prepare(fixture);
         var review = await fixture.Reviewer().InspectAsync(fixture.TaskPath, StartupControlAction.Enable);
         Assert.True(review.CanChange, string.Join(", ", review.BlockingReasons));
+        // A saved review never grants execution or current confirmation.
         Assert.False(review.ExecutionAvailable);
         var confirmation = new Confirmation(fixture);
         var enabled = await prepared.Service.ExecuteAsync(review, confirmation);

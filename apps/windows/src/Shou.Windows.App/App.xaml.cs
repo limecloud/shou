@@ -17,9 +17,18 @@ public partial class App : Application
         InitializeComponent();
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
+        await AppearanceSettings.LoadAsync();
         window = new MainWindow();
         window.Activate();
+    }
+
+    internal void ReloadWindow(string page)
+    {
+        var previous = window;
+        window = new MainWindow(page);
+        window.Activate();
+        previous?.Close();
     }
 }

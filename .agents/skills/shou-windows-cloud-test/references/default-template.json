@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "provider": "aliyun-wuying-enterprise",
+  "region_id": "cn-guangzhou",
+  "charge_type": "PostPaid",
+  "desktop_type": "eds.enterprise_office.6c12g",
+  "image_id": "desktopimage-windows-11-64-asp",
+  "os": "Windows 11 Pro x64",
+  "vcpu": 6,
+  "memory_gib": 12,
+  "system_disk_gib": 80,
+  "data_disk_gib": 0,
+  "gpu": false,
+  "ai_assistant": false,
+  "network": {
+    "preferred": "complimentary_shared_egress",
+    "reference_mbps": 20,
+    "paid_premium_bandwidth": false,
+    "availability_must_be_rechecked": true
+  },
+  "budget": {
+    "max_total_cny": 5,
+    "finish_reserve_minutes": 20,
+    "on_blocker": "apply_current_session_retention_choice_promptly",
+    "after_testing": "follow_latest_user_choice_stop_charging_or_release",
+    "retained_storage_is_billed": true,
+    "extended_retention_requires_budget_coverage": true,
+    "during_local_development": "stopped_with_StopCharging",
+    "start_only_when": "local_implementation_checks_and_windows_test_payload_are_ready",
+    "preferred_retention_hours": 24,
+    "retention_deadline_file": "~/.local/share/shou-cloud-test/active-desktop.json"
+  },
+  "price_reference": {
+    "cny_per_hour": 1.11786,
+    "observed_on": "2026-10-24",
+    "reference_only": true,
+    "requote_required": true
+  },
+  "local_account_file": "~/.local/share/shou-cloud-test/account.json"
+}

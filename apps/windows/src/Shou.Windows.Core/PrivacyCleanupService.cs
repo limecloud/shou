@@ -10,6 +10,9 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
     public const int MaximumSelectedSources = 256;
     public const int MaximumPlanBytes = 8_388_608;
     public const int MaximumReceiptBytes = 131_072;
+    public const int MaximumHistoryDirectoryEntries = 4096;
+    public const int MaximumHistoryBytes = 33_554_432;
+    public static readonly TimeSpan HistoryDuration = TimeSpan.FromSeconds(10);
     public static readonly TimeSpan PlanLifetime = TimeSpan.FromMinutes(5);
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
     private readonly ConfigurationCodec configurations = new(validator);
@@ -125,6 +128,49 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
         await using var lease = await store.AcquireReadLeaseAsync(cancellationToken).ConfigureAwait(false) ?? throw Missing();
         var plan = await LoadPlanAsync(lease, planId, cancellationToken).ConfigureAwait(false);
         var bytes = await lease.ReadAsync(key, MaximumReceiptBytes, cancellationToken).ConfigureAwait(false) ?? throw Missing();
+        return DecodeReceipt(bytes, plan);
+    }
+
+    /// <summary>Read-only, bounded and fully validated history; reading never renews execution authority.</summary>
+    public async Task<ImmutableArray<PrivacyReceipt>> HistoryAsync(int limit = 20, CancellationToken cancellationToken = default)
+    {
+        if (limit is < 1 or > 100) throw Input();
+        using var deadline = new CancellationTokenSource(HistoryDuration, clock);
+        using var stopped = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
+        try
+        {
+            var token = stopped.Token;
+            await using var lease = await store.AcquireReadLeaseAsync(token).ConfigureAwait(false);
+            if (lease is null) return [];
+            var keys = await lease.ListKeysAsync("privacy_receipt", MaximumHistoryDirectoryEntries, token).ConfigureAwait(false);
+            var receipts = new List<PrivacyReceipt>();
+            long totalBytes = 0;
+            async Task<byte[]> Read(string key, int maximum)
+            {
+                token.ThrowIfCancellationRequested();
+                var bytes = await lease.ReadAsync(key, maximum, token).ConfigureAwait(false) ?? throw Missing();
+                totalBytes += bytes.Length;
+                if (totalBytes > MaximumHistoryBytes) throw new ShouException("resource_limit", "Privacy history exceeds its read budget. No partial history is presented as complete.");
+                return bytes;
+            }
+            foreach (var key in keys)
+            {
+                if (!RecordKey.IsId(key, "privacy_receipt")) throw Corrupt();
+                var planId = "privacy_plan_" + key["privacy_receipt_".Length..];
+                var plan = DecodePlan(await Read(planId, MaximumPlanBytes).ConfigureAwait(false), planId);
+                var scan = scans.Decode(await Read(plan.ScanId, PrivacyScanService.MaximumScanBytes).ConfigureAwait(false), plan.ScanId);
+                ValidatePlan(plan, planId, scan);
+                receipts.Add(DecodeReceipt(await Read(key, MaximumReceiptBytes).ConfigureAwait(false), plan));
+            }
+            token.ThrowIfCancellationRequested();
+            return receipts.OrderByDescending(receipt => receipt.StartedAt).ThenBy(receipt => receipt.Id, StringComparer.Ordinal).Take(limit).ToImmutableArray();
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
+        { throw new ShouException("time_limit", "Privacy history could not be read within ten seconds."); }
+    }
+
+    private static PrivacyReceipt DecodeReceipt(byte[] bytes, PrivacyPlan plan)
+    {
         try
         {
             if (bytes.Length > MaximumReceiptBytes) throw Corrupt();
@@ -143,6 +189,12 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
     private async Task<PrivacyPlan> LoadPlanAsync(IRecordReadLease lease, string planId, CancellationToken token)
     {
         var bytes = await lease.ReadAsync(planId, MaximumPlanBytes, token).ConfigureAwait(false) ?? throw Missing();
+        var plan = DecodePlan(bytes, planId);
+        var scan = await LoadScanAsync(lease, plan.ScanId, token).ConfigureAwait(false);
+        ValidatePlan(plan, planId, scan); return plan;
+    }
+    private PrivacyPlan DecodePlan(byte[] bytes, string planId)
+    {
         PrivacyPlan plan;
         try
         {
@@ -152,8 +204,7 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
         }
         catch (Exception error) when (error is JsonException or ShouException or ArgumentException or NullReferenceException or InvalidOperationException or OverflowException)
         { throw Corrupt(); }
-        var scan = await LoadScanAsync(lease, plan.ScanId, token).ConfigureAwait(false);
-        ValidatePlan(plan, planId, scan); return plan;
+        return plan;
     }
     private async Task PreflightAsync(IRecordReadLease lease, PrivacyPlan plan, CancellationToken token)
     {

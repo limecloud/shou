@@ -82,6 +82,7 @@ public sealed class CleanupHistoryViewModel(ICleanupHistoryOperations operations
 
     private async Task RunAsync(CleanupHistoryState busy, Func<CancellationToken, Task<Action>> run, Action start)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.history");
         ObjectDisposedException.ThrowIf(disposed, this);
         var currentGeneration = ++generation;
         operation?.Cancel();
@@ -104,12 +105,14 @@ public sealed class CleanupHistoryViewModel(ICleanupHistoryOperations operations
         }
         catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
         {
+            diagnostic.Fail(error);
             if (disposed || currentGeneration != generation) return;
             State = CleanupHistoryState.Failed;
             ErrorCode = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "read_failed";
         }
         finally
         {
+            diagnostic.Complete(disposed || currentGeneration != generation ? "superseded" : State.ToString().ToLowerInvariant());
             if (!disposed && currentGeneration == generation) { operation = null; NotifyAll(); }
         }
     }

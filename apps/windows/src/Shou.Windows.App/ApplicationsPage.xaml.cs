@@ -2,14 +2,19 @@ using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Shou.Windows.Core;
 using Shou.Windows.Platform;
 using Shou.Windows.Presentation;
 
 namespace Shou.Windows.App;
 
-public sealed partial class ApplicationsPage : UserControl, IDisposable
+public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDisposable
 {
+    protected override Microsoft.UI.Xaml.Automation.Peers.AutomationPeer OnCreateAutomationPeer() =>
+        new Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer(this);
+
+    public FrameworkElement Toolbar => PageChrome.Detach(PageToolbar, PageLayout);
     private readonly TextCatalog text = new();
     private readonly ApplicationsViewModel model = new(new ApplicationCatalog(new WindowsApplicationInventory()));
     private readonly ApplicationUninstallViewModel uninstall = new(new NativeApplicationOperations());
@@ -17,6 +22,8 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
     private bool disposed;
     private bool initialized;
     private bool rendering;
+    private readonly InlineDetails inlineDetails;
+    private ApplicationPresentationFilter presentation = ApplicationPresentationFilter.All;
     private string? selectedApplicationId;
     public bool HasActiveUninstall => uninstall.IsExecuting;
     public event EventHandler? BusyChanged;
@@ -24,15 +31,30 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
     public ApplicationsPage()
     {
         InitializeComponent();
+        inlineDetails = new(Inspector, PageLayout);
         PageTitle.Text = text.Get("Applications");
-        Description.Text = text.Get("Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet.");
+        NameHeading.Text = text.Get("Name"); SizeHeading.Text = text.Get("Registered size"); StateHeading.Text = text.Get("Status");
+        FooterNotice.Text = text.Get(uninstall.ExecutionAvailable
+            ? "Select an application to view its registration details."
+            : "Select an application to inspect its installation. System uninstall is unavailable in this preview.");
+        EstimatedLabel.Text = text.Get("Estimated Size");
+        CoverageLabel.Text = text.Get("Partial Coverage");
+        AutomationProperties.SetName(CoverageButton, text.Get("Partial Coverage"));
+        UninstallFooterButton.Content = text.Get("Uninstall Selected…");
+        ToolTipService.SetToolTip(UninstallFooterButton, text.Get(uninstall.ExecutionAvailable
+            ? "Select an application to view its registration details."
+            : "Select an application to inspect its installation. System uninstall is unavailable in this preview."));
+        AutomationProperties.SetName(InfoButton, text.Get("Information")); AutomationProperties.SetName(CloseInspectorButton, text.Get("Close Details"));
+        Description.Text = text.Get(uninstall.ExecutionAvailable
+            ? "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage."
+            : "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet.");
         SearchBox.PlaceholderText = text.Get("Search applications…");
         AutomationProperties.SetName(SearchBox, text.Get("Search applications…"));
         AutomationProperties.SetName(ApplicationsList, text.Get("Applications"));
         AutomationProperties.SetName(SortBox, text.Get("Sort applications"));
         NameSort.Content = text.Get("Name");
         SizeSort.Content = text.Get("Registered size");
-        SortBox.SelectedIndex = 0;
+        SortBox.SelectedIndex = 1;
         RefreshButton.Content = text.Get("Refresh");
         CancelButton.Content = text.Get("Stop");
         PreviousButton.Content = text.Get("Previous");
@@ -54,28 +76,47 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
     private void Render()
     {
         if (disposed) return;
+        PageDiagnostics.Update(this, "applications", model.State, model.ErrorCode);
         var busy = model.IsBusy || uninstall.IsBusy;
         RefreshButton.IsEnabled = !busy;
         SearchBox.IsEnabled = SortBox.IsEnabled = ApplicationsList.IsEnabled = !busy;
         CancelButton.IsEnabled = model.IsBusy && !model.StopRequested || uninstall.IsBusy && !uninstall.StopRequested;
         PreviousButton.IsEnabled = !busy && model.Page?.Offset > 0;
         NextButton.IsEnabled = !busy && model.Page?.HasNext == true;
+        PreviousButton.Visibility = NextButton.Visibility = model.Page is { } paging && (paging.Offset > 0 || paging.HasNext)
+            ? Visibility.Visible : Visibility.Collapsed;
         Progress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        Progress.IsIndeterminate = busy && AppearanceSettings.AnimationsEnabled;
+        CancelButton.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+        EmptyContent.Visibility = model.Page?.Items.IsEmpty == false ? Visibility.Collapsed : Visibility.Visible;
+        EmptyText.Text = text.Get(model.IsBusy ? "Loading…" : model.State == ApplicationsPageState.Failed ? "Application registrations could not be loaded. Try refreshing the list." : "No matching applications.");
         CoverageNotice.IsOpen = model.State == ApplicationsPageState.Partial;
-        Status.Text = model.ErrorCode is not null ? text.Get("Application registrations could not be loaded. Try refreshing the list.") :
+        CoverageButton.Visibility = CoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
+        ShowStatus(model.ErrorCode is not null ? text.Get("Application registrations could not be loaded. Try refreshing the list.") :
             model.StopRequested ? text.Get("Stopping…") : model.State switch
             {
                 ApplicationsPageState.Loading => text.Get("Loading…"),
                 ApplicationsPageState.Cancelled => text.Get("Cancelled"),
-                _ when model.Page is { } page => text.Format("%lld registered applications", page.Total),
                 _ => ""
-            };
+            });
         CoverageText.Text = model.Page is { } result ? string.Join(" · ", result.Sources.Select(source =>
             Source(source.Source) + ": " + text.Get(source.State == ApplicationSourceState.Complete ? "Read" : "Incomplete"))) : "";
         var selectedId = (ApplicationsList.SelectedItem as ApplicationDisplay)?.Application.Id;
+        ApplicationSummary.Text = model.Page is not null ? text.Format("%lld registered applications", model.CatalogCount) : text.Get("Applications");
+        EstimatedBytes.Text = model.Page is null ? "" : StorageRow.FormatBytes(model.RegisteredEstimatedBytes);
+        FilterAll.Content = text.Get("All") + " " + model.CatalogCount;
+        FilterSystem.Content = text.Get("System package") + " " + model.SystemPackageCount;
+        FilterSized.Content = text.Get("Registered size") + " " + model.SizedCount;
+        FilterCurrentUser.Content = text.Get("Current-user installation") + " " + model.CurrentUserCount;
+        FilterAll.IsChecked = presentation == ApplicationPresentationFilter.All;
+        FilterSystem.IsChecked = presentation == ApplicationPresentationFilter.SystemPackage;
+        FilterSized.IsChecked = presentation == ApplicationPresentationFilter.HasRegisteredSize;
+        FilterCurrentUser.IsChecked = presentation == ApplicationPresentationFilter.CurrentUser;
+        foreach (var pill in new[] { FilterAll, FilterSystem, FilterSized, FilterCurrentUser }) pill.IsEnabled = !busy;
         var rows = model.Page?.Items.Select(application => new ApplicationDisplay(application,
             string.Join(" · ", new[] { application.Publisher, application.Version, Source(application.Source) }.Where(value => !string.IsNullOrEmpty(value))),
-            Size(application))).ToArray();
+            Size(application), text.Get(application.IsSystemPackage ? "System package" : "Review"))).ToArray();
+        inlineDetails.Hide();
         rendering = true;
         ApplicationsList.ItemsSource = rows;
         ApplicationsList.SelectedItem = rows?.FirstOrDefault(row => row.Application.Id == selectedId);
@@ -110,14 +151,52 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
         Details.Text = string.Join(Environment.NewLine + Environment.NewLine, lines);
     }
 
+    private void CloseInspector(object sender, RoutedEventArgs args) { if (!uninstall.IsBusy) { inlineDetails.Hide(); ApplicationsList.SelectedItem = null; } }
+    private void ExpandApplication(Expander sender, ExpanderExpandingEventArgs args)
+    {
+        if (uninstall.IsBusy) { sender.IsExpanded = false; return; }
+        ApplicationsList.SelectedItem = sender.Tag; inlineDetails.Show(sender); ShowDetails(); RenderUninstall();
+    }
+    private void CollapseApplication(Expander sender, ExpanderCollapsedEventArgs args) { if (!uninstall.IsBusy) inlineDetails.Hide(); }
+    private void LoadRowIcon(object sender, RoutedEventArgs args) { if (sender is ContentControl host) host.Content = ProductIcon.Create("applications", (double)Application.Current.Resources["ShouCatalogIconSize"]); }
     private void ChangeSearch(object sender, TextChangedEventArgs args) => Filter();
+    private void ChangePresentationFilter(object sender, RoutedEventArgs args)
+    {
+        if (disposed) return;
+        if (initialized && sender is ToggleButton { Tag: string tag })
+        {
+            presentation = tag switch
+            {
+                "system" => ApplicationPresentationFilter.SystemPackage,
+                "sized" => ApplicationPresentationFilter.HasRegisteredSize,
+                "user" => ApplicationPresentationFilter.CurrentUser,
+                _ => ApplicationPresentationFilter.All
+            };
+            try { model.SetPresentationFilter(presentation); }
+            catch (ShouException) { ShowStatus(text.Get("Enter a search without control characters.")); }
+        }
+        ApplyPresentationPills();
+    }
+    private void ApplyPresentationPills()
+    {
+        FilterAll.IsChecked = presentation == ApplicationPresentationFilter.All;
+        FilterSystem.IsChecked = presentation == ApplicationPresentationFilter.SystemPackage;
+        FilterSized.IsChecked = presentation == ApplicationPresentationFilter.HasRegisteredSize;
+        FilterCurrentUser.IsChecked = presentation == ApplicationPresentationFilter.CurrentUser;
+    }
     private void ChangeSort(object sender, SelectionChangedEventArgs args) => Filter();
     private void Filter()
     {
         if (!initialized || disposed || uninstall.IsBusy) return;
         try { model.Filter(SearchBox.Text, SortBox.SelectedIndex == 1 ? ApplicationSort.RegisteredSize : ApplicationSort.Name); }
-        catch (ShouException) { Status.Text = text.Get("Enter a search without control characters."); }
+        catch (ShouException) { ShowStatus(text.Get("Enter a search without control characters.")); }
     }
+    private void ShowStatus(string message)
+    {
+        Status.Text = message;
+        Status.Visibility = message.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
+    private void ShowCoverage(object sender, RoutedEventArgs args) => InfoButton.Flyout?.ShowAt((FrameworkElement)sender);
     private async void Refresh(object sender, RoutedEventArgs args)
     {
         if (disposed || uninstall.IsBusy) return;
@@ -155,7 +234,14 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
     private void RenderUninstall()
     {
         if (disposed) return;
+        var selectedCount = selectedApplicationId is null ? 0 : 1;
+        SelectionSummary.Text = text.Format("%lld applications selected", selectedCount);
+        AutomationProperties.SetItemStatus(SelectionSummary, selectedCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        UninstallFooterButton.IsEnabled = uninstall.ExecutionAvailable && selectedApplicationId is not null && !model.IsBusy && !uninstall.IsBusy;
         InspectButton.IsEnabled = selectedApplicationId is not null && !model.IsBusy && !uninstall.IsBusy;
+        InstallerDataConsent.Visibility = PreparePlanButton.Visibility = uninstall.Review?.CanPreparePlan == true ? Visibility.Visible : Visibility.Collapsed;
+        ExecuteButton.Visibility = uninstall.Plan is null ? Visibility.Collapsed : Visibility.Visible;
+        ReadExecutionButton.Visibility = uninstall.CanReadExecution ? Visibility.Visible : Visibility.Collapsed;
         InstallerDataConsent.IsEnabled = uninstall.Review?.CanPreparePlan == true && !uninstall.IsBusy;
         InstallerDataConsent.IsChecked = uninstall.AllowInstallerDataChanges;
         PreparePlanButton.IsEnabled = uninstall.CanPreparePlan;
@@ -191,7 +277,9 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
         var identity = review.Installation.Identity!;
         UninstallStatus.Text = (identity.Kind == ApplicationInstallerKind.Msi ? "MSI" : "MSIX") + Environment.NewLine + identity.SystemId +
             Environment.NewLine + text.Get("The system installer may stop managed apps or services and remove data. Shou cannot restore this operation.") +
-            Environment.NewLine + text.Get("Activity checks cover the installation folder; execution is not available yet.");
+            Environment.NewLine + text.Get(uninstall.ExecutionAvailable
+                ? "Review the installer data changes before preparing an uninstall plan."
+                : "Activity checks cover the installation folder; execution is not available yet.");
     }
     private string RecordReference() => uninstall.ExecutionPlanId is { } id
         ? Environment.NewLine + text.Get("Uninstall plan") + ": " + id : "";
@@ -254,6 +342,33 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
         try { await uninstall.InspectAsync(id); }
         catch (Exception error) { NativeDiagnostics.Write(error); }
     }
+    private async void ReviewSelectedUninstall(object sender, RoutedEventArgs args)
+    {
+        if (selectedApplicationId is not { } id || uninstall.IsBusy || model.IsBusy) return;
+        try
+        {
+            var content = new StackPanel { Spacing = 12 };
+            await uninstall.InspectAsync(id);
+            content.Children.Add(new TextBlock { Text = UninstallStatus.Text, TextWrapping = TextWrapping.Wrap });
+            if (uninstall.Review is not { CanPreparePlan: true })
+            {
+                await new ContentDialog { XamlRoot = XamlRoot, Title = text.Get("Review Uninstall"), Content = content, CloseButtonText = text.Get("Done") }.ShowAsync();
+                return;
+            }
+            var consent = new CheckBox { Content = new TextBlock { Text = InstallerDataDescription.Text, TextWrapping = TextWrapping.Wrap } };
+            content.Children.Add(consent);
+            var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = text.Get("Review Uninstall"), Content = content, PrimaryButtonText = text.Get("Prepare Uninstall Plan"), CloseButtonText = text.Get("Cancel"), DefaultButton = ContentDialogButton.Close, IsPrimaryButtonEnabled = false };
+            consent.Checked += (_, _) => dialog.IsPrimaryButtonEnabled = true;
+            consent.Unchecked += (_, _) => dialog.IsPrimaryButtonEnabled = false;
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary || consent.IsChecked != true || disposed) return;
+            uninstall.SetDataConsent(true);
+            await uninstall.PreparePlanAsync();
+            if (!uninstall.CanExecute) return;
+            await uninstall.ExecuteAsync(new WinUIApplicationUninstallConfirmation(this, text));
+            if (!disposed && uninstall.Execution?.State == ApplicationUninstallState.Completed) await model.RefreshAsync();
+        }
+        catch (Exception error) { NativeDiagnostics.Write(error); if (!disposed) UninstallStatus.Text = UninstallError(error is ShouException known ? known.Code : "io_error"); }
+    }
     private void ChangeInstallerDataConsent(object sender, RoutedEventArgs args) => uninstall.SetDataConsent(InstallerDataConsent.IsChecked == true);
     private async void PrepareUninstallPlan(object sender, RoutedEventArgs args)
     {
@@ -281,8 +396,10 @@ public sealed partial class ApplicationsPage : UserControl, IDisposable
         uninstall.Dispose();
         GC.SuppressFinalize(this);
     }
-    private sealed record ApplicationDisplay(InstalledApplication Application, string Subtitle, string RegisteredSize)
+    [Microsoft.UI.Xaml.Data.Bindable]
+    private sealed record ApplicationDisplay(InstalledApplication Application, string Subtitle, string RegisteredSize, string Status)
     {
         public string Name => Application.Name;
+        public string Publisher => Application.Publisher ?? "";
     }
 }

@@ -105,9 +105,9 @@ public sealed class TerminalConfirmationTests
     public void DiscoveryDoesNotAdvertiseUnacceptedNativeExecutionAsAvailable()
     {
         var spec = Assert.Single(CommandDiscovery.Matching("plan execute"));
-        Assert.False(spec.Available);
-        Assert.Equal("native_acceptance_pending", spec.UnavailableReason);
-        Assert.False(CliServices.MutationAvailable);
-        Assert.Contains("Unavailable", CommandDiscovery.Help("plan execute"));
+        Assert.Equal(Shou.Windows.Platform.NativeWindowsSupport.IsSupported, spec.Available);
+        Assert.Equal(CliServices.MutationAvailable ? null : "unsupported_native_host", spec.UnavailableReason);
+        Assert.Equal(Shou.Windows.Platform.NativeWindowsSupport.IsSupported, CliServices.MutationAvailable);
+        Assert.Equal(!CliServices.MutationAvailable, CommandDiscovery.Help("plan execute").Contains("Unavailable", StringComparison.Ordinal));
     }
 }

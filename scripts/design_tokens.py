@@ -28,6 +28,9 @@ def validate(tokens):
             if group == 'colors':
                 if not isinstance(value, str) or not re.fullmatch(r'#[0-9A-Fa-f]{8}', value):
                     raise ValueError(f'{key}: expected #AARRGGBB sRGB color')
+            elif group == 'thicknesses' and isinstance(value, list):
+                if len(value) != 4 or any(type(part) not in (int, float) or not 0 <= part <= 4096 or not math.isfinite(part) for part in value):
+                    raise ValueError(f'{key}: expected four finite left/top/right/bottom values between 0 and 4096')
             elif type(value) not in (int, float) or not 0 <= value <= 4096 or not math.isfinite(value):
                 raise ValueError(f'{key}: expected a finite number between 0 and 4096')
     return tokens
@@ -52,7 +55,7 @@ def xaml(tokens):
     })
     for group, element in GROUPS.items():
         for key, value in sorted(tokens[group].items()):
-            ET.SubElement(tree, element, {'x:Key': key}).text = str(value)
+            ET.SubElement(tree, element, {'x:Key': key}).text = ','.join(str(part) for part in value) if isinstance(value, list) else str(value)
     ET.indent(tree, space='  ')
     return ET.tostring(tree, encoding='utf-8', xml_declaration=True) + b'\n'
 
@@ -72,6 +75,9 @@ def swift(tokens):
                 alpha, red, green, blue = [int(value[index:index + 2], 16) for index in (1, 3, 5, 7)]
                 expression = f'Color(.sRGB, red: {red}.0 / 255, green: {green}.0 / 255, blue: {blue}.0 / 255, opacity: {alpha}.0 / 255)'
                 lines.append(f'    static let `{name}` = {expression}')
+            elif group == 'thicknesses' and isinstance(value, list):
+                left, top, right, bottom = value
+                lines.append(f'    static let `{name}` = EdgeInsets(top: {top}, leading: {left}, bottom: {bottom}, trailing: {right})')
             else:
                 lines.append(f'    static let `{name}`: CGFloat = {value}')
     return ('\n'.join(lines + ['}', ''])).encode()

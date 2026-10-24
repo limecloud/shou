@@ -10,10 +10,10 @@ namespace Shou.Windows.Platform;
 /// <summary>System-managed uninstall only. No registry command, shell, recursive file deletion or process termination.</summary>
 public sealed class WindowsApplicationUninstallMutation : IApplicationUninstallMutation
 {
-    // Shared by GUI and CLI. Enable only after native installer, interruption and UI acceptance is recorded.
-    public static bool PublicExecutionAvailable => false;
+    // GUI and CLI share the same strict native-host gate. macOS builds remain read-only.
+    public static bool PublicExecutionAvailable => NativeWindowsSupport.IsSupported;
     private static readonly SemaphoreSlim Sessions = new(1, 1);
-    public bool Supports(ApplicationInstallerKind kind) => Enum.IsDefined(kind) && OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) && Environment.Is64BitProcess;
+    public bool Supports(ApplicationInstallerKind kind) => Enum.IsDefined(kind) && NativeWindowsSupport.IsSupported;
 
     public async Task<ApplicationUninstallResult> ApplyAsync(ApplicationUninstallReview review, string ownerSid, DateTimeOffset authorizationExpiresAt, CancellationToken cancellationToken)
     {

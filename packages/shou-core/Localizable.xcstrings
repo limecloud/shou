@@ -529,6 +529,22 @@
         }
       }
     },
+    "%lld rules": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条规则"
+          }
+        }
+      }
+    },
     "%lld startup entries": {
       "localizations": {
         "en": {
@@ -1041,6 +1057,22 @@
         }
       }
     },
+    "AI investigation is not available in this Windows preview.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI investigation is not available in this Windows preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Windows 预览版尚不支持 AI 调查。"
+          }
+        }
+      }
+    },
     "AI is off. Local scanning and cleanup remain available.": {
       "localizations": {
         "en": {
@@ -1149,6 +1181,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "API 协议"
+          }
+        }
+      }
+    },
+    "About Shou": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About Shou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关于 Shou"
           }
         }
       }
@@ -3345,6 +3393,22 @@
         }
       }
     },
+    "Automatic updates are not available in this Windows preview.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic updates are not available in this Windows preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Windows 预览版尚不支持自动更新。"
+          }
+        }
+      }
+    },
     "Available": {
       "localizations": {
         "en": {
@@ -3633,6 +3697,22 @@
         }
       }
     },
+    "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看已注册的应用，不包含便携应用和其他用户的应用。大小来自安装程序估算，并非实际磁盘占用。"
+          }
+        }
+      }
+    },
     "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet.": {
       "localizations": {
         "en": {
@@ -3677,6 +3757,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "可使用键盘浏览目录树中的相同项目。"
+          }
+        }
+      }
+    },
+    "Browse the rule catalog. Choose a scan location to change applicable rules.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse the rule catalog. Choose a scan location to change applicable rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览规则目录。选择扫描位置后，可更改适用规则的开关。"
           }
         }
       }
@@ -5137,6 +5233,22 @@
         }
       }
     },
+    "Choose a disk or folder to explore its storage usage.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a disk or folder to explore its storage usage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择磁盘或文件夹，探索其空间占用。"
+          }
+        }
+      }
+    },
     "Choose a folder inside the selected workspace, not the workspace itself.": {
       "localizations": {
         "en": {
@@ -5313,6 +5425,22 @@
         }
       }
     },
+    "Choose an applicable scan location": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an applicable scan location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择适用的扫描位置"
+          }
+        }
+      }
+    },
     "Choose an unused rule version. Existing versions cannot be overwritten.": {
       "localizations": {
         "en": {
@@ -5361,6 +5489,22 @@
         }
       }
     },
+    "Choose light, dark, or follow your system settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose light, dark, or follow your system settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择浅色、深色或跟随系统设置。"
+          }
+        }
+      }
+    },
     "Choose local storage or system credentials before saving an API key.": {
       "localizations": {
         "en": {
@@ -5405,6 +5549,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择要调查的精确文件夹。测量在本地完成，点击“开始调查”后才会调用 AI。"
+          }
+        }
+      }
+    },
+    "Choose the language used by Shou.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the language used by Shou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择 Shou 的界面语言。"
           }
         }
       }
@@ -6273,6 +6433,22 @@
         }
       }
     },
+    "Close Details": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭详情"
+          }
+        }
+      }
+    },
     "Close Inspector": {
       "localizations": {
         "en": {
@@ -6589,6 +6765,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已完成"
+          }
+        }
+      }
+    },
+    "Completed operations and their recorded results will appear here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed operations and their recorded results will appear here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成的操作及其结果记录会显示在这里。"
           }
         }
       }
@@ -7633,6 +7825,22 @@
         }
       }
     },
+    "Customize cleanup rules for Windows": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Customize cleanup rules for Windows"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为你的 Windows 定制清理规则"
+          }
+        }
+      }
+    },
     "Customize with AI": {
       "localizations": {
         "en": {
@@ -8353,6 +8561,22 @@
         }
       }
     },
+    "Diagnostic reference: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostic reference: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "诊断编号：%@"
+          }
+        }
+      }
+    },
     "DingTalk web caches": {
       "localizations": {
         "en": {
@@ -8397,6 +8621,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "目录"
+          }
+        }
+      }
+    },
+    "Directory Tree": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Directory Tree"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录树"
           }
         }
       }
@@ -9265,6 +9505,22 @@
         }
       }
     },
+    "Enablement unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enablement unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用状态未知"
+          }
+        }
+      }
+    },
     "Enter a nonnegative whole number for minimum MB.": {
       "localizations": {
         "en": {
@@ -9841,6 +10097,22 @@
         }
       }
     },
+    "File Types": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File Types"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件类型"
+          }
+        }
+      }
+    },
     "File manifest pages are missing or inconsistent.": {
       "localizations": {
         "en": {
@@ -10013,6 +10285,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "自动查找常用软件缓存，无需选择目录。"
+          }
+        }
+      }
+    },
+    "Find large files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find large files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找大文件"
+          }
+        }
+      }
+    },
+    "Find reviewable caches and build artifacts in known locations.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find reviewable caches and build artifacts in known locations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描已知位置，查看可审阅的缓存与构建产物。"
           }
         }
       }
@@ -10641,6 +10945,22 @@
         }
       }
     },
+    "Go Up": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go Up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上一级"
+          }
+        }
+      }
+    },
     "Go build cache": {
       "localizations": {
         "en": {
@@ -11217,6 +11537,22 @@
         }
       }
     },
+    "I understand deleting cookies may sign me out.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I understand deleting cookies may sign me out."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我理解删除 Cookie 可能使我退出登录。"
+          }
+        }
+      }
+    },
     "I understand that clearing cookies can sign me out of websites.": {
       "localizations": {
         "en": {
@@ -11581,6 +11917,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描不完整："
+          }
+        }
+      }
+    },
+    "Information": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Information"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信息"
           }
         }
       }
@@ -12029,6 +12381,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "安装程序结果：未知。"
+          }
+        }
+      }
+    },
+    "Interface Language": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interface Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "界面语言"
           }
         }
       }
@@ -14961,6 +15329,22 @@
         }
       }
     },
+    "No matching applications.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching applications."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的应用。"
+          }
+        }
+      }
+    },
     "No matching cleanup items": {
       "localizations": {
         "en": {
@@ -15089,6 +15473,22 @@
         }
       }
     },
+    "No matching startup items.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching startup items."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的启动项。"
+          }
+        }
+      }
+    },
     "No path was recorded": {
       "localizations": {
         "en": {
@@ -15165,6 +15565,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚未配置扫描位置。"
+          }
+        }
+      }
+    },
+    "No scan locations were found. Add a folder in Scan Locations to continue.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No scan locations were found. Add a folder in Scan Locations to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到扫描位置。请在“扫描位置”中添加文件夹后继续。"
           }
         }
       }
@@ -17873,6 +18289,22 @@
         }
       }
     },
+    "Privacy history could not be loaded. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy history could not be loaded. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载隐私清理历史，请重试。"
+          }
+        }
+      }
+    },
     "Privacy operation failed.": {
       "localizations": {
         "en": {
@@ -20113,6 +20545,22 @@
         }
       }
     },
+    "Rescan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rescan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新扫描"
+          }
+        }
+      }
+    },
     "Rescan This Folder": {
       "localizations": {
         "en": {
@@ -20977,6 +21425,22 @@
         }
       }
     },
+    "Review the installer data changes before preparing an uninstall plan.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the installer data changes before preparing an uninstall plan."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先审阅安装程序对数据的影响，再创建卸载计划。"
+          }
+        }
+      }
+    },
     "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.": {
       "localizations": {
         "en": {
@@ -21213,6 +21677,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "规则建议"
+          }
+        }
+      }
+    },
+    "Rule Versions and Locations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rule Versions and Locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本与位置"
           }
         }
       }
@@ -22065,6 +22545,22 @@
         }
       }
     },
+    "Scan a disk or folder, then review the largest files.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan a disk or folder, then review the largest files."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描磁盘或文件夹，查看占用空间最多的文件。"
+          }
+        }
+      }
+    },
     "Scan again or review discovery coverage.": {
       "localizations": {
         "en": {
@@ -22193,6 +22689,22 @@
         }
       }
     },
+    "Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有位置通过访问与所有者校验，扫描未开始。请在“扫描位置”中选择当前用户所有的文件夹。"
+          }
+        }
+      }
+    },
     "Scan evidence changed. Scan again before continuing.": {
       "localizations": {
         "en": {
@@ -22205,6 +22717,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描依据已变化，请重新扫描后继续。"
+          }
+        }
+      }
+    },
+    "Scan failed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan failed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描失败。"
           }
         }
       }
@@ -22269,6 +22797,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描进度"
+          }
+        }
+      }
+    },
+    "Scan setup failed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan setup failed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描准备失败。"
           }
         }
       }
@@ -22577,6 +23121,22 @@
         }
       }
     },
+    "Search": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索"
+          }
+        }
+      }
+    },
     "Search app names, identifiers or paths": {
       "localizations": {
         "en": {
@@ -22717,6 +23277,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "跨目录汇总大文件，查看后选择要清理的内容。"
+          }
+        }
+      }
+    },
+    "See where your space goes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See where your space goes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看空间用在哪里"
           }
         }
       }
@@ -22993,6 +23569,22 @@
         }
       }
     },
+    "Select an application to inspect its installation. System uninstall is unavailable in this preview.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an application to inspect its installation. System uninstall is unavailable in this preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择应用查看安装详情。此预览版暂不支持系统卸载。"
+          }
+        }
+      }
+    },
     "Select an application to view its registration details.": {
       "localizations": {
         "en": {
@@ -23085,6 +23677,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择本次清理中可操作的项目"
+          }
+        }
+      }
+    },
+    "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择具体隐私来源。永久删除无法撤销；删除 Cookie 可能使你退出登录。"
           }
         }
       }
@@ -23585,6 +24193,22 @@
         }
       }
     },
+    "Settings could not be saved. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings could not be saved. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置未能保存，请重试。"
+          }
+        }
+      }
+    },
     "Settings…": {
       "localizations": {
         "en": {
@@ -23825,6 +24449,22 @@
         }
       }
     },
+    "Show More": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示更多"
+          }
+        }
+      }
+    },
     "Show More (%lld remaining)": {
       "localizations": {
         "en": {
@@ -24017,6 +24657,22 @@
         }
       }
     },
+    "Sidebar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sidebar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "侧边栏"
+          }
+        }
+      }
+    },
     "Simple": {
       "localizations": {
         "en": {
@@ -24077,6 +24733,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "占用空间"
+          }
+        }
+      }
+    },
+    "Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容量显示已测量的分配空间。部分覆盖不能代表整个磁盘，空间浏览不授予删除权限。"
           }
         }
       }
@@ -25153,6 +25825,22 @@
         }
       }
     },
+    "Startup changes are unavailable in this preview. Observed task status is shown where available.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Startup changes are unavailable in this preview. Observed task status is shown where available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此预览版暂不支持更改启动项；仅在已读取时显示任务状态。"
+          }
+        }
+      }
+    },
     "Startup control failed.": {
       "localizations": {
         "en": {
@@ -25873,6 +26561,22 @@
         }
       }
     },
+    "Storage browsing is read-only in this Windows preview.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Storage browsing is read-only in this Windows preview."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此 Windows 预览版仅支持只读空间浏览。"
+          }
+        }
+      }
+    },
     "Stored record is invalid.": {
       "localizations": {
         "en": {
@@ -26013,6 +26717,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "支持"
+          }
+        }
+      }
+    },
+    "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置。不会清理网站存储、保存的密码、自动填充、自定义配置、扩展或云端副本。"
           }
         }
       }
@@ -26237,6 +26957,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "系统设置…"
+          }
+        }
+      }
+    },
+    "System package": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System package"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统应用"
           }
         }
       }
@@ -27485,6 +28221,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "找不到应用内的 CLI，请先将 Shou 安装到应用程序。"
+          }
+        }
+      }
+    },
+    "The page could not be loaded. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The page could not be loaded. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "页面无法加载，请重试。"
           }
         }
       }
@@ -29985,6 +30737,22 @@
         }
       }
     },
+    "Use static indicators and immediate transitions. Otherwise, follow Windows animation settings.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use static indicators and immediate transitions. Otherwise, follow Windows animation settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用静态指示与即时切换；关闭时跟随 Windows 动画设置。"
+          }
+        }
+      }
+    },
     "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion.": {
       "localizations": {
         "en": {
@@ -30685,6 +31453,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Windows 将此应用识别为系统软件包。"
+          }
+        }
+      }
+    },
+    "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 便携预览版。清理、系统卸载与启动项变更将在原生验收完成后开放。"
+          }
+        }
+      }
+    },
+    "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 便携预览版。原生操作需要审阅和本次确认；完整 Windows 验收尚未完成。"
           }
         }
       }

@@ -1,47 +1,42 @@
-<UserControl
-    x:Class="Shou.Windows.App.ConfigurationPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="{StaticResource ShouPagePadding}" Spacing="{StaticResource ShouSectionSpacing}">
-            <TextBlock x:Name="PageTitle" Style="{StaticResource TitleTextBlockStyle}" />
-            <TextBlock x:Name="Description" TextWrapping="Wrap" />
-            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ShouItemSpacing}">
-                <Button x:Name="ImportButton" Click="ImportRule" Style="{StaticResource AccentButtonStyle}" />
-                <Button x:Name="RefreshButton" Click="RefreshConfiguration" />
-            </StackPanel>
-            <ProgressBar x:Name="Progress" IsIndeterminate="True" Visibility="Collapsed" />
-            <TextBlock x:Name="Status" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
-            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
-                <TextBlock x:Name="RulesHeading" Style="{StaticResource SubtitleTextBlockStyle}" />
-                <ComboBox x:Name="Rules" HorizontalAlignment="Stretch" DisplayMemberPath="Label" SelectionChanged="SelectRule" />
-                <TextBlock x:Name="RuleDetails" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
-                <TextBlock x:Name="BindingStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
-                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ShouItemSpacing}">
-                    <Button x:Name="EnableButton" Click="EnableRule" />
-                    <Button x:Name="DisableButton" Click="DisableRule" />
-                </StackPanel>
-            </StackPanel>
-            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
-                <TextBlock x:Name="LocationsHeading" Style="{StaticResource SubtitleTextBlockStyle}" />
-                <ComboBox x:Name="Locations" HorizontalAlignment="Stretch" DisplayMemberPath="Path" SelectionChanged="SelectLocation" />
-                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ShouItemSpacing}">
-                    <Button x:Name="AddLocationButton" Click="AddLocation" />
-                    <Button x:Name="RemoveLocationButton" Click="RemoveLocation" />
-                </StackPanel>
-                <TextBlock x:Name="LocationsNotice" TextWrapping="Wrap" />
-            </StackPanel>
-            <StackPanel Spacing="{StaticResource ShouItemSpacing}">
-                <TextBlock x:Name="ExclusionsHeading" Style="{StaticResource SubtitleTextBlockStyle}" />
-                <ComboBox x:Name="ExclusionScope" HorizontalAlignment="Stretch" SelectionChanged="ChangeExclusionScope" />
-                <TextBlock x:Name="ExclusionsNotice" TextWrapping="Wrap" />
-                <TextBlock x:Name="InheritedProtections" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
-                <TextBox x:Name="ProjectPath" />
-                <TextBox x:Name="ExclusionPattern" />
-                <Button x:Name="AddExclusionButton" Click="AddExclusion" />
-                <ListView x:Name="Exclusions" MaxHeight="220" SelectionMode="Single" SelectionChanged="SelectExclusion" />
-                <Button x:Name="RemoveExclusionButton" Click="RemoveExclusion" />
-            </StackPanel>
+<UserControl x:Class="Shou.Windows.App.ConfigurationPage" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid x:Name="PageLayout">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel x:Name="PageToolbar" Orientation="Horizontal" Spacing="8">
+            <Button x:Name="RefreshButton" Click="RefreshConfiguration" Style="{StaticResource ShouToolbarButton}" />
+            <Button x:Name="ImportButton" Click="ImportRule" Style="{StaticResource ShouToolbarButton}" />
+            <Button x:Name="ExclusionsButton" Style="{StaticResource ShouToolbarButton}"><Button.Flyout><Flyout><ScrollViewer MaxHeight="520"><StackPanel Width="420" Spacing="12">
+                <TextBlock x:Name="ExclusionsHeading" FontWeight="SemiBold" /><ComboBox x:Name="ExclusionScope" AutomationProperties.AutomationId="rules.exclusions.scope" HorizontalAlignment="Stretch" SelectionChanged="ChangeExclusionScope" />
+                <TextBlock x:Name="ExclusionsNotice" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" /><TextBlock x:Name="InheritedProtections" TextWrapping="Wrap" />
+                <TextBox x:Name="ProjectPath" /><TextBox x:Name="ExclusionPattern" /><Button x:Name="AddExclusionButton" Click="AddExclusion" />
+                <ListView x:Name="Exclusions" MaxHeight="180" SelectionChanged="SelectExclusion" /><Button x:Name="RemoveExclusionButton" Click="RemoveExclusion" />
+            </StackPanel></ScrollViewer></Flyout></Button.Flyout></Button>
+            <Button x:Name="AdvancedButton" Style="{StaticResource ShouToolbarButton}"><Button.Flyout><Flyout><StackPanel Width="420" Spacing="12">
+                <TextBlock x:Name="RulesHeading" FontWeight="SemiBold" />
+                <TextBlock x:Name="RuleDetails" TextWrapping="Wrap" /><TextBlock x:Name="BindingStatus" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="8"><Button x:Name="EnableButton" Click="EnableRule" /><Button x:Name="DisableButton" Click="DisableRule" /></StackPanel>
+                <TextBlock x:Name="LocationsHeading" FontWeight="SemiBold" /><Button x:Name="AddLocationButton" Click="AddLocation" /><Button x:Name="RemoveLocationButton" Click="RemoveLocation" />
+                <TextBlock x:Name="LocationsNotice" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" />
+            </StackPanel></Flyout></Button.Flyout></Button>
         </StackPanel>
-    </ScrollViewer>
+        <StackPanel Margin="16,12,16,0" Spacing="10">
+            <Border Background="{ThemeResource ShouRuleBannerBrush}" CornerRadius="10" Padding="14,12"><TextBlock x:Name="CatalogBanner" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" /></Border>
+            <Grid ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="220" /></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" Spacing="8"><TextBlock x:Name="LocationLabel" VerticalAlignment="Center" /><ComboBox x:Name="Locations" AutomationProperties.AutomationId="rules.locations" Width="260" DisplayMemberPath="Path" SelectionChanged="SelectLocation" /></StackPanel><ComboBox Grid.Column="1" x:Name="Rules" DisplayMemberPath="Label" SelectionChanged="SelectRule" VerticalAlignment="Center" /></Grid>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock x:Name="SourceLabel" VerticalAlignment="Center" /><ListBox x:Name="SourceFilter" AutomationProperties.AutomationId="rules.source" SelectionChanged="FilterCatalog" ItemContainerStyle="{StaticResource ShouSegmentItem}" Padding="1" BorderThickness="1" BorderBrush="{ThemeResource ShouDividerBrush}" CornerRadius="6" Background="{ThemeResource ShouSwitchOffBrush}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"><ListBox.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate></ListBox.ItemsPanel></ListBox></StackPanel>
+            <Grid ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="260" /></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"><TextBlock x:Name="CatalogHeading" FontWeight="SemiBold" /><TextBlock x:Name="CatalogCount" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /></StackPanel><TextBox Grid.Column="1" x:Name="CatalogSearch" AutomationProperties.AutomationId="rules.search" TextChanged="SearchCatalog" MaxLength="256" /></Grid>
+        </StackPanel>
+        <TextBlock Grid.Row="1" x:Name="Description" TextWrapping="Wrap" Margin="16,8,16,10" Style="{StaticResource ShouCaption}" />
+        <Border Grid.Row="2" Margin="16,0,16,10" Style="{StaticResource ShouCard}">
+            <ListView x:Name="CatalogList" AutomationProperties.AutomationId="rules.results" ItemContainerStyle="{StaticResource ShouListItem}" SelectionMode="None" Padding="0">
+                <ListView.ItemTemplate><DataTemplate><Grid MinHeight="{StaticResource ShouRuleRowHeight}" Padding="12,10" ColumnSpacing="12" RowSpacing="4" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" Text="{Binding Location}" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" MaxWidth="180" TextTrimming="CharacterEllipsis" />
+                    <ToggleButton Grid.Column="2" Style="{StaticResource ShouSwitch}" Tag="{Binding Entry}" IsChecked="{Binding Enabled, Mode=OneWay}" IsEnabled="{Binding CanToggle}" Click="ToggleCatalogRule" AutomationProperties.Name="{Binding Name}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="1" Grid.ColumnSpan="3" Text="{Binding Summary}" Style="{StaticResource ShouCaption}" TextWrapping="Wrap" ToolTipService.ToolTip="{Binding Patterns}" />
+                    <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{Binding Limitation}" Style="{StaticResource ShouCaption}" TextWrapping="Wrap" />
+                </Grid></DataTemplate></ListView.ItemTemplate>
+            </ListView>
+        </Border>
+        <StackPanel Grid.Row="3" Spacing="4" Padding="16,4"><ProgressBar x:Name="Progress" Visibility="Collapsed" /><TextBlock x:Name="Status" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" /></StackPanel>
+        <TextBlock x:Name="PageTitle" Visibility="Collapsed" />
+    </Grid>
 </UserControl>

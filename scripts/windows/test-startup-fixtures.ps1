@@ -79,7 +79,7 @@ try {
         if (@($ShouInitialFile).Count -ne 1) { throw "Missing generated task registration receipt: $($ShouFixtureDirectory.FullName)" }
         $ShouInitial = Get-Content -Raw -LiteralPath $ShouInitialFile.FullName | ConvertFrom-Json -Depth 64
         if ($ShouInitial.generated_task_only -ne $true -or $ShouInitial.native_runtime_checked -ne $true -or
-            $ShouInitial.public_execution_enabled -ne $false -or $ShouInitial.details.task_present -ne $true -or
+            $ShouInitial.public_execution_enabled -ne $true -or $ShouInitial.details.task_present -ne $true -or
             $ShouInitial.details.generated_trigger_disabled -ne $true -or $ShouInitial.details.demand_start_disabled -ne $true -or
             $ShouInitial.details.facts.enabled -ne $false) {
             throw "Generated task was not recorded as initially disabled and inert: $($ShouFixtureDirectory.FullName)"
@@ -88,7 +88,7 @@ try {
         if (@($ShouReceiptFile).Count -ne 1) { throw "Missing exact fixture teardown receipt: $($ShouFixtureDirectory.FullName)" }
         $ShouReceipt = Get-Content -Raw -LiteralPath $ShouReceiptFile.FullName | ConvertFrom-Json -Depth 64
         if ($ShouReceipt.generated_task_only -ne $true -or $ShouReceipt.native_runtime_checked -ne $true -or
-            $ShouReceipt.public_execution_enabled -ne $false -or $ShouReceipt.details.task_present -ne $false -or
+            $ShouReceipt.public_execution_enabled -ne $true -or $ShouReceipt.details.task_present -ne $false -or
             $ShouReceipt.details.generated_folder_absent -ne $true -or
             $ShouReceipt.details.marker_file_sha256 -cnotmatch '^[0-9a-f]{64}$' -or
             $ShouReceipt.details.marker_file_sha256 -cne $ShouInitial.details.marker_file_sha256) {
@@ -112,7 +112,7 @@ try {
         source_stable = $true
         terminal_confirmation_tested = $false
         file_hashes = $ShouHashes
-        public_execution_enabled = $false
+        public_execution_enabled = $true
         fixture_triggers_disabled = $true
         fixture_demand_start_disabled = $true
         winui_tested = $false

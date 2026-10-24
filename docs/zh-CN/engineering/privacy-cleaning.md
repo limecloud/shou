@@ -19,9 +19,11 @@
 
 ### Windows 平台边界
 
-Windows 已有独立 C# 只读扫描、CLI 和 WinUI 页面源码。支持固定位置的 Chrome、Chromium、Edge、Brave 历史及 Cookie，以及 Firefox 基础历史结构与 Cookie；不包含 Safari。页面初始不扫描，由用户选择时间范围并明确开始。Core 已实现独立隐私计划、当前确认、执行编排与脱敏回执；原生事务删除适配及其 CLI／WinUI 接入待实现，只读数量不能作为删除授权。原生运行、ACL、SQLite sidecar 和界面验收待完成。见[原生方案](windows-native-plan.md)。
+Windows 已有独立 C# 只读扫描、CLI 和 WinUI 页面源码。支持固定位置的 Chrome、Chromium、Edge、Brave 历史及 Cookie，以及 Firefox 基础历史结构与 Cookie；不包含 Safari。页面初始不扫描，由用户选择时间范围并明确开始。Core 已实现独立隐私计划、当前确认、执行编排与脱敏回执；未发布 v0.14.0 工作区已加入 `WindowsPrivacyMutation` 原生事务适配并接入 WinUI 的计划／确认／回执；CLI 保留只读扫描入口，只读数量不能作为删除授权。原生运行、ACL、SQLite sidecar 和界面验收待完成。见[原生方案](windows-native-plan.md)。
 
 `PrivacyCleanupService` 复用现有记录租约，绑定同一扫描中的确切来源、时间窗口、配置及身份／结构／数量证据。计划最长五分钟，且不超过扫描期限；Cookie 退出登录影响同意独立于当前进程的一分钟单次执行确认。全部来源预检先于整批意图，逐项意图先于原生派发。停止会等待已派发操作的真实结果，日志失败禁止启动后续操作，未知结果停止后续来源。任何已有整批意图都阻止计划重放；脱敏回执仅供查询，不能恢复执行资格。
+
+未发布的 Windows 页面初始不选择任何来源，Cookie 需先允许审阅才可选择；撤销许可只移除 Cookie 选择。重新扫描、时间范围和配置变化清空旧选择，横向底栏显示当前来源与记录数。审阅先生成精确且有期限的计划，再展示该计划的来源与固定时间边界。最终对话框默认取消，永久删除同意和 Cookie 退出登录同意均从未勾选状态开始，预审阅许可不能代替本次执行确认。独立回执卡片展示脱敏来源编号、实际计数与状态，不把未知数量当成零。可移植选择回归已执行；历史折叠区默认显示最近 20 份回执，按执行开始时间降序；只读查询在同一租约中复核回执、计划、扫描和摘要，不能恢复执行权限。目录最多 4,096 项，累计读取包括计划与扫描不超过 32 MiB，时限十秒；缺失、损坏、超限或读取失败明确报错，不伪装为空历史。新增页面交互、Cookie 删除和重启后历史 E2E 仍需原生验收。
 
 ```mermaid
 flowchart LR
@@ -29,20 +31,20 @@ flowchart LR
     Plan --> Consent[当前单次确认与 Cookie 影响同意]
     Consent --> Preflight[租约内复核全部来源]
     Preflight --> Intent[持久化整批及逐项意图]
-    Intent --> Native[原生事务接口 - 适配待实现]
+    Intent --> Native[原生 Windows SQLite 事务适配]
     Native --> Receipt[持久化脱敏结果]
     Receipt --> Next{还有来源且结果确定且未停止?}
     Next -->|是| Intent
     Next -->|否| Stop[结束或停止并保留记录]
 ```
 
-内存测试验证上述编排合同。该服务尚未接入公开入口，不提供 Windows 删除能力，也没有原生事务验收证据。
+内存测试验证上述编排合同。Windows 11 x64 原生生成夹具 7 项通过，覆盖精确 Cookie 时间窗、无关表／旧记录保留、Chromium／Firefox 关联结构、取消回滚和失效授权拒绝；现有非空 rollback journal 在读检查和写入前均拒绝，避免 SQLite 隐式恢复改变来源。本次事务创建的 journal 只在该事务的核验及收尾内处理。WinUI 删除旅程尚未执行到，不代表正式发布或任意浏览器兼容性通过；回执见 [SYNC.md](../../../SYNC.md)。
 
 `WindowsPrivacySourcePolicy` 使用系统实际返回的 Local/Roaming AppData，允许受支持的重定向本地目录。Chromium 只识别 `Default` 或 `Profile N`；Firefox 只识别固定 `Mozilla/Firefox/Profiles` 下的合法单组件目录，不读取外部 profile 配置。发现仅枚举元数据，最多 2,048 次条目工作、256 个 profile 和 768 个来源，十秒截止；发现缺口保持部分覆盖。完整扫描共享两分钟预算，保存十五分钟有效的版本 1 观察记录。
 
 `PrivacyScanService` 应用全局与相关工作区的祖先排除，保护自身数据及数据库、WAL、SHM、journal 的确切路径。每次查询前后检查已知浏览器进程名；运行中或观察未知时不发布可用数量。进程快照不证明数据库独占。`WindowsPrivacyDatabaseInspection` 固定从 AppData anchor 到数据库父级的普通目录和文件句柄，拒绝 reparse、外部所有者、数据库硬链接、跨卷和可由非信任身份写入的 ACL。数据库及 sidecar 句柄允许共享写入以兼容 SQLite，但始终不共享删除；目录、ACL、主数据库和非空 WAL 的前后证据必须一致。
 
-数据库适配使用 Windows 系统 `winsqlite3.dll` 的只读、无 CREATE、NOFOLLOW 连接和静态结构校验，只返回汇总数量与结构摘要，不读取网址、域名或 Cookie 值。拒绝触发器、视图、虚拟表、未知跨界外键、非整数时间和不支持的派生结构。单查询连接使用一秒繁忙等待、十五秒／五千万 VM 指令预算；取消后等待原生工作释放句柄。缺少必要 WAL 辅助文件时保持不可用，不使用写连接修复。此扫描不修改浏览器记录，不备份配置，也不提供清理按钮。
+数据库适配使用 Windows 系统 `winsqlite3.dll` 的只读、无 CREATE、NOFOLLOW 连接和静态结构校验，只返回汇总数量与结构摘要，不读取网址、域名或 Cookie 值。拒绝触发器、视图、虚拟表、未知跨界外键、非整数时间和不支持的派生结构。单查询连接使用一秒繁忙等待、十五秒／五千万 VM 指令预算；取消后等待原生工作释放句柄。缺少必要 WAL 辅助文件时保持不可用，不使用写连接修复。只读扫描不修改浏览器记录，也不备份配置；清理是另一个需要具体计划、Cookie 影响同意和本次确认的显式操作。
 
 ```mermaid
 flowchart LR

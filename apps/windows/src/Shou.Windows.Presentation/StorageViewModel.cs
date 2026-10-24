@@ -17,9 +17,13 @@ public sealed class StorageViewModel(IStorageScanner scanner) : INotifyPropertyC
     public ScanSnapshot? Snapshot { get; private set; }
     public string? ErrorCode { get; private set; }
     public bool IsBusy => State == StoragePageState.Scanning;
+    public bool StopRequested => operation?.IsCancellationRequested == true;
+    public ScanProgress? Progress { get; private set; }
 
     public async Task ScanAsync(WindowsPath root, ScanBudget? budget = null)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.storage.scan");
+        diagnostic.Step("scan_root", root);
         ObjectDisposedException.ThrowIf(disposed, this);
         var currentGeneration = ++generation;
         operation?.Cancel();
@@ -28,10 +32,23 @@ public sealed class StorageViewModel(IStorageScanner scanner) : INotifyPropertyC
         State = StoragePageState.Scanning;
         Snapshot = null;
         ErrorCode = null;
+        Progress = null;
         NotifyAll();
         try
         {
-            var snapshot = await scanner.ScanAsync(root, budget ?? new(), null, current.Token);
+            var context = SynchronizationContext.Current;
+            var progress = new ScanObserver(value =>
+            {
+                void Apply()
+                {
+                    if (disposed || generation != currentGeneration || !IsBusy) return;
+                    Progress = value;
+                    Notify(nameof(Progress));
+                }
+                if (context is null || SynchronizationContext.Current == context) Apply();
+                else context.Post(_ => Apply(), null);
+            });
+            var snapshot = await scanner.ScanAsync(root, budget ?? new(), progress, current.Token);
             if (disposed || currentGeneration != generation) return;
             Snapshot = snapshot;
             State = snapshot.State switch
@@ -48,12 +65,14 @@ public sealed class StorageViewModel(IStorageScanner scanner) : INotifyPropertyC
         }
         catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
         {
+            diagnostic.Fail(error);
             if (disposed || currentGeneration != generation) return;
             State = StoragePageState.Failed;
             ErrorCode = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "read_failed";
         }
         finally
         {
+            diagnostic.Complete(disposed || currentGeneration != generation ? "superseded" : State.ToString().ToLowerInvariant(), Snapshot?.Entries.Length, Snapshot?.Issues.Length);
             if (!disposed && currentGeneration == generation)
             {
                 operation = null;
@@ -62,7 +81,7 @@ public sealed class StorageViewModel(IStorageScanner scanner) : INotifyPropertyC
         }
     }
 
-    public void Cancel() => operation?.Cancel();
+    public void Cancel() { operation?.Cancel(); Notify(nameof(StopRequested)); }
 
     public void Dispose()
     {
@@ -80,7 +99,21 @@ public sealed class StorageViewModel(IStorageScanner scanner) : INotifyPropertyC
         Notify(nameof(Snapshot));
         Notify(nameof(ErrorCode));
         Notify(nameof(IsBusy));
+        Notify(nameof(Progress));
+        Notify(nameof(StopRequested));
     }
 
     private void Notify([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new(name));
+
+    private sealed class ScanObserver(Action<ScanProgress> publish) : IProgress<ScanProgress>
+    {
+        private long last = long.MinValue;
+        public void Report(ScanProgress value)
+        {
+            var now = Environment.TickCount64;
+            if (last != long.MinValue && now - last < 100) return;
+            last = now;
+            publish(value);
+        }
+    }
 }

@@ -11,6 +11,7 @@
     <SelfContained Condition="'$(RuntimeIdentifier)' == ''">false</SelfContained>
     <Platforms>x64;ARM64</Platforms>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>../../Generated/Shou.ico</ApplicationIcon>
     <PublishSingleFile>false</PublishSingleFile>
     <PublishTrimmed>false</PublishTrimmed>
     <PublishAot>false</PublishAot>
@@ -23,6 +24,7 @@
     <ProjectReference Include="../Shou.Windows.Platform/Shou.Windows.Platform.csproj" />
     <ProjectReference Include="../Shou.Windows.Presentation/Shou.Windows.Presentation.csproj" />
     <Page Include="../../Generated/Design.xaml" Link="Generated/Design.xaml" />
+    <Content Include="../../Generated/Shou.ico" Link="Shou.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <PRIResource Include="../../Generated/Strings/**/*.resw" Link="Strings/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <!-- MRT Core generates the unpackaged PRI during Build, but does not add it to .NET Publish. -->

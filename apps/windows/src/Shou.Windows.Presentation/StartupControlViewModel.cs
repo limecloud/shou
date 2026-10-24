@@ -42,6 +42,7 @@ public sealed class StartupControlViewModel(IStartupControlOperations operations
 
     public async Task InspectAsync(StartupControlAction action)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.startup.inspect");
         ObjectDisposedException.ThrowIf(disposed, this);
         if (IsExecuting || TaskPath is not { } path) return;
         var current = ++generation;
@@ -58,12 +59,13 @@ public sealed class StartupControlViewModel(IStartupControlOperations operations
                 throw new ShouException("startup_inspection_invalid", "The review did not match the selected task and action.");
             Review = review; State = StartupControlPageState.Reviewed;
         }
-        catch (Exception error) { Fail(error, current, token); }
-        finally { Finish(current); }
+        catch (Exception error) { diagnostic.Fail(error); Fail(error, current, token); }
+        finally { diagnostic.Complete(disposed || current != generation ? "superseded" : State.ToString().ToLowerInvariant()); Finish(current); }
     }
 
     public async Task ExecuteAsync(IStartupControlConfirmation confirmation)
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.startup.execute");
         ObjectDisposedException.ThrowIf(disposed, this);
         if (IsBusy || Review is not { CanChange: true } review) return;
         if (!ExecutionAvailable) { ErrorCode = "unsupported_capability"; Notify(); return; }
@@ -80,12 +82,13 @@ public sealed class StartupControlViewModel(IStartupControlOperations operations
                 throw new ShouException("startup_result_invalid", "The startup result did not match the confirmed operation.");
             Execution = execution; State = StartupControlPageState.Completed;
         }
-        catch (Exception error) { Fail(error, current, token); }
-        finally { Finish(current); }
+        catch (Exception error) { diagnostic.Fail(error); Fail(error, current, token); }
+        finally { diagnostic.Complete(disposed || current != generation ? "superseded" : State.ToString().ToLowerInvariant()); Finish(current); }
     }
 
     public async Task ReadAsync()
     {
+        using var diagnostic = OperationDiagnostics.Start("ui.startup.read");
         ObjectDisposedException.ThrowIf(disposed, this);
         if (IsBusy || OperationId is not { } id) return;
         var current = ++generation;
@@ -99,8 +102,8 @@ public sealed class StartupControlViewModel(IStartupControlOperations operations
             if (!Matches(execution, id)) throw new ShouException("startup_result_invalid", "The startup record did not match the selected task.");
             Execution = execution; State = StartupControlPageState.Completed;
         }
-        catch (Exception error) { Fail(error, current, token); }
-        finally { Finish(current); }
+        catch (Exception error) { diagnostic.Fail(error); Fail(error, current, token); }
+        finally { diagnostic.Complete(disposed || current != generation ? "superseded" : State.ToString().ToLowerInvariant()); Finish(current); }
     }
     private bool Matches(StartupControlExecution? value, string id) => value is not null && value.Id == id && value.Review?.Id == id &&
         string.Equals(value.Review.Task?.TaskPath, TaskPath, StringComparison.OrdinalIgnoreCase);

@@ -17,6 +17,7 @@ internal interface IStartupTaskControlHandle : IDisposable
     string Xml { get; }
     bool Enabled { get; }
     string? OwnerSid { get; }
+    int? RunLevel => null;
     void SetEnabled(bool enabled);
 }
 
@@ -44,6 +45,10 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
         { throw new ShouException("time_limit", "The scheduled-task review exceeded its read deadline."); }
         catch (COMException error)
         { throw new ShouException(error.HResult == unchecked((int)0x80070005) ? "permission_denied" : "startup_task_unavailable", "The exact scheduled task could not be reviewed.", error); }
+        catch (Exception error) when (error is FileNotFoundException or DirectoryNotFoundException)
+        { throw new ShouException("startup_task_unavailable", "The exact scheduled task does not exist.", error); }
+        catch (UnauthorizedAccessException error)
+        { throw new ShouException("permission_denied", "The exact scheduled task could not be reviewed.", error); }
     }
 
     internal static StartupControlTask Read(IStartupTaskControlHandle task, string actorSid, CancellationToken token)
@@ -57,7 +62,9 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
         token.ThrowIfCancellationRequested();
         var owner = task.OwnerSid;
         token.ThrowIfCancellationRequested();
-        var facts = Parse(path, xml, actorSid, enabled, owner);
+        var runLevel = task.RunLevel;
+        token.ThrowIfCancellationRequested();
+        var facts = Parse(path, xml, actorSid, enabled, owner, runLevel);
         var currentPath = task.Path;
         token.ThrowIfCancellationRequested();
         var currentXml = task.Xml;
@@ -66,12 +73,14 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
         token.ThrowIfCancellationRequested();
         var currentOwner = task.OwnerSid;
         token.ThrowIfCancellationRequested();
-        if (currentPath != path || currentXml != xml || currentEnabled != enabled || currentOwner != owner)
+        var currentRunLevel = task.RunLevel;
+        token.ThrowIfCancellationRequested();
+        if (currentPath != path || currentXml != xml || currentEnabled != enabled || currentOwner != owner || currentRunLevel != runLevel)
             throw new ShouException("startup_changed", "The scheduled task changed during review.");
         return facts;
     }
 
-    internal static StartupControlTask Parse(string path, string xml, string actorSid, bool enabled, string? ownerSid)
+    internal static StartupControlTask Parse(string path, string xml, string actorSid, bool enabled, string? ownerSid, int? nativeRunLevel = null)
     {
         if (!StartupControlReviewer.ValidTaskPath(path) || xml is not { Length: > 0 and <= WindowsScheduledStartupTasks.MaximumXmlCharacters })
             throw Invalid();
@@ -81,7 +90,8 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
         {
             using var input = new StringReader(xml);
             using var reader = XmlReader.Create(input, new XmlReaderSettings
-            { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = WindowsScheduledStartupTasks.MaximumXmlCharacters });
+            { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, IgnoreWhitespace = true,
+                MaxCharactersInDocument = WindowsScheduledStartupTasks.MaximumXmlCharacters });
             var document = XDocument.Load(reader, LoadOptions.None);
             XNamespace schema = "http://schemas.microsoft.com/windows/2004/02/mit/task";
             var root = document.Root!;
@@ -105,8 +115,11 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
             }
             var matches = principal is not null && !principal.Elements(schema + "GroupId").Any() && Scalar("UserId") == actorSid;
             var interactive = Scalar("LogonType") == "InteractiveToken";
-            // Require an explicit declaration; an omitted value is not control eligibility evidence.
-            var ordinary = principal is not null && Scalar("RunLevel") == "LeastPrivilege";
+            // Scheduler may omit the default RunLevel in normalized XML. Only the native COM
+            // observation may fill that gap; missing XML alone never grants control eligibility.
+            var runLevels = principal?.Elements(schema + "RunLevel").ToArray() ?? [];
+            var ordinary = principal is not null && (nativeRunLevel is null or 0) &&
+                (runLevels.Length == 1 && Scalar("RunLevel") == "LeastPrivilege" || runLevels.Length == 0 && nativeRunLevel == 0);
             return new(path, digest, actorSid, enabled, ownerSid == actorSid, matches, interactive, ordinary,
                 path.Equals(@"\Microsoft", StringComparison.OrdinalIgnoreCase) || path.StartsWith(@"\Microsoft\", StringComparison.OrdinalIgnoreCase), ImmutableArray<string>.Empty);
         }
@@ -123,9 +136,8 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
 
 public sealed class WindowsStartupControlMutation : IStartupControlMutation
 {
-    // Both public entry points remain closed until generated native, interruption and UI acceptance is recorded.
-    public static bool PublicExecutionAvailable => false;
-    public bool Available => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) && Environment.Is64BitProcess;
+    public static bool PublicExecutionAvailable => NativeWindowsSupport.IsSupported;
+    public bool Available => NativeWindowsSupport.IsSupported;
 
     public async Task<StartupControlNativeResult> ApplyAsync(StartupControlReview review, DateTimeOffset authorizationExpiresAt, CancellationToken cancellationToken)
     {
@@ -209,6 +221,18 @@ internal sealed class LocalStartupTaskControlHandle : IStartupTaskControlHandle
     public string Xml => (string)((dynamic)task!).Xml;
     public bool Enabled => (bool)((dynamic)task!).Enabled;
     public string? OwnerSid => new RawSecurityDescriptor((string)((dynamic)task!).GetSecurityDescriptor(1)).Owner?.Value;
+    public int? RunLevel => ReadRunLevel(task!);
+    internal static int ReadRunLevel(object task)
+    {
+        object? definition = null, principal = null;
+        try
+        {
+            definition = (object)((dynamic)task).Definition;
+            principal = (object)((dynamic)definition).Principal;
+            return (int)((dynamic)principal).RunLevel;
+        }
+        finally { LocalScheduledTaskReader.Release(principal); LocalScheduledTaskReader.Release(definition); }
+    }
     public void SetEnabled(bool enabled) => ((dynamic)task!).Enabled = enabled;
     public void Dispose()
     {

@@ -23,8 +23,9 @@ public sealed class PrivacyCleanupTests
         public Task<PrivacyMutationResult> ApplyAsync(PrivacyMutationRequest request, CancellationToken token)
         {
             Requests.Add(request);
-            var bytes = source.Store.Records.Single(pair => pair.Key.StartsWith("privacy_receipt_", StringComparison.Ordinal)).Value;
-            var receipt = JsonSerializer.Deserialize<PrivacyReceipt>(bytes, ContractJson.Options)!;
+            var receipt = source.Store.Records.Where(pair => pair.Key.StartsWith("privacy_receipt_", StringComparison.Ordinal))
+                .Select(pair => JsonSerializer.Deserialize<PrivacyReceipt>(pair.Value, ContractJson.Options)!)
+                .Single(value => value.State == PrivacyExecutionState.Executing);
             Assert.Equal(PrivacyExecutionState.Executing, receipt.State);
             Assert.Equal(PrivacyItemState.Executing, receipt.Items.Single(item => item.SourceId == request.Source.Source.Id).State);
             return Apply?.Invoke(request, token) ?? Task.FromResult(new PrivacyMutationResult(PrivacyMutationOutcome.Completed, request.Source.RecordCount));
@@ -36,7 +37,7 @@ public sealed class PrivacyCleanupTests
         public Mutation Mutation;
         public PrivacyCleanupService Service;
         public Fixture() { Mutation = new(Source); Service = MakeService(); }
-        public PrivacyCleanupService MakeService(TimeProvider? clock = null) => new(Source.Store, Source.Validator, Source.Service, Source, Source, Mutation, "S-1-5-21-1000", clock ?? Source.Clock);
+        public PrivacyCleanupService MakeService(TimeProvider? clock = null, IRecordStore? store = null) => new(store ?? Source.Store, Source.Validator, Source.Service, Source, Source, Mutation, "S-1-5-21-1000", clock ?? Source.Clock);
         public async Task<PrivacyPlan> Plan(int sources = 1, bool cookies = false)
         {
             for (var index = 0; index < sources; index++) Source.Add(profile: index == 0 ? "Default" : "Profile " + index,
@@ -45,6 +46,108 @@ public sealed class PrivacyCleanupTests
             return await Service.CreatePlanAsync(scan.Id, scan.Sources.Select(item => item.Source.Id), cookies);
         }
         public async Task<PrivacyConsent> Confirm(PrivacyPlan plan) => await Service.ConfirmAsync(plan.Id, new Confirmation());
+    }
+
+    private sealed class HistoryReadStore(IRecordStore? inner = null, Action? beforeRead = null) : IRecordStore
+    {
+        public Task<IRecordReadLease?> AcquireReadLeaseAsync(CancellationToken token)
+        { beforeRead?.Invoke(); token.ThrowIfCancellationRequested(); return inner?.AcquireReadLeaseAsync(token) ?? Task.FromResult<IRecordReadLease?>(null); }
+        public ValueTask<byte[]?> ReadAsync(string key, int maximumBytes, CancellationToken token) => throw new InvalidOperationException("History must use its read lease.");
+        public Task<T> UpdateAsync<T>(Func<IRecordTransaction, T> update, CancellationToken token) => throw new InvalidOperationException("History must not write.");
+        public Task<IRecordLease> AcquireLeaseAsync(CancellationToken token) => throw new InvalidOperationException("History must not acquire a mutation lease.");
+    }
+
+    [Fact]
+    public async Task HistoryWithoutADataRootIsEmptyAndNeverCreatesOne()
+    {
+        var f = new Fixture(); Assert.Empty(await f.MakeService(store: new HistoryReadStore()).HistoryAsync());
+        Assert.Empty(f.Mutation.Requests); Assert.Empty(f.Source.Store.Records);
+    }
+    [Fact]
+    public async Task HistoryIgnoresPlansWithoutExecutionIntentAndNeverWrites()
+    {
+        var f = new Fixture(); _ = await f.Plan(); var writes = f.Source.Store.Writes;
+        Assert.Empty(await f.MakeService(store: new HistoryReadStore(f.Source.Store)).HistoryAsync());
+        Assert.Equal(writes, f.Source.Store.Writes); Assert.Empty(f.Mutation.Requests);
+    }
+    [Fact]
+    public async Task HistoryReturnsNewestReceiptsWithALimitEvenAfterPlanExpiryAndCannotRenewConsent()
+    {
+        var f = new Fixture(); var plan = await f.Plan();
+        var first = await f.Service.ExecuteAsync(plan.Id, await f.Confirm(plan));
+        f.Source.Clock.Now = f.Source.Clock.Now.AddSeconds(1);
+        var next = await f.Service.CreatePlanAsync(plan.ScanId, plan.Sources.Select(source => source.Source.Id));
+        var last = await f.Service.ExecuteAsync(next.Id, await f.Confirm(next));
+        f.Source.Clock.Now = next.ExpiresAt.AddDays(1); var writes = f.Source.Store.Writes;
+        var history = await f.MakeService(store: new HistoryReadStore(f.Source.Store)).HistoryAsync();
+        Assert.Equal(new[] { last.Id, first.Id }, history.Select(receipt => receipt.Id));
+        Assert.Equal(last.Id, Assert.Single(await f.Service.HistoryAsync(1)).Id);
+        Assert.Equal(writes, f.Source.Store.Writes); Assert.Equal(2, f.Mutation.Requests.Count);
+        Assert.Equal("plan_consumed", (await Assert.ThrowsAsync<ShouException>(() => f.Service.ConfirmAsync(last.PlanId, new Confirmation()))).Code);
+    }
+    [Theory]
+    [InlineData("receipt")]
+    [InlineData("plan")]
+    [InlineData("scan")]
+    public async Task HistoryRejectsCorruptEvidenceRatherThanReportingAnEmptyHistory(string kind)
+    {
+        var f = new Fixture(); var plan = await f.Plan(); var receipt = await f.Service.ExecuteAsync(plan.Id, await f.Confirm(plan));
+        var key = kind switch { "receipt" => receipt.Id, "plan" => plan.Id, _ => plan.ScanId };
+        f.Source.Store.Records[key] = "{}"u8.ToArray();
+        Assert.Equal("store_corrupt", (await Assert.ThrowsAsync<ShouException>(() => f.Service.HistoryAsync())).Code);
+        Assert.Single(f.Mutation.Requests);
+    }
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task HistoryRejectsMissingPlanOrScan(bool scan)
+    {
+        var f = new Fixture(); var plan = await f.Plan(); _ = await f.Service.ExecuteAsync(plan.Id, await f.Confirm(plan));
+        f.Source.Store.Records.Remove(scan ? plan.ScanId : plan.Id);
+        Assert.Equal("not_found", (await Assert.ThrowsAsync<ShouException>(() => f.Service.HistoryAsync())).Code);
+    }
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(101)]
+    public async Task HistoryValidatesItsRequestedLimit(int limit)
+    {
+        var f = new Fixture(); Assert.Equal("invalid_argument", (await Assert.ThrowsAsync<ShouException>(() => f.Service.HistoryAsync(limit))).Code);
+    }
+    [Fact]
+    public async Task HistoryRejectsMalformedReceiptKeys()
+    {
+        var f = new Fixture(); f.Source.Store.Records["privacy_receipt_bad"] = "{}"u8.ToArray();
+        Assert.Equal("store_corrupt", (await Assert.ThrowsAsync<ShouException>(() => f.Service.HistoryAsync())).Code);
+    }
+    [Fact]
+    public async Task HistoryAppliesItsTotalByteBudgetToPlansAndScansAsWellAsReceipts()
+    {
+        var f = new Fixture(); var plan = await f.Plan();
+        for (var index = 0; index < 3; index++)
+        {
+            if (index > 0) plan = await f.Service.CreatePlanAsync(plan.ScanId, plan.Sources.Select(source => source.Source.Id));
+            _ = await f.Service.ExecuteAsync(plan.Id, await f.Confirm(plan));
+            var bytes = f.Source.Store.Records[plan.Id];
+            var padded = new byte[PrivacyCleanupService.MaximumPlanBytes]; Array.Fill(padded, (byte)' '); bytes.CopyTo(padded, 0);
+            f.Source.Store.Records[plan.Id] = padded;
+        }
+        var scanBytes = f.Source.Store.Records[plan.ScanId];
+        var paddedScan = new byte[PrivacyCleanupService.MaximumPlanBytes];
+        Array.Fill(paddedScan, (byte)' '); scanBytes.CopyTo(paddedScan, 0); f.Source.Store.Records[plan.ScanId] = paddedScan;
+        var writes = f.Source.Store.Writes;
+        Assert.Equal("resource_limit", (await Assert.ThrowsAsync<ShouException>(() => f.Service.HistoryAsync())).Code);
+        Assert.Equal(writes, f.Source.Store.Writes);
+    }
+    [Fact]
+    public async Task HistoryPropagatesCallerCancellationAndMapsOnlyItsOwnDeadline()
+    {
+        var f = new Fixture(); using var stop = new CancellationTokenSource(); stop.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => f.Service.HistoryAsync(cancellationToken: stop.Token));
+        var clock = new ManualDeadlineClock();
+        var service = f.MakeService(clock, new HistoryReadStore(beforeRead: clock.Expire));
+        Assert.Equal("time_limit", (await Assert.ThrowsAsync<ShouException>(() => service.HistoryAsync())).Code);
+        Assert.Empty(f.Mutation.Requests);
     }
 
     [Fact]

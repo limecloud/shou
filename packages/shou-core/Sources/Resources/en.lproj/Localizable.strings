@@ -32,6 +32,7 @@
 "%lld records · %@ of local data" = "%lld records · %@ of local data";
 "%lld registered applications" = "%lld registered applications";
 "%lld requests · %lld reported tokens" = "%lld requests · %lld reported tokens";
+"%lld rules" = "%lld rules";
 "%lld startup entries" = "%lld startup entries";
 "%lld startup programs" = "%lld startup programs";
 "%lld startup registrations" = "%lld startup registrations";
@@ -64,6 +65,7 @@
 "AI configuration not found." = "AI configuration not found.";
 "AI credential storage must be private to the current user (0700)." = "AI credential storage must be private to the current user (0700).";
 "AI investigation is disabled. Enable it in Settings before making a new request." = "AI investigation is disabled. Enable it in Settings before making a new request.";
+"AI investigation is not available in this Windows preview." = "AI investigation is not available in this Windows preview.";
 "AI is off. Local scanning and cleanup remain available." = "AI is off. Local scanning and cleanup remain available.";
 "AI-generated suggestion. Rebuild conditions and personal value must be verified before cleanup." = "AI-generated suggestion. Rebuild conditions and personal value must be verified before cleanup.";
 "API Base URL" = "API Base URL";
@@ -71,6 +73,7 @@
 "API Key in Keychain" = "API Key in Keychain";
 "API Key in Local Storage" = "API Key in Local Storage";
 "API Protocol" = "API Protocol";
+"About Shou" = "About Shou";
 "Access required" = "Access required";
 "Access to this location is unavailable." = "Access to this location is unavailable.";
 "Access to this startup source was denied." = "Access to this startup source was denied.";
@@ -208,6 +211,7 @@
 "Authentication Required" = "Authentication Required";
 "Autofill" = "Autofill";
 "Automatic update checks" = "Automatic update checks";
+"Automatic updates are not available in this Windows preview." = "Automatic updates are not available in this Windows preview.";
 "Available" = "Available";
 "Available on this Mac" = "Available on this Mac";
 "Available on volume" = "Available on volume";
@@ -226,9 +230,11 @@
 "Brave caches" = "Brave caches";
 "Brave download caches" = "Brave download caches";
 "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings." = "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings.";
+"Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage." = "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage.";
 "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet." = "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage. Uninstall is not available yet.";
 "Browse startup registrations and review eligible current-user scheduled tasks." = "Browse startup registrations and review eligible current-user scheduled tasks.";
 "Browse the directory tree for keyboard access to map items." = "Browse the directory tree for keyboard access to map items.";
+"Browse the rule catalog. Choose a scan location to change applicable rules." = "Browse the rule catalog. Choose a scan location to change applicable rules.";
 "Browser Caches" = "Browser Caches";
 "Browser Data" = "Browser Data";
 "Browser activity could not be verified." = "Browser activity could not be verified.";
@@ -320,6 +326,7 @@
 "Choose a .zip file for the Skill package." = "Choose a .zip file for the Skill package.";
 "Choose a development workspace. Scanning does not delete files." = "Choose a development workspace. Scanning does not delete files.";
 "Choose a disk or folder to analyze." = "Choose a disk or folder to analyze.";
+"Choose a disk or folder to explore its storage usage." = "Choose a disk or folder to explore its storage usage.";
 "Choose a folder inside the selected workspace, not the workspace itself." = "Choose a folder inside the selected workspace, not the workspace itself.";
 "Choose a folder or enter a relative pattern." = "Choose a folder or enter a relative pattern.";
 "Choose a project folder to inspect build outputs and caches." = "Choose a project folder to inspect build outputs and caches.";
@@ -331,12 +338,15 @@
 "Choose a workspace to inspect storage." = "Choose a workspace to inspect storage.";
 "Choose active, deleted or all as the configuration state." = "Choose active, deleted or all as the configuration state.";
 "Choose an absolute Skill path without traversal components." = "Choose an absolute Skill path without traversal components.";
+"Choose an applicable scan location" = "Choose an applicable scan location";
 "Choose an unused rule version. Existing versions cannot be overwritten." = "Choose an unused rule version. Existing versions cannot be overwritten.";
 "Choose extra folders to remember for future cleanup scans." = "Choose extra folders to remember for future cleanup scans.";
 "Choose items to review. High-risk items require your selection." = "Choose items to review. High-risk items require your selection.";
+"Choose light, dark, or follow your system settings." = "Choose light, dark, or follow your system settings.";
 "Choose local storage or system credentials before saving an API key." = "Choose local storage or system credentials before saving an API key.";
 "Choose the app components to move to Trash. Personal data is retained unless you enable it separately." = "Choose the app components to move to Trash. Personal data is retained unless you enable it separately.";
 "Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation." = "Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation.";
+"Choose the language used by Shou." = "Choose the language used by Shou.";
 "Choose the language used in Shou." = "Choose the language used in Shou.";
 "Choose your own service to begin an investigation." = "Choose your own service to begin an investigation.";
 "Choose your project collection. Shou finds build outputs and caches with built-in rules, then shows exactly what can be reviewed." = "Choose your project collection. Shou finds build outputs and caches with built-in rules, then shows exactly what can be reviewed.";
@@ -391,6 +401,7 @@
 "Clear search" = "Clear search";
 "Click to inspect. Double-click a folder to open it." = "Click to inspect. Double-click a folder to open it.";
 "Close" = "Close";
+"Close Details" = "Close Details";
 "Close Inspector" = "Close Inspector";
 "Close browser first" = "Close browser first";
 "Close browsers, choose a time range, and scan supported history and cookies." = "Close browsers, choose a time range, and scan supported history and cookies.";
@@ -411,6 +422,7 @@
 "Common locations are found automatically. Extra folders only need to be included once." = "Common locations are found automatically. Extra folders only need to be included once.";
 "Common locations are found automatically. No project setup needed." = "Common locations are found automatically. No project setup needed.";
 "Completed" = "Completed";
+"Completed operations and their recorded results will appear here." = "Completed operations and their recorded results will appear here.";
 "Component" = "Component";
 "Component parent changed; preview again." = "Component parent changed; preview again.";
 "Composer download cache" = "Composer download cache";
@@ -476,6 +488,7 @@
 "Current-user MSIX package" = "Current-user MSIX package";
 "Current-user installation" = "Current-user installation";
 "Cursor caches" = "Cursor caches";
+"Customize cleanup rules for Windows" = "Customize cleanup rules for Windows";
 "Customize with AI" = "Customize with AI";
 "Customize with AI…" = "Customize with AI…";
 "DaVinci Resolve caches" = "DaVinci Resolve caches";
@@ -521,9 +534,11 @@
 "Developer tools download or rebuild cached data when needed." = "Developer tools download or rebuild cached data when needed.";
 "Dia caches" = "Dia caches";
 "Dia download caches" = "Dia download caches";
+"Diagnostic reference: %@" = "Diagnostic reference: %@";
 "DingTalk web caches" = "DingTalk web caches";
 "Direct control is limited to this user's LaunchAgents. The definition hint and launchd override can differ; recheck after changing it." = "Direct control is limited to this user's LaunchAgents. The definition hint and launchd override can differ; recheck after changing it.";
 "Directory" = "Directory";
+"Directory Tree" = "Directory Tree";
 "Directory names, sizes, and lockfiles do not prove data can be rebuilt." = "Directory names, sizes, and lockfiles do not prove data can be rebuilt.";
 "Directory scan failed. Previous results were kept." = "Directory scan failed. Previous results were kept.";
 "Directory scanned. Review it before selecting." = "Directory scanned. Review it before selecting.";
@@ -578,6 +593,7 @@
 "Enabled rule definition is missing." = "Enabled rule definition is missing.";
 "Enabled version: %@" = "Enabled version: %@";
 "Enablement is unknown. Running state was not checked." = "Enablement is unknown. Running state was not checked.";
+"Enablement unknown" = "Enablement unknown";
 "Enter a nonnegative whole number for minimum MB." = "Enter a nonnegative whole number for minimum MB.";
 "Enter a rule name." = "Enter a rule name.";
 "Enter a search without control characters." = "Enter a search without control characters.";
@@ -614,6 +630,7 @@
 "Figma download caches" = "Figma download caches";
 "File Extensions" = "File Extensions";
 "File Type" = "File Type";
+"File Types" = "File Types";
 "File manifest pages are missing or inconsistent." = "File manifest pages are missing or inconsistent.";
 "File metadata could not be verified." = "File metadata could not be verified.";
 "Files" = "Files";
@@ -625,6 +642,8 @@
 "Final Cut Pro caches" = "Final Cut Pro caches";
 "Find Scan Locations" = "Find Scan Locations";
 "Find known app caches without choosing folders." = "Find known app caches without choosing folders.";
+"Find large files" = "Find large files";
+"Find reviewable caches and build artifacts in known locations." = "Find reviewable caches and build artifacts in known locations.";
 "Find the files taking up the most space" = "Find the files taking up the most space";
 "Find what is ready to tidy up" = "Find what is ready to tidy up";
 "Find what is taking up space." = "Find what is taking up space.";
@@ -664,6 +683,7 @@
 "Global Exclusions" = "Global Exclusions";
 "Global patterns apply relative to every current and future workspace. Earlier builds cannot read the upgraded configuration." = "Global patterns apply relative to every current and future scan location. Earlier builds cannot read the upgraded configuration.";
 "Global protections also apply to future locations. Excluded content protects the whole containing cleanup target." = "Global protections also apply to future locations. Excluded content protects the whole containing cleanup target.";
+"Go Up" = "Go Up";
 "Go build cache" = "Go build cache";
 "Go module download cache" = "Go module download cache";
 "Google Chrome caches" = "Google Chrome caches";
@@ -700,6 +720,7 @@
 "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download." = "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download.";
 "How can these files be rebuilt?" = "How can these files be rebuilt?";
 "I accept that websites may sign me out." = "I accept that websites may sign me out.";
+"I understand deleting cookies may sign me out." = "I understand deleting cookies may sign me out.";
 "I understand that clearing cookies can sign me out of websites." = "I understand that clearing cookies can sign me out of websites.";
 "I understand that deletion is permanent and has no restore." = "I understand that deletion is permanent and has no restore.";
 "I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan." = "I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan.";
@@ -723,6 +744,7 @@
 "Incomplete scan — choose a smaller folder to review cleanup." = "Incomplete scan — choose a smaller folder to review cleanup.";
 "Incomplete scan. Inspect issues; execution is blocked." = "Incomplete scan. Inspect issues; execution is blocked.";
 "Incomplete scan: " = "Incomplete scan: ";
+"Information" = "Information";
 "Inherited Global Exclusions" = "Inherited Global Exclusions";
 "Inherited global protections: %@" = "Inherited global protections: %@";
 "Input Source Pro caches" = "Input Source Pro caches";
@@ -751,6 +773,7 @@
 "Installer result: not started." = "Installer result: not started.";
 "Installer result: succeeded." = "Installer result: succeeded.";
 "Installer result: unknown." = "Installer result: unknown.";
+"Interface Language" = "Interface Language";
 "Interface language" = "Interface language";
 "Invalid logical workspace root reference." = "Invalid logical workspace root reference.";
 "Invalid record identifier." = "Invalid record identifier.";
@@ -934,6 +957,7 @@
 "No known cleanup items found" = "No known cleanup items found";
 "No known locations were found" = "No known locations were found";
 "No matching applications" = "No matching applications";
+"No matching applications." = "No matching applications.";
 "No matching cleanup items" = "No matching cleanup items";
 "No matching cleanup items were found." = "No matching cleanup items were found.";
 "No matching items." = "No matching items.";
@@ -942,11 +966,13 @@
 "No matching rules" = "No matching rules";
 "No matching startup definitions" = "No matching startup definitions";
 "No matching startup items" = "No matching startup items";
+"No matching startup items." = "No matching startup items.";
 "No path was recorded" = "No path was recorded";
 "No reclaimable tool-managed storage found." = "No reclaimable tool-managed storage found.";
 "No recorded location" = "No recorded location";
 "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation." = "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.";
 "No scan locations are configured yet." = "No scan locations are configured yet.";
+"No scan locations were found. Add a folder in Scan Locations to continue." = "No scan locations were found. Add a folder in Scan Locations to continue.";
 "No search results" = "No search results";
 "No startup items found" = "No startup items found";
 "No uninstall record was found for this plan. This does not confirm the current installation state." = "No uninstall record was found for this plan. This does not confirm the current installation state.";
@@ -1116,6 +1142,7 @@
 "Previous test-state information will be lost." = "Previous test-state information will be lost.";
 "Privacy" = "Privacy";
 "Privacy cleaning completed" = "Privacy cleaning completed";
+"Privacy history could not be loaded. Try again." = "Privacy history could not be loaded. Try again.";
 "Privacy operation failed." = "Privacy operation failed.";
 "Privacy operation stopped." = "Privacy operation stopped.";
 "Privacy scanning is read-only. Record deletion is not available yet." = "Privacy scanning is read-only. Record deletion is not available yet.";
@@ -1256,6 +1283,7 @@
 "Requested rule is not enabled in this workspace." = "Requested rule is not enabled in this workspace.";
 "Required for uninstall" = "Required for uninstall";
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.";
+"Rescan" = "Rescan";
 "Rescan This Folder" = "Rescan This Folder";
 "Restore" = "Restore";
 "Restore destination already exists; nothing was overwritten." = "Restore destination already exists; nothing was overwritten.";
@@ -1310,6 +1338,7 @@
 "Review the directory contents and stop active Python tasks first." = "Review the directory contents and stop active Python tasks first.";
 "Review the exact scope above. Type %@ to confirm; any other input cancels." = "Review the exact scope above. Type %@ to confirm; any other input cancels.";
 "Review the exact task and confirm the requested switch before this review expires." = "Review the exact task and confirm the requested switch before this review expires.";
+"Review the installer data changes before preparing an uninstall plan." = "Review the installer data changes before preparing an uninstall plan.";
 "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected." = "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.";
 "Review the tool's current state before trying again. The previous operation may have changed data." = "Review the tool's current state before trying again. The previous operation may have changed data.";
 "Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt." = "Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt.";
@@ -1325,6 +1354,7 @@
 "Rule Scope" = "Rule Scope";
 "Rule Source" = "Rule Source";
 "Rule Suggestions" = "Rule Suggestions";
+"Rule Versions and Locations" = "Rule Versions and Locations";
 "Rule changed; preview again before saving." = "Rule changed; preview again before saving.";
 "Rule does not conform to the bundled schema." = "Rule does not conform to the bundled schema.";
 "Rule exceeds the 256 KiB limit." = "Rule exceeds the 256 KiB limit.";
@@ -1378,6 +1408,7 @@
 "Scan Privacy Sources" = "Scan Privacy Sources";
 "Scan Selected Location" = "Scan Selected Location";
 "Scan Workspace" = "Scan Workspace";
+"Scan a disk or folder, then review the largest files." = "Scan a disk or folder, then review the largest files.";
 "Scan again or review discovery coverage." = "Scan again or review discovery coverage.";
 "Scan again to update sizes and status" = "Scan again to update sizes and status";
 "Scan app caches, developer build outputs, and your personal cleanup rules together." = "Scan app caches, developer build outputs, and your personal cleanup rules together.";
@@ -1386,11 +1417,14 @@
 "Scan cancelled." = "Scan cancelled.";
 "Scan complete" = "Scan complete";
 "Scan complete. Review candidates before cleanup." = "Scan complete. Review candidates before cleanup.";
+"Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations." = "Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations.";
 "Scan evidence changed. Scan again before continuing." = "Scan evidence changed. Scan again before continuing.";
+"Scan failed." = "Scan failed.";
 "Scan is incomplete. Cleanup is unavailable; you can still explore measured space." = "Scan is incomplete. Cleanup is unavailable; you can still explore measured space.";
 "Scan is read-only. Clean Recommended opens one confirmation." = "Scan is read-only. Clean Recommended opens one confirmation.";
 "Scan limit reached. Preparing the measured results; coverage is incomplete." = "Scan limit reached. Preparing the measured results; coverage is incomplete.";
 "Scan progress" = "Scan progress";
+"Scan setup failed." = "Scan setup failed.";
 "Scan stopped." = "Scan stopped.";
 "Scan to find build outputs, dependencies, and large unclassified directories. Nothing is selected automatically." = "Scan to find build outputs, dependencies, and large unclassified directories. Nothing is selected automatically.";
 "Scan to see aggregate counts and availability. Browsing records are never displayed." = "Scan to see aggregate counts and availability. Browsing records are never displayed.";
@@ -1410,6 +1444,7 @@
 "Scope & Retention" = "Scope & Retention";
 "Scope and retained items" = "Scope and retained items";
 "ScreenFlow caches" = "ScreenFlow caches";
+"Search" = "Search";
 "Search app names, identifiers or paths" = "Search app names, identifiers or paths";
 "Search applications or paths" = "Search applications or paths";
 "Search applications…" = "Search applications…";
@@ -1419,6 +1454,7 @@
 "Search startup items…" = "Search startup items…";
 "Search startup names or paths" = "Search startup names or paths";
 "See large files across folders, then choose what to remove." = "See large files across folders, then choose what to remove.";
+"See where your space goes" = "See where your space goes";
 "Select" = "Select";
 "Select All" = "Select All";
 "Select All Eligible Items" = "Select All Eligible Items";
@@ -1436,12 +1472,14 @@
 "Select a directory to inspect matching evidence and rebuild requirements." = "Select a directory to inspect matching evidence and rebuild requirements.";
 "Select a folder to see its storage usage." = "Select a folder to see its storage usage.";
 "Select a previously matched, incomplete cleanup directory." = "Select a previously matched, incomplete cleanup directory.";
+"Select an application to inspect its installation. System uninstall is unavailable in this preview." = "Select an application to inspect its installation. System uninstall is unavailable in this preview.";
 "Select an application to view its registration details." = "Select an application to view its registration details.";
 "Select an incomplete cleanup scan." = "Select an incomplete cleanup scan.";
 "Select an item to see its details and available actions." = "Select an item to see its details and available actions.";
 "Select an operation to view its recorded results." = "Select an operation to view its recorded results.";
 "Select applications in this view" = "Select applications in this view";
 "Select available items in this cleanup" = "Select available items in this cleanup";
+"Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out." = "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.";
 "Select explicit receipt items and a supported action." = "Select explicit receipt items and a supported action.";
 "Select files or folders to remove" = "Select files or folders to remove";
 "Select for Removal" = "Select for Removal";
@@ -1473,6 +1511,7 @@
 "Settings" = "Settings";
 "Settings changes require a new scan. They do not start cleanup." = "Settings changes require a new scan. They do not start cleanup.";
 "Settings could not be reloaded. Refresh before making more changes." = "Settings could not be reloaded. Refresh before making more changes.";
+"Settings could not be saved. Try again." = "Settings could not be saved. Try again.";
 "Settings…" = "Settings…";
 "Setup Guide…" = "Setup Guide…";
 "Share a problem or suggest an improvement." = "Share a problem or suggest an improvement.";
@@ -1488,6 +1527,7 @@
 "Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou." = "Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou.";
 "Shou is available under the Apache License 2.0." = "Shou is available under the Apache License 2.0.";
 "Shou is installed in Applications. Updates keep the same location." = "Shou is installed in Applications. Updates keep the same location.";
+"Show More" = "Show More";
 "Show More (%lld remaining)" = "Show More (%lld remaining)";
 "Show Shou in Finder" = "Show Shou in Finder";
 "Show Skill in Finder…" = "Show Skill in Finder…";
@@ -1500,10 +1540,12 @@
 "Showing the first 200 measured folders. Counts include all measured rows." = "Showing the first 200 measured folders. Counts include all measured rows.";
 "Showing the first 40 paths. Use a smaller folder for a focused investigation." = "Showing the first 40 paths. Use a smaller folder for a focused investigation.";
 "Showing the first 50 scan notes." = "Showing the first 50 scan notes.";
+"Sidebar" = "Sidebar";
 "Simple" = "Simple";
 "Site storage" = "Site storage";
 "Size" = "Size";
 "Size on Disk" = "Size on Disk";
+"Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion." = "Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion.";
 "Sketch caches" = "Sketch caches";
 "Skill ZIP exported. Upload it in WorkBuddy to finish installation." = "Skill ZIP exported. Upload it in WorkBuddy to finish installation.";
 "Skill installation cannot write through symbolic links." = "Skill installation cannot write through symbolic links.";
@@ -1571,6 +1613,7 @@
 "Startup Leftovers" = "Leftovers";
 "Startup Options" = "Startup Options";
 "Startup State" = "Startup State";
+"Startup changes are unavailable in this preview. Observed task status is shown where available." = "Startup changes are unavailable in this preview. Observed task status is shown where available.";
 "Startup control failed." = "Startup control failed.";
 "Startup definition" = "Startup definition";
 "Startup definition disabled." = "Startup definition disabled.";
@@ -1616,6 +1659,7 @@
 "Stopping; waiting for the task change result…" = "Stopping; waiting for the task change result…";
 "Stopping…" = "Stopping…";
 "Storage" = "Storage";
+"Storage browsing is read-only in this Windows preview." = "Storage browsing is read-only in this Windows preview.";
 "Stored record is invalid." = "Stored record is invalid.";
 "Stored rule digest verification failed." = "Stored rule digest verification failed.";
 "Stremio caches" = "Stremio caches";
@@ -1625,6 +1669,7 @@
 "Structured evidence review failed." = "Structured evidence review failed.";
 "Structured evidence review failed. Check the decision connection before investigating again." = "Structured evidence review failed. Check the decision connection before investigating again.";
 "Support" = "Support";
+"Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned." = "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.";
 "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned." = "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.";
 "Swift Package Manager caches" = "Swift Package Manager caches";
 "Swift Package Manager downloads dependencies and rebuilds the package." = "Swift Package Manager downloads dependencies and rebuilds the package.";
@@ -1639,6 +1684,7 @@
 "System RunOnce (64-bit)" = "System RunOnce (64-bit)";
 "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually." = "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually.";
 "System Settings…" = "System Settings…";
+"System package" = "System package";
 "System state not checked" = "System state not checked";
 "System suggestions cache" = "System suggestions cache";
 "System uninstall is unavailable until native Windows verification is complete." = "System uninstall is unavailable until native Windows verification is complete.";
@@ -1717,6 +1763,7 @@
 "The owner or leftover scope changed. Scan again." = "The owner or leftover scope changed. Scan again.";
 "The owning application regenerates these caches; future launches or builds may require downloads." = "The owning application regenerates these caches; future launches or builds may require downloads.";
 "The packaged CLI is unavailable. Install Shou in Applications first." = "The packaged CLI is unavailable. Install Shou in Applications first.";
+"The page could not be loaded. Try again." = "The page could not be loaded. Try again.";
 "The previous source used an unknown portion of the scan budget." = "The previous source used an unknown portion of the scan budget.";
 "The project's build tool can recreate generated distribution outputs when the build inputs remain available." = "The project's build tool can recreate generated distribution outputs when the build inputs remain available.";
 "The read worker could not be started." = "The read worker could not be started.";
@@ -1873,6 +1920,7 @@
 "Use an exact relative project directory. Leave the pattern empty to protect the whole project." = "Use an exact relative project directory. Leave the pattern empty to protect the whole project.";
 "Use light, dark, or your system appearance." = "Use light, dark, or your system appearance.";
 "Use relative patterns such as **/target/** or **/keep/**. Absolute paths and parent traversal are not allowed." = "Use relative patterns such as **/target/** or **/keep/**. Absolute paths and parent traversal are not allowed.";
+"Use static indicators and immediate transitions. Otherwise, follow Windows animation settings." = "Use static indicators and immediate transitions. Otherwise, follow Windows animation settings.";
 "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion." = "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion.";
 "Use the arrow keys to browse and expand groups. Press Space to change the focused selection, or Shift-F10 for path actions." = "Use the arrow keys to browse and expand groups. Press Space to change the focused selection, or Shift-F10 for path actions.";
 "Use your own model service. API keys stay in Keychain; ordinary scans work offline." = "Use your own model service. API keys stay in Keychain; ordinary scans work offline.";
@@ -1917,6 +1965,8 @@
 "What should be kept? (optional)" = "What should be kept? (optional)";
 "WhatsApp caches" = "WhatsApp caches";
 "Windows identifies this as a system package." = "Windows identifies this as a system package.";
+"Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete." = "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.";
+"Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete." = "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.";
 "WorkBuddy caches" = "WorkBuddy caches";
 "Workspace" = "Scan Location";
 "Workspace Exclusions" = "Location Exclusions";

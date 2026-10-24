@@ -1,312 +1,276 @@
-using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Automation;
-using Shou.Windows.Core;
-using Shou.Windows.Platform;
+using System.Runtime.InteropServices;
 using Shou.Windows.Presentation;
-using Windows.Storage.Pickers;
+using Shou.Windows.Platform;
 
 namespace Shou.Windows.App;
 
 public sealed partial class MainWindow : Window
 {
     private readonly TextCatalog text = new();
-    private readonly StorageViewModel model = new(new StorageScanner(new WindowsFileSystem()));
-    private WindowsPath? root;
-    private StorageBrowser? browser;
-    private StoragePage? page;
-    private NativeReviewOperations? reviewOperations;
-    private CleanupPage? cleanupPage;
-    private HistoryPage? historyPage;
-    private ConfigurationPage? configurationPage;
-    private ApplicationsPage? applicationsPage;
-    private StartupPage? startupPage;
-    private PrivacyPage? privacyPage;
-    private bool closed;
-    private bool initialized;
+    private NativeReviewOperations? operations;
+    private CleanupPage? cleanup;
+    private ConfigurationPage? configuration;
+    private ApplicationsPage? applications;
+    private StartupPage? startup;
+    private PrivacyPage? privacy;
+    private HistoryPage? history;
+    private StoragePageView? storage;
+    private StoragePageView? largeFiles;
+    private SettingsPage? settings;
+    private bool initialized, closed;
+    private string destination = "cleanup";
+    private readonly Dictionary<Button, FrameworkElement> navigationIcons = [];
+    private FrameworkElement? languageIcon;
+    private FrameworkElement? diskIcon;
+    private bool sidebarOpen = true;
 
-    public MainWindow()
+    public MainWindow(string initialPage = "cleanup")
     {
         InitializeComponent();
+        SidebarColumn.Width = new GridLength((double)Application.Current.Resources["ShouSidebarWidth"]);
+        SidebarHeaderRow.Height = TitlebarRow.Height = new GridLength((double)Application.Current.Resources["ShouTitlebarHeight"]);
+        FooterRow.Height = new GridLength((double)Application.Current.Resources["ShouFooterHeight"]);
         Title = "Shou";
-        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(1160, 780));
-        PageTitle.Text = text.Get("Space Analysis");
-        PageDescription.Text = text.Get("Select a folder to see its storage usage.");
-        ScopeBox.PlaceholderText = text.Get("Choose Folder…");
-        AutomationProperties.SetName(ScopeBox, text.Get("Space Analysis"));
-        ChooseButton.Content = text.Get("Choose Folder…");
-        ScanButton.Content = text.Get("Scan");
-        CancelButton.Content = text.Get("Stop");
-        UpButton.Content = text.Get("Up");
-        PreviousButton.Content = text.Get("Previous");
-        NextButton.Content = text.Get("Next");
-        CleanupNavigation.Content = text.Get("Smart Cleanup");
-        StorageNavigation.Content = text.Get("Space Analysis");
-        ApplicationsNavigation.Content = text.Get("Applications");
-        StartupNavigation.Content = text.Get("Startup Items");
-        PrivacyNavigation.Content = text.Get("Privacy");
-        ConfigurationNavigation.Content = text.Get("Cleanup Rules");
-        HistoryNavigation.Content = text.Get("History");
-        CoverageNotice.Message = text.Get("Some locations could not be read. Sizes show only measured data.");
-        model.PropertyChanged += ModelChanged;
+        AppWindow.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Shou.ico"));
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(TitleDragRegion);
+        var scale = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this)) / 96d;
+        var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
+        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(Math.Min(area.Width, (int)((double)Application.Current.Resources["ShouWindowWidth"] * scale)),
+            Math.Min(area.Height, (int)((double)Application.Current.Resources["ShouWindowHeight"] * scale))));
+        StorageHeading.Text = text.Get("Storage");
+        ToolsHeading.Text = text.Get("Tools");
+        foreach (var button in NavigationItems)
+        {
+            var name = (string)button.Tag;
+            var icon = ProductIcon.Create(name, (double)Application.Current.Resources["ShouCompactIconSize"]);
+            navigationIcons[button] = icon;
+            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
+            content.Children.Add(icon); content.Children.Add(new TextBlock { Text = TitleFor(name), VerticalAlignment = VerticalAlignment.Center });
+            button.Content = content;
+            AutomationProperties.SetName(button, TitleFor(name));
+            AutomationProperties.SetAutomationId(button, "nav." + name);
+        }
+        languageIcon = ProductIcon.Create("language", 16);
+        LanguageButton.Content = languageIcon;
+        diskIcon = ProductIcon.Create("drive", 14);
+        DiskIcon.Content = diskIcon;
+        SystemLanguageItem.Text = text.Get("Follow System");
+        AutomationProperties.SetName(LanguageButton, text.Get("Interface Language"));
+        AutomationProperties.SetName(PaneButton, text.Get("Sidebar"));
+        AutomationProperties.SetName(ShowSidebarButton, text.Get("Sidebar"));
+        VersionText.Text = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "";
+        WindowRoot.RequestedTheme = AppearanceSettings.Current.Theme;
         AppWindow.Closing += (_, args) =>
         {
-            if (startupPage?.HasActiveStartupChange == true)
-            {
-                args.Cancel = true;
-                startupPage.RequestStartupStop();
-                return;
-            }
-            if (cleanupPage?.HasActiveCleanup == true)
-            {
-                args.Cancel = true;
-                cleanupPage.RequestCleanupStop();
-                return;
-            }
-            if (applicationsPage?.HasActiveUninstall != true) return;
+            if (!HasMutation) return;
             args.Cancel = true;
-            applicationsPage.RequestUninstallStop();
+            cleanup?.RequestCleanupStop(); applications?.RequestUninstallStop(); startup?.RequestStartupStop();
+            storage?.Cancel(); largeFiles?.Cancel();
+            privacy?.CancelCleanup();
+            WindowStatus.Text = text.Get("Stopping at a safe boundary…");
         };
         Closed += (_, _) =>
         {
             closed = true;
-            model.PropertyChanged -= ModelChanged;
-            model.Dispose();
-            cleanupPage?.Dispose();
-            historyPage?.Dispose();
-            configurationPage?.Dispose();
-            applicationsPage?.Dispose();
-            startupPage?.Dispose();
-            privacyPage?.Dispose();
+            cleanup?.Dispose(); configuration?.Dispose(); applications?.Dispose(); startup?.Dispose();
+            privacy?.Dispose(); history?.Dispose(); storage?.Dispose(); largeFiles?.Dispose();
         };
-        UpdateState();
-        RenderPage();
+        WindowRoot.Loaded += (_, _) => UpdateSidebar();
         initialized = true;
-        Navigation.SelectedItem = StorageNavigation;
+        _ = ShowPageAsync(initialPage);
     }
 
-    private async void Navigate(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(nint window);
+
+    private bool HasMutation => cleanup?.HasActiveCleanup == true || applications?.HasActiveUninstall == true || startup?.HasActiveStartupChange == true || storage?.HasActiveRemoval == true || largeFiles?.HasActiveRemoval == true || privacy?.HasActiveCleanup == true;
+    private Button Item(string page) => page switch
     {
-        if (!initialized || closed || args.SelectedItem is not NavigationViewItem { Tag: string destination }) return;
-        if (configurationPage?.IsBusy == true && destination != "configuration") { Navigation.SelectedItem = ConfigurationNavigation; return; }
-        if (applicationsPage?.HasActiveUninstall == true && destination != "applications") { Navigation.SelectedItem = ApplicationsNavigation; return; }
-        if (cleanupPage?.HasActiveCleanup == true && destination != "cleanup") { Navigation.SelectedItem = CleanupNavigation; return; }
-        if (startupPage?.HasActiveStartupChange == true && destination != "startup") { Navigation.SelectedItem = StartupNavigation; return; }
-        if (destination != "privacy") privacyPage?.CancelScan();
-        StorageContent.Visibility = destination == "storage" ? Visibility.Visible : Visibility.Collapsed;
-        ApplicationsHost.Visibility = destination == "applications" ? Visibility.Visible : Visibility.Collapsed;
-        StartupHost.Visibility = destination == "startup" ? Visibility.Visible : Visibility.Collapsed;
-        PrivacyHost.Visibility = destination == "privacy" ? Visibility.Visible : Visibility.Collapsed;
-        CleanupHost.Visibility = destination == "cleanup" ? Visibility.Visible : Visibility.Collapsed;
-        HistoryHost.Visibility = destination == "history" ? Visibility.Visible : Visibility.Collapsed;
-        ConfigurationHost.Visibility = destination == "configuration" ? Visibility.Visible : Visibility.Collapsed;
+        "large" => LargeFilesNavigation, "storage" => StorageNavigation, "configuration" => ConfigurationNavigation,
+        "applications" => ApplicationsNavigation, "startup" => StartupNavigation, "privacy" => PrivacyNavigation,
+        "history" => HistoryNavigation, "settings" => SettingsNavigation, _ => CleanupNavigation
+    };
+
+    private Button[] NavigationItems => [CleanupNavigation, LargeFilesNavigation, StorageNavigation, ConfigurationNavigation,
+        ApplicationsNavigation, StartupNavigation, PrivacyNavigation, HistoryNavigation, SettingsNavigation];
+    private string TitleFor(string page) => text.Get(page switch
+    {
+        "large" => "Large Files", "storage" => "Space Analysis", "configuration" => "Cleanup Rules",
+        "startup" => "Startup Items", "applications" => "Application Uninstall", "privacy" => "Privacy",
+        "history" => "History", "settings" => "Settings", _ => "Smart Cleanup"
+    });
+    private async void Navigate(object sender, RoutedEventArgs args)
+    {
+        if (sender is Button { Tag: string next }) await ShowPageAsync(next);
+    }
+    private async Task ShowPageAsync(string next)
+    {
+        if (!initialized || closed || (HasMutation || configuration?.IsBusy == true) && next != destination) return;
+        using var diagnostic = Shou.Windows.Core.OperationDiagnostics.Start("navigation." + next);
+        if (next != "privacy") privacy?.CancelScan();
+        destination = next;
+        PageTitle.Text = TitleFor(next);
+        UpdateSidebar();
+        DiskCapacity.Visibility = next is "cleanup" or "large" ? Visibility.Visible : Visibility.Collapsed;
+        if (next is "cleanup" or "large") RefreshDiskCapacity();
+        WindowStatus.Text = "";
         try
         {
-            if (destination == "privacy")
+            FrameworkElement page;
+            Task load = Task.CompletedTask;
+            switch (next)
             {
-                privacyPage ??= new();
-                PrivacyHost.Content = privacyPage;
-            }
-            else if (destination == "startup")
-            {
-                if (startupPage is null)
-                {
-                    startupPage = new();
-                    startupPage.BusyChanged += (_, _) =>
+                case "storage":
+                    if (storage is null) { storage = new(WinRT.Interop.WindowNative.GetWindowHandle(this)); storage.BusyChanged += (_, _) => UpdateNavigation(); }
+                    page = storage; break;
+                case "large":
+                    if (largeFiles is null) { largeFiles = new(WinRT.Interop.WindowNative.GetWindowHandle(this), largeFiles: true); largeFiles.BusyChanged += (_, _) => UpdateNavigation(); }
+                    page = largeFiles; break;
+                case "cleanup":
+                    if (cleanup is null)
                     {
-                        if (startupPage.HasActiveStartupChange) model.Cancel();
-                        UpdateNavigation();
-                    };
-                }
-                StartupHost.Content = startupPage;
-                await startupPage.EnsureLoadedAsync();
-            }
-            else if (destination == "applications")
-            {
-                if (applicationsPage is null)
-                {
-                    applicationsPage = new();
-                    applicationsPage.BusyChanged += (_, _) => UpdateNavigation();
-                }
-                ApplicationsHost.Content = applicationsPage;
-                await applicationsPage.EnsureLoadedAsync();
-            }
-            else if (destination == "cleanup")
-            {
-                if (cleanupPage is null)
-                {
-                    reviewOperations ??= new();
-                    cleanupPage = new(reviewOperations, reviewOperations, reviewOperations.Catalog);
-                    cleanupPage.BusyChanged += (_, _) =>
+                        operations ??= new();
+                        cleanup = new(operations, operations, operations.Catalog);
+                        cleanup.BusyChanged += (_, _) => UpdateNavigation();
+                        cleanup.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
+                        cleanup.HistoryRequested += async (_, _) =>
+                        {
+                            history?.InvalidateHistory();
+                            await ShowPageAsync("history");
+                        };
+                    }
+                    page = cleanup; load = cleanup.EnsureLoadedAsync(); break;
+                case "configuration":
+                    if (configuration is null)
                     {
-                        if (cleanupPage.HasActiveCleanup) model.Cancel();
-                        UpdateNavigation();
-                    };
-                    cleanupPage.LocationsPrepared += async (_, _) =>
+                        operations ??= new();
+                        configuration = new(operations, WinRT.Interop.WindowNative.GetWindowHandle(this), operations.Catalog);
+                        configuration.EvidenceInvalidated += (_, _) => { cleanup?.InvalidateConfiguration(); privacy?.InvalidateConfiguration(); };
+                        configuration.BusyChanged += (_, _) => UpdateNavigation();
+                    }
+                    page = configuration; load = configuration.EnsureLoadedAsync(); break;
+                case "applications":
+                    if (applications is null) { applications = new(); applications.BusyChanged += (_, _) => UpdateNavigation(); }
+                    page = applications; load = applications.EnsureLoadedAsync(); break;
+                case "startup":
+                    if (startup is null) { startup = new(); startup.BusyChanged += (_, _) => UpdateNavigation(); }
+                    page = startup; load = startup.EnsureLoadedAsync(); break;
+                case "privacy":
+                    if (privacy is null) { privacy = new(); privacy.BusyChanged += (_, _) => UpdateNavigation(); }
+                    page = privacy; load = privacy.LoadHistoryAsync(); break;
+                case "history":
+                    history ??= new(operations ??= new());
+                    history.InvalidateHistory();
+                    page = history; load = history.EnsureLoadedAsync(); break;
+                default:
+                    if (settings is null)
                     {
-                        configurationPage?.InvalidateConfiguration();
-                        if (closed || configurationPage is null || configurationPage.IsBusy || ConfigurationHost.Visibility != Visibility.Visible) return;
-                        try { await configurationPage.EnsureLoadedAsync(); }
-                        catch (Exception error) { ReportError(error); }
-                    };
-                }
-                CleanupHost.Content = cleanupPage;
-                await cleanupPage.EnsureLoadedAsync();
+                        settings = new();
+                        settings.AppearanceChanged += (_, _) => { WindowRoot.RequestedTheme = AppearanceSettings.Current.Theme; UpdateSidebar(); };
+                        settings.LanguageChanged += (_, _) => ((App)Application.Current).ReloadWindow("settings");
+                        settings.ScanLocationsRequested += async (_, _) =>
+                        {
+                            await ShowPageAsync("configuration");
+                            if (destination == "configuration" && WindowStatus.Text.Length == 0) configuration?.ShowScanLocations();
+                        };
+                        settings.ExclusionsRequested += async (_, _) =>
+                        {
+                            await ShowPageAsync("configuration");
+                            if (destination == "configuration" && WindowStatus.Text.Length == 0) configuration?.ShowExclusions();
+                        };
+                    }
+                    page = settings; break;
             }
-            else if (destination == "history")
-            {
-                historyPage ??= new(reviewOperations ??= new());
-                HistoryHost.Content = historyPage;
-                await historyPage.EnsureLoadedAsync();
-            }
-            else if (destination == "configuration")
-            {
-                if (configurationPage is null)
-                {
-                    reviewOperations ??= new();
-                    configurationPage = new(reviewOperations, WinRT.Interop.WindowNative.GetWindowHandle(this), reviewOperations.Catalog);
-                    configurationPage.EvidenceInvalidated += (_, _) => { cleanupPage?.InvalidateConfiguration(); privacyPage?.InvalidateConfiguration(); };
-                    configurationPage.BusyChanged += (_, _) => UpdateNavigation();
-                }
-                ConfigurationHost.Content = configurationPage;
-                await configurationPage.EnsureLoadedAsync();
-            }
+            ToolbarHost.Content = null;
+            var toolbar = page is IPageChrome chrome ? chrome.Toolbar : null;
+            PageHost.Content = page;
+            ToolbarHost.Content = toolbar;
+            UpdateNavigation();
+            await load;
+            diagnostic.Complete("loaded");
         }
         catch (Exception error)
         {
-            if (!closed) Navigation.SelectedItem = StorageNavigation;
-            ReportError(error);
+            diagnostic.Fail(error);
+            NativeDiagnostics.Write(error);
+            if (!closed) WindowStatus.Text = text.Get("The page could not be loaded. Try again.");
         }
     }
 
     private void UpdateNavigation()
     {
         if (closed) return;
-        var configuring = configurationPage?.IsBusy == true;
-        var uninstalling = applicationsPage?.HasActiveUninstall == true;
-        var cleaning = cleanupPage?.HasActiveCleanup == true;
-        var startupChanging = startupPage?.HasActiveStartupChange == true;
-        CleanupNavigation.IsEnabled = !configuring && !uninstalling && !startupChanging;
-        StorageNavigation.IsEnabled = HistoryNavigation.IsEnabled = !configuring && !uninstalling && !cleaning && !startupChanging;
-        PrivacyNavigation.IsEnabled = !configuring && !uninstalling && !cleaning && !startupChanging;
-        StartupNavigation.IsEnabled = !configuring && !uninstalling && !cleaning;
-        ConfigurationNavigation.IsEnabled = !uninstalling && !cleaning && !startupChanging;
-        ApplicationsNavigation.IsEnabled = !configuring && !cleaning && !startupChanging;
-        UpdateState();
+        var locked = HasMutation || configuration?.IsBusy == true;
+        DiskCapacity.Visibility = destination == "large" || destination == "cleanup" && cleanup?.ShowingCompletion != true
+            ? Visibility.Visible : Visibility.Collapsed;
+        LanguageButton.IsEnabled = !locked;
+        foreach (var item in NavigationItems)
+            item.IsEnabled = !locked || ReferenceEquals(item, Item(destination));
+        if (HasMutation) { storage?.CancelScan(); largeFiles?.CancelScan(); }
     }
-
-    private async void ChooseFolder(object sender, RoutedEventArgs args)
+    private void UpdateSidebar()
     {
-        if (applicationsPage?.HasActiveUninstall == true || cleanupPage?.HasActiveCleanup == true || startupPage?.HasActiveStartupChange == true) return;
-        try
+        var highContrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
+        var system = new global::Windows.UI.ViewManagement.UISettings();
+        foreach (var button in NavigationItems)
         {
-            var picker = new FolderPicker();
-            picker.FileTypeFilter.Add("*");
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, WinRT.Interop.WindowNative.GetWindowHandle(this));
-            var folder = await picker.PickSingleFolderAsync();
-            if (closed || folder is null || applicationsPage?.HasActiveUninstall == true || cleanupPage?.HasActiveCleanup == true || startupPage?.HasActiveStartupChange == true) return;
-            root = WindowsPath.Parse(folder.Path);
-            ScopeBox.Text = root.Value;
-            await ScanAsync();
+            var selected = ReferenceEquals(button, Item(destination));
+            button.ClearValue(Control.BackgroundProperty);
+            if (highContrast)
+            {
+                var text = system.UIElementColor(selected ? global::Windows.UI.ViewManagement.UIElementType.HighlightText : global::Windows.UI.ViewManagement.UIElementType.WindowText);
+                button.Foreground = new SolidColorBrush(text);
+                ProductIcon.Select(navigationIcons[button], button.Foreground);
+            }
+            else
+            {
+                var footer = button.Tag is "history" or "settings";
+                if (selected && !footer)
+                {
+                    button.Foreground = (Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"];
+                    ProductIcon.Select(navigationIcons[button], button.Foreground);
+                }
+                else
+                {
+                    button.ClearValue(Control.ForegroundProperty);
+                    ProductIcon.Select(navigationIcons[button], (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
+                }
+            }
+            if (button.Content is StackPanel panel && panel.Children.Count > 1 && panel.Children[1] is TextBlock label)
+                label.FontWeight = Microsoft.UI.Text.FontWeights.Normal;
+            VisualStateManager.GoToState(button, selected ? "Selected" : "Unselected", true);
         }
-        catch (Exception error) { ReportError(error); }
+        var chrome = highContrast
+            ? new SolidColorBrush(system.UIElementColor(global::Windows.UI.ViewManagement.UIElementType.WindowText))
+            : (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+        if (languageIcon is not null) ProductIcon.Select(languageIcon, chrome);
+        if (diskIcon is not null) ProductIcon.Select(diskIcon, chrome);
     }
-
-    private async void ScanFolder(object sender, RoutedEventArgs args)
+    private void ToggleSidebar(object sender, RoutedEventArgs args)
     {
-        try { await ScanAsync(); }
-        catch (Exception error) { ReportError(error); }
+        sidebarOpen = !sidebarOpen;
+        SidebarColumn.Width = new GridLength(sidebarOpen ? (double)Application.Current.Resources["ShouSidebarWidth"] : 0);
+        Sidebar.Visibility = sidebarOpen ? Visibility.Visible : Visibility.Collapsed;
+        ShowSidebarButton.Visibility = sidebarOpen ? Visibility.Collapsed : Visibility.Visible;
     }
-
-    private async Task ScanAsync()
+    private async void ChangeLanguage(object sender, RoutedEventArgs args)
     {
-        if (root is null || model.IsBusy || applicationsPage?.HasActiveUninstall == true || cleanupPage?.HasActiveCleanup == true || startupPage?.HasActiveStartupChange == true) return;
-        browser = null;
-        page = null;
-        RenderPage();
-        await model.ScanAsync(root);
-        if (closed) return;
-        if (model.Snapshot is { } snapshot && snapshot.Entries.Any(item => item.Entry.Path == root))
-        {
-            browser = new(snapshot);
-            page = browser.GetPage(root);
-            TotalSize.Text = StorageRow.FormatBytes(snapshot.AllocatedBytes);
-        }
-        RenderPage();
+        if (HasMutation || configuration?.IsBusy == true || sender is not MenuFlyoutItem { Tag: string language }) return;
+        try { await AppearanceSettings.SaveAsync(AppearanceSettings.Preferences with { Language = language }); ((App)Application.Current).ReloadWindow(destination); }
+        catch (Exception error) { NativeDiagnostics.Write(error); WindowStatus.Text = text.Get("Settings could not be saved. Try again."); }
     }
-
-    private void CancelScan(object sender, RoutedEventArgs args) => model.Cancel();
-    private void ModelChanged(object? sender, PropertyChangedEventArgs args) => UpdateState();
-
-    private void UpdateState()
+    private void RefreshDiskCapacity()
     {
-        if (closed) return;
-        ChooseButton.IsEnabled = !model.IsBusy && applicationsPage?.HasActiveUninstall != true && cleanupPage?.HasActiveCleanup != true && startupPage?.HasActiveStartupChange != true;
-        ScanButton.IsEnabled = root is not null && !model.IsBusy && applicationsPage?.HasActiveUninstall != true && cleanupPage?.HasActiveCleanup != true && startupPage?.HasActiveStartupChange != true;
-        CancelButton.IsEnabled = model.IsBusy;
-        ScanProgress.Visibility = model.IsBusy ? Visibility.Visible : Visibility.Collapsed;
-        CoverageNotice.IsOpen = model.State == StoragePageState.Partial;
-        StatusText.Text = model.State switch
-        {
-            StoragePageState.Scanning => text.Get("Scanning…"),
-            StoragePageState.Ready => text.Get("Scan complete"),
-            StoragePageState.Cancelled => text.Get("Scan cancelled"),
-            StoragePageState.Failed => text.Get("The scan could not be completed. Try another folder."),
-            _ => ""
-        };
-        if (model.IsBusy) TotalSize.Text = "";
+        var volume = WindowsStorageVolumes.Read().FirstOrDefault(value => value.Path.Value.StartsWith(System.IO.Path.GetPathRoot(Environment.SystemDirectory) ?? "C:\\", StringComparison.OrdinalIgnoreCase));
+        if (volume is null) { DiskCapacity.Visibility = Visibility.Collapsed; return; }
+        DiskName.Text = volume.Name;
+        DiskFree.Text = StorageRow.FormatBytes(volume.AvailableBytes) + " " + text.Get("Available");
+        DiskMeter.Value = volume.TotalBytes > 0 ? (1 - (double)volume.AvailableBytes / volume.TotalBytes) * 100 : 0;
     }
 
-    private void RenderPage()
-    {
-        ResultsList.ItemsSource = page?.Items;
-        CurrentPath.Text = page?.Directory.Value ?? "";
-        UpButton.IsEnabled = page is not null && root is not null && page.Directory != root;
-        PreviousButton.IsEnabled = page?.HasPrevious == true;
-        NextButton.IsEnabled = page?.HasNext == true;
-    }
-
-    private void OpenDirectory(object sender, ItemClickEventArgs args)
-    {
-        if (args.ClickedItem is StorageRow { IsDirectory: true } row && browser is not null)
-        {
-            page = browser.GetPage(row.Path);
-            RenderPage();
-        }
-    }
-
-    private void GoUp(object sender, RoutedEventArgs args)
-    {
-        if (page?.Directory.Parent is { } parent && root is not null && parent.IsWithin(root, caseSensitive: true) && browser is not null)
-        {
-            page = browser.GetPage(parent);
-            RenderPage();
-        }
-    }
-
-    private void PreviousPage(object sender, RoutedEventArgs args)
-    {
-        if (page is not null && browser is not null)
-        {
-            page = browser.GetPage(page.Directory, Math.Max(0, page.Offset - 200));
-            RenderPage();
-        }
-    }
-
-    private void NextPage(object sender, RoutedEventArgs args)
-    {
-        if (page?.HasNext == true && browser is not null)
-        {
-            page = browser.GetPage(page.Directory, page.Offset + page.Items.Length);
-            RenderPage();
-        }
-    }
-
-    private void ReportError(Exception error)
-    {
-        NativeDiagnostics.Write(error);
-        if (closed) return;
-        StatusText.Text = text.Get("The scan could not be completed. Try another folder.");
-    }
 }

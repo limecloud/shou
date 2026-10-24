@@ -2,9 +2,11 @@
 
 [English](../../engineering/windows.md) | 简体中文
 
-状态：实现进行中。扫描、平台适配、页面状态与 CLI 已有源码；WinUI 包含空间浏览、应用注册浏览、清理审阅和只读历史页面。v0.13.0 发布流水线构建未签名的 x64／ARM64 自包含便携预览。Windows Server 2025 x64 原生测试和 CLI 合同已通过，启动／归档结果见 SYNC.md；ARM64 运行、完整 Windows 11 界面／辅助功能、签名、安装和更新仍待验收，公开变更门禁关闭。
+状态：实现进行中。扫描、平台适配、页面状态与 CLI 已有源码；WinUI 包含空间浏览、应用注册浏览、清理审阅和历史页面。清理、启动任务控制和安装程序卸载仅在匹配的 Windows 11 原生 x64／ARM64 进程中开放；macOS 构建继续保持只读。v0.14.0 发布流水线构建未签名的 x64／ARM64 自包含便携预览。原生夹具、安装和完整界面／辅助功能证据见 SYNC.md。
 
 Shou Windows 端采用 C#、.NET 10 LTS 与 Windows App SDK 的 WinUI 3。桌面和 CLI 直接调用同一套 C# 领域服务。代码编辑和纯 .NET 测试在 macOS 完成；Windows 构建和运行验证在 Windows 完成。
+
+阿里云无影远程验收使用仓库内的 [shou-windows-cloud-test 技能](../../../.agents/skills/shou-windows-cloud-test/SKILL.md)。本地开发和界面对齐期间按 `StopCharging` 关机，完成本机检查并准备同步包后，再复用环境集中验收；关机保留一天的磁盘费用与期限独立记录。账号、钥匙串密码和实例状态保存在仓库外的本机私有目录。
 
 | 需要了解 | 阅读入口 |
 | --- | --- |
@@ -13,6 +15,7 @@ Shou Windows 端采用 C#、.NET 10 LTS 与 Windows App SDK 的 WinUI 3。桌面
 | 产品和安全行为 | [PRD](../product/prd.md)、[清理安全](../security/cleanup-safety.md) |
 | 运行、研发与发布时序 | [流程与时序](../architecture/workflows-and-sequences.md) |
 | 功能对齐与验证 | [SYNC.md](../../../SYNC.md) |
+| 结构化日志、分层回归与真实桌面 E2E | [Windows 日志与测试](windows-testing.md) |
 
 首个交付物是 x64、ARM64 上经过签名、可独立运行的 WinUI 窗口，随后完成只读扫描和确定性 Core 测试。具有破坏性的能力须通过独立原生验收后才能开放。各阶段退出条件见实施方案。
 
@@ -43,7 +46,7 @@ Windows 上准备固定的 .NET SDK 与 Python 3，使用本地输出目录；�
 
 私有记录发布通过 `NtSetInformationFile` 的 `FileRenameInformation` 使用保留的父目录句柄。Win32 重命名包装接口拒绝非空 `RootDirectory`，实现不回退到绝对路径。发布目录允许 NT 目标打开所需的共享写入，仍禁止删除／重命名；私有 `mutation.lock` 串行化记录操作。既有原生记录测试核验替换、重新读取、私有 ACL 和并发租约。
 
-修改规范资源后执行 `python3 scripts/generate-windows-resources.py` 重新生成。生成器记录输入与输出摘要，并校验当前文案的占位符。`assets/design/tokens.json` 同时生成 WinUI `Design.xaml` 与 macOS `ShouDesign.generated.swift`，`--check` 检查两端。当前 WinUI 页面使用生成的项目／分区／页面间距与内边距；SwiftUI 使用共享强调色、设置间距／卡片圆角和扫描位置面板内边距。Fluent 控件颜色继续由系统管理；Windows 强调色／圆角接入、字号与动效提取待完成。详见[设计资源合同](interface-design.md#共享设计资源)。
+修改规范资源后执行 `python3 scripts/generate-windows-resources.py` 重新生成。生成器记录输入与输出摘要，并校验当前文案的占位符。`assets/design/tokens.json` 同时生成 WinUI `Design.xaml` 与 macOS `ShouDesign.generated.swift`，`--check` 检查两端。WinUI 使用共享强调色、间距、圆角、侧栏与标题栏尺寸及起始页字号，按两组侧栏、统一工具栏和独立页面状态组织；应用、启动项与历史按需展开详情。规则目录支持来源／搜索过滤和具体位置的开关；空间浏览提供目录树、扩展名与矩形面积图。设置将语言、主题与减少动效保存到当前用户的私有原子记录；语言变更重建窗口。Windows 仍使用原生活动圆环，精确 Mac 图形、多层面积图和完整视觉／辅助功能验收待完成。详见[设计资源合同](interface-design.md#共享设计资源)。
 
 Mac 检查证明纯逻辑语义和引用编译。Windows 测试、WinUI 启动、签名安装与更新均需要对应原生环境并分别取证。实际可用性以 `capabilities` 输出为准。规则文件在 Windows 上读取，核验其为无链接的本地普通文件，限制 256 KiB 与十秒期限。
 
@@ -77,7 +80,7 @@ Mac 检查证明纯逻辑语义和引用编译。Windows 测试、WinUI 启动�
 
 ## 启动注册发现
 
-`startup list [--source <source>] [--search <text>] [--offset <n>] [--limit <n>] [--max-entries <n>] [--max-seconds <n>] --json` 查询固定 Run／RunOnce 注册表键、两个本地启动文件夹及本机可见的开机／登录计划任务及当前用户包清单的启动声明，不打开清理存储。共享默认预算为 2,000 条／五秒，最大 10,000 条／60 秒。页面在不可变快照内搜索分页，刷新时保留上次结果并显示部分覆盖。`startup_control_available=false`；打包任务实际激活状态、启动有效性／应用进程检查和公开启停验收仍待完成。来源名称、读取上限、状态及流程／时序图统一维护于[启动项合同](../product/startup-items.md#windows-启动项合同)，临时字段见[数据模型](../architecture/data-model.md#11-启动项发现)。逻辑及引用检查不代表原生注册表、文件夹、Task Scheduler COM、包清单原生读取或 UI 验收通过。
+`startup list [--source <source>] [--search <text>] [--offset <n>] [--limit <n>] [--max-entries <n>] [--max-seconds <n>] --json` 查询固定 Run／RunOnce 注册表键、两个本地启动文件夹及本机可见的开机／登录计划任务及当前用户包清单的启动声明，不打开清理存储。共享默认预算为 2,000 条／五秒，最大 10,000 条／60 秒。页面在不可变快照内搜索分页，刷新时保留上次结果并显示部分覆盖。`startup_control_available` 仅在匹配的 Windows 11 原生 x64／ARM64 进程中为 true，其他主机保持只读。打包任务实际激活状态、启动有效性／应用进程检查和公开启停验收仍单独留证。来源名称、读取上限、状态及流程／时序图统一维护于[启动项合同](../product/startup-items.md#windows-启动项合同)，临时字段见[数据模型](../architecture/data-model.md#11-启动项发现)。逻辑及引用检查不代表原生注册表、文件夹、Task Scheduler COM、包清单原生读取或 UI 验收通过。
 
 识别出的计划任务条目可含 `scheduled_task.enabled` 和任务引擎 `state`，与实际启动启用和应用活动分别表达。状态失败／变化保留注册并报告部分覆盖，WinUI 详情展示同一观察，不增加控制或执行权限。属性复核、状态值及原生证据要求由启动项合同定义。
 
@@ -104,7 +107,7 @@ shou applications plan show --uninstall-plan-id <uninstall_plan_id> --json
 
 先使用摘要中的精确应用 ID 审阅安装身份，再阅读 `blocking_reasons`、`warnings` 与事实 `digest`。`inspect` 不打开存储；`plan` 重新审阅，仅在摘要相同、无阻断且明确允许安装程序的数据影响时保存十五分钟计划。`plan show` 校验本地记录，不重新查询安装状态，不构成当前执行确认。未同意返回 `installer_data_consent_required`／退出码 `7`，安装变化为 `application_changed`／`4`，不支持或受保护为 `unsupported_capability`／`8`，损坏记录为 `corrupt_record`／`5`。
 
-WinUI 提供相同审阅和默认未勾选的数据影响同意，准备期间禁用选择变化；选择或刷新清除旧审阅。MSI 绑定系统 ProductCode／PackageCode 和安装上下文；MSIX 绑定当前用户的精确包身份。系统安装程序可能改变个人数据，MSIX 也可能移除不再需要的依赖包。审阅与计划创建均重新核验安装目录内的活动，活动或未知状态阻止准备计划。Core／Platform／CLI 与 WinUI 已有当前确认、系统卸载与结果记录源码；GUI 与 CLI 共用关闭的执行门禁，额外残留和恢复待实现。审阅和计划始终返回 `execution_available=false`。完整边界与图表见[应用合同](../product/application-uninstall.md#安装身份审阅与计划)。
+WinUI 提供相同审阅和默认未勾选的数据影响同意，准备期间禁用选择变化；选择或刷新清除旧审阅。MSI 绑定系统 ProductCode／PackageCode 和安装上下文；MSIX 绑定当前用户的精确包身份。系统安装程序可能改变个人数据，MSIX 也可能移除不再需要的依赖包。审阅与计划创建均重新核验安装目录内的活动，活动或未知状态阻止准备计划。Core／Platform／CLI 与 WinUI 已有当前确认、系统卸载与结果记录源码；GUI 与 CLI 共用严格的匹配原生 Windows 门禁，额外残留和恢复待实现。审阅和计划报告当前主机的 `execution_available`。完整边界与图表见[应用合同](../product/application-uninstall.md#安装身份审阅与计划)。
 
 WinUI 已接入独立确认、停止等待和读取记录交互；执行期间禁用其他页面导航，正常关闭窗口会请求停止并保持窗口打开。记录错误仍保留精确计划的查询入口。对话框调度、保存结果与实时状态的区别及强制终止限制见[窗口生命周期合同](../product/application-uninstall.md#winui-确认与窗口生命周期)。源码和页面状态测试不代表原生 UI 通过。
 
@@ -115,7 +118,7 @@ shou applications execution show --uninstall-plan-id <uninstall_plan_id> --json
 shou applications uninstall --uninstall-plan-id <uninstall_plan_id> --json
 ```
 
-`execution show` 只读已有记录，验证其与计划、当前用户及状态的一致性；缺少记录返回 `not_found`／5，不创建存储，不重新观察或重试。`uninstall` 当前能力为 `available=false`、`native_acceptance_pending`，返回 `unsupported_capability`／8，不提示确认、不启动安装程序。`application_uninstall_available=false` 与普通文件变更能力分别发现。
+`execution show` 只读已有记录，验证其与计划、当前用户及状态的一致性；缺少记录返回 `not_found`／5，不创建存储，不重新观察或重试。在匹配的 Windows 11 原生进程中，`uninstall` 会重新核验计划、请求当前确认、只调用精确的 MSI／MSIX 系统安装程序、观察安装身份并记录终态；其他主机返回 `unsupported_capability`／8，不提示确认、不启动安装程序。`application_uninstall_available` 与普通文件变更能力分别发现。
 
 执行源码使用最多一分钟、同一服务实例签发的一次性确认，准确短语为 `UNINSTALL <uninstall_plan_id>`。过期返回 `plan_stale`／4 或 `confirmation_required`／7；已有意图为 `plan_consumed`／4，包括未知和损坏结果。意图或结果发布无法确认返回 `journal_write_failed`／5，必须读取已有记录并独立核验，不自动重放。将来通过原生验收后，终端交互与数据／进程影响提示仍为必需条件。安装程序终态与精确身份观察分别记录；完成返回成功／0，取消为 cancelled／130，失败或未知为 partial／6。`restart_required` 只展示系统事实，不自动重启。调用与取消合同、存储失败和独立验收边界由[系统卸载合同](../product/application-uninstall.md#系统卸载执行与结果)维护。
 
@@ -133,7 +136,7 @@ shou system scan --include-projects true --max-entries 100000 --max-seconds 120 
 
 `system locations` 仅检查有限的位置元数据，不登记或遍历。默认检查固定位置；`--include-projects true` 同时检查已登记目录和常见项目目录，不递归搜索主目录。已有登记范围优先，自动建议不扩大或重叠原范围，按实际身份去重。缺失自动位置跳过；权限、链接、所有者或已有根身份变化报告问题。发现期限十秒。
 
-`system scan` 先复核发现的目录身份，再在一次配置事务中核对发现时的修订并登记整批位置；冲突不发布部分登记。复用位置保留逻辑引用、排除与绑定。随后顺序扫描，共享条目与遍历／分析时间预算；预算耗尽的位置报告缺口，尚未实现公平调度。返回独立 `scans`、`issues`、`state` 和 `execution_available=false`；存在缺口时返回 partial／退出码 6。登记先于扫描提交；取消不撤销已登记位置或已发布的前序扫描。
+`system scan` 先复核发现的目录身份，再在一次配置事务中核对发现时的修订并登记整批位置；冲突不发布部分登记。复用位置保留逻辑引用、排除与绑定。随后顺序扫描，共享条目与遍历／分析时间预算；预算耗尽的位置报告缺口，尚未实现公平调度。返回独立 `scans`、`issues`、`state` 和当前主机的清理 `execution_available`；存在缺口时返回 partial／退出码 6。登记先于扫描提交；取消不撤销已登记位置或已发布的前序扫描。
 
 WinUI“扫描全部位置”通过 `ScanRegisteredAsync` 复用同一批量读取编排，只传页面列出的确切位置 ID，不执行发现或登记。结果可跨位置汇总并按位置筛选，停止后可查看此前保存的快照；配置失效或计划复核失败会清除可复用批次。状态、选择边界和流程／时序由[Windows 扫描与审阅](../product/unified-cleanup.md#windows-扫描与审阅)定义。分类、筛选、明确推荐选择和多位置计划已有源码；一次当前确认及全部来源预检复用同一执行服务，执行门禁保持关闭。
 
@@ -181,7 +184,7 @@ shou scan --workspace "<返回的工作区 ID>" --json
 
 `analysis scan` 返回有界内存测量，不保存记录。`rules preview` 单独评估指定草稿，保存 `preview_only=true` 的证据；启用后必须使用 `scan --workspace` 重新扫描。普通扫描冻结当前有效内置定义与明确启用的个人规则，返回 `preview_only=false`；无适用规则时只测量。两类摘要均以 `rules` 数组返回规则 ID 与摘要，`scan results` 保留来源标记，游标绑定扫描 ID、记录内容与偏移，页大小为 1–500。
 
-结果标为 `review` 或 `blocked`，当前 CLI 始终返回 `execution_available=false`。`plan create` 可组装计划而不修改目标；删除入口须等待原生验收。源码、凭据、数据库、未知链接和用途不明的内容采用保守保护，个人规则不能申请内置工具例外。
+结果标为 `review` 或 `blocked`，CLI 返回当前主机的清理 `execution_available`。`plan create` 可组装计划而不修改目标；在匹配的 Windows 11 原生进程中，`plan execute` 仅执行明确确认的永久动作。源码、凭据、数据库、未知链接和用途不明的内容采用保守保护，个人规则不能申请内置工具例外。
 
 遍历完成并复核的每个目录单独记录完整覆盖。无关子树有缺口时保留独立完整候选；目标自身不完整则阻止处理。规则、工作区和全局排除共同生效，受保护后代阻止父目录整体处理。保留期使用最新后代修改时间，不以访问时间推断未使用。
 
@@ -345,7 +348,7 @@ sequenceDiagram
 
 ## 受控清理领域服务
 
-Core 已有计划、当前确认和逐项日志编排，并使用内存夹具验证。CLI 已组装原生文件系统、活动检查和变更适配；`plan create` 与 `plan show` 可创建、读取计划，`plan execute` 在触碰目标前返回 `unsupported_capability`（退出码 `8`）。能力发现将该命令标为 `available=false`、`unavailable_reason=native_acceptance_pending`，且 `mutation_available=false`；没有环境变量绕过。原生夹具未运行，不能据此声明 Windows 支持删除；WinUI 已有独立确认、停止等待、记录查询及正常关闭保护源码，真实 UI 与原生变更仍待验收。
+Core 已有计划、当前确认和逐项日志编排，并使用内存夹具验证。CLI 已组装原生文件系统、活动检查和变更适配；`plan create` 与 `plan show` 可创建、读取计划；在匹配的 Windows 11 原生进程中 `plan execute` 执行确认的永久动作并记录每项结果，其他主机在触碰目标前返回 `unsupported_capability`（退出码 `8`）。能力发现公开运行时门禁，没有环境变量绕过。原生夹具和交互 UI 仍是独立验收门槛；WinUI 已有独立确认、停止等待、记录查询及正常关闭保护源码。
 
 ```powershell
 shou plan create --scan-id "<普通扫描 ID>" --candidate "<候选 ID>" --mode permanent --json
@@ -470,7 +473,7 @@ shou startup control --task-path '\Folder\Task' --action enable --review-digest 
 shou startup execution show --startup-operation-id startup_control_<id> --json
 ```
 
-动作仅为 `enable|disable`。`inspect` 返回五分钟内存审阅和阻断原因，`execution_available=false`。`control` 的副作用为 destructive；当前门禁关闭，返回 `unsupported_capability`／8，不提示确认或设置任务。未来开放后仍须重审原摘要、要求 TTY 输入 `STARTUP ENABLE <当前操作ID>` 或 `STARTUP DISABLE <当前操作ID>`；不接受 `--yes`、`--approved` 或重试参数。
+动作仅为 `enable|disable`。`inspect` 返回五分钟内存审阅、阻断原因和当前主机的 `execution_available`。在匹配的 Windows 11 原生进程中，`control` 重新核对摘要、要求当前终端确认（`STARTUP ENABLE <当前操作ID>` 或 `STARTUP DISABLE <当前操作ID>`），只修改计划任务的 Enabled 标志；其他主机返回 `unsupported_capability`／8，不提示确认或设置任务。不接受 `--yes`、`--approved` 或重试参数。
 
 `execution show` 为 read，只读已有记录，无记录返回 `not_found`／5，不创建存储。任务变化返回 `startup_changed`／4；日志写失败以 partial／6 返回当前操作 ID 与查询 next_action，不能据输出判断没有变更。平台不受支持返回 8，不创建记录目录。资格、安全边界及 UI 等待行为以[启动项合同](../product/startup-items.md#计划任务开关审阅与控制)为准，存储格式见[数据模型](../architecture/data-model.md#windows-计划任务开关记录)。原生控制和界面尚未验收。
 

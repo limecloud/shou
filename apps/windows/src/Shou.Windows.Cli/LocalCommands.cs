@@ -21,7 +21,7 @@ internal static class LocalCommands
             case "startup execution show": return new(await services.StartupControl.ShowAsync(request.Required("startup-operation-id"), cancellationToken));
             case "startup control":
             {
-                if (!CliServices.StartupControlAvailable) throw new ShouException("unsupported_capability", "Startup changes await native Windows acceptance. No task setter was invoked.");
+                if (!CliServices.StartupControlAvailable) throw new ShouException("unsupported_capability", "Startup changes require a matching native Windows 11 process. No task setter was invoked.");
                 var review = await CliServices.StartupReviewer.InspectAsync(request.Required("task-path"), request.StartupAction, cancellationToken);
                 if (review.Digest != request.Required("review-digest")) throw new ShouException("startup_changed", "The task changed after review. Inspect it again before confirming.");
                 var next = new object[] { new { command = "startup execution show", arguments = new { startup_operation_id = review.Id } } };
@@ -44,7 +44,7 @@ internal static class LocalCommands
             case "applications execution show": return new(await services.ApplicationUninstall.ShowAsync(request.Required("uninstall-plan-id"), cancellationToken));
             case "applications uninstall":
             {
-                if (!CliServices.ApplicationUninstallAvailable) throw new ShouException("unsupported_capability", "System uninstall awaits native Windows acceptance. No installer was invoked.");
+                if (!CliServices.ApplicationUninstallAvailable) throw new ShouException("unsupported_capability", "System uninstall requires a matching native Windows 11 process. No installer was invoked.");
                 var uninstall = services.ApplicationUninstall;
                 var consent = await uninstall.ConfirmAsync(request.Required("uninstall-plan-id"), new TerminalApplicationUninstallConfirmation(WindowsConsolePrompt.ReadAsync, locale), cancellationToken);
                 var execution = await uninstall.ExecuteAsync(request.Required("uninstall-plan-id"), consent, cancellationToken);
@@ -61,7 +61,7 @@ internal static class LocalCommands
                 {
                     scans = result.Scans.Select(scan => new { scan_id = scan.Id, workspace_id = scan.WorkspaceId, candidate_count = scan.Candidates.Length,
                         state = scan.Scan.IsComplete && scan.AnalysisIssues.IsEmpty ? "complete" : "partial", preview_only = false }),
-                    result.Issues, result.State, execution_available = false
+                    result.Issues, result.State, execution_available = CliServices.MutationAvailable
                 }, result.State == "complete" ? "success" : "partial", result.State == "complete" ? 0 : 6);
             }
             case "plan create":
@@ -71,7 +71,7 @@ internal static class LocalCommands
             }
             case "plan execute":
             {
-                if (!CliServices.MutationAvailable) throw new ShouException("unsupported_capability", "Cleanup execution awaits native Windows acceptance. Read the plan and history; no targets were changed.");
+                if (!CliServices.MutationAvailable) throw new ShouException("unsupported_capability", "Cleanup execution requires a matching native Windows 11 process. Read the plan and history; no targets were changed.");
                 var cleanup = services.Cleanup;
                 var consent = await cleanup.ConfirmAsync(request.Required("plan-id"), new TerminalCleanupConfirmation(WindowsConsolePrompt.ReadAsync, locale), cancellationToken);
                 var execution = await cleanup.ExecuteAsync(request.Required("plan-id"), consent, cancellationToken: cancellationToken);
@@ -131,14 +131,14 @@ internal static class LocalCommands
                     rules = preview.Rules.Select(rule => new { rule_id = rule.Definition.GetProperty("id"), digest = rule.Digest }), configuration_revision = preview.ConfigurationRevision,
                     state = complete ? "complete" : "partial", tree_complete = preview.Scan.IsComplete,
                     measured_entries = preview.Scan.Entries.Length, candidate_count = preview.Candidates.Length,
-                    issues = preview.Scan.Issues.AddRange(preview.AnalysisIssues), execution_available = false
+                    issues = preview.Scan.Issues.AddRange(preview.AnalysisIssues), execution_available = !preview.PreviewOnly && CliServices.MutationAvailable
                 }, complete ? "success" : "partial", complete ? 0 : 6,
                     [new { command = "scan results", arguments = new { scan_id = preview.Id } }]);
             }
             case "scan results":
             {
                 var page = await services.Preview.ResultsAsync(request.Required("scan-id"), request.PageLimit, request.Optional("cursor"), cancellationToken);
-                return new(page, page.State == "complete" ? "success" : "partial", page.State == "complete" ? 0 : 6);
+                return new(page with { ExecutionAvailable = !page.PreviewOnly && CliServices.MutationAvailable }, page.State == "complete" ? "success" : "partial", page.State == "complete" ? 0 : 6);
             }
             default: throw new ShouException("invalid_argument", "This command is unavailable.");
         }

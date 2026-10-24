@@ -53,6 +53,20 @@ public sealed class WindowsStartupControlTests
     }
 
     [Theory]
+    [InlineData("\r\n")]
+    [InlineData("\n")]
+    public void SchedulerOmittingTheDefaultEnabledSettingDoesNotChangeTheDefinitionDigest(string newline)
+    {
+        var disabledXml = Xml(false, extra: "<Hidden>false</Hidden>").Replace("><", ">" + newline + "  <", StringComparison.Ordinal);
+        var enabledXml = disabledXml.Replace("  <Enabled>false</Enabled>" + newline, "", StringComparison.Ordinal);
+        var disabled = WindowsStartupControlInspector.Parse(TaskPath, disabledXml, Sid, false, Sid);
+        var enabled = WindowsStartupControlInspector.Parse(TaskPath, enabledXml, Sid, true, Sid);
+        Assert.Equal(disabled.DefinitionDigest, enabled.DefinitionDigest);
+        Assert.NotEqual(enabled.DefinitionDigest, WindowsStartupControlInspector.Parse(TaskPath,
+            enabledXml.Replace("--private-secret", "--private-secret  ", StringComparison.Ordinal), Sid, true, Sid).DefinitionDigest);
+    }
+
+    [Theory]
     [InlineData("<UserId>S-1-5-18</UserId><LogonType>InteractiveToken</LogonType>", false, true, false)]
     [InlineData("<UserId>DOMAIN\\user</UserId><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel>", false, true, true)]
     [InlineData("<GroupId>S-1-5-32-545</GroupId><LogonType>Group</LogonType>", false, false, false)]
@@ -65,6 +79,17 @@ public sealed class WindowsStartupControlTests
         Assert.Equal(same, value.PrincipalMatchesActor);
         Assert.Equal(interactive, value.InteractiveToken);
         Assert.Equal(ordinary, value.LeastPrivilege);
+    }
+
+    [Fact]
+    public void OmittedRunLevelNeedsAnIndependentNativeLeastPrivilegeObservation()
+    {
+        var xml = Xml(false, "<UserId>" + Sid + "</UserId><LogonType>InteractiveToken</LogonType>");
+        Assert.False(WindowsStartupControlInspector.Parse(TaskPath, xml, Sid, false, Sid).LeastPrivilege);
+        Assert.True(WindowsStartupControlInspector.Parse(TaskPath, xml, Sid, false, Sid, 0).LeastPrivilege);
+        Assert.False(WindowsStartupControlInspector.Parse(TaskPath, xml, Sid, false, Sid, 1).LeastPrivilege);
+        Assert.False(WindowsStartupControlInspector.Parse(TaskPath, Xml(false), Sid, false, Sid, 1).LeastPrivilege);
+        Assert.False(WindowsStartupControlInspector.Parse(TaskPath, Xml(false, "<RunLevel>LeastPrivilege</RunLevel><RunLevel>LeastPrivilege</RunLevel>"), Sid, false, Sid, 0).LeastPrivilege);
     }
 
     [Fact]

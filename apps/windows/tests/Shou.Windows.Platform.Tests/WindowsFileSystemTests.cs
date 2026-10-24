@@ -156,7 +156,7 @@ public sealed class WindowsFileSystemTests
     {
         public string Root { get; } = Path.Combine(Path.GetTempPath(), "shou-native-generated-" + Guid.NewGuid().ToString("N"));
         public NativeFixture() => new DirectoryInfo(Root).Create(PrivateDirectorySecurity());
-        private static DirectorySecurity PrivateDirectorySecurity()
+        internal static DirectorySecurity PrivateDirectorySecurity()
         {
             using var identity = WindowsIdentity.GetCurrent();
             var security = new DirectorySecurity();

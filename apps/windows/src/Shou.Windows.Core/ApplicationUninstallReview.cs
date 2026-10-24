@@ -51,7 +51,7 @@ public sealed class ApplicationUninstallReviewer(ApplicationCatalog catalog, IAp
         if (reasons.Count == 0 && activityObservation.State != ActivityState.Idle)
             reasons.Add(activityObservation.State == ActivityState.Active ? "application_running" : "application_activity_unknown");
         var warnings = ImmutableArray.CreateBuilder<string>();
-        warnings.AddRange(ImmutableArray.Create("installer_managed_data_may_be_removed", "installer_may_stop_managed_processes", "residual_files_not_included", "no_shou_restore", "activity_covers_installation_directory_only", "native_acceptance_pending"));
+        warnings.AddRange(ImmutableArray.Create("installer_managed_data_may_be_removed", "installer_may_stop_managed_processes", "residual_files_not_included", "no_shou_restore", "activity_covers_installation_directory_only", "current_confirmation_required"));
         if (observation.Identity?.Kind == ApplicationInstallerKind.Msix) warnings.Add("windows_may_remove_unused_package_dependencies");
         if (observation.InstalledRoot is null) warnings.Add("installation_location_unavailable");
         if (snapshot.State != ScanState.Complete) warnings.Add("application_discovery_incomplete");

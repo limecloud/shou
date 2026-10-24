@@ -1,0 +1,321 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Native high-contrast resources retain priority over the product accent. -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="ShouSwitchOffBrush" Color="{StaticResource ShouSwitchOffLight}" />
+            <SolidColorBrush x:Key="ShouRuleBannerBrush" Color="{StaticResource ShouRuleBannerLight}" />
+            <SolidColorBrush x:Key="ShouCanvasBrush" Color="{StaticResource ShouCanvasLight}" />
+            <SolidColorBrush x:Key="ShouSidebarBrush" Color="{StaticResource ShouSidebarLight}" />
+            <SolidColorBrush x:Key="ShouCleanupCategorySelectionBrush" Color="{StaticResource ShouCleanupCategorySelectionLight}" />
+            <SolidColorBrush x:Key="ShouTitlebarBrush" Color="{StaticResource ShouTitlebarLight}" />
+            <SolidColorBrush x:Key="ShouSurfaceBrush" Color="{StaticResource ShouSurfaceLight}" />
+            <SolidColorBrush x:Key="ShouSettingsBrush" Color="{StaticResource ShouSettingsLight}" />
+            <SolidColorBrush x:Key="ShouDividerBrush" Color="{StaticResource ShouDividerLight}" />
+            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="{StaticResource ShouAccent}" Opacity="0.9" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="{StaticResource ShouAccent}" Opacity="0.8" />
+            <SolidColorBrush x:Key="ShouAccentBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="ShouNavHoverBrush" Color="{StaticResource ShouNavHoverLight}" />
+            <SolidColorBrush x:Key="ShouNavSelectionBrush" Color="{StaticResource ShouNavSelectionLight}" />
+            <SolidColorBrush x:Key="ShouNavPillBrush" Color="{StaticResource ShouNavPillLight}" />
+            <SolidColorBrush x:Key="ShouLinkBrush" Color="{StaticResource ShouLinkLight}" />
+            <SolidColorBrush x:Key="ShouFilterTextBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="ShouMapBrush" Color="{StaticResource ShouMapSurface}" />
+            <SolidColorBrush x:Key="ShouMapTextBrush" Color="{StaticResource ShouMapText}" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="ShouSwitchOffBrush" Color="{StaticResource ShouSwitchOffDark}" />
+            <SolidColorBrush x:Key="ShouRuleBannerBrush" Color="{StaticResource ShouRuleBannerDark}" />
+            <SolidColorBrush x:Key="ShouCanvasBrush" Color="{StaticResource ShouCanvasDark}" />
+            <SolidColorBrush x:Key="ShouSidebarBrush" Color="{StaticResource ShouSidebarDark}" />
+            <SolidColorBrush x:Key="ShouCleanupCategorySelectionBrush" Color="{StaticResource ShouCleanupCategorySelectionDark}" />
+            <SolidColorBrush x:Key="ShouTitlebarBrush" Color="{StaticResource ShouTitlebarDark}" />
+            <SolidColorBrush x:Key="ShouSurfaceBrush" Color="{StaticResource ShouSurfaceDark}" />
+            <SolidColorBrush x:Key="ShouSettingsBrush" Color="{StaticResource ShouSettingsDark}" />
+            <SolidColorBrush x:Key="ShouDividerBrush" Color="{StaticResource ShouDividerDark}" />
+            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="{StaticResource ShouAccent}" Opacity="0.9" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="{StaticResource ShouAccent}" Opacity="0.8" />
+            <SolidColorBrush x:Key="ShouAccentBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="ShouNavHoverBrush" Color="{StaticResource ShouNavHoverDark}" />
+            <SolidColorBrush x:Key="ShouNavSelectionBrush" Color="{StaticResource ShouNavSelectionDark}" />
+            <SolidColorBrush x:Key="ShouNavPillBrush" Color="{StaticResource ShouNavPillDark}" />
+            <SolidColorBrush x:Key="ShouLinkBrush" Color="{StaticResource ShouLinkDark}" />
+            <SolidColorBrush x:Key="ShouFilterTextBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="ShouMapBrush" Color="{StaticResource ShouMapSurface}" />
+            <SolidColorBrush x:Key="ShouMapTextBrush" Color="{StaticResource ShouMapText}" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="ShouSwitchOffBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouRuleBannerBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouCanvasBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouSidebarBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouCleanupCategorySelectionBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ShouTitlebarBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouSurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouSettingsBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouDividerBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouAccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ShouNavHoverBrush" Color="{ThemeResource SystemColorButtonFaceColor}" />
+            <SolidColorBrush x:Key="ShouNavSelectionBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ShouNavPillBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ShouLinkBrush" Color="{ThemeResource SystemColorHotlightColor}" />
+            <SolidColorBrush x:Key="ShouFilterTextBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="ShouMapBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouMapTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+    <StaticResource x:Key="CheckBoxSize" ResourceKey="ShouCheckboxSize" />
+    <StaticResource x:Key="CheckBoxGlyphSize" ResourceKey="ShouCheckboxGlyphSize" />
+    <StaticResource x:Key="CheckBoxHeight" ResourceKey="ShouCheckboxHeight" />
+    <Style TargetType="CheckBox">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouCheckboxHeight}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+    <Style x:Key="ShouCompactButton" TargetType="Button">
+        <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+        <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" />
+        <Setter Property="Padding" Value="8,2" /><Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="{ThemeResource ShouSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ShouDividerBrush}" /><Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style TargetType="TextBlock"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /></Style>
+    <Style TargetType="TextBox"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="Padding" Value="10,4" /><Setter Property="CornerRadius" Value="6" /><Setter Property="BorderThickness" Value="1" /></Style>
+    <Style TargetType="ComboBox"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="CornerRadius" Value="6" /></Style>
+    <Style x:Key="ShouNavigationButton" TargetType="Button">
+        <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Height" Value="{StaticResource ShouNavigationRowHeight}" /><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="10,0" /><Setter Property="CornerRadius" Value="{StaticResource ShouNavRadius}" /><Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="Transparent" /><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid>
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Hover.Background" Value="{ThemeResource ShouNavHoverBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Hover.Background" Value="{ThemeResource ShouNavPillBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Surface.Opacity" Value="0.45" /></VisualState.Setters></VisualState>
+                </VisualStateGroup>
+                <VisualStateGroup x:Name="SelectionStates">
+                    <VisualState x:Name="Unselected" />
+                    <VisualState x:Name="Selected"><VisualState.Setters><Setter Target="Surface.Background" Value="{ThemeResource ShouNavPillBrush}" /></VisualState.Setters></VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <Border x:Name="Hover" CornerRadius="{TemplateBinding CornerRadius}" />
+            <Border x:Name="Surface" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
+                <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Center" HorizontalContentAlignment="Stretch" Foreground="{TemplateBinding Foreground}" />
+            </Border>
+        </Grid></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouFooterNavigationButton" TargetType="Button" BasedOn="{StaticResource ShouNavigationButton}">
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid>
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Hover.Background" Value="{ThemeResource ShouNavHoverBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Hover.Background" Value="{ThemeResource ShouNavSelectionBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Surface.Opacity" Value="0.45" /></VisualState.Setters></VisualState>
+                </VisualStateGroup>
+                <VisualStateGroup x:Name="SelectionStates">
+                    <VisualState x:Name="Unselected" />
+                    <VisualState x:Name="Selected"><VisualState.Setters><Setter Target="Surface.Background" Value="{ThemeResource ShouNavSelectionBrush}" /></VisualState.Setters></VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <Border x:Name="Hover" CornerRadius="{TemplateBinding CornerRadius}" />
+            <Border x:Name="Surface" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
+                <ContentPresenter Content="{TemplateBinding Content}" VerticalAlignment="Center" HorizontalContentAlignment="Stretch" Foreground="{TemplateBinding Foreground}" />
+            </Border>
+        </Grid></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouToolbarButton" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="MinWidth" Value="32" />
+    </Style>
+    <Style x:Key="ShouPrimaryButton" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouPrimaryActionContentMinHeight}" />
+        <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style x:Key="ShouBorderedButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Padding" Value="18,7" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouPrimaryActionContentMinHeight}" />
+        <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+        <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style x:Key="ShouLinkButton" TargetType="HyperlinkButton" BasedOn="{StaticResource DefaultHyperlinkButtonStyle}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Foreground" Value="{ThemeResource ShouLinkBrush}" />
+    </Style>
+    <Style x:Key="ShouScanButton" TargetType="Button" BasedOn="{StaticResource ShouPrimaryButton}">
+        <Setter Property="Background" Value="{ThemeResource ShouAccentBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+        <Setter Property="MinWidth" Value="{StaticResource ShouPrimaryActionMinWidth}" />
+    </Style>
+    <Style x:Key="ShouStorageScanButton" TargetType="Button" BasedOn="{StaticResource ShouBorderedButton}">
+        <Setter Property="Width" Value="{StaticResource ShouStorageStartButtonWidth}" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouStorageStartButtonHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style x:Key="ShouSwitch" TargetType="ToggleButton">
+        <Setter Property="Width" Value="{StaticResource ShouSwitchWidth}" /><Setter Property="Height" Value="{StaticResource ShouSwitchHeight}" />
+        <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="Track" Background="{ThemeResource ShouSwitchOffBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="1" CornerRadius="11">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates"><VisualState x:Name="Normal" /><VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Track.Opacity" Value="0.85" /></VisualState.Setters></VisualState><VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Track.Opacity" Value="0.7" /></VisualState.Setters></VisualState><VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Track.Opacity" Value="0.45" /></VisualState.Setters></VisualState></VisualStateGroup>
+                    <VisualStateGroup x:Name="CheckStates"><VisualState x:Name="Unchecked" /><VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Track.Background" Value="{ThemeResource ShouAccentBrush}" /><Setter Target="Thumb.HorizontalAlignment" Value="Right" /></VisualState.Setters></VisualState></VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+                <Ellipse x:Name="Thumb" Width="{StaticResource ShouSwitchThumbSize}" Height="{StaticResource ShouSwitchThumbSize}" Fill="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Stroke="{ThemeResource ShouDividerBrush}" StrokeThickness="0.5" HorizontalAlignment="Left" />
+            </Border>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouSegmentItem" TargetType="ListBoxItem">
+        <Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="MinWidth" Value="120" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="Padding" Value="12,2" />
+        <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem"><Border x:Name="Segment" CornerRadius="6" Padding="{TemplateBinding Padding}">
+            <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="SelectionStates"><VisualState x:Name="Unselected" /><VisualState x:Name="Selected"><VisualState.Setters><Setter Target="Segment.Background" Value="{ThemeResource ShouSurfaceBrush}" /></VisualState.Setters></VisualState><VisualState x:Name="SelectedUnfocused"><VisualState.Setters><Setter Target="Segment.Background" Value="{ThemeResource ShouSurfaceBrush}" /></VisualState.Setters></VisualState></VisualStateGroup></VisualStateManager.VisualStateGroups>
+            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </Border></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouCard" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource ShouSurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ShouDividerBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource ShouCardRadius}" />
+    </Style>
+    <Style x:Key="ShouCatalogCard" TargetType="Border" BasedOn="{StaticResource ShouCard}">
+        <Setter Property="CornerRadius" Value="{StaticResource ShouCatalogCardRadius}" />
+    </Style>
+    <Style x:Key="ShouFilterPill" TargetType="ToggleButton">
+        <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="10,6" /><Setter Property="FontSize" Value="{StaticResource ShouCaptionFontSize}" />
+        <Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+            <Border x:Name="Pill" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="CommonStates"><VisualState x:Name="Normal" /><VisualState x:Name="PointerOver" /><VisualState x:Name="Pressed" /><VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Pill.Opacity" Value="0.45" /></VisualState.Setters></VisualState></VisualStateGroup>
+                    <VisualStateGroup x:Name="CheckStates"><VisualState x:Name="Unchecked" /><VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Pill.Background" Value="{ThemeResource ShouNavSelectionBrush}" /><Setter Target="Label.Foreground" Value="{ThemeResource ShouFilterTextBrush}" /></VisualState.Setters></VisualState></VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
+                <ContentPresenter x:Name="Label" Content="{TemplateBinding Content}" />
+            </Border>
+        </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouStatusPill" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource ShouSwitchOffBrush}" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style x:Key="ShouCompletionMetric" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource ShouTitlebarBrush}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ShouCompletionMetricRadius}" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouCompletionMetricHeight}" />
+        <Setter Property="Padding" Value="4,6" />
+    </Style>
+    <Style x:Key="ShouCompletionMetricValue" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource ShouCompletionMetricValueSize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Style>
+    <Style x:Key="ShouCompletionMetricLabel" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource ShouCompletionCaptionSize}" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Style>
+    <Style x:Key="ShouCaption" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource ShouCaptionFontSize}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Style>
+    <Style x:Key="ShouMonoCaption" TargetType="TextBlock" BasedOn="{StaticResource ShouCaption}">
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}" />
+    </Style>
+    <Style x:Key="ShouSettingsSubtitle" TargetType="TextBlock" BasedOn="{StaticResource ShouCaption}">
+        <Setter Property="FontSize" Value="{StaticResource ShouSettingsSubtitleSize}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style x:Key="ShouSettingsRow" TargetType="Grid">
+        <Setter Property="MinHeight" Value="{StaticResource ShouSettingsRowHeight}" />
+        <Setter Property="Padding" Value="{StaticResource ShouSettingsRowPadding}" />
+        <Setter Property="ColumnSpacing" Value="{StaticResource ShouSectionSpacing}" />
+    </Style>
+    <Style x:Key="ShouSettingsSeparator" TargetType="Border">
+        <Setter Property="Height" Value="1" /><Setter Property="Background" Value="{ThemeResource ShouDividerBrush}" />
+        <Setter Property="Margin" Value="{StaticResource ShouSettingsSeparatorInset}" />
+    </Style>
+    <Style x:Key="ShouListItem" TargetType="ListViewItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouListRowHeight}" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListViewItem"><Border x:Name="Root" Background="Transparent" CornerRadius="{StaticResource ShouNavRadius}" Padding="{TemplateBinding Padding}">
+            <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavHoverBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavHoverBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Selected"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavPillBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="PointerOverSelected"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavPillBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="PressedSelected"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavPillBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.45" /></VisualState.Setters></VisualState>
+            </VisualStateGroup></VisualStateManager.VisualStateGroups>
+            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+        </Border></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouPrivacySourceItem" TargetType="ListViewItem" BasedOn="{StaticResource ShouListItem}">
+        <Setter Property="Padding" Value="0" /><Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style x:Key="ShouFilterItem" TargetType="ListViewItem" BasedOn="{StaticResource ShouListItem}">
+        <Setter Property="MinHeight" Value="{StaticResource ShouNavigationRowHeight}" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
+    </Style>
+    <Style x:Key="ShouTableItem" TargetType="ListViewItem" BasedOn="{StaticResource ShouListItem}">
+        <Setter Property="Padding" Value="0" /><Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style x:Key="ShouCleanupCategoryItem" TargetType="ListViewItem" BasedOn="{StaticResource ShouFilterItem}">
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListViewItem"><Border x:Name="Root" Background="Transparent" CornerRadius="{StaticResource ShouNavRadius}" Padding="{TemplateBinding Padding}">
+            <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavHoverBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouNavHoverBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Selected"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouCleanupCategorySelectionBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="PointerOverSelected"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouCleanupCategorySelectionBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="PressedSelected"><VisualState.Setters><Setter Target="Root.Background" Value="{ThemeResource ShouCleanupCategorySelectionBrush}" /></VisualState.Setters></VisualState>
+                <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Root.Opacity" Value="0.45" /></VisualState.Setters></VisualState>
+            </VisualStateGroup></VisualStateManager.VisualStateGroups>
+            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+        </Border></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouExpandHeader" TargetType="ToggleButton">
+        <Setter Property="Padding" Value="14,0" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton"><Grid Padding="{TemplateBinding Padding}" Background="Transparent" ColumnSpacing="6"><Grid.ColumnDefinitions><ColumnDefinition Width="10" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CheckStates"><VisualState x:Name="Unchecked" /><VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Arrow.Glyph" Value="&#xE70D;" /></VisualState.Setters></VisualState></VisualStateGroup></VisualStateManager.VisualStateGroups>
+            <FontIcon x:Name="Arrow" Glyph="&#xE76C;" FontSize="10" VerticalAlignment="Center" />
+            <ContentPresenter Grid.Column="1" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" VerticalAlignment="Center" />
+        </Grid></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouRowExpander" TargetType="Expander">
+        <Setter Property="IsTabStop" Value="False" /><Setter Property="MinHeight" Value="0" /><Setter Property="MinWidth" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Expander"><Grid Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="ExpandStates"><VisualState x:Name="CollapseDown" /><VisualState x:Name="ExpandDown"><VisualState.Setters><Setter Target="ExpanderContent.Visibility" Value="Visible" /></VisualState.Setters></VisualState></VisualStateGroup></VisualStateManager.VisualStateGroups>
+            <ToggleButton x:Name="ExpanderHeader" AutomationProperties.AutomationId="ExpanderToggleButton" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" Style="{StaticResource ShouExpandHeader}" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" HorizontalAlignment="Stretch" />
+            <Border x:Name="ExpanderContentClip" Grid.Row="1"><Border x:Name="ExpanderContent" Visibility="Collapsed"><ContentPresenter Content="{TemplateBinding Content}" HorizontalContentAlignment="Stretch" /></Border></Border>
+        </Grid></ControlTemplate></Setter.Value></Setter>
+    </Style>
+</ResourceDictionary>

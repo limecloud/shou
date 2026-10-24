@@ -11,12 +11,15 @@ internal static class Program
     {
         try
         {
+            NativeDiagnostics.Initialize();
+            using var diagnostic = Shou.Windows.Core.OperationDiagnostics.Start("application.lifetime");
             WinRT.ComWrappersSupport.InitializeComWrappers();
             Application.Start(initialization =>
             {
                 SynchronizationContext.SetSynchronizationContext(new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread()));
                 _ = new App();
             });
+            diagnostic.Complete("closed");
         }
         catch (Exception error)
         {

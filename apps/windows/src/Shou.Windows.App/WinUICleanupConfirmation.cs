@@ -8,6 +8,7 @@ namespace Shou.Windows.App;
 
 internal sealed class WinUICleanupConfirmation(FrameworkElement owner, TextCatalog text, CleanupPlan expected) : ICleanupConfirmation
 {
+    public bool WasDeclined { get; private set; }
     public async Task<bool> RequestAsync(CleanupReview review, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -49,6 +50,7 @@ internal sealed class WinUICleanupConfirmation(FrameworkElement owner, TextCatal
                 };
                 cancellationToken.ThrowIfCancellationRequested();
                 var result = await dialog.ShowAsync();
+                WasDeclined = !cancellationToken.IsCancellationRequested && owner.IsLoaded && result != ContentDialogResult.Primary;
                 completion.TrySetResult(!cancellationToken.IsCancellationRequested && owner.IsLoaded && result == ContentDialogResult.Primary);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { completion.TrySetCanceled(cancellationToken); }

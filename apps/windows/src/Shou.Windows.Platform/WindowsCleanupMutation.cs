@@ -8,11 +8,11 @@ namespace Shou.Windows.Platform;
 /// <summary>Removes only frozen entries through verified parent handles. No path-recursive fallback.</summary>
 public sealed class WindowsCleanupMutation : ICleanupMutation
 {
-    // GUI and CLI share this gate; enable only after native mutation, interruption and UI/terminal acceptance.
-    public static bool PublicExecutionAvailable => false;
+    // GUI and CLI share the same strict native-host gate. macOS builds remain read-only.
+    public static bool PublicExecutionAvailable => NativeWindowsSupport.IsSupported;
     public bool VerifiesMutationManifest => true;
     public bool Supports(CleanupAction action) => action == CleanupAction.Permanent &&
-        OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) && IntPtr.Size == 8;
+        NativeWindowsSupport.IsSupported;
 
     public Task<CleanupMutationResult> ApplyAsync(Workspace workspace, CleanupPlanItem item, CleanupAction action, CancellationToken cancellationToken) =>
         ApplyAsync(workspace, item, action, null, cancellationToken);
@@ -48,7 +48,8 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
             Check();
             using var scope = Scope.Open(workspace, item, Check);
             // A complete native preflight precedes the first disposition. Later checks bind each individual unlink.
-            scope.VerifyTree(scope.Target, scope.TargetEntry, Check, path => Report(progress, new("checking", path, 0)));
+            if (scope.TargetEntry.Kind == EntryKind.Directory)
+                scope.VerifyTree(scope.Target, scope.TargetEntry, Check, path => Report(progress, new("checking", path, 0)));
             scope.VerifyContext();
             void Remove(FileEntry expected, SafeFileHandle handle, SafeFileHandle parent, bool parentCaseSensitive)
             {
@@ -140,7 +141,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
                 if (!entry.Path.IsWithin(item.Path, caseSensitive: true) || !manifest.TryAdd(entry.Path, entry) || !identities.Add(entry.Identity) ||
                     entry.Path.RelativeTo(root.Path, caseSensitive: true).Split('/').Length > 64) throw Stale();
             }
-            if (!manifest.TryGetValue(item.Path, out var target) || target.Kind != EntryKind.Directory) throw Stale();
+            if (!manifest.TryGetValue(item.Path, out var target) || target.Kind is not (EntryKind.Directory or EntryKind.File)) throw Stale();
             foreach (var entry in manifest.Values.Where(entry => entry.Path != item.Path))
                 if (entry.Path.Parent is not { } parent || !manifest.TryGetValue(parent, out var ancestor) || ancestor.Kind != EntryKind.Directory) throw Stale();
             var expectedContext = new Dictionary<WindowsPath, FileEntry>();

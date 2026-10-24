@@ -31,39 +31,41 @@ internal sealed class NativeReviewOperations : ICleanupReviewOperations, ICleanu
         var protection = new CleanupProtectionContext(store.OwnerSid, WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)), store.Directory, system);
         configuration = new(store, validator, files, store.OwnerSid, catalog: catalog);
         scans = new(store, validator, scanner, protection, catalog: catalog);
-        cleanup = new(store, validator, scanner, protection, new WindowsCleanupActivity(), new WindowsCleanupMutation(), catalog: catalog);
+        cleanup = new(store, validator, scanner, protection, new WindowsCleanupActivity(), new WindowsCleanupMutation(), catalog: catalog, storageFiles: files);
         history = new(store, validator, files, scanner, store.OwnerSid);
         locations = new(configuration, catalog, files, store.OwnerSid);
     }
 
     public Task<ImmutableArray<Workspace>> ReadWorkspacesAsync(CancellationToken cancellationToken) =>
-        Task.Run(async () => (await configuration.ReadAsync(cancellationToken)).Workspaces, cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.read_workspaces", () => Task.Run(async () => (await configuration.ReadAsync(cancellationToken)).Workspaces, cancellationToken));
     public Task<LocationPreparation> PrepareLocationsAsync(CancellationToken cancellationToken) =>
-        Task.Run(() => locations.PrepareAsync(includeProjects: true, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("locations.prepare", () => Task.Run(() => locations.PrepareAsync(includeProjects: true, cancellationToken), cancellationToken));
     public Task<Configuration> ReadConfigurationAsync(CancellationToken cancellationToken) =>
-        Task.Run(() => configuration.ReadAsync(cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.read", () => Task.Run(() => configuration.ReadAsync(cancellationToken), cancellationToken));
     public Task<Workspace> AddWorkspaceAsync(WindowsPath path, string rootReference, CancellationToken cancellationToken) =>
-        Task.Run(() => configuration.AddWorkspaceAsync(path, rootReference, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.add_workspace", () => Task.Run(() => configuration.AddWorkspaceAsync(path, rootReference, cancellationToken), cancellationToken));
     public Task<bool> RemoveWorkspaceAsync(string workspaceId, CancellationToken cancellationToken) =>
-        Task.Run(() => configuration.RemoveWorkspaceAsync(workspaceId, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.remove_workspace", () => Task.Run(() => configuration.RemoveWorkspaceAsync(workspaceId, cancellationToken), cancellationToken));
     public Task<RuleRecord> ImportRuleAsync(ReadOnlyMemory<byte> bytes, CancellationToken cancellationToken) =>
-        Task.Run(() => configuration.ImportRuleAsync(bytes, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.import_rule", () => Task.Run(() => configuration.ImportRuleAsync(bytes, cancellationToken), cancellationToken));
     public Task<RuleBinding> SetRuleAsync(string workspaceId, string ruleId, string version, bool enabled, CancellationToken cancellationToken) =>
-        Task.Run(() => configuration.SetRuleAsync(workspaceId, ruleId, enabled, version, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.set_rule", () => Task.Run(() => configuration.SetRuleAsync(workspaceId, ruleId, enabled, version, cancellationToken), cancellationToken));
     public Task<ImmutableArray<string>> SetExclusionAsync(string? workspaceId, string pattern, bool remove, CancellationToken cancellationToken) =>
-        Task.Run(() => configuration.SetExclusionAsync(workspaceId, pattern, remove, cancellationToken: cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("configuration.set_exclusion", () => Task.Run(() => configuration.SetExclusionAsync(workspaceId, pattern, remove, cancellationToken: cancellationToken), cancellationToken));
     public Task<CleanupScan> ScanAsync(string workspaceId, ScanBudget budget, CancellationToken cancellationToken) =>
-        Task.Run(() => scans.ScanAsync(workspaceId, budget, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("cleanup.scan", () => Task.Run(() => scans.ScanAsync(workspaceId, budget, cancellationToken), cancellationToken));
     public Task<SystemScan> ScanAllAsync(ImmutableArray<string> workspaceIds, ScanBudget budget, CancellationToken cancellationToken) =>
-        Task.Run(() => locations.ScanRegisteredAsync(scans, workspaceIds, budget, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("cleanup.scan_all", () => Task.Run(() => locations.ScanRegisteredAsync(scans, workspaceIds, budget, cancellationToken), cancellationToken));
     public Task<CleanupPlan> CreatePlanAsync(ImmutableArray<CleanupSelection> selections, CleanupAction action, CancellationToken cancellationToken) =>
-        Task.Run(() => cleanup.CreatePlanAsync(selections, action, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("cleanup.plan", () => Task.Run(() => cleanup.CreatePlanAsync(selections, action, cancellationToken), cancellationToken));
+    public Task<CleanupPlan> CreateStoragePlanAsync(ScanSnapshot snapshot, ImmutableArray<WindowsPath> paths, CancellationToken token) =>
+        NativeDiagnostics.RunAsync("storage.plan", () => Task.Run(() => cleanup.CreateStoragePlanAsync(snapshot, paths, token), token));
     public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, CancellationToken cancellationToken)
         => ExecuteAsync(planId, confirmation, null, cancellationToken);
 
     public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, IProgress<CleanupProgress>? progress, CancellationToken cancellationToken)
     {
-        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Cleanup execution awaits native Windows acceptance.");
+        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "Cleanup execution requires a matching native Windows 11 process.");
         return Task.Run(async () =>
         {
             var consent = await cleanup.ConfirmAsync(planId, confirmation, cancellationToken).ConfigureAwait(false);
@@ -71,11 +73,11 @@ internal sealed class NativeReviewOperations : ICleanupReviewOperations, ICleanu
         }, cancellationToken);
     }
     public Task<CleanupExecution?> ReadExecutionAsync(string planId, CancellationToken cancellationToken) =>
-        Task.Run(() => cleanup.ExecutionAsync(planId, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("cleanup.read_execution", () => Task.Run(() => cleanup.ExecutionAsync(planId, cancellationToken), cancellationToken));
     public Task<CleanupHistoryPage> ListAsync(int limit, string? cursor, CancellationToken cancellationToken) =>
-        Task.Run(() => history.ListAsync(limit, cursor, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("history.list", () => Task.Run(() => history.ListAsync(limit, cursor, cancellationToken), cancellationToken));
     public Task<CleanupHistoryDetail> ShowAsync(string executionId, CancellationToken cancellationToken) =>
-        Task.Run(() => history.ShowAsync(executionId, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("history.show", () => Task.Run(() => history.ShowAsync(executionId, cancellationToken), cancellationToken));
     public Task<CleanupHistoryInspection> InspectAsync(string executionId, ScanBudget budget, CancellationToken cancellationToken) =>
-        Task.Run(() => history.InspectAsync(executionId, budget, cancellationToken), cancellationToken);
+        NativeDiagnostics.RunAsync("history.inspect", () => Task.Run(() => history.InspectAsync(executionId, budget, cancellationToken), cancellationToken));
 }

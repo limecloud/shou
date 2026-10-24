@@ -12,6 +12,14 @@ internal static class PrivacyDatabaseInspection
         window.Validate();
         using var database = new PrivacySqlite(path, readOnly: true, token);
         database.Execute("BEGIN;");
+        var observation = Inspect(database, source, window);
+        database.Execute("ROLLBACK;");
+        return observation;
+    }
+
+    internal static (long Count, string SchemaDigest) Inspect(PrivacySqlite database, PrivacySourceDefinition source, PrivacyWindow window)
+    {
+        window.Validate();
         var schema = database.Query("SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name;");
         var tables = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
         foreach (var row in schema)
@@ -77,7 +85,6 @@ internal static class PrivacyDatabaseInspection
         }
         var count = database.Count($"SELECT COUNT(*) FROM {table} WHERE {filter};", arguments.ToArray());
         var schemaDigest = "sha256:" + Convert.ToHexStringLower(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(schema, ContractJson.Options)));
-        database.Execute("ROLLBACK;");
         return (count, schemaDigest);
     }
 }

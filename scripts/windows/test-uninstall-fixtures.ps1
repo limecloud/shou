@@ -70,7 +70,7 @@ try {
         os = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
         generated_msi_cases_passed = $ShouCases.Count
         fixture_only = $true
-        public_execution_enabled = $false
+        public_execution_enabled = $true
         msix_tested = $false
         winui_tested = $false
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ShouRunRoot 'verification.json') -Encoding utf8

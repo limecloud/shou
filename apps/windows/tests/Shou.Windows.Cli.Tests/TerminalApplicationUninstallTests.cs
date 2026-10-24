@@ -66,9 +66,9 @@ public sealed class TerminalApplicationUninstallTests
     public void ExecutionDiscoveryRemainsDisabledAndHasNoUnattendedApprovalOption()
     {
         var command = Assert.Single(CommandDiscovery.Matching("applications uninstall"));
-        Assert.False(command.Available);
-        Assert.False(CliServices.ApplicationUninstallAvailable);
-        Assert.Equal("native_acceptance_pending", command.UnavailableReason);
+        Assert.Equal(Shou.Windows.Platform.NativeWindowsSupport.IsSupported, command.Available);
+        Assert.Equal(Shou.Windows.Platform.NativeWindowsSupport.IsSupported, CliServices.ApplicationUninstallAvailable);
+        Assert.Equal(CliServices.ApplicationUninstallAvailable ? null : "unsupported_native_host", command.UnavailableReason);
         Assert.Equal(new[] { "uninstall-plan-id" }, command.Required);
         Assert.Empty(command.Optional);
         Assert.Throws<ShouException>(() => CommandDiscovery.Parse(["applications", "uninstall", "--uninstall-plan-id", PlanId, "--yes"]));

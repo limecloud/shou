@@ -17,7 +17,7 @@ internal sealed class NativeApplicationOperations : IApplicationUninstallOperati
 
     public async Task<ApplicationUninstallExecution> ExecuteAsync(string planId, IApplicationUninstallConfirmation confirmation, CancellationToken cancellationToken)
     {
-        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "System uninstall awaits native Windows acceptance.");
+        if (!ExecutionAvailable) throw new ShouException("unsupported_capability", "System uninstall requires a matching native Windows 11 process.");
         var service = ExecutionService();
         var consent = await service.ConfirmAsync(planId, confirmation, cancellationToken).ConfigureAwait(false);
         return await service.ExecuteAsync(planId, consent, cancellationToken).ConfigureAwait(false);
