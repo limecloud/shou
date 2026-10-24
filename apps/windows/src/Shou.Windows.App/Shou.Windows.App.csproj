@@ -25,4 +25,15 @@
     <Page Include="../../Generated/Design.xaml" Link="Generated/Design.xaml" />
     <PRIResource Include="../../Generated/Strings/**/*.resw" Link="Strings/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
+  <!-- MRT Core generates the unpackaged PRI during Build, but does not add it to .NET Publish. -->
+  <Target Name="PublishWinUIResources" AfterTargets="ComputeResolvedFilesToPublishList"
+          DependsOnTargets="_GenerateProjectPriFile" Condition="'$(CopyBuildOutputToPublishDirectory)' == 'true'">
+    <Error Condition="!Exists('$(ProjectPriFullPath)')" Text="The generated WinUI PRI resource index is missing: $(ProjectPriFullPath)" />
+    <ItemGroup>
+      <ResolvedFileToPublish Include="$(ProjectPriFullPath)">
+        <RelativePath>$(ProjectPriFileName)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 </Project>
