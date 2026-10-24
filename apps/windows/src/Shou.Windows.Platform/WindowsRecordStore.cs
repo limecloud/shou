@@ -273,7 +273,10 @@ public sealed class WindowsRecordStore : IRecordStore
                     Marshal.WriteIntPtr(buffer, checked((int)Marshal.OffsetOf<NativeMethods.FileRenameInfo>(nameof(NativeMethods.FileRenameInfo.RootDirectory))), pinned.Final.DangerousGetHandle());
                     Marshal.WriteInt32(buffer, checked((int)Marshal.OffsetOf<NativeMethods.FileRenameInfo>(nameof(NativeMethods.FileRenameInfo.FileNameLength))), name.Length - 2);
                     Marshal.Copy(name, 0, buffer + offsetName, name.Length);
-                    if (!NativeMethods.SetFileInformation(handle, 3, buffer, (uint)size)) throw WindowsFileSystem.NativeError(Marshal.GetLastPInvokeError());
+                    // Win32 FileRenameInfo rejects RootDirectory. The NT operation preserves the
+                    // verified parent binding instead of resolving an absolute publication path again.
+                    var status = NativeMethods.SetRelativeFileInformation(handle, out _, buffer, (uint)size, NativeMethods.RenameInformation);
+                    if (status < 0) throw WindowsFileSystem.NativeError(checked((int)NativeMethods.NtStatusToDosError(status)));
                     published = true;
                 }
                 finally { Marshal.FreeHGlobal(buffer); }

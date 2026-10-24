@@ -15,6 +15,7 @@ internal static partial class NativeMethods
     internal const int FullDirectoryInfo = 14;
     internal const int FullDirectoryRestartInfo = 15;
     internal const int DispositionInfoEx = 21;
+    internal const int RenameInformation = 10;
     internal const uint DispositionDelete = 1;
     internal const uint DispositionPosix = 2;
     internal const uint DispositionForceImageSectionCheck = 4;
@@ -23,6 +24,10 @@ internal static partial class NativeMethods
     internal static partial int OpenRelativeFile(out SafeFileHandle handle, uint access, nint attributes,
         out IoStatusBlock status, nint allocation, uint fileAttributes, uint share, uint disposition,
         uint options, nint extendedAttributes, uint extendedAttributeLength);
+
+    [LibraryImport("ntdll.dll", EntryPoint = "NtSetInformationFile")]
+    internal static partial int SetRelativeFileInformation(SafeFileHandle handle, out IoStatusBlock status,
+        nint information, uint size, int informationClass);
 
     [LibraryImport("ntdll.dll", EntryPoint = "RtlNtStatusToDosError")]
     internal static partial uint NtStatusToDosError(int status);

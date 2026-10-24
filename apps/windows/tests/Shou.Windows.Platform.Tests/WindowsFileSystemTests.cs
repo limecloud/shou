@@ -155,7 +155,8 @@ public sealed class WindowsFileSystemTests
     internal sealed class NativeFixture : IDisposable
     {
         public string Root { get; } = Path.Combine(Path.GetTempPath(), "shou-native-generated-" + Guid.NewGuid().ToString("N"));
-        public NativeFixture()
+        public NativeFixture() => new DirectoryInfo(Root).Create(PrivateDirectorySecurity());
+        private static DirectorySecurity PrivateDirectorySecurity()
         {
             using var identity = WindowsIdentity.GetCurrent();
             var security = new DirectorySecurity();
@@ -164,7 +165,7 @@ public sealed class WindowsFileSystemTests
             foreach (var sid in new[] { identity.User!, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
                 security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl,
                     InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
-            new DirectoryInfo(Root).Create(security);
+            return security;
         }
         public string CreateDirectory(string relative)
         {
@@ -173,11 +174,8 @@ public sealed class WindowsFileSystemTests
             if (!directory.Exists)
             {
                 CreateDirectory(Path.GetRelativePath(Root, directory.Parent!.FullName));
-                var security = new DirectorySecurity();
-                using var identity = WindowsIdentity.GetCurrent();
                 // Elevated tokens may default new objects to the Administrators group owner.
-                security.SetOwner(identity.User!);
-                directory.Create(security);
+                directory.Create(PrivateDirectorySecurity());
             }
             return directory.FullName;
         }

@@ -41,9 +41,14 @@ public sealed class WindowsProcessInventoryTests
             CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("/d");
         start.ArgumentList.Add("/q");
+        start.ArgumentList.Add("/k");
+        start.ArgumentList.Add("echo shou-generated-ready");
         using var process = Process.Start(start)!;
         try
         {
+            using var ready = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            while (await process.StandardOutput.ReadLineAsync(ready.Token) is { } line)
+                if (line.Trim() == "shou-generated-ready") break;
             ProcessObservation? observed = null;
             var started = Stopwatch.GetTimestamp();
             while (Stopwatch.GetElapsedTime(started) < TimeSpan.FromSeconds(5))
@@ -51,7 +56,8 @@ public sealed class WindowsProcessInventoryTests
                 var snapshot = await new WindowsProcessInventory().InspectAsync(["cmd.exe"], default);
                 observed = snapshot.Processes.FirstOrDefault(item => item.ProcessId == process.Id);
                 if (observed?.WorkingDirectory is not null) break;
-                Assert.False(process.HasExited);
+                Assert.False(process.HasExited, process.HasExited
+                    ? $"Generated WOW64 process exited {process.ExitCode}: {await process.StandardError.ReadToEndAsync()}" : null);
                 await Task.Delay(25);
             }
             Assert.NotNull(observed?.WorkingDirectory);

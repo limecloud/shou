@@ -41,6 +41,8 @@ Windows 上准备固定的 .NET SDK 与 Python 3，使用本地输出目录；�
 
 保留的文件系统句柄同时申请数据读取／目录列举和元数据权限，使共享掩码实际参与原生替换及写入保护。隐私检查仅对最终数据库与辅助文件明确允许共享写入，仍禁止删除；仅有元数据权限的句柄不能提供该保护。生成原生夹具显式设置当前用户所有者和私有继承 ACL，SQLite 辅助文件亦如此；提升权限的构建机令牌否则可能默认使用 Administrators 所有者。生产所有者与 ACL 核验保持严格。
 
+私有记录发布通过 `NtSetInformationFile` 的 `FileRenameInformation` 使用保留的父目录句柄。Win32 重命名包装接口拒绝非空 `RootDirectory`，实现不回退到绝对路径。既有原生记录测试核验替换、重新读取、私有 ACL 和并发租约。
+
 修改规范资源后执行 `python3 scripts/generate-windows-resources.py` 重新生成。生成器记录输入与输出摘要，并校验当前文案的占位符。`assets/design/tokens.json` 同时生成 WinUI `Design.xaml` 与 macOS `ShouDesign.generated.swift`，`--check` 检查两端。当前 WinUI 页面使用生成的项目／分区／页面间距与内边距；SwiftUI 使用共享强调色、设置间距／卡片圆角和扫描位置面板内边距。Fluent 控件颜色继续由系统管理；Windows 强调色／圆角接入、字号与动效提取待完成。详见[设计资源合同](interface-design.md#共享设计资源)。
 
 Mac 检查证明纯逻辑语义和引用编译。Windows 测试、WinUI 启动、签名安装与更新均需要对应原生环境并分别取证。实际可用性以 `capabilities` 输出为准。规则文件在 Windows 上读取，核验其为无链接的本地普通文件，限制 256 KiB 与十秒期限。
