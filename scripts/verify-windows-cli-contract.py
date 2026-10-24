@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Verify the .NET CLI machine entry without invoking native Windows filesystem APIs."""
+"""Verify portable CLI contracts and generated native fixtures on Windows."""
 from pathlib import Path
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -20,6 +21,18 @@ payload = options.payload.resolve()
 checks = 0
 
 with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as directory:
+    def assign_fixture_owner(path):
+        if os.name != 'nt':
+            return
+        assert path.resolve().is_relative_to(Path(directory).resolve())
+        identity = subprocess.run(['whoami', '/user', '/fo', 'csv', '/nh'], capture_output=True, check=True, timeout=10)
+        sid = re.search(rb'"(S-1-\d+(?:-\d+)+)"', identity.stdout)
+        assert sid, 'The generated fixture requires the current-user SID.'
+        # Elevated runner tokens otherwise assign Administrators as the default owner.
+        subprocess.run(['icacls', str(path), '/setowner', '*' + sid[1].decode('ascii'), '/T', '/Q'],
+                       capture_output=True, check=True, timeout=20)
+
+    assign_fixture_owner(Path(directory))
     relocated = Path(directory) / '原生 CLI with spaces'
     shutil.copytree(payload, relocated)
     data_directory = Path(directory) / '私有数据'
@@ -330,6 +343,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         target.mkdir()
         cache = target / 'cache.bin'
         cache.write_bytes(b'fixture bytes')
+        assign_fixture_owner(root)
         registered = run(['workspaces', 'add', '--path', str(root), '--root-ref', 'developer-workspaces', '--json'])['data']
         workspace = registered['id']
         assert run(['workspaces', 'show', '--workspace', workspace, '--json'])['data']['accessible']

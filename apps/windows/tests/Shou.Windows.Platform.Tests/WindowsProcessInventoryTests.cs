@@ -69,6 +69,7 @@ public sealed class WindowsProcessInventoryTests
         {
             if (!process.HasExited)
             {
+                await process.StandardInput.WriteLineAsync("cd /d ..");
                 await process.StandardInput.WriteLineAsync("exit");
                 try { await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5)); }
                 catch (TimeoutException) { process.Kill(); await process.WaitForExitAsync(); }

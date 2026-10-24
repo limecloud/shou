@@ -195,7 +195,16 @@ public sealed class WindowsFileSystemTests
             security.SetOwner(identity.User!);
             file.SetAccessControl(security);
         }
-        public void Dispose() => Directory.Delete(Root, recursive: true);
+        public void Dispose()
+        {
+            for (var attempt = 0; ; attempt++)
+            {
+                try { Directory.Delete(Root, recursive: true); return; }
+                // A just-exited generated child can briefly retain its current-directory handle.
+                catch (IOException error) when (attempt < 20 && (error.HResult & 0xFFFF) is 32 or 33)
+                { Thread.Sleep(50); }
+            }
+        }
     }
 
     internal static class FixtureNative
