@@ -9,6 +9,21 @@ public sealed class WindowsArtifactTrackingTests
 {
     private static string Owner => WindowsIdentity.GetCurrent().User!.Value;
 
+    private sealed class GitFixture : IDisposable
+    {
+        internal NativeFixture Files { get; } = new();
+        public void Dispose()
+        {
+            // Git marks its generated loose objects read-only. Normalize only this fixture's object files at teardown.
+            var objects = Path.Combine(Files.Root, ".git", "objects");
+            if (Directory.Exists(objects))
+                foreach (var file in new DirectoryInfo(objects).EnumerateFiles("*", new EnumerationOptions
+                { RecurseSubdirectories = true, AttributesToSkip = FileAttributes.ReparsePoint }))
+                    if ((file.Attributes & FileAttributes.ReadOnly) != 0) file.Attributes &= ~FileAttributes.ReadOnly;
+            Files.Dispose();
+        }
+    }
+
     private static async Task Git(NativeFixture fixture, params string[] arguments)
     {
         var start = new ProcessStartInfo("git") { WorkingDirectory = fixture.Root, UseShellExecute = false,
@@ -41,7 +56,7 @@ public sealed class WindowsArtifactTrackingTests
     [WindowsFact]
     public async Task ActualGitIndexTracksUnicodePathsWithoutChangingMetadataOrSourceBytes()
     {
-        using var fixture = new NativeFixture(); await Init(fixture);
+        using var repository = new GitFixture(); var fixture = repository.Files; await Init(fixture);
         var payload = fixture.Write("项目/target/debug/build/crate-01234567/out/生成.rs", [1, 2, 3]);
         var target = WindowsPath.Parse(Path.Combine(fixture.Root, "项目/target"));
         var service = new WindowsArtifactTracking();
@@ -95,7 +110,7 @@ public sealed class WindowsArtifactTrackingTests
     [WindowsFact]
     public async Task NestedRepositoriesDoNotHideOuterTrackedContent()
     {
-        using var fixture = new NativeFixture(); await Init(fixture);
+        using var repository = new GitFixture(); var fixture = repository.Files; await Init(fixture);
         fixture.Write("nested/target/cache.bin", [1, 2, 3]);
         await Git(fixture, "add", "--", "nested/target");
         fixture.Write("nested/.git/index", GitIndexReaderTests.Index([]));

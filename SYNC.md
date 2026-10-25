@@ -36,6 +36,8 @@ Follow-up source against `1f37a042a94c2bc41944d9daed5072af2908a989` adds the [Ru
 
 Local `sh scripts/test-windows-core.sh` passed 1,186 tests (Core 704, Presentation 247, portable Platform 201, CLI 34), with 88 native/opt-in cases skipped and all 192 portable CLI contracts passed. This full run preceded two additional Core cancellation/deadline cases; the final scoped Rust suite passed 23/23, including both additions. Twenty-one index-parser cases include Unicode, component boundaries, case, malformed/truncated indexes and mandatory extensions. Four new native generated-fixture cases cover actual Git-produced indexes, nested repositories, worktree/missing/corrupt/locked indexes and junction/hard-link refusal. Those four are skipped on this Mac and remain pending Windows CI / 本机日志 `.build/windows-rust-artifacts-portable.log` 与 `.build/windows-rust-artifacts-core.log`；未把跳过当作通过，没有启动或新购云电脑。
 
+Initial [Windows CI](https://github.com/limecloud/shou/actions/runs/40234011123), clean source `3b879dc2904ebd8abeca1b327c4e6caaac39af08`, failed: Core 706 and Presentation 247 passed; Platform had 274 passed, three failures and twelve opt-in skips, so the later CLI suite did not run. Two actual-Git fixtures failed during teardown of read-only generated loose objects; the Firefox history mutation was refused with `privacy_browser_running`. Both architecture builds and the x64 preview/startup/npm checks passed independently. Follow-up teardown normalizes only the generated Git fixture's object attributes, and privacy failures add bounded process-name/ID diagnostics without bypassing the activity check. Native rerun remains required; initial raw TRX/logs are retained in `.build/windows-rust-40234011123/` / 首轮失败没有改写为通过，未终止宿主浏览器或放宽产品保护。
+
 Windows Swift/Node generated-source and Cargo extracted-source policies, ordinary-user Windows 11, complete UI/accessibility, ARM64 runtime and signed installation/updating remain incomplete. No release asset or `v0.15.0` tag is replaced by this follow-up / 后续源码与正式发布附件分开，未完成项继续保留。
 
 ## v0.15.0 release, 2026-10-26 / 已发布基线
@@ -105,6 +107,8 @@ This identifies source for comparison, not completed acceptance / 仅标识对�
 Implementation source / 实现源码：`v0.13.0` release target. Generated input/output digests are recorded in [MANIFEST.json](apps/windows/Generated/MANIFEST.json). Windows downloads are unsigned portable previews with disabled public mutation gates; actual release/source receipts are separate / 发布目标为未签名 Windows 便携预览，公开变更门禁关闭，实际发行及源码回执另行记录。
 
 ## Feature ledger / 功能对账
+
+Historical ledger for the v0.13.0 comparison baseline above. Later dated sections and the current [interface design](docs/engineering/interface-design.md) supersede its implementation/acceptance observations, including the replaced sidebar design. Counts and pending states here are retained as historical evidence / 此表保留上述 v0.13.0 基线的历史观察；后续日期记录与当前顶部工作台设计优先，不能把旧侧栏和历史待办当作现行界面要求或最新验收结论。
 
 | Capability / 能力 | Source / 规范源 | macOS | Windows | Difference / 差异 | Evidence / 证据 |
 | --- | --- | --- | --- | --- | --- |

@@ -139,7 +139,10 @@ public sealed class WindowsPrivacyMutationTests
         using (var database = new PrivacySqlite(source.Path.Value, false, default))
             database.Execute("CREATE TABLE moz_places(id INTEGER PRIMARY KEY,foreign_count INTEGER,visit_count INTEGER,last_visit_date INTEGER); CREATE TABLE moz_historyvisits(place_id INTEGER,visit_type INTEGER,visit_date INTEGER); CREATE TABLE moz_bookmarks(fk INTEGER); INSERT INTO moz_places VALUES(1,1,1,1),(2,0,1,1),(3,0,1,1); INSERT INTO moz_historyvisits VALUES(1,1,1),(2,1,1),(3,7,1); INSERT INTO moz_bookmarks VALUES(1);");
         var result = await new WindowsPrivacyMutation(policy).ApplyAsync(await Request(policy, source, PrivacyWindow.Create(PrivacyTimeRange.AllTime, DateTimeOffset.UtcNow)), default);
-        Assert.True(result.Outcome == PrivacyMutationOutcome.Completed, $"Native privacy result: {result}");
+        var browserProcesses = WindowsProcessInventory.ReadNames(default).Processes
+            .Where(process => process.ExecutableName.Equals("firefox.exe", StringComparison.OrdinalIgnoreCase))
+            .Select(process => $"{process.ProcessId}:{process.ExecutableName}");
+        Assert.True(result.Outcome == PrivacyMutationOutcome.Completed, $"Native privacy result: {result}; current Firefox observations: {string.Join(',', browserProcesses)}");
         Assert.Equal(2, result.RemovedRecords);
         using var after = new PrivacySqlite(source.Path.Value, true, default);
         Assert.Equal(1, after.Count("SELECT COUNT(*) FROM moz_bookmarks WHERE fk=1;"));
