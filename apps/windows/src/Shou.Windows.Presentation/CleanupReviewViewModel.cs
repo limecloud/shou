@@ -160,7 +160,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
                 batch.Scans.Select(scan => scan.WorkspaceId).Distinct().Count() != batch.Scans.Length ||
                 batch.Scans.Select(scan => scan.Id).Distinct().Count() != batch.Scans.Length ||
                 batch.State == "complete" && (batch.Scans.Length != scope.Length || !batch.Issues.IsEmpty ||
-                    batch.Scans.Any(scan => !scan.Scan.IsComplete || !scan.AnalysisIssues.IsEmpty)))
+                    batch.Scans.Any(scan => !scan.Scan.IsScopeComplete || !scan.AnalysisIssues.IsEmpty)))
                 throw new ShouException("scan_result_invalid", "The batch does not describe the registered scan locations.");
             if (token.IsCancellationRequested) batch = batch with { State = "cancelled" };
             return () =>
@@ -393,7 +393,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
             var category = !candidate.RuleId.StartsWith(BuiltinRuleCatalog.Prefix, StringComparison.Ordinal) ? "personal" :
                 builtinCategories?.GetValueOrDefault(candidate.RuleId) ?? "other";
             var selectable = !snapshot.PreviewOnly && candidate.Complete && candidate.State == "review" && candidate.BlockedReasons.IsEmpty;
-            var recommended = selectable && candidate.Risk == "review" && snapshot.Scan.IsComplete && snapshot.AnalysisIssues.IsEmpty &&
+            var recommended = selectable && candidate.Risk == "review" && snapshot.Scan.IsScopeComplete && snapshot.AnalysisIssues.IsEmpty &&
                 (Batch is null || Batch.State == "complete");
             return new CleanupCandidateSelection(candidate, snapshot.Id, snapshot.WorkspaceId, name, category, false, selectable, recommended);
         })).Where(row => reviewScope == CleanupReviewScope.All || row.Category is "build" or "dependencies")
@@ -401,7 +401,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
             .ThenBy(row => row.Candidate.Path.Value, StringComparer.Ordinal).ToImmutableArray();
     }
     private CleanupReviewState CoverageState() => Batch?.State is "partial" or "cancelled" ? CleanupReviewState.Partial : Snapshot is not { } snapshot ? CleanupReviewState.Empty :
-        snapshot.Scan.IsComplete && snapshot.AnalysisIssues.IsEmpty ? CleanupReviewState.Ready : CleanupReviewState.Partial;
+        snapshot.Scan.IsScopeComplete && snapshot.AnalysisIssues.IsEmpty ? CleanupReviewState.Ready : CleanupReviewState.Partial;
     private void ClearScan()
     {
         ClearReview();

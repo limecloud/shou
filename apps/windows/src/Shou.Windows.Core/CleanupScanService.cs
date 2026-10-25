@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace Shou.Windows.Core;
 
 public sealed record CandidatePage(string ScanId, string ConfigurationRevision, bool PreviewOnly, string State, bool TreeComplete, int MeasuredEntries, int CandidateCount,
-    ImmutableArray<RuleCandidate> Candidates, string? NextCursor, ImmutableArray<ScanIssue> Issues, bool ExecutionAvailable = false);
+    ImmutableArray<RuleCandidate> Candidates, string? NextCursor, ImmutableArray<ScanIssue> Issues, bool ExecutionAvailable = false, ScanScope Scope = ScanScope.FullTree);
 
 public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator validator, IStorageScanner scanner,
     CleanupProtectionContext protection, TimeProvider? timeProvider = null, BuiltinRuleCatalog? catalog = null)
@@ -29,7 +29,9 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
         var rules = draft is null ? EnabledRules(configuration, workspaceId) : [draft];
         if (rules.Any(rule => !rule.AppliesToWindows || rule.RootReference != workspace.RootRef)) throw new ShouException("invalid_rule", "The rule root or platform does not match this workspace.");
         var started = clock.GetTimestamp();
-        var scan = await scanner.ScanAsync(workspace.Path, budget, null, cancellationToken);
+        var scan = scanner is ICleanupScanner cleanup && rules.Length > 0
+            ? await cleanup.ScanCleanupAsync(workspace.Path, rules, budget, null, null, cancellationToken)
+            : await scanner.ScanAsync(workspace.Path, budget, null, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         var classification = Classify(configuration, workspace, rules, scan, budget.Duration - clock.GetElapsedTime(started), cancellationToken);
         var preview = new CleanupScan(1, scan.Id, workspace, budget, configuration.Revision, codec.Digest(configuration),
@@ -67,9 +69,9 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
         var items = preview.Candidates.Skip(offset).Take(limit).ToImmutableArray();
         var nextOffset = offset + items.Length;
         var next = nextOffset < preview.Candidates.Length ? Convert.ToBase64String(Encoding.UTF8.GetBytes(scanId + ":" + nextOffset.ToString(System.Globalization.CultureInfo.InvariantCulture) + ":" + CursorDigest(bytes))) : null;
-        var state = preview.Scan.State == ScanState.Cancelled ? "cancelled" : preview.Scan.IsComplete && preview.AnalysisIssues.Length == 0 ? "complete" : "partial";
+        var state = preview.Scan.State == ScanState.Cancelled ? "cancelled" : preview.Scan.State == ScanState.Complete && preview.AnalysisIssues.Length == 0 ? "complete" : "partial";
         return new(scanId, preview.ConfigurationRevision, preview.PreviewOnly, state, preview.Scan.IsComplete, preview.Scan.Entries.Length, preview.Candidates.Length, items, next,
-            preview.Scan.Issues.AddRange(preview.AnalysisIssues));
+            preview.Scan.Issues.AddRange(preview.AnalysisIssues), Scope: preview.Scan.Scope);
     }
 
     private static string CursorDigest(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
@@ -120,7 +122,7 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
             preview.Rules.IsDefault || preview.Rules.Length > ConfigurationCodec.MaximumRules || preview.PreviewOnly && preview.Rules.Length != 1 ||
             preview.Candidates.IsDefault || preview.AnalysisIssues.IsDefault || scan.Entries.IsDefault || scan.Issues.IsDefault || scan.CompletedDirectories.IsDefault ||
             scan.Entries.Length is < 1 or > 1_000_000 || preview.Candidates.Length > CandidateAnalysisBudget.MaximumAnalysisOperations ||
-            scan.Root is null || scan.RootIdentity is null || scan.StartedUtc.Offset != TimeSpan.Zero || !Enum.IsDefined(scan.State)) throw InvalidRecord();
+            scan.Root is null || scan.RootIdentity is null || scan.StartedUtc.Offset != TimeSpan.Zero || !Enum.IsDefined(scan.State) || !Enum.IsDefined(scan.Scope)) throw InvalidRecord();
         preview.Budget.Validate();
         codec.Validate(new(1, preview.ConfigurationRevision, [preview.Workspace], [], [], []));
         var rules = new Dictionary<string, CleanupRule>(StringComparer.Ordinal);
@@ -166,7 +168,8 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
         foreach (var issue in scan.Issues)
             for (var ancestor = issue.Path; ancestor is not null && ancestor.IsWithin(scan.Root, caseSensitive: true); ancestor = ancestor.Parent)
                 if (completed.Contains(ancestor)) throw InvalidRecord();
-        if (scan.IsComplete && (scan.Issues.Length != 0 || !completed.Contains(scan.Root)) || !scan.IsComplete && scan.Issues.Length == 0) throw InvalidRecord();
+        if (scan.State == ScanState.Complete && (scan.Issues.Length != 0 || scan.Scope == ScanScope.FullTree && !completed.Contains(scan.Root)) ||
+            scan.State != ScanState.Complete && scan.Issues.Length == 0 || scan.Scope == ScanScope.RuleTargets && completed.Contains(scan.Root)) throw InvalidRecord();
         var ids = new HashSet<string>(StringComparer.Ordinal);
         var paths = new HashSet<(string, WindowsPath)>();
         foreach (var candidate in preview.Candidates)

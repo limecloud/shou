@@ -4,6 +4,7 @@ namespace Shou.Windows.Core;
 
 public enum EntryKind { File, Directory, ReparsePoint, Unsupported }
 public enum ScanState { Complete, Partial, Cancelled }
+public enum ScanScope { FullTree, RuleTargets }
 
 public sealed record FileIdentity
 {
@@ -70,11 +71,13 @@ public sealed record ScanSnapshot(
     ScanState State,
     ImmutableArray<MeasuredEntry> Entries,
     ImmutableArray<ScanIssue> Issues,
-    ImmutableArray<WindowsPath> CompletedDirectories)
+    ImmutableArray<WindowsPath> CompletedDirectories,
+    ScanScope Scope = ScanScope.FullTree)
 {
     public long AllocatedBytes => Entries.Sum(item => item.AttributedAllocatedBytes);
     public long LogicalBytes => Entries.Sum(item => item.Entry.LogicalBytes);
-    public bool IsComplete => State == ScanState.Complete;
+    public bool IsScopeComplete => State == ScanState.Complete;
+    public bool IsComplete => IsScopeComplete && Scope == ScanScope.FullTree;
     public bool IsCompleteAt(WindowsPath directory) => !CompletedDirectories.IsDefault && CompletedDirectories.Contains(directory);
 }
 
@@ -82,4 +85,10 @@ public interface IStorageScanner
 {
     Task<ScanSnapshot> ScanAsync(WindowsPath root, ScanBudget budget,
         IProgress<ScanProgress>? progress, CancellationToken cancellationToken);
+}
+
+public interface ICleanupScanner : IStorageScanner
+{
+    Task<ScanSnapshot> ScanCleanupAsync(WindowsPath root, IReadOnlyList<CleanupRule> rules, ScanBudget budget,
+        IReadOnlyList<WindowsPath>? selectedTargets, IProgress<ScanProgress>? progress, CancellationToken cancellationToken);
 }

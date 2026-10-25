@@ -162,11 +162,15 @@ Evidence is under `.build/cleanup-performance/paired-release.json`, `paired-rele
 
 ## Platform scope
 
-macOS adapters own paged reads, bounded scheduling and index writes. Windows traversal, accounting, cancellation and performance will be implemented and verified independently under the native plan.
+macOS adapters own paged reads, bounded scheduling and index writes. Windows `CleanupScanner` independently scans rule targets: it probes literal path components and project markers first, bounds wildcard-prefix enumeration per directory, discovers targets before measurement, then divides remaining entry/time budgets between exact target trees. Wide source directories and the first large target must not consume every later target's allocation; undiscovered or incompletely measured scopes retain explicit gaps.
+
+Planning and execution preflight reread only selected targets, their ancestors and project markers. Rules, configuration, identities, manifests, activity and single-use consent remain checked. Non-specialized scanner adapters retain full-tree revalidation. Ordinary space analysis continues using `StorageScanner`, independently of sparse cleanup observations.
+
+Rule observations record `scope=rule_targets`: `state=complete` means this rule discovery and target measurement had no gaps, while `tree_complete=false`. Only targets in `completed_directories` have positive subtree evidence. These observations cannot enter space-comparison catalogs or prove whole-workspace coverage. Older records without scope default to `full_tree`. Actual platform, fixture and native evidence belongs in [SYNC.md](../../SYNC.md); source and Mac results do not establish native Windows acceptance.
 
 ### Progress presentation
 
-macOS adapters own paged reads, bounded scheduling and index writes. Windows traversal, accounting, cancellation and performance will be implemented and verified independently under the native plan.
+The interface distinguishes scanning, preparation, verification and execution progress. Counts represent observed work and never include unobserved directories as completed.
 
 Permanent removal additionally reports manifest-entry progress inside the current selected item. These transient updates do not replace the durable receipt or treat failed items as successfully removed.
 

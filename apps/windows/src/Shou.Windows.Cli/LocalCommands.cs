@@ -60,7 +60,7 @@ internal static class LocalCommands
                 return new(new
                 {
                     scans = result.Scans.Select(scan => new { scan_id = scan.Id, workspace_id = scan.WorkspaceId, candidate_count = scan.Candidates.Length,
-                        state = scan.Scan.IsComplete && scan.AnalysisIssues.IsEmpty ? "complete" : "partial", preview_only = false }),
+                        state = scan.Scan.IsScopeComplete && scan.AnalysisIssues.IsEmpty ? "complete" : "partial", preview_only = false }),
                     result.Issues, result.State, execution_available = CliServices.MutationAvailable
                 }, result.State == "complete" ? "success" : "partial", result.State == "complete" ? 0 : 6);
             }
@@ -124,12 +124,12 @@ internal static class LocalCommands
                 var preview = request.Command == "scan"
                     ? await services.Preview.ScanAsync(request.Required("workspace"), request.Budget, cancellationToken)
                     : await services.Preview.PreviewAsync(request.Required("workspace"), await CliServices.ReadRuleAsync(request.Required("file"), cancellationToken), request.Budget, cancellationToken);
-                var complete = preview.Scan.IsComplete && preview.AnalysisIssues.Length == 0;
+                var complete = preview.Scan.IsScopeComplete && preview.AnalysisIssues.Length == 0;
                 return new(new
                 {
                     scan_id = preview.Id, workspace_id = preview.WorkspaceId, preview_only = preview.PreviewOnly,
                     rules = preview.Rules.Select(rule => new { rule_id = rule.Definition.GetProperty("id"), digest = rule.Digest }), configuration_revision = preview.ConfigurationRevision,
-                    state = complete ? "complete" : "partial", tree_complete = preview.Scan.IsComplete,
+                    state = complete ? "complete" : "partial", tree_complete = preview.Scan.IsComplete, scope = preview.Scan.Scope,
                     measured_entries = preview.Scan.Entries.Length, candidate_count = preview.Candidates.Length,
                     issues = preview.Scan.Issues.AddRange(preview.AnalysisIssues), execution_available = !preview.PreviewOnly && CliServices.MutationAvailable
                 }, complete ? "success" : "partial", complete ? 0 : 6,

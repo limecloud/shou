@@ -27,7 +27,7 @@ public sealed class StorageComparisonService(IRecordStore store)
     {
         Key(snapshot.Id);
         if (snapshot.Entries.IsDefaultOrEmpty || snapshot.Entries.Length > 1_000_000 || snapshot.CompletedDirectories.IsDefault ||
-            snapshot.Issues.IsDefault || !Enum.IsDefined(snapshot.State)) throw Unavailable();
+            snapshot.Issues.IsDefault || !Enum.IsDefined(snapshot.State) || snapshot.Scope != ScanScope.FullTree) throw Unavailable();
         var entries = snapshot.Entries.ToDictionary(item => item.Entry.Path);
         if (!entries.TryGetValue(snapshot.Root, out var root) || root.Entry.Kind != EntryKind.Directory || root.Entry.Identity != snapshot.RootIdentity) throw Unavailable();
         var complete = snapshot.CompletedDirectories.ToHashSet();

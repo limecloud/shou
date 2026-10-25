@@ -165,7 +165,7 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
             }
         }
         var state = cancelled || cancellationToken.IsCancellationRequested ? "cancelled" :
-            issues.Count == 0 && snapshots.All(value => value.Scan.IsComplete && value.AnalysisIssues.IsEmpty) ? "complete" : "partial";
+            issues.Count == 0 && snapshots.All(value => value.Scan.IsScopeComplete && value.AnalysisIssues.IsEmpty) ? "complete" : "partial";
         foreach (var issue in issues.Distinct().Take(200)) diagnostic.Issue(issue.Code, "scan_coverage", issue.Path);
         diagnostic.Complete(state, snapshots.Sum(value => (long)value.Scan.Entries.Length), issues.Count);
         return new(snapshots.ToImmutable(), issues.Distinct().ToImmutableArray(), state);

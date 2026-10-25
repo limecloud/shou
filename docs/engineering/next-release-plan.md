@@ -93,6 +93,8 @@ v0.15.0 includes the current workspace, NV03 diagnostics, NV06 comparison, NV07 
 - **Responsible modules:** `NativeCleanupDiscovery`, Core `Rules`/`ArtifactSafety`, shared rule/location JSON and Smart Cleanup UI; validate the independent Windows implementation separately.
 - **Acceptance:** each selected scenario has generated positive, preservation and changed-after-scan fixtures. Preserve source, credentials, edited dependencies, private packages, active builds and persistent state. Verify permanent-deletion confirmation, receipts and unrelated-file hashes. Report observed matched bytes and uncovered causes without unsupported extra-GB targets.
 
+Windows now has an independent `CleanupScanner`: GUI/CLI discover rule targets before dividing measurement budgets fairly; planning and preflight recheck selected targets and project context. Whole-tree and rule-scope completion are separate, and sparse observations cannot enter space comparisons. Generated-fixture and actual native verification belong in [SYNC.md](../../SYNC.md); real-software coverage, activity matrices and ordinary-user Windows 11 remain part of this work package.
+
 ### NV03: Scan confidence, diagnostics and outcome explanations (P0)
 
 - **Problem:** existing protection and structured errors may still leave users unable to understand a failed scan or unavailable selection.

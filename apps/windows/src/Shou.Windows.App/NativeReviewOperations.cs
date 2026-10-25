@@ -20,7 +20,7 @@ internal sealed class NativeReviewOperations : ICleanupReviewOperations, ICleanu
     {
         var store = WindowsRecordStore.ForCurrentUser();
         var files = new WindowsFileSystem();
-        var scanner = new StorageScanner(files);
+        var scanner = new CleanupScanner(files);
         var validator = RuleResources.CreateValidator();
         var catalog = RuleResources.CreateCatalog(validator, new(WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)),
             WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)), WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))));

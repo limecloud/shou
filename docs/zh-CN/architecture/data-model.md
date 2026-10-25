@@ -71,7 +71,7 @@ erDiagram
 | `Configuration` | 1／16 MiB | 修订、工作区根与身份、导入定义、绑定及全局排除；最多 256 个工作区、512 个规则版本、4,096 个绑定，每组排除最多 1,024 条模式 |
 | `Workspace` | 属于配置 | `ws_` ID、`root_ref`、Windows 绝对路径、卷／File ID／owner SID、目录大小写行为、自身排除与 UTC 注册时间；根替换后不静默重绑定 |
 | `CleanupScan` | 1／元数据 128 MiB、每页 16 MiB | `scan_` ID、完整工作区、扫描预算、配置修订与摘要、确切规则定义与摘要数组、测量树、候选、分析缺口及 `preview_only` |
-| `ScanSnapshot` | 属于扫描 | 根身份、UTC 开始时间、条目、问题及必填的 `completed_directories`；逐目录正向完整证据保留部分覆盖中的完整兄弟目标 |
+| `ScanSnapshot` | 属于扫描 | 根身份、UTC 开始时间、条目、问题、`scope` 及必填的 `completed_directories`；`full_tree` 表示整树观察，`rule_targets` 表示规则定向观察；旧记录缺省为前者，未知值拒绝；逐目录正向完整证据保留部分覆盖中的完整兄弟目标 |
 | `CleanupPlan` | 2／元数据 128 MiB、每页 16 MiB | `plan_` ID、`sources` 中的扫描 ID／工作区身份／规则、共同配置与预算、动作、目标清单及上下文和摘要；每个项目的 `scan_id` 绑定一个来源，总计明确选择 1–256 个互不重叠目标，有效十分钟 |
 | `CleanupExecution` | 1／1 MiB | 与计划一一对应的 `execution_` ID、计划摘要、动作、UTC 时间、总体及逐项状态；意图存在后禁止重放 |
 | `ApplicationUninstallPlan` | 1／128 KiB | `uninstall_plan_` ID、当前用户 SID、UTC 创建／过期时间、完整安装审阅、显式安装程序数据影响同意与摘要；有效十五分钟，公开执行入口关闭 |

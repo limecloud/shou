@@ -66,7 +66,7 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
                 RequireCandidate(candidate);
                 return candidate;
             }).OrderBy(candidate => candidate.Path.Value, StringComparer.Ordinal).ToArray();
-            var current = await ObserveAsync(configuration, workspace, enabled, validation, cancellationToken);
+            var current = await ObserveAsync(configuration, workspace, enabled, validation, cancellationToken, targets: original.Select(candidate => candidate.Path).ToArray());
             foreach (var candidate in original)
             {
                 if (items.Any(item => Overlap(item.Path, candidate.Path))) throw Input("Choose non-overlapping targets across all locations.");
@@ -153,7 +153,8 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
                 continue;
             }
             var preflight = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken,
-                new InlineProgress<ScanProgress>(value => Report(progress, new("checking", null, value.CurrentPath, 0, plan.Items.Length, 0, plan.Items.Sum(item => item.Manifest.Length)))));
+                new InlineProgress<ScanProgress>(value => Report(progress, new("checking", null, value.CurrentPath, 0, plan.Items.Length, 0, plan.Items.Sum(item => item.Manifest.Length)))),
+                plan.Items.Where(item => item.ScanId == source.ScanId).Select(item => item.Path).ToArray());
             foreach (var item in plan.Items.Where(item => item.ScanId == source.ScanId))
             {
                 VerifyItem(item, preflight);
@@ -183,7 +184,7 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
                     await VerifyStorageItemsAsync(configuration, source, [item], validation, cancellationToken);
                 else if (!mutation.VerifiesMutationManifest)
                 {
-                    var current = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken);
+                    var current = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken, targets: [item.Path]);
                     VerifyItem(item, current);
                 }
                 await RequireIdleAsync(source.Workspace, item, cancellationToken);
@@ -242,9 +243,12 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
     }
 
     private async Task<(ScanSnapshot Scan, RuleClassification Classification, FileTreeIndex Index)> ObserveAsync(Configuration configuration, Workspace workspace,
-        CleanupRule[] rules, ValidationBudget budget, CancellationToken cancellationToken, IProgress<ScanProgress>? progress = null)
+        CleanupRule[] rules, ValidationBudget budget, CancellationToken cancellationToken, IProgress<ScanProgress>? progress = null, IReadOnlyList<WindowsPath>? targets = null)
     {
-        var scan = await scanner.ScanAsync(workspace.Path, budget.NextScan(), progress, cancellationToken);
+        var scanBudget = budget.NextScan();
+        var scan = scanner is ICleanupScanner cleanup
+            ? await cleanup.ScanCleanupAsync(workspace.Path, rules, scanBudget, targets, progress, cancellationToken)
+            : await scanner.ScanAsync(workspace.Path, scanBudget, progress, cancellationToken);
         budget.Observe(scan);
         cancellationToken.ThrowIfCancellationRequested();
         if (scan.Root != workspace.Path || scan.RootIdentity != workspace.Identity ||

@@ -21,26 +21,43 @@ public sealed class RulePattern
     {
         if (relativePath == ".") return false;
         WindowsPath.ValidateRelative(relativePath);
-        var path = relativePath.Split('/');
-        if (path.Length > 64 || caseSensitiveParents is not null && caseSensitiveParents.Count != path.Length)
+        return PrefixStates(relativePath, caseSensitiveParents).Contains(parts.Length);
+    }
+
+    internal IEnumerable<string> LiteralChildren(string relativePath, IReadOnlyList<bool> cases) =>
+        PrefixStates(relativePath, cases).Where(index => index < parts.Length && !parts[index].Contains('*') && !parts[index].Contains('?')).Select(index => parts[index]);
+
+    internal bool CouldMatchDescendant(string relativePath, IReadOnlyList<bool> cases) =>
+        PrefixStates(relativePath, cases).Any(index => index < parts.Length);
+
+    internal bool RequiresEnumeration(string relativePath, IReadOnlyList<bool> cases) =>
+        PrefixStates(relativePath, cases).Any(index => index < parts.Length && (parts[index].Contains('*') || parts[index].Contains('?')));
+
+    private HashSet<int> PrefixStates(string relativePath, IReadOnlyList<bool>? cases)
+    {
+        var path = relativePath == "." ? [] : relativePath.Split('/');
+        if (cases is not null && path.Length != cases.Count || path.Length > 64)
             throw new ShouException("invalid_argument", "The path or its directory case information is outside the supported range.");
-        var states = new bool[parts.Length + 1, path.Length + 1];
-        states[0, 0] = true;
-        for (var i = 0; i < parts.Length; i++)
+        var states = new HashSet<int> { 0 };
+        void Expand(HashSet<int> values)
         {
-            for (var j = 0; j <= path.Length; j++)
-            {
-                if (!states[i, j]) continue;
-                if (parts[i] == "**")
-                {
-                    states[i + 1, j] = true;
-                    if (j < path.Length) states[i, j + 1] = true;
-                }
-                else if (j < path.Length && Segment(parts[i], path[j], caseSensitiveParents?[j] == true))
-                    states[i + 1, j + 1] = true;
-            }
+            for (var index = 0; index < parts.Length; index++)
+                if (values.Contains(index) && parts[index] == "**") values.Add(index + 1);
         }
-        return states[parts.Length, path.Length];
+        Expand(states);
+        for (var depth = 0; depth < path.Length; depth++)
+        {
+            var next = new HashSet<int>();
+            foreach (var index in states)
+                if (index < parts.Length)
+                {
+                    if (parts[index] == "**") next.Add(index);
+                    else if (Segment(parts[index], path[depth], cases?[depth] == true)) next.Add(index + 1);
+                }
+            Expand(next);
+            states = next;
+        }
+        return states;
     }
 
     private static bool Segment(string pattern, string value, bool sensitive)

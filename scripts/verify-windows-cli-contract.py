@@ -386,6 +386,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         assert unbound['rules'] == [] and unbound['candidate_count'] == 0 and unbound['preview_only'] is False
         preview = run(['rules', 'preview', '--file', str(rule_path), '--workspace', workspace, '--json'])['data']
         assert preview['candidate_count'] == 1 and preview['preview_only'] is True
+        assert preview['scope'] == 'rule_targets' and preview['tree_complete'] is False and preview['state'] == 'complete'
         assert preview['rules'] == [{'rule_id': example['id'], 'digest': imported['digest']}]
         binding = run(['rules', 'enable', '--rule-id', example['id'], '--workspace', workspace, '--json'])['data']
         assert binding['enabled'] and binding['digest'] == imported['digest']
@@ -395,6 +396,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         assert results['candidates'][0]['state'] == 'review' and results['execution_available'] is False
         assert results['configuration_revision'] == preview['configuration_revision']
         assert results['preview_only'] is True
+        assert results['scope'] == 'rule_targets' and results['tree_complete'] is False
         scan = run(['scan', '--workspace', workspace, '--json'])['data']
         assert scan['rules'] == preview['rules'] and scan['candidate_count'] == 1 and scan['preview_only'] is False
         scan_results = run(['scan', 'results', '--scan-id', scan['scan_id'], '--json'])['data']

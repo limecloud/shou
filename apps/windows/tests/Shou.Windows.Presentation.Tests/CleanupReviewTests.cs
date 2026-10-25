@@ -55,6 +55,23 @@ public sealed partial class CleanupReviewTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CompleteRuleScopeRemainsReadyWithoutClaimingWholeTreeCoverage(bool batch)
+    {
+        var snapshot = Scan([Candidate(1)]);
+        snapshot = snapshot with { Scan = snapshot.Scan with { Scope = ScanScope.RuleTargets } };
+        using var model = new CleanupReviewViewModel(new Operations { Result = snapshot });
+        await model.LoadAsync();
+        if (batch) await model.ScanAllAsync();
+        else await model.ScanAsync(Location().Id);
+        Assert.Equal(CleanupReviewState.Ready, model.State);
+        Assert.False(model.Snapshot!.Scan.IsComplete);
+        model.SetSelected(Candidate(1).Id, true);
+        Assert.True(model.CanPreparePlan);
+    }
+
     [Fact]
     public async Task LoadingConfiguredLocationsDoesNotScanOrSelectTargets()
     {

@@ -185,7 +185,7 @@ shou scan --workspace "<返回的工作区 ID>" --json
 
 导入不启用规则；`rules enable` 只改变本地绑定，不授权清理。`rules show`、`rules export` 通过结果信封返回可分享定义；当前 Windows `rules export` 不提供 `--output`。`rules list` 返回个人规则与绑定，并通过 `builtin_templates_available=true` 指向可单独查询的内置目录。
 
-`analysis scan` 返回有界内存测量，不保存记录。`rules preview` 单独评估指定草稿，保存 `preview_only=true` 的证据；启用后必须使用 `scan --workspace` 重新扫描。普通扫描冻结当前有效内置定义与明确启用的个人规则，返回 `preview_only=false`；无适用规则时只测量。两类摘要均以 `rules` 数组返回规则 ID 与摘要，`scan results` 保留来源标记，游标绑定扫描 ID、记录内容与偏移，页大小为 1–500。
+`analysis scan` 返回有界内存测量，不保存记录。`rules preview` 单独评估指定草稿，保存 `preview_only=true` 的证据；启用后必须使用 `scan --workspace` 重新扫描。普通扫描冻结当前有效内置定义与明确启用的个人规则，返回 `preview_only=false`；无适用规则时只测量。两类摘要均以 `rules` 数组返回规则 ID 与摘要。定向清理观察返回 `scope=rule_targets` 与 `tree_complete=false`；`state=complete` 仅表示本次规则发现及目标计量完成，不能代替整树空间分析。准备计划与预检定向核对所选目标和项目上下文，预算及完整性合同见[扫描性能](storage-scan-performance.md#平台范围)。`scan results` 保留来源标记，游标绑定扫描 ID、记录内容与偏移，页大小为 1–500。
 
 结果标为 `review` 或 `blocked`，CLI 返回当前主机的清理 `execution_available`。`plan create` 可组装计划而不修改目标；公开 `plan execute` 当前返回 `unsupported_capability`／8；原生生成夹具单独验证明确确认的永久动作，不开放公开门禁。源码、凭据、数据库、未知链接和用途不明的内容采用保守保护，个人规则不能申请内置工具例外。
 
