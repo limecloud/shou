@@ -130,3 +130,67 @@ jobs:
             ${{ runner.temp }}/ShouBuild/${{ matrix.runtime }}/obj/Shou.Windows.App/**/*.xaml
             ${{ runner.temp }}/ShouBuild/${{ matrix.runtime }}/obj/Shou.Windows.App/**/*.xbf
           if-no-files-found: ignore
+
+  native-arm64:
+    name: Native Windows 11 ARM64
+    needs: build
+    runs-on: windows-11-arm
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/windows/global.json
+          cache: true
+          cache-dependency-path: apps/windows/**/packages.lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require native ARM64 tools
+        run: |
+          if ([Runtime.InteropServices.RuntimeInformation]::OSArchitecture -ne 'Arm64' -or [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture -ne 'Arm64') { throw 'ARM64 Windows and PowerShell are required.' }
+          $Info = dotnet --info | Out-String
+          if ($LASTEXITCODE -ne 0 -or $Info -notmatch 'RID:\s+win-arm64') { throw 'The .NET SDK must run natively on ARM64.' }
+          Write-Output $Info
+      - name: Core, presentation, native filesystem, private records and CLI
+        run: ./scripts/windows/test.ps1 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/tests"
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-preview-win-arm64
+          path: ${{ runner.temp }}/ShouBuild/archives
+      - name: Verify and expand the same-source ARM64 archives
+        run: |
+          [xml]$Properties = Get-Content apps/windows/Directory.Build.props
+          $Version = $Properties.Project.PropertyGroup.Version
+          $Archives = "$env:RUNNER_TEMP/ShouBuild/archives"
+          foreach ($Kind in @('app', 'cli')) {
+            $Stem = if ($Kind -eq 'app') { 'Shou' } else { 'shou-cli' }
+            $Name = "$Stem-$Version-windows-arm64.zip"
+            $Expected = @(Get-Content "$Archives/SHA256SUMS-windows-arm64" | Where-Object { $_.EndsWith("  $Name") })
+            if ($Expected.Count -ne 1 -or (Get-FileHash "$Archives/$Name" -Algorithm SHA256).Hash -ine $Expected[0].Substring(0, 64)) { throw 'Archive digest differs.' }
+            $Destination = "$env:RUNNER_TEMP/ShouBuild/publish/$Kind"
+            Expand-Archive -LiteralPath "$Archives/$Name" -DestinationPath $Destination
+            $Build = Get-Content "$Destination/BUILD.json" -Raw | ConvertFrom-Json
+            if ($Build.source_commit -ne $env:GITHUB_SHA -or $Build.version -ne $Version -or $Build.runtime -ne 'win-arm64' -or $Build.kind -ne $Kind -or $Build.public_mutation_available -ne $false) { throw 'Archive source, version, runtime or gates differ.' }
+            foreach ($File in $Build.files.PSObject.Properties) {
+              if ((Get-FileHash -LiteralPath (Join-Path $Destination $File.Name) -Algorithm SHA256).Hash -ine $File.Value) { throw 'Published file digest differs.' }
+            }
+          }
+          ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish" -Version $Version -Runtime win-arm64 -ReportPath "$env:RUNNER_TEMP/ShouBuild/evidence/native-publish.json"
+      - name: Collect ARM64 evidence
+        if: always()
+        run: ./scripts/windows/collect-diagnostics.ps1 -OutputRoot "$env:RUNNER_TEMP/ShouBuild/evidence" -TestResultsRoot "$env:RUNNER_TEMP/ShouBuild/tests/results" -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-arm64-native-results
+          path: |
+            ${{ runner.temp }}/ShouBuild/tests/results
+            ${{ runner.temp }}/ShouBuild/evidence
+          if-no-files-found: warn

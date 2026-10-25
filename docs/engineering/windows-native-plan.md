@@ -121,6 +121,8 @@ Host scripts will invoke PowerShell through `prlctl exec` for the VM and SSH for
 
 A Windows ARM64 VM can build x64 output with the installed toolchain but cannot establish native x64 behavior. Validate ARM64 on its own runtime and x64 on a real x64 machine. Remote desktop does not establish local battery or physical display behavior.
 
+Native CI follows the same boundary: an ARM64 archive produced on an x64 runner establishes build/package integrity only. The `windows-11-arm` runner separately verifies same-source hashes and actual process architecture before native suites and window startup/normal-close checks. Complete UI, ordinary-user, signing and installation evidence remains separate; see [logging and testing](windows-testing.md).
+
 ## Implementation stages
 
 | Stage | Deliverable | Required exit evidence |

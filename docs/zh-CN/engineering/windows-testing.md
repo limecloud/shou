@@ -41,6 +41,8 @@ GUI 与 CLI 共用 `%LOCALAPPDATA%\Shou\Diagnostics\application.jsonl`，最多�
 
 macOS 本机运行 `sh scripts/test-windows-core.sh`。`WindowsFact` 与管理员专用生成夹具在不满足宿主条件时明确跳过；跳过不能记作通过，不为产品扫描提权。Windows 使用 `scripts/windows/test.ps1`，无论通过或失败都归档 TRX 和可获得的诊断清单。CI 另保存发布诊断。
 
+Windows 流水线另在标准 `windows-11-arm` runner 上执行原生 ARM64 主套件，并读取同一流水线的 ARM64 交叉构建归档。运行前核对归档及逐文件摘要、确切源码／版本／关闭门禁、宿主／PowerShell／.NET 的原生架构、apphost／CLR／WinUI 的 PE 架构，以及 CLI 诊断报告的实际进程架构。发布检查保存窗口启动与正常关闭回执；实际通过、失败和跳过以 [SYNC.md](../../../SYNC.md) 为准。该任务不启动付费云电脑，也不提供普通用户完整界面、签名安装或更新验收。
+
 `pwsh -NoProfile -File scripts/windows/test-e2e-harness.ps1` 在隔离的生成日志中验证 E2E 自身的拒绝关联与证据检查；Windows 主测试脚本也运行它。它不启动应用、不执行系统变更，不能计为真实桌面 E2E。
 
 ## 真实桌面 E2E

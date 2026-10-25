@@ -41,6 +41,8 @@ Provisioned LocalAppData and an existing Shou container may be SYSTEM/Administra
 
 Run `sh scripts/test-windows-core.sh` on macOS and `scripts/windows/test.ps1` on Windows. Native and elevated fixture checks explicitly skip unsupported hosts/tokens; skips are not passes and the product should not be elevated to scan. Windows tests collect available TRX/diagnostics even on failure. CI separately retains publish diagnostics.
 
+The Windows workflow also runs the main suites natively on the standard `windows-11-arm` runner, then consumes ARM64 cross-build archives from the same workflow. It verifies archive/file hashes, exact source/version/closed gates, native host/PowerShell/.NET architecture, apphost/CLR/WinUI PE architecture and the CLI diagnostic report's actual process architecture. Publish checks retain window startup/normal-close receipts; actual passes, failures and skips belong in [SYNC.md](../../SYNC.md). This job starts no paid cloud desktop and does not establish complete ordinary-user UI, signed installation or update acceptance.
+
 `pwsh -NoProfile -File scripts/windows/test-e2e-harness.ps1` checks the E2E runner's rejection correlation and evidence validation using isolated generated logs; the Windows main test script runs it too. It does not launch the app or perform system mutations and is not native desktop E2E evidence.
 
 ## Interactive E2E
