@@ -76,7 +76,9 @@ Mac 检查证明纯逻辑语义和引用编译。Windows 测试、WinUI 启动�
 
 测试等待系统安装程序真实退出，不通过测试超时杀死或遗弃它。强制中断测试、进程崩溃或收尾核验失败可能保留生成产品；保留日志并独立核验，不能把缺少成功回执理解为未发生变更。该简单 MSI 保留未注册文件的结果不能推广为其他安装程序保留个人数据。MSIX、安装程序交互取消、重启、WinUI、其他架构及签名仍须独立取证。
 
-当前仅在 Mac 完成引用编译和跳过行为检查，尚未实际执行这些安装／卸载用例。MSI 格式依据微软的 [File 表](https://learn.microsoft.com/en-us/windows/win32/msi/file-table)、[Word Count 属性](https://learn.microsoft.com/en-us/windows/win32/msi/word-count-summary)与[标准动作顺序](https://learn.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence)。
+GitHub 的 `Generated Windows MSI fixtures` 工作流提供独立的手动专项入口，执行相同脚本并保留失败证据；不在普通 push／PR 测试中安装包。其 `windows-2025` x64 结果只证明该服务器环境中的原生 API 链路，不替代普通用户 Windows 11、ARM64 或 WinUI 验收。
+
+2026-10-26 云端专项的五项用例均在发现阶段失败，尚未进入产品卸载断言。受测增量将安装参数改为 `ALLUSERS=""`；第五轮增量恢复当前 `ALLUSERS=2 MSIINSTALLPERUSER=1`，没有重跑专项。失败不能直接归因于当前参数，也不授权放宽注册来源／系统安装上下文校验。实际复验状态见 [SYNC.md](../../../SYNC.md)。MSI 格式依据微软的 [File 表](https://learn.microsoft.com/en-us/windows/win32/msi/file-table)、[Word Count 属性](https://learn.microsoft.com/en-us/windows/win32/msi/word-count-summary)与[标准动作顺序](https://learn.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence)。
 
 ## 启动注册发现
 
