@@ -42,7 +42,7 @@ flowchart LR
 
 `WindowsPrivacySourcePolicy` 使用系统实际返回的 Local/Roaming AppData，允许受支持的重定向本地目录。Chromium 只识别 `Default` 或 `Profile N`；Firefox 只识别固定 `Mozilla/Firefox/Profiles` 下的合法单组件目录，不读取外部 profile 配置。发现仅枚举元数据，最多 2,048 次条目工作、256 个 profile 和 768 个来源，十秒截止；发现缺口保持部分覆盖。完整扫描共享两分钟预算，保存十五分钟有效的版本 1 观察记录。
 
-`PrivacyScanService` 应用全局与相关工作区的祖先排除，保护自身数据及数据库、WAL、SHM、journal 的确切路径。每次查询前后检查已知浏览器进程名；运行中或观察未知时不发布可用数量。进程快照不证明数据库独占。`WindowsPrivacyDatabaseInspection` 固定从 AppData anchor 到数据库父级的普通目录和文件句柄，拒绝 reparse、外部所有者、数据库硬链接、跨卷和可由非信任身份写入的 ACL。数据库及 sidecar 句柄允许共享写入以兼容 SQLite，但始终不共享删除；目录、ACL、主数据库和非空 WAL 的前后证据必须一致。
+`PrivacyScanService` 应用全局与相关工作区的祖先排除，保护自身数据及数据库、WAL、SHM、journal 的确切路径。每次查询前后检查已知浏览器进程名；运行中或观察未知时不发布可用数量。进程快照不证明数据库独占。`WindowsPrivacyDatabaseInspection` 固定从 AppData anchor 到数据库父级的普通目录和文件句柄，拒绝 reparse、外部所有者、数据库硬链接、跨卷和可由非信任身份写入的 ACL。仅注入的确切 Local／Roaming AppData anchor 可以由 SYSTEM 或 Administrators 所有，仍须固定身份并通过 ACL 校验；浏览器目录、配置目录及数据库保持当前用户所有，不修复系统目录权限。含继承写入权限的外部身份同样拒绝，单纯 inherit-only 的 Creator Owner 保留正常继承语义。数据库及 sidecar 句柄允许共享写入以兼容 SQLite，但始终不共享删除；目录、ACL、主数据库和非空 WAL 的前后证据必须一致。
 
 数据库适配使用 Windows 系统 `winsqlite3.dll` 的只读、无 CREATE、NOFOLLOW 连接和静态结构校验，只返回汇总数量与结构摘要，不读取网址、域名或 Cookie 值。拒绝触发器、视图、虚拟表、未知跨界外键、非整数时间和不支持的派生结构。单查询连接使用一秒繁忙等待、十五秒／五千万 VM 指令预算；取消后等待原生工作释放句柄。缺少必要 WAL 辅助文件时保持不可用，不使用写连接修复。只读扫描不修改浏览器记录，也不备份配置；清理是另一个需要具体计划、Cookie 影响同意和本次确认的显式操作。
 

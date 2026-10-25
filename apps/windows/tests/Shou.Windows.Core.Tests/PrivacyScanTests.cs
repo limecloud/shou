@@ -142,6 +142,43 @@ public sealed class PrivacyScanTests
         Assert.Equal(scan.Digest, (await f.Service.ReadAsync(scan.Id)).Digest); // Reading an expired observation grants no mutation authority.
     }
 
+    [Theory]
+    [InlineData("S-1-5-32-544")]
+    [InlineData("S-1-5-18")]
+    public async Task ProvisionedAppDataAnchorRetainsItsOsOwnerInReadOnlyEvidence(string owner)
+    {
+        var f = new Fixture(); var source = f.Add(); var anchor = f.Policy.Validate(source).Anchor;
+        var entry = f.Files.Entries[anchor.Value];
+        f.Files.Entries[anchor.Value] = entry with { Identity = new(entry.Identity.VolumeSerialNumber, entry.Identity.FileId, owner) };
+        var scan = await f.Service.ScanAsync();
+        Assert.True(scan.Complete);
+        var observed = Assert.Single(scan.Sources);
+        Assert.Equal(PrivacySourceState.Ready, observed.State);
+        Assert.Equal(owner, observed.Evidence.Single(item => item.Entry.Path == anchor).Entry.Identity.OwnerSid);
+        Assert.Equal(scan.Digest, (await f.Service.ReadAsync(scan.Id)).Digest);
+        Assert.Equal(owner, f.Files.Entries[anchor.Value].Identity.OwnerSid);
+    }
+
+    [Theory]
+    [InlineData("anchor", "S-1-5-21-9999")]
+    [InlineData("intermediate", "S-1-5-32-544")]
+    [InlineData("intermediate", "S-1-5-18")]
+    [InlineData("database", "S-1-5-32-544")]
+    [InlineData("database", "S-1-5-18")]
+    public async Task ProvisionedAnchorExceptionCannotAuthorizeOtherOwnersOrDescendants(string target, string owner)
+    {
+        var f = new Fixture(); var source = f.Add(); var anchor = f.Policy.Validate(source).Anchor;
+        f.Alter = observation => observation with
+        {
+            Evidence = observation.Evidence.Select(item => item.Entry.Path == (target == "anchor" ? anchor : target == "database" ? source.Path : anchor.Append("Google"))
+                ? item with { Entry = item.Entry with { Identity = new(item.Entry.Identity.VolumeSerialNumber, item.Entry.Identity.FileId, owner) } } : item).ToImmutableArray()
+        };
+        var scan = await f.Service.ScanAsync();
+        Assert.False(scan.Complete);
+        Assert.Equal(PrivacySourceState.Unavailable, Assert.Single(scan.Sources).State);
+        Assert.Null(scan.Sources[0].RecordCount);
+    }
+
     [Fact]
     public async Task EmptyDatabaseIsACompleteEmptyObservation()
     {

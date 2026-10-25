@@ -133,7 +133,10 @@ public sealed class PrivacyScanService(IRecordStore store, RuleSchemaValidator v
         foreach (var item in observation.Evidence)
         {
             var entry = item.Entry;
-            if (entry.Identity?.OwnerSid != ownerSid || entry.Identity.VolumeSerialNumber != observation.Evidence[0].Entry.Identity.VolumeSerialNumber ||
+            var provisionedAnchor = entry.Kind == EntryKind.Directory && entry.Path == root.Anchor &&
+                entry.Identity?.OwnerSid is "S-1-5-32-544" or "S-1-5-18";
+            if (entry.Identity is null || entry.Identity.OwnerSid != ownerSid && !provisionedAnchor ||
+                entry.Identity.VolumeSerialNumber != observation.Evidence[0].Entry.Identity.VolumeSerialNumber ||
                 entry.Kind is not (EntryKind.File or EntryKind.Directory) || entry.LogicalBytes < 0 || entry.AllocatedBytes < 0 ||
                 entry.LastWriteUtc.Offset != TimeSpan.Zero || entry.ChangeUtc.Offset != TimeSpan.Zero || entry.Kind == EntryKind.File && entry.LinkCount != 1 ||
                 entry.Kind == EntryKind.File && entry.Path != source.Path && entry.Path.Value != source.Path.Value + "-wal" ||

@@ -55,12 +55,39 @@ try {
     if ($ShouTestExit -ne 0) { throw "Generated MSI checks failed: $ShouTestExit. Evidence: $ShouRunRoot" }
     [xml]$ShouTrx = [System.IO.File]::ReadAllText([System.IO.Path]::Combine($ShouResultsRoot, 'generated-msi.trx'))
     $ShouCases = @($ShouTrx.SelectNodes("//*[local-name()='UnitTestResult']"))
-    $ShouAllPassed = $ShouCases.Count -gt 0
+    $ShouAllPassed = $ShouCases.Count -eq 6
     foreach ($ShouCase in $ShouCases) {
         if ($ShouCase.outcome -ne 'Passed') { $ShouAllPassed = $false }
     }
     if (-not $ShouAllPassed) {
         throw "Every generated MSI case must execute and pass; skipped cases are not acceptance. Evidence: $ShouRunRoot"
+    }
+    & python -c $ShouProvenance $ShouSourceRoot (Join-Path $ShouRunRoot 'source-after.json')
+    if ($LASTEXITCODE -ne 0) { throw "Final source evidence failed: $LASTEXITCODE" }
+    $ShouBefore = Get-Content -Raw -LiteralPath (Join-Path $ShouRunRoot 'source.json') | ConvertFrom-Json
+    $ShouAfter = Get-Content -Raw -LiteralPath (Join-Path $ShouRunRoot 'source-after.json') | ConvertFrom-Json
+    foreach ($ShouField in @('source_commit', 'source_tree', 'worktree_sha256')) {
+        if ($ShouBefore.$ShouField -ne $ShouAfter.$ShouField) {
+            throw "Source changed during native tests. Evidence: $ShouRunRoot"
+        }
+    }
+    $ShouFixtures = @(Get-ChildItem -LiteralPath (Join-Path $ShouRunRoot 'fixtures') -Directory)
+    if ($ShouFixtures.Count -ne 6) { throw 'Expected one newly generated MSI fixture per native case.' }
+    foreach ($ShouFixture in $ShouFixtures) {
+        $ShouStages = @(Get-ChildItem -LiteralPath $ShouFixture.FullName -File |
+            Where-Object Name -Match '^\d{2}-[a-z_]+\.json$' | Sort-Object Name)
+        if ($ShouStages.Count -lt 3) { throw "Missing MSI lifecycle evidence: $($ShouFixture.FullName)" }
+        foreach ($ShouStage in $ShouStages) {
+            $ShouEvidence = Get-Content -Raw -LiteralPath $ShouStage.FullName | ConvertFrom-Json -Depth 64
+            if ($ShouEvidence.generated_installer_only -ne $true -or $ShouEvidence.native_runtime_checked -ne $true -or
+                $ShouEvidence.public_execution_enabled -ne $false) {
+                throw "Generated-only/public-gate evidence is inconsistent: $($ShouStage.FullName)"
+            }
+        }
+        $ShouTerminal = Get-Content -Raw -LiteralPath $ShouStages[-1].FullName | ConvertFrom-Json -Depth 64
+        if ($ShouTerminal.current_user_installation_present -ne $false) {
+            throw "Generated MSI remains installed at the final checkpoint: $($ShouFixture.FullName)"
+        }
     }
     [ordered]@{
         schema_version = 1
@@ -70,7 +97,9 @@ try {
         os = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
         generated_msi_cases_passed = $ShouCases.Count
         fixture_only = $true
-        public_execution_enabled = $true
+        fixture_teardown_verified = $true
+        source_stable = $true
+        public_execution_enabled = $false
         msix_tested = $false
         winui_tested = $false
     } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ShouRunRoot 'verification.json') -Encoding utf8

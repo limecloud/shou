@@ -1,0 +1,47 @@
+name: Generated Windows system fixtures
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: generated-windows-system-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  generated-system:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        fixture: [msi, startup]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: apps/windows/global.json
+          cache: true
+          cache-dependency-path: apps/windows/**/packages.lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Exercise only newly generated system fixtures
+        run: |
+          if ('${{ matrix.fixture }}' -eq 'msi') {
+            ./scripts/windows/test-uninstall-fixtures.ps1 -RunGeneratedMsiFixtures -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/generated-msi"
+          } else {
+            ./scripts/windows/test-startup-fixtures.ps1 -RunGeneratedStartupFixtures -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/generated-startup"
+          }
+      - name: Preserve source, installer logs, TRX and generated fixture hashes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-${{ matrix.fixture }}-windows-server-2025-x64
+          path: ${{ runner.temp }}/ShouBuild/generated-${{ matrix.fixture }}/run-*
+          if-no-files-found: error

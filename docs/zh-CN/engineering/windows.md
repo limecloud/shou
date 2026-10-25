@@ -77,7 +77,7 @@ Mac 检查证明纯逻辑语义和引用编译。Windows 测试、WinUI 启动�
 
 测试等待系统安装程序真实退出，不通过测试超时杀死或遗弃它。强制中断测试、进程崩溃或收尾核验失败可能保留生成产品；保留日志并独立核验，不能把缺少成功回执理解为未发生变更。该简单 MSI 保留未注册文件的结果不能推广为其他安装程序保留个人数据。MSIX、安装程序交互取消、重启、WinUI、其他架构及签名仍须独立取证。
 
-GitHub 的 `Generated Windows MSI fixtures` 工作流提供独立的手动专项入口，执行相同脚本并保留失败证据；不在普通 push／PR 测试中安装包。其 `windows-2025` x64 结果只证明该服务器环境中的原生 API 链路，不替代普通用户 Windows 11、ARM64 或 WinUI 验收。
+GitHub 的 `Generated Windows system fixtures` 工作流提供 MSI 与惰性计划任务的独立手动专项入口，执行相同脚本并保留失败证据；不在普通 push／PR 测试中安装包。脚本要求六项均通过、源码前后摘要相同、每个生成产品最终消失且公开门禁证据为关闭。其 `windows-2025` x64 结果只证明该服务器环境中的原生 API 链路，不替代普通用户 Windows 11、ARM64 或 WinUI 验收。
 
 2026-10-26 云端专项的五项用例均在发现阶段失败，尚未进入产品卸载断言。受测增量将安装参数改为 `ALLUSERS=""`；第五轮增量恢复当前 `ALLUSERS=2 MSIINSTALLPERUSER=1`，没有重跑专项。随后干净提交 `58dccc1` 的 Windows Server 2025 x64 专项也复现五项失败：唯一当前用户安装由整机注册表来源发现，安装日志为 `Assignment=0`。修复按[应用合同](../product/application-uninstall.md#安装身份审阅与计划)以系统 API 确定上下文，增加分配类型及目录关联核验；不把注册表位置作为权限。实际复验状态见 [SYNC.md](../../../SYNC.md)。MSI 格式依据微软的 [File 表](https://learn.microsoft.com/en-us/windows/win32/msi/file-table)、[Word Count 属性](https://learn.microsoft.com/en-us/windows/win32/msi/word-count-summary)与[标准动作顺序](https://learn.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence)。
 

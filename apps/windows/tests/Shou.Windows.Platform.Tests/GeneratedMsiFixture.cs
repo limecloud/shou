@@ -107,6 +107,7 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
 
     public void SaveEvidence(string stage, ApplicationUninstallExecution? execution)
     {
+        var installedState = InstalledState();
         var files = new[] { "payload.txt", "protected-sibling.txt", "generated.msi",
             Path.GetRelativePath(Root, InstalledPayload), Path.GetRelativePath(Root, UnregisteredData) }
             .ToDictionary(name => name.Replace('\\', '/'), name => File.Exists(Path.Combine(Root, name))
@@ -115,7 +116,7 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
         {
             schema_version = 1, stage, at_utc = DateTimeOffset.UtcNow, product_code = ProductCode, package_code = PackageCode,
             product_name = ProductName, owner_sid = OwnerSid, os = RuntimeInformation.OSDescription,
-            current_user_installation_state = InstalledState(),
+            current_user_installation_state = installedState, current_user_installation_present = installedState is not null,
             process_arch = RuntimeInformation.ProcessArchitecture.ToString(), os_arch = RuntimeInformation.OSArchitecture.ToString(),
             native_runtime_checked = true, generated_installer_only = true, public_execution_enabled = WindowsApplicationUninstallMutation.PublicExecutionAvailable,
             files, execution

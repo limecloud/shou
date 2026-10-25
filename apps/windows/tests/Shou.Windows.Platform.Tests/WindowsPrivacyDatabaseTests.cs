@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using Shou.Windows.Core;
 
@@ -38,6 +39,62 @@ public sealed class WindowsPrivacyDatabaseTests
         Assert.Contains(observed.Evidence, item => item.Entry.Path == source.Path && item.Entry.Kind == EntryKind.File);
         Assert.All(observed.Evidence, item => Assert.StartsWith("sha256:", item.SecurityDigest));
         Assert.Equal(before, SHA256.HashData(File.ReadAllBytes(source.Path.Value)));
+    }
+
+    [ElevatedWindowsFact]
+    public async Task GeneratedAdminOwnedAppDataAnchorKeepsItsAclAndDatabaseBytesDuringInspection()
+    {
+        using var fixture = new WindowsFileSystemTests.NativeFixture(); var (policy, source) = CreateSource(fixture);
+        using (var database = new PrivacySqlite(source.Path.Value, false, default))
+            database.Execute("CREATE TABLE cookies(last_access_utc INTEGER); INSERT INTO cookies VALUES(1);");
+        var anchor = policy.Validate(source).Anchor;
+        var directory = new DirectoryInfo(anchor.Value);
+        var security = directory.GetAccessControl();
+        security.SetOwner(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
+        directory.SetAccessControl(security);
+        var acl = directory.GetAccessControl().GetSecurityDescriptorSddlForm(AccessControlSections.All);
+        var bytes = File.ReadAllBytes(source.Path.Value);
+        var observed = await new WindowsPrivacyDatabaseInspection(policy, WindowsIdentity.GetCurrent().User!.Value)
+            .InspectAsync(source, PrivacyWindow.Create(PrivacyTimeRange.AllTime, DateTimeOffset.UtcNow), default);
+        Assert.Equal(1, observed.RecordCount);
+        Assert.Equal("S-1-5-32-544", observed.Evidence.Single(item => item.Entry.Path == anchor).Entry.Identity.OwnerSid);
+        Assert.Equal(acl, directory.GetAccessControl().GetSecurityDescriptorSddlForm(AccessControlSections.All));
+        Assert.Equal(bytes, File.ReadAllBytes(source.Path.Value));
+    }
+
+    [ElevatedWindowsFact]
+    public async Task GeneratedAdminOwnedBrowserDirectoryIsRejectedWithoutAclRepair()
+    {
+        using var fixture = new WindowsFileSystemTests.NativeFixture(); var (policy, source) = CreateSource(fixture);
+        var directory = new DirectoryInfo(source.Path.Parent!.Value);
+        var security = directory.GetAccessControl();
+        security.SetOwner(new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null));
+        directory.SetAccessControl(security);
+        var acl = directory.GetAccessControl().GetSecurityDescriptorSddlForm(AccessControlSections.All);
+        var before = File.ReadAllBytes(source.Path.Value);
+        var error = await Assert.ThrowsAsync<ShouException>(() => new WindowsPrivacyDatabaseInspection(policy, WindowsIdentity.GetCurrent().User!.Value)
+            .InspectAsync(source, PrivacyWindow.Create(PrivacyTimeRange.AllTime, DateTimeOffset.UtcNow), default));
+        Assert.Equal("privacy_identity_unavailable", error.Code);
+        Assert.Equal(acl, directory.GetAccessControl().GetSecurityDescriptorSddlForm(AccessControlSections.All));
+        Assert.Equal(before, File.ReadAllBytes(source.Path.Value));
+    }
+
+    [WindowsFact]
+    public async Task GeneratedAnchorWithInheritableForeignWriteIsRejectedBeforeReadingDatabase()
+    {
+        using var fixture = new WindowsFileSystemTests.NativeFixture(); var (policy, source) = CreateSource(fixture);
+        var directory = new DirectoryInfo(policy.Validate(source).Anchor.Value);
+        var security = directory.GetAccessControl();
+        security.AddAccessRule(new FileSystemAccessRule(new SecurityIdentifier(WellKnownSidType.WorldSid, null), FileSystemRights.Write,
+            InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.InheritOnly, AccessControlType.Allow));
+        directory.SetAccessControl(security);
+        var acl = directory.GetAccessControl().GetSecurityDescriptorSddlForm(AccessControlSections.All);
+        var bytes = File.ReadAllBytes(source.Path.Value);
+        var error = await Assert.ThrowsAsync<ShouException>(() => new WindowsPrivacyDatabaseInspection(policy, WindowsIdentity.GetCurrent().User!.Value)
+            .InspectAsync(source, PrivacyWindow.Create(PrivacyTimeRange.AllTime, DateTimeOffset.UtcNow), default));
+        Assert.Equal("privacy_identity_unavailable", error.Code);
+        Assert.Equal(acl, directory.GetAccessControl().GetSecurityDescriptorSddlForm(AccessControlSections.All));
+        Assert.Equal(bytes, File.ReadAllBytes(source.Path.Value));
     }
 
     [WindowsFact]

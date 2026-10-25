@@ -233,7 +233,14 @@ internal sealed class LocalStartupTaskControlHandle : IStartupTaskControlHandle
         }
         finally { LocalScheduledTaskReader.Release(principal); LocalScheduledTaskReader.Release(definition); }
     }
-    public void SetEnabled(bool enabled) => ((dynamic)task!).Enabled = enabled;
+    public void SetEnabled(bool enabled)
+    {
+        var name = Path[(Path.LastIndexOf('\\') + 1)..];
+        ((dynamic)task!).Enabled = enabled;
+        // IRegisteredTask caches its XML; reacquire before checking the changed setting.
+        LocalScheduledTaskReader.Release(task); task = null;
+        task = (object)((dynamic)folder!).GetTask(name);
+    }
     public void Dispose()
     {
         LocalScheduledTaskReader.Release(task); task = null;

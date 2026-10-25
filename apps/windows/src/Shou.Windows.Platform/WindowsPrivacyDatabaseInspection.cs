@@ -49,9 +49,12 @@ public sealed class WindowsPrivacyDatabaseInspection(WindowsPrivacySourcePolicy 
                     access.pins.Add(pinned);
                     var entry = WindowsFileSystem.ReadEntry(path, pinned.Final);
                     var createdJournal = journal && transactionJournal && entry.Identity.OwnerSid is "S-1-5-32-544" or "S-1-5-18";
-                    if (entry.Kind != (directory ? EntryKind.Directory : EntryKind.File) || entry.Identity.OwnerSid != owner && !createdJournal || !directory && entry.LinkCount != 1)
+                    // Provisioned Known Folders may have an OS owner. Only the exact AppData
+                    // anchor has this exception; every browser directory and database remains user-owned.
+                    var provisionedAnchor = directory && path == root.Anchor && entry.Identity.OwnerSid is "S-1-5-32-544" or "S-1-5-18";
+                    if (entry.Kind != (directory ? EntryKind.Directory : EntryKind.File) || entry.Identity.OwnerSid != owner && !createdJournal && !provisionedAnchor || !directory && entry.LinkCount != 1)
                         throw Unsafe();
-                    var security = SecurityDigest(pinned.Final, owner, createdJournal);
+                    var security = SecurityDigest(pinned.Final, owner, createdJournal || provisionedAnchor);
                     if (journal && !transactionJournal && entry.LogicalBytes != 0) throw Unsafe();
                     if (journal && mutation)
                     {
@@ -105,8 +108,9 @@ public sealed class WindowsPrivacyDatabaseInspection(WindowsPrivacySourcePolicy 
         foreach (var value in acl)
         {
             if (value is not CommonAce ace || ace.IsCallback) throw Unsafe();
-            if ((ace.AceFlags & AceFlags.InheritOnly) != 0 || ace.AceQualifier == AceQualifier.AccessDenied) continue;
+            if (ace.AceQualifier == AceQualifier.AccessDenied) continue;
             if (ace.AceQualifier != AceQualifier.AccessAllowed) throw Unsafe();
+            if ((ace.AceFlags & AceFlags.InheritOnly) != 0 && ace.SecurityIdentifier.Value == "S-1-3-0") continue;
             // SYSTEM and elevated Administrators are trusted OS principals. Other accounts may only read.
             if ((unchecked((uint)ace.AccessMask) & 0x500D0156u) != 0 && ace.SecurityIdentifier.Value != owner &&
                 ace.SecurityIdentifier.Value is not ("S-1-5-18" or "S-1-5-32-544")) throw Unsafe();
