@@ -118,11 +118,11 @@ public sealed class WindowsSystemMonitor : ISystemMonitorSampling, IDisposable
         var allocated = bytes; var buffer = Marshal.AllocHGlobal((int)bytes);
         try
         {
-            if (PdhGetFormattedCounterArrayW(counter, 0x200, ref bytes, ref count, buffer) != 0 || bytes > allocated || count > allocated / Marshal.SizeOf<FormattedItem>()) return result;
+            if (PdhGetFormattedCounterArrayW(counter, 0x200, ref bytes, ref count, buffer) != 0 || bytes > allocated || count > bytes / Marshal.SizeOf<FormattedItem>()) return result;
             for (var index = 0; index < count; index++)
             {
                 var item = Marshal.PtrToStructure<FormattedItem>(buffer + index * Marshal.SizeOf<FormattedItem>());
-                var name = Name(item.Name, buffer, allocated);
+                var name = Name(item.Name, buffer, bytes);
                 if (name is not null && item.Value.Status <= 1 && double.IsFinite(item.Value.Value) && item.Value.Value >= 0) result[name] = item.Value.Value;
             }
         }
@@ -138,11 +138,11 @@ public sealed class WindowsSystemMonitor : ISystemMonitorSampling, IDisposable
         var allocated = bytes; var buffer = Marshal.AllocHGlobal((int)bytes);
         try
         {
-            if (PdhGetRawCounterArrayW(counter, ref bytes, ref count, buffer) != 0 || bytes > allocated || count > allocated / Marshal.SizeOf<RawItem>()) return result;
+            if (PdhGetRawCounterArrayW(counter, ref bytes, ref count, buffer) != 0 || bytes > allocated || count > bytes / Marshal.SizeOf<RawItem>()) return result;
             for (var index = 0; index < count; index++)
             {
                 var item = Marshal.PtrToStructure<RawItem>(buffer + index * Marshal.SizeOf<RawItem>());
-                var name = Name(item.Name, buffer, allocated);
+                var name = Name(item.Name, buffer, bytes);
                 if (name is not null && name != "_Total" && item.Value.Status <= 1 && item.Value.First >= 0) result[name] = (ulong)item.Value.First;
             }
         }

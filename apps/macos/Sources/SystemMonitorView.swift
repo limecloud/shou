@@ -109,7 +109,7 @@ struct SystemMonitorView: View {
                     Text(temperature.map { String(format:"%.0f°C",$0) } ?? "— °C").font(.callout).foregroundStyle(.secondary)
                 }
             }
-            Text(key == "overview" ? model.t(loadState) : key == "thermal" ? model.t(observation?.thermalState ?? "Unavailable") : key == "diskRead" ? bytes(observation?.volumeAvailable) : summary(key))
+            Text(key == "overview" ? model.t(loadState) : key == "thermal" ? model.t(observation?.thermalState ?? "Unavailable") : key == "diskRead" ? bytes(observation?.volumeAvailable) : key == "networkReceive" ? "↓ "+rate(key) : summary(key))
                 .font(.system(size:key == "overview" || key == "thermal" ? 20 : ShouDesign.summaryFigureSize,weight:.medium)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.9)
             if ["cpu","gpu","memory","networkReceive","battery"].contains(key) {
                 MonitorTrend(history:session.history,keys:key == "networkReceive" ? [key,"networkSend"] : [key]).frame(height:40)
@@ -163,7 +163,7 @@ struct SystemMonitorView: View {
             return model.t(observation?.powerSource ?? "Unavailable")+" · "+model.t("Battery Health")+" "+percent(observation?.batteryHealth)+" · "+model.t("Cycles")+" "+(observation?.batteryCycles.map(String.init) ?? "—")
         }
         if key == "diskRead" { return model.t("System volume available")+" / "+bytes(observation?.volumeTotal)+"\n"+summary(key) }
-        if key == "networkReceive", session.sample?.values[key] != nil { return model.t("Active Ethernet / Wi-Fi interfaces")+"\n"+model.t("Receive / Send") }
+        if key == "networkReceive", session.sample?.values[key] != nil { return "↑ "+rate("networkSend")+"\n"+model.t("Active Ethernet / Wi-Fi interfaces") }
         if session.sample?.values[key] == nil {
             if let issue=observation?.issues[key] { return model.t(issue) }
             return model.t(session.sample?.baseline != false ? "Collecting rate baseline…" : "Counter unavailable or source changed.")

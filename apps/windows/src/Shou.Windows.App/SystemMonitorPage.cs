@@ -113,12 +113,12 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
             {
                 "memory" => Bytes(observation?.MemoryUsed) + " / " + Bytes(observation?.MemoryTotal) + " · " + T("Swap Used") + " " + Bytes(observation?.SwapUsed),
                 "battery" when Value(key) is not null => T(observation?.PowerSource ?? "Unavailable") + " · " + T("Battery Health") + " " + Percent(observation?.BatteryHealth) + " · " + T("Cycles") + " " + (observation?.BatteryCycles?.ToString() ?? "—"),
-                "networkReceive" when Value(key) is not null => T("Active Ethernet / Wi-Fi interfaces") + "\n" + T("Receive / Send"),
+                "networkReceive" when Value(key) is not null => "↑ " + Rate("networkSend") + "\n" + T("Active Ethernet / Wi-Fi interfaces"),
                 _ when Value(key) is null => T(observation?.Issues.GetValueOrDefault(key) ?? (model.Sample?.Baseline != false ? "Collecting rate baseline…" : "Counter unavailable or source changed.")),
                 "cpu" => T("Total machine capacity") + " · " + observation?.LogicalCpuCount + " " + T("Logical cores"),
                 _ => T("Busiest GPU engine or device")
             };
-            cards[key].Update(key == "networkReceive" ? "↓ " + Rate(key) + " · ↑ " + Rate("networkSend") : Percent(Value(key)), null, detail);
+            cards[key].Update(key == "networkReceive" ? "↓ " + Rate(key) : Percent(Value(key)), null, detail);
             cards[key].Trend.Update(model.History, key == "networkReceive" ? [key, "networkSend"] : [key]);
             if (key is "cpu" or "gpu") cards[key].Badge.Text = ((key == "cpu" ? observation?.CpuTemperature : observation?.GpuTemperature)?.ToString("F0") ?? "— ") + "°C";
         }
@@ -181,7 +181,7 @@ internal sealed class MonitorProcessRow(MonitorProcessUsage initial) : INotifyPr
     public void Update(MonitorProcessUsage next) { value = next; PropertyChanged?.Invoke(this, new(null)); }
 }
 
-internal sealed class MonitorMetricCard : Border
+internal sealed class MonitorMetricCard : UserControl
 {
     private readonly TextBlock value = new() { FontSize = (double)Application.Current.Resources["ShouSummaryFigureSize"], FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly TextBlock detail = new() { TextWrapping = TextWrapping.Wrap, MaxLines = 3, Height = 54 };
@@ -191,11 +191,11 @@ internal sealed class MonitorMetricCard : Border
     private readonly ProgressBar meter = new() { Height = 6, MinHeight = 0, Maximum = 100, Visibility = Visibility.Collapsed, Margin = new(0, 18, 0, 18) };
     public MonitorMetricCard(string title)
     {
-        CornerRadius = (CornerRadius)Application.Current.Resources["ShouCardRadius"]; Padding = new(16); BorderThickness = new(1);
-        ThemeResources.Apply(this, BackgroundProperty, "Background", "ShouSurfaceBrush"); ThemeResources.Apply(this, BorderBrushProperty, "BorderBrush", "ShouDividerBrush");
+        var surface = new Border { CornerRadius = (CornerRadius)Application.Current.Resources["ShouCardRadius"], Padding = new(16), BorderThickness = new(1) };
+        ThemeResources.Apply(surface, Border.BackgroundProperty, "Background", "ShouSurfaceBrush"); ThemeResources.Apply(surface, Border.BorderBrushProperty, "BorderBrush", "ShouDividerBrush");
         var content = new StackPanel { Spacing = 9 }; var top = new Grid(); top.ColumnDefinitions.Add(new()); top.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         top.Children.Add(new TextBlock { Text = title, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold }); Grid.SetColumn(Badge, 1); top.Children.Add(Badge);
-        content.Children.Add(top); content.Children.Add(value); content.Children.Add(Trend); content.Children.Add(meter); content.Children.Add(middle); content.Children.Add(detail); Child = content;
+        content.Children.Add(top); content.Children.Add(value); content.Children.Add(Trend); content.Children.Add(meter); content.Children.Add(middle); content.Children.Add(detail); surface.Child = content; Content = surface;
         ThemeResources.Apply(detail, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush"); ThemeResources.Apply(middle, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
     }
     public void Update(string number, string? description, string footer)
