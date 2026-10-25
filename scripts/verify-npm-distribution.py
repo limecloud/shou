@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 
@@ -32,6 +33,15 @@ def main():
     if output.exists():
         parser.error("Choose a new evidence directory.")
     output.mkdir(parents=True)
+    if host_system == "win32":
+        # Elevated CI otherwise assigns Administrators as the owner. Only this
+        # newly generated evidence directory becomes the private store's parent.
+        identity = subprocess.run(["whoami", "/user", "/fo", "csv", "/nh"], capture_output=True, check=True, timeout=10)
+        sid = re.search(rb'"(S-1-\d+(?:-\d+)+)"', identity.stdout)
+        if not sid:
+            raise RuntimeError("The generated fixture requires the current-user SID.")
+        subprocess.run(["icacls", str(output), "/setowner", "*" + sid[1].decode("ascii"), "/Q"],
+                       capture_output=True, check=True, timeout=20)
     node = shutil.which("node")
     npm = Path(shutil.which("npm") or "missing").resolve()
     npm_cli = npm if npm.name == "npm-cli.js" else npm.parent / "node_modules/npm/bin/npm-cli.js"
@@ -50,7 +60,7 @@ def main():
         result = subprocess.run([str(value) for value in arguments], cwd=cwd, env=environment, text=True, encoding="utf-8",
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=60)
         if result.returncode != expected:
-            raise RuntimeError(f"Command returned {result.returncode}, expected {expected}: {arguments}\n{result.stderr}")
+            raise RuntimeError(f"Command returned {result.returncode}, expected {expected}: {arguments}\n{result.stdout}\n{result.stderr}")
         return result
 
     def npm_run(*arguments):

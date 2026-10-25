@@ -17,6 +17,7 @@
             <SolidColorBrush x:Key="ShouCleanupCategorySelectionBrush" Color="{StaticResource ShouCleanupCategorySelectionLight}" />
             <SolidColorBrush x:Key="ShouTitlebarBrush" Color="{StaticResource ShouTitlebarLight}" />
             <SolidColorBrush x:Key="ShouSurfaceBrush" Color="{StaticResource ShouSurfaceLight}" />
+            <SolidColorBrush x:Key="ShouTableStripeBrush" Color="{StaticResource ShouTableStripeLight}" />
             <SolidColorBrush x:Key="ShouSettingsBrush" Color="{StaticResource ShouSettingsLight}" />
             <SolidColorBrush x:Key="ShouDividerBrush" Color="{StaticResource ShouDividerLight}" />
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ShouAccent}" />
@@ -47,6 +48,7 @@
             <SolidColorBrush x:Key="ShouCleanupCategorySelectionBrush" Color="{StaticResource ShouCleanupCategorySelectionDark}" />
             <SolidColorBrush x:Key="ShouTitlebarBrush" Color="{StaticResource ShouTitlebarDark}" />
             <SolidColorBrush x:Key="ShouSurfaceBrush" Color="{StaticResource ShouSurfaceDark}" />
+            <SolidColorBrush x:Key="ShouTableStripeBrush" Color="{StaticResource ShouTableStripeDark}" />
             <SolidColorBrush x:Key="ShouSettingsBrush" Color="{StaticResource ShouSettingsDark}" />
             <SolidColorBrush x:Key="ShouDividerBrush" Color="{StaticResource ShouDividerDark}" />
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ShouAccentDark}" />
@@ -73,6 +75,7 @@
             <SolidColorBrush x:Key="ShouCleanupCategorySelectionBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="ShouTitlebarBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="ShouSurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="ShouTableStripeBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="ShouSettingsBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="ShouDividerBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="ShouAccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />

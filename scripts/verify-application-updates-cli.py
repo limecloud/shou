@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """Check the public catalog workflow using generated app metadata and private stores."""
 from pathlib import Path
+import argparse
 import json
 import os
 import plistlib
 import subprocess
-import sys
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
-binary = (root / '.build/debug/shou').resolve()
-allow_network = sys.argv[1:] == ['--network']
-assert not sys.argv[1:] or allow_network, 'Usage: verify-application-updates-cli.py [--network]'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('binary', nargs='?', type=Path, default=root / '.build/debug/shou')
+parser.add_argument('--network', action='store_true')
+arguments = parser.parse_args()
+binary = arguments.binary.resolve()
+allow_network = arguments.network
 checks = 0
 applications = Path.home() / 'Applications'
 created_applications = not applications.exists()

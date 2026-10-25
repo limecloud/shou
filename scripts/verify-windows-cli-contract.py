@@ -54,7 +54,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
 
     for shell in ('bash', 'zsh', 'powershell'):
         script = run(['completion', '--shell', shell, '--json'])['data']['script']
-        destination = Path(directory) / ('shou-completion.' + shell)
+        destination = Path(directory) / ('shou-completion.' + ('ps1' if shell == 'powershell' else shell))
         destination.write_text(script, encoding='utf-8')
         executable = shutil.which(shell)
         if shell != 'powershell' and executable:
@@ -66,7 +66,8 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         if shell == 'powershell' and shutil.which('pwsh'):
             driver = Path(directory) / 'completion-driver.ps1'
             driver.write_text("param([string]$CompletionFile)\n. $CompletionFile\n$result = TabExpansion2 'shou analysis c' 15\nif ($result.CompletionMatches.CompletionText -notcontains 'compare') { throw 'Missing comparison completion' }\n$result = TabExpansion2 'shou --locale ' 14\nif ($result.CompletionMatches.CompletionText -notcontains 'zh-CN') { throw 'Missing locale completion' }\n", encoding='utf-8')
-            subprocess.run([shutil.which('pwsh'), '-NoProfile', '-NonInteractive', '-File', str(driver), str(destination)], capture_output=True, check=True, timeout=20)
+            completed = subprocess.run([shutil.which('pwsh'), '-NoProfile', '-NonInteractive', '-File', str(driver), str(destination)], capture_output=True, text=True, timeout=20)
+            assert completed.returncode == 0, (completed.stdout, completed.stderr)
     assert not data_directory.exists()
 
     import xml.etree.ElementTree as ET
