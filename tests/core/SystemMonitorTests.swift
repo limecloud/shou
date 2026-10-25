@@ -78,6 +78,11 @@ func nativeMonitorReadsWithoutMutation() async throws {
     try expect(first.memoryTotal != nil && first.memoryUsed != nil && !first.hardware.isEmpty)
     try expect(first.processes.contains { $0.pid == ProcessInfo.processInfo.processIdentifier })
     try expect(first.processes.count <= 4096 && first.fanRPM.allSatisfy { $0.isFinite && $0 >= 0 })
+    let before=try require(first.processes.first { $0.pid == ProcessInfo.processInfo.processIdentifier })
+    let until=ProcessInfo.processInfo.systemUptime+0.12
+    while ProcessInfo.processInfo.systemUptime < until { _ = sqrt(ProcessInfo.processInfo.systemUptime) }
+    let after=try require(try await source.observe().processes.first { $0.pid == ProcessInfo.processInfo.processIdentifier })
+    try expect(after.cpuSeconds-before.cpuSeconds >= 0.08 && after.cpuSeconds-before.cpuSeconds < 2)
     print("Native monitor: \(first.cpu.count) cores, \(first.processes.count) processes (\(first.processCoverage)); CPU temperature \(first.cpuTemperature.map(String.init(describing:)) ?? "unavailable"), GPU \(first.gpuPercent.map(String.init(describing:)) ?? "unavailable"), fans \(first.fanRPM.count).")
     #endif
 }

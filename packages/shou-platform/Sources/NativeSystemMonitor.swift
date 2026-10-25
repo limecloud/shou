@@ -106,6 +106,8 @@ public struct NativeSystemMonitor: SystemMonitorSampling {
         }
         if result.batteryPercent == nil { result.issues["battery"]="No readable internal battery was found." }
         let processStart=ProcessInfo.processInfo.systemUptime
+        var timebase=mach_timebase_info_data_t()
+        let hasTimebase=mach_timebase_info(&timebase) == KERN_SUCCESS && timebase.denom > 0
         let required=proc_listpids(UInt32(PROC_ALL_PIDS), 0, nil, 0)
         if required > 0 {
             let capacity=min(Int(required)/MemoryLayout<Int32>.size+128,4096)
@@ -116,13 +118,18 @@ public struct NativeSystemMonitor: SystemMonitorSampling {
                 try Task.checkCancellation()
                 if ProcessInfo.processInfo.systemUptime-processStart > 0.6 { result.processCoverage="Partial process coverage"; break }
                 var task=proc_taskinfo(), bsd=proc_bsdinfo()
+                var usage=rusage_info_v2()
+                let usageStatus=withUnsafeMutablePointer(to:&usage) { pointer in
+                    pointer.withMemoryRebound(to:rusage_info_t?.self,capacity:1) { proc_pid_rusage(pid,RUSAGE_INFO_V2,$0) }
+                }
                 let taskSize=Int32(MemoryLayout<proc_taskinfo>.size), bsdSize=Int32(MemoryLayout<proc_bsdinfo>.size)
-                guard proc_pidinfo(pid,PROC_PIDTASKINFO,0,&task,taskSize) == taskSize,
+                guard hasTimebase, usageStatus == 0, proc_pidinfo(pid,PROC_PIDTASKINFO,0,&task,taskSize) == taskSize,
                       proc_pidinfo(pid,PROC_PIDTBSDINFO,0,&bsd,bsdSize) == bsdSize else { skipped += 1; continue }
                 var name=[CChar](repeating:0,count:256)
                 guard proc_name(pid,&name,UInt32(name.count)) > 0 else { skipped += 1; continue }
                 result.processes.append(MonitorProcessCounter(id: "\(pid):\(bsd.pbi_start_tvsec):\(bsd.pbi_start_tvusec)", pid: pid,
-                    name: String(decoding:name.prefix(while: { $0 != 0 }).map { UInt8(bitPattern:$0) },as:UTF8.self), cpuSeconds: (Double(task.pti_total_user)+Double(task.pti_total_system))/1e9, memoryBytes: task.pti_resident_size))
+                    name: String(decoding:name.prefix(while: { $0 != 0 }).map { UInt8(bitPattern:$0) },as:UTF8.self),
+                    cpuSeconds: (Double(usage.ri_user_time)+Double(usage.ri_system_time))*Double(timebase.numer)/Double(timebase.denom)/1e9, memoryBytes: task.pti_resident_size))
             }
             if skipped > 0 || required/4 >= capacity { result.processCoverage="Partial process coverage" }
         } else { result.processCoverage="Partial process coverage" }

@@ -61,16 +61,16 @@ try {
     $Window = [Windows.Automation.AutomationElement]::FromHandle($Handle)
     [MonitorUiNative]::SetForegroundWindow($Handle) | Out-Null
     $Icon.Size = [Runtime.InteropServices.Marshal]::SizeOf($Icon); $Icon.Window = $Handle; $Icon.Id = 71
-    Wait-Monitor { $Status = Find-Monitor 'monitor.status'; $null -ne $Status -and $Status.Current.Name -match 'Live|实时' } 'first observation' | Out-Null
+    Wait-Monitor { $Status = Find-Monitor 'monitor.status'; $null -ne $Status -and $Status.Current.Name -match 'Live|\u5b9e\u65f6' } 'first observation' | Out-Null
     Start-Sleep -Seconds 3
     foreach ($Key in @('overview','cpu','gpu','memory','battery','diskRead','networkReceive','thermal')) { Get-Monitor ('monitor.metric.' + $Key) | Out-Null }
     Save-Monitor '01-live-panels'; $Checks.Add('eight live resource panels and process surface')
     $Field = (Get-Monitor 'monitor.process.search').GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern)
     $Field.SetValue('shou_monitor_no_match_' + [Guid]::NewGuid().ToString('N'))
-    Wait-Monitor { (Get-Monitor 'monitor.coverage').Current.Name -match 'Showing 0 of 0|显示 0 项，共 0' } 'empty process search' | Out-Null
+    Wait-Monitor { (Get-Monitor 'monitor.coverage').Current.Name -match 'Showing 0 of 0|\u663e\u793a 0 \u9879\uff0c\u5171 0' } 'empty process search' | Out-Null
     $Field.SetValue(''); $Checks.Add('bounded process search and empty result')
     Invoke-Monitor 'monitor.pause'
-    Wait-Monitor { (Get-Monitor 'monitor.status').Current.Name -match 'paused|暂停' } 'paused status' | Out-Null
+    Wait-Monitor { (Get-Monitor 'monitor.status').Current.Name -match 'paused|\u6682\u505c' } 'paused status' | Out-Null
     $Frozen = (Get-Monitor 'monitor.status').Current.Name; Start-Sleep -Seconds 3
     if ((Get-Monitor 'monitor.status').Current.Name -ne $Frozen) { throw 'Paused monitor continued updating.' }
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -eq 0 } 'registered tray icon' | Out-Null
@@ -85,10 +85,10 @@ try {
     $Labels = @($Items | ForEach-Object { $_.Current.Name })
     $Labels | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Output '02-tray-menu.json') -Encoding utf8
     if (($Labels -join ' ') -notmatch 'CPU.*GPU') { throw 'Tray menu is missing resource readings.' }
-    $Resume = $Items | Where-Object { $_.Current.Name -match 'Resume Monitoring|继续监控' } | Select-Object -First 1
+    $Resume = $Items | Where-Object { $_.Current.Name -match 'Resume Monitoring|\u7ee7\u7eed\u76d1\u63a7' } | Select-Object -First 1
     if ($null -eq $Resume) { throw 'Tray menu is missing resume.' }
     $Resume.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
-    Wait-Monitor { (Get-Monitor 'monitor.status').Current.Name -match 'Live|实时' } 'tray resume' | Out-Null
+    Wait-Monitor { (Get-Monitor 'monitor.status').Current.Name -match 'Live|\u5b9e\u65f6' } 'tray resume' | Out-Null
     $Checks.Add('native tray registration, resource menu and resume command')
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -ne 0 } 'tray icon removal' | Out-Null
     $Checks.Add('disable removes the native notification icon')
