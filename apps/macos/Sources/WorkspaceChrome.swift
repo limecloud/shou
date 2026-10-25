@@ -39,6 +39,7 @@ struct WorkspaceNavigation: View {
                     navigation("smart", "Cleanup", "sparkle.magnifyingglass")
                     navigation("applications", "Apps & Projects", "square.stack.3d.up")
                     navigation("storage", "Space Analysis", "square.grid.2x2")
+                    navigation("monitor", "Monitor", "waveform.path.ecg")
                     navigation("rules", "Rules", "slider.horizontal.3")
                 }
                 Spacer(minLength: 8)

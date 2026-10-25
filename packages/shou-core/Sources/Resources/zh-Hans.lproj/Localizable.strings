@@ -66,6 +66,7 @@
 "A structured decision provider is not configured for this connection." = "此连接尚未配置结构化决策服务。";
 "A target path containing wildcard characters requires a new workspace scan." = "目标路径包含通配符字符，请重新扫描所在位置。";
 "A valid application identifier and metadata are required before uninstalling." = "卸载前需要有效的应用标识和元数据。";
+"AC Power" = "电源供电";
 "AI Configuration" = "AI 配置方案";
 "AI Configurations" = "AI 配置方案";
 "AI Investigation" = "AI 调查";
@@ -85,6 +86,7 @@
 "Access required" = "需要访问权限";
 "Access to this location is unavailable." = "无法访问此位置。";
 "Access to this startup source was denied." = "没有权限读取此启动项来源。";
+"Active Ethernet / Wi-Fi interfaces" = "活动的以太网 / Wi-Fi 接口";
 "Active or recoverable records were preserved. Review the history selection." = "正在执行或恢复所需的记录已保留，请重新检查选择。";
 "Activity checks cover the installation folder; execution is not available yet." = "活动检查覆盖安装目录；执行功能尚未开放。";
 "Add Connection…" = "添加连接…";
@@ -121,6 +123,7 @@
 "All Scanned Folders" = "全部已扫描范围";
 "All Types" = "全部类型";
 "All Workspaces" = "全部位置";
+"All readable physical disks" = "全部可读物理磁盘";
 "All time" = "所有时间";
 "All-user agents" = "所有用户代理任务";
 "All-user daemons" = "所有用户守护任务";
@@ -235,6 +238,9 @@
 "Background Login Item" = "后台登录项";
 "Baidu Netdisk caches" = "百度网盘 缓存";
 "Based on a saved size index; current files are rechecked by rule preview and cleanup." = "建议基于已保存的大小索引；规则预览和清理会重新检查当前文件。";
+"Battery" = "电池";
+"Battery Health" = "电池健康";
+"Battery Power" = "电池供电";
 "Battle.net caches" = "战网 缓存";
 "Below the minimum allocated size" = "分配容量未达到最小值";
 "Beyond the rule discovery depth" = "超出规则发现深度";
@@ -281,10 +287,13 @@
 "Built-in scan location metadata is invalid." = "内置扫描位置信息无效。";
 "Built-in scan locations are unavailable." = "内置扫描位置不可用。";
 "Bundler download caches" = "Bundler 下载缓存";
+"Busiest GPU engine or device" = "最繁忙的 GPU 引擎或设备";
 "CLI" = "命令行";
 "CLI installed. If shou is not on PATH, use the full path shown below." = "CLI 已安装。如果终端找不到 shou，请使用以下完整路径。";
 "CMake build outputs" = "CMake 构建产物";
 "CMake normally regenerates configured build outputs from the retained project sources." = "CMake 通常可以根据保留的项目源码重新生成已配置的构建产物。";
+"CPU and memory load; not a hardware health score." = "依据 CPU 与内存负载判断，不代表硬件健康评分。";
+"CPU cores and memory details" = "每核 CPU 与内存详情";
 "Cache Files" = "缓存文件";
 "Calculating…" = "正在计算…";
 "Camo caches" = "Camo 缓存";
@@ -320,6 +329,7 @@
 "Changed since operation" = "操作后已变化";
 "Changes apply to future launches." = "更改适用于后续启动。";
 "Changing the scheduled task…" = "正在更改计划任务…";
+"Charging" = "充电中";
 "Charles Proxy caches" = "Charles Proxy 缓存";
 "ChatGPT caches" = "ChatGPT 缓存";
 "Check Again" = "重新检查";
@@ -445,6 +455,7 @@
 "Codex download caches" = "Codex 下载缓存";
 "Codex recreates web-resource, code and graphics caches when needed." = "Codex 会按需重建网页资源、代码和图形缓存。";
 "Collapse startup details" = "收起启动项详情";
+"Collecting rate baseline…" = "正在建立速率基线…";
 "Colors indicate extensions, not cleanup eligibility." = "颜色表示文件扩展名，不代表可以清理。";
 "Combine structured decisions with a main model in one configuration. Local analysis and the decision service come first; the main model handles requests that need more understanding." = "在一个方案中组合结构化决策和大模型。优先使用本地分析与决策服务，仅在需要更多理解时调用大模型。";
 "Comet caches" = "Comet 缓存";
@@ -457,6 +468,7 @@
 "Comparing analyses…" = "正在比较分析…";
 "Comparison budgets must be numeric." = "比较预算必须为数值。";
 "Comparison unavailable" = "无法比较";
+"Complete" = "完整覆盖";
 "Completed" = "已完成";
 "Completed operations and their actual results appear here." = "完成操作后，可以在这里查看每一项真实结果。";
 "Completed operations and their recorded results will appear here." = "已完成的操作及其结果记录会显示在这里。";
@@ -464,6 +476,7 @@
 "Component parent changed; preview again." = "组件父目录已变化，请重新预览。";
 "Composer download cache" = "Composer 下载缓存";
 "Composer legacy download cache" = "Composer 旧版下载缓存";
+"Compressed" = "压缩内存";
 "Conda package caches" = "Conda 软件包缓存";
 "Conda removes unused packages, archives, index and logs. Environments using symlinks into package caches can be affected. Review your environments before cleaning." = "Conda 清理未使用的软件包、归档、索引与日志。通过符号链接引用软件包缓存的环境可能受影响，清理前请检查环境。";
 "Conditional keep alive" = "按条件保持运行";
@@ -512,12 +525,14 @@
 "Could not copy analysis." = "无法复制分析结果。";
 "Could not save the API key in Keychain." = "无法将 API 密钥存入钥匙串。";
 "Could not verify" = "无法核验";
+"Counter unavailable or source changed." = "计数器不可用或来源已改变。";
 "Coverage Issues" = "覆盖范围问题";
 "Create Rule for This Folder…" = "为此目录创建规则…";
 "Create Rules with AI…" = "用 AI 制定规则…";
 "Create a Personal Rule" = "创建个人规则";
 "Create or import a personal rule to describe your own build outputs and caches." = "创建或导入个人规则，描述自己的构建产物与缓存。";
 "Create reusable rules" = "制定可复用规则";
+"Critical" = "严重";
 "Current Analysis" = "当前分析";
 "Current Size" = "当前占用";
 "Current User Run" = "当前用户 Run";
@@ -532,6 +547,7 @@
 "Customize cleanup rules for Windows" = "为你的 Windows 定制清理规则";
 "Customize with AI" = "通过 AI 定制";
 "Customize with AI…" = "通过 AI 定制…";
+"Cycles" = "循环次数";
 "DaVinci Resolve caches" = "DaVinci Resolve 缓存";
 "Dark" = "暗色";
 "Data storage" = "数据目录";
@@ -589,6 +605,7 @@
 "Disable" = "停用";
 "Disable Selected Version" = "停用所选版本";
 "Disable Startup Task" = "禁用启动任务";
+"Disable Summary" = "关闭摘要";
 "Disable startup definition?" = "停用启动项定义？";
 "Disable startup items?" = "禁用启动项？";
 "Disabled" = "停用";
@@ -599,6 +616,8 @@
 "Discover files" = "发现文件";
 "Discovering startup items…" = "正在发现启动项…";
 "Discovery depth must be a whole number from 1 to 32." = "发现深度必须为 1 至 32 的整数。";
+"Disk" = "磁盘";
+"Disk Activity" = "磁盘活动";
 "Disk Usage" = "磁盘占用";
 "Disk access" = "磁盘访问";
 "Disk access could not be verified; this does not establish complete scan coverage." = "无法核实磁盘访问权限，不能据此认定扫描覆盖完整。";
@@ -679,6 +698,9 @@
 "External AI Tools…" = "外部 AI 工具…";
 "Failed" = "失败";
 "Failed items" = "失败项";
+"Fair" = "轻度升温";
+"Fan" = "风扇";
+"Fan telemetry unavailable" = "风扇数据不可用";
 "Figma caches" = "Figma 缓存";
 "Figma download caches" = "Figma 下载缓存";
 "File Extensions" = "文件扩展名";
@@ -727,6 +749,7 @@
 "Full Disk Access is not enabled" = "受保护目录访问受限";
 "Full Disk Access lets Shou measure protected app data and caches, and avoids repeated macOS app-data prompts. It does not start cleanup." = "完全磁盘访问权限用于统计受保护的应用数据与缓存，减少 macOS 反复询问应用数据访问。授权不会开始清理。";
 "GOG Galaxy caches" = "GOG Galaxy 缓存";
+"GPU counters are unavailable on this device." = "此设备无法读取 GPU 计数器。";
 "General" = "常规";
 "Generated caches are recreated by the owning tool; future launches or builds may require downloads." = "缓存由所属工具重新生成；后续启动或构建可能需要下载。";
 "Generated content hypothesis" = "生成内容假设";
@@ -758,6 +781,7 @@
 "Hide Details" = "收起详情";
 "Hide components" = "收起组件";
 "High Risk" = "高风险";
+"High resource usage" = "资源负载较高";
 "High risk" = "高风险";
 "High risk (required for installed dependencies)" = "高风险（已安装依赖必须选择）";
 "High risk — reinstall required" = "高风险，需要重新安装";
@@ -891,6 +915,7 @@
 "Large Files" = "大文件清理";
 "Lark and Feishu caches" = "飞书与 Lark 缓存";
 "Lark and Feishu rendering caches" = "飞书与 Lark 渲染缓存";
+"Last 2 minutes · Gaps mean unavailable" = "最近 2 分钟 · 断线表示数据不可用";
 "Last 24 hours" = "最近24小时";
 "Last 7 days" = "最近 7 天";
 "Last Used" = "上次使用";
@@ -908,6 +933,7 @@
 "Limitations and data to preserve, one note per line" = "局限与需保留的数据，每行一条说明";
 "Linked definition was not followed" = "未跟随链接配置";
 "Links, special files and the scan root cannot be removed here." = "此处不能删除链接、特殊文件和扫描根目录。";
+"Live · Every 2 seconds" = "实时 · 每 2 秒采样";
 "Load More" = "加载更多";
 "Loaded" = "已加载";
 "Loading measured results…" = "正在加载统计结果…";
@@ -925,6 +951,7 @@
 "Locations with issues" = "存在问题的位置";
 "Log Files" = "日志文件";
 "Logical Size" = "逻辑大小";
+"Logical cores" = "逻辑核心";
 "Logical size" = "逻辑大小";
 "Login Items, background-task registrations and helpers embedded in applications require System Settings. Apple system definitions are included only when requested. Permission and read-budget gaps remain visible." = "登录项、后台任务注册和应用内辅助程序需在系统设置中查看。仅在主动选择后包含 Apple 系统配置；权限及读取预算造成的缺口会单独列出。";
 "Logseq caches" = "Logseq 缓存";
@@ -958,6 +985,9 @@
 "Measure this folder locally first. AI starts only after you review the results and choose Start Investigation." = "先在本地测量此文件夹。审阅结果并点击“开始调查”后才会调用 AI。";
 "Measured Space" = "已统计空间";
 "Measuring application sizes…" = "正在统计应用大小…";
+"Memory" = "内存";
+"Memory Pressure" = "内存压力";
+"Menu bar summary" = "菜单栏摘要";
 "MiaoYan caches" = "妙言 缓存";
 "Microsoft Edge caches" = "Microsoft Edge 缓存";
 "Microsoft Edge download caches" = "Microsoft Edge 下载缓存";
@@ -979,6 +1009,8 @@
 "Model Connections" = "模型连接";
 "Modified" = "修改时间";
 "MongoDB Compass caches" = "MongoDB Compass 缓存";
+"Monitor" = "监控";
+"Monitoring paused" = "监控已暂停";
 "More Actions" = "更多操作";
 "More evidence needed" = "需要补充证据";
 "More room to build." = "给下一次构建，留点空间。";
@@ -1010,6 +1042,8 @@
 "Needs attention" = "需要注意";
 "Needs verification" = "需要核实";
 "NetEase Music caches" = "网易云音乐 缓存";
+"Network" = "网络";
+"Network Activity" = "网络活动";
 "Network workspaces are outside the supported execution scope." = "暂不支持在网络工作区中执行清理。";
 "New Investigation" = "新建调查";
 "New Rule…" = "新建规则…";
@@ -1039,6 +1073,7 @@
 "No matching cleanup items were found." = "未找到符合规则的清理项目。";
 "No matching items." = "没有匹配的项目。";
 "No matching large files" = "没有符合条件的大文件";
+"No matching processes." = "没有匹配的进程。";
 "No matching project outputs" = "没有匹配的项目产物";
 "No matching records" = "无匹配记录";
 "No matching rules" = "没有匹配的规则";
@@ -1046,6 +1081,7 @@
 "No matching startup items" = "没有匹配的启动项";
 "No matching startup items." = "没有匹配的启动项。";
 "No path was recorded" = "未记录路径";
+"No readable internal battery was found." = "未找到可读的内置电池。";
 "No reclaimable tool-managed storage found." = "未发现可回收的工具缓存。";
 "No recorded location" = "未记录位置";
 "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation." = "暂无规则建议。保留内容或证据不足均为有效结果，可查看调查发现或缩小范围重新调查。";
@@ -1095,9 +1131,11 @@
 "NuGet download caches" = "NuGet 下载缓存";
 "OK" = "好";
 "Object replaced" = "对象已替换";
+"Observation incomplete" = "观察尚不完整";
 "Observed Change" = "观察到的变化";
 "Observed Index Evidence" = "已读取的索引证据";
 "Observed at" = "观察时间";
+"Observed load normal" = "已观察负载正常";
 "Observed startup state is best effort; launchd can change after this read." = "启动项状态仅代表本次读取结果，launchd 可能在读取后变化。";
 "Obsidian caches" = "Obsidian 缓存";
 "Obsidian download caches" = "Obsidian 下载缓存";
@@ -1105,6 +1143,7 @@
 "Offline builds may need the cached archives. Source checkouts and toolchains are retained." = "离线构建可能依赖这些归档。源码检出和工具链会保留。";
 "Offline installs may fail until packages are downloaded again. Stop package-manager tasks first." = "重新下载前，离线安装可能失败。请先停止包管理器任务。";
 "Offline installs may require downloading packages again. Project dependencies, global executables and configuration are retained." = "离线安装可能需要重新下载依赖包。保留项目依赖、全局可执行程序和配置。";
+"Oldest → Latest" = "较早 → 最新";
 "One Exact Folder" = "一个确切目录";
 "One Folder" = "单个目录";
 "One configuration combines a decision service and an optional main model. Keys are saved locally for your user account; ordinary scans work offline." = "一个方案包含决策服务和可选大模型。密钥保存在当前用户的本地私有目录；普通扫描离线运行。";
@@ -1139,6 +1178,7 @@
 "Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks." = "打开“隐私与安全性 → 完全磁盘访问权限”，开启 Shou。列表中没有时，点击 +，选择应用程序中的 Shou.app。如果 macOS 要求，请退出并重新打开 Shou。";
 "Open Smart Cleanup" = "前往智能清理";
 "Open Source" = "开放源代码";
+"Open System Monitor" = "打开系统监控";
 "Open System Settings…" = "打开系统设置…";
 "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours." = "打开已保存的调查不会联网。继续时使用原连接，调查超过 24 小时后无法续接。";
 "Opening local data…" = "正在打开本地数据…";
@@ -1178,8 +1218,10 @@
 "Partial comparison. Ranking covers only examined entries; incomplete coverage has no numeric growth conclusion." = "比较范围不完整。排序仅涵盖已检查项目；覆盖不完整时不提供增长数值结论。";
 "Partial measurements — inaccessible or changing content is not included." = "部分测量结果：不包含无法访问或正在变化的内容。";
 "Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage." = "预览覆盖不完整。下方列出无法读取或超时的位置，不能视为已全部检查。";
+"Partial process coverage" = "进程覆盖不完整";
 "Partially Enabled" = "部分启用";
 "Partially completed" = "部分完成";
+"Pause Monitoring" = "暂停监控";
 "Paw API caches" = "Paw API 缓存";
 "Permanent cleanup" = "永久清理";
 "Permanent deletion cannot be undone." = "永久删除后无法撤销。";
@@ -1243,6 +1285,9 @@
 "Privacy operation stopped." = "隐私操作已停止。";
 "Privacy scanning is read-only. Record deletion is not available yet." = "隐私扫描仅供查看，暂不支持删除记录。";
 "Privacy sources could not be scanned. Check browser access and try again." = "无法扫描隐私来源，请检查浏览器访问权限后重试。";
+"Process" = "进程";
+"Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat." = "进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。";
+"Processes" = "进程";
 "Processing Strategy" = "处理策略";
 "Processing selected items…" = "正在处理所选项…";
 "Processor count" = "处理器数量";
@@ -1294,6 +1339,7 @@
 "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted." = "请先退出 Claude。规则不匹配对话存储、设置、凭据、虚拟机及 Agent 会话。";
 "Quit Codex first. Conversation storage, settings, credentials, local workspaces and agent sessions are not targeted." = "请先退出 Codex。规则不匹配对话存储、设置、凭据、本地工作区及 Agent 会话。";
 "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted." = "请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。";
+"Quit Shou" = "退出 Shou";
 "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup." = "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。";
 "Quit apps to clean their caches?" = "关闭应用以清理缓存？";
 "Quit requested. Scan again after the application closes." = "已请求退出，待应用关闭后请重新扫描。";
@@ -1306,6 +1352,7 @@
 "Quit the browser first. Offline web resources may require downloading again. Cookies, history, passwords, bookmarks, sessions and installed extensions are not targeted." = "请先退出浏览器。离线网页资源可能需要重新下载。保留 Cookie、历史、密码、书签、会话和扩展。";
 "RPCS3 caches" = "RPCS3 缓存";
 "Read" = "已读取";
+"Read / Write" = "读取 / 写入";
 "Read Operation Result" = "查询操作结果";
 "Read Recorded Result" = "查询已记录结果";
 "Read Uninstall Record" = "读取卸载记录";
@@ -1321,6 +1368,7 @@
 "Read-only system tool output could not be bounded." = "无法限制只读系统工具的输出量。";
 "Read-only system tool output could not be read." = "无法读取只读系统工具的检查结果。";
 "Read-only system tool output exceeded its budget." = "只读系统工具的输出量超出限制。";
+"Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled." = "只读监控 · 历史仅保留在内存中 · 离开本页后停止采样，除非已开启摘要。";
 "Reading analysis history…" = "正在读取分析历史…";
 "Reading directory evidence…" = "正在读取目录证据…";
 "Reading installed applications…" = "正在读取已安装应用…";
@@ -1341,8 +1389,10 @@
 "Receipt item already has a follow-up operation." = "此记录项目已有后续操作。";
 "Receipt paths do not identify a workspace item and a system Trash location." = "记录中的路径与工作区项目或系统废纸篓位置不匹配。";
 "Receipt root changed." = "记录根目录已变化。";
+"Receive / Send" = "接收 / 发送";
 "Recent Tool Cleanups" = "最近的工具清理";
 "Recent privacy receipts" = "最近的隐私清理记录";
+"Recent resource trend" = "近期资源趋势";
 "Recommended" = "推荐";
 "Record does not exist." = "记录不存在。";
 "Record exceeds the storage read limit." = "记录超过存储读取限制。";
@@ -1388,6 +1438,7 @@
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "重新安装需要网络或本地包缓存。请保留经过修改、链接、私有或未发布的包。";
 "Rescan" = "重新扫描";
 "Rescan This Folder" = "重新扫描当前文件夹";
+"Resource Status" = "资源状态";
 "Restore" = "恢复";
 "Restore destination already exists; nothing was overwritten." = "还原位置已存在，未覆盖任何内容。";
 "Restore destination is occupied" = "恢复位置已被占用";
@@ -1400,6 +1451,7 @@
 "Results appear here when analysis finishes. Review the selection before cleanup." = "分析完成后在此显示结果，清理前可审阅和调整选择。";
 "Results are not ready" = "结果尚未就绪";
 "Results for %lld of %lld locations" = "已获取 %lld / %lld 个位置的结果";
+"Resume Monitoring" = "继续监控";
 "Retain this content" = "保留这些内容";
 "Retained" = "保留";
 "Retry" = "重试";
@@ -1487,6 +1539,7 @@
 "Runtime State" = "运行状态";
 "Rust build outputs" = "Rust 构建产物";
 "Safari caches" = "Safari 缓存";
+"Sampling failed; showing the last observation." = "采样失败，正在显示上次观察结果。";
 "Save" = "保存";
 "Save Draft" = "保存草稿";
 "Save Enabled Rules…" = "保存已启用规则…";
@@ -1568,6 +1621,7 @@
 "Search app names, identifiers or paths" = "搜索应用名称、标识或路径";
 "Search applications or paths" = "搜索应用、标识或路径";
 "Search applications…" = "搜索应用…";
+"Search name or PID" = "搜索名称或 PID";
 "Search programs or publishers" = "搜索程序或发布者";
 "Search projects or paths" = "搜索项目或路径";
 "Search rules or paths" = "搜索规则或路径";
@@ -1629,6 +1683,7 @@
 "Sends relative folder names, sizes and your answers to the selected service. File contents and absolute home paths are excluded. Results are saved locally." = "向所选服务发送相对文件夹名称、大小和你的回答，不发送文件内容及个人目录的绝对路径。结果保存在本机。";
 "Sequel Ace caches" = "Sequel Ace 缓存";
 "Sequel Pro caches" = "Sequel Pro 缓存";
+"Serious" = "明显升温";
 "Service Usage" = "服务用量";
 "Service activation" = "服务触发";
 "Set as Default" = "设为默认";
@@ -1663,6 +1718,7 @@
 "Show system-managed locations" = "显示系统管理的位置";
 "Show unavailable locations" = "显示不可用位置";
 "Showing %lld of %lld matched locations" = "显示 %lld 个位置，共匹配 %lld 个";
+"Showing %lld of %lld matching processes." = "显示 %lld 项，共 %lld 个匹配进程。";
 "Showing results from the previous scan." = "正在显示上次扫描的结果。";
 "Showing the first 200 measured folders. Counts include all measured rows." = "显示前 200 个已测量目录，统计包含全部已测量行。";
 "Showing the first 40 paths. Use a smaller folder for a focused investigation." = "显示前 40 个路径。缩小文件夹范围可进行更有针对性的调查。";
@@ -1798,6 +1854,7 @@
 "Support" = "支持";
 "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles. Site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned." = "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置。不会清理网站存储、保存的密码、自动填充、自定义配置、扩展或云端副本。";
 "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned." = "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置，以及 Safari 历史。不清理 Safari Cookie、站点存储、保存的密码、自动填充、自定义配置、扩展数据和云端副本。";
+"Swap Used" = "已用交换空间";
 "Swift Package Manager caches" = "Swift Package Manager 缓存";
 "Swift Package Manager downloads dependencies and rebuilds the package." = "Swift Package Manager 会下载依赖并重新构建。";
 "Swift Package Manager normally regenerates compiled products and derived source on the next build." = "Swift Package Manager 通常会在下次构建时重新生成编译产物和派生源码。";
@@ -1806,6 +1863,7 @@
 "System" = "系统";
 "System Background Item" = "系统后台启动项";
 "System Caches" = "系统缓存";
+"System Monitor" = "系统监控";
 "System Run (32-bit)" = "系统 Run（32 位）";
 "System Run (64-bit)" = "系统 Run（64 位）";
 "System RunOnce (32-bit)" = "系统 RunOnce（32 位）";
@@ -1816,6 +1874,8 @@
 "System state not checked" = "系统状态未核验";
 "System suggestions cache" = "系统建议索引缓存";
 "System uninstall is unavailable until native Windows verification is complete." = "完成 Windows 原生验证前，系统卸载不可用。";
+"System volume available" = "系统卷可用空间";
+"System volume usage" = "系统卷占用";
 "System-managed locations are excluded from analysis." = "分析范围不包含系统管理的位置。";
 "TablePlus caches" = "TablePlus 缓存";
 "Target Selection" = "目标选择";
@@ -1830,6 +1890,7 @@
 "TeamViewer caches" = "TeamViewer 缓存";
 "Telegram caches" = "Telegram 缓存";
 "Tell your coding agent what to clean. It asks the right questions and writes the rules for you." = "告诉现有 AI Agent 想清理什么，由它追问并制定适合你的规则。";
+"Temperature: available sensor average. Fans are controlled by the system." = "温度为可读传感器均值，风扇由系统调节。";
 "Tencent Meeting network caches" = "腾讯会议网络缓存";
 "Tencent Video caches" = "腾讯视频 缓存";
 "Terminal and AI agents · optional" = "终端与 AI Agent · 可选";
@@ -1935,6 +1996,7 @@
 "The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space." = "工具操作已完成，并重新检查了占用。空间估计与磁盘实际可用空间分别计算。";
 "The tool downloads packages again or regenerates build caches when needed." = "工具会按需重新下载依赖包或生成构建缓存。";
 "The tool downloads packages or regenerates cached analysis when needed." = "工具会在需要时重新下载软件包或生成分析缓存。";
+"The tray summary could not be opened." = "无法开启托盘摘要。";
 "The uninstall attempt failed. The installer may have made changes." = "卸载尝试失败，安装程序可能已经进行了更改。";
 "The uninstall attempt was cancelled. The installer may have made changes." = "卸载尝试已取消，安装程序可能已经进行了更改。";
 "The uninstall outcome is uncertain. Do not rerun this plan. Review the installation state separately." = "卸载结果不确定。请勿重新执行此计划，请另行审阅安装状态。";
@@ -1943,6 +2005,7 @@
 "The uninstall record could not be verified. Do not infer success or retry from this record." = "无法核验卸载记录。请勿据此推断卸载成功或重试。";
 "The uninstall result could not be determined. Read the saved record before taking further action." = "无法确定卸载结果。请先读取已保存的记录，再进行后续操作。";
 "The versions use different or unsupported formats. Compare them in the app." = "版本格式不同或暂不支持比较，请在应用内核对。";
+"Thermals & Fans" = "温度与风扇";
 "These files will be permanently removed. This action cannot be undone." = "这些文件将永久移除，此操作无法撤销。";
 "These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action." = "结果仅反映本次核验。不确定的操作仍被阻止，后续操作须在历史中单独审阅并确认。";
 "This analysis cannot be compared. Run two new space analyses of the same folder." = "此分析无法比较，请对同一文件夹重新完成两次空间分析。";
@@ -2006,9 +2069,12 @@
 "Tool-managed Storage" = "工具缓存与版本";
 "Tools" = "系统工具";
 "Tools recreate caches when needed" = "工具会在需要时重新生成缓存";
+"Top CPU processes" = "CPU 占用最高的进程";
+"Total machine capacity" = "整机总容量";
 "Transmission caches" = "Transmission 缓存";
 "Trash operation could not be reconciled. Verify the recorded locations before taking another action." = "废纸篓操作结果无法确定。请先核验记录中的位置，再决定后续操作。";
 "Trash operation did not report its destination. Inspect the system Trash before retrying." = "移到废纸篓后未返回目标位置。请检查系统废纸篓后再重试。";
+"Tray summary" = "托盘摘要";
 "Trigger clues" = "触发线索";
 "Try a smaller size or another file type." = "试试更小的占用阈值或其他文件类型。";
 "Try another rule name or path." = "请尝试其他规则名称或路径。";
@@ -2048,6 +2114,7 @@
 "Up One Level" = "返回上一级";
 "Update status unknown" = "更新状态未知";
 "Updates are verified before installation." = "安装前验证更新签名。";
+"Uptime: %lld hours" = "已运行：%lld 小时";
 "Use Browsed Folder" = "使用当前浏览目录";
 "Use Connection" = "使用此连接";
 "Use Latest Space Analysis" = "使用已有空间分析结果";
@@ -2105,6 +2172,7 @@
 "WebKit data" = "WebKit 数据";
 "What should be kept? (optional)" = "哪些内容需要保留？（可选）";
 "WhatsApp caches" = "WhatsApp 缓存";
+"Windows does not expose these hardware sensors through the supported read-only APIs." = "Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。";
 "Windows identifies this as a system package." = "Windows 将此应用识别为系统软件包。";
 "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete." = "Windows 便携预览版。清理、系统卸载与启动项变更将在原生验收完成后开放。";
 "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete." = "Windows 便携预览版。原生操作需要审阅和本次确认；完整 Windows 验收尚未完成。";
@@ -2114,6 +2182,7 @@
 "Workspace identity changed; select the workspace again." = "工作区身份已变化，请重新选择工作区。";
 "Workspace or root reference is already registered." = "工作区或根目录引用已登记。";
 "Workspaces" = "扫描位置";
+"Write" = "写入";
 "Xcode Data" = "Xcode 开发数据";
 "Xcode derived data" = "Xcode 派生数据";
 "Xcode rebuilds indexes and intermediates on the next build." = "Xcode 会在下次构建时重新生成索引和中间产物。";

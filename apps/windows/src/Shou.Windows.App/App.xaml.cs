@@ -20,8 +20,9 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         await AppearanceSettings.LoadAsync();
-        window = new MainWindow();
+        window = new MainWindow(args.Arguments.Trim() == "--page monitor" ? "monitor" : "cleanup");
         window.Activate();
+        await MonitorTaskbar.PrepareAsync();
     }
 
     internal void ReloadWindow(string page)

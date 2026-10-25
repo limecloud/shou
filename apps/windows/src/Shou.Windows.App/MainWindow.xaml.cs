@@ -23,6 +23,7 @@ public sealed partial class MainWindow : Window
     private StoragePageView? storage;
     private StoragePageView? largeFiles;
     private SettingsPage? settings;
+    private SystemMonitorPage? monitor;
     private bool initialized, closed;
     private string destination = "cleanup";
     private readonly Dictionary<Button, FrameworkElement> navigationIcons = [];
@@ -80,6 +81,7 @@ public sealed partial class MainWindow : Window
             cleanup?.Dispose(); projects?.Dispose(); configuration?.Dispose(); applications?.Dispose(); startup?.Dispose();
             cleanupReview?.Dispose();
             privacy?.Dispose(); history?.Dispose(); storage?.Dispose(); largeFiles?.Dispose();
+            monitor?.Dispose();
         };
         WindowRoot.Loaded += (_, _) => UpdateWorkspaceNavigation();
         initialized = true;
@@ -94,17 +96,17 @@ public sealed partial class MainWindow : Window
     {
         "large" => LargeFilesNavigation, "storage" => StorageNavigation, "configuration" => ConfigurationNavigation,
         "applications" => ApplicationsNavigation, "projects" => ProjectsNavigation, "startup" => StartupNavigation, "privacy" => PrivacyNavigation,
-        "history" => HistoryNavigation, "settings" => SettingsNavigation, _ => CleanupNavigation
+        "history" => HistoryNavigation, "settings" => SettingsNavigation, "monitor" => MonitorNavigation, _ => CleanupNavigation
     };
 
     private Button[] NavigationItems => [CleanupNavigation, LargeFilesNavigation, StorageNavigation, ConfigurationNavigation,
         ApplicationsNavigation, StartupNavigation, PrivacyNavigation, HistoryNavigation, SettingsNavigation,
-        ProjectsNavigation, CleanupDetailNavigation, ApplicationsDetailNavigation, StorageDetailNavigation];
+        ProjectsNavigation, CleanupDetailNavigation, ApplicationsDetailNavigation, StorageDetailNavigation, MonitorNavigation];
     private string TitleFor(string page) => text.Get(page switch
     {
         "large" => "Large Files", "storage" => "Space Analysis", "configuration" => "Cleanup Rules",
         "startup" => "Startup Items", "applications" => "Applications", "projects" => "Developer Projects", "privacy" => "Privacy",
-        "history" => "History", "settings" => "Settings", _ => "Smart Cleanup"
+        "history" => "History", "settings" => "Settings", "monitor" => "System Monitor", _ => "Smart Cleanup"
     });
     private async void Navigate(object sender, RoutedEventArgs args)
     {
@@ -115,6 +117,7 @@ public sealed partial class MainWindow : Window
         if (!initialized || closed || (HasMutation || configuration?.IsBusy == true) && next != destination) return;
         using var diagnostic = Shou.Windows.Core.OperationDiagnostics.Start("navigation." + next);
         if (next != "privacy") privacy?.CancelScan();
+        monitor?.SetVisible(next == "monitor");
         destination = next;
         PageTitle.Text = TitleFor(next);
         UpdateWorkspaceNavigation();
@@ -127,6 +130,14 @@ public sealed partial class MainWindow : Window
             Task load = Task.CompletedTask;
             switch (next)
             {
+                case "monitor":
+                    if (monitor is null)
+                    {
+                        monitor = new(WinRT.Interop.WindowNative.GetWindowHandle(this));
+                        monitor.OpenRequested += () => { Activate(); _ = ShowPageAsync("monitor"); };
+                        monitor.QuitRequested += Close;
+                    }
+                    monitor.SetVisible(true); page = monitor; break;
                 case "storage":
                     if (storage is null) { storage = new(WinRT.Interop.WindowNative.GetWindowHandle(this)); storage.BusyChanged += (_, _) => UpdateNavigation(); }
                     page = storage; break;
@@ -237,7 +248,7 @@ public sealed partial class MainWindow : Window
         if (HasMutation) { storage?.CancelScan(); largeFiles?.CancelScan(); }
     }
     private string PrimaryTitle(Button button, string page) => ReferenceEquals(button, CleanupNavigation) ? text.Get("Cleanup") :
-        ReferenceEquals(button, ApplicationsNavigation) ? text.Get("Apps & Projects") : ReferenceEquals(button, ConfigurationNavigation) ? text.Get("Rules") : TitleFor(page);
+        ReferenceEquals(button, ApplicationsNavigation) ? text.Get("Apps & Projects") : ReferenceEquals(button, ConfigurationNavigation) ? text.Get("Rules") : ReferenceEquals(button, MonitorNavigation) ? text.Get("Monitor") : TitleFor(page);
     private static string Family(string page) => page switch
     {
         "privacy" => "cleanup", "projects" or "startup" => "applications", "large" => "storage", _ => page
@@ -252,7 +263,7 @@ public sealed partial class MainWindow : Window
         foreach (var button in NavigationItems)
         {
             var primary = ReferenceEquals(button, CleanupNavigation) || ReferenceEquals(button, ApplicationsNavigation) ||
-                ReferenceEquals(button, StorageNavigation) || ReferenceEquals(button, ConfigurationNavigation);
+                ReferenceEquals(button, StorageNavigation) || ReferenceEquals(button, ConfigurationNavigation) || ReferenceEquals(button, MonitorNavigation);
             var selected = (string)button.Tag == (primary ? Family(destination) : destination);
             ThemeResources.Apply(button, Control.BackgroundProperty, "Background", selected ? "ShouNavSelectionBrush" : "ShouTransparentBrush");
             ThemeResources.Apply(button, Control.ForegroundProperty, "Foreground", selected ? "ShouAccentBrush" : "TextFillColorSecondaryBrush");

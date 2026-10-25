@@ -334,6 +334,11 @@
     "resource_id": "s890c400c117c16d3f0b9ae42",
     "text": "A valid application identifier and metadata are required before uninstalling."
   },
+  "AC Power": {
+    "format": "AC Power",
+    "resource_id": "sd5975f41c92a72b5411b1152",
+    "text": "AC Power"
+  },
   "AI Configuration": {
     "format": "AI Configuration",
     "resource_id": "s2ec14428b5e2e2a75454f92c",
@@ -428,6 +433,11 @@
     "format": "Access to this startup source was denied.",
     "resource_id": "s25c936bed9bec336b77643e8",
     "text": "Access to this startup source was denied."
+  },
+  "Active Ethernet / Wi-Fi interfaces": {
+    "format": "Active Ethernet / Wi-Fi interfaces",
+    "resource_id": "s7fa43836f82d58cd2c361702",
+    "text": "Active Ethernet / Wi-Fi interfaces"
   },
   "Active or recoverable records were preserved. Review the history selection.": {
     "format": "Active or recoverable records were preserved. Review the history selection.",
@@ -608,6 +618,11 @@
     "format": "All Locations",
     "resource_id": "saffdd75ff7a37d2bcfc7783f",
     "text": "All Locations"
+  },
+  "All readable physical disks": {
+    "format": "All readable physical disks",
+    "resource_id": "s011937231b0b4446b155eb27",
+    "text": "All readable physical disks"
   },
   "All time": {
     "format": "All time",
@@ -1179,6 +1194,21 @@
     "resource_id": "sdb466cd78d8029c65a8aa445",
     "text": "Based on a saved size index; current files are rechecked by rule preview and cleanup."
   },
+  "Battery": {
+    "format": "Battery",
+    "resource_id": "sdfcb7c1619d5abd12f2df162",
+    "text": "Battery"
+  },
+  "Battery Health": {
+    "format": "Battery Health",
+    "resource_id": "s6801b299587357b25e4aa9a7",
+    "text": "Battery Health"
+  },
+  "Battery Power": {
+    "format": "Battery Power",
+    "resource_id": "se3b0e2be81c3def617b65ba0",
+    "text": "Battery Power"
+  },
   "Battle.net caches": {
     "format": "Battle.net caches",
     "resource_id": "sef4ea6334178696bf2f2d0ec",
@@ -1409,6 +1439,11 @@
     "resource_id": "sb16b5175a5dffe32a7cf375a",
     "text": "Bundler download caches"
   },
+  "Busiest GPU engine or device": {
+    "format": "Busiest GPU engine or device",
+    "resource_id": "sc0a5cd65c3187d620b4fc8ca",
+    "text": "Busiest GPU engine or device"
+  },
   "CLI": {
     "format": "CLI",
     "resource_id": "se759793341ff3757eaa76e81",
@@ -1428,6 +1463,16 @@
     "format": "CMake normally regenerates configured build outputs from the retained project sources.",
     "resource_id": "s3fed508515370b89291cc3b9",
     "text": "CMake normally regenerates configured build outputs from the retained project sources."
+  },
+  "CPU and memory load; not a hardware health score.": {
+    "format": "CPU and memory load; not a hardware health score.",
+    "resource_id": "s733e5ea85644affda4617f69",
+    "text": "CPU and memory load; not a hardware health score."
+  },
+  "CPU cores and memory details": {
+    "format": "CPU cores and memory details",
+    "resource_id": "s33fcf3bee3faf889c12336e0",
+    "text": "CPU cores and memory details"
   },
   "Cache Files": {
     "format": "Cache Files",
@@ -1603,6 +1648,11 @@
     "format": "Changing the scheduled task…",
     "resource_id": "sb0f8ebff66fbded3703f2176",
     "text": "Changing the scheduled task…"
+  },
+  "Charging": {
+    "format": "Charging",
+    "resource_id": "s22b693223fcb3be360b175bc",
+    "text": "Charging"
   },
   "Charles Proxy caches": {
     "format": "Charles Proxy caches",
@@ -2229,6 +2279,11 @@
     "resource_id": "sca42c3a074dceb05deb8c8a9",
     "text": "Collapse startup details"
   },
+  "Collecting rate baseline…": {
+    "format": "Collecting rate baseline…",
+    "resource_id": "s766cce33d0e1cee779c5a5a9",
+    "text": "Collecting rate baseline…"
+  },
   "Colors indicate extensions, not cleanup eligibility.": {
     "format": "Colors indicate extensions, not cleanup eligibility.",
     "resource_id": "sd5209e8e64c5174198f7c7cb",
@@ -2289,6 +2344,11 @@
     "resource_id": "sb54ea712b44f96b01e80a1de",
     "text": "Comparison unavailable"
   },
+  "Complete": {
+    "format": "Complete",
+    "resource_id": "s143b270a32602d412babf272",
+    "text": "Complete"
+  },
   "Completed": {
     "format": "Completed",
     "resource_id": "s22a970d2e5b1cc233e462be7",
@@ -2323,6 +2383,11 @@
     "format": "Composer legacy download cache",
     "resource_id": "s2ab2e6fa4481cbe31c5e3c08",
     "text": "Composer legacy download cache"
+  },
+  "Compressed": {
+    "format": "Compressed",
+    "resource_id": "se2d1ca133e0396e480dfa454",
+    "text": "Compressed"
   },
   "Conda package caches": {
     "format": "Conda package caches",
@@ -2564,6 +2629,11 @@
     "resource_id": "s236f6cf769120523d8d8b426",
     "text": "Could not verify"
   },
+  "Counter unavailable or source changed.": {
+    "format": "Counter unavailable or source changed.",
+    "resource_id": "sf20d6e042b954bf66164ad3a",
+    "text": "Counter unavailable or source changed."
+  },
   "Coverage Issues": {
     "format": "Coverage Issues",
     "resource_id": "s639d0416e7b06b817b7925cd",
@@ -2593,6 +2663,11 @@
     "format": "Create reusable rules",
     "resource_id": "sa79cbc9cb32aec36caff70da",
     "text": "Create reusable rules"
+  },
+  "Critical": {
+    "format": "Critical",
+    "resource_id": "s427dd2969bd140bec3c1bcc7",
+    "text": "Critical"
   },
   "Current Analysis": {
     "format": "Current Analysis",
@@ -2663,6 +2738,11 @@
     "format": "Customize with AI…",
     "resource_id": "s00033560266f35bb2b5f667c",
     "text": "Customize with AI…"
+  },
+  "Cycles": {
+    "format": "Cycles",
+    "resource_id": "s864514a2f754b2ac0efc8092",
+    "text": "Cycles"
   },
   "DaVinci Resolve caches": {
     "format": "DaVinci Resolve caches",
@@ -2949,6 +3029,11 @@
     "resource_id": "s4406626d55c61a5d609b810d",
     "text": "Disable Startup Task"
   },
+  "Disable Summary": {
+    "format": "Disable Summary",
+    "resource_id": "s4acc4e7fc435f7469641ac8e",
+    "text": "Disable Summary"
+  },
   "Disable startup definition?": {
     "format": "Disable startup definition?",
     "resource_id": "sd657f257c00e44d60f069e53",
@@ -2998,6 +3083,16 @@
     "format": "Discovery depth must be a whole number from 1 to 32.",
     "resource_id": "s67e7cc5123c61ae7e875b249",
     "text": "Discovery depth must be a whole number from 1 to 32."
+  },
+  "Disk": {
+    "format": "Disk",
+    "resource_id": "s340e0cf3bfa8d23dad5fa375",
+    "text": "Disk"
+  },
+  "Disk Activity": {
+    "format": "Disk Activity",
+    "resource_id": "sc67a58b6eb310268e78d7430",
+    "text": "Disk Activity"
   },
   "Disk Usage": {
     "format": "Disk Usage",
@@ -3399,6 +3494,21 @@
     "resource_id": "s986250834e95cb2303fb27fb",
     "text": "Failed items"
   },
+  "Fair": {
+    "format": "Fair",
+    "resource_id": "sf7b19afcde965ea4942b878d",
+    "text": "Fair"
+  },
+  "Fan": {
+    "format": "Fan",
+    "resource_id": "se27be6419b092ee1ebd0df15",
+    "text": "Fan"
+  },
+  "Fan telemetry unavailable": {
+    "format": "Fan telemetry unavailable",
+    "resource_id": "s3882438bf67f500bfb937a5f",
+    "text": "Fan telemetry unavailable"
+  },
   "Figma caches": {
     "format": "Figma caches",
     "resource_id": "s75f164bde4ad7b06e571828e",
@@ -3639,6 +3749,11 @@
     "resource_id": "sd79837138b598c74d26dc44f",
     "text": "GOG Galaxy caches"
   },
+  "GPU counters are unavailable on this device.": {
+    "format": "GPU counters are unavailable on this device.",
+    "resource_id": "se444ca543959c322179c8cd5",
+    "text": "GPU counters are unavailable on this device."
+  },
   "General": {
     "format": "General",
     "resource_id": "sc910d474dcd724bff83ddede",
@@ -3793,6 +3908,11 @@
     "format": "High Risk",
     "resource_id": "s2bae5bd387f97c8eccfebf6b",
     "text": "High Risk"
+  },
+  "High resource usage": {
+    "format": "High resource usage",
+    "resource_id": "s396f1964a745e48a41781c12",
+    "text": "High resource usage"
   },
   "High risk": {
     "format": "High risk",
@@ -4459,6 +4579,11 @@
     "resource_id": "s8cf6c946df83801fd9feb652",
     "text": "Lark and Feishu rendering caches"
   },
+  "Last 2 minutes · Gaps mean unavailable": {
+    "format": "Last 2 minutes · Gaps mean unavailable",
+    "resource_id": "sf849482694bcd8cc2b0721c3",
+    "text": "Last 2 minutes · Gaps mean unavailable"
+  },
   "Last 24 hours": {
     "format": "Last 24 hours",
     "resource_id": "s5c37cf8f018b4ac5c8f0ae78",
@@ -4544,6 +4669,11 @@
     "resource_id": "s935f2e7ff577dc01cd7809f9",
     "text": "Links, special files and the scan root cannot be removed here."
   },
+  "Live · Every 2 seconds": {
+    "format": "Live · Every 2 seconds",
+    "resource_id": "s315ed201de6e4f5197ded7f3",
+    "text": "Live · Every 2 seconds"
+  },
   "Load More": {
     "format": "Load More",
     "resource_id": "s3f06cd334f4811b2130b13a8",
@@ -4628,6 +4758,11 @@
     "format": "Logical Size",
     "resource_id": "s7138b9310e39820e3c6ec290",
     "text": "Logical Size"
+  },
+  "Logical cores": {
+    "format": "Logical cores",
+    "resource_id": "sf7b63334928c556ed7530031",
+    "text": "Logical cores"
   },
   "Logical size": {
     "format": "Logical size",
@@ -4794,6 +4929,21 @@
     "resource_id": "s9d9c895f7222a6f52a70ecce",
     "text": "Measuring application sizes…"
   },
+  "Memory": {
+    "format": "Memory",
+    "resource_id": "sc3963aedaac6c83c04cf8fb9",
+    "text": "Memory"
+  },
+  "Memory Pressure": {
+    "format": "Memory Pressure",
+    "resource_id": "s7465624307a3051b3b74fb98",
+    "text": "Memory Pressure"
+  },
+  "Menu bar summary": {
+    "format": "Menu bar summary",
+    "resource_id": "se50dedd9458c4dc62d78febb",
+    "text": "Menu bar summary"
+  },
   "MiaoYan caches": {
     "format": "MiaoYan caches",
     "resource_id": "s7c5a05e07508dcb7bb7be1bc",
@@ -4898,6 +5048,16 @@
     "format": "MongoDB Compass caches",
     "resource_id": "s8e873d517e50cd690ff39376",
     "text": "MongoDB Compass caches"
+  },
+  "Monitor": {
+    "format": "Monitor",
+    "resource_id": "s4c2e1df4570bebd69829cce1",
+    "text": "Monitor"
+  },
+  "Monitoring paused": {
+    "format": "Monitoring paused",
+    "resource_id": "sc79a73fe2e65a9212e53b73d",
+    "text": "Monitoring paused"
   },
   "More Actions": {
     "format": "More Actions",
@@ -5054,6 +5214,16 @@
     "resource_id": "s45aea804fef934cd73ff0958",
     "text": "NetEase Music caches"
   },
+  "Network": {
+    "format": "Network",
+    "resource_id": "s1744b96470b51bf30935e274",
+    "text": "Network"
+  },
+  "Network Activity": {
+    "format": "Network Activity",
+    "resource_id": "s31f5c065b26be2e70eb8271c",
+    "text": "Network Activity"
+  },
   "Network workspaces are outside the supported execution scope.": {
     "format": "Network workspaces are outside the supported execution scope.",
     "resource_id": "s5a6ecfbbddcdf3b7846594ac",
@@ -5199,6 +5369,11 @@
     "resource_id": "s28b940ecbb9c06fc744d898b",
     "text": "No matching large files"
   },
+  "No matching processes.": {
+    "format": "No matching processes.",
+    "resource_id": "s8ebfb09e43603ceb7b334c6b",
+    "text": "No matching processes."
+  },
   "No matching project outputs": {
     "format": "No matching project outputs",
     "resource_id": "s74895f1f032801193ab7f35a",
@@ -5233,6 +5408,11 @@
     "format": "No path was recorded",
     "resource_id": "sce2ec5bc6e16950e532cae04",
     "text": "No path was recorded"
+  },
+  "No readable internal battery was found.": {
+    "format": "No readable internal battery was found.",
+    "resource_id": "s524234a7e23932bc8607e5ab",
+    "text": "No readable internal battery was found."
   },
   "No reclaimable tool-managed storage found.": {
     "format": "No reclaimable tool-managed storage found.",
@@ -5479,6 +5659,11 @@
     "resource_id": "s3eaf8ef549672a650eb1a848",
     "text": "Object replaced"
   },
+  "Observation incomplete": {
+    "format": "Observation incomplete",
+    "resource_id": "sc33f5a24b0a82ce049b3a870",
+    "text": "Observation incomplete"
+  },
   "Observed Change": {
     "format": "Observed Change",
     "resource_id": "s4db3b860dd3494da9a632485",
@@ -5493,6 +5678,11 @@
     "format": "Observed at",
     "resource_id": "s2f4add0f44158e9df8df8240",
     "text": "Observed at"
+  },
+  "Observed load normal": {
+    "format": "Observed load normal",
+    "resource_id": "se47d52767eae8519cadc8013",
+    "text": "Observed load normal"
   },
   "Observed startup state is best effort; launchd can change after this read.": {
     "format": "Observed startup state is best effort; launchd can change after this read.",
@@ -5528,6 +5718,11 @@
     "format": "Offline installs may require downloading packages again. Project dependencies, global executables and configuration are retained.",
     "resource_id": "s4ff1749f6ab022a03f51b1af",
     "text": "Offline installs may require downloading packages again. Project dependencies, global executables and configuration are retained."
+  },
+  "Oldest → Latest": {
+    "format": "Oldest → Latest",
+    "resource_id": "s092be590384311b699ac9803",
+    "text": "Oldest → Latest"
   },
   "One Exact Folder": {
     "format": "One Exact Folder",
@@ -5698,6 +5893,11 @@
     "format": "Open Source",
     "resource_id": "sfdb627efb86ba73e631686e9",
     "text": "Open Source"
+  },
+  "Open System Monitor": {
+    "format": "Open System Monitor",
+    "resource_id": "sc793082e6085a4296980e5c8",
+    "text": "Open System Monitor"
   },
   "Open System Settings…": {
     "format": "Open System Settings…",
@@ -5894,6 +6094,11 @@
     "resource_id": "s7252a293d795ae7e7f5991e4",
     "text": "Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage."
   },
+  "Partial process coverage": {
+    "format": "Partial process coverage",
+    "resource_id": "s099d188728a8bb8544806adb",
+    "text": "Partial process coverage"
+  },
   "Partially Enabled": {
     "format": "Partially Enabled",
     "resource_id": "sc5be40dc8c570428b3a70604",
@@ -5903,6 +6108,11 @@
     "format": "Partially completed",
     "resource_id": "s24421344abc368523525b730",
     "text": "Partially completed"
+  },
+  "Pause Monitoring": {
+    "format": "Pause Monitoring",
+    "resource_id": "s90c41b2cddf92bfd9927fcc7",
+    "text": "Pause Monitoring"
   },
   "Paw API caches": {
     "format": "Paw API caches",
@@ -6219,6 +6429,21 @@
     "resource_id": "s6012f955de26d741017eda36",
     "text": "Privacy sources could not be scanned. Check browser access and try again."
   },
+  "Process": {
+    "format": "Process",
+    "resource_id": "se083bd83e9d3e97e3b3e7dbe",
+    "text": "Process"
+  },
+  "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.": {
+    "format": "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.",
+    "resource_id": "s3a0f0e6222f0664a8aa520e9",
+    "text": "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat."
+  },
+  "Processes": {
+    "format": "Processes",
+    "resource_id": "s4a81a7ba5358c26f74fbeb64",
+    "text": "Processes"
+  },
   "Processing Strategy": {
     "format": "Processing Strategy",
     "resource_id": "s8a3dcac66e7e031ae9e196b0",
@@ -6474,6 +6699,11 @@
     "resource_id": "s1ec27efc39d08df984ce969e",
     "text": "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted."
   },
+  "Quit Shou": {
+    "format": "Quit Shou",
+    "resource_id": "s0d4004339a092a7ec7c9669f",
+    "text": "Quit Shou"
+  },
   "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.": {
     "format": "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.",
     "resource_id": "s57c7b2e6768db10c7d0a2527",
@@ -6533,6 +6763,11 @@
     "format": "Read",
     "resource_id": "s9b9a8d05a7ec353bda84f9c1",
     "text": "Read"
+  },
+  "Read / Write": {
+    "format": "Read / Write",
+    "resource_id": "s32d8bff5a463bf27edf2eab1",
+    "text": "Read / Write"
   },
   "Read Operation Result": {
     "format": "Read Operation Result",
@@ -6608,6 +6843,11 @@
     "format": "Read-only system tool output exceeded its budget.",
     "resource_id": "se94931f01d82c1a103ce541e",
     "text": "Read-only system tool output exceeded its budget."
+  },
+  "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.": {
+    "format": "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.",
+    "resource_id": "s2952abf6399c38d25e32c1ad",
+    "text": "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled."
   },
   "Reading analysis history…": {
     "format": "Reading analysis history…",
@@ -6709,6 +6949,11 @@
     "resource_id": "s75107ebe5b2a40757fec9814",
     "text": "Receipt root changed."
   },
+  "Receive / Send": {
+    "format": "Receive / Send",
+    "resource_id": "s25555a13c67db127d0855bf7",
+    "text": "Receive / Send"
+  },
   "Recent Tool Cleanups": {
     "format": "Recent Tool Cleanups",
     "resource_id": "s0cf67fefc177c5f7af4c7902",
@@ -6718,6 +6963,11 @@
     "format": "Recent privacy receipts",
     "resource_id": "sff414d3bc48d633e0cd45c27",
     "text": "Recent privacy receipts"
+  },
+  "Recent resource trend": {
+    "format": "Recent resource trend",
+    "resource_id": "s92d0274f76c957c98a5d10b2",
+    "text": "Recent resource trend"
   },
   "Recommended": {
     "format": "Recommended",
@@ -6944,6 +7194,11 @@
     "resource_id": "sbd3d8f99bf8c7f43560a99a2",
     "text": "Rescan This Folder"
   },
+  "Resource Status": {
+    "format": "Resource Status",
+    "resource_id": "s33c25c4f35e1b62d0ee86f63",
+    "text": "Resource Status"
+  },
   "Restore": {
     "format": "Restore",
     "resource_id": "sa76e13b9839270eb73ed1141",
@@ -7003,6 +7258,11 @@
     "format": "Results for {0} of {1} locations",
     "resource_id": "s80e0a1ef74165aa5308bd1e7",
     "text": "Results for %lld of %lld locations"
+  },
+  "Resume Monitoring": {
+    "format": "Resume Monitoring",
+    "resource_id": "sa913cb76c15e2456a954e260",
+    "text": "Resume Monitoring"
   },
   "Retain this content": {
     "format": "Retain this content",
@@ -7439,6 +7699,11 @@
     "resource_id": "sd69715933d1d2cead3199640",
     "text": "Safari caches"
   },
+  "Sampling failed; showing the last observation.": {
+    "format": "Sampling failed; showing the last observation.",
+    "resource_id": "sf32f8b7e0c090afdc14689f9",
+    "text": "Sampling failed; showing the last observation."
+  },
   "Save": {
     "format": "Save",
     "resource_id": "s1509f561f2416598629b886a",
@@ -7844,6 +8109,11 @@
     "resource_id": "s618b6244a947c3269ef22efc",
     "text": "Search applications…"
   },
+  "Search name or PID": {
+    "format": "Search name or PID",
+    "resource_id": "s2f4f02ae4ffa36861bd801cf",
+    "text": "Search name or PID"
+  },
   "Search programs or publishers": {
     "format": "Search programs or publishers",
     "resource_id": "s42e99c17c57fa990505b67e9",
@@ -8149,6 +8419,11 @@
     "resource_id": "scf8737a45e095338aac4a0a1",
     "text": "Sequel Pro caches"
   },
+  "Serious": {
+    "format": "Serious",
+    "resource_id": "sc173da2c2a4d4ca2930d8c09",
+    "text": "Serious"
+  },
   "Service Usage": {
     "format": "Service Usage",
     "resource_id": "sd507c25df634f470890fdae3",
@@ -8318,6 +8593,11 @@
     "format": "Showing {0} of {1} matched locations",
     "resource_id": "s34b4ea40d0e914ee239d21b0",
     "text": "Showing %lld of %lld matched locations"
+  },
+  "Showing %lld of %lld matching processes.": {
+    "format": "Showing {0} of {1} matching processes.",
+    "resource_id": "s4c62e53f39c4c83d55effa25",
+    "text": "Showing %lld of %lld matching processes."
   },
   "Showing results from the previous scan.": {
     "format": "Showing results from the previous scan.",
@@ -8994,6 +9274,11 @@
     "resource_id": "s24cbca79e916ffa96baa40ad",
     "text": "Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned."
   },
+  "Swap Used": {
+    "format": "Swap Used",
+    "resource_id": "sc50c8be0dbb5c39b915b29db",
+    "text": "Swap Used"
+  },
   "Swift Package Manager caches": {
     "format": "Swift Package Manager caches",
     "resource_id": "sfbe3b1529e474d6a65d54688",
@@ -9033,6 +9318,11 @@
     "format": "System Caches",
     "resource_id": "s2ffbc5827bb148aa73e15be5",
     "text": "System Caches"
+  },
+  "System Monitor": {
+    "format": "System Monitor",
+    "resource_id": "sb288d256878ba98d12593281",
+    "text": "System Monitor"
   },
   "System Run (32-bit)": {
     "format": "System Run (32-bit)",
@@ -9083,6 +9373,16 @@
     "format": "System uninstall is unavailable until native Windows verification is complete.",
     "resource_id": "s8563b2713156f795941eaf41",
     "text": "System uninstall is unavailable until native Windows verification is complete."
+  },
+  "System volume available": {
+    "format": "System volume available",
+    "resource_id": "s92c94d89d18311822ec54ae3",
+    "text": "System volume available"
+  },
+  "System volume usage": {
+    "format": "System volume usage",
+    "resource_id": "s34d264ea8a426c6319b7b316",
+    "text": "System volume usage"
   },
   "System-managed locations are excluded from analysis.": {
     "format": "System-managed locations are excluded from analysis.",
@@ -9153,6 +9453,11 @@
     "format": "Tell your coding agent what to clean. It asks the right questions and writes the rules for you.",
     "resource_id": "sf3f8bb1c2c89dfd1e72d52fe",
     "text": "Tell your coding agent what to clean. It asks the right questions and writes the rules for you."
+  },
+  "Temperature: available sensor average. Fans are controlled by the system.": {
+    "format": "Temperature: available sensor average. Fans are controlled by the system.",
+    "resource_id": "s29b294e47f772808dd2918c1",
+    "text": "Temperature: available sensor average. Fans are controlled by the system."
   },
   "Tencent Meeting network caches": {
     "format": "Tencent Meeting network caches",
@@ -9679,6 +9984,11 @@
     "resource_id": "sdb9c55fb6b3989b72423e127",
     "text": "The tool downloads packages or regenerates cached analysis when needed."
   },
+  "The tray summary could not be opened.": {
+    "format": "The tray summary could not be opened.",
+    "resource_id": "s6db39c53eb325aa164b80624",
+    "text": "The tray summary could not be opened."
+  },
   "The uninstall attempt failed. The installer may have made changes.": {
     "format": "The uninstall attempt failed. The installer may have made changes.",
     "resource_id": "s3260e06d677417993886ea3e",
@@ -9718,6 +10028,11 @@
     "format": "The versions use different or unsupported formats. Compare them in the app.",
     "resource_id": "s8d8aa41a0657543ad4d3239c",
     "text": "The versions use different or unsupported formats. Compare them in the app."
+  },
+  "Thermals & Fans": {
+    "format": "Thermals & Fans",
+    "resource_id": "saf1bb020334104411d1e2381",
+    "text": "Thermals & Fans"
   },
   "These files will be permanently removed. This action cannot be undone.": {
     "format": "These files will be permanently removed. This action cannot be undone.",
@@ -10034,6 +10349,16 @@
     "resource_id": "s58ecb8ef87f6eec2f22de6ec",
     "text": "Tools recreate caches when needed"
   },
+  "Top CPU processes": {
+    "format": "Top CPU processes",
+    "resource_id": "s44945c30a645e0153c0f3c35",
+    "text": "Top CPU processes"
+  },
+  "Total machine capacity": {
+    "format": "Total machine capacity",
+    "resource_id": "s5fe2d46b260a32e3a5ce50a4",
+    "text": "Total machine capacity"
+  },
   "Transmission caches": {
     "format": "Transmission caches",
     "resource_id": "s411c3748315596b1da503e6f",
@@ -10048,6 +10373,11 @@
     "format": "Trash operation did not report its destination. Inspect the system Trash before retrying.",
     "resource_id": "sd9935afd8ddd9b93df434cde",
     "text": "Trash operation did not report its destination. Inspect the system Trash before retrying."
+  },
+  "Tray summary": {
+    "format": "Tray summary",
+    "resource_id": "sa88ebed672b6851b3ecfabd3",
+    "text": "Tray summary"
   },
   "Trigger clues": {
     "format": "Trigger clues",
@@ -10243,6 +10573,11 @@
     "format": "Updates are verified before installation.",
     "resource_id": "s55fc4744fc8471a92da2d969",
     "text": "Updates are verified before installation."
+  },
+  "Uptime: %lld hours": {
+    "format": "Uptime: {0} hours",
+    "resource_id": "sd90c4de10e8eea60c6a2e7f0",
+    "text": "Uptime: %lld hours"
   },
   "Use Browsed Folder": {
     "format": "Use Browsed Folder",
@@ -10529,6 +10864,11 @@
     "resource_id": "s4e17656a62b95a61b72e5d25",
     "text": "WhatsApp caches"
   },
+  "Windows does not expose these hardware sensors through the supported read-only APIs.": {
+    "format": "Windows does not expose these hardware sensors through the supported read-only APIs.",
+    "resource_id": "s2a0f0c32ac4f7d059ce01529",
+    "text": "Windows does not expose these hardware sensors through the supported read-only APIs."
+  },
   "Windows identifies this as a system package.": {
     "format": "Windows identifies this as a system package.",
     "resource_id": "s864fba32c0ce2d3db93b0090",
@@ -10573,6 +10913,11 @@
     "format": "Scan Locations",
     "resource_id": "s1377264ba3b0a7172621971b",
     "text": "Scan Locations"
+  },
+  "Write": {
+    "format": "Write",
+    "resource_id": "s3f00927a719345edd4a83165",
+    "text": "Write"
   },
   "Xcode Data": {
     "format": "Xcode Data",

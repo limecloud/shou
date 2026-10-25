@@ -17,6 +17,7 @@ internal static class ProductIcon
         if (name == "intake") return FilledIntake(size);
         var data = name switch
         {
+            "monitor" => "M1,8 L4,8 L6,3 L9,13 L11,6 L13,8 L16,8",
             "search" => "M10.5,10.5 L15,15 M12,6.5 A5.5,5.5 0 1 1 1,6.5 A5.5,5.5 0 1 1 12,6.5",
             "large" => "M3,1 L10,1 L13,4 L13,10 M10,1 L10,4 L13,4 M3,1 L3,14 L8,14 M9.5,10 A2.5,2.5 0 1 1 14.5,10 A2.5,2.5 0 1 1 9.5,10 M13.7,11.8 L16,14.5",
             "storage" => "M1,1 L6,1 L6,6 L1,6 Z M10,1 L15,1 L15,6 L10,6 Z M1,10 L6,10 L6,15 L1,15 Z M10,10 L15,10 L15,15 L10,15 Z",

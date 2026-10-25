@@ -201,6 +201,9 @@
   <data name="s890c400c117c16d3f0b9ae42" xml:space="preserve">
     <value>卸载前需要有效的应用标识和元数据。</value>
   </data>
+  <data name="sd5975f41c92a72b5411b1152" xml:space="preserve">
+    <value>电源供电</value>
+  </data>
   <data name="s2ec14428b5e2e2a75454f92c" xml:space="preserve">
     <value>AI 配置方案</value>
   </data>
@@ -257,6 +260,9 @@
   </data>
   <data name="s25c936bed9bec336b77643e8" xml:space="preserve">
     <value>没有权限读取此启动项来源。</value>
+  </data>
+  <data name="s7fa43836f82d58cd2c361702" xml:space="preserve">
+    <value>活动的以太网 / Wi-Fi 接口</value>
   </data>
   <data name="s121ce69f9e760922afef8154" xml:space="preserve">
     <value>正在执行或恢复所需的记录已保留，请重新检查选择。</value>
@@ -365,6 +371,9 @@
   </data>
   <data name="saffdd75ff7a37d2bcfc7783f" xml:space="preserve">
     <value>全部位置</value>
+  </data>
+  <data name="s011937231b0b4446b155eb27" xml:space="preserve">
+    <value>全部可读物理磁盘</value>
   </data>
   <data name="s9755c8d7d44a62589c873ca1" xml:space="preserve">
     <value>所有时间</value>
@@ -708,6 +717,15 @@
   <data name="sdb466cd78d8029c65a8aa445" xml:space="preserve">
     <value>建议基于已保存的大小索引；规则预览和清理会重新检查当前文件。</value>
   </data>
+  <data name="sdfcb7c1619d5abd12f2df162" xml:space="preserve">
+    <value>电池</value>
+  </data>
+  <data name="s6801b299587357b25e4aa9a7" xml:space="preserve">
+    <value>电池健康</value>
+  </data>
+  <data name="se3b0e2be81c3def617b65ba0" xml:space="preserve">
+    <value>电池供电</value>
+  </data>
   <data name="sef4ea6334178696bf2f2d0ec" xml:space="preserve">
     <value>战网 缓存</value>
   </data>
@@ -846,6 +864,9 @@
   <data name="sb16b5175a5dffe32a7cf375a" xml:space="preserve">
     <value>Bundler 下载缓存</value>
   </data>
+  <data name="sc0a5cd65c3187d620b4fc8ca" xml:space="preserve">
+    <value>最繁忙的 GPU 引擎或设备</value>
+  </data>
   <data name="se759793341ff3757eaa76e81" xml:space="preserve">
     <value>命令行</value>
   </data>
@@ -857,6 +878,12 @@
   </data>
   <data name="s3fed508515370b89291cc3b9" xml:space="preserve">
     <value>CMake 通常可以根据保留的项目源码重新生成已配置的构建产物。</value>
+  </data>
+  <data name="s733e5ea85644affda4617f69" xml:space="preserve">
+    <value>依据 CPU 与内存负载判断，不代表硬件健康评分。</value>
+  </data>
+  <data name="s33fcf3bee3faf889c12336e0" xml:space="preserve">
+    <value>每核 CPU 与内存详情</value>
   </data>
   <data name="sca12403385f178e38998d8b5" xml:space="preserve">
     <value>缓存文件</value>
@@ -962,6 +989,9 @@
   </data>
   <data name="sb0f8ebff66fbded3703f2176" xml:space="preserve">
     <value>正在更改计划任务…</value>
+  </data>
+  <data name="s22b693223fcb3be360b175bc" xml:space="preserve">
+    <value>充电中</value>
   </data>
   <data name="sede3a1588b293f3af4106ba1" xml:space="preserve">
     <value>Charles Proxy 缓存</value>
@@ -1338,6 +1368,9 @@
   <data name="sca42c3a074dceb05deb8c8a9" xml:space="preserve">
     <value>收起启动项详情</value>
   </data>
+  <data name="s766cce33d0e1cee779c5a5a9" xml:space="preserve">
+    <value>正在建立速率基线…</value>
+  </data>
   <data name="sd5209e8e64c5174198f7c7cb" xml:space="preserve">
     <value>颜色表示文件扩展名，不代表可以清理。</value>
   </data>
@@ -1374,6 +1407,9 @@
   <data name="sb54ea712b44f96b01e80a1de" xml:space="preserve">
     <value>无法比较</value>
   </data>
+  <data name="s143b270a32602d412babf272" xml:space="preserve">
+    <value>完整覆盖</value>
+  </data>
   <data name="s22a970d2e5b1cc233e462be7" xml:space="preserve">
     <value>已完成</value>
   </data>
@@ -1394,6 +1430,9 @@
   </data>
   <data name="s2ab2e6fa4481cbe31c5e3c08" xml:space="preserve">
     <value>Composer 旧版下载缓存</value>
+  </data>
+  <data name="se2d1ca133e0396e480dfa454" xml:space="preserve">
+    <value>压缩内存</value>
   </data>
   <data name="s291569be37cc6c1b5b4b7012" xml:space="preserve">
     <value>Conda 软件包缓存</value>
@@ -1539,6 +1578,9 @@
   <data name="s236f6cf769120523d8d8b426" xml:space="preserve">
     <value>无法核验</value>
   </data>
+  <data name="sf20d6e042b954bf66164ad3a" xml:space="preserve">
+    <value>计数器不可用或来源已改变。</value>
+  </data>
   <data name="s639d0416e7b06b817b7925cd" xml:space="preserve">
     <value>覆盖范围问题</value>
   </data>
@@ -1556,6 +1598,9 @@
   </data>
   <data name="sa79cbc9cb32aec36caff70da" xml:space="preserve">
     <value>制定可复用规则</value>
+  </data>
+  <data name="s427dd2969bd140bec3c1bcc7" xml:space="preserve">
+    <value>严重</value>
   </data>
   <data name="scf2b468b2c242c48aaad82bd" xml:space="preserve">
     <value>当前分析</value>
@@ -1598,6 +1643,9 @@
   </data>
   <data name="s00033560266f35bb2b5f667c" xml:space="preserve">
     <value>通过 AI 定制…</value>
+  </data>
+  <data name="s864514a2f754b2ac0efc8092" xml:space="preserve">
+    <value>循环次数</value>
   </data>
   <data name="s338dab2f7b43bd272b1fed05" xml:space="preserve">
     <value>DaVinci Resolve 缓存</value>
@@ -1770,6 +1818,9 @@
   <data name="s4406626d55c61a5d609b810d" xml:space="preserve">
     <value>禁用启动任务</value>
   </data>
+  <data name="s4acc4e7fc435f7469641ac8e" xml:space="preserve">
+    <value>关闭摘要</value>
+  </data>
   <data name="sd657f257c00e44d60f069e53" xml:space="preserve">
     <value>停用启动项定义？</value>
   </data>
@@ -1799,6 +1850,12 @@
   </data>
   <data name="s67e7cc5123c61ae7e875b249" xml:space="preserve">
     <value>发现深度必须为 1 至 32 的整数。</value>
+  </data>
+  <data name="s340e0cf3bfa8d23dad5fa375" xml:space="preserve">
+    <value>磁盘</value>
+  </data>
+  <data name="sc67a58b6eb310268e78d7430" xml:space="preserve">
+    <value>磁盘活动</value>
   </data>
   <data name="s5af15d6538588ec036c408db" xml:space="preserve">
     <value>磁盘占用</value>
@@ -2040,6 +2097,15 @@
   <data name="s986250834e95cb2303fb27fb" xml:space="preserve">
     <value>失败项</value>
   </data>
+  <data name="sf7b19afcde965ea4942b878d" xml:space="preserve">
+    <value>轻度升温</value>
+  </data>
+  <data name="se27be6419b092ee1ebd0df15" xml:space="preserve">
+    <value>风扇</value>
+  </data>
+  <data name="s3882438bf67f500bfb937a5f" xml:space="preserve">
+    <value>风扇数据不可用</value>
+  </data>
   <data name="s75f164bde4ad7b06e571828e" xml:space="preserve">
     <value>Figma 缓存</value>
   </data>
@@ -2184,6 +2250,9 @@
   <data name="sd79837138b598c74d26dc44f" xml:space="preserve">
     <value>GOG Galaxy 缓存</value>
   </data>
+  <data name="se444ca543959c322179c8cd5" xml:space="preserve">
+    <value>此设备无法读取 GPU 计数器。</value>
+  </data>
   <data name="sc910d474dcd724bff83ddede" xml:space="preserve">
     <value>常规</value>
   </data>
@@ -2276,6 +2345,9 @@
   </data>
   <data name="s2bae5bd387f97c8eccfebf6b" xml:space="preserve">
     <value>高风险</value>
+  </data>
+  <data name="s396f1964a745e48a41781c12" xml:space="preserve">
+    <value>资源负载较高</value>
   </data>
   <data name="s4682a7f7972130ed2268250f" xml:space="preserve">
     <value>高风险</value>
@@ -2676,6 +2748,9 @@
   <data name="s8cf6c946df83801fd9feb652" xml:space="preserve">
     <value>飞书与 Lark 渲染缓存</value>
   </data>
+  <data name="sf849482694bcd8cc2b0721c3" xml:space="preserve">
+    <value>最近 2 分钟 · 断线表示数据不可用</value>
+  </data>
   <data name="s5c37cf8f018b4ac5c8f0ae78" xml:space="preserve">
     <value>最近24小时</value>
   </data>
@@ -2727,6 +2802,9 @@
   <data name="s935f2e7ff577dc01cd7809f9" xml:space="preserve">
     <value>此处不能删除链接、特殊文件和扫描根目录。</value>
   </data>
+  <data name="s315ed201de6e4f5197ded7f3" xml:space="preserve">
+    <value>实时 · 每 2 秒采样</value>
+  </data>
   <data name="s3f06cd334f4811b2130b13a8" xml:space="preserve">
     <value>加载更多</value>
   </data>
@@ -2777,6 +2855,9 @@
   </data>
   <data name="s7138b9310e39820e3c6ec290" xml:space="preserve">
     <value>逻辑大小</value>
+  </data>
+  <data name="sf7b63334928c556ed7530031" xml:space="preserve">
+    <value>逻辑核心</value>
   </data>
   <data name="sbd336b5c31385e113dface46" xml:space="preserve">
     <value>逻辑大小</value>
@@ -2877,6 +2958,15 @@
   <data name="s9d9c895f7222a6f52a70ecce" xml:space="preserve">
     <value>正在统计应用大小…</value>
   </data>
+  <data name="sc3963aedaac6c83c04cf8fb9" xml:space="preserve">
+    <value>内存</value>
+  </data>
+  <data name="s7465624307a3051b3b74fb98" xml:space="preserve">
+    <value>内存压力</value>
+  </data>
+  <data name="se50dedd9458c4dc62d78febb" xml:space="preserve">
+    <value>菜单栏摘要</value>
+  </data>
   <data name="s7c5a05e07508dcb7bb7be1bc" xml:space="preserve">
     <value>妙言 缓存</value>
   </data>
@@ -2939,6 +3029,12 @@
   </data>
   <data name="s8e873d517e50cd690ff39376" xml:space="preserve">
     <value>MongoDB Compass 缓存</value>
+  </data>
+  <data name="s4c2e1df4570bebd69829cce1" xml:space="preserve">
+    <value>监控</value>
+  </data>
+  <data name="sc79a73fe2e65a9212e53b73d" xml:space="preserve">
+    <value>监控已暂停</value>
   </data>
   <data name="s98eea4c1c21f333640ea131c" xml:space="preserve">
     <value>更多操作</value>
@@ -3033,6 +3129,12 @@
   <data name="s45aea804fef934cd73ff0958" xml:space="preserve">
     <value>网易云音乐 缓存</value>
   </data>
+  <data name="s1744b96470b51bf30935e274" xml:space="preserve">
+    <value>网络</value>
+  </data>
+  <data name="s31f5c065b26be2e70eb8271c" xml:space="preserve">
+    <value>网络活动</value>
+  </data>
   <data name="s5a6ecfbbddcdf3b7846594ac" xml:space="preserve">
     <value>暂不支持在网络工作区中执行清理。</value>
   </data>
@@ -3120,6 +3222,9 @@
   <data name="s28b940ecbb9c06fc744d898b" xml:space="preserve">
     <value>没有符合条件的大文件</value>
   </data>
+  <data name="s8ebfb09e43603ceb7b334c6b" xml:space="preserve">
+    <value>没有匹配的进程。</value>
+  </data>
   <data name="s74895f1f032801193ab7f35a" xml:space="preserve">
     <value>没有匹配的项目产物</value>
   </data>
@@ -3140,6 +3245,9 @@
   </data>
   <data name="sce2ec5bc6e16950e532cae04" xml:space="preserve">
     <value>未记录路径</value>
+  </data>
+  <data name="s524234a7e23932bc8607e5ab" xml:space="preserve">
+    <value>未找到可读的内置电池。</value>
   </data>
   <data name="s4c34048393f6fdd072c604c4" xml:space="preserve">
     <value>未发现可回收的工具缓存。</value>
@@ -3288,6 +3396,9 @@
   <data name="s3eaf8ef549672a650eb1a848" xml:space="preserve">
     <value>对象已替换</value>
   </data>
+  <data name="sc33f5a24b0a82ce049b3a870" xml:space="preserve">
+    <value>观察尚不完整</value>
+  </data>
   <data name="s4db3b860dd3494da9a632485" xml:space="preserve">
     <value>观察到的变化</value>
   </data>
@@ -3296,6 +3407,9 @@
   </data>
   <data name="s2f4add0f44158e9df8df8240" xml:space="preserve">
     <value>观察时间</value>
+  </data>
+  <data name="se47d52767eae8519cadc8013" xml:space="preserve">
+    <value>已观察负载正常</value>
   </data>
   <data name="s76da797d9fe96d6816cfd207" xml:space="preserve">
     <value>启动项状态仅代表本次读取结果，launchd 可能在读取后变化。</value>
@@ -3317,6 +3431,9 @@
   </data>
   <data name="s4ff1749f6ab022a03f51b1af" xml:space="preserve">
     <value>离线安装可能需要重新下载依赖包。保留项目依赖、全局可执行程序和配置。</value>
+  </data>
+  <data name="s092be590384311b699ac9803" xml:space="preserve">
+    <value>较早 → 最新</value>
   </data>
   <data name="s60d8bb4f9c493fe8f9787922" xml:space="preserve">
     <value>一个确切目录</value>
@@ -3419,6 +3536,9 @@
   </data>
   <data name="sfdb627efb86ba73e631686e9" xml:space="preserve">
     <value>开放源代码</value>
+  </data>
+  <data name="sc793082e6085a4296980e5c8" xml:space="preserve">
+    <value>打开系统监控</value>
   </data>
   <data name="s4bc31545a3b75753514715b7" xml:space="preserve">
     <value>打开系统设置…</value>
@@ -3537,11 +3657,17 @@
   <data name="s7252a293d795ae7e7f5991e4" xml:space="preserve">
     <value>预览覆盖不完整。下方列出无法读取或超时的位置，不能视为已全部检查。</value>
   </data>
+  <data name="s099d188728a8bb8544806adb" xml:space="preserve">
+    <value>进程覆盖不完整</value>
+  </data>
   <data name="sc5be40dc8c570428b3a70604" xml:space="preserve">
     <value>部分启用</value>
   </data>
   <data name="s24421344abc368523525b730" xml:space="preserve">
     <value>部分完成</value>
+  </data>
+  <data name="s90c41b2cddf92bfd9927fcc7" xml:space="preserve">
+    <value>暂停监控</value>
   </data>
   <data name="s761e623c367a79482f11ba1c" xml:space="preserve">
     <value>Paw API 缓存</value>
@@ -3732,6 +3858,15 @@
   <data name="s6012f955de26d741017eda36" xml:space="preserve">
     <value>无法扫描隐私来源，请检查浏览器访问权限后重试。</value>
   </data>
+  <data name="se083bd83e9d3e97e3b3e7dbe" xml:space="preserve">
+    <value>进程</value>
+  </data>
+  <data name="s3a0f0e6222f0664a8aa520e9" xml:space="preserve">
+    <value>进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。</value>
+  </data>
+  <data name="s4a81a7ba5358c26f74fbeb64" xml:space="preserve">
+    <value>进程</value>
+  </data>
   <data name="s8a3dcac66e7e031ae9e196b0" xml:space="preserve">
     <value>处理策略</value>
   </data>
@@ -3885,6 +4020,9 @@
   <data name="s1ec27efc39d08df984ce969e" xml:space="preserve">
     <value>请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。</value>
   </data>
+  <data name="s0d4004339a092a7ec7c9669f" xml:space="preserve">
+    <value>退出 Shou</value>
+  </data>
   <data name="s57c7b2e6768db10c7d0a2527" xml:space="preserve">
     <value>请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。</value>
   </data>
@@ -3920,6 +4058,9 @@
   </data>
   <data name="s9b9a8d05a7ec353bda84f9c1" xml:space="preserve">
     <value>已读取</value>
+  </data>
+  <data name="s32d8bff5a463bf27edf2eab1" xml:space="preserve">
+    <value>读取 / 写入</value>
   </data>
   <data name="s12634d2743a6f9baeeee33e9" xml:space="preserve">
     <value>查询操作结果</value>
@@ -3965,6 +4106,9 @@
   </data>
   <data name="se94931f01d82c1a103ce541e" xml:space="preserve">
     <value>只读系统工具的输出量超出限制。</value>
+  </data>
+  <data name="s2952abf6399c38d25e32c1ad" xml:space="preserve">
+    <value>只读监控 · 历史仅保留在内存中 · 离开本页后停止采样，除非已开启摘要。</value>
   </data>
   <data name="s3ebdd9ba8b813e24e6942218" xml:space="preserve">
     <value>正在读取分析历史…</value>
@@ -4026,11 +4170,17 @@
   <data name="s75107ebe5b2a40757fec9814" xml:space="preserve">
     <value>记录根目录已变化。</value>
   </data>
+  <data name="s25555a13c67db127d0855bf7" xml:space="preserve">
+    <value>接收 / 发送</value>
+  </data>
   <data name="s0cf67fefc177c5f7af4c7902" xml:space="preserve">
     <value>最近的工具清理</value>
   </data>
   <data name="sff414d3bc48d633e0cd45c27" xml:space="preserve">
     <value>最近的隐私清理记录</value>
+  </data>
+  <data name="s92d0274f76c957c98a5d10b2" xml:space="preserve">
+    <value>近期资源趋势</value>
   </data>
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>推荐</value>
@@ -4167,6 +4317,9 @@
   <data name="sbd3d8f99bf8c7f43560a99a2" xml:space="preserve">
     <value>重新扫描当前文件夹</value>
   </data>
+  <data name="s33c25c4f35e1b62d0ee86f63" xml:space="preserve">
+    <value>资源状态</value>
+  </data>
   <data name="sa76e13b9839270eb73ed1141" xml:space="preserve">
     <value>恢复</value>
   </data>
@@ -4202,6 +4355,9 @@
   </data>
   <data name="s80e0a1ef74165aa5308bd1e7" xml:space="preserve">
     <value>已获取 {0} / {1} 个位置的结果</value>
+  </data>
+  <data name="sa913cb76c15e2456a954e260" xml:space="preserve">
+    <value>继续监控</value>
   </data>
   <data name="s29acd0ba3738f9c97e0ac646" xml:space="preserve">
     <value>保留这些内容</value>
@@ -4464,6 +4620,9 @@
   <data name="sd69715933d1d2cead3199640" xml:space="preserve">
     <value>Safari 缓存</value>
   </data>
+  <data name="sf32f8b7e0c090afdc14689f9" xml:space="preserve">
+    <value>采样失败，正在显示上次观察结果。</value>
+  </data>
   <data name="s1509f561f2416598629b886a" xml:space="preserve">
     <value>保存</value>
   </data>
@@ -4707,6 +4866,9 @@
   <data name="s618b6244a947c3269ef22efc" xml:space="preserve">
     <value>搜索应用…</value>
   </data>
+  <data name="s2f4f02ae4ffa36861bd801cf" xml:space="preserve">
+    <value>搜索名称或 PID</value>
+  </data>
   <data name="s42e99c17c57fa990505b67e9" xml:space="preserve">
     <value>搜索程序或发布者</value>
   </data>
@@ -4890,6 +5052,9 @@
   <data name="scf8737a45e095338aac4a0a1" xml:space="preserve">
     <value>Sequel Pro 缓存</value>
   </data>
+  <data name="sc173da2c2a4d4ca2930d8c09" xml:space="preserve">
+    <value>明显升温</value>
+  </data>
   <data name="sd507c25df634f470890fdae3" xml:space="preserve">
     <value>服务用量</value>
   </data>
@@ -4991,6 +5156,9 @@
   </data>
   <data name="s34b4ea40d0e914ee239d21b0" xml:space="preserve">
     <value>显示 {0} 个位置，共匹配 {1} 个</value>
+  </data>
+  <data name="s4c62e53f39c4c83d55effa25" xml:space="preserve">
+    <value>显示 {0} 项，共 {1} 个匹配进程。</value>
   </data>
   <data name="sf09fdf713390caeddbb746a6" xml:space="preserve">
     <value>正在显示上次扫描的结果。</value>
@@ -5397,6 +5565,9 @@
   <data name="s24cbca79e916ffa96baa40ad" xml:space="preserve">
     <value>支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置，以及 Safari 历史。不清理 Safari Cookie、站点存储、保存的密码、自动填充、自定义配置、扩展数据和云端副本。</value>
   </data>
+  <data name="sc50c8be0dbb5c39b915b29db" xml:space="preserve">
+    <value>已用交换空间</value>
+  </data>
   <data name="sfbe3b1529e474d6a65d54688" xml:space="preserve">
     <value>Swift Package Manager 缓存</value>
   </data>
@@ -5420,6 +5591,9 @@
   </data>
   <data name="s2ffbc5827bb148aa73e15be5" xml:space="preserve">
     <value>系统缓存</value>
+  </data>
+  <data name="sb288d256878ba98d12593281" xml:space="preserve">
+    <value>系统监控</value>
   </data>
   <data name="s5916ef417325d1580766f237" xml:space="preserve">
     <value>系统 Run（32 位）</value>
@@ -5450,6 +5624,12 @@
   </data>
   <data name="s8563b2713156f795941eaf41" xml:space="preserve">
     <value>完成 Windows 原生验证前，系统卸载不可用。</value>
+  </data>
+  <data name="s92c94d89d18311822ec54ae3" xml:space="preserve">
+    <value>系统卷可用空间</value>
+  </data>
+  <data name="s34d264ea8a426c6319b7b316" xml:space="preserve">
+    <value>系统卷占用</value>
   </data>
   <data name="s4a81087f708d7387aadc6fbd" xml:space="preserve">
     <value>分析范围不包含系统管理的位置。</value>
@@ -5492,6 +5672,9 @@
   </data>
   <data name="sf3f8bb1c2c89dfd1e72d52fe" xml:space="preserve">
     <value>告诉现有 AI Agent 想清理什么，由它追问并制定适合你的规则。</value>
+  </data>
+  <data name="s29b294e47f772808dd2918c1" xml:space="preserve">
+    <value>温度为可读传感器均值，风扇由系统调节。</value>
   </data>
   <data name="sf262c8bdcc00871b4d4725ae" xml:space="preserve">
     <value>腾讯会议网络缓存</value>
@@ -5808,6 +5991,9 @@
   <data name="sdb9c55fb6b3989b72423e127" xml:space="preserve">
     <value>工具会在需要时重新下载软件包或生成分析缓存。</value>
   </data>
+  <data name="s6db39c53eb325aa164b80624" xml:space="preserve">
+    <value>无法开启托盘摘要。</value>
+  </data>
   <data name="s3260e06d677417993886ea3e" xml:space="preserve">
     <value>卸载尝试失败，安装程序可能已经进行了更改。</value>
   </data>
@@ -5831,6 +6017,9 @@
   </data>
   <data name="s8d8aa41a0657543ad4d3239c" xml:space="preserve">
     <value>版本格式不同或暂不支持比较，请在应用内核对。</value>
+  </data>
+  <data name="saf1bb020334104411d1e2381" xml:space="preserve">
+    <value>温度与风扇</value>
   </data>
   <data name="sc3e61569d474beaaf1a5ad03" xml:space="preserve">
     <value>这些文件将永久移除，此操作无法撤销。</value>
@@ -6021,6 +6210,12 @@
   <data name="s58ecb8ef87f6eec2f22de6ec" xml:space="preserve">
     <value>工具会在需要时重新生成缓存</value>
   </data>
+  <data name="s44945c30a645e0153c0f3c35" xml:space="preserve">
+    <value>CPU 占用最高的进程</value>
+  </data>
+  <data name="s5fe2d46b260a32e3a5ce50a4" xml:space="preserve">
+    <value>整机总容量</value>
+  </data>
   <data name="s411c3748315596b1da503e6f" xml:space="preserve">
     <value>Transmission 缓存</value>
   </data>
@@ -6029,6 +6224,9 @@
   </data>
   <data name="sd9935afd8ddd9b93df434cde" xml:space="preserve">
     <value>移到废纸篓后未返回目标位置。请检查系统废纸篓后再重试。</value>
+  </data>
+  <data name="sa88ebed672b6851b3ecfabd3" xml:space="preserve">
+    <value>托盘摘要</value>
   </data>
   <data name="s31b59a53e62f7003a1ddd6cc" xml:space="preserve">
     <value>触发线索</value>
@@ -6146,6 +6344,9 @@
   </data>
   <data name="s55fc4744fc8471a92da2d969" xml:space="preserve">
     <value>安装前验证更新签名。</value>
+  </data>
+  <data name="sd90c4de10e8eea60c6a2e7f0" xml:space="preserve">
+    <value>已运行：{0} 小时</value>
   </data>
   <data name="scbf4d344bcdf825e6a92036d" xml:space="preserve">
     <value>使用当前浏览目录</value>
@@ -6318,6 +6519,9 @@
   <data name="s4e17656a62b95a61b72e5d25" xml:space="preserve">
     <value>WhatsApp 缓存</value>
   </data>
+  <data name="s2a0f0c32ac4f7d059ce01529" xml:space="preserve">
+    <value>Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。</value>
+  </data>
   <data name="s864fba32c0ce2d3db93b0090" xml:space="preserve">
     <value>Windows 将此应用识别为系统软件包。</value>
   </data>
@@ -6344,6 +6548,9 @@
   </data>
   <data name="s1377264ba3b0a7172621971b" xml:space="preserve">
     <value>扫描位置</value>
+  </data>
+  <data name="s3f00927a719345edd4a83165" xml:space="preserve">
+    <value>写入</value>
   </data>
   <data name="s620969ba2b5de86123fe8fcf" xml:space="preserve">
     <value>Xcode 开发数据</value>

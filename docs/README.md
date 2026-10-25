@@ -21,6 +21,7 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 | Understand product scope | [PRD](product/prd.md) → [Daily cleanup](product/unified-cleanup.md) → [User stories](product/user-stories-and-use-cases.md) |
 | Explore storage | [Space Analysis](product/space-analysis.md) → [Developer scenarios](product/developer-space-scenarios.md) |
 | Manage applications and developer projects | [Apps & Projects](product/apps-and-projects.md) |
+| Inspect live resources and processes | [System monitor and desktop summaries](product/system-monitor.md) |
 | Manage applications or startup | [Application cleanup](product/application-uninstall.md), [Update discovery](product/application-updates.md), [Startup](product/startup-items.md) |
 | Understand AI and rules | [AI journeys](product/embedded-ai.md), [Rule specification](rules/rule-specification.md) |
 | Understand safety and results | [Cleanup safety](security/cleanup-safety.md), [Progress](product/operation-progress.md) |

@@ -17,6 +17,7 @@
                 <Button x:Name="CleanupNavigation" Tag="cleanup" Style="{StaticResource ShouTopNavigationButton}" Click="Navigate" />
                 <Button x:Name="ApplicationsNavigation" Tag="applications" Style="{StaticResource ShouTopNavigationButton}" Click="Navigate" />
                 <Button x:Name="StorageNavigation" Tag="storage" Style="{StaticResource ShouTopNavigationButton}" Click="Navigate" />
+                <Button x:Name="MonitorNavigation" Tag="monitor" Style="{StaticResource ShouTopNavigationButton}" Click="Navigate" />
                 <Button x:Name="ConfigurationNavigation" Tag="configuration" Style="{StaticResource ShouTopNavigationButton}" Click="Navigate" />
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="14" HorizontalAlignment="Right">

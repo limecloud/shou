@@ -12,7 +12,7 @@ Give names, paths and sizes the available width instead of persistent navigation
 
 ## Navigation and composition
 
-Primary navigation sits at the top: Cleanup, Apps & Projects, Space Analysis and Rules. History and Settings have stable controls on the right. Secondary navigation belongs below it:
+Primary navigation sits at the top: Cleanup, Apps & Projects, Space Analysis, Monitor and Rules. History and Settings have stable controls on the right. Secondary navigation belongs below it:
 
 | Primary destination | Tasks |
 | --- | --- |
@@ -73,3 +73,7 @@ Run `python3 scripts/generate-windows-resources.py` and `--check` to maintain Wi
 macOS has been built and installed over the local application; [SYNC.md](../../SYNC.md) records actual checks. Windows source now implements task-family navigation, the continuous gradient, shared-artwork introductions and full-width cleanup results. Projects now has Core marker-based grouping, exact paths, deduplicated capacity, tri-state selection and the same scan/selection model as Smart Cleanup. Recommendations, clearing and plans stay within project scope; personal rules require a project marker and a scope disjoint from fixed shared-cache roots. Pagination distinguishes displayed and total matched locations. Native interaction acceptance for this new project UI and Mac manual-review parity remain pending. On 2026-10-26, Windows 11 x64 cloud acceptance built real WinUI XAML and used Computer Use to inspect introductions, read-only scans, expansion, selection, a small window and live light/dark changes. Double/GridLength resource type errors in Settings and privacy row templates were fixed; code-created controls now retain dynamic theme references. See [Windows test results](windows-testing.md#2026-10-26-windows-11-cloud-acceptance) for screenshots and failure receipts. Public mutations, complete desktop E2E, complete ARM64 UI, signed installation and per-page macOS parity remain unaccepted.
 
 Use generated data for empty, loading, partial, ready, confirming, executing, stopping, failed and completed states. Verify primary/secondary navigation, expansion versus selection, filtered selection, footer estimates, confirmation cancellation, the minimum window and both appearances. Delete only generated fixtures; personal data is limited to read-only inspection and cancellation. Builds, state tests and resources do not replace actual UI or signed-installation evidence.
+
+## System monitor
+
+Monitoring uses two rows of eight panels: resource status, CPU, GPU, memory; battery, disk, network, thermals and fans. Trends sit inside their panels above the full-width process list with search/sort; per-core CPU and memory details expand progressively. Retain the full-window gradient, readable translucent surfaces, shared radii and body text, with scrolling at 960 × 680. Explain the load-status basis without an unsupported health score; unknown sensors stay missing. Status bar, Dock, tray and supported taskbar entries share sampling state and strings, with open/pause/disable commands and normal native exit. The [monitoring contract](../product/system-monitor.md) owns metrics, permissions and verification.

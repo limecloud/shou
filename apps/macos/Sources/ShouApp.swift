@@ -101,6 +101,8 @@ struct CleanupCompletion: Identifiable {
     var showApplicationOrphans=false
     var orphanRetryPaths=Set<String>()
     var privacySession=PrivacySession()
+    let monitor=SystemMonitorSession(source:NativeSystemMonitor())
+    @ObservationIgnored var monitorStatusItem: MonitorStatusItem?
     var browsingPath="."
     var focusedPath: String?
     var ruleDraftPattern=""
@@ -940,6 +942,7 @@ struct ContentView: View {
         case "applications": "Applications"
         case "projects": "Developer Projects"
         case "privacy": "Privacy"
+        case "monitor": "System Monitor"
         case "history": "History"
         case "settings": "Settings"
         default: "Cleanup"
@@ -947,7 +950,7 @@ struct ContentView: View {
     }
     private var showsPageHeading: Bool {
         switch model.section {
-        case "smart", "projects", "storage", "large-files", "applications", "startup", "privacy": false
+        case "smart", "projects", "storage", "large-files", "applications", "startup", "privacy", "monitor": false
         case "history": !model.history.isEmpty
         default: true
         }
@@ -979,6 +982,8 @@ struct ContentView: View {
         case "applications": ApplicationsView(model: model, session: model.applicationsSession)
         case "projects": ProjectCleanupView(model: model)
         case "privacy": PrivacyView(app: model, session: model.privacySession)
+        case "monitor": SystemMonitorView(model:model,session:model.monitor)
+                .onAppear { if model.monitorStatusItem == nil { model.monitorStatusItem=MonitorStatusItem(model:model) } }
         case "history": HistoryView(model: model)
         case "settings": SettingsView(model: model, updater: model.updater)
         case "storage": StorageBrowser(model: model, inspector: inspector)

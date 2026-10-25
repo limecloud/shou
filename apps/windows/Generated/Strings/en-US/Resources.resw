@@ -201,6 +201,9 @@
   <data name="s890c400c117c16d3f0b9ae42" xml:space="preserve">
     <value>A valid application identifier and metadata are required before uninstalling.</value>
   </data>
+  <data name="sd5975f41c92a72b5411b1152" xml:space="preserve">
+    <value>AC Power</value>
+  </data>
   <data name="s2ec14428b5e2e2a75454f92c" xml:space="preserve">
     <value>AI Configuration</value>
   </data>
@@ -257,6 +260,9 @@
   </data>
   <data name="s25c936bed9bec336b77643e8" xml:space="preserve">
     <value>Access to this startup source was denied.</value>
+  </data>
+  <data name="s7fa43836f82d58cd2c361702" xml:space="preserve">
+    <value>Active Ethernet / Wi-Fi interfaces</value>
   </data>
   <data name="s121ce69f9e760922afef8154" xml:space="preserve">
     <value>Active or recoverable records were preserved. Review the history selection.</value>
@@ -365,6 +371,9 @@
   </data>
   <data name="saffdd75ff7a37d2bcfc7783f" xml:space="preserve">
     <value>All Locations</value>
+  </data>
+  <data name="s011937231b0b4446b155eb27" xml:space="preserve">
+    <value>All readable physical disks</value>
   </data>
   <data name="s9755c8d7d44a62589c873ca1" xml:space="preserve">
     <value>All time</value>
@@ -708,6 +717,15 @@
   <data name="sdb466cd78d8029c65a8aa445" xml:space="preserve">
     <value>Based on a saved size index; current files are rechecked by rule preview and cleanup.</value>
   </data>
+  <data name="sdfcb7c1619d5abd12f2df162" xml:space="preserve">
+    <value>Battery</value>
+  </data>
+  <data name="s6801b299587357b25e4aa9a7" xml:space="preserve">
+    <value>Battery Health</value>
+  </data>
+  <data name="se3b0e2be81c3def617b65ba0" xml:space="preserve">
+    <value>Battery Power</value>
+  </data>
   <data name="sef4ea6334178696bf2f2d0ec" xml:space="preserve">
     <value>Battle.net caches</value>
   </data>
@@ -846,6 +864,9 @@
   <data name="sb16b5175a5dffe32a7cf375a" xml:space="preserve">
     <value>Bundler download caches</value>
   </data>
+  <data name="sc0a5cd65c3187d620b4fc8ca" xml:space="preserve">
+    <value>Busiest GPU engine or device</value>
+  </data>
   <data name="se759793341ff3757eaa76e81" xml:space="preserve">
     <value>CLI</value>
   </data>
@@ -857,6 +878,12 @@
   </data>
   <data name="s3fed508515370b89291cc3b9" xml:space="preserve">
     <value>CMake normally regenerates configured build outputs from the retained project sources.</value>
+  </data>
+  <data name="s733e5ea85644affda4617f69" xml:space="preserve">
+    <value>CPU and memory load; not a hardware health score.</value>
+  </data>
+  <data name="s33fcf3bee3faf889c12336e0" xml:space="preserve">
+    <value>CPU cores and memory details</value>
   </data>
   <data name="sca12403385f178e38998d8b5" xml:space="preserve">
     <value>Cache Files</value>
@@ -962,6 +989,9 @@
   </data>
   <data name="sb0f8ebff66fbded3703f2176" xml:space="preserve">
     <value>Changing the scheduled task…</value>
+  </data>
+  <data name="s22b693223fcb3be360b175bc" xml:space="preserve">
+    <value>Charging</value>
   </data>
   <data name="sede3a1588b293f3af4106ba1" xml:space="preserve">
     <value>Charles Proxy caches</value>
@@ -1338,6 +1368,9 @@
   <data name="sca42c3a074dceb05deb8c8a9" xml:space="preserve">
     <value>Collapse startup details</value>
   </data>
+  <data name="s766cce33d0e1cee779c5a5a9" xml:space="preserve">
+    <value>Collecting rate baseline…</value>
+  </data>
   <data name="sd5209e8e64c5174198f7c7cb" xml:space="preserve">
     <value>Colors indicate extensions, not cleanup eligibility.</value>
   </data>
@@ -1374,6 +1407,9 @@
   <data name="sb54ea712b44f96b01e80a1de" xml:space="preserve">
     <value>Comparison unavailable</value>
   </data>
+  <data name="s143b270a32602d412babf272" xml:space="preserve">
+    <value>Complete</value>
+  </data>
   <data name="s22a970d2e5b1cc233e462be7" xml:space="preserve">
     <value>Completed</value>
   </data>
@@ -1394,6 +1430,9 @@
   </data>
   <data name="s2ab2e6fa4481cbe31c5e3c08" xml:space="preserve">
     <value>Composer legacy download cache</value>
+  </data>
+  <data name="se2d1ca133e0396e480dfa454" xml:space="preserve">
+    <value>Compressed</value>
   </data>
   <data name="s291569be37cc6c1b5b4b7012" xml:space="preserve">
     <value>Conda package caches</value>
@@ -1539,6 +1578,9 @@
   <data name="s236f6cf769120523d8d8b426" xml:space="preserve">
     <value>Could not verify</value>
   </data>
+  <data name="sf20d6e042b954bf66164ad3a" xml:space="preserve">
+    <value>Counter unavailable or source changed.</value>
+  </data>
   <data name="s639d0416e7b06b817b7925cd" xml:space="preserve">
     <value>Coverage Issues</value>
   </data>
@@ -1556,6 +1598,9 @@
   </data>
   <data name="sa79cbc9cb32aec36caff70da" xml:space="preserve">
     <value>Create reusable rules</value>
+  </data>
+  <data name="s427dd2969bd140bec3c1bcc7" xml:space="preserve">
+    <value>Critical</value>
   </data>
   <data name="scf2b468b2c242c48aaad82bd" xml:space="preserve">
     <value>Current Analysis</value>
@@ -1598,6 +1643,9 @@
   </data>
   <data name="s00033560266f35bb2b5f667c" xml:space="preserve">
     <value>Customize with AI…</value>
+  </data>
+  <data name="s864514a2f754b2ac0efc8092" xml:space="preserve">
+    <value>Cycles</value>
   </data>
   <data name="s338dab2f7b43bd272b1fed05" xml:space="preserve">
     <value>DaVinci Resolve caches</value>
@@ -1770,6 +1818,9 @@
   <data name="s4406626d55c61a5d609b810d" xml:space="preserve">
     <value>Disable Startup Task</value>
   </data>
+  <data name="s4acc4e7fc435f7469641ac8e" xml:space="preserve">
+    <value>Disable Summary</value>
+  </data>
   <data name="sd657f257c00e44d60f069e53" xml:space="preserve">
     <value>Disable startup definition?</value>
   </data>
@@ -1799,6 +1850,12 @@
   </data>
   <data name="s67e7cc5123c61ae7e875b249" xml:space="preserve">
     <value>Discovery depth must be a whole number from 1 to 32.</value>
+  </data>
+  <data name="s340e0cf3bfa8d23dad5fa375" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="sc67a58b6eb310268e78d7430" xml:space="preserve">
+    <value>Disk Activity</value>
   </data>
   <data name="s5af15d6538588ec036c408db" xml:space="preserve">
     <value>Disk Usage</value>
@@ -2040,6 +2097,15 @@
   <data name="s986250834e95cb2303fb27fb" xml:space="preserve">
     <value>Failed items</value>
   </data>
+  <data name="sf7b19afcde965ea4942b878d" xml:space="preserve">
+    <value>Fair</value>
+  </data>
+  <data name="se27be6419b092ee1ebd0df15" xml:space="preserve">
+    <value>Fan</value>
+  </data>
+  <data name="s3882438bf67f500bfb937a5f" xml:space="preserve">
+    <value>Fan telemetry unavailable</value>
+  </data>
   <data name="s75f164bde4ad7b06e571828e" xml:space="preserve">
     <value>Figma caches</value>
   </data>
@@ -2184,6 +2250,9 @@
   <data name="sd79837138b598c74d26dc44f" xml:space="preserve">
     <value>GOG Galaxy caches</value>
   </data>
+  <data name="se444ca543959c322179c8cd5" xml:space="preserve">
+    <value>GPU counters are unavailable on this device.</value>
+  </data>
   <data name="sc910d474dcd724bff83ddede" xml:space="preserve">
     <value>General</value>
   </data>
@@ -2276,6 +2345,9 @@
   </data>
   <data name="s2bae5bd387f97c8eccfebf6b" xml:space="preserve">
     <value>High Risk</value>
+  </data>
+  <data name="s396f1964a745e48a41781c12" xml:space="preserve">
+    <value>High resource usage</value>
   </data>
   <data name="s4682a7f7972130ed2268250f" xml:space="preserve">
     <value>High risk</value>
@@ -2676,6 +2748,9 @@
   <data name="s8cf6c946df83801fd9feb652" xml:space="preserve">
     <value>Lark and Feishu rendering caches</value>
   </data>
+  <data name="sf849482694bcd8cc2b0721c3" xml:space="preserve">
+    <value>Last 2 minutes · Gaps mean unavailable</value>
+  </data>
   <data name="s5c37cf8f018b4ac5c8f0ae78" xml:space="preserve">
     <value>Last 24 hours</value>
   </data>
@@ -2727,6 +2802,9 @@
   <data name="s935f2e7ff577dc01cd7809f9" xml:space="preserve">
     <value>Links, special files and the scan root cannot be removed here.</value>
   </data>
+  <data name="s315ed201de6e4f5197ded7f3" xml:space="preserve">
+    <value>Live · Every 2 seconds</value>
+  </data>
   <data name="s3f06cd334f4811b2130b13a8" xml:space="preserve">
     <value>Load More</value>
   </data>
@@ -2777,6 +2855,9 @@
   </data>
   <data name="s7138b9310e39820e3c6ec290" xml:space="preserve">
     <value>Logical Size</value>
+  </data>
+  <data name="sf7b63334928c556ed7530031" xml:space="preserve">
+    <value>Logical cores</value>
   </data>
   <data name="sbd336b5c31385e113dface46" xml:space="preserve">
     <value>Logical size</value>
@@ -2877,6 +2958,15 @@
   <data name="s9d9c895f7222a6f52a70ecce" xml:space="preserve">
     <value>Measuring application sizes…</value>
   </data>
+  <data name="sc3963aedaac6c83c04cf8fb9" xml:space="preserve">
+    <value>Memory</value>
+  </data>
+  <data name="s7465624307a3051b3b74fb98" xml:space="preserve">
+    <value>Memory Pressure</value>
+  </data>
+  <data name="se50dedd9458c4dc62d78febb" xml:space="preserve">
+    <value>Menu bar summary</value>
+  </data>
   <data name="s7c5a05e07508dcb7bb7be1bc" xml:space="preserve">
     <value>MiaoYan caches</value>
   </data>
@@ -2939,6 +3029,12 @@
   </data>
   <data name="s8e873d517e50cd690ff39376" xml:space="preserve">
     <value>MongoDB Compass caches</value>
+  </data>
+  <data name="s4c2e1df4570bebd69829cce1" xml:space="preserve">
+    <value>Monitor</value>
+  </data>
+  <data name="sc79a73fe2e65a9212e53b73d" xml:space="preserve">
+    <value>Monitoring paused</value>
   </data>
   <data name="s98eea4c1c21f333640ea131c" xml:space="preserve">
     <value>More Actions</value>
@@ -3033,6 +3129,12 @@
   <data name="s45aea804fef934cd73ff0958" xml:space="preserve">
     <value>NetEase Music caches</value>
   </data>
+  <data name="s1744b96470b51bf30935e274" xml:space="preserve">
+    <value>Network</value>
+  </data>
+  <data name="s31f5c065b26be2e70eb8271c" xml:space="preserve">
+    <value>Network Activity</value>
+  </data>
   <data name="s5a6ecfbbddcdf3b7846594ac" xml:space="preserve">
     <value>Network workspaces are outside the supported execution scope.</value>
   </data>
@@ -3120,6 +3222,9 @@
   <data name="s28b940ecbb9c06fc744d898b" xml:space="preserve">
     <value>No matching large files</value>
   </data>
+  <data name="s8ebfb09e43603ceb7b334c6b" xml:space="preserve">
+    <value>No matching processes.</value>
+  </data>
   <data name="s74895f1f032801193ab7f35a" xml:space="preserve">
     <value>No matching project outputs</value>
   </data>
@@ -3140,6 +3245,9 @@
   </data>
   <data name="sce2ec5bc6e16950e532cae04" xml:space="preserve">
     <value>No path was recorded</value>
+  </data>
+  <data name="s524234a7e23932bc8607e5ab" xml:space="preserve">
+    <value>No readable internal battery was found.</value>
   </data>
   <data name="s4c34048393f6fdd072c604c4" xml:space="preserve">
     <value>No reclaimable tool-managed storage found.</value>
@@ -3288,6 +3396,9 @@
   <data name="s3eaf8ef549672a650eb1a848" xml:space="preserve">
     <value>Object replaced</value>
   </data>
+  <data name="sc33f5a24b0a82ce049b3a870" xml:space="preserve">
+    <value>Observation incomplete</value>
+  </data>
   <data name="s4db3b860dd3494da9a632485" xml:space="preserve">
     <value>Observed Change</value>
   </data>
@@ -3296,6 +3407,9 @@
   </data>
   <data name="s2f4add0f44158e9df8df8240" xml:space="preserve">
     <value>Observed at</value>
+  </data>
+  <data name="se47d52767eae8519cadc8013" xml:space="preserve">
+    <value>Observed load normal</value>
   </data>
   <data name="s76da797d9fe96d6816cfd207" xml:space="preserve">
     <value>Observed startup state is best effort; launchd can change after this read.</value>
@@ -3317,6 +3431,9 @@
   </data>
   <data name="s4ff1749f6ab022a03f51b1af" xml:space="preserve">
     <value>Offline installs may require downloading packages again. Project dependencies, global executables and configuration are retained.</value>
+  </data>
+  <data name="s092be590384311b699ac9803" xml:space="preserve">
+    <value>Oldest → Latest</value>
   </data>
   <data name="s60d8bb4f9c493fe8f9787922" xml:space="preserve">
     <value>One Exact Folder</value>
@@ -3419,6 +3536,9 @@
   </data>
   <data name="sfdb627efb86ba73e631686e9" xml:space="preserve">
     <value>Open Source</value>
+  </data>
+  <data name="sc793082e6085a4296980e5c8" xml:space="preserve">
+    <value>Open System Monitor</value>
   </data>
   <data name="s4bc31545a3b75753514715b7" xml:space="preserve">
     <value>Open System Settings…</value>
@@ -3537,11 +3657,17 @@
   <data name="s7252a293d795ae7e7f5991e4" xml:space="preserve">
     <value>Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage.</value>
   </data>
+  <data name="s099d188728a8bb8544806adb" xml:space="preserve">
+    <value>Partial process coverage</value>
+  </data>
   <data name="sc5be40dc8c570428b3a70604" xml:space="preserve">
     <value>Partially Enabled</value>
   </data>
   <data name="s24421344abc368523525b730" xml:space="preserve">
     <value>Partially completed</value>
+  </data>
+  <data name="s90c41b2cddf92bfd9927fcc7" xml:space="preserve">
+    <value>Pause Monitoring</value>
   </data>
   <data name="s761e623c367a79482f11ba1c" xml:space="preserve">
     <value>Paw API caches</value>
@@ -3732,6 +3858,15 @@
   <data name="s6012f955de26d741017eda36" xml:space="preserve">
     <value>Privacy sources could not be scanned. Check browser access and try again.</value>
   </data>
+  <data name="se083bd83e9d3e97e3b3e7dbe" xml:space="preserve">
+    <value>Process</value>
+  </data>
+  <data name="s3a0f0e6222f0664a8aa520e9" xml:space="preserve">
+    <value>Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.</value>
+  </data>
+  <data name="s4a81a7ba5358c26f74fbeb64" xml:space="preserve">
+    <value>Processes</value>
+  </data>
   <data name="s8a3dcac66e7e031ae9e196b0" xml:space="preserve">
     <value>Processing Strategy</value>
   </data>
@@ -3885,6 +4020,9 @@
   <data name="s1ec27efc39d08df984ce969e" xml:space="preserve">
     <value>Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted.</value>
   </data>
+  <data name="s0d4004339a092a7ec7c9669f" xml:space="preserve">
+    <value>Quit Shou</value>
+  </data>
   <data name="s57c7b2e6768db10c7d0a2527" xml:space="preserve">
     <value>Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.</value>
   </data>
@@ -3920,6 +4058,9 @@
   </data>
   <data name="s9b9a8d05a7ec353bda84f9c1" xml:space="preserve">
     <value>Read</value>
+  </data>
+  <data name="s32d8bff5a463bf27edf2eab1" xml:space="preserve">
+    <value>Read / Write</value>
   </data>
   <data name="s12634d2743a6f9baeeee33e9" xml:space="preserve">
     <value>Read Operation Result</value>
@@ -3965,6 +4106,9 @@
   </data>
   <data name="se94931f01d82c1a103ce541e" xml:space="preserve">
     <value>Read-only system tool output exceeded its budget.</value>
+  </data>
+  <data name="s2952abf6399c38d25e32c1ad" xml:space="preserve">
+    <value>Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.</value>
   </data>
   <data name="s3ebdd9ba8b813e24e6942218" xml:space="preserve">
     <value>Reading analysis history…</value>
@@ -4026,11 +4170,17 @@
   <data name="s75107ebe5b2a40757fec9814" xml:space="preserve">
     <value>Receipt root changed.</value>
   </data>
+  <data name="s25555a13c67db127d0855bf7" xml:space="preserve">
+    <value>Receive / Send</value>
+  </data>
   <data name="s0cf67fefc177c5f7af4c7902" xml:space="preserve">
     <value>Recent Tool Cleanups</value>
   </data>
   <data name="sff414d3bc48d633e0cd45c27" xml:space="preserve">
     <value>Recent privacy receipts</value>
+  </data>
+  <data name="s92d0274f76c957c98a5d10b2" xml:space="preserve">
+    <value>Recent resource trend</value>
   </data>
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>Recommended</value>
@@ -4167,6 +4317,9 @@
   <data name="sbd3d8f99bf8c7f43560a99a2" xml:space="preserve">
     <value>Rescan This Folder</value>
   </data>
+  <data name="s33c25c4f35e1b62d0ee86f63" xml:space="preserve">
+    <value>Resource Status</value>
+  </data>
   <data name="sa76e13b9839270eb73ed1141" xml:space="preserve">
     <value>Restore</value>
   </data>
@@ -4202,6 +4355,9 @@
   </data>
   <data name="s80e0a1ef74165aa5308bd1e7" xml:space="preserve">
     <value>Results for {0} of {1} locations</value>
+  </data>
+  <data name="sa913cb76c15e2456a954e260" xml:space="preserve">
+    <value>Resume Monitoring</value>
   </data>
   <data name="s29acd0ba3738f9c97e0ac646" xml:space="preserve">
     <value>Retain this content</value>
@@ -4464,6 +4620,9 @@
   <data name="sd69715933d1d2cead3199640" xml:space="preserve">
     <value>Safari caches</value>
   </data>
+  <data name="sf32f8b7e0c090afdc14689f9" xml:space="preserve">
+    <value>Sampling failed; showing the last observation.</value>
+  </data>
   <data name="s1509f561f2416598629b886a" xml:space="preserve">
     <value>Save</value>
   </data>
@@ -4707,6 +4866,9 @@
   <data name="s618b6244a947c3269ef22efc" xml:space="preserve">
     <value>Search applications…</value>
   </data>
+  <data name="s2f4f02ae4ffa36861bd801cf" xml:space="preserve">
+    <value>Search name or PID</value>
+  </data>
   <data name="s42e99c17c57fa990505b67e9" xml:space="preserve">
     <value>Search programs or publishers</value>
   </data>
@@ -4890,6 +5052,9 @@
   <data name="scf8737a45e095338aac4a0a1" xml:space="preserve">
     <value>Sequel Pro caches</value>
   </data>
+  <data name="sc173da2c2a4d4ca2930d8c09" xml:space="preserve">
+    <value>Serious</value>
+  </data>
   <data name="sd507c25df634f470890fdae3" xml:space="preserve">
     <value>Service Usage</value>
   </data>
@@ -4991,6 +5156,9 @@
   </data>
   <data name="s34b4ea40d0e914ee239d21b0" xml:space="preserve">
     <value>Showing {0} of {1} matched locations</value>
+  </data>
+  <data name="s4c62e53f39c4c83d55effa25" xml:space="preserve">
+    <value>Showing {0} of {1} matching processes.</value>
   </data>
   <data name="sf09fdf713390caeddbb746a6" xml:space="preserve">
     <value>Showing results from the previous scan.</value>
@@ -5397,6 +5565,9 @@
   <data name="s24cbca79e916ffa96baa40ad" xml:space="preserve">
     <value>Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned.</value>
   </data>
+  <data name="sc50c8be0dbb5c39b915b29db" xml:space="preserve">
+    <value>Swap Used</value>
+  </data>
   <data name="sfbe3b1529e474d6a65d54688" xml:space="preserve">
     <value>Swift Package Manager caches</value>
   </data>
@@ -5420,6 +5591,9 @@
   </data>
   <data name="s2ffbc5827bb148aa73e15be5" xml:space="preserve">
     <value>System Caches</value>
+  </data>
+  <data name="sb288d256878ba98d12593281" xml:space="preserve">
+    <value>System Monitor</value>
   </data>
   <data name="s5916ef417325d1580766f237" xml:space="preserve">
     <value>System Run (32-bit)</value>
@@ -5450,6 +5624,12 @@
   </data>
   <data name="s8563b2713156f795941eaf41" xml:space="preserve">
     <value>System uninstall is unavailable until native Windows verification is complete.</value>
+  </data>
+  <data name="s92c94d89d18311822ec54ae3" xml:space="preserve">
+    <value>System volume available</value>
+  </data>
+  <data name="s34d264ea8a426c6319b7b316" xml:space="preserve">
+    <value>System volume usage</value>
   </data>
   <data name="s4a81087f708d7387aadc6fbd" xml:space="preserve">
     <value>System-managed locations are excluded from analysis.</value>
@@ -5492,6 +5672,9 @@
   </data>
   <data name="sf3f8bb1c2c89dfd1e72d52fe" xml:space="preserve">
     <value>Tell your coding agent what to clean. It asks the right questions and writes the rules for you.</value>
+  </data>
+  <data name="s29b294e47f772808dd2918c1" xml:space="preserve">
+    <value>Temperature: available sensor average. Fans are controlled by the system.</value>
   </data>
   <data name="sf262c8bdcc00871b4d4725ae" xml:space="preserve">
     <value>Tencent Meeting network caches</value>
@@ -5808,6 +5991,9 @@
   <data name="sdb9c55fb6b3989b72423e127" xml:space="preserve">
     <value>The tool downloads packages or regenerates cached analysis when needed.</value>
   </data>
+  <data name="s6db39c53eb325aa164b80624" xml:space="preserve">
+    <value>The tray summary could not be opened.</value>
+  </data>
   <data name="s3260e06d677417993886ea3e" xml:space="preserve">
     <value>The uninstall attempt failed. The installer may have made changes.</value>
   </data>
@@ -5831,6 +6017,9 @@
   </data>
   <data name="s8d8aa41a0657543ad4d3239c" xml:space="preserve">
     <value>The versions use different or unsupported formats. Compare them in the app.</value>
+  </data>
+  <data name="saf1bb020334104411d1e2381" xml:space="preserve">
+    <value>Thermals &amp; Fans</value>
   </data>
   <data name="sc3e61569d474beaaf1a5ad03" xml:space="preserve">
     <value>These files will be permanently removed. This action cannot be undone.</value>
@@ -6021,6 +6210,12 @@
   <data name="s58ecb8ef87f6eec2f22de6ec" xml:space="preserve">
     <value>Tools recreate caches when needed</value>
   </data>
+  <data name="s44945c30a645e0153c0f3c35" xml:space="preserve">
+    <value>Top CPU processes</value>
+  </data>
+  <data name="s5fe2d46b260a32e3a5ce50a4" xml:space="preserve">
+    <value>Total machine capacity</value>
+  </data>
   <data name="s411c3748315596b1da503e6f" xml:space="preserve">
     <value>Transmission caches</value>
   </data>
@@ -6029,6 +6224,9 @@
   </data>
   <data name="sd9935afd8ddd9b93df434cde" xml:space="preserve">
     <value>Trash operation did not report its destination. Inspect the system Trash before retrying.</value>
+  </data>
+  <data name="sa88ebed672b6851b3ecfabd3" xml:space="preserve">
+    <value>Tray summary</value>
   </data>
   <data name="s31b59a53e62f7003a1ddd6cc" xml:space="preserve">
     <value>Trigger clues</value>
@@ -6146,6 +6344,9 @@
   </data>
   <data name="s55fc4744fc8471a92da2d969" xml:space="preserve">
     <value>Updates are verified before installation.</value>
+  </data>
+  <data name="sd90c4de10e8eea60c6a2e7f0" xml:space="preserve">
+    <value>Uptime: {0} hours</value>
   </data>
   <data name="scbf4d344bcdf825e6a92036d" xml:space="preserve">
     <value>Use Browsed Folder</value>
@@ -6318,6 +6519,9 @@
   <data name="s4e17656a62b95a61b72e5d25" xml:space="preserve">
     <value>WhatsApp caches</value>
   </data>
+  <data name="s2a0f0c32ac4f7d059ce01529" xml:space="preserve">
+    <value>Windows does not expose these hardware sensors through the supported read-only APIs.</value>
+  </data>
   <data name="s864fba32c0ce2d3db93b0090" xml:space="preserve">
     <value>Windows identifies this as a system package.</value>
   </data>
@@ -6344,6 +6548,9 @@
   </data>
   <data name="s1377264ba3b0a7172621971b" xml:space="preserve">
     <value>Scan Locations</value>
+  </data>
+  <data name="s3f00927a719345edd4a83165" xml:space="preserve">
+    <value>Write</value>
   </data>
   <data name="s620969ba2b5de86123fe8fcf" xml:space="preserve">
     <value>Xcode Data</value>

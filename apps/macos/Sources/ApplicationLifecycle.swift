@@ -31,6 +31,26 @@ final class ShouApplicationDelegate: NSObject, NSApplicationDelegate {
     weak var model: AppModel?
     private var terminationPending=false
 
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        guard let model else { return nil }
+        let menu=NSMenu()
+        let open=NSMenuItem(title:model.t("Open System Monitor"),action:#selector(openMonitor),keyEquivalent:"")
+        open.target=self; open.isEnabled = !model.busy; menu.addItem(open)
+        if model.monitor.backgroundEnabled {
+            let pause=NSMenuItem(title:model.t(model.monitor.paused ? "Resume Monitoring" : "Pause Monitoring"),action:#selector(pauseMonitor),keyEquivalent:"")
+            pause.target=self; menu.addItem(pause)
+        }
+        return menu
+    }
+    @objc private func openMonitor() {
+        guard let model, !model.busy else { return }
+        model.section="monitor"; NSApp.activate(ignoringOtherApps:true)
+        NSApp.windows.first(where:{ $0.canBecomeMain })?.makeKeyAndOrderFront(nil)
+    }
+    @objc private func pauseMonitor() { if let model { model.monitor.setPaused(!model.monitor.paused) } }
+
+    func applicationWillTerminate(_ notification: Notification) { model?.monitor.shutdown() }
+
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if terminationPending { return .terminateLater }
         if let model, !confirmLeavingAI(model) { return .terminateCancel }
@@ -120,6 +140,7 @@ struct OperationWindowGuard: NSViewRepresentable {
         }
         func windowWillClose(_ notification: Notification) {
             model?.ai.stop()
+            model?.monitor.setVisible(false)
             lifecycleLog.notice("Window will close; number=\(self.window?.windowNumber ?? -1)")
             originalDelegate?.windowWillClose?(notification)
         }

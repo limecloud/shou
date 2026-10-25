@@ -23,6 +23,16 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 
 @main enum TestRunner {
     static func main() async {
+        if Array(CommandLine.arguments.dropFirst()) == ["--system-monitor-only"] {
+            do {
+                try monitorRatesRequireFreshStableCounters()
+                try monitorHandlesGroupsReuseMissingDataAndBoundsHistory()
+                try await monitorSessionRejectsLateResultsAndStopsWhenHidden()
+                try await nativeMonitorReadsWithoutMutation()
+                print("4/4 system monitor rate, identity, lifecycle and read-only native checks passed.")
+            } catch { print("FAIL system monitor: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--application-updates-only"] {
             do {
                 try applicationUpdatesCompareOnlyVerifiedNumericVersions()
@@ -478,6 +488,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Monitor rate baselines and source resets", { try monitorRatesRequireFreshStableCounters() }),
+            ("Monitor groups, PID reuse and bounded history", { try monitorHandlesGroupsReuseMissingDataAndBoundsHistory() }),
+            ("Monitor lifecycle rejects late results", { try await monitorSessionRejectsLateResultsAndStopsWhenHidden() }),
+            ("Monitor read-only native observation", { try await nativeMonitorReadsWithoutMutation() }),
             ("Paged storage manifests preserve corruption and retention boundaries", { try await storageManifestPagesVerifyCorruptionAndRetention() }),
             ("Storage manifest publication failures and legacy plans remain safe", { try await storageManifestInterruptedPublicationAndLegacyPlans() }),
             ("Cancelling permanent verification never removes files", { try await permanentVerificationCancellationDoesNotRemoveFiles() }),

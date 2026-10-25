@@ -334,6 +334,11 @@
     "resource_id": "s890c400c117c16d3f0b9ae42",
     "text": "卸载前需要有效的应用标识和元数据。"
   },
+  "AC Power": {
+    "format": "电源供电",
+    "resource_id": "sd5975f41c92a72b5411b1152",
+    "text": "电源供电"
+  },
   "AI Configuration": {
     "format": "AI 配置方案",
     "resource_id": "s2ec14428b5e2e2a75454f92c",
@@ -428,6 +433,11 @@
     "format": "没有权限读取此启动项来源。",
     "resource_id": "s25c936bed9bec336b77643e8",
     "text": "没有权限读取此启动项来源。"
+  },
+  "Active Ethernet / Wi-Fi interfaces": {
+    "format": "活动的以太网 / Wi-Fi 接口",
+    "resource_id": "s7fa43836f82d58cd2c361702",
+    "text": "活动的以太网 / Wi-Fi 接口"
   },
   "Active or recoverable records were preserved. Review the history selection.": {
     "format": "正在执行或恢复所需的记录已保留，请重新检查选择。",
@@ -608,6 +618,11 @@
     "format": "全部位置",
     "resource_id": "saffdd75ff7a37d2bcfc7783f",
     "text": "全部位置"
+  },
+  "All readable physical disks": {
+    "format": "全部可读物理磁盘",
+    "resource_id": "s011937231b0b4446b155eb27",
+    "text": "全部可读物理磁盘"
   },
   "All time": {
     "format": "所有时间",
@@ -1179,6 +1194,21 @@
     "resource_id": "sdb466cd78d8029c65a8aa445",
     "text": "建议基于已保存的大小索引；规则预览和清理会重新检查当前文件。"
   },
+  "Battery": {
+    "format": "电池",
+    "resource_id": "sdfcb7c1619d5abd12f2df162",
+    "text": "电池"
+  },
+  "Battery Health": {
+    "format": "电池健康",
+    "resource_id": "s6801b299587357b25e4aa9a7",
+    "text": "电池健康"
+  },
+  "Battery Power": {
+    "format": "电池供电",
+    "resource_id": "se3b0e2be81c3def617b65ba0",
+    "text": "电池供电"
+  },
   "Battle.net caches": {
     "format": "战网 缓存",
     "resource_id": "sef4ea6334178696bf2f2d0ec",
@@ -1409,6 +1439,11 @@
     "resource_id": "sb16b5175a5dffe32a7cf375a",
     "text": "Bundler 下载缓存"
   },
+  "Busiest GPU engine or device": {
+    "format": "最繁忙的 GPU 引擎或设备",
+    "resource_id": "sc0a5cd65c3187d620b4fc8ca",
+    "text": "最繁忙的 GPU 引擎或设备"
+  },
   "CLI": {
     "format": "命令行",
     "resource_id": "se759793341ff3757eaa76e81",
@@ -1428,6 +1463,16 @@
     "format": "CMake 通常可以根据保留的项目源码重新生成已配置的构建产物。",
     "resource_id": "s3fed508515370b89291cc3b9",
     "text": "CMake 通常可以根据保留的项目源码重新生成已配置的构建产物。"
+  },
+  "CPU and memory load; not a hardware health score.": {
+    "format": "依据 CPU 与内存负载判断，不代表硬件健康评分。",
+    "resource_id": "s733e5ea85644affda4617f69",
+    "text": "依据 CPU 与内存负载判断，不代表硬件健康评分。"
+  },
+  "CPU cores and memory details": {
+    "format": "每核 CPU 与内存详情",
+    "resource_id": "s33fcf3bee3faf889c12336e0",
+    "text": "每核 CPU 与内存详情"
   },
   "Cache Files": {
     "format": "缓存文件",
@@ -1603,6 +1648,11 @@
     "format": "正在更改计划任务…",
     "resource_id": "sb0f8ebff66fbded3703f2176",
     "text": "正在更改计划任务…"
+  },
+  "Charging": {
+    "format": "充电中",
+    "resource_id": "s22b693223fcb3be360b175bc",
+    "text": "充电中"
   },
   "Charles Proxy caches": {
     "format": "Charles Proxy 缓存",
@@ -2229,6 +2279,11 @@
     "resource_id": "sca42c3a074dceb05deb8c8a9",
     "text": "收起启动项详情"
   },
+  "Collecting rate baseline…": {
+    "format": "正在建立速率基线…",
+    "resource_id": "s766cce33d0e1cee779c5a5a9",
+    "text": "正在建立速率基线…"
+  },
   "Colors indicate extensions, not cleanup eligibility.": {
     "format": "颜色表示文件扩展名，不代表可以清理。",
     "resource_id": "sd5209e8e64c5174198f7c7cb",
@@ -2289,6 +2344,11 @@
     "resource_id": "sb54ea712b44f96b01e80a1de",
     "text": "无法比较"
   },
+  "Complete": {
+    "format": "完整覆盖",
+    "resource_id": "s143b270a32602d412babf272",
+    "text": "完整覆盖"
+  },
   "Completed": {
     "format": "已完成",
     "resource_id": "s22a970d2e5b1cc233e462be7",
@@ -2323,6 +2383,11 @@
     "format": "Composer 旧版下载缓存",
     "resource_id": "s2ab2e6fa4481cbe31c5e3c08",
     "text": "Composer 旧版下载缓存"
+  },
+  "Compressed": {
+    "format": "压缩内存",
+    "resource_id": "se2d1ca133e0396e480dfa454",
+    "text": "压缩内存"
   },
   "Conda package caches": {
     "format": "Conda 软件包缓存",
@@ -2564,6 +2629,11 @@
     "resource_id": "s236f6cf769120523d8d8b426",
     "text": "无法核验"
   },
+  "Counter unavailable or source changed.": {
+    "format": "计数器不可用或来源已改变。",
+    "resource_id": "sf20d6e042b954bf66164ad3a",
+    "text": "计数器不可用或来源已改变。"
+  },
   "Coverage Issues": {
     "format": "覆盖范围问题",
     "resource_id": "s639d0416e7b06b817b7925cd",
@@ -2593,6 +2663,11 @@
     "format": "制定可复用规则",
     "resource_id": "sa79cbc9cb32aec36caff70da",
     "text": "制定可复用规则"
+  },
+  "Critical": {
+    "format": "严重",
+    "resource_id": "s427dd2969bd140bec3c1bcc7",
+    "text": "严重"
   },
   "Current Analysis": {
     "format": "当前分析",
@@ -2663,6 +2738,11 @@
     "format": "通过 AI 定制…",
     "resource_id": "s00033560266f35bb2b5f667c",
     "text": "通过 AI 定制…"
+  },
+  "Cycles": {
+    "format": "循环次数",
+    "resource_id": "s864514a2f754b2ac0efc8092",
+    "text": "循环次数"
   },
   "DaVinci Resolve caches": {
     "format": "DaVinci Resolve 缓存",
@@ -2949,6 +3029,11 @@
     "resource_id": "s4406626d55c61a5d609b810d",
     "text": "禁用启动任务"
   },
+  "Disable Summary": {
+    "format": "关闭摘要",
+    "resource_id": "s4acc4e7fc435f7469641ac8e",
+    "text": "关闭摘要"
+  },
   "Disable startup definition?": {
     "format": "停用启动项定义？",
     "resource_id": "sd657f257c00e44d60f069e53",
@@ -2998,6 +3083,16 @@
     "format": "发现深度必须为 1 至 32 的整数。",
     "resource_id": "s67e7cc5123c61ae7e875b249",
     "text": "发现深度必须为 1 至 32 的整数。"
+  },
+  "Disk": {
+    "format": "磁盘",
+    "resource_id": "s340e0cf3bfa8d23dad5fa375",
+    "text": "磁盘"
+  },
+  "Disk Activity": {
+    "format": "磁盘活动",
+    "resource_id": "sc67a58b6eb310268e78d7430",
+    "text": "磁盘活动"
   },
   "Disk Usage": {
     "format": "磁盘占用",
@@ -3399,6 +3494,21 @@
     "resource_id": "s986250834e95cb2303fb27fb",
     "text": "失败项"
   },
+  "Fair": {
+    "format": "轻度升温",
+    "resource_id": "sf7b19afcde965ea4942b878d",
+    "text": "轻度升温"
+  },
+  "Fan": {
+    "format": "风扇",
+    "resource_id": "se27be6419b092ee1ebd0df15",
+    "text": "风扇"
+  },
+  "Fan telemetry unavailable": {
+    "format": "风扇数据不可用",
+    "resource_id": "s3882438bf67f500bfb937a5f",
+    "text": "风扇数据不可用"
+  },
   "Figma caches": {
     "format": "Figma 缓存",
     "resource_id": "s75f164bde4ad7b06e571828e",
@@ -3639,6 +3749,11 @@
     "resource_id": "sd79837138b598c74d26dc44f",
     "text": "GOG Galaxy 缓存"
   },
+  "GPU counters are unavailable on this device.": {
+    "format": "此设备无法读取 GPU 计数器。",
+    "resource_id": "se444ca543959c322179c8cd5",
+    "text": "此设备无法读取 GPU 计数器。"
+  },
   "General": {
     "format": "常规",
     "resource_id": "sc910d474dcd724bff83ddede",
@@ -3793,6 +3908,11 @@
     "format": "高风险",
     "resource_id": "s2bae5bd387f97c8eccfebf6b",
     "text": "高风险"
+  },
+  "High resource usage": {
+    "format": "资源负载较高",
+    "resource_id": "s396f1964a745e48a41781c12",
+    "text": "资源负载较高"
   },
   "High risk": {
     "format": "高风险",
@@ -4459,6 +4579,11 @@
     "resource_id": "s8cf6c946df83801fd9feb652",
     "text": "飞书与 Lark 渲染缓存"
   },
+  "Last 2 minutes · Gaps mean unavailable": {
+    "format": "最近 2 分钟 · 断线表示数据不可用",
+    "resource_id": "sf849482694bcd8cc2b0721c3",
+    "text": "最近 2 分钟 · 断线表示数据不可用"
+  },
   "Last 24 hours": {
     "format": "最近24小时",
     "resource_id": "s5c37cf8f018b4ac5c8f0ae78",
@@ -4544,6 +4669,11 @@
     "resource_id": "s935f2e7ff577dc01cd7809f9",
     "text": "此处不能删除链接、特殊文件和扫描根目录。"
   },
+  "Live · Every 2 seconds": {
+    "format": "实时 · 每 2 秒采样",
+    "resource_id": "s315ed201de6e4f5197ded7f3",
+    "text": "实时 · 每 2 秒采样"
+  },
   "Load More": {
     "format": "加载更多",
     "resource_id": "s3f06cd334f4811b2130b13a8",
@@ -4628,6 +4758,11 @@
     "format": "逻辑大小",
     "resource_id": "s7138b9310e39820e3c6ec290",
     "text": "逻辑大小"
+  },
+  "Logical cores": {
+    "format": "逻辑核心",
+    "resource_id": "sf7b63334928c556ed7530031",
+    "text": "逻辑核心"
   },
   "Logical size": {
     "format": "逻辑大小",
@@ -4794,6 +4929,21 @@
     "resource_id": "s9d9c895f7222a6f52a70ecce",
     "text": "正在统计应用大小…"
   },
+  "Memory": {
+    "format": "内存",
+    "resource_id": "sc3963aedaac6c83c04cf8fb9",
+    "text": "内存"
+  },
+  "Memory Pressure": {
+    "format": "内存压力",
+    "resource_id": "s7465624307a3051b3b74fb98",
+    "text": "内存压力"
+  },
+  "Menu bar summary": {
+    "format": "菜单栏摘要",
+    "resource_id": "se50dedd9458c4dc62d78febb",
+    "text": "菜单栏摘要"
+  },
   "MiaoYan caches": {
     "format": "妙言 缓存",
     "resource_id": "s7c5a05e07508dcb7bb7be1bc",
@@ -4898,6 +5048,16 @@
     "format": "MongoDB Compass 缓存",
     "resource_id": "s8e873d517e50cd690ff39376",
     "text": "MongoDB Compass 缓存"
+  },
+  "Monitor": {
+    "format": "监控",
+    "resource_id": "s4c2e1df4570bebd69829cce1",
+    "text": "监控"
+  },
+  "Monitoring paused": {
+    "format": "监控已暂停",
+    "resource_id": "sc79a73fe2e65a9212e53b73d",
+    "text": "监控已暂停"
   },
   "More Actions": {
     "format": "更多操作",
@@ -5054,6 +5214,16 @@
     "resource_id": "s45aea804fef934cd73ff0958",
     "text": "网易云音乐 缓存"
   },
+  "Network": {
+    "format": "网络",
+    "resource_id": "s1744b96470b51bf30935e274",
+    "text": "网络"
+  },
+  "Network Activity": {
+    "format": "网络活动",
+    "resource_id": "s31f5c065b26be2e70eb8271c",
+    "text": "网络活动"
+  },
   "Network workspaces are outside the supported execution scope.": {
     "format": "暂不支持在网络工作区中执行清理。",
     "resource_id": "s5a6ecfbbddcdf3b7846594ac",
@@ -5199,6 +5369,11 @@
     "resource_id": "s28b940ecbb9c06fc744d898b",
     "text": "没有符合条件的大文件"
   },
+  "No matching processes.": {
+    "format": "没有匹配的进程。",
+    "resource_id": "s8ebfb09e43603ceb7b334c6b",
+    "text": "没有匹配的进程。"
+  },
   "No matching project outputs": {
     "format": "没有匹配的项目产物",
     "resource_id": "s74895f1f032801193ab7f35a",
@@ -5233,6 +5408,11 @@
     "format": "未记录路径",
     "resource_id": "sce2ec5bc6e16950e532cae04",
     "text": "未记录路径"
+  },
+  "No readable internal battery was found.": {
+    "format": "未找到可读的内置电池。",
+    "resource_id": "s524234a7e23932bc8607e5ab",
+    "text": "未找到可读的内置电池。"
   },
   "No reclaimable tool-managed storage found.": {
     "format": "未发现可回收的工具缓存。",
@@ -5479,6 +5659,11 @@
     "resource_id": "s3eaf8ef549672a650eb1a848",
     "text": "对象已替换"
   },
+  "Observation incomplete": {
+    "format": "观察尚不完整",
+    "resource_id": "sc33f5a24b0a82ce049b3a870",
+    "text": "观察尚不完整"
+  },
   "Observed Change": {
     "format": "观察到的变化",
     "resource_id": "s4db3b860dd3494da9a632485",
@@ -5493,6 +5678,11 @@
     "format": "观察时间",
     "resource_id": "s2f4add0f44158e9df8df8240",
     "text": "观察时间"
+  },
+  "Observed load normal": {
+    "format": "已观察负载正常",
+    "resource_id": "se47d52767eae8519cadc8013",
+    "text": "已观察负载正常"
   },
   "Observed startup state is best effort; launchd can change after this read.": {
     "format": "启动项状态仅代表本次读取结果，launchd 可能在读取后变化。",
@@ -5528,6 +5718,11 @@
     "format": "离线安装可能需要重新下载依赖包。保留项目依赖、全局可执行程序和配置。",
     "resource_id": "s4ff1749f6ab022a03f51b1af",
     "text": "离线安装可能需要重新下载依赖包。保留项目依赖、全局可执行程序和配置。"
+  },
+  "Oldest → Latest": {
+    "format": "较早 → 最新",
+    "resource_id": "s092be590384311b699ac9803",
+    "text": "较早 → 最新"
   },
   "One Exact Folder": {
     "format": "一个确切目录",
@@ -5698,6 +5893,11 @@
     "format": "开放源代码",
     "resource_id": "sfdb627efb86ba73e631686e9",
     "text": "开放源代码"
+  },
+  "Open System Monitor": {
+    "format": "打开系统监控",
+    "resource_id": "sc793082e6085a4296980e5c8",
+    "text": "打开系统监控"
   },
   "Open System Settings…": {
     "format": "打开系统设置…",
@@ -5894,6 +6094,11 @@
     "resource_id": "s7252a293d795ae7e7f5991e4",
     "text": "预览覆盖不完整。下方列出无法读取或超时的位置，不能视为已全部检查。"
   },
+  "Partial process coverage": {
+    "format": "进程覆盖不完整",
+    "resource_id": "s099d188728a8bb8544806adb",
+    "text": "进程覆盖不完整"
+  },
   "Partially Enabled": {
     "format": "部分启用",
     "resource_id": "sc5be40dc8c570428b3a70604",
@@ -5903,6 +6108,11 @@
     "format": "部分完成",
     "resource_id": "s24421344abc368523525b730",
     "text": "部分完成"
+  },
+  "Pause Monitoring": {
+    "format": "暂停监控",
+    "resource_id": "s90c41b2cddf92bfd9927fcc7",
+    "text": "暂停监控"
   },
   "Paw API caches": {
     "format": "Paw API 缓存",
@@ -6219,6 +6429,21 @@
     "resource_id": "s6012f955de26d741017eda36",
     "text": "无法扫描隐私来源，请检查浏览器访问权限后重试。"
   },
+  "Process": {
+    "format": "进程",
+    "resource_id": "se083bd83e9d3e97e3b3e7dbe",
+    "text": "进程"
+  },
+  "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.": {
+    "format": "进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。",
+    "resource_id": "s3a0f0e6222f0664a8aa520e9",
+    "text": "进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。"
+  },
+  "Processes": {
+    "format": "进程",
+    "resource_id": "s4a81a7ba5358c26f74fbeb64",
+    "text": "进程"
+  },
   "Processing Strategy": {
     "format": "处理策略",
     "resource_id": "s8a3dcac66e7e031ae9e196b0",
@@ -6474,6 +6699,11 @@
     "resource_id": "s1ec27efc39d08df984ce969e",
     "text": "请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。"
   },
+  "Quit Shou": {
+    "format": "退出 Shou",
+    "resource_id": "s0d4004339a092a7ec7c9669f",
+    "text": "退出 Shou"
+  },
   "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.": {
     "format": "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。",
     "resource_id": "s57c7b2e6768db10c7d0a2527",
@@ -6533,6 +6763,11 @@
     "format": "已读取",
     "resource_id": "s9b9a8d05a7ec353bda84f9c1",
     "text": "已读取"
+  },
+  "Read / Write": {
+    "format": "读取 / 写入",
+    "resource_id": "s32d8bff5a463bf27edf2eab1",
+    "text": "读取 / 写入"
   },
   "Read Operation Result": {
     "format": "查询操作结果",
@@ -6608,6 +6843,11 @@
     "format": "只读系统工具的输出量超出限制。",
     "resource_id": "se94931f01d82c1a103ce541e",
     "text": "只读系统工具的输出量超出限制。"
+  },
+  "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.": {
+    "format": "只读监控 · 历史仅保留在内存中 · 离开本页后停止采样，除非已开启摘要。",
+    "resource_id": "s2952abf6399c38d25e32c1ad",
+    "text": "只读监控 · 历史仅保留在内存中 · 离开本页后停止采样，除非已开启摘要。"
   },
   "Reading analysis history…": {
     "format": "正在读取分析历史…",
@@ -6709,6 +6949,11 @@
     "resource_id": "s75107ebe5b2a40757fec9814",
     "text": "记录根目录已变化。"
   },
+  "Receive / Send": {
+    "format": "接收 / 发送",
+    "resource_id": "s25555a13c67db127d0855bf7",
+    "text": "接收 / 发送"
+  },
   "Recent Tool Cleanups": {
     "format": "最近的工具清理",
     "resource_id": "s0cf67fefc177c5f7af4c7902",
@@ -6718,6 +6963,11 @@
     "format": "最近的隐私清理记录",
     "resource_id": "sff414d3bc48d633e0cd45c27",
     "text": "最近的隐私清理记录"
+  },
+  "Recent resource trend": {
+    "format": "近期资源趋势",
+    "resource_id": "s92d0274f76c957c98a5d10b2",
+    "text": "近期资源趋势"
   },
   "Recommended": {
     "format": "推荐",
@@ -6944,6 +7194,11 @@
     "resource_id": "sbd3d8f99bf8c7f43560a99a2",
     "text": "重新扫描当前文件夹"
   },
+  "Resource Status": {
+    "format": "资源状态",
+    "resource_id": "s33c25c4f35e1b62d0ee86f63",
+    "text": "资源状态"
+  },
   "Restore": {
     "format": "恢复",
     "resource_id": "sa76e13b9839270eb73ed1141",
@@ -7003,6 +7258,11 @@
     "format": "已获取 {0} / {1} 个位置的结果",
     "resource_id": "s80e0a1ef74165aa5308bd1e7",
     "text": "已获取 %lld / %lld 个位置的结果"
+  },
+  "Resume Monitoring": {
+    "format": "继续监控",
+    "resource_id": "sa913cb76c15e2456a954e260",
+    "text": "继续监控"
   },
   "Retain this content": {
     "format": "保留这些内容",
@@ -7439,6 +7699,11 @@
     "resource_id": "sd69715933d1d2cead3199640",
     "text": "Safari 缓存"
   },
+  "Sampling failed; showing the last observation.": {
+    "format": "采样失败，正在显示上次观察结果。",
+    "resource_id": "sf32f8b7e0c090afdc14689f9",
+    "text": "采样失败，正在显示上次观察结果。"
+  },
   "Save": {
     "format": "保存",
     "resource_id": "s1509f561f2416598629b886a",
@@ -7844,6 +8109,11 @@
     "resource_id": "s618b6244a947c3269ef22efc",
     "text": "搜索应用…"
   },
+  "Search name or PID": {
+    "format": "搜索名称或 PID",
+    "resource_id": "s2f4f02ae4ffa36861bd801cf",
+    "text": "搜索名称或 PID"
+  },
   "Search programs or publishers": {
     "format": "搜索程序或发布者",
     "resource_id": "s42e99c17c57fa990505b67e9",
@@ -8149,6 +8419,11 @@
     "resource_id": "scf8737a45e095338aac4a0a1",
     "text": "Sequel Pro 缓存"
   },
+  "Serious": {
+    "format": "明显升温",
+    "resource_id": "sc173da2c2a4d4ca2930d8c09",
+    "text": "明显升温"
+  },
   "Service Usage": {
     "format": "服务用量",
     "resource_id": "sd507c25df634f470890fdae3",
@@ -8318,6 +8593,11 @@
     "format": "显示 {0} 个位置，共匹配 {1} 个",
     "resource_id": "s34b4ea40d0e914ee239d21b0",
     "text": "显示 %lld 个位置，共匹配 %lld 个"
+  },
+  "Showing %lld of %lld matching processes.": {
+    "format": "显示 {0} 项，共 {1} 个匹配进程。",
+    "resource_id": "s4c62e53f39c4c83d55effa25",
+    "text": "显示 %lld 项，共 %lld 个匹配进程。"
   },
   "Showing results from the previous scan.": {
     "format": "正在显示上次扫描的结果。",
@@ -8994,6 +9274,11 @@
     "resource_id": "s24cbca79e916ffa96baa40ad",
     "text": "支持标准 Chrome、Chromium、Edge、Brave 和 Firefox 配置，以及 Safari 历史。不清理 Safari Cookie、站点存储、保存的密码、自动填充、自定义配置、扩展数据和云端副本。"
   },
+  "Swap Used": {
+    "format": "已用交换空间",
+    "resource_id": "sc50c8be0dbb5c39b915b29db",
+    "text": "已用交换空间"
+  },
   "Swift Package Manager caches": {
     "format": "Swift Package Manager 缓存",
     "resource_id": "sfbe3b1529e474d6a65d54688",
@@ -9033,6 +9318,11 @@
     "format": "系统缓存",
     "resource_id": "s2ffbc5827bb148aa73e15be5",
     "text": "系统缓存"
+  },
+  "System Monitor": {
+    "format": "系统监控",
+    "resource_id": "sb288d256878ba98d12593281",
+    "text": "系统监控"
   },
   "System Run (32-bit)": {
     "format": "系统 Run（32 位）",
@@ -9083,6 +9373,16 @@
     "format": "完成 Windows 原生验证前，系统卸载不可用。",
     "resource_id": "s8563b2713156f795941eaf41",
     "text": "完成 Windows 原生验证前，系统卸载不可用。"
+  },
+  "System volume available": {
+    "format": "系统卷可用空间",
+    "resource_id": "s92c94d89d18311822ec54ae3",
+    "text": "系统卷可用空间"
+  },
+  "System volume usage": {
+    "format": "系统卷占用",
+    "resource_id": "s34d264ea8a426c6319b7b316",
+    "text": "系统卷占用"
   },
   "System-managed locations are excluded from analysis.": {
     "format": "分析范围不包含系统管理的位置。",
@@ -9153,6 +9453,11 @@
     "format": "告诉现有 AI Agent 想清理什么，由它追问并制定适合你的规则。",
     "resource_id": "sf3f8bb1c2c89dfd1e72d52fe",
     "text": "告诉现有 AI Agent 想清理什么，由它追问并制定适合你的规则。"
+  },
+  "Temperature: available sensor average. Fans are controlled by the system.": {
+    "format": "温度为可读传感器均值，风扇由系统调节。",
+    "resource_id": "s29b294e47f772808dd2918c1",
+    "text": "温度为可读传感器均值，风扇由系统调节。"
   },
   "Tencent Meeting network caches": {
     "format": "腾讯会议网络缓存",
@@ -9679,6 +9984,11 @@
     "resource_id": "sdb9c55fb6b3989b72423e127",
     "text": "工具会在需要时重新下载软件包或生成分析缓存。"
   },
+  "The tray summary could not be opened.": {
+    "format": "无法开启托盘摘要。",
+    "resource_id": "s6db39c53eb325aa164b80624",
+    "text": "无法开启托盘摘要。"
+  },
   "The uninstall attempt failed. The installer may have made changes.": {
     "format": "卸载尝试失败，安装程序可能已经进行了更改。",
     "resource_id": "s3260e06d677417993886ea3e",
@@ -9718,6 +10028,11 @@
     "format": "版本格式不同或暂不支持比较，请在应用内核对。",
     "resource_id": "s8d8aa41a0657543ad4d3239c",
     "text": "版本格式不同或暂不支持比较，请在应用内核对。"
+  },
+  "Thermals & Fans": {
+    "format": "温度与风扇",
+    "resource_id": "saf1bb020334104411d1e2381",
+    "text": "温度与风扇"
   },
   "These files will be permanently removed. This action cannot be undone.": {
     "format": "这些文件将永久移除，此操作无法撤销。",
@@ -10034,6 +10349,16 @@
     "resource_id": "s58ecb8ef87f6eec2f22de6ec",
     "text": "工具会在需要时重新生成缓存"
   },
+  "Top CPU processes": {
+    "format": "CPU 占用最高的进程",
+    "resource_id": "s44945c30a645e0153c0f3c35",
+    "text": "CPU 占用最高的进程"
+  },
+  "Total machine capacity": {
+    "format": "整机总容量",
+    "resource_id": "s5fe2d46b260a32e3a5ce50a4",
+    "text": "整机总容量"
+  },
   "Transmission caches": {
     "format": "Transmission 缓存",
     "resource_id": "s411c3748315596b1da503e6f",
@@ -10048,6 +10373,11 @@
     "format": "移到废纸篓后未返回目标位置。请检查系统废纸篓后再重试。",
     "resource_id": "sd9935afd8ddd9b93df434cde",
     "text": "移到废纸篓后未返回目标位置。请检查系统废纸篓后再重试。"
+  },
+  "Tray summary": {
+    "format": "托盘摘要",
+    "resource_id": "sa88ebed672b6851b3ecfabd3",
+    "text": "托盘摘要"
   },
   "Trigger clues": {
     "format": "触发线索",
@@ -10243,6 +10573,11 @@
     "format": "安装前验证更新签名。",
     "resource_id": "s55fc4744fc8471a92da2d969",
     "text": "安装前验证更新签名。"
+  },
+  "Uptime: %lld hours": {
+    "format": "已运行：{0} 小时",
+    "resource_id": "sd90c4de10e8eea60c6a2e7f0",
+    "text": "已运行：%lld 小时"
   },
   "Use Browsed Folder": {
     "format": "使用当前浏览目录",
@@ -10529,6 +10864,11 @@
     "resource_id": "s4e17656a62b95a61b72e5d25",
     "text": "WhatsApp 缓存"
   },
+  "Windows does not expose these hardware sensors through the supported read-only APIs.": {
+    "format": "Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。",
+    "resource_id": "s2a0f0c32ac4f7d059ce01529",
+    "text": "Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。"
+  },
   "Windows identifies this as a system package.": {
     "format": "Windows 将此应用识别为系统软件包。",
     "resource_id": "s864fba32c0ce2d3db93b0090",
@@ -10573,6 +10913,11 @@
     "format": "扫描位置",
     "resource_id": "s1377264ba3b0a7172621971b",
     "text": "扫描位置"
+  },
+  "Write": {
+    "format": "写入",
+    "resource_id": "s3f00927a719345edd4a83165",
+    "text": "写入"
   },
   "Xcode Data": {
     "format": "Xcode 开发数据",
