@@ -7,7 +7,10 @@ import Darwin
 
 public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     private let homeDirectory: URL
-    public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) { self.homeDirectory=homeDirectory }
+    private let readWorkerExecutable: URL?
+    public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, readWorkerExecutable: URL? = nil) {
+        self.homeDirectory=homeDirectory; self.readWorkerExecutable=readWorkerExecutable
+    }
     public func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
         guard let value=try facts(for: [application])[application.id] else { throw unavailable() }
         return value
@@ -122,6 +125,12 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     #endif
     public func containerIdentifier(at path: String) throws -> String {
         #if os(macOS)
+        if let readWorkerExecutable { return try NativeReadClient(executable: readWorkerExecutable).containerIdentifier(path) }
+        #endif
+        return try containerIdentifierDirect(at: path)
+    }
+    func containerIdentifierDirect(at path: String) throws -> String {
+        #if os(macOS)
         let descriptor=try SecurePaths.directory(path)
         defer { close(descriptor) }
         let name=".com.apple.containermanagerd.metadata.plist"
@@ -137,6 +146,14 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     }
     public func groupContainerPaths(for bundleIdentifier: String) throws -> [String] {
         #if os(macOS)
+        if let readWorkerExecutable {
+            return try NativeReadClient(executable: readWorkerExecutable).groupContainerPaths(home: homeDirectory, bundleIdentifier: bundleIdentifier)
+        }
+        #endif
+        return try groupContainerPathsDirect(for: bundleIdentifier)
+    }
+    func groupContainerPathsDirect(for bundleIdentifier: String) throws -> [String] {
+        #if os(macOS)
         guard bundleIdentifier.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", options: .regularExpression) != nil else {
             throw ShouError("ownership_unverified", "Group container ownership could not be verified.")
         }
@@ -147,9 +164,12 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         catch { return [] }
         defer { close(descriptor) }
         let listing=try NativeDefinitionFiles.names(descriptor, limit: 2_048, deadline: ContinuousClock.now.advanced(by: .seconds(3)))
+        guard !listing.truncated else { throw ShouError("resource_limit", "Group container discovery exceeded its read limit.") }
+        let deadline=ContinuousClock.now.advanced(by: .seconds(3))
         var matches: [String]=[]
         for name in listing.names {
             if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
+            guard ContinuousClock.now < deadline else { throw ShouError("resource_limit", "Group container discovery exceeded its read limit.") }
             guard name.rangeOfCharacter(from: .controlCharacters) == nil else { continue }
             var metadata=stat()
             guard fstatat(descriptor, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0,

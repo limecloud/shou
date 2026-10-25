@@ -8,7 +8,7 @@ import Glibc
 #endif
 
 #if canImport(Darwin) || canImport(Glibc)
-private enum ReadOperation: String, Codable, Sendable { case identity, inspect, storage }
+private enum ReadOperation: String, Codable, Sendable { case identity, inspect, storage, groupContainers, containerIdentifier }
 private struct ReadRequest: Codable, Sendable {
     let version: Int
     let id: String
@@ -17,6 +17,7 @@ private struct ReadRequest: Codable, Sendable {
     let path: String
     let rules: [CleanupRule]?
     let budget: ScanBudget
+    var bundleIdentifier: String? = nil
 }
 private struct ReadProgress: Codable, Sendable {
     let id: String
@@ -35,6 +36,8 @@ private struct ReadResponse: Codable, Sendable {
     let error: ShouError?
     var entryCount: Int? = nil
     var pageDigests: [String]? = nil
+    var paths: [String]? = nil
+    var identifier: String? = nil
 }
 
 private let readEntryPageSize=10_000
@@ -90,6 +93,31 @@ private enum ReadChannel {
 struct NativeReadClient {
     static let maximumConcurrentChildren=2
     let executable: URL
+    func groupContainerPaths(home: URL, bundleIdentifier: String) throws -> [String] {
+        let request=ReadRequest(version: 1, id: UUID().uuidString, parentPid: getpid(), operation: .groupContainers,
+            path: home.path, rules: nil, budget: ScanBudget(maxEntries: 2048, maxSeconds: 3), bundleIdentifier: bundleIdentifier)
+        let response=try run(request, cancelled: { Task.isCancelled }, progress: { _ in })
+        let root=home.appendingPathComponent("Library/Group Containers").path + "/"
+        guard response.identity == nil, response.snapshot == nil, response.entryCount == nil, response.identifier == nil,
+              let paths=response.paths, paths.count <= 2048 else { throw ShouError("io_error", "Group container worker returned invalid result fields.") }
+        guard paths == Array(Set(paths)).sorted() else { throw ShouError("io_error", "Group container worker returned duplicate or unordered paths.") }
+        guard paths.allSatisfy({ path in
+            let name=path.dropFirst(root.count)
+            // Validate the exact lexical child without filesystem normalization,
+            // which may resolve aliases or itself block on protected locations.
+            return path.hasPrefix(root) && !name.isEmpty && name != "." && name != ".." &&
+                !name.contains("/") && name.rangeOfCharacter(from: .controlCharacters) == nil
+        }) else { throw ShouError("io_error", "Group container worker returned a path outside its exact scope.") }
+        return paths
+    }
+    func containerIdentifier(_ path: String) throws -> String {
+        let request=ReadRequest(version: 1, id: UUID().uuidString, parentPid: getpid(), operation: .containerIdentifier,
+            path: path, rules: nil, budget: ScanBudget(maxEntries: 1, maxSeconds: 2))
+        let response=try run(request, cancelled: { Task.isCancelled }, progress: { _ in })
+        guard response.identity == nil, response.snapshot == nil, response.entryCount == nil, response.paths == nil,
+              let identifier=response.identifier, !identifier.isEmpty, identifier.utf8.count <= 255 else { throw invalidResponse() }
+        return identifier
+    }
     func measureStorage(_ path: String, catalog: URL, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
         let request=ReadRequest(version: 1, id: UUID().uuidString, parentPid: getpid(), operation: .storage, path: path, rules: nil,
             budget: ScanBudget(maxEntries: 1, maxSeconds: 3600, maxDepth: 128))
@@ -209,9 +237,10 @@ struct NativeReadClient {
         try check()
         guard response.version == 1, response.id == request.id else { throw invalidResponse() }
         if let failure=response.error {
-            guard response.identity == nil, response.snapshot == nil else { throw invalidResponse() }
+            guard response.identity == nil, response.snapshot == nil, response.paths == nil, response.identifier == nil else { throw invalidResponse() }
             throw failure
         }
+        if request.operation != .groupContainers && response.paths != nil || request.operation != .containerIdentifier && response.identifier != nil { throw invalidResponse() }
         if request.operation == .storage {
             guard let catalogDestination, response.snapshot != nil, response.entryCount != nil,
                   response.pageDigests == nil, response.identity == nil else { throw invalidResponse() }
@@ -270,6 +299,7 @@ public enum NativeReadWorker {
                   (1...1_000_000).contains(request.budget.maxEntries), request.budget.maxSeconds.isFinite,
                   (1...(request.operation == .storage ? 3600 : 600)).contains(request.budget.maxSeconds), (1...128).contains(request.budget.maxDepth) else { return 2 }
             _ = try SecurePaths.components(request.path)
+            guard request.operation == .groupContainers || request.bundleIdentifier == nil else { return 2 }
             let deadline=ProcessInfo.processInfo.systemUptime + request.budget.maxSeconds + 3
             let watchdog=DispatchSource.makeTimerSource(queue: .global(qos: .utility))
             watchdog.schedule(deadline: .now() + .milliseconds(250), repeating: .milliseconds(250))
@@ -285,6 +315,14 @@ public enum NativeReadWorker {
             do {
                 let native=NativeFileSystem()
                 switch request.operation {
+                case .groupContainers:
+                    guard request.rules == nil, let identifier=request.bundleIdentifier else { return 2 }
+                    response=ReadResponse(version: 1, id: request.id, identity: nil, snapshot: nil, error: nil,
+                        paths: try NativeApplicationUninstallEvidence(homeDirectory: URL(fileURLWithPath: request.path)).groupContainerPathsDirect(for: identifier))
+                case .containerIdentifier:
+                    guard request.rules == nil else { return 2 }
+                    response=ReadResponse(version: 1, id: request.id, identity: nil, snapshot: nil, error: nil,
+                        identifier: try NativeApplicationUninstallEvidence().containerIdentifierDirect(at: request.path))
                 case .identity:
                     guard request.rules == nil else { return 2 }
                     response=ReadResponse(version: 1, id: request.id, identity: try native.rootIdentity(request.path), snapshot: nil, error: nil)

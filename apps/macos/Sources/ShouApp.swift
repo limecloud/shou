@@ -156,7 +156,7 @@ struct CleanupCompletion: Identifiable {
         let readWorker=Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/shou")
         do {
             engine=try await Task.detached(priority: .userInitiated) {
-                ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+                ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence(readWorkerExecutable: readWorker))
             }.value
             await refresh()
             await scanAccess.initialize()

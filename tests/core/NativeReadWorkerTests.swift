@@ -221,6 +221,34 @@ func nativeReadWorkerTimeoutStopsOwnedChildWithoutEvidence() throws {
     try expectFixtureWorkerExited(marker)
 }
 
+func uninstallContainerWorkersCancelAndTimeoutWithoutBlockingReview() async throws {
+    #if os(macOS)
+    let fixture=try Fixture()
+    let marker=fixture.base.appendingPathComponent("container-worker.pid")
+    let executable=try fixtureWorkerScript(fixture, body: "printf '%s' \"$$\" > " + shellLiteral(marker.path) + "\nexec /bin/sleep 60\n")
+    let evidence=NativeApplicationUninstallEvidence(homeDirectory: fixture.workspace, readWorkerExecutable: executable)
+    let work=Task.detached { try evidence.groupContainerPaths(for: "dev.shou.fixture.uninstall") }
+    defer { work.cancel() }
+    let deadline=ProcessInfo.processInfo.systemUptime + 8
+    while (try? String(contentsOf: marker, encoding: .utf8)).flatMap(Int32.init) == nil,
+          ProcessInfo.processInfo.systemUptime < deadline { try await Task.sleep(for: .milliseconds(10)) }
+    try expect(FileManager.default.fileExists(atPath: marker.path))
+    let stopped=ProcessInfo.processInfo.systemUptime
+    work.cancel()
+    do { _ = try await work.value; throw CheckFailure(description: "Cancelled container discovery must return no ownership evidence.") }
+    catch let failure as ShouError { try expect(failure.code == "cancelled") }
+    try expect(ProcessInfo.processInfo.systemUptime - stopped < 3)
+    try expectFixtureWorkerExited(marker)
+
+    let started=ProcessInfo.processInfo.systemUptime
+    do { _ = try evidence.containerIdentifier(at: fixture.workspace.path); throw CheckFailure(description: "Unresponsive container metadata must time out.") }
+    catch let failure as ShouError { try expect(failure.code == "resource_limit") }
+    try expect(ProcessInfo.processInfo.systemUptime - started < 6)
+    try expectFixtureWorkerExited(marker)
+    try expect(try fixture.store.ids("application-reviews").isEmpty)
+    #endif
+}
+
 func nativeReadWorkerRejectsFailureMalformedAndForeignResponses() throws {
     let fixture=try Fixture()
     for body in [

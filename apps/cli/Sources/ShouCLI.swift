@@ -387,7 +387,7 @@ enum Terminal {
             let directory=ProcessInfo.processInfo.environment["SHOU_DATA_DIR"].map { URL(fileURLWithPath: $0) } ?? LocalRecordStore.defaultDirectory
             let store=try LocalRecordStore(directory: directory)
             let fs=NativeFileSystem()
-            let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence())
+            let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence(readWorkerExecutable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL))
             if try await AICLI.run(args, engine: engine, store: store) { return }
             if try await PrivacyCLI.run(args, engine: engine) { return }
             var value: JSONValue = .null

@@ -156,12 +156,13 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         if Array(CommandLine.arguments.dropFirst()) == ["--native-activity-only"] {
             do {
                 try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
+                try await uninstallContainerWorkersCancelAndTimeoutWithoutBlockingReview()
                 try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies()
                 try await nativeApplicationActivityKeepsLiveHelpersBlocked()
                 try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked()
                 try nativeReadWorkerCancellationStopsOwnedChild()
                 try nativeReadWorkerTimeoutStopsOwnedChildWithoutEvidence()
-                print("6/6 native activity, unlinked executable and read-worker cancellation tests passed; generated fixtures only.")
+                print("7/7 native activity, unlinked executable and read-worker cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL native activity: \(error)"); Foundation.exit(1) }
             return
         }
@@ -220,6 +221,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await uninstallCoverageGapsRequireExplicitChoicesAndConsentCannotBeForged()
                 try await uninstallParentSiblingChangesPreservePlansButNotTargetChanges()
                 try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
+                try await uninstallContainerWorkersCancelAndTimeoutWithoutBlockingReview()
                 try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies()
                 try await nativeApplicationActivityKeepsLiveHelpersBlocked()
                 try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked()
@@ -227,7 +229,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation()
                 try await nativeApplicationTrashUsesRecyclerAndVerifiesFixtureOutcomes()
                 try await nativeApplicationTrashRejectsLinksStaleAndForeignOwnerManifests()
-                print("21/21 application summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+                print("22/22 application summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
             } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
             return
         }
@@ -615,6 +617,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Read worker accepts snake-case protocol fields", { try nativeReadWorkerAcceptsSnakeCaseWireRequest() }),
             ("Read worker cancellation terminates only its child", { try nativeReadWorkerCancellationStopsOwnedChild() }),
             ("Read worker wall timeout returns no evidence", { try nativeReadWorkerTimeoutStopsOwnedChildWithoutEvidence() }),
+            ("Container ownership workers cancel and time out", { try await uninstallContainerWorkersCancelAndTimeoutWithoutBlockingReview() }),
             ("Read worker failures and malformed responses stay blocked", { try nativeReadWorkerRejectsFailureMalformedAndForeignResponses() }),
             ("Read worker caps live children and recovers capacity", { try nativeReadWorkerCapsConcurrentChildrenAndRecoversCapacity() }),
             ("Known location registration probes only its requested root", { try await knownLocationRegistrationUsesOnlyRequestedRoot() }),

@@ -259,6 +259,8 @@ An identifier provides association, not exclusive ownership. Duplicate installat
 
 Discovery checks `~/Applications`, `/Applications` and two levels of container folders, with a 4,000-entry/10-second budget. Explicitly included system applications stay protected. Embedded bundles are not separately discovered. Each application has its own bounded size measurement; selected components need complete current manifests. Windows is unverified.
 
+macOS desktop and CLI isolate container ownership metadata reads in the existing read-only child process. Group discovery and individual metadata reads have three- and two-second budgets, respectively, plus the shared two-second IPC allowance. Stop returns without waiting for a blocked kernel read and terminates only the owned child; unresolved children retain the shared two-child limit. Timeout, cancellation and truncated group discovery produce no ownership authority. The worker never opens business records or performs cleanup.
+
 ## Architecture
 
 ```mermaid

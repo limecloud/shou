@@ -351,9 +351,14 @@ func nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() throws {
     let metadata=container.appendingPathComponent(".com.apple.containermanagerd.metadata.plist")
     try PropertyListSerialization.data(fromPropertyList: ["MCMMetadataIdentifier": "dev.shou.fixture.uninstall", "secret": "never-return"], format: .binary, options: 0).write(to: metadata)
     try expect(try evidence.containerIdentifier(at: container.path) == "dev.shou.fixture.uninstall")
+    let executable=URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL
+    let isolated=NativeApplicationUninstallEvidence(homeDirectory: fixture.fixture.workspace, readWorkerExecutable: executable)
+    do { try expect(try isolated.containerIdentifier(at: container.path) == "dev.shou.fixture.uninstall") }
+    catch { throw CheckFailure(description: "Isolated container identifier: \(error)") }
     try FileManager.default.moveItem(at: metadata, to: container.appendingPathComponent("retained.plist"))
     try FileManager.default.createSymbolicLink(atPath: metadata.path, withDestinationPath: "retained.plist")
     try expectThrows { try evidence.containerIdentifier(at: container.path) }
+    try expectThrows { try isolated.containerIdentifier(at: container.path) }
 
     let groupRoot=fixture.fixture.workspace.appendingPathComponent("Library/Group Containers")
     let group=groupRoot.appendingPathComponent("group.dev.shou.fixture.uninstall")
@@ -362,8 +367,11 @@ func nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata() throws {
     try PropertyListSerialization.data(fromPropertyList: ["MCMMetadataIdentifier": "group.dev.shou.fixture.uninstall", "secret": "never-return"], format: .binary, options: 0).write(to: groupMetadata)
     let groupEvidence=NativeApplicationUninstallEvidence(homeDirectory: fixture.fixture.workspace)
     try expect(try groupEvidence.groupContainerPaths(for: "dev.shou.fixture.uninstall") == [group.path])
+    do { try expect(try isolated.groupContainerPaths(for: "dev.shou.fixture.uninstall") == [group.path]) }
+    catch { throw CheckFailure(description: "Isolated group discovery: \(error)") }
     try Data("invalid".utf8).write(to: groupMetadata)
     try expect(try groupEvidence.groupContainerPaths(for: "dev.shou.fixture.uninstall").isEmpty)
+    try expect(try isolated.groupContainerPaths(for: "dev.shou.fixture.uninstall").isEmpty)
     #endif
 }
 
