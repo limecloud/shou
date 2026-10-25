@@ -40,7 +40,7 @@ On Windows, prepare the pinned .NET SDK and Python 3, and use a local output dir
 ./scripts/windows/build.ps1 -Runtime win-x64
 ```
 
-`test.ps1` checks resources, runs Core/Presentation/native Platform/CLI tests, builds the CLI and runs generated-fixture contracts under an isolated data root. Windows CI runs tests and both architecture builds as independent jobs; x64 also checks CLI/WinUI startup and normal close. Every job must pass. Actual run results are recorded in [SYNC.md](../../SYNC.md); Windows Server checks do not replace Windows 11 desktop, native ARM64 or physical-device acceptance.
+`test.ps1` checks resources, runs Core/Presentation/native Platform/CLI tests, builds the CLI and runs generated-fixture contracts under an isolated data root. Windows CI runs x64 suites and both architecture builds, plus a separate Windows 11 ARM64 native suite/archive job. Both native architectures check CLI/WinUI startup and normal close. Every job must pass. Actual run results are recorded in [SYNC.md](../../SYNC.md); these suites do not replace complete ordinary-user desktop or physical-device acceptance.
 
 Retained filesystem handles request data-read/directory-list access as well as metadata access so their share masks participate in native replacement and write protection. Privacy inspection explicitly permits shared writes on the final database/sidecar, while denying deletion. Metadata-only handles cannot provide this protection. Generated native fixtures explicitly assign the current-user owner and private inherited ACLs, including SQLite sidecars; elevated build-agent tokens can otherwise assign Administrators as the default owner. Production ownership and ACL checks remain strict.
 

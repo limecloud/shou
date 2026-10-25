@@ -43,6 +43,8 @@ macOS 本机运行 `sh scripts/test-windows-core.sh`。`WindowsFact` 与管理�
 
 Windows 流水线另在标准 `windows-11-arm` runner 上执行原生 ARM64 主套件，并读取同一流水线的 ARM64 交叉构建归档。运行前核对归档及逐文件摘要、确切源码／版本／关闭门禁、宿主／PowerShell／.NET 的原生架构、apphost／CLR／WinUI 的 PE 架构，以及 CLI 诊断报告的实际进程架构。发布检查保存窗口启动与正常关闭回执；实际通过、失败和跳过以 [SYNC.md](../../../SYNC.md) 为准。该任务不启动付费云电脑，也不提供普通用户完整界面、签名安装或更新验收。
 
+`python scripts/windows/test-shell-completion.py --cli "<publish>/cli/shou.exe" --output "<new-evidence-directory>"` 使用新的 Windows 控制台与 `-NoProfile` PowerShell，通过 Win32 控制台输入写入真实 Tab／F12 键，由 PSReadLine 捕获并取消编辑缓冲区。八项用例覆盖命令、子命令、locale、前置全局选项、枚举、含空格文件名及两类不可信输入；生成的替身命令和标记检测意外执行。历史路径隔离且不保存，不修改个人 profile；保存缓冲区、控制台文本、宿主／脚本摘要、正常退出及失败回执。输出目录必须不存在，拒绝非 Windows 宿主。此脚本的源码或语法检查不算真实终端通过，实际结果另记于 SYNC。
+
 `pwsh -NoProfile -File scripts/windows/test-e2e-harness.ps1` 在隔离的生成日志中验证 E2E 自身的拒绝关联与证据检查；Windows 主测试脚本也运行它。它不启动应用、不执行系统变更，不能计为真实桌面 E2E。
 
 ## 真实桌面 E2E

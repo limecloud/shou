@@ -58,6 +58,8 @@ try {
             powershell_architecture = $ProcessArchitecture; cli_architecture = $Diagnostics.data.architecture;
             cli_sha256 = (Get-FileHash -LiteralPath $Cli -Algorithm SHA256).Hash;
             app_sha256 = (Get-FileHash -LiteralPath $App -Algorithm SHA256).Hash;
+            cli_assembly_sha256 = (Get-FileHash -LiteralPath (Join-Path $PublishRoot 'cli/shou.dll') -Algorithm SHA256).Hash;
+            app_assembly_sha256 = (Get-FileHash -LiteralPath (Join-Path $PublishRoot 'app/Shou.Windows.App.dll') -Algorithm SHA256).Hash;
             window_started = $true; normal_close = $true; public_mutations_enabled = $false;
             full_ui_accepted = $false; captured_utc = [DateTime]::UtcNow.ToString('o')
         } | ConvertTo-Json | Set-Content -LiteralPath $ReportPath -Encoding UTF8

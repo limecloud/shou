@@ -48,7 +48,7 @@ macOS 15.8.1 ARM64 with Zsh 5.9: the installed `0.15.0` helper `/Applications/Sh
 
 ## Native ARM64 CI coverage, 2026-10-26 / ARM64 原生 CI 范围
 
-The workflow now adds a standard `windows-11-arm` job for native suites and same-source cross-built archive startup/normal close. Host, PowerShell, .NET, PE and CLI diagnostic architecture checks reject emulated substitutes; archive/file digests and closed public gates are checked before launch. Native results have not yet been recorded for this addition. Complete ordinary-user UI, accessibility, generated MSI/task opt-in suites, signing and installation remain separate / 已新增 ARM64 原生验证任务，尚未记录本次任务结果；不以配置或交叉编译冒充运行通过。公开仓库标准 runner 免费，没有新购或启动付费云电脑。
+Clean source `335b628095087a254a5df7d3695ee84c34f596bc` passed the [Windows workflow](https://github.com/limecloud/shou/actions/runs/40236691501), including the new standard `windows-11-arm` job. Windows 11 build 26200 ARM64 actually passed 1,264 tests (Core 706, Presentation 247, native Platform 277, CLI 34), with twelve opt-in cases skipped, and all 213 native CLI contracts. Same-source cross-built archives passed outer/file digests, source/version/closed-gate checks and native CLI diagnostics plus WinUI window startup/normal close. Host/PowerShell/CLI all report ARM64; apphost/CLR/WinUI PE checks reject emulated substitutes. Evidence: `.build/windows-arm64-40236691501/review.json`, original `tests/results/`, `evidence/native-publish.json` and `.build/windows-arm64-40236691501-ci.log`. The same workflow's x64 suites, both builds, x64 window and offline npm checks passed independently / 已取得 ARM64 主套件与启动／正常关闭的实际原生证据，逐项计数排除证据副本；完整普通用户 UI、辅助功能、ARM64 生成 MSI／任务专项、签名与安装仍分别待验收。公开仓库标准 runner 免费，没有新购或启动付费云电脑。
 
 ## v0.15.0 release, 2026-10-26 / 已发布基线
 

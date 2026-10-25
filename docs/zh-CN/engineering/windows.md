@@ -40,7 +40,7 @@ Windows 上准备固定的 .NET SDK 与 Python 3，使用本地输出目录；�
 ./scripts/windows/build.ps1 -Runtime win-x64
 ```
 
-`test.ps1` 检查资源、执行 Core/Presentation/原生 Platform/CLI 测试并构建 CLI，再运行隔离数据根下的生成夹具合同。Windows CI 分别执行测试和双架构构建，x64 另检查 CLI、WinUI 启动与正常关闭；所有任务均须通过。实际运行结果记于 [SYNC.md](../../../SYNC.md)；Windows Server 检查不能代替 Windows 11 桌面、ARM64 原生运行或真机体验验收。
+`test.ps1` 检查资源、执行 Core/Presentation/原生 Platform/CLI 测试并构建 CLI，再运行隔离数据根下的生成夹具合同。Windows CI 执行 x64 主套件与双架构构建，另在 Windows 11 ARM64 执行原生主套件并核验同源归档；两个原生架构均检查 CLI、WinUI 启动与正常关闭。所有任务均须通过。实际运行结果记于 [SYNC.md](../../../SYNC.md)；这些套件不能代替完整普通用户桌面或真机体验验收。
 
 保留的文件系统句柄同时申请数据读取／目录列举和元数据权限，使共享掩码实际参与原生替换及写入保护。隐私检查仅对最终数据库与辅助文件明确允许共享写入，仍禁止删除；仅有元数据权限的句柄不能提供该保护。生成原生夹具显式设置当前用户所有者和私有继承 ACL，SQLite 辅助文件亦如此；提升权限的构建机令牌否则可能默认使用 Administrators 所有者。生产所有者与 ACL 核验保持严格。
 
