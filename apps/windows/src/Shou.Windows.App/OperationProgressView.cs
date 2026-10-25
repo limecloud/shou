@@ -52,7 +52,7 @@ public sealed class OperationProgressView : UserControl
         percentage.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold;
         AutomationProperties.SetAutomationId(percentage, "operation.percentage");
         progress.Height = progress.MinHeight = Number("ShouOperationMeterHeight");
-        progress.Foreground = (Brush)Application.Current.Resources["ShouAccentBrush"];
+        ThemeResources.Apply(progress, Control.ForegroundProperty, "Foreground", "ShouAccentBrush");
         AutomationProperties.SetAutomationId(progress, "operation.progress");
         meter = new(); meter.Children.Add(percentage); meter.Children.Add(progress);
         path.Style = (Style)Application.Current.Resources["ShouMonoCaption"];

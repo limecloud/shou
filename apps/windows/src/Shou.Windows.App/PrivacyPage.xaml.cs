@@ -31,13 +31,15 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         InitializeComponent();
         PageTitle.Text = text.Get("Review privacy sources");
         var icon = ProductIcon.Create("privacy", (double)Application.Current.Resources["ShouStartIconSize"]);
-        ProductIcon.Select(icon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]);
+        ProductIcon.Select(icon, "TextFillColorTertiaryBrush");
         StartIcon.Content = icon;
         PageNotice.Text = text.Get("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically.");
         RangeLabel.Text = text.Get("Time range"); RangeNotice.Text = text.Get("History: visit time · Cookies: last access time");
         StartButton.Content = text.Get("Start Scan");
         StartDescription.Text = text.Get("Scan to see aggregate counts and availability. Browsing records are never displayed.");
         WorkspaceVisuals.ArrangeLanding(StartContent, StartIcon, PageTitle, StartDescription, "privacy");
+        EmptyArtwork.Content = WorkspaceVisuals.Artwork("privacy", 180, 140);
+        EmptyText.Text = text.Get("No supported browser databases were found. Unavailable profiles are not counted as empty.");
         StartButton.Visibility = Visibility.Visible;
         AutomationProperties.SetName(InfoButton, text.Get("Information"));
         Description.Text = text.Get("Close browsers, choose a time range, and scan supported history and cookies.");
@@ -82,7 +84,10 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         PageToolbar.Visibility = ReviewContent.Visibility = model.IsBusy ? Visibility.Collapsed : Visibility.Visible;
         ScanActivity.Update(model.IsBusy, text.Get("Scanning…"), "privacy", stopRequested: model.StopRequested);
         LandingScroll.Visibility = StartContent.Visibility = !model.IsBusy && model.Scan is null ? Visibility.Visible : Visibility.Collapsed;
-        SourcesCard.Visibility = SelectionFooter.Visibility = !model.IsBusy && model.Scan is not null ? Visibility.Visible : Visibility.Collapsed;
+        var hasResult = !model.IsBusy && model.Scan is not null;
+        var hasSources = model.Scan?.Sources.IsEmpty == false;
+        SourcesCard.Visibility = SelectionFooter.Visibility = hasResult && hasSources ? Visibility.Visible : Visibility.Collapsed;
+        EmptyContent.Visibility = hasResult && !hasSources ? Visibility.Visible : Visibility.Collapsed;
         StartButton.IsEnabled = ScanButton.IsEnabled; StopButton.Visibility = model.IsBusy ? Visibility.Visible : Visibility.Collapsed;
         Sources.IsEnabled = !HasActiveCleanup;
         FailureNotice.IsOpen = model.State == PrivacyScanPageState.Failed;
@@ -131,7 +136,7 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
                 PrivacySourceState.Excluded => "Protected by exclusions", _ => "Browser database unavailable."
             });
             Icon = ProductIcon.Create(source.Source.Kind == PrivacyDataKind.Cookies ? "cookie" : "history", (double)Application.Current.Resources["ShouPrivacyIconSize"]);
-            ProductIcon.Select(Icon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
+            ProductIcon.Select(Icon, "TextFillColorSecondaryBrush");
         }
         public void Refresh(PrivacyScanViewModel model)
         {

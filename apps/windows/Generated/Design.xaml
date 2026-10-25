@@ -90,6 +90,7 @@
   <x:Double x:Key="ShouCleanupMotionDuration">2.8</x:Double>
   <x:Double x:Key="ShouCleanupPathMaxWidth">480</x:Double>
   <x:Double x:Key="ShouCleanupRuleHeight">72</x:Double>
+  <x:Double x:Key="ShouCleanupSearchWidth">300</x:Double>
   <x:Double x:Key="ShouCleanupSelectionFontSize">15</x:Double>
   <x:Double x:Key="ShouCompactIconSize">16</x:Double>
   <x:Double x:Key="ShouComparisonSheetHeight">740</x:Double>

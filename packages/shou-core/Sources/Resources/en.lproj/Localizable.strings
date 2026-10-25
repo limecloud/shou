@@ -1053,6 +1053,7 @@
 "No scan locations were found. Add a folder in Scan Locations to continue." = "No scan locations were found. Add a folder in Scan Locations to continue.";
 "No search results" = "No search results";
 "No startup items found" = "No startup items found";
+"No supported browser databases were found. Unavailable profiles are not counted as empty." = "No supported browser databases were found. Unavailable profiles are not counted as empty.";
 "No supported catalog source for this application. Check for updates in the app." = "No supported catalog source for this application. Check for updates in the app.";
 "No supported update source" = "No supported update source";
 "No uninstall record was found for this plan. This does not confirm the current installation state." = "No uninstall record was found for this plan. This does not confirm the current installation state.";

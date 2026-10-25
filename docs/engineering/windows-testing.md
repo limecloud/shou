@@ -4,6 +4,21 @@ English | [简体中文](../zh-CN/engineering/windows-testing.md)
 
 This defines diagnostic and acceptance entry points, not complete Windows feature support. Executed evidence belongs in [SYNC.md](../../SYNC.md). Keep the cloud desktop in `StopCharging` during local work and prepare checks and synchronization before starting native validation.
 
+## 2026-10-26 Windows 11 cloud acceptance
+
+The environment was Windows 11 Pro x64 (10.0.26200), .NET SDK 10.0.402 and Python 3.13.9, running Shou 0.15.0. Cloud base `2d5b55a1d5049118cbb24a37a9c3bf76382ec8ba` received a local working-tree overlay and seven SHA256-verified deltas; this is not a clean build of the latest local HEAD. The main suite preceded the last UI fixes. Final v7 separately passed self-contained x64 build, CLI version/capabilities and WinUI startup/normal-close checks, followed by actual UI rechecks.
+
+| Scope | Observed result |
+| --- | --- |
+| Main suite | Core 656, Presentation 245, native Platform 246 and CLI 34: 1,181 passed; individual TRX outcomes contain eleven opt-in skips; 213 CLI contracts passed |
+| Generated startup tasks | 6/6 passed after reacquiring the COM task for independent rereads; only newly generated inert tasks were controlled |
+| Generated MSI uninstall | 5/5 failed; a Limited-session retry also failed. Discovery did not obtain the required current-user registration source; uninstall stays gated |
+| Complete desktop E2E | Failed: first scan passed; step two received `unsupported_capability` (exit 8) from the closed public mutation gate while expecting exit 7; thirteen later steps did not run |
+| Computer Use | Actual clicks covered space scans/drilldown/expansion/selection, large-file selection, application search/details, project filtering/selection, startup filtering and Rules/History/Settings; live light/dark changes, an approximately 960×680 logical window and settings after relaunch were captured |
+| Privacy | Source templates and the zero-source empty state were rechecked; generated Chromium databases remained unavailable, so counts, selection and permanent cleanup are not accepted |
+
+Local evidence is under `.build/windows-cloud-20261026/`: `report.html` is the screenshot gallery; `REPORT.md` and `verification.json` index results; `screenshots/` retains original Computer Use images; `raw-evidence/` retains TRX, native/E2E failure receipts and source hashes. Older versions, pre-fix images and build rounds are labeled separately. All public mutation gates remain closed. ARM64 execution, complete permanent deletion, signed installation, updates and full accessibility remain outside this acceptance.
+
 ## Diagnostics
 
 GUI and CLI share `%LOCALAPPDATA%\Shou\Diagnostics\application.jsonl`, retaining the current and previous files at up to 1 MiB each. Versioned JSON events contain timestamps, app/OS versions, architecture, process/session, operation/parent IDs, stage, elapsed time, outcome, counts, error codes, HRESULT, inner Win32 codes and method stacks. Exceptions consumed by presentation state are observed. Partial coverage, cancellation, failure and unfinished operations stay distinct. The suffix of CLI `request_id` after `request_` matches its root operation ID; Smart Cleanup shows a diagnostic reference on failure.

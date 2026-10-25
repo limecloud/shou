@@ -1053,6 +1053,7 @@
 "No scan locations were found. Add a folder in Scan Locations to continue." = "未找到扫描位置。请在“扫描位置”中添加文件夹后继续。";
 "No search results" = "没有搜索结果";
 "No startup items found" = "未发现启动项";
+"No supported browser databases were found. Unavailable profiles are not counted as empty." = "未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。";
 "No supported catalog source for this application. Check for updates in the app." = "此应用暂无受支持的目录来源。请在应用内检查更新。";
 "No supported update source" = "暂无受支持的更新来源";
 "No uninstall record was found for this plan. This does not confirm the current installation state." = "未找到此计划的卸载记录。这不能证明当前安装的状态。";

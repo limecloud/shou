@@ -56,7 +56,7 @@ public sealed partial class SettingsPage : UserControl
         foreach (var (host, name) in new[] { (LanguageIcon, "language"), (ThemeIcon, "appearance"), (MotionIcon, "motion"), (PackageIcon, "applications"), (LocationsIcon, "configuration"), (ExclusionsIcon, "privacy"), (LocalDataIcon, "drive"), (FeedbackIcon, "history"), (SourceIcon, "configuration") })
         {
             var icon = ProductIcon.Create(name, (double)Application.Current.Resources["ShouSettingsIconSize"]);
-            ProductIcon.Select(icon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]); host.Content = icon;
+            ProductIcon.Select(icon, "TextFillColorSecondaryBrush"); host.Content = icon;
         }
         VersionText.Text = "Shou " + typeof(SettingsPage).Assembly.GetName().Version?.ToString(3);
         PreviewNotice.Text = text.Get("Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.");

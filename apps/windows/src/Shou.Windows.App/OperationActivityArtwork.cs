@@ -23,7 +23,7 @@ internal sealed class OperationActivityArtwork : Canvas
         Height = (double)Application.Current.Resources["ShouCleanupArtworkHeight"];
         IsHitTestVisible = false;
         AutomationProperties.SetAccessibilityView(this, AccessibilityView.Raw);
-        var accent = (Brush)Application.Current.Resources["ShouAccentBrush"];
+        const string accent = "ShouAccentBrush";
         AddEllipse(Width * 0.61, Width * 0.61, 0, accent, 0.035);
         AddEllipse(Width * 0.48, Width * 0.48, 0, accent, 0.06, outline: true);
         // Overlapping translucent contours soften the ambient shadow without a bitmap asset.
@@ -72,11 +72,11 @@ internal sealed class OperationActivityArtwork : Canvas
         pulse.Opacity = OperationArtworkMotion.PulseOpacity(phase, paused);
     }
 
-    private Ellipse AddEllipse(double width, double height, double y, Brush brush, double opacity, bool outline = false)
+    private Ellipse AddEllipse(double width, double height, double y, string resource, double opacity, bool outline = false)
     {
         var ellipse = new Ellipse { Width = width, Height = height, Opacity = opacity, IsHitTestVisible = false };
-        if (outline) { ellipse.Stroke = brush; ellipse.StrokeThickness = 1; }
-        else ellipse.Fill = brush;
+        if (outline) { ThemeResources.Apply(ellipse, Shape.StrokeProperty, "Stroke", resource); ellipse.StrokeThickness = 1; }
+        else ThemeResources.Apply(ellipse, Shape.FillProperty, "Fill", resource);
         AutomationProperties.SetAccessibilityView(ellipse, AccessibilityView.Raw);
         Canvas.SetLeft(ellipse, (Width - width) / 2); Canvas.SetTop(ellipse, (Height - height) / 2 + y);
         Children.Add(ellipse);

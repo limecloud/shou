@@ -3162,6 +3162,9 @@
   <data name="sc9294a330f2a59ffe7f9f244" xml:space="preserve">
     <value>No startup items found</value>
   </data>
+  <data name="sae323ff10962b38f5f5cd7c4" xml:space="preserve">
+    <value>No supported browser databases were found. Unavailable profiles are not counted as empty.</value>
+  </data>
   <data name="s4513a76c8f6ffb6dff89a88b" xml:space="preserve">
     <value>No supported catalog source for this application. Check for updates in the app.</value>
   </data>

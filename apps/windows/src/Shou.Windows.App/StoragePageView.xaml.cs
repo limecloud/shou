@@ -49,7 +49,7 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         StartDescription.Text = text.Get(largeFiles ? "See large files across folders, then choose what to remove." : "Find what takes up space. Keep what matters.");
         var scanLabel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
         var scanIcon = ProductIcon.Create(largeFiles ? "large" : "drive", 16);
-        ProductIcon.Select(scanIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ShouActionTextBrush"]);
+        ProductIcon.Select(scanIcon, "ShouActionTextBrush");
         scanLabel.Children.Add(scanIcon); scanLabel.Children.Add(new TextBlock { Text = text.Get("Start Scan"), VerticalAlignment = VerticalAlignment.Center });
         StartButton.Content = scanLabel;
         VolumeIcon.Content = ProductIcon.Create("drive", (double)Application.Current.Resources["ShouCompactIconSize"]);
@@ -260,9 +260,15 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         while (chain.Count > 0)
         {
             var path = chain.Pop();
-            if (Breadcrumb.Children.Count > 0) Breadcrumb.Children.Add(new FontIcon { Glyph = "\uE76C", FontSize = 10, Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"], VerticalAlignment = VerticalAlignment.Center });
+            if (Breadcrumb.Children.Count > 0)
+            {
+                var separator = new FontIcon { Glyph = "\uE76C", FontSize = 10, VerticalAlignment = VerticalAlignment.Center };
+                ThemeResources.Apply(separator, IconElement.ForegroundProperty, "Foreground", "TextFillColorTertiaryBrush");
+                Breadcrumb.Children.Add(separator);
+            }
             var label = path == rendered.Root ? VolumeLabel.Text : path.Name;
-            var button = new Button { Content = label, Tag = path, Padding = new Thickness(4, 0, 4, 0), Background = new SolidColorBrush(global::Windows.UI.Color.FromArgb(0, 0, 0, 0)), BorderThickness = new Thickness(0), Foreground = (Brush)Application.Current.Resources["ShouAccentBrush"] };
+            var button = new Button { Content = label, Tag = path, Padding = new Thickness(4, 0, 4, 0), Background = new SolidColorBrush(global::Windows.UI.Color.FromArgb(0, 0, 0, 0)), BorderThickness = new Thickness(0) };
+            ThemeResources.Apply(button, Control.ForegroundProperty, "Foreground", "ShouAccentBrush");
             button.Click += (_, _) => { if (button.Tag is WindowsPath target) OpenDirectory(target); };
             AutomationProperties.SetName(button, path.Value);
             Breadcrumb.Children.Add(button);

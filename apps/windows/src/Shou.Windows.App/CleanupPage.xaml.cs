@@ -45,10 +45,10 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         PageTitle.Text = text.Get("Room for") + "\n" + text.Get("what comes next.");
         StartIcon.Content = ProductIcon.Create("cleanup", (double)Application.Current.Resources["ShouStartIconSize"]);
         var emptyIcon = ProductIcon.Create("complete", (double)Application.Current.Resources["ShouStartIconSize"]);
-        ProductIcon.Select(emptyIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
+        ProductIcon.Select(emptyIcon, "TextFillColorSecondaryBrush");
         EmptyResultIcon.Content = emptyIcon;
         var scanLabel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        var scanIcon = ProductIcon.Create("cleanup"); ProductIcon.Select(scanIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ShouActionTextBrush"]);
+        var scanIcon = ProductIcon.Create("cleanup"); ProductIcon.Select(scanIcon, "ShouActionTextBrush");
         scanLabel.Children.Add(scanIcon); scanLabel.Children.Add(new TextBlock { Text = text.Get("Start Scan") }); StartButton.Content = scanLabel;
         CommonScanItem.Text = text.Get("Scan Common Locations"); LocationsMenuItem.Text = text.Get("Scan Locations…");
         FreeSpaceItem.Text = text.Get("Scan & Free Space");
@@ -306,14 +306,14 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         if (sender is not ContentControl host) return;
         var icon = ProductIcon.Create((host.DataContext as CleanupRuleDisplay)?.Items.FirstOrDefault()?.Row.Category switch
         { "build" => "hammer", "developer" => "terminal", _ => "archive" }, 28);
-        ProductIcon.Select(icon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
+        ProductIcon.Select(icon, "TextFillColorSecondaryBrush");
         host.Content = icon;
     }
     private void LoadCategoryIcon(object sender, RoutedEventArgs args)
     {
         if (sender is not ContentControl host) return;
         var icon = ProductIcon.Create(host.Tag as string ?? "cleanup", 18);
-        ProductIcon.Select(icon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
+        ProductIcon.Select(icon, "TextFillColorSecondaryBrush");
         host.Content = icon;
     }
     private void ChangeCategorySelection(object sender, RoutedEventArgs args)
@@ -428,8 +428,8 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         CompletionSkipped.Text = summary.Skipped.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
         CompletionFailed.Text = summary.Failed.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
         CompletionUnverified.Text = summary.Unverified.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
-        CompletionFailed.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[summary.Failed > 0 ? "SystemFillColorCriticalBrush" : "TextFillColorSecondaryBrush"];
-        CompletionUnverified.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[summary.Unverified > 0 ? "SystemFillColorCautionBrush" : "TextFillColorSecondaryBrush"];
+        ThemeResources.Apply(CompletionFailed, TextBlock.ForegroundProperty, "Foreground", summary.Failed > 0 ? "SystemFillColorCriticalBrush" : "TextFillColorSecondaryBrush");
+        ThemeResources.Apply(CompletionUnverified, TextBlock.ForegroundProperty, "Foreground", summary.Unverified > 0 ? "SystemFillColorCautionBrush" : "TextFillColorSecondaryBrush");
         CompletionMetrics.Visibility = !summary.Complete && summary.HasRecord ? Visibility.Visible : Visibility.Collapsed;
         CompletionDetailsButton.Visibility = !summary.Complete && summary.HasRecord && !completionDetailsVisible ? Visibility.Visible : Visibility.Collapsed;
         CompletionDetails.Visibility = !summary.Complete && (!summary.HasRecord || completionDetailsVisible) ? Visibility.Visible : Visibility.Collapsed;

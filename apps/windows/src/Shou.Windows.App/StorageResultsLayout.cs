@@ -239,7 +239,7 @@ public sealed partial class StoragePageView
         bar.ColumnDefinitions.Add(new() { Width = new(fraction, GridUnitType.Star) }); bar.ColumnDefinitions.Add(new() { Width = new(1 - fraction, GridUnitType.Star) });
         bar.Children.Add(new Border { Background = StoragePalette.Simple(row.Path, rendered!.Root), CornerRadius = new(2) });
         body.Children.Add(bar); Grid.SetRow(bar, 1);
-        var count = Label(row.IsDirectory ? text.Format("%lld files", row.FileCount) : "", 10); count.Foreground = ThemeBrush("TextFillColorSecondaryBrush");
+        var count = Label(row.IsDirectory ? text.Format("%lld files", row.FileCount) : "", 10); ThemeResources.Apply(count, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
         body.Children.Add(count); Grid.SetRow(count, 2); AddCell(view, body, 2);
         if (row.IsDirectory) { var open = new Button { Content = "›", Style = ProductStyle("ShouToolbarButton"), Padding = new(0) }; open.Click += (_, _) => OpenDirectory(row.Path); AddCell(view, open, 3); AutomationProperties.SetName(open, text.Get("Open Directory") + " " + row.Name); }
         if (selection?.Contains(row.Path) == true) view.Background = ThemeBrush("ShouNavSelectionBrush");
@@ -262,7 +262,13 @@ public sealed partial class StoragePageView
         AddCell(view, Label(row.ModifiedUtc?.ToLocalTime().ToString("g") ?? "—", right: true), 5);
         return view;
     }
-    private FontIcon FileIcon(StorageRow row, double size) => new() { Glyph = row.IsDirectory ? "\uE8B7" : "\uE8A5", FontSize = size, VerticalAlignment = VerticalAlignment.Center, Foreground = row.IsDirectory ? new SolidColorBrush((global::Windows.UI.Color)Application.Current.Resources["ShouFolderIcon"]) : ThemeBrush("TextFillColorSecondaryBrush") };
+    private FontIcon FileIcon(StorageRow row, double size)
+    {
+        var icon = new FontIcon { Glyph = row.IsDirectory ? "\uE8B7" : "\uE8A5", FontSize = size, VerticalAlignment = VerticalAlignment.Center };
+        if (row.IsDirectory) icon.Foreground = new SolidColorBrush((global::Windows.UI.Color)Application.Current.Resources["ShouFolderIcon"]);
+        else ThemeResources.Apply(icon, IconElement.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
+        return icon;
+    }
     private TextBlock Label(string value, double? size = null, bool right = false) => new() { Text = value, FontSize = size ?? Metric("ShouStorageTableFontSize"), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, TextAlignment = right ? TextAlignment.Right : TextAlignment.Left, Margin = new(2, 0, 2, 0) };
     private static void Columns(Grid view, params double[] widths) { foreach (var width in widths) view.ColumnDefinitions.Add(new() { Width = width < 0 ? new(1, GridUnitType.Star) : new(width) }); }
     private Grid TableGrid(params string[] widths) { var view = new Grid(); Columns(view, widths.Select(Metric).ToArray()); return view; }

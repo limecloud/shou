@@ -16465,6 +16465,22 @@
         }
       }
     },
+    "No supported browser databases were found. Unavailable profiles are not counted as empty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No supported browser databases were found. Unavailable profiles are not counted as empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。"
+          }
+        }
+      }
+    },
     "No matching rules": {
       "localizations": {
         "en": {

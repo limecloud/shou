@@ -16,7 +16,7 @@
   "sources": {
     "apps/macos/Sources/WorkspaceIllustration.swift": "f89ecdfb9e10352b80ada63efcb2467d279e44d1c72eb07ee994de2fc250905c",
     "apps/macos/Sources/WorkspacePageArtwork.swift": "0f3d7b5efe34d239ceb9c8a1bdcde7c283f047402efa7669f70ca06085deedd2",
-    "assets/design/tokens.json": "7ee21e76658c425f259fec8eb81698ea7f9c31e9b4c0359c39679946bb71d69f",
+    "assets/design/tokens.json": "f4f05d76aa2604c441f58df5a05cc5f5db742a5d2fdb014b1846be3e812382b9",
     "scripts/design_tokens.py": "f8f6b25c80ba7d46801d9a26788db1d0181325126d54744af4f493f4e3042363",
     "scripts/export-workspace-artwork.swift": "75e6c7fc632a80b1e9fae186c5904a31ce946a8af095a598efe45f13023cd1e9",
     "scripts/workspace_artwork.py": "2e52199580f476681ab8e95a7a55d72cdbd3b84ea7f41c5c0c70ea8dbd12bd06"

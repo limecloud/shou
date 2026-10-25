@@ -20,16 +20,17 @@
                     <ListView x:Name="Sources" AutomationProperties.AutomationId="privacy.sources" SelectionMode="None" ItemContainerStyle="{StaticResource ShouPrivacySourceItem}">
                         <ListView.ItemTemplate><DataTemplate>
                             <Grid Padding="{StaticResource ShouPrivacyRowPadding}" ColumnSpacing="{StaticResource ShouPrivacySpacing}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1">
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="{StaticResource ShouPrivacyIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="{StaticResource ShouPrivacyStatusWidth}" /></Grid.ColumnDefinitions>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                 <CheckBox Tag="{Binding}" IsEnabled="{Binding Selectable}" IsChecked="{Binding Selected, Mode=OneWay}" AutomationProperties.Name="{Binding AccessibleName}" AutomationProperties.AutomationId="{Binding AutomationId}" Click="ToggleSource" VerticalAlignment="Center" />
-                                <ContentControl Grid.Column="1" Content="{Binding Icon}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                <ContentControl Grid.Column="1" Width="{StaticResource ShouPrivacyIconWidth}" Content="{Binding Icon}" VerticalAlignment="Center" HorizontalAlignment="Center" />
                                 <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center"><TextBlock Text="{Binding Title}" FontWeight="Medium" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Kind}" Style="{StaticResource ShouCaption}" /></StackPanel>
                                 <TextBlock Grid.Column="3" Text="{Binding Count}" VerticalAlignment="Center" FontFamily="Consolas" />
-                                <TextBlock Grid.Column="4" Text="{Binding Status}" TextWrapping="Wrap" TextAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ShouCaption}" />
+                                <TextBlock Grid.Column="4" Width="{StaticResource ShouPrivacyStatusWidth}" Text="{Binding Status}" TextWrapping="Wrap" TextAlignment="Right" VerticalAlignment="Center" Style="{StaticResource ShouCaption}" />
                             </Grid>
                         </DataTemplate></ListView.ItemTemplate>
                     </ListView>
                 </Border>
+                <StackPanel x:Name="EmptyContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Visibility="Collapsed"><ContentControl x:Name="EmptyArtwork" HorizontalAlignment="Center" /><TextBlock x:Name="EmptyText" MaxWidth="420" TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel>
             </Grid>
             <StackPanel Grid.Row="4" x:Name="SelectionFooter" Spacing="{StaticResource ShouPrivacySpacing}" Visibility="Collapsed">
                 <CheckBox x:Name="CookieReview" AutomationProperties.AutomationId="privacy.cookie-consent" Click="ChangeCookieReview"><TextBlock x:Name="CookieReviewLabel" TextWrapping="Wrap" /></CheckBox>

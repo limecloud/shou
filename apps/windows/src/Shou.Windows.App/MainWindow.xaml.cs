@@ -245,11 +245,12 @@ public sealed partial class MainWindow : Window
             var primary = ReferenceEquals(button, CleanupNavigation) || ReferenceEquals(button, ApplicationsNavigation) ||
                 ReferenceEquals(button, StorageNavigation) || ReferenceEquals(button, ConfigurationNavigation);
             var selected = (string)button.Tag == (primary ? Family(destination) : destination);
-            button.Background = selected ? (Brush)Application.Current.Resources["ShouNavSelectionBrush"] : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
-            button.Foreground = (Brush)Application.Current.Resources[selected ? "ShouAccentBrush" : "TextFillColorSecondaryBrush"];
+            ThemeResources.Apply(button, Control.BackgroundProperty, "Background", selected ? "ShouNavSelectionBrush" : "ShouTransparentBrush");
+            ThemeResources.Apply(button, Control.ForegroundProperty, "Foreground", selected ? "ShouAccentBrush" : "TextFillColorSecondaryBrush");
             if (highContrast) button.Foreground = new SolidColorBrush(system.UIElementColor(selected
                 ? global::Windows.UI.ViewManagement.UIElementType.HighlightText : global::Windows.UI.ViewManagement.UIElementType.WindowText));
-            ProductIcon.Select(navigationIcons[button], button.Foreground);
+            if (highContrast) ProductIcon.Select(navigationIcons[button], button.Foreground);
+            else ProductIcon.Select(navigationIcons[button], selected ? "ShouAccentBrush" : "TextFillColorSecondaryBrush");
             AutomationProperties.SetItemStatus(button, selected ? text.Get("Selected") : "");
         }
     }

@@ -5269,6 +5269,11 @@
     "resource_id": "sc9294a330f2a59ffe7f9f244",
     "text": "未发现启动项"
   },
+  "No supported browser databases were found. Unavailable profiles are not counted as empty.": {
+    "format": "未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。",
+    "resource_id": "sae323ff10962b38f5f5cd7c4",
+    "text": "未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。"
+  },
   "No supported catalog source for this application. Check for updates in the app.": {
     "format": "此应用暂无受支持的目录来源。请在应用内检查更新。",
     "resource_id": "s4513a76c8f6ffb6dff89a88b",

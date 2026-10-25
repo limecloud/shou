@@ -42,8 +42,19 @@ internal static class ProductIcon
         };
         var stroke = size >= 40 ? 0.8 : 1.15;
         var path = (IconPath)XamlReader.Load("<Path xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Data='" + data + "' StrokeThickness='" + stroke.ToString(System.Globalization.CultureInfo.InvariantCulture) + "' StrokeLineJoin='Round' Width='17' Height='17' />");
-        path.Stroke = (Brush)Application.Current.Resources["ShouAccentBrush"];
+        ThemeResources.Apply(path, IconPath.StrokeProperty, "Stroke", "ShouAccentBrush");
         return new Viewbox { Child = path, Width = size, Height = size, Stretch = Stretch.Uniform };
+    }
+
+    public static void Select(FrameworkElement element, string resource)
+    {
+        var paths = element is Viewbox { Child: IconPath path } ? new[] { path } :
+            element is Viewbox { Child: Grid layers } ? layers.Children.OfType<IconPath>().ToArray() : [];
+        foreach (var item in paths)
+        {
+            if (item.Stroke is not null) ThemeResources.Apply(item, IconPath.StrokeProperty, "Stroke", resource);
+            if (item.Fill is not null) ThemeResources.Apply(item, IconPath.FillProperty, "Fill", resource);
+        }
     }
 
     public static void Select(FrameworkElement element, Brush brush)
@@ -64,7 +75,7 @@ internal static class ProductIcon
             "<Path Data='M10.5,10.5 L14.5,14.5 M12,6.5 A5.5,5.5 0 1 1 1,6.5 A5.5,5.5 0 1 1 12,6.5' Stroke='Black' StrokeThickness='" + stroke + "' StrokeStartLineCap='Round' StrokeEndLineCap='Round' />" +
             "<Path Data='M6.5,3 Q7,5.5 7.5,5.5 L10,6.5 Q7.5,7 7.5,7.5 L6.5,10 Q6,7.5 5.5,7.5 L3,6.5 Q5.5,6 5.5,5.5 Z' Fill='Black' /></Grid>");
         var result = new Viewbox { Child = layers, Width = size, Height = size, Stretch = Stretch.Uniform };
-        Select(result, (Brush)Application.Current.Resources["ShouAccentBrush"]);
+        Select(result, "ShouAccentBrush");
         return result;
     }
 
@@ -79,7 +90,7 @@ internal static class ProductIcon
             "M16.5,10.2 L16.5,13.8 A0.5,0.5 0 0 1 15.5,13.8 L15.5,10.2 A0.5,0.5 0 0 1 16.5,10.2 Z " +
             "M19,10.2 L19,13.8 A0.5,0.5 0 0 1 18,13.8 L18,10.2 A0.5,0.5 0 0 1 19,10.2 Z";
         var path = (IconPath)XamlReader.Load("<Path xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Data='" + data + "' Width='24' Height='20' />");
-        path.Fill = (Brush)Application.Current.Resources["ShouAccentBrush"];
+        ThemeResources.Apply(path, IconPath.FillProperty, "Fill", "ShouAccentBrush");
         return new Viewbox { Width = size * 24 / 20, Height = size, Child = new Grid { Width = 24, Height = 20, Children = { path } } };
     }
 
@@ -95,7 +106,7 @@ internal static class ProductIcon
     private static FrameworkElement FilledSymbol(string data, double size)
     {
         var path = (IconPath)XamlReader.Load("<Path xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' Data='" + data + "' Width='17' Height='17' />");
-        path.Fill = (Brush)Application.Current.Resources["ShouAccentBrush"];
+        ThemeResources.Apply(path, IconPath.FillProperty, "Fill", "ShouAccentBrush");
         return new Viewbox { Child = path, Width = size, Height = size, Stretch = Stretch.Uniform };
     }
 }

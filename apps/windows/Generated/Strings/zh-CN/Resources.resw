@@ -3162,6 +3162,9 @@
   <data name="sc9294a330f2a59ffe7f9f244" xml:space="preserve">
     <value>未发现启动项</value>
   </data>
+  <data name="sae323ff10962b38f5f5cd7c4" xml:space="preserve">
+    <value>未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。</value>
+  </data>
   <data name="s4513a76c8f6ffb6dff89a88b" xml:space="preserve">
     <value>此应用暂无受支持的目录来源。请在应用内检查更新。</value>
   </data>

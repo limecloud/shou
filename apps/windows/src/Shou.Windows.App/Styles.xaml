@@ -88,6 +88,7 @@
             <SolidColorBrush x:Key="ShouMapTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
+    <SolidColorBrush x:Key="ShouTransparentBrush" Color="Transparent" />
     <StaticResource x:Key="CheckBoxSize" ResourceKey="ShouCheckboxSize" />
     <StaticResource x:Key="CheckBoxGlyphSize" ResourceKey="ShouCheckboxGlyphSize" />
     <StaticResource x:Key="CheckBoxHeight" ResourceKey="ShouCheckboxHeight" />

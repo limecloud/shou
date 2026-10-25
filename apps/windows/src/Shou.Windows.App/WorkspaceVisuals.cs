@@ -25,8 +25,9 @@ internal static class WorkspaceVisuals
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var words = new StackPanel { Spacing = 5, VerticalAlignment = VerticalAlignment.Center };
         words.Children.Add(new TextBlock { Text = title, FontSize = (double)Application.Current.Resources["ShouSummaryFigureSize"], FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-        words.Children.Add(new TextBlock { Text = subtitle, TextWrapping = TextWrapping.Wrap,
-            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] });
+        var detail = new TextBlock { Text = subtitle, TextWrapping = TextWrapping.Wrap };
+        ThemeResources.Apply(detail, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
+        words.Children.Add(detail);
         var picture = Artwork(artwork, 84, 56); Grid.SetColumn(picture, 1);
         grid.Children.Add(words); grid.Children.Add(picture);
         return grid;
@@ -44,12 +45,12 @@ internal static class WorkspaceVisuals
             words.Children.Add(child);
         }
         title.FontSize = (double)Application.Current.Resources["ShouHeroCompactTitleSize"];
-        title.Foreground = (Brush)Application.Current.Resources["TextFillColorPrimaryBrush"];
+        ThemeResources.Apply(title, TextBlock.ForegroundProperty, "Foreground", "TextFillColorPrimaryBrush");
         title.HorizontalAlignment = HorizontalAlignment.Left; title.TextAlignment = TextAlignment.Left;
         title.TextWrapping = TextWrapping.Wrap;
         description.HorizontalAlignment = HorizontalAlignment.Left; description.TextAlignment = TextAlignment.Left;
         icon.Content = Artwork(artwork);
-        var grid = new Grid { ColumnSpacing = 28, MaxWidth = 1080 };
+        var grid = new Grid { ColumnSpacing = 28, MaxWidth = 1080, HorizontalAlignment = HorizontalAlignment.Center };
         grid.ColumnDefinitions.Add(new ColumnDefinition());
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(400) });
         Grid.SetColumn(icon, 1); grid.Children.Add(words); grid.Children.Add(icon);
@@ -59,6 +60,7 @@ internal static class WorkspaceVisuals
         // Reduce decorative art at the minimum window size while preserving the actual controls.
         content.SizeChanged += (_, _) =>
         {
+            grid.Width = Math.Min(grid.MaxWidth, content.ActualWidth);
             var narrow = content.ActualWidth < 800;
             var width = narrow ? 260 : 400;
             grid.ColumnDefinitions[1].Width = new GridLength(width);
@@ -71,8 +73,8 @@ internal static class WorkspaceVisuals
     {
         var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Center };
         var icon = new ContentControl(); var heading = new TextBlock { Text = text.Get(title) };
-        var description = new TextBlock { Text = text.Get(subtitle), TextWrapping = TextWrapping.Wrap,
-            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] };
+        var description = new TextBlock { Text = text.Get(subtitle), TextWrapping = TextWrapping.Wrap };
+        ThemeResources.Apply(description, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
         var start = new Button { Content = text.Get(action), Style = (Style)Application.Current.Resources["ShouScanButton"] };
         start.Click += clicked; AutomationProperties.SetAutomationId(start, automationId);
         content.Children.Add(icon); content.Children.Add(heading); content.Children.Add(description); content.Children.Add(start);
@@ -100,14 +102,18 @@ internal static class WorkspaceVisuals
             var detail = new Grid { ColumnSpacing = 8 };
             detail.ColumnDefinitions.Add(new ColumnDefinition());
             detail.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            detail.Children.Add(new TextBlock { Text = text.Get(subtitle), TextWrapping = TextWrapping.Wrap,
-                VerticalAlignment = VerticalAlignment.Center, Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] });
+            var description = new TextBlock { Text = text.Get(subtitle), TextWrapping = TextWrapping.Wrap,
+                VerticalAlignment = VerticalAlignment.Center };
+            ThemeResources.Apply(description, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
+            detail.Children.Add(description);
             var picture = Artwork(artwork, 80, 70); Grid.SetColumn(picture, 1); detail.Children.Add(picture);
             content.Children.Add(detail);
             var button = new Button { Content = content, Padding = new Thickness(22), HorizontalAlignment = HorizontalAlignment.Stretch,
                 HorizontalContentAlignment = HorizontalAlignment.Stretch, MinHeight = (double)Application.Current.Resources["ShouHomeCardHeight"],
-                CornerRadius = (CornerRadius)Application.Current.Resources["ShouHomeCardRadius"],
-                Background = (Brush)Application.Current.Resources["ShouSurfaceBrush"], BorderBrush = (Brush)Application.Current.Resources["ShouDividerBrush"] };
+                CornerRadius = (CornerRadius)Application.Current.Resources["ShouHomeCardRadius"] };
+            ThemeResources.Apply(button, Control.BackgroundProperty, "Background", "ShouSurfaceBrush");
+            ThemeResources.Apply(button, Control.BorderBrushProperty, "BorderBrush", "ShouDividerBrush");
+            ThemeResources.Apply(button, Control.ForegroundProperty, "Foreground", "TextFillColorPrimaryBrush");
             AutomationProperties.SetAutomationId(button, "smart.destination." + page);
             button.Click += (_, _) => navigate(page);
             Grid.SetColumn(button, index); grid.Children.Add(button);
