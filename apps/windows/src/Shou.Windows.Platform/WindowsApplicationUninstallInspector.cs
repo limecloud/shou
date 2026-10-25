@@ -63,7 +63,12 @@ public sealed class WindowsApplicationUninstallInspector : IApplicationUninstall
             }
             if (matches.Count != 1) return Unavailable(matches.Count == 0 ? "application_changed" : "ambiguous_installer_context");
             var selected = matches[0];
-            if ((application.Source == ApplicationSource.CurrentUserRegistry) == (selected.Context == MsiInstallationContext.Machine))
+            // An HKLM ARP entry can describe a per-user MSI. MSI owns the installation context;
+            // an unprivileged HKCU entry still cannot nominate a machine-wide installation.
+            if (application.Source == ApplicationSource.CurrentUserRegistry && selected.Context == MsiInstallationContext.Machine)
+                return Unavailable("installer_registration_mismatch");
+            var assignment = ReadMsiProperty(product, selected.Sid, selected.Context, "AssignmentType");
+            if (assignment != (selected.Context == MsiInstallationContext.Machine ? "1" : "0"))
                 return Unavailable("installer_registration_mismatch");
             var name = ReadMsiProperty(product, selected.Sid, selected.Context, "InstalledProductName");
             var version = ReadMsiProperty(product, selected.Sid, selected.Context, "VersionString");
@@ -73,7 +78,9 @@ public sealed class WindowsApplicationUninstallInspector : IApplicationUninstall
             location = ReadMsiProperty(product, selected.Sid, selected.Context, "InstallLocation");
             if (!string.Equals(name?.Trim(), application.Name, StringComparison.Ordinal) ||
                 application.Version is not null && !string.Equals(version?.Trim(), application.Version, StringComparison.Ordinal) ||
-                application.Publisher is not null && !string.Equals(publisher?.Trim(), application.Publisher, StringComparison.Ordinal))
+                application.Publisher is not null && !string.Equals(publisher?.Trim(), application.Publisher, StringComparison.Ordinal) ||
+                application.RegisteredInstallLocation is { } registered &&
+                    (string.IsNullOrWhiteSpace(location) || !registered.SamePath(WindowsPath.Parse(location))))
                 return Unavailable("installer_registration_mismatch");
             observed = new(new(ApplicationInstallerKind.Msi, product, selected.Context, selected.Sid, packageGuid.ToString("B").ToUpperInvariant()),
                 name, version, publisher, null, false, []);

@@ -73,6 +73,35 @@ public sealed class GeneratedMsiUninstallTests(ITestOutputHelper output)
     }
 
     [GeneratedMsiFact]
+    public async Task MismatchedRegistrationMetadataCannotIdentifyTheGeneratedInstallation()
+    {
+        await using var fixture = await GeneratedMsiFixture.InstallAsync();
+        output.WriteLine("Generated MSI evidence: " + fixture.Root);
+        var application = await fixture.DiscoverAsync();
+        var inspector = new WindowsApplicationUninstallInspector();
+        foreach (var changed in new[]
+        {
+            application with { Name = "Another generated product" },
+            application with { Version = "99.0.0" },
+            application with { Publisher = "Another generated publisher" },
+            application with { RegisteredInstallLocation = WindowsPath.Parse(fixture.Root) }
+        })
+        {
+            var observation = await inspector.InspectAsync(changed, default);
+            Assert.Null(observation.Identity);
+            Assert.Contains("installer_registration_mismatch", observation.Issues);
+            Assert.Equal("5", fixture.InstalledState());
+            fixture.AssertGeneratedBytes(installed: true);
+        }
+        var exact = await inspector.InspectAsync(application, default);
+        Assert.Equal(fixture.ProductCode, exact.Identity!.SystemId);
+        Assert.Equal(fixture.PackageCode, exact.Identity.PackageCode);
+        Assert.Equal(MsiInstallationContext.UserUnmanaged, exact.Identity.Context);
+        Assert.Equal(fixture.OwnerSid, exact.Identity.UserSid);
+        fixture.SaveEvidence("registration_mismatches_rejected", null);
+    }
+
+    [GeneratedMsiFact]
     public async Task ExactGeneratedMsiUninstallRecordsRealOutcomeAndKeepsUnregisteredDataWithoutReplay()
     {
         await using var fixture = await GeneratedMsiFixture.InstallAsync();

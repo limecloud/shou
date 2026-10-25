@@ -86,9 +86,9 @@ public sealed class ApplicationUninstallReviewer(ApplicationCatalog catalog, IAp
         else if (application.Source == ApplicationSource.CurrentUserMsix || !application.UsesWindowsInstaller ||
             !Guid.TryParseExact(application.RegistrationKey, "B", out var registration) || !Guid.TryParseExact(identity.SystemId, "B", out var system) || registration != system ||
             identity.SystemId != system.ToString("B").ToUpperInvariant() || !Guid.TryParseExact(identity.PackageCode, "B", out _) || identity.PackageFamilyName is not null ||
-            (application.Source == ApplicationSource.CurrentUserRegistry
-                ? identity.Context is not (MsiInstallationContext.UserManaged or MsiInstallationContext.UserUnmanaged) || !Sid(identity.UserSid)
-                : identity.Context != MsiInstallationContext.Machine || identity.UserSid is not null)) throw Invalid();
+            (identity.Context == MsiInstallationContext.Machine
+                ? application.Source == ApplicationSource.CurrentUserRegistry || identity.UserSid is not null
+                : identity.Context is not (MsiInstallationContext.UserManaged or MsiInstallationContext.UserUnmanaged) || !Sid(identity.UserSid))) throw Invalid();
     }
 
     internal static bool Sid(string? value) => value is { Length: > 0 and <= 184 } &&

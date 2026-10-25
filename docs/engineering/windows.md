@@ -69,6 +69,7 @@ Tests assemble test services directly, and their confirmation callback accepts o
 | Declined confirmation | Keep the installation and bytes unchanged without execution intent |
 | Installation removed after confirmation | Fixture-owned uninstall makes preflight reject without dispatching the adapter or writing intent |
 | Changed actor and file use | Reject a different actor at the native boundary; holding the generated file blocks planning while preserving bytes |
+| Mismatched registration clues | Different name, version, publisher or install directory yields no installation identity; exact clues still bind PackageCode and current-user context |
 
 Cases run serially and require process-local `SHOU_TEST_GENERATED_MSI=1`; ordinary test runs skip them. The test process architecture must match Windows. x64 emulation is not ARM64 native acceptance. The script requires every TRX result to execute and pass; zero results or any skipped case cannot produce a successful receipt.
 
@@ -78,7 +79,7 @@ Tests await the installer’s actual exit without killing or abandoning it on a 
 
 The `Generated Windows MSI fixtures` GitHub workflow provides a separate manual entry that runs the same script and retains failure evidence; ordinary push/PR tests install no packages. Its `windows-2025` x64 results establish the native API chain only on that server environment, not regular-user Windows 11, ARM64 or WinUI acceptance.
 
-The five cloud cases on 2026-10-26 failed during discovery before product-uninstall assertions. The tested delta changed installation arguments to `ALLUSERS=""`; delta five restored the current `ALLUSERS=2 MSIINSTALLPERUSER=1` without rerunning the special suite. These failures cannot directly identify the current arguments as the cause or authorize relaxing registration-source/system-context checks. See [SYNC.md](../../SYNC.md) for actual rerun results. MSI authoring follows Microsoft’s [File table](https://learn.microsoft.com/en-us/windows/win32/msi/file-table), [Word Count property](https://learn.microsoft.com/en-us/windows/win32/msi/word-count-summary) and [standard action sequence](https://learn.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence).
+The five cloud cases on 2026-10-26 failed during discovery before product-uninstall assertions. The tested delta changed installation arguments to `ALLUSERS=""`; delta five restored the current `ALLUSERS=2 MSIINSTALLPERUSER=1` without rerunning the special suite. A clean `58dccc1` Windows Server 2025 x64 run then reproduced all five failures: the unique current-user installation was discovered through the machine registry, with `Assignment=0` in the installer log. The correction uses the system API as the context authority and adds assignment-type/directory matching under the [application contract](../product/application-uninstall.md#installation-identity-review-and-plans); registry location grants no permission. See [SYNC.md](../../SYNC.md) for actual rerun results. MSI authoring follows Microsoft’s [File table](https://learn.microsoft.com/en-us/windows/win32/msi/file-table), [Word Count property](https://learn.microsoft.com/en-us/windows/win32/msi/word-count-summary) and [standard action sequence](https://learn.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence).
 
 ## Startup registration discovery
 

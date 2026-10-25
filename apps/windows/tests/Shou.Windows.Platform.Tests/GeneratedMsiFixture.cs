@@ -75,7 +75,7 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
     {
         var snapshot = await new ApplicationCatalog(new WindowsApplicationInventory()).ReadAsync();
         File.WriteAllText(Path.Combine(Root, "discovery.json"), JsonSerializer.Serialize(snapshot, ContractJson.Options));
-        var application = snapshot.Applications.SingleOrDefault(item => item.Source == ApplicationSource.CurrentUserRegistry &&
+        var application = snapshot.Applications.SingleOrDefault(item => item.Source != ApplicationSource.CurrentUserMsix &&
             item.RegistrationKey == ProductCode) ?? throw new InvalidOperationException(
                 "The generated per-user MSI was not discovered; inspect the fixture and source-coverage evidence.");
         if (application.Name != ProductName || application.Publisher != Manufacturer || !application.UsesWindowsInstaller)
@@ -131,7 +131,7 @@ internal sealed class GeneratedMsiFixture : IAsyncDisposable
 
     private void RequireOwnedInstallation()
     {
-        if (InstalledState() != "5" || Read("PackageCode") != PackageCode || Read("InstalledProductName") != ProductName ||
+        if (InstalledState() != "5" || Read("AssignmentType") != "0" || Read("PackageCode") != PackageCode || Read("InstalledProductName") != ProductName ||
             Read("Publisher") != Manufacturer || !WindowsPath.Parse(Read("InstallLocation") ?? "").SamePath(WindowsPath.Parse(InstallDirectory)))
             throw new InvalidOperationException("Refusing fixture cleanup: the registered installation does not match this generated MSI.");
         foreach (var context in new[] { MsiInstallationContext.UserManaged, MsiInstallationContext.Machine })

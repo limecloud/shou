@@ -58,6 +58,39 @@ public sealed class ApplicationUninstallTests
         Assert.Empty(fixture.Store.Records);
     }
 
+    [Theory]
+    [InlineData(ApplicationSource.MachineRegistry64, MsiInstallationContext.UserManaged)]
+    [InlineData(ApplicationSource.MachineRegistry64, MsiInstallationContext.UserUnmanaged)]
+    [InlineData(ApplicationSource.MachineRegistry32, MsiInstallationContext.UserManaged)]
+    [InlineData(ApplicationSource.MachineRegistry32, MsiInstallationContext.UserUnmanaged)]
+    public async Task MachineRegistryCluePreservesSystemVerifiedCurrentUserContextInThePlan(ApplicationSource source, MsiInstallationContext context)
+    {
+        var fixture = new Fixture();
+        fixture.Registration = fixture.Registration with { Source = source };
+        fixture.Observation = fixture.Observation with { Identity = fixture.Observation.Identity! with { Context = context } };
+        var plan = await fixture.CreateAsync();
+        Assert.Equal(source, plan.Review.Application.Source);
+        Assert.Equal(context, plan.Review.Installation.Identity!.Context);
+        Assert.Equal(Sid, plan.Review.Installation.Identity.UserSid);
+        Assert.False(plan.ExecutionAvailable);
+        var reopened = await fixture.Planner.ShowAsync(plan.Id);
+        Assert.Equal(plan.Digest, reopened.Digest);
+        Assert.Equal(source, reopened.Review.Application.Source);
+        Assert.Equal(plan.Review.Installation.Identity, reopened.Review.Installation.Identity);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("S-1-5-21-2000")]
+    public async Task MachineRegistryDoesNotAuthorizeAUserInstallationWithMissingOrDifferentActor(string? sid)
+    {
+        var fixture = new Fixture();
+        fixture.Registration = fixture.Registration with { Source = ApplicationSource.MachineRegistry64 };
+        fixture.Observation = fixture.Observation with { Identity = fixture.Observation.Identity! with { UserSid = sid } };
+        await Assert.ThrowsAsync<ShouException>(() => fixture.CreateAsync());
+        Assert.Empty(fixture.Store.Records);
+    }
+
     [Fact]
     public async Task MsixReviewBindsCurrentUserPackageAndDisclosesSystemDependencyRemoval()
     {

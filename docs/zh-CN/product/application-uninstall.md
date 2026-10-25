@@ -67,7 +67,7 @@ sequenceDiagram
 
 | 安装类型 | 核验与绑定 |
 | --- | --- |
-| MSI | `WindowsInstaller=1` 仅是线索；通过 `MsiGetProductInfoExW` 查询当前用户 managed、unmanaged 和 machine 上下文，必须恰好一个上下文为已安装，且与注册来源相符；绑定 ProductCode、PackageCode、上下文、用户 SID、系统名称、版本与发布者 |
+| MSI | `WindowsInstaller=1` 仅是线索；通过 `MsiGetProductInfoExW` 查询当前用户 managed、unmanaged 和 machine 上下文，必须恰好一个上下文为已安装，`AssignmentType` 与系统上下文一致。整机注册表来源也可能指向当前用户安装，不能据 hive 推断安装范围；当前用户注册表不能指定整机安装。绑定 ProductCode、PackageCode、上下文、用户 SID、系统名称、版本、发布者及存在时的注册安装目录；当前确认和执行前重查 |
 | MSIX | 重新查询当前用户的精确 package full name，绑定 family name 与当前用户 SID；系统签名、框架、资源包和 bundle 容器保持受保护 |
 | 其他安装程序 | 返回不支持，既不读取也不执行 `UninstallString`，不拼接 Shell |
 

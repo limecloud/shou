@@ -67,7 +67,7 @@ sequenceDiagram
 
 | Installer | Verification and binding |
 | --- | --- |
-| MSI | `WindowsInstaller=1` is only a clue. `MsiGetProductInfoExW` checks current-user managed, unmanaged and machine contexts; exactly one must be installed and match the registration source. Bind ProductCode, PackageCode, context, user SID and system name/version/publisher |
+| MSI | `WindowsInstaller=1` is only a clue. `MsiGetProductInfoExW` checks current-user managed, unmanaged and machine contexts; exactly one must be installed and `AssignmentType` must agree. A machine-registry clue can describe a current-user installation; the hive does not establish its scope. A current-user registry entry cannot nominate a machine installation. Bind ProductCode, PackageCode, context, user SID, system name/version/publisher and the registered install directory when present; recheck before current confirmation and execution |
 | MSIX | Query the current user's exact package full name again; bind family name and current-user SID. System-signed, framework, resource and bundle containers remain protected |
 | Other installer | Unsupported; never read or execute `UninstallString` or interpolate a shell command |
 
