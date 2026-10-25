@@ -31,6 +31,14 @@ public sealed class WindowsSystemMonitor : ISystemMonitorSampling, IDisposable
             var memory = new MemoryStatus { Length = (uint)Marshal.SizeOf<MemoryStatus>() };
             var memoryAvailable = GlobalMemoryStatusEx(ref memory);
             var powerAvailable = GetSystemPowerStatus(out var power);
+            double? batteryHealth = null;
+            try
+            {
+                var report = global::Windows.Devices.Power.Battery.AggregateBattery.GetReport();
+                if (report.DesignCapacityInMilliwattHours is > 0 and var design && report.FullChargeCapacityInMilliwattHours is > 0 and var full)
+                    batteryHealth = Math.Min(100, (double)full / design * 100);
+            }
+            catch (Exception error) when (error is COMException or InvalidOperationException or TypeLoadException or UnauthorizedAccessException or NotSupportedException) { }
             InitializeQuery();
             var collected = query != 0 && PdhCollectQueryData(query) == 0;
             var cores = collected ? Formatted(cpuCounter).Where(pair => pair.Key.Split(',') is [var group, var index] && int.TryParse(group, out _) && int.TryParse(index, out _))
@@ -95,7 +103,7 @@ public sealed class WindowsSystemMonitor : ISystemMonitorSampling, IDisposable
                 MemoryTotal = memoryAvailable ? memory.TotalPhysical : null,
                 MemoryUsed = memoryAvailable ? memory.TotalPhysical - Math.Min(memory.TotalPhysical, memory.AvailablePhysical) : null,
                 Disk = disk, Network = network, GpuPercent = gpuValues.Length > 0 ? Math.Clamp(gpuValues.Max(), 0, 100) : null,
-                BatteryPercent = battery, PowerSource = !powerAvailable ? "Unavailable" : (power.BatteryFlag & 8) != 0 ? "Charging" :
+                BatteryPercent = battery, BatteryHealth = battery is null ? null : batteryHealth, PowerSource = !powerAvailable ? "Unavailable" : (power.BatteryFlag & 8) != 0 ? "Charging" :
                     power.AcLineStatus == 1 ? "AC Power" : power.AcLineStatus == 0 ? "Battery Power" : "Unavailable",
                 Processes = processes.ToImmutable(), ProcessCoverage = coverage, Issues = issues.ToImmutable()
             };

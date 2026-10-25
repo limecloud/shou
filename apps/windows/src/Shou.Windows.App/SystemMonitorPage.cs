@@ -39,7 +39,7 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
         toolbar.ColumnDefinitions.Add(new()); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         var heading = new StackPanel { Spacing = 3 };
         heading.Children.Add(new TextBlock { Text = T("System Monitor"), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 16 });
-        status.Style = (Style)Application.Current.Resources["ShouCaption"]; heading.Children.Add(status); toolbar.Children.Add(heading);
+        status.Style = (Style)Application.Current.Resources["ShouCaption"]; AutomationProperties.SetAutomationId(status, "monitor.status"); heading.Children.Add(status); toolbar.Children.Add(heading);
         background.Header = T("Tray summary"); background.Toggled += (_, _) => { if (background.IsOn != model.BackgroundEnabled) model.SetBackgroundEnabled(background.IsOn); };
         Grid.SetColumn(background, 1); toolbar.Children.Add(background); AutomationProperties.SetAutomationId(background, "monitor.background");
         pause.VerticalAlignment = VerticalAlignment.Center; pause.Click += (_, _) => model.SetPaused(!model.Paused);
@@ -79,7 +79,7 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
             </Grid></DataTemplate>
             """);
         AutomationProperties.SetAutomationId(list, "monitor.processes"); AutomationProperties.SetName(list, T("Processes"));
-        body.Children.Add(list); body.Children.Add(coverage);
+        body.Children.Add(list); body.Children.Add(coverage); AutomationProperties.SetAutomationId(coverage, "monitor.coverage");
         body.Children.Add(Caption(T("Last 2 minutes · Gaps mean unavailable")));
         body.Children.Add(Caption(T("Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.")));
         var scroll = new ScrollViewer { Content = body, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };

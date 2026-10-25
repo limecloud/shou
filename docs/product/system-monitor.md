@@ -13,7 +13,7 @@ Monitoring is an independent read-only workspace task. It retains the top naviga
 | Memory | Physical total minus free and inactive; compressed pages, swap and pressure observed separately | Physical total minus available; compressed memory, swap and pressure remain unavailable when the supported API has no fact; commit is never substituted for swap |
 | Disk | System-volume capacity/available space; IOBlockStorageDriver cumulative-byte deltas | System-volume capacity/available space; PDH PhysicalDisk raw cumulative-byte deltas excluding `_Total` |
 | Network | Active numeric `en` interfaces, excluding loopback and tunnels | Active Ethernet/Wi-Fi; virtual adapters classified as Ethernet may be included |
-| Battery | IOPS charge/power; readable AppleSmartBattery raw-capacity ratio and cycles | GetSystemPowerStatus charge/power; health/cycles unavailable without a reliable source |
+| Battery | IOPS charge/power; readable AppleSmartBattery raw-capacity ratio and cycles | GetSystemPowerStatus charge/power; readable WinRT BatteryReport full/design capacity ratio; cycles unavailable without a source |
 | Temperature/fans | Fixed read-only AppleSMC requests and identified chip sensors; readable-sensor average, actual RPM and separate system thermal state | Supported read-only APIs provide no universal CPU/GPU temperature or fan source; unavailable, with no driver installation or elevation |
 | Resource status | CPU or memory at 90% marks high usage; serious/critical Mac thermal state also marks high usage. Missing load, failure or pause is incomplete observation | Same load rule; this is not a hardware-health diagnosis |
 

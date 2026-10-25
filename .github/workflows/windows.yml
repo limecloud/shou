@@ -77,6 +77,11 @@ jobs:
         run: |
           [xml]$Properties = Get-Content apps/windows/Directory.Build.props
           ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish" -Version $Properties.Project.PropertyGroup.Version
+      - name: Read-only monitor UI and native tray menu
+        if: matrix.runtime == 'win-x64'
+        run: |
+          powershell.exe -NoProfile -STA -File scripts/windows/test-monitor-ui.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish" -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/diagnostics/monitor"
+          if ($LASTEXITCODE -ne 0) { throw 'Monitor UI acceptance failed.' }
       - name: Collect native x64 application diagnostics
         if: always() && matrix.runtime == 'win-x64'
         run: ./scripts/windows/collect-diagnostics.ps1 -OutputRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/diagnostics" -PublishRoot "$env:RUNNER_TEMP/ShouBuild/win-x64/publish"
@@ -195,6 +200,10 @@ jobs:
           ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish" -Version $Version -Runtime win-arm64 -ReportPath "$env:RUNNER_TEMP/ShouBuild/evidence/native-publish.json"
       - name: Verify native ARM64 PowerShell keyboard completion
         run: python scripts/windows/test-shell-completion.py --cli "$env:RUNNER_TEMP/ShouBuild/publish/cli/shou.exe" --output "$env:RUNNER_TEMP/ShouBuild/evidence/shell-interaction"
+      - name: Native ARM64 monitor UI and tray menu
+        run: |
+          powershell.exe -NoProfile -STA -File scripts/windows/test-monitor-ui.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish" -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/evidence/monitor"
+          if ($LASTEXITCODE -ne 0) { throw 'ARM64 monitor UI acceptance failed.' }
       - name: Collect ARM64 evidence
         if: always()
         run: ./scripts/windows/collect-diagnostics.ps1 -OutputRoot "$env:RUNNER_TEMP/ShouBuild/evidence" -TestResultsRoot "$env:RUNNER_TEMP/ShouBuild/tests/results" -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish"

@@ -23,7 +23,7 @@ struct SystemMonitorView: View {
                     Text(model.t("System Monitor")).font(.headline)
                     HStack(spacing: 6) {
                         Text(model.t(session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : session.sample == nil ? "Collecting rate baseline…" : "Live · Every 2 seconds"))
-                        if let observation { Text(observation.timestamp,style:.time).monospacedDigit() }
+                        if let observation { Text(observation.timestamp.formatted(date:.omitted,time:.standard)).monospacedDigit() }
                     }.font(.callout).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
@@ -125,7 +125,7 @@ struct SystemMonitorView: View {
                     .font(.callout).foregroundStyle(.secondary).frame(height:40,alignment:.leading).lineLimit(2)
             }
             Text(detail(key)).font(.callout).foregroundStyle(.secondary).lineLimit(3).frame(height:50,alignment:.topLeading)
-        }.frame(maxWidth:.infinity,alignment:.leading).padding(16)
+        }.frame(maxWidth:.infinity,alignment:.leading).padding(16).accessibilityElement(children:.combine)
             .modifier(WorkspaceSurface()).overlay(RoundedRectangle(cornerRadius:ShouDesign.cardRadius).stroke(Color.secondary.opacity(0.12),lineWidth:1))
     }
     private var volumeFraction: Double? {

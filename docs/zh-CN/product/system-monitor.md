@@ -13,7 +13,7 @@
 | 内存 | 物理总量减 free 与 inactive，压缩页、交换使用量与系统压力独立观察 | 物理总量减 available；压缩、交换和内存压力在当前 API 无明确事实时为不可用，不用 commit 代替 swap |
 | 磁盘 | 系统卷总量／可用量，IOBlockStorageDriver 累计读写字节差分 | 系统卷总量／可用量，PDH PhysicalDisk 原始累计读写字节差分，排除 `_Total` |
 | 网络 | 活动的 `en` 数字接口，排除 loopback 和 tunnel | 活动的 Ethernet／Wi-Fi 接口，可能包括被系统归为 Ethernet 的虚拟适配器 |
-| 电池 | IOPS 电量／供电，AppleSmartBattery 可读原始容量比与循环次数 | GetSystemPowerStatus 电量／供电；当前无可靠健康／循环数据时显示不可用 |
+| 电池 | IOPS 电量／供电，AppleSmartBattery 可读原始容量比与循环次数 | GetSystemPowerStatus 电量／供电；WinRT BatteryReport 的可读完整容量／设计容量比；循环次数无来源时不可用 |
 | 温度／风扇 | 固定 AppleSMC 只读协议及已识别芯片传感器；可读传感器均值和实际转速，系统热状态独立展示 | 当前支持的只读系统 API 不提供统一 CPU／GPU 温度及风扇，明确显示不可用；不安装驱动或提权 |
 | 资源状态 | 仅依据当前 CPU／内存占用：任一达到 90% 标记高负载；macOS 严重热状态也标记高负载。暂停、失败或缺少任一负载时为观察不完整 | 同一负载口径；这不是硬件健康诊断 |
 
