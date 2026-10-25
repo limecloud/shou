@@ -12,6 +12,7 @@ public sealed partial class MainWindow : Window
 {
     private readonly TextCatalog text = new();
     private NativeReviewOperations? operations;
+    private CleanupReviewViewModel? cleanupReview;
     private CleanupPage? cleanup;
     private CleanupPage? projects;
     private ConfigurationPage? configuration;
@@ -77,6 +78,7 @@ public sealed partial class MainWindow : Window
         {
             closed = true;
             cleanup?.Dispose(); projects?.Dispose(); configuration?.Dispose(); applications?.Dispose(); startup?.Dispose();
+            cleanupReview?.Dispose();
             privacy?.Dispose(); history?.Dispose(); storage?.Dispose(); largeFiles?.Dispose();
         };
         WindowRoot.Loaded += (_, _) => UpdateWorkspaceNavigation();
@@ -135,7 +137,7 @@ public sealed partial class MainWindow : Window
                     if (cleanup is null)
                     {
                         operations ??= new();
-                        cleanup = new(operations, operations, operations.Catalog);
+                        cleanup = new(SharedCleanupReview(), operations);
                         cleanup.BusyChanged += (_, _) => UpdateNavigation();
                         cleanup.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
                         cleanup.DestinationRequested += async nextDestination => await ShowPageAsync(nextDestination);
@@ -151,7 +153,7 @@ public sealed partial class MainWindow : Window
                     {
                         operations ??= new();
                         configuration = new(operations, WinRT.Interop.WindowNative.GetWindowHandle(this), operations.Catalog);
-                        configuration.EvidenceInvalidated += (_, _) => { cleanup?.InvalidateConfiguration(); projects?.InvalidateConfiguration(); privacy?.InvalidateConfiguration(); };
+                        configuration.EvidenceInvalidated += (_, _) => { cleanupReview?.InvalidateConfiguration(); privacy?.InvalidateConfiguration(); };
                         configuration.BusyChanged += (_, _) => UpdateNavigation();
                     }
                     page = configuration; load = configuration.EnsureLoadedAsync(); break;
@@ -159,7 +161,7 @@ public sealed partial class MainWindow : Window
                     if (projects is null)
                     {
                         operations ??= new();
-                        projects = new(operations, operations, operations.Catalog, projectsOnly: true);
+                        projects = new(SharedCleanupReview(), operations, projectsOnly: true);
                         projects.BusyChanged += (_, _) => UpdateNavigation();
                         projects.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
                         projects.HistoryRequested += async (_, _) => { history?.InvalidateHistory(); await ShowPageAsync("history"); };
@@ -214,6 +216,13 @@ public sealed partial class MainWindow : Window
             NativeDiagnostics.Write(error);
             if (!closed) ShowStatus(text.Get("The page could not be loaded. Try again."));
         }
+    }
+
+    private CleanupReviewViewModel SharedCleanupReview()
+    {
+        operations ??= new();
+        return cleanupReview ??= new(operations, operations.Catalog.Templates.ToDictionary(template => template.Id, template => template.Category),
+            projectCatalog: operations.Catalog);
     }
 
     private void UpdateNavigation()

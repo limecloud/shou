@@ -26305,6 +26305,22 @@
         }
       }
     },
+    "Showing %lld of %lld matched locations": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing %lld of %lld matched locations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示 %lld 个位置，共匹配 %lld 个"
+          }
+        }
+      }
+    },
     "Showing results from the previous scan.": {
       "localizations": {
         "en": {

@@ -95,6 +95,8 @@ Startup discovery now has separate `StartupInventoryService` / `IStartupInventor
 
 Scheduled boot/logon tasks now have separate public `RegisteredTask.Enabled` / `State` observations in Core, CLI and WinUI details. Missing/changed status preserves a definition-rechecked registration with partial coverage; task status is not effective startup activation or application process state. Portable logic and reference compilation require separate native COM/permission/UI acceptance.
 
+Smart Cleanup and Developer Projects now share window-owned scan/selection state. Core groups and deduplicates project candidates from observed markers; personal rules require a project marker and a non-shared-cache scope, and plans receive only the active task scope. Portable tests cover separate filters, tri-state groups, pagination, preservation of selected caches and late-plan rejection. This is source status; native interaction for the new project page still needs separate acceptance under [Apps & Projects](../product/apps-and-projects.md) and SYNC.
+
 ## Resource synchronization
 
 Maintain the shared rule schema, catalog JSON, brand assets, text keys and semantic fixtures in one source location. Generate Windows resources with source digest and generation version. Extract approved colors, typography, spacing, radii and motion values into a canonical token source; generate XAML without copying Swift UI code. Preserve native keyboard, window, DPI and accessibility conventions.

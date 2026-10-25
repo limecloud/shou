@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Collections.Immutable;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -18,10 +17,10 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     public FrameworkElement Toolbar => PageChrome.Detach(PageToolbar, PageLayout);
     private readonly TextCatalog text = new();
     private readonly CleanupReviewViewModel model;
+    private readonly CleanupReviewScope scope;
     private readonly CleanupExecutionViewModel execution;
     private bool rendering;
     private bool disposed;
-    private Task? initialLoad;
     private Task? activeExecution;
     private string? dismissedCompletion;
     private string? renderedCompletion;
@@ -36,11 +35,11 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     private bool IsBusy => model.IsBusy || execution.IsBusy || HasActiveCleanup;
     public void RequestCleanupStop() => execution.Cancel();
 
-    public CleanupPage(ICleanupReviewOperations operations, ICleanupExecutionOperations executionOperations, BuiltinRuleCatalog catalog, bool projectsOnly = false)
+    public CleanupPage(CleanupReviewViewModel review, ICleanupExecutionOperations executionOperations, bool projectsOnly = false)
     {
         InitializeComponent();
-        model = new(operations, catalog.Templates.ToImmutableDictionary(template => template.Id, template => template.Category),
-            projectsOnly ? CleanupReviewScope.ProjectOutputs : CleanupReviewScope.All);
+        model = review;
+        scope = projectsOnly ? CleanupReviewScope.ProjectOutputs : CleanupReviewScope.All;
         execution = new(executionOperations);
         PageTitle.Text = text.Get("Room for") + "\n" + text.Get("what comes next.");
         StartIcon.Content = ProductIcon.Create("cleanup", (double)Application.Current.Resources["ShouStartIconSize"]);
@@ -84,9 +83,9 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         ReviewableMenuItem.Text = text.Get("Select Reviewable Items");
         AllEligibleMenuItem.Text = text.Get("Select All Eligible Items, Including High Risk");
         ClearSelectionMenuItem.Text = text.Get("Clear Selection");
-        SearchFilter.PlaceholderText = text.Get("Search rules or paths");
+        SearchFilter.PlaceholderText = text.Get(projectsOnly ? "Search projects or paths" : "Search rules or paths");
         AutomationProperties.SetName(FilteredSelection, text.Get("Select All"));
-        AutomationProperties.SetName(SearchFilter, text.Get("Search rules or paths"));
+        AutomationProperties.SetName(SearchFilter, SearchFilter.PlaceholderText);
         AutomationProperties.SetName(CategoryFilter, text.Get("Cleanup Category"));
         AutomationProperties.SetName(RuleFilter, text.Get("Cleanup Rule"));
         CategoryFilter.SelectionChanged += (_, _) => ChangeFilter(categoryChanged: true);
@@ -124,17 +123,18 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         Render();
     }
 
-    public Task EnsureLoadedAsync() => HasActiveCleanup ? Task.CompletedTask : initialLoad ??= model.LoadAsync();
-    public void InvalidateConfiguration()
+    public Task EnsureLoadedAsync()
     {
-        if (disposed || HasActiveCleanup) return;
-        initialLoad = null;
-        model.InvalidateConfiguration();
+        if (HasActiveCleanup) return Task.CompletedTask;
+        model.SetScope(scope);
+        Render();
+        return model.EnsureLoadedAsync();
     }
     private void Changed(object? sender, PropertyChangedEventArgs args)
     {
         if (execution.Plan is not null && model.Plan?.Id != execution.Plan.Id) execution.BindPlan(null);
         Render();
+        BusyChanged?.Invoke(this, EventArgs.Empty);
     }
     private void ExecutionChanged(object? sender, PropertyChangedEventArgs args)
     {
@@ -144,7 +144,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
 
     private void Render()
     {
-        if (disposed || rendering) return;
+        if (disposed || rendering || model.ReviewScope != scope) return;
         rendering = true;
         try
         {
@@ -159,7 +159,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             StartButton.IsEnabled = RescanButton.IsEnabled = !IsBusy;
             LocationMenuButton.IsEnabled = !IsBusy;
             CapacitySummary.Text = text.Format("%lld cleanup items found", model.ResultGroupCount);
-            FoundEstimate.Text = text.Get("Found (estimate)") + " " + StorageRow.FormatBytes(model.ResultAllocatedBytes);
+            FoundEstimate.Text = text.Get(scope == CleanupReviewScope.ProjectOutputs ? "Matched cleanup items" : "Found (estimate)") + " " + StorageRow.FormatBytes(model.ResultAllocatedBytes);
             var stopping = execution.IsExecuting ? execution.StopRequested : model.StopRequested;
             ReviewControls.Visibility = ReviewStatus.Visibility = ReviewActions.Visibility = Candidates.Visibility = activity ? Visibility.Collapsed : Visibility.Visible;
             var stageTitle = text.Get(
@@ -254,7 +254,16 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
                 !row.Candidate.BlockedReasons.IsEmpty ? string.Join(" · ", row.Candidate.BlockedReasons.Select(reason => ReviewText.BlockedReason(text, reason))) :
                 row.Selectable ? text.Get(row.Candidate.Risk == "high" ? "High Risk" : row.Recommended ? "Recommended" : "Review") :
                     text.Get("The scan or settings changed. Scan again before reviewing."))).ToArray();
-            var groupsForPage = displays.GroupBy(row => row.Row.Candidate.RuleId).Select(group =>
+            var displaysById = displays.ToDictionary(row => row.Id, StringComparer.Ordinal);
+            var groupsForPage = scope == CleanupReviewScope.ProjectOutputs ? model.ProjectGroups.Select(group =>
+            {
+                var items = group.Rows.Where(row => displaysById.ContainsKey(row.Candidate.Id)).Select(row => displaysById[row.Candidate.Id]).ToArray();
+                return new CleanupRuleDisplay(group.Id, group.Path.Name, group.Selection, !IsBusy && group.SelectableCount > 0, items,
+                    items.Length < group.Count ? text.Format("Showing %lld of %lld matched locations", items.Length, group.Count) : text.Format("%lld locations", group.Count), StorageRow.FormatBytes(group.AllocatedBytes),
+                    group.SelectedBytes > 0 ? text.Get("Selected") + " " + StorageRow.FormatBytes(group.SelectedBytes) : "",
+                    group.SelectedBytes > 0 ? Visibility.Visible : Visibility.Collapsed,
+                    group.IdentifiedProject ? "" : text.Get("Grouped by scan location"), group.Path.Value);
+            }).Where(group => group.Items.Length > 0).ToArray() : displays.GroupBy(row => row.Row.Candidate.RuleId).Select(group =>
             {
                 var summary = model.Groups.Single(value => value.RuleId == group.Key);
                 return new CleanupRuleDisplay(group.Key, text.Get(summary.Name),
@@ -269,7 +278,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             EmptyResultsTitle.Text = text.Get(string.IsNullOrEmpty(model.Search) ? "No matching cleanup items" : "No search results");
             EmptyResultsDescription.Text = string.IsNullOrEmpty(model.Search) ? "" : text.Get("Try another rule name or path.");
             EmptyResultsDescription.Visibility = string.IsNullOrEmpty(model.Search) ? Visibility.Collapsed : Visibility.Visible;
-            PageDiagnostics.Update(this, "cleanup", model.State, model.ErrorCode, model.ResultCount);
+            PageDiagnostics.Update(this, scope == CleanupReviewScope.ProjectOutputs ? "projects" : "cleanup", model.State, model.ErrorCode, model.ResultCount);
         }
         finally { rendering = false; }
     }
@@ -304,7 +313,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     private void LoadGroupIcon(object sender, RoutedEventArgs args)
     {
         if (sender is not ContentControl host) return;
-        var icon = ProductIcon.Create((host.DataContext as CleanupRuleDisplay)?.Items.FirstOrDefault()?.Row.Category switch
+        var icon = ProductIcon.Create(scope == CleanupReviewScope.ProjectOutputs ? "projects" : (host.DataContext as CleanupRuleDisplay)?.Items.FirstOrDefault()?.Row.Category switch
         { "build" => "hammer", "developer" => "terminal", _ => "archive" }, 28);
         ProductIcon.Select(icon, "TextFillColorSecondaryBrush");
         host.Content = icon;
@@ -369,6 +378,12 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     private void ChangeGroupSelection(object sender, RoutedEventArgs args)
     {
         if (disposed || rendering || IsBusy || sender is not CheckBox { Tag: string id }) return;
+        if (scope == CleanupReviewScope.ProjectOutputs)
+        {
+            var project = model.ProjectGroups.FirstOrDefault(value => value.Id == id);
+            if (project is not null) model.SetProjectSelected(id, project.Selection != true);
+            return;
+        }
         var group = model.Groups.FirstOrDefault(value => value.RuleId == id);
         if (group is not null) model.SetGroupSelected(id, group.Selection != true);
     }
@@ -398,7 +413,6 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         if (!execution.CanExecute || execution.Plan is not { } plan) return;
         activeExecution = execution.ExecuteAsync(new WinUICleanupConfirmation(this, text, plan));
         model.InvalidateConfiguration();
-        initialLoad = null;
         BusyChanged?.Invoke(this, EventArgs.Empty);
         try { await activeExecution; }
         finally { activeExecution = null; Render(); BusyChanged?.Invoke(this, EventArgs.Empty); }
@@ -495,7 +509,6 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         disposed = true;
         model.PropertyChanged -= Changed;
         execution.PropertyChanged -= ExecutionChanged;
-        model.Dispose();
         execution.Dispose();
         GC.SuppressFinalize(this);
     }
@@ -538,14 +551,17 @@ public sealed class CleanupFilterDisplay(string? id, string title)
 
 [Microsoft.UI.Xaml.Data.Bindable]
 public sealed class CleanupRuleDisplay(string id, string title, bool? selection, bool canToggle, CleanupCandidateDisplay[] items, string count, string size,
-    string selectedSize, Visibility selectedVisibility, string notice)
+    string selectedSize, Visibility selectedVisibility, string notice, string path = "")
 {
     public string Id { get; } = id; public string Title { get; } = title;
+    public string SelectionLabel => (string.IsNullOrEmpty(Path) ? Title : Path) + " · " + Count;
     public bool? Selection { get; } = selection; public bool CanToggle { get; } = canToggle;
     public CleanupCandidateDisplay[] Items { get; } = items;
     public string Count { get; } = count; public string Size { get; } = size;
     public string SelectedSize { get; } = selectedSize; public Visibility SelectedVisibility { get; } = selectedVisibility;
     public string Notice { get; } = notice;
+    public string Path { get; } = path;
+    public Visibility PathVisibility => string.IsNullOrEmpty(Path) ? Visibility.Collapsed : Visibility.Visible;
     public Visibility NoticeVisibility => string.IsNullOrEmpty(Notice) ? Visibility.Collapsed : Visibility.Visible;
     public Microsoft.UI.Xaml.Media.Brush NoticeForeground => (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources[
         CanToggle && Items.Any(item => item.Row.Candidate.Risk == "high") ? "SystemFillColorCautionBrush" : "TextFillColorSecondaryBrush"];

@@ -28,9 +28,15 @@ public sealed record CleanupCategorySummary(string Id, int Count, int Selectable
     public bool? Selection => SelectableCount == 0 || SelectedCount == 0 ? false : SelectedCount == SelectableCount ? true : null;
 }
 
+public sealed record CleanupProjectReviewGroup(string Id, WindowsPath Path, bool IdentifiedProject, int Count, int SelectableCount,
+    int SelectedCount, long AllocatedBytes, long SelectedBytes, ImmutableArray<CleanupCandidateSelection> Rows)
+{
+    public bool? Selection => SelectedCount == 0 ? false : SelectedCount == SelectableCount ? true : null;
+}
+
 /// <summary>Reviewing and planning have no execution capability or reusable approval value.</summary>
 public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, IReadOnlyDictionary<string, string>? builtinCategories = null,
-    CleanupReviewScope reviewScope = CleanupReviewScope.All) : INotifyPropertyChanged, IDisposable
+    CleanupReviewScope reviewScope = CleanupReviewScope.All, BuiltinRuleCatalog? projectCatalog = null) : INotifyPropertyChanged, IDisposable
 {
     public const int PageSize = 200;
     public const int MaximumSelection = 256;
@@ -38,6 +44,10 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     private long generation;
     private bool disposed;
     private bool requiresRescan;
+    private Task? initialLoad;
+    private readonly Dictionary<CleanupReviewScope, (string? Category, string? Rule, string Search)> filters = [];
+    private ImmutableArray<CleanupProjectGroup> projects = [];
+    private HashSet<string> projectCandidateIds = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CleanupCandidateSelection> selected = new(StringComparer.Ordinal);
     public event PropertyChangedEventHandler? PropertyChanged;
     public CleanupReviewState State { get; private set; }
@@ -58,47 +68,79 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     public string? Category { get; private set; }
     public string? RuleId { get; private set; }
     public string Search { get; private set; } = "";
+    public CleanupReviewScope ReviewScope { get; private set; } = reviewScope;
     private ImmutableArray<CleanupCandidateSelection> results = [];
-    public int SelectedCount => selected.Count;
-    public long SelectedAllocatedBytes => selected.Values.Aggregate(0L, (total, row) =>
+    private IEnumerable<CleanupCandidateSelection> ScopeResults => ReviewScope == CleanupReviewScope.All ? results : results.Where(row => projectCandidateIds.Contains(row.Candidate.Id));
+    private IEnumerable<CleanupCandidateSelection> ScopedSelected => selected.Values.Where(row => ReviewScope == CleanupReviewScope.All || projectCandidateIds.Contains(row.Candidate.Id));
+    public int SelectedCount => ScopedSelected.Count();
+    public long SelectedAllocatedBytes => ScopedSelected.Aggregate(0L, (total, row) =>
         row.Candidate.AllocatedBytes > long.MaxValue - total ? long.MaxValue : total + row.Candidate.AllocatedBytes);
     public bool IsBusy => State is CleanupReviewState.Loading or CleanupReviewState.Discovering or CleanupReviewState.Scanning or CleanupReviewState.Preparing;
     public bool StopRequested => operation?.IsCancellationRequested == true;
     private bool BatchRequiresRescan => Batch?.Issues.Any(issue => issue.Code == "plan_stale") == true;
-    public bool CanPreparePlan => !IsBusy && !requiresRescan && !BatchRequiresRescan && selected.Count > 0;
+    public bool CanPreparePlan => !IsBusy && !requiresRescan && !BatchRequiresRescan && SelectedCount > 0;
     public bool HasPrevious => Offset > 0;
     public bool HasNext => Offset + PageSize < Filtered.Length;
-    public int ResultCount => results.Length;
+    public int ResultCount => ScopeResults.Count();
     public int FilteredCount => Filtered.Length;
-    public int RecommendedCount => results.Count(row => row.Recommended && Selectable(row));
+    public int RecommendedCount => ScopeResults.Count(row => row.Recommended && Selectable(row));
     public ImmutableArray<CleanupCandidateSelection> Rows => Filtered.Skip(Offset).Take(PageSize)
         .Select(row => row with { Selected = selected.ContainsKey(row.Candidate.Id), Selectable = Selectable(row) }).ToImmutableArray();
-    public ImmutableArray<string> Categories => results.Select(row => row.Category).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToImmutableArray();
-    public long ResultAllocatedBytes => SumBytes(results);
-    public int ResultGroupCount => results.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
-    public int SelectedGroupCount => selected.Values.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
-    public int FilteredGroupCount => Filtered.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
+    public ImmutableArray<string> Categories => ScopeResults.Select(row => row.Category).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToImmutableArray();
+    public long ResultAllocatedBytes => SumBytes(ScopeResults);
+    public int ResultGroupCount => GroupCount(ScopeResults);
+    public int SelectedGroupCount => GroupCount(ScopedSelected);
+    public int FilteredGroupCount => GroupCount(Filtered);
     public long FilteredAllocatedBytes => SumBytes(Filtered);
     public long FilteredSelectedBytes => SumBytes(Filtered.Where(row => selected.ContainsKey(row.Candidate.Id)));
-    public ImmutableArray<CleanupCategorySummary> CategorySummaries => results.GroupBy(row => row.Category, StringComparer.Ordinal)
+    public ImmutableArray<CleanupCategorySummary> CategorySummaries => ScopeResults.GroupBy(row => row.Category, StringComparer.Ordinal)
         .Select(group => new CleanupCategorySummary(group.Key, group.Count(), group.Count(Selectable),
             group.Count(row => selected.ContainsKey(row.Candidate.Id)), SumBytes(group), SumBytes(group.Where(row => selected.ContainsKey(row.Candidate.Id))),
-            group.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count()))
+            GroupCount(group)))
         .OrderBy(summary => summary.Id, StringComparer.Ordinal).ToImmutableArray();
-    public ImmutableArray<CleanupRuleGroup> Groups => results.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
+    public ImmutableArray<CleanupRuleGroup> Groups => ScopeResults.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
             (Category is null || row.Category == Category)).GroupBy(row => row.Candidate.RuleId)
         .Select(group => new CleanupRuleGroup(group.Key, group.First().RuleName, group.First().Category, group.Count(),
             group.Count(Selectable), group.Count(row => selected.ContainsKey(row.Candidate.Id)),
             SumBytes(group), SumBytes(group.Where(row => selected.ContainsKey(row.Candidate.Id)))))
         .OrderBy(group => group.Name, StringComparer.Ordinal).ToImmutableArray();
     public bool? FilteredSelection => SelectionState(Filtered);
-    private ImmutableArray<CleanupCandidateSelection> Filtered => results.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
-        (Category is null || row.Category == Category) && (RuleId is null || row.Candidate.RuleId == RuleId) &&
-        (Search.Length == 0 || row.RuleName.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
-            row.Candidate.Path.Value.Contains(Search, StringComparison.OrdinalIgnoreCase)))
-        .ToImmutableArray();
+    public ImmutableArray<CleanupProjectReviewGroup> ProjectGroups
+    {
+        get
+        {
+            var visible = Filtered.ToDictionary(row => row.Candidate.Id, StringComparer.Ordinal);
+            return projects.Select(group =>
+            {
+                var rows = group.Sources.Where(source => visible.ContainsKey(source.Candidate.Id)).Select(source => visible[source.Candidate.Id]).ToImmutableArray();
+                return new CleanupProjectReviewGroup(group.Path.Value, group.Path, group.IdentifiedProject, rows.Length, rows.Count(Selectable),
+                    rows.Count(row => selected.ContainsKey(row.Candidate.Id)), SumBytes(rows), SumBytes(rows.Where(row => selected.ContainsKey(row.Candidate.Id))), rows);
+            }).Where(group => group.Count > 0).ToImmutableArray();
+        }
+    }
+    private int GroupCount(IEnumerable<CleanupCandidateSelection> rows)
+    {
+        if (ReviewScope == CleanupReviewScope.All) return rows.Select(row => row.Candidate.RuleId).Distinct(StringComparer.Ordinal).Count();
+        var ids = rows.Select(row => row.Candidate.Id).ToHashSet(StringComparer.Ordinal);
+        return projects.Count(group => group.Sources.Any(source => ids.Contains(source.Candidate.Id)));
+    }
+    private ImmutableArray<CleanupCandidateSelection> Filtered
+    {
+        get
+        {
+            var matching = ScopeResults.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
+                (Category is null || row.Category == Category) && (RuleId is null || row.Candidate.RuleId == RuleId) &&
+                (Search.Length == 0 || row.RuleName.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                    row.Candidate.Path.Value.Contains(Search, StringComparison.OrdinalIgnoreCase))).ToImmutableArray();
+            if (ReviewScope == CleanupReviewScope.All) return matching;
+            var byId = matching.ToDictionary(row => row.Candidate.Id, StringComparer.Ordinal);
+            return projects.SelectMany(group => group.Sources).Where(source => byId.ContainsKey(source.Candidate.Id))
+                .Select(source => byId[source.Candidate.Id]).ToImmutableArray();
+        }
+    }
 
-    public Task LoadAsync() => RunAsync(CleanupReviewState.Loading, async token =>
+    public Task EnsureLoadedAsync() => initialLoad ??= LoadAsync();
+    public Task LoadAsync() => initialLoad = RunAsync(CleanupReviewState.Loading, async token =>
     {
         var locations = await operations.ReadWorkspacesAsync(token);
         return () =>
@@ -109,6 +151,31 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
             State = CleanupReviewState.Empty;
         };
     }, ClearScan);
+
+    public void SetScope(CleanupReviewScope scope)
+    {
+        ObjectDisposedException.ThrowIf(disposed, this);
+        if (!Enum.IsDefined(scope)) throw new ShouException("invalid_argument", "Choose a supported review scope.");
+        if (ReviewScope == scope) return;
+        filters[ReviewScope] = (Category, RuleId, Search);
+        if (State == CleanupReviewState.Preparing)
+        {
+            generation++;
+            operation?.Cancel();
+            operation = null;
+            State = CoverageState();
+        }
+        ReviewScope = scope;
+        var filter = filters.GetValueOrDefault(scope);
+        Category = filter.Category is { } category && Categories.Contains(category) ? category : null;
+        RuleId = filter.Rule is { } rule && ScopeResults.Any(row => row.Candidate.RuleId == rule) ? rule : null;
+        Search = filter.Search ?? "";
+        Offset = 0;
+        Plan = null;
+        SelectionErrorCode = null;
+        if (!IsBusy && State == CleanupReviewState.Review) State = CoverageState();
+        NotifyAll();
+    }
 
     public Task DiscoverAsync() => RunAsync(CleanupReviewState.Discovering, async token =>
     {
@@ -205,6 +272,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         operation = null;
         Workspaces = [];
         WorkspaceId = null;
+        initialLoad = null;
         ClearScan();
         ErrorCode = null;
         SelectionErrorCode = null;
@@ -236,7 +304,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         if (IsBusy) return;
-        if (category is not null && !Categories.Contains(category) || ruleId is not null && !results.Any(row => row.Candidate.RuleId == ruleId))
+        if (category is not null && !Categories.Contains(category) || ruleId is not null && !ScopeResults.Any(row => row.Candidate.RuleId == ruleId))
             throw new ShouException("invalid_argument", "Choose an observed result category or rule.");
         Category = category;
         RuleId = ruleId;
@@ -248,12 +316,18 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         NotifyAll();
     }
 
-    public bool SetCategorySelected(string? category, bool value) => ChangeSelection(results.Where(row =>
+    public bool SetCategorySelected(string? category, bool value) => ChangeSelection(ScopeResults.Where(row =>
         (category is null || row.Category == category) && Selectable(row)), value);
     public bool SetFilteredSelected(bool value) => ChangeSelection(Filtered.Where(Selectable), value);
-    public bool SetGroupSelected(string ruleId, bool value) => ChangeSelection(results.Where(row => row.Candidate.RuleId == ruleId && Selectable(row)), value);
-    public bool SelectRecommended() => ChangeSelection(results.Where(row => row.Recommended && Selectable(row)), true, replace: true);
-    public bool SelectReviewable() => ChangeSelection(results.Where(row => row.Candidate.Risk != "high" && Selectable(row)), true, replace: true);
+    public bool SetGroupSelected(string ruleId, bool value) => ChangeSelection(ScopeResults.Where(row => row.Candidate.RuleId == ruleId && Selectable(row)), value);
+    public bool SetProjectSelected(string projectId, bool value)
+    {
+        var group = ProjectGroups.FirstOrDefault(group => group.Id == projectId);
+        if (group is null) return false;
+        return ChangeSelection(group.Rows.Where(Selectable), value);
+    }
+    public bool SelectRecommended() => ChangeSelection(ScopeResults.Where(row => row.Recommended && Selectable(row)), true, replace: true);
+    public bool SelectReviewable() => ChangeSelection(ScopeResults.Where(row => row.Candidate.Risk != "high" && Selectable(row)), true, replace: true);
     public void ClearSelection() => ChangeSelection([], false, replace: true);
 
     private bool ChangeSelection(IEnumerable<CleanupCandidateSelection> rows, bool value, bool replace = false)
@@ -261,7 +335,8 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         ObjectDisposedException.ThrowIf(disposed, this);
         if (IsBusy || requiresRescan || BatchRequiresRescan) return false;
         SelectionErrorCode = null;
-        var next = replace ? new Dictionary<string, CleanupCandidateSelection>(StringComparer.Ordinal) : new(selected, StringComparer.Ordinal);
+        var next = new Dictionary<string, CleanupCandidateSelection>(selected, StringComparer.Ordinal);
+        if (replace) foreach (var row in ScopeResults) next.Remove(row.Candidate.Id);
         foreach (var row in rows)
         {
             if (value && !Selectable(row)) { SelectionErrorCode = "selection_unavailable"; break; }
@@ -296,17 +371,18 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     {
         ObjectDisposedException.ThrowIf(disposed, this);
         if (!CanPreparePlan) throw new ShouException("invalid_argument", "Select current reviewable targets before preparing a plan.");
-        var selection = selected.Values.GroupBy(row => row.ScanId).OrderBy(group => group.Key, StringComparer.Ordinal)
+        var scopeSelection = ScopedSelected.ToDictionary(row => row.Candidate.Id, StringComparer.Ordinal);
+        var selection = scopeSelection.Values.GroupBy(row => row.ScanId).OrderBy(group => group.Key, StringComparer.Ordinal)
             .Select(group => new CleanupSelection(group.Key, group.Select(row => row.Candidate.Id).Order(StringComparer.Ordinal).ToImmutableArray())).ToImmutableArray();
         return RunAsync(CleanupReviewState.Preparing, async token =>
         {
             var plan = await operations.CreatePlanAsync(selection, CleanupAction.Permanent, token);
-            if (plan.Action != CleanupAction.Permanent || plan.Items.IsDefault || plan.Sources.IsDefault || plan.Items.Length != selected.Count ||
+            if (plan.Action != CleanupAction.Permanent || plan.Items.IsDefault || plan.Sources.IsDefault || plan.Items.Length != scopeSelection.Count ||
                 plan.Sources.Length != selection.Length || plan.Sources.Select(source => source.ScanId).Distinct().Count() != selection.Length ||
                 plan.Sources.Any(source => !selection.Any(value => value.ScanId == source.ScanId) ||
                     !Workspaces.Any(workspace => workspace.SameRegistration(source.Workspace))) ||
-                plan.Items.Select(item => item.CandidateId).Distinct().Count() != selected.Count ||
-                plan.Items.Any(item => !selected.TryGetValue(item.CandidateId, out var row) || item.ScanId != row.ScanId || item.Path != row.Candidate.Path ||
+                plan.Items.Select(item => item.CandidateId).Distinct().Count() != scopeSelection.Count ||
+                plan.Items.Any(item => !scopeSelection.TryGetValue(item.CandidateId, out var row) || item.ScanId != row.ScanId || item.Path != row.Candidate.Path ||
                     item.RuleId != row.Candidate.RuleId || item.RuleVersion != row.Candidate.RuleVersion || item.ManifestDigest != row.Candidate.ManifestDigest))
                 throw new ShouException("plan_stale", "The returned plan does not describe the exact selected sources and targets.");
             return () => { Plan = plan; State = CleanupReviewState.Review; };
@@ -386,17 +462,18 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     }
     private void BuildResults(ImmutableArray<CleanupScan> snapshots)
     {
-        results = snapshots.SelectMany(snapshot => snapshot.Candidates.Select(candidate =>
+        var projection = new CleanupReviewProjection(snapshots, builtinCategories, projectCatalog);
+        projects = projection.Projects;
+        projectCandidateIds = projects.SelectMany(group => group.Sources).Select(source => source.Candidate.Id).ToHashSet(StringComparer.Ordinal);
+        results = projection.Sources.Select(source =>
         {
-            var definition = snapshot.Rules.FirstOrDefault(rule => rule.Definition.GetProperty("id").GetString() == candidate.RuleId);
-            var name = definition?.Definition.GetProperty("name").GetString() ?? candidate.RuleId;
-            var category = !candidate.RuleId.StartsWith(BuiltinRuleCatalog.Prefix, StringComparison.Ordinal) ? "personal" :
-                builtinCategories?.GetValueOrDefault(candidate.RuleId) ?? "other";
+            var snapshot = source.Scan;
+            var candidate = source.Candidate;
             var selectable = !snapshot.PreviewOnly && candidate.Complete && candidate.State == "review" && candidate.BlockedReasons.IsEmpty;
             var recommended = selectable && candidate.Risk == "review" && snapshot.Scan.IsScopeComplete && snapshot.AnalysisIssues.IsEmpty &&
                 (Batch is null || Batch.State == "complete");
-            return new CleanupCandidateSelection(candidate, snapshot.Id, snapshot.WorkspaceId, name, category, false, selectable, recommended);
-        })).Where(row => reviewScope == CleanupReviewScope.All || row.Category is "build" or "dependencies")
+            return new CleanupCandidateSelection(candidate, snapshot.Id, snapshot.WorkspaceId, source.RuleName, source.Category, false, selectable, recommended);
+        })
             .OrderBy(row => row.Category, StringComparer.Ordinal).ThenBy(row => row.RuleName, StringComparer.Ordinal)
             .ThenBy(row => row.Candidate.Path.Value, StringComparer.Ordinal).ToImmutableArray();
     }
@@ -418,6 +495,9 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         Category = RuleId = null;
         Search = "";
         results = [];
+        projects = [];
+        projectCandidateIds.Clear();
+        filters.Clear();
         requiresRescan = false;
         selected.Clear();
     }

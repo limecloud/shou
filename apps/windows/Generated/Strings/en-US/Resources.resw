@@ -4989,6 +4989,9 @@
   <data name="s81baad043d0612fc91c69471" xml:space="preserve">
     <value>Show unavailable locations</value>
   </data>
+  <data name="s34b4ea40d0e914ee239d21b0" xml:space="preserve">
+    <value>Showing {0} of {1} matched locations</value>
+  </data>
   <data name="sf09fdf713390caeddbb746a6" xml:space="preserve">
     <value>Showing results from the previous scan.</value>
   </data>

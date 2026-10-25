@@ -1662,6 +1662,7 @@
 "Show largest entries locally" = "本地查看最大占用";
 "Show system-managed locations" = "显示系统管理的位置";
 "Show unavailable locations" = "显示不可用位置";
+"Showing %lld of %lld matched locations" = "显示 %lld 个位置，共匹配 %lld 个";
 "Showing results from the previous scan." = "正在显示上次扫描的结果。";
 "Showing the first 200 measured folders. Counts include all measured rows." = "显示前 200 个已测量目录，统计包含全部已测量行。";
 "Showing the first 40 paths. Use a smaller folder for a focused investigation." = "显示前 40 个路径。缩小文件夹范围可进行更有针对性的调查。";

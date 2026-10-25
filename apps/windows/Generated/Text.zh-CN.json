@@ -8314,6 +8314,11 @@
     "resource_id": "s81baad043d0612fc91c69471",
     "text": "显示不可用位置"
   },
+  "Showing %lld of %lld matched locations": {
+    "format": "显示 {0} 个位置，共匹配 {1} 个",
+    "resource_id": "s34b4ea40d0e914ee239d21b0",
+    "text": "显示 %lld 个位置，共匹配 %lld 个"
+  },
   "Showing results from the previous scan.": {
     "format": "正在显示上次扫描的结果。",
     "resource_id": "sf09fdf713390caeddbb746a6",

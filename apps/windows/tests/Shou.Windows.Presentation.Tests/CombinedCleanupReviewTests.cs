@@ -204,14 +204,17 @@ public sealed partial class CleanupReviewTests
     }
 
     [Fact]
-    public async Task OverlappingGroupTargetsCannotPartiallyReplaceExistingSelections()
+    public async Task OverlappingTargetsAreDeduplicatedBeforeGroupSelectionAndPlanning()
     {
         var operations = new Operations { Result = Scan([Candidate(1, "cache"), Candidate(2, "cache/child"), Candidate(3, "other/cache")]) };
         using var model = new CleanupReviewViewModel(operations);
         await model.LoadAsync(); await model.ScanAsync(Location().Id); model.SetSelected(Candidate(3).Id, true);
-        Assert.False(model.SetGroupSelected("dev.cache", true));
-        Assert.Equal("overlapping_selection", model.SelectionErrorCode); Assert.Equal(1, model.SelectedCount);
+        Assert.True(model.SetGroupSelected("dev.cache", true));
+        Assert.Null(model.SelectionErrorCode); Assert.Equal(2, model.SelectedCount);
         Assert.True(model.Rows.Single(row => row.Candidate.Id == Candidate(3).Id).Selected);
+        Assert.DoesNotContain(model.Rows, row => row.Candidate.Id == Candidate(2).Id);
+        await model.PreparePlanAsync();
+        Assert.Equal(new[] { Candidate(1).Id, Candidate(3).Id }, model.Plan!.Items.Select(item => item.CandidateId));
     }
 
     [Theory]

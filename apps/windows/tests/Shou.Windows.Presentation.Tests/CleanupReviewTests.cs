@@ -40,11 +40,13 @@ public sealed partial class CleanupReviewTests
         public CancellationToken ScanToken;
         public CancellationToken PlanToken;
         public ImmutableArray<string> BatchLocations;
-        public Task<ImmutableArray<Workspace>> ReadWorkspacesAsync(CancellationToken cancellationToken) => LoadOperation?.Invoke(cancellationToken) ?? Task.FromResult(Locations);
+        public int LoadCalls, ScanCalls, BatchCalls;
+        public Task<ImmutableArray<Workspace>> ReadWorkspacesAsync(CancellationToken cancellationToken)
+        { LoadCalls++; return LoadOperation?.Invoke(cancellationToken) ?? Task.FromResult(Locations); }
         public Task<CleanupScan> ScanAsync(string workspaceId, ScanBudget budget, CancellationToken cancellationToken)
-        { ScanToken = cancellationToken; return ScanOperation?.Invoke(cancellationToken) ?? Task.FromResult(Result); }
+        { ScanCalls++; ScanToken = cancellationToken; return ScanOperation?.Invoke(cancellationToken) ?? Task.FromResult(Result); }
         public Task<SystemScan> ScanAllAsync(ImmutableArray<string> workspaceIds, ScanBudget budget, CancellationToken cancellationToken)
-        { BatchLocations = workspaceIds; ScanToken = cancellationToken; return BatchOperation?.Invoke(cancellationToken) ?? Task.FromResult(new SystemScan([Result], [], "complete")); }
+        { BatchCalls++; BatchLocations = workspaceIds; ScanToken = cancellationToken; return BatchOperation?.Invoke(cancellationToken) ?? Task.FromResult(new SystemScan([Result], [], "complete")); }
         public Task<CleanupPlan> CreatePlanAsync(ImmutableArray<CleanupSelection> selections, CleanupAction action, CancellationToken cancellationToken)
         {
             Selections = selections; PlannedScan = selections[0].ScanId; Selected = selections.SelectMany(value => value.CandidateIds).ToImmutableArray(); Action = action; PlanToken = cancellationToken;
@@ -158,10 +160,15 @@ public sealed partial class CleanupReviewTests
         var operations = new Operations { Result = Scan([Candidate(1, first), Candidate(2, second)]) };
         using var model = new CleanupReviewViewModel(operations);
         await model.LoadAsync(); await model.ScanAsync(Location().Id);
-        Assert.True(model.SetSelected(Candidate(1).Id, true));
-        Assert.False(model.SetSelected(Candidate(2).Id, true));
-        Assert.Equal("overlapping_selection", model.SelectionErrorCode);
+        var displayed = Assert.Single(model.Rows);
+        var hidden = operations.Result.Candidates.Single(candidate => candidate.Id != displayed.Candidate.Id);
+        Assert.Equal(Location().Path.Append("project/cache"), displayed.Candidate.Path);
+        Assert.True(model.SetSelected(displayed.Candidate.Id, true));
+        Assert.False(model.SetSelected(hidden.Id, true));
+        Assert.Equal("selection_unavailable", model.SelectionErrorCode);
         Assert.Equal(1, model.SelectedCount);
+        await model.PreparePlanAsync();
+        Assert.Equal(displayed.Candidate.Id, Assert.Single(model.Plan!.Items).CandidateId);
     }
 
     [Fact]

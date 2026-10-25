@@ -8314,6 +8314,11 @@
     "resource_id": "s81baad043d0612fc91c69471",
     "text": "Show unavailable locations"
   },
+  "Showing %lld of %lld matched locations": {
+    "format": "Showing {0} of {1} matched locations",
+    "resource_id": "s34b4ea40d0e914ee239d21b0",
+    "text": "Showing %lld of %lld matched locations"
+  },
   "Showing results from the previous scan.": {
     "format": "Showing results from the previous scan.",
     "resource_id": "sf09fdf713390caeddbb746a6",

@@ -4989,6 +4989,9 @@
   <data name="s81baad043d0612fc91c69471" xml:space="preserve">
     <value>显示不可用位置</value>
   </data>
+  <data name="s34b4ea40d0e914ee239d21b0" xml:space="preserve">
+    <value>显示 {0} 个位置，共匹配 {1} 个</value>
+  </data>
   <data name="sf09fdf713390caeddbb746a6" xml:space="preserve">
     <value>正在显示上次扫描的结果。</value>
   </data>
