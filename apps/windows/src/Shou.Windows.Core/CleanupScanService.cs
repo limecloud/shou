@@ -93,7 +93,7 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
         var index = treeIndex ?? new FileTreeIndex(scan);
         foreach (var rule in rules)
         {
-            var result = new RuleClassifier(protection).Classify(configuration, workspace, rule, scan, index, analysis, cancellationToken);
+            var result = new RuleClassifier(protection, catalog).Classify(configuration, workspace, rule, scan, index, analysis, cancellationToken);
             candidates.AddRange(result.Candidates);
             issues.AddRange(result.AnalysisIssues);
             if (result.AnalysisIssues.Length > 0) break;

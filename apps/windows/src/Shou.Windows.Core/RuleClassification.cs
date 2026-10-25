@@ -37,7 +37,7 @@ public sealed class CandidateAnalysisBudget(TimeSpan duration, TimeProvider? tim
     }
 }
 
-public sealed class RuleClassifier(CleanupProtectionContext protection)
+public sealed class RuleClassifier(CleanupProtectionContext protection, BuiltinRuleCatalog? catalog = null)
 {
     private static readonly HashSet<string> ProtectedNames = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -71,6 +71,8 @@ public sealed class RuleClassifier(CleanupProtectionContext protection)
             throw new ShouException("plan_stale", "The workspace case or root metadata changed.");
         var children = index.Children;
         var duplicateFiles = index.DuplicateFiles;
+        // Only a current bundled definition can opt into a narrowly identified generated-source layout.
+        var rust = rule.Id == RustArtifactPolicy.RuleId && catalog?.RulesFor(workspace).Any(value => value.Digest == rule.Digest) == true;
         var exclusions = configuration.GlobalExclusions.Concat(workspace.Exclusions).Select(pattern => new RulePattern(pattern)).Concat(rule.Exclusions).ToArray();
         var candidates = ImmutableArray.CreateBuilder<RuleCandidate>();
         var analysisIssues = ImmutableArray.CreateBuilder<ScanIssue>();
@@ -146,7 +148,8 @@ public sealed class RuleClassifier(CleanupProtectionContext protection)
                     if (entry.Identity.VolumeSerialNumber != workspace.Identity.VolumeSerialNumber) reasons.Add("cross_volume");
                     if (entry.Kind is not (EntryKind.Directory or EntryKind.File)) reasons.Add("unsupported_entry");
                     if (entry.Kind == EntryKind.File && (entry.LinkCount != 1 || duplicateFiles.Contains(entry.Identity))) reasons.Add("multiple_links");
-                    if (ProtectedNames.Contains(entry.Path.Name) || IsSecretName(entry.Path.Name) || ProtectedExtensions.Contains(Extension(entry.Path.Name))) reasons.Add("protected_data");
+                    if (ProtectedNames.Contains(entry.Path.Name) || IsSecretName(entry.Path.Name) ||
+                        ProtectedExtensions.Contains(Extension(entry.Path.Name)) && !(rust && RustArtifactPolicy.IsGeneratedSource(target, entry, entries))) reasons.Add("protected_data");
                     if (Excluded(entry)) reasons.Add("excluded");
                     if (entry.LogicalBytes < 0 || entry.AllocatedBytes < 0 || entry.LastWriteUtc.Offset != TimeSpan.Zero || entry.ChangeUtc.Offset != TimeSpan.Zero) reasons.Add("unsupported_metadata");
                     else

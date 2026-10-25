@@ -26,6 +26,7 @@ internal static class ReviewText
     {
         "plan_stale" or "source_changed" => "The scan or settings changed. Scan again before reviewing.",
         "activity_unknown" or "active_target" => "An application or build tool may be using these files. Close it and scan again.",
+        "tracked_artifact_content" or "artifact_evidence_unavailable" => code!,
         "permission_denied" or "access_expired" => "Access to this location is unavailable.",
         "store_busy" => "Another operation is using Shou. Try again shortly.",
         "store_corrupt" => "The saved record could not be verified.",

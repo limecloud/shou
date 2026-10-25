@@ -304,7 +304,12 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
     private async Task RequireIdleAsync(Workspace workspace, CleanupPlanItem item, CancellationToken token)
     {
         var observed = await activity.InspectAsync(workspace, item, token);
-        if (observed.State != ActivityState.Idle) throw new ShouException(observed.State == ActivityState.Active ? "active_target" : "activity_unknown", "The current activity check does not permit cleanup of this target.");
+        if (observed?.State == ActivityState.Idle) return;
+        if (observed?.State == ActivityState.Unknown && observed.Reason is "tracked_artifact_content" or "artifact_evidence_unavailable")
+            throw new ShouException(observed.Reason, observed.Reason == "tracked_artifact_content"
+                ? "The target contains Git-tracked content. Keep it and review the repository before scanning again."
+                : "Artifact tracking could not be verified. Keep the target and check repository access or format before scanning again.");
+        throw new ShouException(observed?.State == ActivityState.Active ? "active_target" : "activity_unknown", "The current activity check does not permit cleanup of this target.");
     }
 
     private static RuleCandidate FindCurrent(RuleClassification classification, string ruleId, WindowsPath path) =>

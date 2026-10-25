@@ -16,8 +16,14 @@ public interface ICleanupFileUse
     Task<ActivityObservation> InspectAsync(ImmutableArray<WindowsPath> paths, CancellationToken cancellationToken);
 }
 
+public interface IArtifactTracking
+{
+    Task<bool> HasTrackedContentAsync(WindowsPath target, string ownerSid, CancellationToken cancellationToken);
+}
+
 /// <summary>Known-tool working directories and file-use observations remain bounded, independent evidence.</summary>
-public sealed class CleanupActivityService(ICleanupFileUse fileUse, IProcessInventory processes, TimeProvider? timeProvider = null) : ICleanupActivity
+public sealed class CleanupActivityService(ICleanupFileUse fileUse, IProcessInventory processes, TimeProvider? timeProvider = null,
+    IArtifactTracking? tracking = null) : ICleanupActivity
 {
     public const int MaximumProcesses = 16_384;
     public static readonly TimeSpan Duration = TimeSpan.FromSeconds(10);
@@ -56,8 +62,9 @@ public sealed class CleanupActivityService(ICleanupFileUse fileUse, IProcessInve
             if (paths.Count == 0) return Unknown("activity_scope_unavailable");
             var filesTask = ReadFiles(paths.OrderBy(path => path.Value, StringComparer.Ordinal).ToImmutableArray(), token);
             var processesTask = ReadProcesses(workspace, item.Path.Parent!, token);
-            // Both adapters are read-only and bound native workers even if a kernel read outlives cancellation.
-            var combined = Task.WhenAll(filesTask, processesTask);
+            // All adapters are read-only and bound native workers even if a kernel read outlives cancellation.
+            var trackingTask = ReadTracking(item, workspace.Identity.OwnerSid, token);
+            var combined = Task.WhenAll(filesTask, processesTask, trackingTask);
             ObserveFault(combined);
             var observations = await combined.WaitAsync(token);
             cancellationToken.ThrowIfCancellationRequested();
@@ -67,6 +74,20 @@ public sealed class CleanupActivityService(ICleanupFileUse fileUse, IProcessInve
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && deadline.IsCancellationRequested)
         { return Unknown("activity_time_limit"); }
+    }
+
+    private async Task<ActivityObservation> ReadTracking(CleanupPlanItem item, string ownerSid, CancellationToken token)
+    {
+        // This check also applies to binary-only Cargo targets. Saved layout observations never grant Git authority.
+        if (item.RuleId != RustArtifactPolicy.RuleId) return new(ActivityState.Idle);
+        if (tracking is null) return Unknown("artifact_evidence_unavailable");
+        try
+        {
+            return await tracking.HasTrackedContentAsync(item.Path, ownerSid, token)
+                ? Unknown("tracked_artifact_content") : new(ActivityState.Idle);
+        }
+        catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
+        { return Unknown("artifact_evidence_unavailable"); }
     }
 
     private async Task<ActivityObservation> ReadFiles(ImmutableArray<WindowsPath> paths, CancellationToken token)

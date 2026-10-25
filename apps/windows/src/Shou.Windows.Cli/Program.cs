@@ -163,6 +163,7 @@ internal static class Program
                 "invalid_argument" or "invalid_path" or "invalid_rule" or "unsupported_schema" => 2,
                 "permission_denied" => 3,
                 "source_changed" or "active_or_inaccessible" or "version_conflict" or "store_busy" or "plan_stale" or "plan_consumed" or "active_target" or "activity_unknown" or "preview_only" or "application_changed" or "startup_changed" => 4,
+                "tracked_artifact_content" or "artifact_evidence_unavailable" => 4,
                 "time_limit" or "resource_limit" or "application_discovery_incomplete" => 6,
                 "confirmation_required" or "installer_data_consent_required" => 7,
                 "unsupported_platform" or "unsupported_filesystem" or "unsupported_location" or "unsupported_capability" or "comparison_unavailable" => 8,
