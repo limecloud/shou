@@ -11,24 +11,30 @@ internal static class CommandDiscovery
 {
     private static readonly CommandSpec[] Commands =
     [
+        new("diagnostics", "read", [], [], [], "Collect a fixed-field system report without creating records, reading personal content, changing permissions or uploading data. Unknown observations remain partial."),
+        new("applications updates source", "read", ["application-id"], [], [], "Observe a supported application identity and its fixed official catalog without network access or record writes."),
+        new("applications updates check", "network", ["application-id", "allow-network"], [], [], "Compare this application's version with its official stable release catalog. Requires allow-network=true; no application list, credentials or paths are sent; does not download packages or install updates."),
+        new("completion", "read", ["shell"], [], [], "Generate a static Bash, Zsh or PowerShell completion script from this command registry. Does not install integration or invoke Shou during completion."),
         new("capabilities", "read", [], ["command"], [], "Discover current commands, inputs and platform limits without opening storage."),
         new("rules schema", "read", [], [], [], "Read the bundled rule schema without network access."),
         new("rules catalog", "read", [], ["workspace"], [], "Read bundled templates or rules scoped to a registered workspace without importing them."),
         new("system locations", "read", [], ["include-projects"], [], "Inspect fixed and optional conventional project locations without registering or scanning them."),
         new("system scan", "snapshot", [], ["include-projects", "max-entries", "max-seconds", "max-depth"], [], "Prepare existing locations, then scan with bundled and explicitly enabled personal rules under one shared scan budget."),
         new("rules validate", "read", ["file"], [], [], "Validate a bounded local rule file without importing or enabling it."),
-        new("analysis scan", "read", ["path"], ["max-entries", "max-seconds", "max-depth"], [], "Measure a local directory within a fixed budget without saving or changing targets."),
+        new("analysis scan", "snapshot", ["path"], ["max-entries", "max-seconds", "max-depth"], [], "Measure a bounded local tree and publish immutable analysis pages. Does not change scanned files or grant cleanup permission."),
+        new("analysis history", "read", ["scan-id"], [], [], "List earlier analyses of the same root identity within 4096 directory entries, 127 metadata records and 8 MiB metadata."),
+        new("analysis compare", "read", ["baseline-id", "scan-id"], ["path", "limit", "max-entries", "max-seconds"], [], "Compare a relative directory in two immutable analyses within 128 MiB and 1–30 seconds. Missing, replaced or incomplete observations have no numeric growth claim or cleanup permission."),
         new("privacy scan", "snapshot", [], ["range"], [], "Save aggregate counts from fixed current-user browser databases within a fixed time window; does not read browsing rows, delete records or repair databases."),
         new("privacy scan show", "read", ["scan-id"], [], [], "Read and validate saved privacy scan metadata without opening browser databases or granting execution."),
         new("applications summary", "read", [], ["search", "sort", "offset", "limit", "max-entries", "max-seconds"], [], "Discover bounded current-user and machine application registrations, with source coverage and unmeasured registered size estimates; does not open cleanup storage or uninstall applications."),
         new("startup list", "read", [], ["search", "source", "offset", "limit", "max-entries", "max-seconds"], [], "Read Run, RunOnce, Startup folders, visible boot/logon scheduled tasks and current-user packaged startup declarations without cleanup storage, arguments, shortcut resolution or startup changes. Includes Task Scheduler enablement and engine state when observed; effective startup and application activity remain unknown."),
         new("startup inspect", "read", ["task-path", "action"], [], [], "Review an exact boot/logon scheduled task, its current-user ownership, principal, ordinary interactive context and enablement without opening cleanup storage."),
-        new("startup control", "destructive", ["task-path", "action", "review-digest"], [], [], "Recheck and confirm an exact reviewed task before changing only task Enabled; does not run, stop, register or delete tasks.", CliServices.StartupControlAvailable, CliServices.StartupControlAvailable ? null : "unsupported_native_host"),
+        new("startup control", "destructive", ["task-path", "action", "review-digest"], [], [], "Recheck and confirm an exact reviewed task before changing only task Enabled; does not run, stop, register or delete tasks.", CliServices.StartupControlAvailable, CliServices.StartupControlAvailable ? null : "native_acceptance_pending"),
         new("startup execution show", "read", ["startup-operation-id"], [], [], "Read a startup operation intent and observed result without replay, rollback or task changes."),
         new("applications inspect", "read", ["application-id"], [], [], "Re-read MSI/MSIX identity, installation-directory activity, protection and installer data warnings without creating storage."),
         new("applications plan", "plan", ["application-id", "review-digest", "allow-installer-data-changes"], [], [], "Reinspect the exact reviewed installation and save a 15-minute plan after explicit installer-data acknowledgement; does not uninstall."),
         new("applications plan show", "read", ["uninstall-plan-id"], [], [], "Read and validate an uninstall plan; installation execution remains unavailable."),
-        new("applications uninstall", "destructive", ["uninstall-plan-id"], [], [], "Invoke the exact system installer after current confirmation; no residual cleanup or Shou restore.", CliServices.ApplicationUninstallAvailable, CliServices.ApplicationUninstallAvailable ? null : "unsupported_native_host"),
+        new("applications uninstall", "destructive", ["uninstall-plan-id"], [], [], "Invoke the exact system installer after current confirmation; no residual cleanup or Shou restore.", CliServices.ApplicationUninstallAvailable, CliServices.ApplicationUninstallAvailable ? null : "native_acceptance_pending"),
         new("applications execution show", "read", ["uninstall-plan-id"], [], [], "Read a plan-bound uninstall intent and its installer/identity outcomes without retrying or changing it."),
         new("workspaces list", "read", [], [], [], "List registered workspace roots without scanning them."),
         new("workspaces show", "read", ["workspace"], [], [], "Show a workspace and check its current root identity and access."),
@@ -50,7 +56,7 @@ internal static class CommandDiscovery
         new("scan results", "read", ["scan-id"], ["limit", "cursor"], [], "Page through immutable saved scan candidates; execution remains unavailable."),
         new("plan create", "plan", ["scan-id", "candidate"], ["mode"], ["candidate"], "Create a fixed plan from explicitly selected candidate IDs. Mode defaults to trash, which is currently unavailable; permanent requires explicit selection."),
         new("plan show", "read", ["plan-id"], [], [], "Read a saved immutable plan without granting confirmation or execution."),
-        new("plan execute", "destructive", ["plan-id"], [], [], "Execute a current plan only after native acceptance and interactive current-scope confirmation.", CliServices.MutationAvailable, CliServices.MutationAvailable ? null : "unsupported_native_host"),
+        new("plan execute", "destructive", ["plan-id"], [], [], "Execute a current plan only after native acceptance and interactive current-scope confirmation.", CliServices.MutationAvailable, CliServices.MutationAvailable ? null : "native_acceptance_pending"),
         new("history list", "read", [], ["limit", "cursor"], [], "Page through bounded journal summaries; full plan verification requires history show."),
         new("history show", "read", ["execution-id"], [], [], "Read an execution journal and verify its binding to the saved plan."),
         new("history inspect", "read", ["execution-id"], ["max-entries", "max-seconds"], [], "Observe exact recorded original and Trash locations; never changes logs, retries operations or restores files.")
@@ -157,7 +163,18 @@ internal sealed record CommandRequest(string Command, IReadOnlyDictionary<string
 
     public void Validate()
     {
-        _ = Path;
+        if (Command != "analysis compare") _ = Path;
+        if (Command is "analysis history" or "analysis compare")
+        {
+            if (!RecordKey.IsId(Required("scan-id"), "scan") || Command == "analysis compare" && !RecordKey.IsId(Required("baseline-id"), "scan")) throw Invalid("Choose valid analysis identifiers.");
+        }
+        if (Command == "analysis compare")
+        {
+            if (Required("baseline-id") == Required("scan-id") || PageLimit is < 1 or > 100 || Integer("max-entries", 100000) is < 1 or > 100000 || Integer("max-seconds", 10) is < 1 or > 30) throw Invalid("Choose distinct analyses and bounded comparison options.");
+            if (Optional("path") is { } directory && directory != ".") WindowsPath.ValidateRelative(directory);
+        }
+        if (Command == "completion" && Required("shell") is not ("bash" or "zsh" or "powershell")) throw Invalid("Choose bash, zsh or powershell completion.");
+        if (Command == "applications updates check" && Required("allow-network") != "true") throw Invalid("Explicitly allow this catalog request with --allow-network true.");
         if (Command == "privacy scan") _ = PrivacyRange;
         if (Command == "applications summary") { ApplicationBudget.Validate(); ApplicationQuery.Validate(); }
         if (Command == "startup list") { StartupBudget.Validate(); StartupQuery.Validate(); }

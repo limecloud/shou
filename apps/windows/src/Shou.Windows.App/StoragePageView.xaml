@@ -4,8 +4,9 @@
         <StackPanel x:Name="PageToolbar" Orientation="Horizontal" Spacing="8">
             <Button x:Name="InfoButton" Style="{StaticResource ShouToolbarButton}" AutomationProperties.Name="Information"><FontIcon Glyph="&#xE946;" /><Button.Flyout><Flyout><TextBlock x:Name="ScopeNotice" TextWrapping="Wrap" MaxWidth="360" /></Flyout></Button.Flyout></Button>
             <Button x:Name="RescanButton" Click="StartScan" Style="{StaticResource ShouToolbarButton}" />
+            <Button x:Name="CompareButton" Click="CompareAnalyses" AutomationProperties.AutomationId="storage.compare" Style="{StaticResource ShouToolbarButton}" />
         </StackPanel>
-        <StackPanel x:Name="StartContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouStartSpacing}" MaxWidth="520" Margin="30">
+        <ScrollViewer x:Name="LandingScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"><StackPanel x:Name="StartContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouStartSpacing}" MaxWidth="520" Margin="30">
             <ContentControl x:Name="StartIcon" HorizontalAlignment="Center" />
             <StackPanel Spacing="10"><TextBlock x:Name="StartTitle" FontSize="{StaticResource ShouStartTitleSize}" FontWeight="SemiBold" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" /><TextBlock x:Name="StartDescription" TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel>
             <Button x:Name="VolumeButton" Width="{StaticResource ShouVolumePickerWidth}" HorizontalAlignment="Center" Style="{StaticResource ShouBorderedButton}" Padding="14,8">
@@ -16,7 +17,7 @@
             <HyperlinkButton x:Name="ChooseButton" AutomationProperties.AutomationId="storage.choose" Style="{StaticResource ShouLinkButton}" Click="ChooseFolder" HorizontalAlignment="Center" />
             <Button x:Name="StartButton" AutomationProperties.AutomationId="storage.start" Click="StartScan" Style="{StaticResource ShouScanButton}" HorizontalAlignment="Center" />
             <TextBlock x:Name="ReadOnlyNotice" Style="{StaticResource ShouCaption}" TextAlignment="Center" TextWrapping="Wrap" />
-        </StackPanel>
+        </StackPanel></ScrollViewer>
         <local:OperationProgressView x:Name="ScanActivity" StopAutomationId="storage.stop" StopClicked="StopScan" />
         <Grid x:Name="ResultContent" Visibility="Collapsed">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>

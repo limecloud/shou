@@ -33,6 +33,9 @@
   <data name="sf0713a54e75669745d3f65ea" xml:space="preserve">
     <value>{0} entries removed</value>
   </data>
+  <data name="sacbdad808015c8fb4b974cc0" xml:space="preserve">
+    <value>{0} examined · {1} changed observations · {2} shown</value>
+  </data>
   <data name="sad2c1c2fc9c38ad5ff5dac83" xml:space="preserve">
     <value>{0} files</value>
   </data>
@@ -59,6 +62,9 @@
   </data>
   <data name="s249e0d32569d128d69b37758" xml:space="preserve">
     <value>{0} locations scanned</value>
+  </data>
+  <data name="sc0faa9468bd9ae00ac452047" xml:space="preserve">
+    <value>{0} locations selected</value>
   </data>
   <data name="s46b57f06abc9cce245326cc7" xml:space="preserve">
     <value>Matches: {0}</value>
@@ -126,8 +132,17 @@
   <data name="sbc5f660bc678e9e5f125499b" xml:space="preserve">
     <value>4. Clean selected rules, then verify the result and retained items.</value>
   </data>
+  <data name="s57f71fd29c506eeddda17e73" xml:space="preserve">
+    <value>A LITTLE LIGHTER. A LOT MORE ROOM.</value>
+  </data>
   <data name="s7a2ac525498b7b1e8acdd7f9" xml:space="preserve">
     <value>A built-in scan location has no scoped rules.</value>
+  </data>
+  <data name="s32c3fbdc52a60021a22575f7" xml:space="preserve">
+    <value>A calmer start.</value>
+  </data>
+  <data name="s4a2749d5e2bd51e7c3f31dad" xml:space="preserve">
+    <value>A clearer view of apps and build outputs.</value>
   </data>
   <data name="s81217d4a8246c9dd3d53d40b" xml:space="preserve">
     <value>A complete directory manifest is required before moving to Trash.</value>
@@ -138,6 +153,9 @@
   <data name="se3ad4c2feac4024c46e71966" xml:space="preserve">
     <value>A file or folder was modified too recently</value>
   </data>
+  <data name="sad08ef2dbdd5593ab2633c3e" xml:space="preserve">
+    <value>A little more privacy.</value>
+  </data>
   <data name="sb35f9ee9ec146150d8f73291" xml:space="preserve">
     <value>A little setup. More room to breathe.</value>
   </data>
@@ -146,6 +164,9 @@
   </data>
   <data name="sff04e9af9f7c4d95c4467280" xml:space="preserve">
     <value>A maintained rule already defines this cache scope; scan again.</value>
+  </data>
+  <data name="s9724eacfc54d05ad979c82e9" xml:space="preserve">
+    <value>A matching catalog version could not be verified for this system.</value>
   </data>
   <data name="sd0203f50c89ead9fa3480342" xml:space="preserve">
     <value>A preset requires a name and explicit rules.</value>
@@ -164,6 +185,9 @@
   </data>
   <data name="s959bdbbf7890c3c716266d5e" xml:space="preserve">
     <value>A required read-only system tool could not be started.</value>
+  </data>
+  <data name="s0bcdbdb6141a974e27567d1e" xml:space="preserve">
+    <value>A routine that fits your own folders.</value>
   </data>
   <data name="s89fc8a07b42c3f6b6a737730" xml:space="preserve">
     <value>A startup registration could not be read safely.</value>
@@ -357,6 +381,9 @@
   <data name="s32b7b77346a7cb950aaff380" xml:space="preserve">
     <value>Allocated estimate</value>
   </data>
+  <data name="sa5c1b673e858430fe643981f" xml:space="preserve">
+    <value>Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion.</value>
+  </data>
   <data name="sed64e4c9799abb0ca6f3912c" xml:space="preserve">
     <value>Allow access to application caches that macOS protects.</value>
   </data>
@@ -380,6 +407,12 @@
   </data>
   <data name="sa6449fe61f8a7a101002ce7b" xml:space="preserve">
     <value>An investigation is already active. Return to it or stop it before preparing this folder.</value>
+  </data>
+  <data name="s9b42273ea39ff85f7104ae75" xml:space="preserve">
+    <value>Analysis Actions</value>
+  </data>
+  <data name="s8e897103e54812f9f255dbe2" xml:space="preserve">
+    <value>Analysis comparison stopped.</value>
   </data>
   <data name="s42ff939b34d51709b7b2eeb9" xml:space="preserve">
     <value>Analyzing {0} entries…</value>
@@ -474,6 +507,9 @@
   <data name="s3268eec8d6afab255eea00b2" xml:space="preserve">
     <value>Application Uninstall</value>
   </data>
+  <data name="scd64194d42f74ae3ea5e8114" xml:space="preserve">
+    <value>Application Updates</value>
+  </data>
   <data name="s42a7aad1ba819457f040bc9b" xml:space="preserve">
     <value>Application activity checking is unavailable on this platform.</value>
   </data>
@@ -491,6 +527,9 @@
   </data>
   <data name="s1a96e0fc291cb9813431bbe2" xml:space="preserve">
     <value>Application caches</value>
+  </data>
+  <data name="scf8a77c53555053fc10675ea" xml:space="preserve">
+    <value>Application changed. Scan applications again before checking its catalog version.</value>
   </data>
   <data name="sd10c2742d40b31a58c3ee431" xml:space="preserve">
     <value>Application closed. Review its components to continue.</value>
@@ -560,6 +599,9 @@
   </data>
   <data name="s87a92d9f9bbb8fa1c2de7951" xml:space="preserve">
     <value>Applications recreate downloaded and rendered cache data when needed.</value>
+  </data>
+  <data name="s54c7c4eb660f701beeb04854" xml:space="preserve">
+    <value>Apps &amp; Projects</value>
   </data>
   <data name="s954b53ba2c4c7f944810797a" xml:space="preserve">
     <value>Arc caches</value>
@@ -642,6 +684,9 @@
   <data name="se674447337e83c1346f6122e" xml:space="preserve">
     <value>Available</value>
   </data>
+  <data name="sec3fa564cfb186743275b033" xml:space="preserve">
+    <value>Available disk space</value>
+  </data>
   <data name="sa937781461468ab71a6feb8e" xml:space="preserve">
     <value>Available on this Mac</value>
   </data>
@@ -680,6 +725,9 @@
   </data>
   <data name="sb882729d9f35ee21b4612c75" xml:space="preserve">
     <value>Bob Translation caches</value>
+  </data>
+  <data name="sdfd043497ebdb816777fbfbe" xml:space="preserve">
+    <value>Bounded record discovery is unavailable in this record store.</value>
   </data>
   <data name="s9695ca99e114b55b30b3be7e" xml:space="preserve">
     <value>Box caches</value>
@@ -755,6 +803,9 @@
   </data>
   <data name="se2b941ef0479036e4694344d" xml:space="preserve">
     <value>Built-in and enabled personal rules are ready to clean.</value>
+  </data>
+  <data name="s07986279219883cf0a60aa09" xml:space="preserve">
+    <value>Built-in and enabled personal rules share the same scan and selection.</value>
   </data>
   <data name="s3d0bd2825a5f5df0f0d8f75b" xml:space="preserve">
     <value>Built-in items are preselected. Personal rules stay opt-in.</value>
@@ -894,6 +945,12 @@
   <data name="sab85221a476c5bbb86708031" xml:space="preserve">
     <value>Cargo source verification exceeded its time budget.</value>
   </data>
+  <data name="s077eccbc37a438dae4323242" xml:space="preserve">
+    <value>Catalog Version</value>
+  </data>
+  <data name="s4bc551765c895ae38bcda960" xml:space="preserve">
+    <value>Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates.</value>
+  </data>
   <data name="s292c06f0045a45d044be282b" xml:space="preserve">
     <value>Category</value>
   </data>
@@ -918,8 +975,17 @@
   <data name="s4efe2a03c222558b1e631e99" xml:space="preserve">
     <value>Check History before taking another action.</value>
   </data>
+  <data name="s40e171b21b61040000063f9b" xml:space="preserve">
+    <value>Check Homebrew Catalog</value>
+  </data>
   <data name="s267029867186a2e4773ba7c4" xml:space="preserve">
     <value>Check Recorded Locations</value>
+  </data>
+  <data name="s3bde496d5b8adf6e7f2b76e9" xml:space="preserve">
+    <value>Check Release Catalog</value>
+  </data>
+  <data name="s117ffb822009d7e36fe67efc" xml:space="preserve">
+    <value>Check disk access, free space, and local records without changing files.</value>
   </data>
   <data name="s6004b12ae69034a5c04242f9" xml:space="preserve">
     <value>Check every path. Files and configuration will be verified again immediately before processing.</value>
@@ -932,6 +998,9 @@
   </data>
   <data name="s4161cfad0e95827925fd3944" xml:space="preserve">
     <value>Check startup definitions</value>
+  </data>
+  <data name="s75e4d1797214185a4b0a4908" xml:space="preserve">
+    <value>Check that the home volume is available, then run diagnostics again.</value>
   </data>
   <data name="sd54f85636abd6bde88ecf160" xml:space="preserve">
     <value>Check the relative path, project markers and discovery depth. Conditions and protections still apply.</value>
@@ -957,11 +1026,20 @@
   <data name="sc427df847faf839ff72efb33" xml:space="preserve">
     <value>Checking selected items…</value>
   </data>
+  <data name="s066e53fd3dbe7ac8fa446133" xml:space="preserve">
+    <value>Checking system facts…</value>
+  </data>
   <data name="s91851cac103edeaa370ea867" xml:space="preserve">
     <value>Checking tool-managed storage…</value>
   </data>
+  <data name="sf66e8d31c012b7148a8e2d6a" xml:space="preserve">
+    <value>Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.</value>
+  </data>
   <data name="sf9ebd9c0124d914422ed8e20" xml:space="preserve">
     <value>Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.</value>
+  </data>
+  <data name="s74fb103943e71facd255140d" xml:space="preserve">
+    <value>Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.</value>
   </data>
   <data name="s8a3abe2abaa1e7dd0d6f7abd" xml:space="preserve">
     <value>Choose Folder for This Rule…</value>
@@ -1020,6 +1098,12 @@
   <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
     <value>Choose an applicable scan location</value>
   </data>
+  <data name="s9c74d90b741f6154fa6d1bb5" xml:space="preserve">
+    <value>Choose an earlier analysis</value>
+  </data>
+  <data name="sf67da1fc879c4b4f5711ce93" xml:space="preserve">
+    <value>Choose an earlier analysis of the same directory identity. Replaced folders cannot be compared.</value>
+  </data>
   <data name="sd6224bb9f78c0f269d0a6e08" xml:space="preserve">
     <value>Choose an unused rule version. Existing versions cannot be overwritten.</value>
   </data>
@@ -1046,6 +1130,9 @@
   </data>
   <data name="s105aae87dd457078d4a54bf5" xml:space="preserve">
     <value>Choose the language used in Shou.</value>
+  </data>
+  <data name="s68af92208e0eff13e522aa83" xml:space="preserve">
+    <value>Choose what starts with your Mac.</value>
   </data>
   <data name="sc2e4c6525e3e3b3244cab824" xml:space="preserve">
     <value>Choose your own service to begin an investigation.</value>
@@ -1161,11 +1248,17 @@
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>Cleanup finished with issues</value>
   </data>
+  <data name="s339d462a7fc512f86ce9aa06" xml:space="preserve">
+    <value>Cleanup preview failed.</value>
+  </data>
   <data name="s66952aa85699518344766c50" xml:space="preserve">
     <value>Cleanup rules made for your Mac</value>
   </data>
   <data name="s127da8b85fd783de90c6378a" xml:space="preserve">
     <value>Cleanup rules or project markers no longer match this directory; scan again.</value>
+  </data>
+  <data name="s765417e6e8df153b6bf84328" xml:space="preserve">
+    <value>Cleanup safety checks changed. Scan again before cleaning this directory.</value>
   </data>
   <data name="s1275c73051f209470123dc8d" xml:space="preserve">
     <value>Cleanup scans measure rule targets. Run space analysis to include other files.</value>
@@ -1266,8 +1359,26 @@
   <data name="sc14da4f8739ec93153debea1" xml:space="preserve">
     <value>Common locations are found automatically. No project setup needed.</value>
   </data>
+  <data name="s1774b1a3bf4e551817ed20ee" xml:space="preserve">
+    <value>Compare Analyses</value>
+  </data>
+  <data name="s31a032a70773288351d18312" xml:space="preserve">
+    <value>Compare Analyses…</value>
+  </data>
+  <data name="se0b256b4982da2552ed86250" xml:space="preserve">
+    <value>Comparing analyses…</value>
+  </data>
+  <data name="s8d999c80ef9b342e6929b06e" xml:space="preserve">
+    <value>Comparison budgets must be numeric.</value>
+  </data>
+  <data name="sb54ea712b44f96b01e80a1de" xml:space="preserve">
+    <value>Comparison unavailable</value>
+  </data>
   <data name="s22a970d2e5b1cc233e462be7" xml:space="preserve">
     <value>Completed</value>
+  </data>
+  <data name="s142303c4d164e20120252db9" xml:space="preserve">
+    <value>Completed operations and their actual results appear here.</value>
   </data>
   <data name="s18bab71955b1b329cf571c46" xml:space="preserve">
     <value>Completed operations and their recorded results will appear here.</value>
@@ -1401,8 +1512,14 @@
   <data name="s0e0269180969ded37668c242" xml:space="preserve">
     <value>Copy Path</value>
   </data>
+  <data name="s54b8e0c0c268c1549af4247c" xml:space="preserve">
+    <value>Copy Report</value>
+  </data>
   <data name="scb12df752fde9566bd478868" xml:space="preserve">
     <value>Copy Request</value>
+  </data>
+  <data name="s34917f2e48ba792fb6ae2ddd" xml:space="preserve">
+    <value>Copy failed. Try again.</value>
   </data>
   <data name="s7ff7556fa398aa944d3ea614" xml:space="preserve">
     <value>Copy for AI</value>
@@ -1439,6 +1556,12 @@
   </data>
   <data name="sa79cbc9cb32aec36caff70da" xml:space="preserve">
     <value>Create reusable rules</value>
+  </data>
+  <data name="scf2b468b2c242c48aaad82bd" xml:space="preserve">
+    <value>Current Analysis</value>
+  </data>
+  <data name="s09f55a69739cde81b4e08166" xml:space="preserve">
+    <value>Current Size</value>
   </data>
   <data name="sb1862431657c41f542903b74" xml:space="preserve">
     <value>Current User Run</value>
@@ -1608,6 +1731,15 @@
   <data name="sd1bc1c34246f9d61f574b63e" xml:space="preserve">
     <value>Diagnostic reference: {0}</value>
   </data>
+  <data name="s268f14bbfe119c1e92150583" xml:space="preserve">
+    <value>Diagnostics</value>
+  </data>
+  <data name="s6b4fdca71171e81030ab9991" xml:space="preserve">
+    <value>Diagnostics could not finish. Check the local data location and try again.</value>
+  </data>
+  <data name="s27a853a6a7fb6828abad4db2" xml:space="preserve">
+    <value>Diagnostics unavailable</value>
+  </data>
   <data name="scd4ba293365d1a860a206d9a" xml:space="preserve">
     <value>DingTalk web caches</value>
   </data>
@@ -1671,6 +1803,12 @@
   <data name="s5af15d6538588ec036c408db" xml:space="preserve">
     <value>Disk Usage</value>
   </data>
+  <data name="s3d1297ced50002670bc6b9b5" xml:space="preserve">
+    <value>Disk access</value>
+  </data>
+  <data name="s725436c76386d2244290b655" xml:space="preserve">
+    <value>Disk access could not be verified; this does not establish complete scan coverage.</value>
+  </data>
   <data name="se9042e4c738fad21d196fd34" xml:space="preserve">
     <value>Protected directory access verified</value>
   </data>
@@ -1679,6 +1817,15 @@
   </data>
   <data name="sb581f4646b6d846fc36e0f0b" xml:space="preserve">
     <value>Disk access needs verification</value>
+  </data>
+  <data name="se234c5c060b2b9173f7f7576" xml:space="preserve">
+    <value>Disk capacity could not be observed.</value>
+  </data>
+  <data name="s9e98f07444089421948c5a35" xml:space="preserve">
+    <value>Disk capacity was observed without scanning files.</value>
+  </data>
+  <data name="s48b6ba356724e7c373e51d40" xml:space="preserve">
+    <value>Disk free / capacity (bytes)</value>
   </data>
   <data name="s48845bff334a50a59aaecf49" xml:space="preserve">
     <value>Dismiss</value>
@@ -1718,6 +1865,12 @@
   </data>
   <data name="s5e1c49fcb4fc4fff44ea0afa" xml:space="preserve">
     <value>Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review.</value>
+  </data>
+  <data name="s278779da850f6ccf5796bce1" xml:space="preserve">
+    <value>Earlier Analysis</value>
+  </data>
+  <data name="s9bce2c2d70995858e60c3a9d" xml:space="preserve">
+    <value>Earlier Size</value>
   </data>
   <data name="s06dc95d17246fe97a1a3fb27" xml:space="preserve">
     <value>Edge caches</value>
@@ -1812,6 +1965,9 @@
   <data name="sec19b7317b8d861407a8c9e4" xml:space="preserve">
     <value>Estimated Space to Free</value>
   </data>
+  <data name="sc86b3ce106b33e99c5c6c10d" xml:space="preserve">
+    <value>Every cleanup, accounted for.</value>
+  </data>
   <data name="s03867aea70acaf4c5dce37a7" xml:space="preserve">
     <value>Evidence</value>
   </data>
@@ -1850,6 +2006,9 @@
   </data>
   <data name="s5b2d465f3bef7871201977d9" xml:space="preserve">
     <value>Expired scan records are removed automatically. Active plans, cleanup history, recovery data and your files are kept.</value>
+  </data>
+  <data name="s253c4a0cbe4fbb032a16146c" xml:space="preserve">
+    <value>Explain observed space changes between two analyses of the same folder.</value>
   </data>
   <data name="s811c928e3ed769b21787b563" xml:space="preserve">
     <value>Explicit, unique candidate IDs are required.</value>
@@ -1935,8 +2094,14 @@
   <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
     <value>Find reviewable caches and build artifacts in known locations.</value>
   </data>
+  <data name="sa136956790d76e53807bee61" xml:space="preserve">
+    <value>Find the files taking up the most room.</value>
+  </data>
   <data name="s9f71d593604ba6278c97b2eb" xml:space="preserve">
     <value>Find the files taking up the most space</value>
+  </data>
+  <data name="s8f82eaf0a024210b1b6e6ada" xml:space="preserve">
+    <value>Find the files that make the biggest difference.</value>
   </data>
   <data name="se684c8807f7486a04a3c3cce" xml:space="preserve">
     <value>Find what is ready to tidy up</value>
@@ -1946,6 +2111,9 @@
   </data>
   <data name="s8381decc3d33e7420d9ebd33" xml:space="preserve">
     <value>Find what takes up space. Keep what matters.</value>
+  </data>
+  <data name="s1a2f29893b70548b71253beb" xml:space="preserve">
+    <value>Find your project outputs</value>
   </data>
   <data name="s5d200762006b6b8c6c2b9cd2" xml:space="preserve">
     <value>Finding scan locations…</value>
@@ -2043,6 +2211,9 @@
   <data name="s27cbfd7362ed730408b6a900" xml:space="preserve">
     <value>GitHub Desktop download caches</value>
   </data>
+  <data name="s5d864d7c8ac28d6c2979202d" xml:space="preserve">
+    <value>Give your next build more room.</value>
+  </data>
   <data name="sa9f66c524b28de745fbabf8e" xml:space="preserve">
     <value>Global Exclusions</value>
   </data>
@@ -2082,8 +2253,14 @@
   <data name="s16c1dae0d5e8ab83b0749013" xml:space="preserve">
     <value>Gradle normally recreates project caches and generated build outputs on the next build.</value>
   </data>
+  <data name="sfb4f7e1c33b7997f2f50454f" xml:space="preserve">
+    <value>Grouped by scan location</value>
+  </data>
   <data name="s77223f5d96053067315da30d" xml:space="preserve">
     <value>HTTP storage</value>
+  </data>
+  <data name="sda585b0911dc689eec52e2d7" xml:space="preserve">
+    <value>Have a folder that needs a closer look?</value>
   </data>
   <data name="s4835f47348f1f85b7c4092e5" xml:space="preserve">
     <value>Helium caches</value>
@@ -2138,6 +2315,9 @@
   </data>
   <data name="s0e769600933790607b2a13b3" xml:space="preserve">
     <value>History</value>
+  </data>
+  <data name="s42d9acaa0fb44d6f8db37ecd" xml:space="preserve">
+    <value>History is limited to readable recent analyses. Some records were skipped.</value>
   </data>
   <data name="s5bd5b53315dbc4791c599a18" xml:space="preserve">
     <value>History observations do not change completed operations or retry unfinished work.</value>
@@ -2304,6 +2484,9 @@
   <data name="s105e55f334436a6aef2e7033" xml:space="preserve">
     <value>Installed application ownership could not be verified; scan again.</value>
   </data>
+  <data name="sd3ff6dab2b15cf3981af22bd" xml:space="preserve">
+    <value>Installed version is newer than the catalog</value>
+  </data>
   <data name="sab844e01a8382909259d1a08" xml:space="preserve">
     <value>Installer code</value>
   </data>
@@ -2327,6 +2510,9 @@
   </data>
   <data name="s8027f432a7fb7c273a1a0fde" xml:space="preserve">
     <value>Interface language</value>
+  </data>
+  <data name="sd1d3dace143b5981282f3f25" xml:space="preserve">
+    <value>Invalid comparison page size.</value>
   </data>
   <data name="sd1dea6f098412421efcdb252" xml:space="preserve">
     <value>Invalid logical workspace root reference.</value>
@@ -2357,6 +2543,9 @@
   </data>
   <data name="sdd407e5e0645f53a0866fe78" xml:space="preserve">
     <value>Investigate this folder with your model</value>
+  </data>
+  <data name="s7fdbbeacf3b17e3ca47672d0" xml:space="preserve">
+    <value>Investigate with AI…</value>
   </data>
   <data name="s241cf44fc26c8e73844551ae" xml:space="preserve">
     <value>Investigation Folder</value>
@@ -2453,6 +2642,9 @@
   </data>
   <data name="s5a1233b3dc032c8fd43f2e76" xml:space="preserve">
     <value>Keep recently modified content</value>
+  </data>
+  <data name="s2bdbcbcc49c79dbf7ab42ff1" xml:space="preserve">
+    <value>Keep the apps you love.</value>
   </data>
   <data name="sc02438b6cd8f66744648f626" xml:space="preserve">
     <value>Keep the original rule ID when editing a version.</value>
@@ -2565,6 +2757,12 @@
   <data name="s65a479025e9fa73c134bcf4d" xml:space="preserve">
     <value>Local processing comes first, then fixed-choice decisions. The main model is used only when open-ended understanding is needed.</value>
   </data>
+  <data name="s3f35ad5c6d1f4cb05506fd95" xml:space="preserve">
+    <value>Local records</value>
+  </data>
+  <data name="s7903226f3733e3439ba8b888" xml:space="preserve">
+    <value>Local records have not been created. Diagnostics does not create them.</value>
+  </data>
   <data name="s10c639e1c159b23523d1071c" xml:space="preserve">
     <value>Local store is unavailable.</value>
   </data>
@@ -2589,6 +2787,9 @@
   <data name="s14fc7cf0b9307160d441a313" xml:space="preserve">
     <value>Logseq caches</value>
   </data>
+  <data name="sf76315f1e77b7b5a475a5ed1" xml:space="preserve">
+    <value>Low free space can prevent scans and durable operation records.</value>
+  </data>
   <data name="s03c1f9828cf46830d2f1c003" xml:space="preserve">
     <value>MPV caches</value>
   </data>
@@ -2606,6 +2807,12 @@
   </data>
   <data name="s9bb453d7c4438991809fb88d" xml:space="preserve">
     <value>Main model only</value>
+  </data>
+  <data name="sfe115c57baab0a161122fc23" xml:space="preserve">
+    <value>Make Shou work the way you do.</value>
+  </data>
+  <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
+    <value>Make room for more.</value>
   </data>
   <data name="s3c764f296aa1f9a6d0bac92d" xml:space="preserve">
     <value>Manage these patterns in All Locations. Per-rule exclusions remain in each rule definition.</value>
@@ -2625,11 +2832,20 @@
   <data name="s8be555a12d480b964c31298e" xml:space="preserve">
     <value>Manifest matches</value>
   </data>
+  <data name="s2544e2abfba58b82f8cdf379" xml:space="preserve">
+    <value>Manual selection includes items outside automatic cleanup. Review their contents and stop related tasks. The complete listed directories will be removed.</value>
+  </data>
   <data name="se8e419b60dd760c2ccd26d98" xml:space="preserve">
     <value>Maps and location caches</value>
   </data>
   <data name="sdd913cccfcc9451f78f96686" xml:space="preserve">
     <value>Match rules</value>
+  </data>
+  <data name="s248b410974ab96f3070313ef" xml:space="preserve">
+    <value>Matched cleanup items</value>
+  </data>
+  <data name="scacfd3023c7da4cb92f4ac5e" xml:space="preserve">
+    <value>Matches catalog version</value>
   </data>
   <data name="s66fc75a702ae2b4f8dc15889" xml:space="preserve">
     <value>Matches saved evidence</value>
@@ -2724,8 +2940,14 @@
   <data name="s8e873d517e50cd690ff39376" xml:space="preserve">
     <value>MongoDB Compass caches</value>
   </data>
+  <data name="s98eea4c1c21f333640ea131c" xml:space="preserve">
+    <value>More Actions</value>
+  </data>
   <data name="sd1606911ba0af2a4b4e02e05" xml:space="preserve">
     <value>More evidence needed</value>
+  </data>
+  <data name="s1d8ab65965b1929001a7f791" xml:space="preserve">
+    <value>More room to build.</value>
   </data>
   <data name="s0eb910af83d5aa755891e66e" xml:space="preserve">
     <value>Move Recommended to Trash…</value>
@@ -2802,6 +3024,9 @@
   <data name="s2721425dafa987c5bd10977a" xml:space="preserve">
     <value>Needs Verification</value>
   </data>
+  <data name="sc1ebc7817870e5be78fceae5" xml:space="preserve">
+    <value>Needs attention</value>
+  </data>
   <data name="s3dddf7d417a7701a80db2d00" xml:space="preserve">
     <value>Needs verification</value>
   </data>
@@ -2816,6 +3041,9 @@
   </data>
   <data name="s67be3c294ac30796f980e41f" xml:space="preserve">
     <value>New Rule…</value>
+  </data>
+  <data name="s0b2f7835880477b97fc48623" xml:space="preserve">
+    <value>Newer version in catalog</value>
   </data>
   <data name="sd2bd3615d7d532600abc6c0d" xml:space="preserve">
     <value>Newest modification</value>
@@ -2843,6 +3071,9 @@
   </data>
   <data name="s9234a140a02ad74a4bb7893d" xml:space="preserve">
     <value>No applications in this category</value>
+  </data>
+  <data name="s3ac55af396adf811becc0f68" xml:space="preserve">
+    <value>No changed observations in this directory.</value>
   </data>
   <data name="s8d64797630d4b228c81dcafb" xml:space="preserve">
     <value>No cleanup history</value>
@@ -2889,6 +3120,9 @@
   <data name="s28b940ecbb9c06fc744d898b" xml:space="preserve">
     <value>No matching large files</value>
   </data>
+  <data name="s74895f1f032801193ab7f35a" xml:space="preserve">
+    <value>No matching project outputs</value>
+  </data>
   <data name="s4f36612ecc081b9b7c7b6b49" xml:space="preserve">
     <value>No matching records</value>
   </data>
@@ -2927,6 +3161,12 @@
   </data>
   <data name="sc9294a330f2a59ffe7f9f244" xml:space="preserve">
     <value>No startup items found</value>
+  </data>
+  <data name="s4513a76c8f6ffb6dff89a88b" xml:space="preserve">
+    <value>No supported catalog source for this application. Check for updates in the app.</value>
+  </data>
+  <data name="s351c0cfbbf0fb9c26946af58" xml:space="preserve">
+    <value>No supported update source</value>
   </data>
   <data name="s00991aac06c453f6e185b0aa" xml:space="preserve">
     <value>No uninstall record was found for this plan. This does not confirm the current installation state.</value>
@@ -2967,6 +3207,12 @@
   <data name="sd16948e73a6800900e894177" xml:space="preserve">
     <value>Not checked</value>
   </data>
+  <data name="seb276c35e8f3c1a46e3e20da" xml:space="preserve">
+    <value>Not comparable</value>
+  </data>
+  <data name="sdd1841d295024256e8884cb8" xml:space="preserve">
+    <value>Not configured</value>
+  </data>
   <data name="s676e09a8105bb5eade087c56" xml:space="preserve">
     <value>Not enabled for this location.</value>
   </data>
@@ -2984,6 +3230,9 @@
   </data>
   <data name="s040f7884d3b5f35e4c11cc84" xml:space="preserve">
     <value>Not measured</value>
+  </data>
+  <data name="s1d3efcd60643d30d8714512a" xml:space="preserve">
+    <value>Not observed</value>
   </data>
   <data name="s3372d1ec5334d2776ea4225e" xml:space="preserve">
     <value>Not present</value>
@@ -3033,8 +3282,17 @@
   <data name="s565339bc4d33d72817b58302" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="s3eaf8ef549672a650eb1a848" xml:space="preserve">
+    <value>Object replaced</value>
+  </data>
+  <data name="s4db3b860dd3494da9a632485" xml:space="preserve">
+    <value>Observed Change</value>
+  </data>
   <data name="s580fda75e0d74ab9e76a3d39" xml:space="preserve">
     <value>Observed Index Evidence</value>
+  </data>
+  <data name="s2f4add0f44158e9df8df8240" xml:space="preserve">
+    <value>Observed at</value>
   </data>
   <data name="s76da797d9fe96d6816cfd207" xml:space="preserve">
     <value>Observed startup state is best effort; launchd can change after this read.</value>
@@ -3072,6 +3330,9 @@
   <data name="s459f105fc40fb11af98febf5" xml:space="preserve">
     <value>One scan. A tidier Mac.</value>
   </data>
+  <data name="s35d35ee8babf63d7d24b0d22" xml:space="preserve">
+    <value>One set of rules for everyday cleanup and your own projects.</value>
+  </data>
   <data name="s30b1071510017bff73684bf7" xml:space="preserve">
     <value>Only bounded relative metadata and your answers are sent to the disclosed services. File contents are excluded. No automatic deletion.</value>
   </data>
@@ -3080,6 +3341,12 @@
   </data>
   <data name="s11c4d284d47b22773ea6368e" xml:space="preserve">
     <value>Only finished records are removed. Files stay in place; recoverable and unfinished records are kept.</value>
+  </data>
+  <data name="sea4f398630b39bb302855146" xml:space="preserve">
+    <value>Only in current analysis</value>
+  </data>
+  <data name="sae6758c3c6c894a02076531e" xml:space="preserve">
+    <value>Only in earlier analysis</value>
   </data>
   <data name="s73a27ebf83dc2f98f4c603f5" xml:space="preserve">
     <value>Only measured space is included. Complete folders remain available even when another location cannot be read.</value>
@@ -3129,14 +3396,23 @@
   <data name="s3beda64b2dff3dad820b6f3f" xml:space="preserve">
     <value>Open Folder…</value>
   </data>
+  <data name="sb584a3378c07e53e037db775" xml:space="preserve">
+    <value>Open Homebrew Page</value>
+  </data>
   <data name="s4639c70e5e7714c7041f7842" xml:space="preserve">
     <value>Open Investigation</value>
   </data>
   <data name="s6523a02041a87469698368dc" xml:space="preserve">
     <value>Open Login Items Settings</value>
   </data>
+  <data name="s14d3ac68e8ea5bdef92b80b1" xml:space="preserve">
+    <value>Open Official Update Page</value>
+  </data>
   <data name="s82708173ccc1a4f46c5f04f0" xml:space="preserve">
     <value>Open Privacy &amp; Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks.</value>
+  </data>
+  <data name="s2578b11c4075416baf1bf573" xml:space="preserve">
+    <value>Open Smart Cleanup</value>
   </data>
   <data name="sfdb627efb86ba73e631686e9" xml:space="preserve">
     <value>Open Source</value>
@@ -3249,6 +3525,9 @@
   <data name="sb4401c24aaaf316c2d9bfa84" xml:space="preserve">
     <value>Partial analysis: some locations could not be fully measured.</value>
   </data>
+  <data name="sd79683a5eda1c30f9c992e42" xml:space="preserve">
+    <value>Partial comparison. Ranking covers only examined entries; incomplete coverage has no numeric growth conclusion.</value>
+  </data>
   <data name="s16bfbee23e2d4007b623853c" xml:space="preserve">
     <value>Partial measurements — inaccessible or changing content is not included.</value>
   </data>
@@ -3333,6 +3612,9 @@
   <data name="se85d49611c600d9cd7b5f319" xml:space="preserve">
     <value>Personal rules changed outside Shou. Review each rule before cleanup.</value>
   </data>
+  <data name="sc2e1753d506ef951419bb3e5" xml:space="preserve">
+    <value>Physical memory (bytes)</value>
+  </data>
   <data name="s5f7aa779da5a03c87e71983e" xml:space="preserve">
     <value>Plan digest verification failed.</value>
   </data>
@@ -3399,6 +3681,9 @@
   <data name="s5b6352e0f78ed3db0478f087" xml:space="preserve">
     <value>Preview Exclusion…</value>
   </data>
+  <data name="sae9f7e50c3887305b0c80b24" xml:space="preserve">
+    <value>Preview Report</value>
+  </data>
   <data name="s93bc3f60445eb1d9c13b2b35" xml:space="preserve">
     <value>Preview Rule</value>
   </data>
@@ -3450,6 +3735,9 @@
   <data name="s30b1db21e81d109d9bd07652" xml:space="preserve">
     <value>Processing selected items…</value>
   </data>
+  <data name="sd4d57f163d2785c6310f2bd0" xml:space="preserve">
+    <value>Processor count</value>
+  </data>
   <data name="s985959785319747668373cc6" xml:space="preserve">
     <value>Project</value>
   </data>
@@ -3500,6 +3788,9 @@
   </data>
   <data name="s03a7f0126a3b9af7957f80e0" xml:space="preserve">
     <value>Protected locations have limited access</value>
+  </data>
+  <data name="sc248e79a44b0d244044d91f9" xml:space="preserve">
+    <value>Protected locations may be omitted because disk access is limited.</value>
   </data>
   <data name="s3cb83c3676530953dc690143" xml:space="preserve">
     <value>Proxyman caches</value>
@@ -3657,6 +3948,9 @@
   <data name="s5bb277b0488cc597cf09301d" xml:space="preserve">
     <value>Read-only Preview</value>
   </data>
+  <data name="sd0aea11446c606f6bd7328ac" xml:space="preserve">
+    <value>Read-only observations. Historical analyses do not authorize cleanup.</value>
+  </data>
   <data name="s42af4796b9059b869f75fb61" xml:space="preserve">
     <value>Read-only scanning. Nothing is deleted or selected automatically.</value>
   </data>
@@ -3669,6 +3963,9 @@
   <data name="se94931f01d82c1a103ce541e" xml:space="preserve">
     <value>Read-only system tool output exceeded its budget.</value>
   </data>
+  <data name="s3ebdd9ba8b813e24e6942218" xml:space="preserve">
+    <value>Reading analysis history…</value>
+  </data>
   <data name="s940348dae71ebc0ec5fca9fb" xml:space="preserve">
     <value>Reading directory evidence…</value>
   </data>
@@ -3680,6 +3977,9 @@
   </data>
   <data name="sa0ea0d7a695e9f91aa1d8162" xml:space="preserve">
     <value>Ready to Uninstall</value>
+  </data>
+  <data name="sae004f3ec078ab873d447379" xml:space="preserve">
+    <value>Ready to clean</value>
   </data>
   <data name="s730acfb4d8a4a77d120bdd93" xml:space="preserve">
     <value>Ready to inspect this folder</value>
@@ -3740,6 +4040,9 @@
   </data>
   <data name="s92875e14daa764df7745fb48" xml:space="preserve">
     <value>Record has an unsupported type, owner, link count, or size.</value>
+  </data>
+  <data name="s3404fa850e49bd37334edf5e" xml:space="preserve">
+    <value>Record inventory limit is invalid.</value>
   </data>
   <data name="s7549b9705474c24507ea3471" xml:space="preserve">
     <value>Recorded Trash Location</value>
@@ -3837,6 +4140,9 @@
   <data name="s4403ae673ea3308d36015fc8" xml:space="preserve">
     <value>Removing this protection requires a new scan before cleanup can be reviewed.</value>
   </data>
+  <data name="sb6ce788d9786917c9d19adaa" xml:space="preserve">
+    <value>Report</value>
+  </data>
   <data name="sf6a30a10bc27be0af728295f" xml:space="preserve">
     <value>Report an Issue</value>
   </data>
@@ -3899,6 +4205,9 @@
   </data>
   <data name="s2a64df82cdaad5511bea0259" xml:space="preserve">
     <value>Retained</value>
+  </data>
+  <data name="s942087cc2d41e01304b71955" xml:space="preserve">
+    <value>Retry</value>
   </data>
   <data name="s9236d44a0653cabb58e1e54c" xml:space="preserve">
     <value>Return to Current Investigation</value>
@@ -3981,17 +4290,35 @@
   <data name="sab8efb0e9267c897c8b916d6" xml:space="preserve">
     <value>Review application components again.</value>
   </data>
+  <data name="sbc7438a2af5e3518a540ea3b" xml:space="preserve">
+    <value>Review applications and their related files in one place.</value>
+  </data>
   <data name="sdcd711845f8f9ef438e99d95" xml:space="preserve">
     <value>Review background-task definitions and manage login items in macOS Settings.</value>
   </data>
   <data name="s9988ab26a623f1476bda87a9" xml:space="preserve">
     <value>Review browser activity and account data separately.</value>
   </data>
+  <data name="s527fe1519eb507e02c36ad0e" xml:space="preserve">
+    <value>Review browser records by source and time range.</value>
+  </data>
+  <data name="sa44a207df38d1faad6961d2a" xml:space="preserve">
+    <value>Review build outputs and dependencies by project. Your source stays in place.</value>
+  </data>
+  <data name="s26bed9287911b97393b13c15" xml:space="preserve">
+    <value>Review build outputs and dependencies from local and cloned projects. Source files are kept.</value>
+  </data>
   <data name="sc3a182375ecb3a119fcaea70" xml:space="preserve">
     <value>Review current eligible leftovers; personal data requires separate consent.</value>
   </data>
   <data name="sce8b2baf8472986e07bbf9e7" xml:space="preserve">
     <value>Review data associated with apps no longer found in application folders or system registration. Unregistered custom installations may still use this data.</value>
+  </data>
+  <data name="sd37bbf8dba37560fe1d76723" xml:space="preserve">
+    <value>Review disk permissions in the Setup Guide, then scan again.</value>
+  </data>
+  <data name="s66b31cd3b09a2a4846c9890d" xml:space="preserve">
+    <value>Review large files and old scan indexes, then rescan after freeing space.</value>
   </data>
   <data name="s20a70822946594d2991342d5" xml:space="preserve">
     <value>Review leftovers again before cleaning.</value>
@@ -4004,6 +4331,9 @@
   </data>
   <data name="s2a55683c78691759fb748d98" xml:space="preserve">
     <value>Review the categories below, or use the recommended selection.</value>
+  </data>
+  <data name="s0efbd1524ba2a8d5e9819f58" xml:space="preserve">
+    <value>Review the configured local data location. Existing records and permissions were not changed.</value>
   </data>
   <data name="s3d4e3f17ee17c32eccedbe57" xml:space="preserve">
     <value>Review the current rule against files in this workspace. A cancelled or failed preview cannot be saved as reviewed.</value>
@@ -4052,6 +4382,12 @@
   </data>
   <data name="s0711a8d636e4c068ae59fa80" xml:space="preserve">
     <value>Risk</value>
+  </data>
+  <data name="sfc2bf8fea144af3c40498083" xml:space="preserve">
+    <value>Room for</value>
+  </data>
+  <data name="s9302239146645d4dc6ad0f26" xml:space="preserve">
+    <value>Root Folder</value>
   </data>
   <data name="s713ca08761b3d169c80a0a7d" xml:space="preserve">
     <value>Rule JSON</value>
@@ -4104,8 +4440,14 @@
   <data name="s43bbc41bcb0b736204c2b40d" xml:space="preserve">
     <value>Rules and cleanup history stay on this Mac.</value>
   </data>
+  <data name="sf48bc99bb89f39113318a151" xml:space="preserve">
+    <value>Run Diagnostics…</value>
+  </data>
   <data name="s59f44ebeed56bb398c136761" xml:space="preserve">
     <value>Run Space Analysis</value>
+  </data>
+  <data name="sc396e60bf6cb8e3dcb8288fb" xml:space="preserve">
+    <value>Run two space analyses of the same folder to compare them. Cleared and legacy analyses may be unavailable.</value>
   </data>
   <data name="sf4ccae29e1bb0c20a124570a" xml:space="preserve">
     <value>Running</value>
@@ -4191,6 +4533,9 @@
   <data name="sbe85896dd016457bd6a0f083" xml:space="preserve">
     <value>Scan All Locations</value>
   </data>
+  <data name="sd53e7f9a53ce174ed34bcfa6" xml:space="preserve">
+    <value>Scan Applications</value>
+  </data>
   <data name="s3dfb76826fee2ed590869fdf" xml:space="preserve">
     <value>Scan Now</value>
   </data>
@@ -4218,11 +4563,17 @@
   <data name="sd48720dc690a61f1fcd3e9e4" xml:space="preserve">
     <value>Scan Only</value>
   </data>
+  <data name="saf90322a50f9761252661c06" xml:space="preserve">
+    <value>Scan Options</value>
+  </data>
   <data name="sfad20ffae18135ae21155188" xml:space="preserve">
     <value>Scan Privacy Sources</value>
   </data>
   <data name="scc018bdc832d777479d51b80" xml:space="preserve">
     <value>Scan Selected Location</value>
+  </data>
+  <data name="s225aa3dff9b9db048ab7e54c" xml:space="preserve">
+    <value>Scan Startup Items</value>
   </data>
   <data name="s6a2d5b0b32755b661d127fae" xml:space="preserve">
     <value>Scan Workspace</value>
@@ -4263,6 +4614,9 @@
   <data name="sb0daf47f06fda541769b292a" xml:space="preserve">
     <value>Scan failed.</value>
   </data>
+  <data name="s4d20593fc457afab16516d9b" xml:space="preserve">
+    <value>Scan first. Review before anything is removed.</value>
+  </data>
   <data name="s35807dd57f6d0f259b0f3431" xml:space="preserve">
     <value>Scan is incomplete. Cleanup is unavailable; you can still explore measured space.</value>
   </data>
@@ -4298,6 +4652,9 @@
   </data>
   <data name="s17147ce561479d931277ef70" xml:space="preserve">
     <value>Scanning is read-only. Uninstalling requires a component review and confirmation.</value>
+  </data>
+  <data name="s2f026e94cee00737eb58137a" xml:space="preserve">
+    <value>Scanning only reads application information. Review components before uninstalling.</value>
   </data>
   <data name="sc04fafc03cb442898d37249d" xml:space="preserve">
     <value>Scanning reads file sizes. Nothing is selected or deleted automatically.</value>
@@ -4350,6 +4707,9 @@
   <data name="s42e99c17c57fa990505b67e9" xml:space="preserve">
     <value>Search programs or publishers</value>
   </data>
+  <data name="sedd3c20b1bd9e4b0889e64d7" xml:space="preserve">
+    <value>Search projects or paths</value>
+  </data>
   <data name="s7d081a49f6e904afcbcc115b" xml:space="preserve">
     <value>Search rules or paths</value>
   </data>
@@ -4365,8 +4725,17 @@
   <data name="sa20ef7434ccdf23102b96094" xml:space="preserve">
     <value>See large files across folders, then choose what to remove.</value>
   </data>
+  <data name="s46c942d86bb6954498ca2ec8" xml:space="preserve">
+    <value>See what changed and what needs your attention.</value>
+  </data>
+  <data name="se0b6529e0415a5e634ab4fa4" xml:space="preserve">
+    <value>See what takes up space, then inspect the details.</value>
+  </data>
   <data name="sbdc61a90c2f3be4c38187db7" xml:space="preserve">
     <value>See where your space goes</value>
+  </data>
+  <data name="sdeb2950f29974b4ad1921803" xml:space="preserve">
+    <value>See your space clearly.</value>
   </data>
   <data name="s2a78025de6aae5e7ff88e5a9" xml:space="preserve">
     <value>Select</value>
@@ -4451,6 +4820,9 @@
   </data>
   <data name="s88641bb12a215f8a50ff5fcd" xml:space="preserve">
     <value>Select for Removal</value>
+  </data>
+  <data name="sad76f0ba018fa8a6c3dc2a78" xml:space="preserve">
+    <value>Select for manual review. Contents will be fully measured before confirmation.</value>
   </data>
   <data name="s1d08b8184d3ce128cc75190d" xml:space="preserve">
     <value>Select history records to remove.</value>
@@ -4565,6 +4937,9 @@
   </data>
   <data name="sf170fa36eb1980461d63106b" xml:space="preserve">
     <value>Shared groups, package receipts and external helpers are not removed. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan.</value>
+  </data>
+  <data name="sfe5141238d7e9c2893adc221" xml:space="preserve">
+    <value>Shou Diagnostic Report</value>
   </data>
   <data name="sfb32ba1e97394acee8da9953" xml:space="preserve">
     <value>Shou cannot restore a system uninstall and does not automatically clean residual files.</value>
@@ -5031,6 +5406,9 @@
   <data name="s652fff53274ad3530fb2198c" xml:space="preserve">
     <value>Switch to Local Key Storage</value>
   </data>
+  <data name="s6725e7bbcd28f3a8a586fa34" xml:space="preserve">
+    <value>System</value>
+  </data>
   <data name="s2e6367b208c653a83d246ccd" xml:space="preserve">
     <value>System Background Item</value>
   </data>
@@ -5184,11 +5562,20 @@
   <data name="s8876063caab65f3d68571e47" xml:space="preserve">
     <value>The built-in rule namespace is reserved.</value>
   </data>
+  <data name="sad4b65b5832eb766e3757e82" xml:space="preserve">
+    <value>The catalog check could not finish. Try again.</value>
+  </data>
+  <data name="sd495dacffc5ea558dbc5290e" xml:space="preserve">
+    <value>The catalog identity or availability could not be verified.</value>
+  </data>
   <data name="s592b72a4479da5ee2aca499f" xml:space="preserve">
     <value>The decision provider receives bounded relative metadata and retention answers. Local processing comes first; only open-ended understanding escalates to the main model. Neither service can authorize deletion.</value>
   </data>
   <data name="s13be5d6605e2a623340b67ff" xml:space="preserve">
     <value>The decision service is off. The main model handles this configuration directly.</value>
+  </data>
+  <data name="s740bdf079750ac29c5329c09" xml:space="preserve">
+    <value>The disk-access sentinel is readable; individual locations may still be restricted.</value>
   </data>
   <data name="sc6794b93b5d56ddcbb8a0096" xml:space="preserve">
     <value>The file changed before permanent removal.</value>
@@ -5252,6 +5639,15 @@
   </data>
   <data name="scf0be61c0ab3ffe617cb2bd4" xml:space="preserve">
     <value>The local API key is unavailable. Open AI settings to save it again.</value>
+  </data>
+  <data name="s0f3478fb388e3c6f8b969891" xml:space="preserve">
+    <value>The local record directory could not be inspected.</value>
+  </data>
+  <data name="sf0b48626cea0e02785e12393" xml:space="preserve">
+    <value>The local record directory is private to the current user. Contents and write access were not tested.</value>
+  </data>
+  <data name="s09b46426f17e1ecab1339fc8" xml:space="preserve">
+    <value>The local record location is not a verified private directory.</value>
   </data>
   <data name="s8bb1434fa336fa035c577305" xml:space="preserve">
     <value>The location could not be inspected.</value>
@@ -5427,11 +5823,17 @@
   <data name="s6d10cbf37f4ede330b3e6774" xml:space="preserve">
     <value>The uninstall result could not be determined. Read the saved record before taking further action.</value>
   </data>
+  <data name="s8d8aa41a0657543ad4d3239c" xml:space="preserve">
+    <value>The versions use different or unsupported formats. Compare them in the app.</value>
+  </data>
   <data name="sc3e61569d474beaaf1a5ad03" xml:space="preserve">
     <value>These files will be permanently removed. This action cannot be undone.</value>
   </data>
   <data name="sf370d0f6a9ea130ef5c1dccd" xml:space="preserve">
     <value>These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action.</value>
+  </data>
+  <data name="s2e7abb738415510222e4bf27" xml:space="preserve">
+    <value>This analysis cannot be compared. Run two new space analyses of the same folder.</value>
   </data>
   <data name="sa80becd5ed54593a05163294" xml:space="preserve">
     <value>This application cannot be safely removed. Review its component details.</value>
@@ -5535,6 +5937,9 @@
   <data name="s24a45847dc4ee5260da8044c" xml:space="preserve">
     <value>This plan already has an uninstall attempt. Read its record; the plan cannot be run again.</value>
   </data>
+  <data name="s8c890bf7028a9aa4b00a5c96" xml:space="preserve">
+    <value>This platform does not use the macOS disk-access sentinel.</value>
+  </data>
   <data name="sa4a832f99a9f0c96e24192e1" xml:space="preserve">
     <value>This preview cannot delete files or create a cleanup plan.</value>
   </data>
@@ -5543,6 +5948,9 @@
   </data>
   <data name="sfdbf826c96a2b923305f74ef" xml:space="preserve">
     <value>This record has unfinished actions. Verification does not retry them or authorize another operation.</value>
+  </data>
+  <data name="s6884b19dbb76935457818bf6" xml:space="preserve">
+    <value>This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded.</value>
   </data>
   <data name="s5e89db31c0abbf4b6257d2fe" xml:space="preserve">
     <value>This root is protected or is not owned by the current user.</value>
@@ -5567,6 +5975,9 @@
   </data>
   <data name="s848cd5a4fbe8cda671244498" xml:space="preserve">
     <value>This snapshot changed. Start a new investigation from the current folder.</value>
+  </data>
+  <data name="s1b81414ba3ff58320b947071" xml:space="preserve">
+    <value>This space analysis was cleared. Scan again.</value>
   </data>
   <data name="s791071f0a28c9e339b95869e" xml:space="preserve">
     <value>This startup location is unavailable or unsupported.</value>
@@ -5724,6 +6135,9 @@
   <data name="s1c9e6e9f7e242d442878137b" xml:space="preserve">
     <value>Up One Level</value>
   </data>
+  <data name="s13b7baf157e195f0f33da70d" xml:space="preserve">
+    <value>Update status unknown</value>
+  </data>
   <data name="s55fc4744fc8471a92da2d969" xml:space="preserve">
     <value>Updates are verified before installation.</value>
   </data>
@@ -5756,6 +6170,9 @@
   </data>
   <data name="sbb2eaad1cfadf24e2e850e4b" xml:space="preserve">
     <value>Use an exact relative project directory. Leave the pattern empty to protect the whole project.</value>
+  </data>
+  <data name="se0577e190241c440e810ab4f" xml:space="preserve">
+    <value>Use distinct analyses, an exact relative directory, limit 1–100, max-entries 1–100000 and max-seconds 1–30.</value>
   </data>
   <data name="sa2fb8ca79072207bdfd3dbe9" xml:space="preserve">
     <value>Use light, dark, or your system appearance.</value>
@@ -5963,6 +6380,9 @@
   </data>
   <data name="sc655ee2c11092dd67863e3d5" xml:space="preserve">
     <value>Your AI Agent</value>
+  </data>
+  <data name="sc30be0089bce957c673c21da" xml:space="preserve">
+    <value>Your Cleanup Rules</value>
   </data>
   <data name="sd0e869b777a6967931bd4373" xml:space="preserve">
     <value>Your answer</value>
@@ -6242,5 +6662,8 @@
   </data>
   <data name="sa196934ea49e9c5d4e2beece" xml:space="preserve">
     <value>uv package cache</value>
+  </data>
+  <data name="s9529b71ef7ad17762b40976e" xml:space="preserve">
+    <value>what comes next.</value>
   </data>
 </root>

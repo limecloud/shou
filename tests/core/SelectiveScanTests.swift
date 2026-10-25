@@ -255,3 +255,130 @@ private final class CleanupCancellationProbe: @unchecked Sendable {
     var cancelled: Bool { lock.lock(); defer { lock.unlock() }; return stopped }
     func stop() { lock.lock(); defer { lock.unlock() }; stopped=true }
 }
+
+func selectiveDiscoveryFindsTargetsAndMarkersInWideDirectories() async throws {
+    let fixture=try Fixture()
+    let outputs=["wide-node/node_modules", "wide-rust/target", "wide-swift/.build/arm64-apple-macosx/debug"]
+    try fixture.put("wide-node/package.json", "{}")
+    try fixture.put(outputs[0] + "/package/index.js")
+    try fixture.put("wide-rust/Cargo.toml", "[package]\nname='fixture'\n")
+    try fixture.put(outputs[1] + "/artifact.bin")
+    try fixture.put("wide-swift/Package.swift")
+    try fixture.put("wide-swift/.build/workspace-state.json", "{}")
+    try fixture.put(outputs[2] + "/description.json", "{}")
+    try fixture.put(outputs[2] + "/Fixture.build/artifact.o")
+    for project in ["wide-node", "wide-rust", "wide-swift"] {
+        for index in 0..<300 { try fixture.put(project + "/source-\(index).txt", "preserve authored material") }
+    }
+    let filesystem=SelectiveFixtureFileSystem(wrapped: FixtureFileSystem(native: fixture.fs, trash: fixture.trash))
+    let engine=ShouEngine(store: fixture.store, filesystem: filesystem, artifactEvidence: ArtifactFixtureEvidence())
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "wide-projects")
+    let budget=ScanBudget(maxEntries: 512)
+    let scan=try await engine.scan(workspaceId: workspace.id, scope: .cleanup, budget: budget)
+    try expect(scan.status == "partial" && scan.issues.contains("resource_limit"))
+    try expect(scan.entries.count <= budget.maxEntries)
+    let targets=try outputs.map { path in try require(scan.candidates.first { $0.relativePath == path && $0.eligible }) }
+    try expect(outputs.allSatisfy { scan.completedPaths?.contains($0) == true })
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: targets.map(\.id), action: "permanent")
+    let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "wide-generated-projects")
+    try expect(receipt.items.count == 3 && receipt.items.allSatisfy { $0.state == "purged" && $0.trashPath == nil })
+    for path in outputs { try expect(!FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent(path).path)) }
+    for project in ["wide-node", "wide-rust", "wide-swift"] {
+        try expect(try String(contentsOf: fixture.workspace.appendingPathComponent(project + "/source-299.txt"), encoding: .utf8) == "preserve authored material")
+    }
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("wide-swift/.build/workspace-state.json").path))
+}
+
+private final class SelectedPolicyEvidence: ArtifactEvidenceChecking, @unchecked Sendable {
+    private let lock=NSLock()
+    private var paths=[String]()
+    private var active=false
+    var checkedPaths: [String] { lock.lock(); defer { lock.unlock() }; return paths }
+    func reset(active: Bool = false) { lock.lock(); defer { lock.unlock() }; paths=[]; self.active=active }
+    func hasGitTrackedFiles(at path: String) throws -> Bool { lock.lock(); defer { lock.unlock() }; paths.append(path); return false }
+    func cargoSourceIntegrity(at path: String, expected: [FileEntry]) throws -> CargoSourceIntegrity { .verified }
+    func runningBuildProcesses(in names: Set<String>) throws -> Set<String> {
+        lock.lock(); defer { lock.unlock() }; return active ? names.intersection(["cargo"]) : []
+    }
+}
+
+func cleanupPlanRechecksOnlySelectedPolicyAndReportsChangedSafety() async throws {
+    let fixture=try Fixture()
+    try fixture.put("unselected/package.json", "{}")
+    try fixture.put("unselected/node_modules/package/index.js")
+    let evidence=SelectedPolicyEvidence()
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs, artifactEvidence: evidence)
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "selected-projects")
+    let scan=try await engine.scan(workspaceId: workspace.id, scope: .cleanup)
+    let target=try require(scan.candidates.first { $0.relativePath == "project/target" && $0.eligible })
+    evidence.reset()
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [target.id], action: "permanent")
+    try expect(plan.items.count == 1 && evidence.checkedPaths == [fixture.workspace.path + "/project/target"])
+    evidence.reset(active: true)
+    do {
+        _ = try await engine.createPlan(scanId: scan.id, candidateIds: [target.id], action: "permanent")
+        throw CheckFailure(description: "A newly active build must reject the old selection.")
+    } catch let error as ShouError {
+        try expect(error.code == "plan_stale" && error.details["reasons"] == "build_process_running")
+        try expect(error.details["path"] == fixture.workspace.path + "/project/target")
+    }
+    try expect(try await engine.history().isEmpty)
+}
+
+func manualCleanupSelectionPreparesFreshScopeAndPermanentlyRemovesOnlyFixture() async throws {
+    let fixture=try Fixture()
+    try fixture.put("project/target/manual.js", "generated manual-review sample")
+    try fixture.put("project/target/cache.sqlite", "generated cache sample")
+    let engine=ShouEngine(store: fixture.store, filesystem: FixtureFileSystem(native: fixture.fs, trash: fixture.trash), artifactEvidence: ArtifactFixtureEvidence(active: ["cargo"]), homeDirectory: fixture.workspace)
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "manual-cleanup")
+    let scan=try await engine.scan(workspaceId: workspace.id, scope: .cleanup)
+    let target=try require(scan.candidates.first { $0.relativePath == "project/target" })
+    try expect(!target.eligible && target.reasons.contains("build_process_running") && target.reasons.contains("protected_content"))
+    let review=try CleanupReview(snapshots: [scan])
+    let source=try require(review.sources.first { $0.candidate.id == target.id })
+    try expect(source.selectable && source.requiresManualReview && review.recommendedSources.isEmpty)
+    try await expectThrows { try await engine.createPlan(scanId: scan.id, candidateIds: [target.id], action: "permanent") }
+    // Manual review measures the current full directory, including newly added
+    // contents, and binds that concrete scope into a fresh confirmation digest.
+    try fixture.put("project/target/new-generated.bin")
+    let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: scan.id, candidateIds: [target.id])
+    try expect(plan.action == "permanent" && plan.items.count == 1)
+    try expect(plan.items[0].manifest.contains { $0.path == "new-generated.bin" })
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/manual.js").path))
+    let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "manual-generated-fixture")
+    try expect(receipt.state == "completed" && receipt.items.allSatisfy { $0.state == "purged" && $0.trashPath == nil })
+    try expect(!FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target").path))
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/Cargo.toml").path))
+}
+
+func manualCleanupSelectionKeepsExclusionsPreviewAndChangedManifestGates() async throws {
+    let fixture=try Fixture()
+    let engine=ShouEngine(store: fixture.store, filesystem: FixtureFileSystem(native: fixture.fs, trash: fixture.trash), artifactEvidence: ArtifactFixtureEvidence(), homeDirectory: fixture.workspace)
+    let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "manual-cleanup")
+    let scan=try await engine.scan(workspaceId: workspace.id, scope: .cleanup)
+    let target=try require(scan.candidates.first { $0.relativePath == "project/target" })
+    let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: scan.id, candidateIds: [target.id])
+    try fixture.put("project/target/after-confirmation.bin")
+    let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "changed-manual-fixture")
+    try expect(receipt.state != "completed" && receipt.items.allSatisfy { $0.state != "purged" })
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+    _ = try await engine.setExclusion(workspaceId: workspace.id, pattern: "project/target/**", remove: false)
+    try await expectThrows { try await engine.createReviewedCleanupRemovalPlan(scanId: scan.id, candidateIds: [target.id]) }
+    let excluded=try await engine.scan(workspaceId: workspace.id, scope: .cleanup)
+    let blocked=try require(excluded.candidates.first { $0.relativePath == "project/target" })
+    try expect(try CleanupReview(snapshots: [excluded]).sources.first { $0.candidate.id == blocked.id }?.selectable == false)
+    try await expectThrows { try await engine.createReviewedCleanupRemovalPlan(scanId: excluded.id, candidateIds: [blocked.id]) }
+    var preview=excluded; preview.id=Codec.id("scan"); preview.previewOnly=true
+    try fixture.store.write("scans", id: preview.id, data: Codec.encode(preview))
+    try await expectThrows { try await engine.createReviewedCleanupRemovalPlan(scanId: preview.id, candidateIds: [blocked.id]) }
+
+    let protected=try Fixture()
+    let store=try LocalRecordStore(directory: protected.workspace.appendingPathComponent("project/target/records"))
+    let protectedEngine=ShouEngine(store: store, filesystem: protected.fs, artifactEvidence: ArtifactFixtureEvidence(), homeDirectory: protected.workspace)
+    let protectedWorkspace=try await protectedEngine.addWorkspace(path: protected.workspace.path, rootRef: "protected-manual")
+    let protectedScan=try await protectedEngine.scan(workspaceId: protectedWorkspace.id, scope: .cleanup)
+    let protectedTarget=try require(protectedScan.candidates.first { $0.relativePath == "project/target" })
+    try expect(try CleanupReview(snapshots: [protectedScan]).sources.first { $0.candidate.id == protectedTarget.id }?.selectable == false)
+    try await expectThrows { try await protectedEngine.createReviewedCleanupRemovalPlan(scanId: protectedScan.id, candidateIds: [protectedTarget.id]) }
+    try expect(try await protectedEngine.configuration().workspaces.count == 1)
+}

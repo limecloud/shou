@@ -8,13 +8,13 @@
                 <Button x:Name="ScanAllButton" Click="ScanAllLocations" /><Button x:Name="ScanButton" Click="ScanLocation" />
             </StackPanel></Flyout></Button.Flyout></Button>
         </StackPanel>
-        <StackPanel x:Name="StartContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouStartSpacing}" MaxWidth="520" Margin="30">
+        <ScrollViewer x:Name="LandingScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"><StackPanel x:Name="StartContent" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="{StaticResource ShouStartSpacing}" MaxWidth="520" Margin="30">
             <ContentControl x:Name="StartIcon" HorizontalAlignment="Center" />
             <StackPanel Spacing="12"><TextBlock x:Name="PageTitle" FontSize="{StaticResource ShouStartTitleSize}" FontWeight="SemiBold" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
             <TextBlock x:Name="StartDescription" TextWrapping="Wrap" TextAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" /></StackPanel>
             <Border BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="1" CornerRadius="6" HorizontalAlignment="Center" Background="{ThemeResource ShouSurfaceBrush}">
                 <StackPanel Orientation="Horizontal" Spacing="0">
-                    <Button x:Name="StartButton" Click="StartCleanupScan" Style="{StaticResource ShouBorderedButton}" CornerRadius="6,0,0,6" BorderThickness="0" Background="Transparent" AutomationProperties.AutomationId="smart.start" />
+                    <Button x:Name="StartButton" Click="StartCleanupScan" Style="{StaticResource ShouScanButton}" CornerRadius="6,0,0,6" BorderThickness="0" AutomationProperties.AutomationId="smart.start" />
                     <Border Width="1" Background="{ThemeResource ShouDividerBrush}" />
                     <Button x:Name="StartMenuButton" Style="{StaticResource ShouBorderedButton}" Padding="10,7" CornerRadius="0,6,6,0" BorderThickness="0" Background="Transparent"><FontIcon Glyph="&#xE70D;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" /><Button.Flyout><MenuFlyout><MenuFlyoutItem x:Name="CommonScanItem" Click="StartCleanupScan" /><MenuFlyoutItem x:Name="FreeSpaceItem" IsEnabled="False" /><MenuFlyoutItem x:Name="LocationsMenuItem" Click="ShowLocations" /></MenuFlyout></Button.Flyout></Button>
                 </StackPanel>
@@ -22,7 +22,7 @@
             <TextBlock x:Name="StartStatus" AutomationProperties.AutomationId="cleanup.start_status" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" />
             <InfoBar x:Name="StartCoverageNotice" AutomationProperties.AutomationId="cleanup.start_coverage" IsClosable="False" Severity="Warning" MaxWidth="520" />
             <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center"><HyperlinkButton x:Name="InvestigateLink" Style="{StaticResource ShouLinkButton}" IsEnabled="False" /><HyperlinkButton x:Name="ExternalToolsLink" Style="{StaticResource ShouLinkButton}" IsEnabled="False" /><HyperlinkButton x:Name="LocationsLink" Style="{StaticResource ShouLinkButton}" Click="ShowLocations" /></StackPanel>
-        </StackPanel>
+        </StackPanel></ScrollViewer>
         <Grid x:Name="ResultsContent" AutomationProperties.AutomationId="cleanup.results" Visibility="Collapsed">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
             <Grid x:Name="ReviewControls" Padding="16,10" ColumnSpacing="16" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1">
@@ -31,18 +31,12 @@
                 <TextBlock Grid.Column="1" x:Name="ScanState" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /><Button Grid.Column="2" x:Name="RescanButton" Click="StartCleanupScan" Style="{StaticResource ShouBorderedButton}" VerticalAlignment="Center" />
             </Grid>
             <StackPanel Grid.Row="1" x:Name="ReviewStatus"><TextBlock x:Name="Status" AutomationProperties.AutomationId="cleanup.status" Margin="20,4" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" /></StackPanel>
-            <Grid Grid.Row="2" ColumnSpacing="0"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouCleanupCategoryWidth}" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                <Grid Background="{ThemeResource ShouSidebarBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,1,0" Padding="8,8,8,4"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-                    <Button x:Name="AllResultsButton" Click="ShowAllResults" HorizontalAlignment="Stretch" Style="{StaticResource ShouToolbarButton}" Margin="0,0,0,6" />
-                    <ListView Grid.Row="1" x:Name="CategoryFilter" SelectionMode="Single" ItemContainerStyle="{StaticResource ShouCleanupCategoryItem}" Padding="0">
-                        <ListView.ItemTemplate><DataTemplate><Grid ColumnSpacing="8" Padding="2,6"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="22" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <CheckBox Tag="{Binding Id}" IsThreeState="True" IsChecked="{Binding Selection, Mode=OneWay}" IsEnabled="{Binding CanToggle}" Click="ChangeCategorySelection" AutomationProperties.Name="{Binding Title}" VerticalAlignment="Center" />
-                            <ContentControl Grid.Column="1" Tag="{Binding Icon}" Loaded="LoadCategoryIcon" VerticalAlignment="Center" />
-                            <StackPanel Grid.Column="2" Spacing="2"><TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding Detail}" Style="{StaticResource ShouCaption}" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding SelectedLine}" Style="{StaticResource ShouCaption}" Visibility="{Binding SelectedVisibility}" /></StackPanel>
-                        </Grid></DataTemplate></ListView.ItemTemplate>
-                    </ListView>
-                </Grid>
-                <Grid Grid.Column="1"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <Grid Grid.Row="2"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Spacing="12" Padding="16,6">
+                    <ComboBox x:Name="CategoryFilter" DisplayMemberPath="Title" MinWidth="180" />
+                    <Button x:Name="AllResultsButton" Click="ShowAllResults" Style="{StaticResource ShouToolbarButton}" />
+                </StackPanel>
+                <Grid Grid.Row="1"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                     <Grid Padding="16,10" ColumnSpacing="8" RowSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                         <Grid ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="CategoryHeading" FontWeight="SemiBold" /><TextBlock Grid.Column="1" x:Name="CategoryCount" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /><TextBlock Grid.Column="3" x:Name="CategoryMetrics" Style="{StaticResource ShouCaption}" VerticalAlignment="Center" /></Grid>
                         <CheckBox Grid.Column="1" x:Name="FilteredSelection" IsThreeState="True" Click="ChangeFilteredSelection" VerticalAlignment="Center" />

@@ -45,6 +45,24 @@ public sealed class WindowsRecordStore : IRecordStore
         return new(container.Append("Diagnostics"), container);
     }
 
+    // This metadata-only path must never call EnsureDirectory, open a lease or
+    // enumerate records. It shares the store's ACL policy without provisioning.
+    internal DiagnosticRecordState InspectDirectoryForDiagnostics(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        WindowsFileSystem.PinnedPath pinned;
+        try { pinned = WindowsFileSystem.PinPath(root, allowFinalSharedWrites: true); }
+        catch (ShouException error) when (error.Code == "not_found") { return DiagnosticRecordState.Missing; }
+        catch (ShouException error) when (error.Code is "unsafe_path" or "unsupported_metadata") { return DiagnosticRecordState.Unsafe; }
+        catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException) { return DiagnosticRecordState.Unavailable; }
+        using (pinned)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try { RequireDirectory(root, pinned.Final, requirePrivate: true); return DiagnosticRecordState.PrivateDirectory; }
+            catch (ShouException) { return DiagnosticRecordState.Unsafe; }
+        }
+    }
+
     internal WindowsFileSystem.PinnedPath PinPrivateDirectory()
     {
         if (container is not null) EnsureDirectory(container, requirePrivate: false);

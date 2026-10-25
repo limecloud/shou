@@ -7,6 +7,7 @@ public struct CleanupSource: Sendable, Identifiable {
     public let candidate: Candidate
     public let fileCount: Int
     public let selectable: Bool
+    public let requiresManualReview: Bool
     public let recommendationEligible: Bool
     public var id: String { snapshotId + ":" + candidate.id }
     public var path: String { workspace.path + "/" + candidate.relativePath }
@@ -30,6 +31,16 @@ public struct CleanupReviewCategory: Sendable, Identifiable {
     public var bytes: Int64 { groups.reduce(0) { $0 + $1.bytes } }
 }
 
+/// Groups existing candidates by observed project markers for presentation only.
+/// A repository or marker never proves its contents can be removed.
+public struct CleanupProjectGroup: Sendable, Identifiable {
+    public let path: String
+    public let identifiedProject: Bool
+    public let sources: [CleanupSource]
+    public var id: String { path }
+    public var bytes: Int64 { sources.reduce(0) { $0 + $1.candidate.allocatedBytesEstimate } }
+}
+
 /// Selects newer evidence for one displayed directory without changing saved snapshots.
 public struct CleanupTargetRefinement: Sendable {
     public let originalSnapshotId: String
@@ -46,9 +57,39 @@ public struct CleanupReview: Sendable {
     public var bytes: Int64 { categories.reduce(0) { $0 + $1.bytes } }
     /// Scans contain enabled rules only. Draft previews and incomplete or
     /// blocked candidates remain ineligible for the repeated one-click path.
-    public var recommendedSources: [CleanupSource] { sources.filter { $0.selectable && $0.recommendationEligible && $0.candidate.risk != "high" } }
+    public var recommendedSources: [CleanupSource] { sources.filter { $0.selectable && !$0.requiresManualReview && $0.recommendationEligible && $0.candidate.risk != "high" } }
 
     public init() { categories=[] }
+
+    public func projects(snapshots: [ScanSnapshot], locations: [KnownLocation]) -> [CleanupProjectGroup] {
+        let projectRoots=Set(locations.filter { $0.category == "build" }.map(\.path))
+        let markers=Set(((try? BuiltinCatalog.templates()) ?? []).filter { $0.location == "projects" }.compactMap(\.marker))
+            .union(["Package.swift", "go.mod"])
+        var rootsBySnapshot: [String: [String]]=[:]
+        for snapshot in snapshots {
+            rootsBySnapshot[snapshot.id]=Set(snapshot.entries.compactMap { entry -> String? in
+                guard entry.kind == "file", markers.contains((entry.path as NSString).lastPathComponent) else { return nil }
+                let parent=StorageIndex.parent(entry.path)
+                return parent == "." ? snapshot.workspace.path : snapshot.workspace.path + "/" + parent
+            }).sorted { $0.count > $1.count }
+        }
+        let projectSources=categories.flatMap { category -> [CleanupSource] in
+            if category.id == "build" { return category.sources }
+            if category.id == "personal" { return category.sources.filter { projectRoots.contains($0.workspace.path) } }
+            return []
+        }
+        var grouped: [String: [CleanupSource]]=[:]
+        var identified=Set<String>()
+        for source in projectSources {
+            let root=rootsBySnapshot[source.snapshotId]?.first { source.path.hasPrefix($0 + "/") }
+            let path=root ?? source.workspace.path
+            if root != nil { identified.insert(path) }
+            grouped[path, default: []].append(source)
+        }
+        return grouped.map { path, sources in
+            CleanupProjectGroup(path: path, identifiedProject: identified.contains(path), sources: sources.sorted { $0.path < $1.path })
+        }.sorted { $0.bytes == $1.bytes ? $0.path < $1.path : $0.bytes > $1.bytes }
+    }
 
     public init(snapshots: [ScanSnapshot], locations: [KnownLocation] = [], refinements: [CleanupTargetRefinement] = []) throws {
         let templates=try BuiltinCatalog.templates()
@@ -120,9 +161,14 @@ public struct CleanupReview: Sendable {
             else if location?.category == "developer" { category="developer" }
             else { category="application" }
             if indexes[snapshot.id] == nil { indexes[snapshot.id]=StorageIndex(entries: snapshot.entries) }
+            let complete=TreeSnapshot(entries: [], complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: [], caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths).isComplete(at: candidate.relativePath)
             grouped[key, default: []].append(CleanupSource(snapshotId: snapshot.id, workspace: snapshot.workspace, candidate: candidate,
                 fileCount: indexes[snapshot.id]?.nodes[candidate.relativePath]?.fileCount ?? 0,
-                selectable: candidate.eligible && !snapshot.previewOnly && TreeSnapshot(entries: [], complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: [], caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths).isComplete(at: candidate.relativePath),
+                selectable: !snapshot.previewOnly && !candidate.reasons.contains("excluded_descendant") &&
+                    !(snapshot.workspace.protectedRelativePaths ?? []).contains { protected in
+                        protected == "." || candidate.relativePath == protected || candidate.relativePath.hasPrefix(protected + "/") || protected.hasPrefix(candidate.relativePath + "/")
+                    },
+                requiresManualReview: !candidate.eligible || !complete,
                 recommendationEligible: !(snapshot.installedApplicationCaches ?? []).contains { candidate.ruleIds.contains($0.ruleId) && $0.ownershipCoverageIncomplete == true }))
             definitions[key]=(toolTitle ?? template?.name ?? installedCache?.application.name ?? "Personal Rules", category,
                 template?.applicationBundleIdentifiers ?? installedCache?.application.bundleIdentifier.map { [$0] } ?? [])

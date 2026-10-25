@@ -30,23 +30,25 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     public event EventHandler? LocationsPrepared;
     public event EventHandler? BusyChanged;
     public event EventHandler? HistoryRequested;
+    public event Action<string>? DestinationRequested;
     public bool HasActiveCleanup => activeExecution is { IsCompleted: false } || execution.IsExecuting;
     public bool ShowingCompletion => CompletionContent.Visibility == Visibility.Visible;
     private bool IsBusy => model.IsBusy || execution.IsBusy || HasActiveCleanup;
     public void RequestCleanupStop() => execution.Cancel();
 
-    public CleanupPage(ICleanupReviewOperations operations, ICleanupExecutionOperations executionOperations, BuiltinRuleCatalog catalog)
+    public CleanupPage(ICleanupReviewOperations operations, ICleanupExecutionOperations executionOperations, BuiltinRuleCatalog catalog, bool projectsOnly = false)
     {
         InitializeComponent();
-        model = new(operations, catalog.Templates.ToImmutableDictionary(template => template.Id, template => template.Category));
+        model = new(operations, catalog.Templates.ToImmutableDictionary(template => template.Id, template => template.Category),
+            projectsOnly ? CleanupReviewScope.ProjectOutputs : CleanupReviewScope.All);
         execution = new(executionOperations);
-        PageTitle.Text = text.Get("Find what is ready to tidy up");
+        PageTitle.Text = text.Get("Room for") + "\n" + text.Get("what comes next.");
         StartIcon.Content = ProductIcon.Create("cleanup", (double)Application.Current.Resources["ShouStartIconSize"]);
         var emptyIcon = ProductIcon.Create("complete", (double)Application.Current.Resources["ShouStartIconSize"]);
         ProductIcon.Select(emptyIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
         EmptyResultIcon.Content = emptyIcon;
         var scanLabel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        var scanIcon = ProductIcon.Create("cleanup"); ProductIcon.Select(scanIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorPrimaryBrush"]);
+        var scanIcon = ProductIcon.Create("cleanup"); ProductIcon.Select(scanIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ShouActionTextBrush"]);
         scanLabel.Children.Add(scanIcon); scanLabel.Children.Add(new TextBlock { Text = text.Get("Start Scan") }); StartButton.Content = scanLabel;
         CommonScanItem.Text = text.Get("Scan Common Locations"); LocationsMenuItem.Text = text.Get("Scan Locations…");
         FreeSpaceItem.Text = text.Get("Scan & Free Space");
@@ -58,6 +60,16 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         RescanButton.Content = text.Get("Scan Again");
         LocationMenuButton.Content = text.Get("Scan Locations");
         StartDescription.Text = text.Get("Scan app caches, developer build outputs, and your personal cleanup rules together.");
+        if (projectsOnly)
+        {
+            PageTitle.Text = text.Get("More room to build.");
+            StartDescription.Text = text.Get("Review build outputs and dependencies from local and cloned projects. Source files are kept.");
+        }
+        WorkspaceVisuals.ArrangeLanding(StartContent, StartIcon, PageTitle, StartDescription, projectsOnly ? "projects" : "cleanup");
+        if (!projectsOnly) StartContent.Children.Add(WorkspaceVisuals.Destinations(text, page =>
+        {
+            if (!IsBusy) DestinationRequested?.Invoke(page);
+        }));
         Description.Text = text.Get("Choose items to review. High-risk items require your selection.");
         Locations.PlaceholderText = text.Get("Scan Locations");
         AutomationProperties.SetName(Locations, text.Get("Scan Locations"));
@@ -139,7 +151,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             var activity = execution.IsBusy || model.IsBusy;
             var completion = !activity && execution.AttemptedPlan is { } attempted && attempted.Id != dismissedCompletion;
             var results = model.Batch is not null || model.Snapshot is not null;
-            StartContent.Visibility = !activity && !completion && !results ? Visibility.Visible : Visibility.Collapsed;
+            LandingScroll.Visibility = StartContent.Visibility = !activity && !completion && !results ? Visibility.Visible : Visibility.Collapsed;
             ResultsContent.Visibility = !activity && !completion && results ? Visibility.Visible : Visibility.Collapsed;
             PageToolbar.Visibility = !activity && !completion && results ? Visibility.Visible : Visibility.Collapsed;
             CompletionContent.Visibility = completion ? Visibility.Visible : Visibility.Collapsed;

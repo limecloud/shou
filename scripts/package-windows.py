@@ -74,7 +74,7 @@ def package(payload_root, output, version, runtime, source, native_checked):
         receipt = {'format_version': 1, 'version': version, 'source_commit': source, 'configuration': 'Release',
                    'runtime': runtime, 'kind': kind, 'minimum_windows_build': 22000, 'signing': 'unsigned',
                    'distribution': 'portable-preview', 'native_smoke_checked': native_checked,
-                   'public_mutation_available': True, 'mutation_host_requirement': 'native-windows-11-matching-architecture', 'files': hashes}
+                   'public_mutation_available': False, 'mutation_host_requirement': 'native-acceptance-pending', 'files': hashes}
         with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED) as bundle:
             for path in paths:
                 bundle.write(path, path.relative_to(payload).as_posix())

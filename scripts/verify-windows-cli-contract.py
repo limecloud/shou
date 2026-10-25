@@ -52,6 +52,23 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         checks += 1
         return envelope
 
+    for shell in ('bash', 'zsh', 'powershell'):
+        script = run(['completion', '--shell', shell, '--json'])['data']['script']
+        destination = Path(directory) / ('shou-completion.' + shell)
+        destination.write_text(script, encoding='utf-8')
+        executable = shutil.which(shell)
+        if shell != 'powershell' and executable:
+            subprocess.run([executable, '-n', str(destination)], capture_output=True, check=True, timeout=10)
+        if shell == 'bash' and executable:
+            callback = 'source "$1"; COMP_WORDS=(shou analysis c); COMP_CWORD=2; _shou; printf "%s\\n" "${COMPREPLY[@]}"'
+            actual = subprocess.run([executable, '--noprofile', '--norc', '-c', callback, 'shou-test', str(destination)], capture_output=True, text=True, check=True, timeout=10)
+            assert set(actual.stdout.split()) == {'compare'}
+        if shell == 'powershell' and shutil.which('pwsh'):
+            driver = Path(directory) / 'completion-driver.ps1'
+            driver.write_text("param([string]$CompletionFile)\n. $CompletionFile\n$result = TabExpansion2 'shou analysis c' 15\nif ($result.CompletionMatches.CompletionText -notcontains 'compare') { throw 'Missing comparison completion' }\n$result = TabExpansion2 'shou --locale ' 14\nif ($result.CompletionMatches.CompletionText -notcontains 'zh-CN') { throw 'Missing locale completion' }\n", encoding='utf-8')
+            subprocess.run([shutil.which('pwsh'), '-NoProfile', '-NonInteractive', '-File', str(driver), str(destination)], capture_output=True, check=True, timeout=20)
+    assert not data_directory.exists()
+
     import xml.etree.ElementTree as ET
     expected_version = ET.parse(Path(__file__).resolve().parents[1] / 'apps/windows/Directory.Build.props').findtext('.//Version')
     assert expected_version
@@ -60,27 +77,28 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
     assert capabilities['platform'] == 'windows'
     assert capabilities['application_version'].split('+', 1)[0] == expected_version
     assert capabilities['api_version'] == '1.0' and capabilities['rule_schema_version'] == '1.0'
-    assert capabilities['mutation_available'] == capabilities['host_supported']
-    assert capabilities['application_uninstall_available'] == capabilities['host_supported']
-    assert capabilities['startup_control_available'] == capabilities['host_supported']
+    assert capabilities['mutation_available'] is False
+    assert capabilities['application_uninstall_available'] is False
+    assert capabilities['startup_control_available'] is False
     assert capabilities['trash_available'] is False
-    read_commands = {'capabilities', 'rules schema', 'rules catalog', 'system locations', 'rules validate', 'analysis scan', 'applications summary', 'applications inspect', 'applications plan show', 'applications execution show', 'startup list', 'startup inspect', 'startup execution show',
+    read_commands = {'applications updates source', 'diagnostics', 'completion', 'capabilities', 'rules schema', 'rules catalog', 'system locations', 'rules validate', 'analysis history', 'analysis compare', 'applications summary', 'applications inspect', 'applications plan show', 'applications execution show', 'startup list', 'startup inspect', 'startup execution show',
                      'workspaces list', 'workspaces show', 'exclusions list',
                      'rules list', 'rules show', 'rules export', 'scan results',
                      'plan show', 'history list', 'history show', 'history inspect', 'privacy scan show'}
     configuration_commands = {'workspaces add', 'workspaces remove', 'workspaces exclude add', 'workspaces exclude remove',
                               'exclusions global add', 'exclusions global remove', 'rules import', 'rules enable', 'rules disable'}
-    snapshot_commands = {'scan', 'rules preview', 'system scan', 'privacy scan'}
+    snapshot_commands = {'analysis scan', 'scan', 'rules preview', 'system scan', 'privacy scan'}
     plan_commands = {'plan create', 'applications plan'}
     destructive_commands = {'plan execute', 'applications uninstall', 'startup control'}
-    all_commands = read_commands | configuration_commands | snapshot_commands | plan_commands | destructive_commands
+    network_commands = {'applications updates check'}
+    all_commands = network_commands | read_commands | configuration_commands | snapshot_commands | plan_commands | destructive_commands
     assert {item['command'] for item in capabilities['commands']} == all_commands
     for command in capabilities['commands']:
-        expected = 'read' if command['command'] in read_commands else 'configuration' if command['command'] in configuration_commands else 'snapshot' if command['command'] in snapshot_commands else 'plan' if command['command'] in plan_commands else 'destructive'
+        expected = 'network' if command['command'] in network_commands else 'read' if command['command'] in read_commands else 'configuration' if command['command'] in configuration_commands else 'snapshot' if command['command'] in snapshot_commands else 'plan' if command['command'] in plan_commands else 'destructive'
         assert command['side_effect'] == expected
-        assert command['available'] == (command['command'] not in destructive_commands or capabilities['host_supported'])
+        assert command['available'] == (command['command'] not in destructive_commands)
         if command['command'] in destructive_commands:
-            assert command['unavailable_reason'] == (None if capabilities['host_supported'] else 'unsupported_native_host')
+            assert command['unavailable_reason'] == 'native_acceptance_pending'
     assert all({'required', 'optional', 'repeated', 'description'} <= item.keys() for item in capabilities['commands'])
     focused = run(['capabilities', '--command', 'rules', '--json'])['data']['commands']
     assert {item['command'] for item in focused} == {name for name in all_commands if name.startswith('rules ')}
@@ -113,6 +131,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
     assert capabilities['limits']['history_list_bytes'] == 33_554_432
     applications = run(['capabilities', '--command', 'applications', '--json'])['data']['commands']
     assert {command['command']: command['side_effect'] for command in applications} == {
+        'applications updates source': 'read', 'applications updates check': 'network',
         'applications summary': 'read', 'applications inspect': 'read', 'applications plan': 'plan', 'applications plan show': 'read',
         'applications uninstall': 'destructive', 'applications execution show': 'read'}
     assert capabilities['limits']['application_entries'] == 4000 and capabilities['limits']['application_seconds_max'] == 60
@@ -318,7 +337,7 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         assert not data_directory.exists()
         assert run(['applications', 'plan', 'show', '--uninstall-plan-id', uninstall_plan_id, '--json'], 5)['error']['code'] == 'not_found'
         assert run(['applications', 'execution', 'show', '--uninstall-plan-id', uninstall_plan_id, '--json'], 5)['error']['code'] == 'not_found'
-        assert run(['applications', 'uninstall', '--uninstall-plan-id', uninstall_plan_id, '--json'], 5)['error']['code'] == 'not_found'
+        assert run(['applications', 'uninstall', '--uninstall-plan-id', uninstall_plan_id, '--json'], 8)['error']['code'] == 'unsupported_capability'
         assert run(['applications', 'plan', '--application-id', application_id, '--review-digest', review_digest,
                     '--allow-installer-data-changes', 'false', '--json'], 7)['error']['code'] == 'installer_data_consent_required'
         assert not data_directory.exists()

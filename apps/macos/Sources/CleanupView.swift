@@ -3,6 +3,26 @@ import ShouCore
 import ShouPlatform
 import AppKit
 
+struct CleanupActionButton: View {
+    let model: AppModel
+    let enabled: Bool
+    let clean: () -> Void
+    let trash: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Button(model.t("Clean & Free Space"), action: clean)
+                .buttonStyle(.borderedProminent).controlSize(.large)
+                .accessibilityIdentifier("cleanup.clean")
+            Menu {
+                Button(model.t("Move Selected to Trash…"), action: trash)
+            } label: { Image(systemName: "chevron.down") }
+                .menuStyle(.borderlessButton).fixedSize()
+                .accessibilityLabel(model.t("More Actions"))
+        }.fixedSize().disabled(!enabled)
+    }
+}
+
 struct CleanupView: View {
     @Bindable var model: AppModel
     @ReduceMotion private var reduceMotion
@@ -71,13 +91,9 @@ struct CleanupSummary: View {
                     }
                 }
                 Spacer()
-                Menu {
-                    Button(model.t("Delete Permanently…"), role: .destructive) { model.previewCleanup() }
-                    Button(model.t("Move to Trash…")) { model.previewCleanup(permanent: false) }
-                } label: { Text(model.t("Clean & Free Space")) }
-                    primaryAction: { model.previewCleanup() }
-                    .menuStyle(.borderlessButton).fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
-                    .disabled(model.busy || model.selected.isEmpty || model.selected.contains { !$0.eligible } || model.snapshot?.previewOnly == true)
+                CleanupActionButton(model: model,
+                    enabled: !model.busy && !model.selected.isEmpty && !model.selected.contains { !$0.eligible } && model.snapshot?.previewOnly != true,
+                    clean: { model.previewCleanup() }, trash: { model.previewCleanup(permanent: false) })
             }
             CapacityDots(segments: segments.map { ($0.1,$0.2) }, scanning: model.scanning).frame(height: 88).accessibilityHidden(true)
             ScrollView(.horizontal, showsIndicators: false) {

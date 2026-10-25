@@ -6,8 +6,8 @@ $App = Join-Path $PublishRoot 'app/Shou.Windows.App.exe'
 $VersionResult = & $Cli --version --json | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $VersionResult.data.version.Split('+')[0] -ne $Version) { throw 'Published CLI version differs.' }
 $Capabilities = & $Cli capabilities --json | ConvertFrom-Json
-if ($LASTEXITCODE -ne 0 -or -not $Capabilities.data.host_supported -or -not $Capabilities.data.mutation_available -or -not $Capabilities.data.application_uninstall_available -or -not $Capabilities.data.startup_control_available) {
-    throw 'Published mutation capabilities must match the supported native Windows host.'
+if ($LASTEXITCODE -ne 0 -or -not $Capabilities.data.host_supported -or $Capabilities.data.mutation_available -ne $false -or $Capabilities.data.application_uninstall_available -ne $false -or $Capabilities.data.startup_control_available -ne $false) {
+    throw 'Published preview must recognize the native Windows host and keep public mutation gates closed.'
 }
 $Started = Get-Date
 $Process = Start-Process $App -PassThru

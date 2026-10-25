@@ -50,6 +50,7 @@ struct FixtureFileSystem: PlatformFileSystem {
     var verifiesMutationManifest: Bool { true }
     func locationAvailability(_ path: String) -> LocationAvailability { native.locationAvailability(path) }
     func rootIdentity(_ path: String) throws -> FileEntry { try native.rootIdentity(path) }
+    func analysisRootIdentity(_ path: String) throws -> FileEntry { try native.analysisRootIdentity(path) }
     func applicationParentIdentity(_ path: String) throws -> FileEntry { try native.applicationParentIdentity(path) }
     func targetAvailability(_ path: String) -> LocationAvailability { native.targetAvailability(path) }
     func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot { try native.inspectTarget(path, budget: budget, cancelled: cancelled) }

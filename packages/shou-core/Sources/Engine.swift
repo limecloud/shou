@@ -353,6 +353,12 @@ public actor ShouEngine {
         }
         guard !candidateIds.isEmpty, Set(candidateIds).count == candidateIds.count else { throw ShouError("invalid_argument", "Explicit, unique candidate IDs are required.") }
         let snapshot = try scanSnapshot(scanId)
+        let selected=try candidateIds.map { id in
+            guard let candidate=snapshot.candidates.first(where: { $0.id == id }), candidate.eligible else {
+                throw ShouError("invalid_argument", "Candidate is missing, protected, excluded, or unclassified.", details: ["candidate": id])
+            }
+            return candidate
+        }
         let budget=snapshot.budget ?? ScanBudget()
         try budget.validate()
         guard !snapshot.previewOnly else { throw ShouError("partial_result", "Draft previews cannot produce executable plans.") }
@@ -365,16 +371,22 @@ public actor ShouEngine {
             additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: snapshot.workspace) })
         let blocked=try ApplicationSafety.blockedRules(eligibleRules.map(\.id), activity: applicationActivity).merging(
             InstalledApplicationCaches.blocked(installedCaches, workspace: snapshot.workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
-        let reviewed = try Analysis.candidates(tree: TreeSnapshot(entries: snapshot.entries, complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: snapshot.issues, caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths), workspace: protectedWorkspace(snapshot.workspace, configuration: config), rules: eligibleRules, now: snapshot.createdAt, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds)
+        let reviewed = try Analysis.candidates(tree: TreeSnapshot(entries: snapshot.entries, complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: snapshot.issues, caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths), workspace: protectedWorkspace(snapshot.workspace, configuration: config), rules: eligibleRules, now: snapshot.createdAt, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds, selectedPaths: Set(selected.map(\.relativePath)))
         var items: [PlanItem] = []
-        for id in candidateIds {
-            guard let candidate = snapshot.candidates.first(where: { $0.id == id }), candidate.eligible else { throw ShouError("invalid_argument", "Candidate is missing, protected, excluded, or unclassified.", details: ["candidate": id]) }
+        for candidate in selected {
             let path = candidate.relativePath
             if let reason=candidate.ruleIds.compactMap({ blocked[$0] }).sorted().first {
                 throw ShouError(reason, "Quit the affected application and scan again before cleanup.")
             }
-            guard reviewed.contains(where: { $0.relativePath == path && $0.eligible && $0.manifestDigest == candidate.manifestDigest && $0.ruleVersions == candidate.ruleVersions }) else {
-                throw ShouError("store_corrupt", "Candidate policy evidence could not be reproduced.")
+            guard let current=reviewed.first(where: { $0.relativePath == path }), current.ruleVersions == candidate.ruleVersions else {
+                throw ShouError("store_corrupt", "Candidate policy evidence could not be reproduced.", details: ["path": snapshot.workspace.path + "/" + path])
+            }
+            guard current.eligible else {
+                throw ShouError("plan_stale", "Cleanup safety checks changed. Scan again before cleaning this directory.",
+                    details: ["path": snapshot.workspace.path + "/" + path, "reasons": current.reasons.joined(separator: "\n")])
+            }
+            guard current.manifestDigest == candidate.manifestDigest else {
+                throw ShouError("store_corrupt", "Candidate policy evidence could not be reproduced.", details: ["path": snapshot.workspace.path + "/" + path])
             }
             guard !items.contains(where: { $0.candidate.relativePath.hasPrefix(path + "/") || path.hasPrefix($0.candidate.relativePath + "/") }) else { throw ShouError("invalid_argument", "Parent and child targets cannot be selected together.") }
             let manifest = Analysis.subtree(snapshot.entries, path: path)

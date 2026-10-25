@@ -71,6 +71,15 @@ struct ApplicationsView: View {
     private var selectedVisible: Int { eligible.filter { session.isSelected($0.application.id) }.count }
 
     var body: some View {
+        Group {
+            if session.catalog == nil && session.items.isEmpty && !session.scanning {
+                WorkspaceStartPage(eyebrow: model.t("Applications"), title: model.t("Keep the apps you love."),
+                    subtitle: model.t("Review applications and their related files in one place."), kind: .applications,
+                    footnote: model.t("Scanning only reads application information. Review components before uninstalling.")) {
+                    Button { session.scan(app: model) } label: { Label(model.t("Scan Applications"), systemImage: "magnifyingglass") }
+                        .buttonStyle(WorkspacePrimaryButtonStyle()).disabled(model.busy).accessibilityIdentifier("applications.start")
+                }.accessibilityIdentifier("applications.welcome")
+            } else {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
@@ -104,19 +113,19 @@ struct ApplicationsView: View {
                         }
                         .overlay {
                             if items.isEmpty {
-                                ContentUnavailableView(model.t(search.isEmpty ? "No applications in this category" : "No matching applications"), systemImage: "app.dashed")
+                                WorkspaceEmptyState(title: model.t(search.isEmpty ? "No applications in this category" : "No matching applications"), kind: .applications)
                             }
                         }
                     }
                 }
-                .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color(nsColor: .separatorColor).opacity(0.55)))
-                .padding(.horizontal, 20)
+                .modifier(WorkspaceSurface())
+                .padding(.horizontal, ShouDesign.workspaceInset)
                 .padding(.bottom, 10)
                 footer
             }
         }
-        .task(id: model.initializing) { if !model.initializing && session.catalog == nil && !model.busy { session.scan(app: model) } }
+            }
+        }
         .onChange(of: session.includeSystem) { _, _ in session.scan(app: model) }
         .sheet(isPresented: $showCoverage) { coverage }
         .sheet(isPresented: $model.showApplicationOrphans, onDismiss: {
@@ -166,7 +175,7 @@ struct ApplicationsView: View {
             } else if session.catalog?.status == "partial" {
                 Button { showCoverage=true } label: { Label(model.t("Partial Coverage"), systemImage: "exclamationmark.triangle") }.buttonStyle(.link).font(.caption)
             }
-        }.padding(14)
+        }.padding(20)
     }
     private var filters: some View {
         HStack(spacing: 5) {
@@ -198,7 +207,7 @@ struct ApplicationsView: View {
             sortButton("Estimated Size", .size).frame(width: 88, alignment: .trailing)
             if !compact { sortButton("Last Used", .lastUsed).frame(width: 135, alignment: .trailing) }
             Color.clear.frame(width: 22, height: 1)
-        }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, 20).padding(.vertical, 7)
+        }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 7)
     }
     private func sortButton(_ label: String, _ value: ApplicationSort) -> some View {
         Button {
@@ -228,7 +237,7 @@ struct ApplicationsView: View {
                 primaryAction: { session.prepare(app: model, action: "trash") }
                 .fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(model.busy || session.selectedAppIDs.isEmpty || session.hasChanges).accessibilityIdentifier("applications.uninstall")
-        }.padding(.horizontal, 20).padding(.vertical, 12).background(.bar)
+        }.padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 12).background(.bar)
     }
     private var coverage: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -295,9 +304,9 @@ private struct ApplicationUninstallRow: View {
                 enabled: !model.busy && (session.selectable(summary) || session.isSelected(app.id)), label: model.t("Select") + " " + app.name, identifier: "applications.select." + app.id) {
                 session.toggle(summary, app: model)
             }.frame(width: 20, height: 24)
-            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable().frame(width: 32, height: 32).accessibilityHidden(true)
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable().frame(width: ShouDesign.workspaceIconSize, height: ShouDesign.workspaceIconSize).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
-                Text(app.name).font(.callout.weight(.medium)).lineLimit(1)
+                Text(app.name).font(.system(size: ShouDesign.bodyFontSize, weight: .medium)).lineLimit(1)
                 Text(identitySubtitle)
                     .font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
             }.frame(maxWidth: .infinity, alignment: .leading).help(app.path)
@@ -310,7 +319,7 @@ private struct ApplicationUninstallRow: View {
                 .buttonStyle(.plain).frame(width: 22, height: 28).disabled(model.busy)
                 .accessibilityLabel(model.t(expanded ? "Hide components" : "Show components") + " " + app.name)
                 .accessibilityIdentifier("applications.expand." + app.id)
-        }.padding(.horizontal, 10).padding(.vertical, 12)
+        }.padding(.horizontal, 14).padding(.vertical, ShouDesign.workspaceRowPadding)
             .background(rowColor, in: RoundedRectangle(cornerRadius: 8))
             .onHover { hovering=$0 }.contentShape(Rectangle())
             .contextMenu {
@@ -348,6 +357,8 @@ private struct ApplicationUninstallRow: View {
                 Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: app.path)]) } label: { Image(systemName: "folder") }
                     .buttonStyle(.plain).accessibilityLabel(model.t("Reveal in Finder"))
             }
+            ApplicationUpdateRow(model: model, application: app)
+            Divider()
             if summary.status == "running" {
                 HStack {
                     Text(model.t("Quit the application and its helpers before uninstalling.")).font(.caption).foregroundStyle(.orange)
@@ -449,7 +460,7 @@ private struct ApplicationBatchConfirmation: View {
                             }
                         }
                     }
-                }.padding(14)
+                }.padding(20)
             }.frame(minHeight: 100, maxHeight: 300).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             HStack {
                 Spacer()

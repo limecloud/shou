@@ -37,6 +37,7 @@ extension NativeFileSystem {
         var entries=[".": rootEntry], directories=[".": rootEntry]
         var markers=[String: FileEntry]()
         var queue=[CleanupDirectory(entry: rootEntry, depth: 0)], next=0
+        var priorityQueue=[CleanupDirectory](), priorityNext=0
         var targets=[CleanupDirectory](), issues=[String](), completed=[String]()
         var visited=1
         var limited=false
@@ -75,14 +76,15 @@ extension NativeFileSystem {
         }
 
         progress(ScanProgress(stage: "scanning", entryCount: 0, currentPath: path))
-        while next < queue.count {
+        while next < queue.count || priorityNext < priorityQueue.count {
             try checkpoint()
-            let item=queue[next]
-            next += 1
+            let item: CleanupDirectory
+            if priorityNext < priorityQueue.count { item=priorityQueue[priorityNext]; priorityNext += 1 }
+            else { item=queue[next]; next += 1 }
             if visited >= discoveryLimit || ContinuousClock.now >= discoveryDeadline { limit(item.entry.path); break }
             if item.depth > budget.maxDepth { limit(item.entry.path); continue }
-            let pending=queue.count - next + 1
-            let quota=max(1, (discoveryLimit - visited) / pending)
+            let pending=queue.count - next + priorityQueue.count - priorityNext + 1
+            let quota=max(1, (discoveryLimit - visited) / (exactPaths == nil ? max(2, pending) : pending))
             do {
                 let directory=try CleanupDirectoryAccess(absolute(item.entry.path), cancelled: cancelled)
                 guard try directory.entry(relative: item.entry.path) == item.entry else {
@@ -90,35 +92,48 @@ extension NativeFileSystem {
                 }
                 let localDeadline=ContinuousClock.now.advanced(by: .seconds(discoverySeconds() / Double(pending)))
                 let listing: (names: [String], truncated: Bool)
+                let prefix=item.entry.path == "." ? [] : item.entry.path.split(separator: "/").map(String.init)
+                var priorityNames=Set<String>()
                 if let exactPaths {
                     // A target rescan reads only each bound path component and
                     // the current project context, regardless of sibling count.
-                    let prefix=item.entry.path == "." ? [] : item.entry.path.split(separator: "/").map(String.init)
                     let children=exactPaths.compactMap { parts -> String? in
                         guard parts.count > prefix.count, parts.prefix(prefix.count).elementsEqual(prefix) else { return nil }
                         return parts[prefix.count]
                     }
                     listing=(Array(Set(children).union(markerNames)).sorted(), false)
                 } else {
-                    listing=try directory.names(limit: quota, deadline: localDeadline, cancelled: cancelled)
+                    // Wide source directories must not hide the rule's target
+                    // or marker behind an arbitrary readdir truncation point.
+                    let normalized=caseSensitive ? prefix : prefix.map { $0.lowercased() }
+                    priorityNames=prepared.reduce(into: markerNames) { names, rule in
+                        if prefix.count < rule.0.scope.maxDepth {
+                            for pattern in rule.1 { names.formUnion(pattern.literalChildren(of: normalized)) }
+                        }
+                    }
+                    let siblings=try directory.names(limit: quota, deadline: localDeadline, cancelled: cancelled)
+                    let probed=Set(priorityNames.map { caseSensitive ? $0 : $0.lowercased() })
+                    listing=(priorityNames.sorted() + siblings.names.filter { !probed.contains(caseSensitive ? $0 : $0.lowercased()) }, siblings.truncated)
                 }
                 var children=[FileEntry]()
                 var localVisited=0
                 for name in listing.names {
                     try checkpoint()
-                    if ContinuousClock.now >= discoveryDeadline || ContinuousClock.now >= localDeadline || localVisited >= quota { limit(item.entry.path); break }
+                    let priority=priorityNames.contains(name)
+                    if visited >= discoveryLimit || ContinuousClock.now >= discoveryDeadline || ContinuousClock.now >= localDeadline || (!priority && localVisited >= quota) { limit(item.entry.path); break }
                     if prunedNames.contains(name.lowercased()) { visited += 1; localVisited += 1; continue }
                     let child=relativeChild(item.entry.path, name)
                     let entry: FileEntry
                     do {
                         guard let found=try directory.child(name, relative: child) else {
-                            if exactPaths != nil { continue }
+                            if exactPaths != nil || priority { continue }
                             visited += 1; localVisited += 1; issues.append("unreadable: " + child); continue
                         }
                         entry=found
                     } catch let failure as ShouError where failure.code == "cancelled" { throw failure }
                     catch { visited += 1; localVisited += 1; issues.append("\(child): \(error)"); continue }
-                    visited += 1; localVisited += 1
+                    visited += 1
+                    if !priority { localVisited += 1 }
                     guard entry.device == rootEntry.device else { issues.append("cross_filesystem: " + child); continue }
                     if markerNames.contains(name) { entries[child]=entry; markers[child]=entry }
                     if entry.kind == "directory" { children.append(entry) }
@@ -141,6 +156,9 @@ extension NativeFileSystem {
                     if privacy.requiresAuthorization(absolute(child.path)) { issues.append("authorization_required: " + child.path); continue }
                     let childItem=CleanupDirectory(entry: child, depth: item.depth + 1)
                     if !matches.isEmpty { targets.append(childItem) }
+                    else if prepared.contains(where: { rule, patterns in
+                        parts.count < rule.scope.maxDepth && patterns.contains { $0.hasTargetPrefix(parts) }
+                    }) { priorityQueue.append(childItem) }
                     else { queue.append(childItem) }
                 }
                 progress(ScanProgress(stage: "scanning", entryCount: visited, currentPath: absolute(item.entry.path)))

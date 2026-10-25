@@ -26,15 +26,19 @@ struct StartupInventoryView: View {
                 if model.startupLoading && model.startupInventory == nil {
                     OperationProgressView(title: model.t("Reading startup definitions…"), symbol: "power", stopRequested: model.stopRequested,
                         stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
+                } else if model.startupInventory == nil {
+                    WorkspaceStartPage(eyebrow: model.t("Startup Items"), title: model.t("A calmer start."),
+                        subtitle: model.t("Choose what starts with your Mac."), kind: .startup,
+                        footnote: model.t("Checking is read-only. No startup setting or file is changed.")) {
+                        Button { model.scanStartup() } label: { Label(model.t("Scan Startup Items"), systemImage: "magnifyingglass") }
+                            .buttonStyle(WorkspacePrimaryButtonStyle()).disabled(model.busy).accessibilityIdentifier("startup.start")
+                    }.accessibilityIdentifier("startup.welcome")
                 } else {
                     workspace(compact: geometry.size.width < 760)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding(.horizontal, 20).padding(.bottom, 10)
-        }
-        .task(id: model.initializing) {
-            if !model.initializing && model.startupInventory == nil && !model.busy { model.scanStartup() }
+            .padding(.horizontal, model.startupInventory == nil ? 0 : ShouDesign.workspaceInset).padding(.bottom, 10)
         }
         .onChange(of: model.startupIncludeSystem) { _, _ in expandedID=nil; model.scanStartup() }
         .sheet(isPresented: $showCoverage) { coverage }
@@ -84,14 +88,12 @@ struct StartupInventoryView: View {
             .accessibilityIdentifier("startup.definitions")
             .overlay {
                 if visibleGroups.isEmpty {
-                    ContentUnavailableView(model.t(groups.isEmpty ? "No startup items found" : "No matching startup items"),
-                        systemImage: search.isEmpty ? "power.circle" : "magnifyingglass",
-                        description: Text(model.t(groups.isEmpty ? "Scan again or review discovery coverage." : "Try another search or startup category.")))
+                    WorkspaceEmptyState(title: model.t(groups.isEmpty ? "No startup items found" : "No matching startup items"),
+                        description: model.t(groups.isEmpty ? "Scan again or review discovery coverage." : "Try another search or startup category."), kind: .startup)
                 }
             }
         }
-        .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color(nsColor: .separatorColor).opacity(0.55)))
+        .modifier(WorkspaceSurface())
     }
 
     private var summary: some View {

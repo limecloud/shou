@@ -1,21 +1,23 @@
-Shou v0.14.0 improves cleanup responsiveness, privacy review, settings, and Windows portable preview builds.
+Shou v0.15.0 introduces the new native workspace and read-only tools for understanding disk usage and application versions.
 
-- Shared native directory readers and operation-local indexes reduce repeated work across analysis, rules, cleanup and history inspection. Final identity, activity, exact-scope and per-file mutation checks remain enforced.
-- Large cleanup manifests use digest-verified pages; progress/result writes update compact metadata. On the generated 20,026-entry workload, three paired Release runs reduced median preparation by 63%, execution by 43% and total time from 17.06 s to 9.17 s. These measurements used a busy host and warm caches, rather than a full-disk benchmark.
-- Cleanup stays in the main content area with flat animation, measured percentages, one shortened path and direct stopping. Storage analysis defaults to the startup disk; storage exhaustion has a distinct diagnostic and preserves earlier analyses.
-- Windows downloads include self-contained WinUI 3/.NET 10 app and CLI ZIPs for x64 and ARM64. Extract the app archive and run `Shou.Windows.App.exe`; use the separate `shou-cli` archive for terminal access. Per-archive `BUILD.json` and `SHA256SUMS` identify the exact source and bytes.
+- Top task navigation, a continuous light/dark gradient, original task illustrations, full-width expandable rows and a stable selection footer follow the current shared design. Populated pages prioritize controls and results.
+- Settings and CLI diagnostics produce a bounded report of capacity, access and record-directory safety. Reports omit personal paths and contents and are never uploaded automatically.
+- Space analysis can compare two retained observations of the same folder. Identity, accounting and coverage checks distinguish measurable changes from missing, replaced or incomplete observations. Historical results never authorize deletion.
+- Application details can explicitly check a supported public release catalog: six stable applications through Homebrew Cask on macOS, and registered Visual Studio Code x64 stable installations on Windows. Checks show versions, observation time and the official update page; they do not download or install updates.
+- The CLI generates static Bash/Zsh completion; Windows also generates PowerShell completion. It does not modify shell profiles. macOS developer discovery prioritizes literal output paths and project markers in wide directories while retaining activity and exact-scope protection.
 
-macOS requires version 14 or later and supports Apple Silicon and Intel. Assets include universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. The app uses an ad-hoc signature and is not Apple-notarized. Permanent deletion cannot be undone through Shou.
+Both platforms have independent implementations of diagnostics, completion, comparison and catalog checks. Windows downloads are **unsigned portable previews for Windows 11**, with self-contained x64/ARM64 app and CLI ZIPs. Public cleanup, application uninstall and startup mutation gates remain closed. ARM64 runtime, complete UI/accessibility, native MSI/task acceptance, signing, installation and updating remain pending; cross-compilation and x64 startup checks do not establish them. `BUILD.json` and checksums identify each archive's source and final bytes.
 
-Windows downloads are unsigned portable previews requiring Windows 11. Public cleanup, application uninstall and startup mutation gates remain closed. x64 CI checks native behavior and application startup; ARM64 is cross-built, with ARM64 runtime, full UI/accessibility, signing, installer and update acceptance pending. Windows npm packages remain private development artifacts; GitHub publication does not publish packages to npm.
+macOS requires version 14 or later and supports Apple Silicon and Intel. Assets include universal DMG/ZIP, standalone CLI, Sparkle-signed update metadata and checksums. The application uses an ad-hoc signature and is not Apple-notarized. Permanent deletion cannot be undone through Shou. GitHub publication does not publish packages to npm.
 
-简体中文：Shou v0.14.0 优化清理响应、隐私审阅、设置页面，并增加 Windows 便携预览版构建与发布。
+简体中文：Shou v0.15.0 带来新的原生工作台，以及空间变化、诊断和应用版本的只读工具。
 
-- 分析、规则、清理与历史检查共用原生目录读取和操作内索引，减少重复工作；身份、活动、精确范围及逐项变更核验继续保留。
-- 大清单分页并验证摘要，进度和结果仅更新精简元数据。20,026 条生成夹具的三轮 Release 配对中，准备耗时中位数降低 63%、执行降低 43%，全流程从 17.06 秒降至 9.17 秒。测试使用繁忙主机和暖缓存，不代表全盘性能。
-- 清理在主内容区显示平面动画、实际百分比、单行缩略路径与直接停止；空间分析默认启动盘，存储耗尽独立诊断并保留之前分析。
-- Windows 提供 x64／ARM64 的 WinUI 3/.NET 10 自包含应用与 CLI ZIP；应用解压后运行 `Shou.Windows.App.exe`，终端使用单独的 `shou-cli` 包。归档内 `BUILD.json` 与 `SHA256SUMS` 记录确切源码及文件摘要。
+- 顶部任务导航、贯穿窗口的深浅色渐变、原创任务插画、全宽展开行与稳定选择底栏遵循最新共享设计；结果页优先展示操作和数据。
+- 设置与 CLI 提供有界诊断报告，检查容量、访问和记录目录安全；省略个人路径及内容，不自动上传。
+- 空间分析可比较同一目录保留的两次观察，核验身份、计量口径和覆盖，明确区分可比较变化、缺失、替换及不完整观察；历史结果不授予删除权限。
+- 应用详情可由用户主动查询受支持的公开发布目录：macOS 通过 Homebrew Cask 查询六种稳定版应用，Windows 支持注册身份明确的 Visual Studio Code x64 稳定版。展示版本、观察时间及官方更新入口，不下载或安装更新。
+- CLI 输出静态 Bash／Zsh 补全，Windows 另支持 PowerShell；不改 Shell 配置。macOS 在宽目录中优先发现固定产物路径和项目标记，保留活动保护及精确范围核验。
 
-macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新及校验和；应用使用 ad-hoc 签名，未经 Apple 公证。永久删除无法通过 Shou 撤销。
+诊断、补全、空间比较及目录查询已有双端独立实现。Windows 为 **Windows 11 未签名便携预览**，提供 x64／ARM64 自包含应用与 CLI ZIP，清理、应用卸载和启动项变更的公开门禁继续关闭。ARM64 运行、完整界面／辅助功能、原生 MSI／任务验收、签名、安装及更新仍待完成，不能由交叉构建或 x64 启动检查替代。归档内 `BUILD.json` 和校验和记录确切源码与文件字节。
 
-Windows 下载为未签名便携预览，要求 Windows 11。清理、应用卸载和启动项变更的公开门禁仍关闭。x64 CI 核验原生行为和应用启动；ARM64 当前交叉构建，ARM64 运行、完整界面／辅助功能、签名、安装及更新另行验收。Windows npm 产物仍为私有开发模式，GitHub 发布不会自动发布 npm 包。
+macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新元数据和校验和；应用使用 ad-hoc 签名，未经 Apple 公证。永久删除无法通过 Shou 撤销。GitHub 发布不会自动发布 npm 包。

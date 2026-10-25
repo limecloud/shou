@@ -13,6 +13,7 @@ public sealed partial class MainWindow : Window
     private readonly TextCatalog text = new();
     private NativeReviewOperations? operations;
     private CleanupPage? cleanup;
+    private CleanupPage? projects;
     private ConfigurationPage? configuration;
     private ApplicationsPage? applications;
     private StartupPage? startup;
@@ -26,34 +27,35 @@ public sealed partial class MainWindow : Window
     private readonly Dictionary<Button, FrameworkElement> navigationIcons = [];
     private FrameworkElement? languageIcon;
     private FrameworkElement? diskIcon;
-    private bool sidebarOpen = true;
 
     public MainWindow(string initialPage = "cleanup")
     {
         InitializeComponent();
-        SidebarColumn.Width = new GridLength((double)Application.Current.Resources["ShouSidebarWidth"]);
-        SidebarHeaderRow.Height = TitlebarRow.Height = new GridLength((double)Application.Current.Resources["ShouTitlebarHeight"]);
-        FooterRow.Height = new GridLength((double)Application.Current.Resources["ShouFooterHeight"]);
         Title = "Shou";
         AppWindow.SetIcon(System.IO.Path.Combine(AppContext.BaseDirectory, "Shou.ico"));
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(TitleDragRegion);
         var scale = GetDpiForWindow(WinRT.Interop.WindowNative.GetWindowHandle(this)) / 96d;
         var area = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId(AppWindow.Id, Microsoft.UI.Windowing.DisplayAreaFallback.Primary).WorkArea;
-        AppWindow.Resize(new global::Windows.Graphics.SizeInt32(Math.Min(area.Width, (int)((double)Application.Current.Resources["ShouWindowWidth"] * scale)),
-            Math.Min(area.Height, (int)((double)Application.Current.Resources["ShouWindowHeight"] * scale))));
-        StorageHeading.Text = text.Get("Storage");
-        ToolsHeading.Text = text.Get("Tools");
+        var width = Math.Min(area.Width, (int)((double)Application.Current.Resources["ShouWindowWidth"] * scale));
+        var height = Math.Min(area.Height, (int)((double)Application.Current.Resources["ShouWindowHeight"] * scale));
+        AppWindow.MoveAndResize(new global::Windows.Graphics.RectInt32(
+            area.X + (area.Width - width) / 2, area.Y + (area.Height - height) / 2, width, height));
         foreach (var button in NavigationItems)
         {
             var name = (string)button.Tag;
             var icon = ProductIcon.Create(name, (double)Application.Current.Resources["ShouCompactIconSize"]);
             navigationIcons[button] = icon;
             var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
-            content.Children.Add(icon); content.Children.Add(new TextBlock { Text = TitleFor(name), VerticalAlignment = VerticalAlignment.Center });
-            button.Content = content;
-            AutomationProperties.SetName(button, TitleFor(name));
-            AutomationProperties.SetAutomationId(button, "nav." + name);
+            if (name is "history" or "settings") button.Content = icon;
+            else
+            {
+                content.Children.Add(icon); content.Children.Add(new TextBlock { Text = PrimaryTitle(button, name), VerticalAlignment = VerticalAlignment.Center });
+                button.Content = content;
+            }
+            AutomationProperties.SetName(button, PrimaryTitle(button, name));
+            var detail = ReferenceEquals(button, CleanupDetailNavigation) || ReferenceEquals(button, ApplicationsDetailNavigation) || ReferenceEquals(button, StorageDetailNavigation);
+            AutomationProperties.SetAutomationId(button, "nav." + name + (detail ? ".detail" : ""));
         }
         languageIcon = ProductIcon.Create("language", 16);
         LanguageButton.Content = languageIcon;
@@ -61,26 +63,23 @@ public sealed partial class MainWindow : Window
         DiskIcon.Content = diskIcon;
         SystemLanguageItem.Text = text.Get("Follow System");
         AutomationProperties.SetName(LanguageButton, text.Get("Interface Language"));
-        AutomationProperties.SetName(PaneButton, text.Get("Sidebar"));
-        AutomationProperties.SetName(ShowSidebarButton, text.Get("Sidebar"));
-        VersionText.Text = typeof(MainWindow).Assembly.GetName().Version?.ToString(3) ?? "";
         WindowRoot.RequestedTheme = AppearanceSettings.Current.Theme;
         AppWindow.Closing += (_, args) =>
         {
             if (!HasMutation) return;
             args.Cancel = true;
-            cleanup?.RequestCleanupStop(); applications?.RequestUninstallStop(); startup?.RequestStartupStop();
+            cleanup?.RequestCleanupStop(); projects?.RequestCleanupStop(); applications?.RequestUninstallStop(); startup?.RequestStartupStop();
             storage?.Cancel(); largeFiles?.Cancel();
             privacy?.CancelCleanup();
-            WindowStatus.Text = text.Get("Stopping at a safe boundary…");
+            ShowStatus(text.Get("Stopping at a safe boundary…"));
         };
         Closed += (_, _) =>
         {
             closed = true;
-            cleanup?.Dispose(); configuration?.Dispose(); applications?.Dispose(); startup?.Dispose();
+            cleanup?.Dispose(); projects?.Dispose(); configuration?.Dispose(); applications?.Dispose(); startup?.Dispose();
             privacy?.Dispose(); history?.Dispose(); storage?.Dispose(); largeFiles?.Dispose();
         };
-        WindowRoot.Loaded += (_, _) => UpdateSidebar();
+        WindowRoot.Loaded += (_, _) => UpdateWorkspaceNavigation();
         initialized = true;
         _ = ShowPageAsync(initialPage);
     }
@@ -88,20 +87,21 @@ public sealed partial class MainWindow : Window
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(nint window);
 
-    private bool HasMutation => cleanup?.HasActiveCleanup == true || applications?.HasActiveUninstall == true || startup?.HasActiveStartupChange == true || storage?.HasActiveRemoval == true || largeFiles?.HasActiveRemoval == true || privacy?.HasActiveCleanup == true;
+    private bool HasMutation => cleanup?.HasActiveCleanup == true || projects?.HasActiveCleanup == true || applications?.HasActiveUninstall == true || startup?.HasActiveStartupChange == true || storage?.HasActiveRemoval == true || largeFiles?.HasActiveRemoval == true || privacy?.HasActiveCleanup == true;
     private Button Item(string page) => page switch
     {
         "large" => LargeFilesNavigation, "storage" => StorageNavigation, "configuration" => ConfigurationNavigation,
-        "applications" => ApplicationsNavigation, "startup" => StartupNavigation, "privacy" => PrivacyNavigation,
+        "applications" => ApplicationsNavigation, "projects" => ProjectsNavigation, "startup" => StartupNavigation, "privacy" => PrivacyNavigation,
         "history" => HistoryNavigation, "settings" => SettingsNavigation, _ => CleanupNavigation
     };
 
     private Button[] NavigationItems => [CleanupNavigation, LargeFilesNavigation, StorageNavigation, ConfigurationNavigation,
-        ApplicationsNavigation, StartupNavigation, PrivacyNavigation, HistoryNavigation, SettingsNavigation];
+        ApplicationsNavigation, StartupNavigation, PrivacyNavigation, HistoryNavigation, SettingsNavigation,
+        ProjectsNavigation, CleanupDetailNavigation, ApplicationsDetailNavigation, StorageDetailNavigation];
     private string TitleFor(string page) => text.Get(page switch
     {
         "large" => "Large Files", "storage" => "Space Analysis", "configuration" => "Cleanup Rules",
-        "startup" => "Startup Items", "applications" => "Application Uninstall", "privacy" => "Privacy",
+        "startup" => "Startup Items", "applications" => "Applications", "projects" => "Developer Projects", "privacy" => "Privacy",
         "history" => "History", "settings" => "Settings", _ => "Smart Cleanup"
     });
     private async void Navigate(object sender, RoutedEventArgs args)
@@ -115,10 +115,10 @@ public sealed partial class MainWindow : Window
         if (next != "privacy") privacy?.CancelScan();
         destination = next;
         PageTitle.Text = TitleFor(next);
-        UpdateSidebar();
+        UpdateWorkspaceNavigation();
         DiskCapacity.Visibility = next is "cleanup" or "large" ? Visibility.Visible : Visibility.Collapsed;
         if (next is "cleanup" or "large") RefreshDiskCapacity();
-        WindowStatus.Text = "";
+        ShowStatus("");
         try
         {
             FrameworkElement page;
@@ -138,6 +138,7 @@ public sealed partial class MainWindow : Window
                         cleanup = new(operations, operations, operations.Catalog);
                         cleanup.BusyChanged += (_, _) => UpdateNavigation();
                         cleanup.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
+                        cleanup.DestinationRequested += async nextDestination => await ShowPageAsync(nextDestination);
                         cleanup.HistoryRequested += async (_, _) =>
                         {
                             history?.InvalidateHistory();
@@ -150,16 +151,26 @@ public sealed partial class MainWindow : Window
                     {
                         operations ??= new();
                         configuration = new(operations, WinRT.Interop.WindowNative.GetWindowHandle(this), operations.Catalog);
-                        configuration.EvidenceInvalidated += (_, _) => { cleanup?.InvalidateConfiguration(); privacy?.InvalidateConfiguration(); };
+                        configuration.EvidenceInvalidated += (_, _) => { cleanup?.InvalidateConfiguration(); projects?.InvalidateConfiguration(); privacy?.InvalidateConfiguration(); };
                         configuration.BusyChanged += (_, _) => UpdateNavigation();
                     }
                     page = configuration; load = configuration.EnsureLoadedAsync(); break;
+                case "projects":
+                    if (projects is null)
+                    {
+                        operations ??= new();
+                        projects = new(operations, operations, operations.Catalog, projectsOnly: true);
+                        projects.BusyChanged += (_, _) => UpdateNavigation();
+                        projects.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
+                        projects.HistoryRequested += async (_, _) => { history?.InvalidateHistory(); await ShowPageAsync("history"); };
+                    }
+                    page = projects; load = projects.EnsureLoadedAsync(); break;
                 case "applications":
                     if (applications is null) { applications = new(); applications.BusyChanged += (_, _) => UpdateNavigation(); }
-                    page = applications; load = applications.EnsureLoadedAsync(); break;
+                    page = applications; break;
                 case "startup":
                     if (startup is null) { startup = new(); startup.BusyChanged += (_, _) => UpdateNavigation(); }
-                    page = startup; load = startup.EnsureLoadedAsync(); break;
+                    page = startup; break;
                 case "privacy":
                     if (privacy is null) { privacy = new(); privacy.BusyChanged += (_, _) => UpdateNavigation(); }
                     page = privacy; load = privacy.LoadHistoryAsync(); break;
@@ -171,7 +182,7 @@ public sealed partial class MainWindow : Window
                     if (settings is null)
                     {
                         settings = new();
-                        settings.AppearanceChanged += (_, _) => { WindowRoot.RequestedTheme = AppearanceSettings.Current.Theme; UpdateSidebar(); };
+                        settings.AppearanceChanged += (_, _) => { WindowRoot.RequestedTheme = AppearanceSettings.Current.Theme; UpdateWorkspaceNavigation(); };
                         settings.LanguageChanged += (_, _) => ((App)Application.Current).ReloadWindow("settings");
                         settings.ScanLocationsRequested += async (_, _) =>
                         {
@@ -188,6 +199,9 @@ public sealed partial class MainWindow : Window
             }
             ToolbarHost.Content = null;
             var toolbar = page is IPageChrome chrome ? chrome.Toolbar : null;
+            PageHeading.Content = next is "configuration" or "settings" or "history"
+                ? WorkspaceVisuals.Heading(TitleFor(next), text.Get(next == "configuration" ? "One set of rules for everyday cleanup and your own projects." : next == "settings" ? "Make Shou work the way you do." : "See what changed and what needs your attention."), next == "configuration" ? "rules" : next)
+                : null;
             PageHost.Content = page;
             ToolbarHost.Content = toolbar;
             UpdateNavigation();
@@ -198,7 +212,7 @@ public sealed partial class MainWindow : Window
         {
             diagnostic.Fail(error);
             NativeDiagnostics.Write(error);
-            if (!closed) WindowStatus.Text = text.Get("The page could not be loaded. Try again.");
+            if (!closed) ShowStatus(text.Get("The page could not be loaded. Try again."));
         }
     }
 
@@ -213,56 +227,44 @@ public sealed partial class MainWindow : Window
             item.IsEnabled = !locked || ReferenceEquals(item, Item(destination));
         if (HasMutation) { storage?.CancelScan(); largeFiles?.CancelScan(); }
     }
-    private void UpdateSidebar()
+    private string PrimaryTitle(Button button, string page) => ReferenceEquals(button, CleanupNavigation) ? text.Get("Cleanup") :
+        ReferenceEquals(button, ApplicationsNavigation) ? text.Get("Apps & Projects") : ReferenceEquals(button, ConfigurationNavigation) ? text.Get("Rules") : TitleFor(page);
+    private static string Family(string page) => page switch
+    {
+        "privacy" => "cleanup", "projects" or "startup" => "applications", "large" => "storage", _ => page
+    };
+    private void UpdateWorkspaceNavigation()
     {
         var highContrast = new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
         var system = new global::Windows.UI.ViewManagement.UISettings();
+        CleanupTasks.Visibility = Family(destination) == "cleanup" ? Visibility.Visible : Visibility.Collapsed;
+        ApplicationTasks.Visibility = Family(destination) == "applications" ? Visibility.Visible : Visibility.Collapsed;
+        StorageTasks.Visibility = Family(destination) == "storage" ? Visibility.Visible : Visibility.Collapsed;
         foreach (var button in NavigationItems)
         {
-            var selected = ReferenceEquals(button, Item(destination));
-            button.ClearValue(Control.BackgroundProperty);
-            if (highContrast)
-            {
-                var text = system.UIElementColor(selected ? global::Windows.UI.ViewManagement.UIElementType.HighlightText : global::Windows.UI.ViewManagement.UIElementType.WindowText);
-                button.Foreground = new SolidColorBrush(text);
-                ProductIcon.Select(navigationIcons[button], button.Foreground);
-            }
-            else
-            {
-                var footer = button.Tag is "history" or "settings";
-                if (selected && !footer)
-                {
-                    button.Foreground = (Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"];
-                    ProductIcon.Select(navigationIcons[button], button.Foreground);
-                }
-                else
-                {
-                    button.ClearValue(Control.ForegroundProperty);
-                    ProductIcon.Select(navigationIcons[button], (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]);
-                }
-            }
-            if (button.Content is StackPanel panel && panel.Children.Count > 1 && panel.Children[1] is TextBlock label)
-                label.FontWeight = Microsoft.UI.Text.FontWeights.Normal;
-            VisualStateManager.GoToState(button, selected ? "Selected" : "Unselected", true);
+            var primary = ReferenceEquals(button, CleanupNavigation) || ReferenceEquals(button, ApplicationsNavigation) ||
+                ReferenceEquals(button, StorageNavigation) || ReferenceEquals(button, ConfigurationNavigation);
+            var selected = (string)button.Tag == (primary ? Family(destination) : destination);
+            button.Background = selected ? (Brush)Application.Current.Resources["ShouNavSelectionBrush"] : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            button.Foreground = (Brush)Application.Current.Resources[selected ? "ShouAccentBrush" : "TextFillColorSecondaryBrush"];
+            if (highContrast) button.Foreground = new SolidColorBrush(system.UIElementColor(selected
+                ? global::Windows.UI.ViewManagement.UIElementType.HighlightText : global::Windows.UI.ViewManagement.UIElementType.WindowText));
+            ProductIcon.Select(navigationIcons[button], button.Foreground);
+            AutomationProperties.SetItemStatus(button, selected ? text.Get("Selected") : "");
         }
-        var chrome = highContrast
-            ? new SolidColorBrush(system.UIElementColor(global::Windows.UI.ViewManagement.UIElementType.WindowText))
-            : (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
-        if (languageIcon is not null) ProductIcon.Select(languageIcon, chrome);
-        if (diskIcon is not null) ProductIcon.Select(diskIcon, chrome);
-    }
-    private void ToggleSidebar(object sender, RoutedEventArgs args)
-    {
-        sidebarOpen = !sidebarOpen;
-        SidebarColumn.Width = new GridLength(sidebarOpen ? (double)Application.Current.Resources["ShouSidebarWidth"] : 0);
-        Sidebar.Visibility = sidebarOpen ? Visibility.Visible : Visibility.Collapsed;
-        ShowSidebarButton.Visibility = sidebarOpen ? Visibility.Collapsed : Visibility.Visible;
     }
     private async void ChangeLanguage(object sender, RoutedEventArgs args)
     {
         if (HasMutation || configuration?.IsBusy == true || sender is not MenuFlyoutItem { Tag: string language }) return;
         try { await AppearanceSettings.SaveAsync(AppearanceSettings.Preferences with { Language = language }); ((App)Application.Current).ReloadWindow(destination); }
-        catch (Exception error) { NativeDiagnostics.Write(error); WindowStatus.Text = text.Get("Settings could not be saved. Try again."); }
+        catch (Exception error) { NativeDiagnostics.Write(error); ShowStatus(text.Get("Settings could not be saved. Try again.")); }
+    }
+    private void ShowStatus(string value)
+    {
+        WindowStatus.Text = value;
+        WindowStatus.Height = value.Length == 0 ? 1 : double.NaN;
+        WindowStatus.Opacity = value.Length == 0 ? 0 : 1;
+        WindowStatus.Margin = value.Length == 0 ? new Thickness(0) : new Thickness(28, 6, 28, 6);
     }
     private void RefreshDiskCapacity()
     {

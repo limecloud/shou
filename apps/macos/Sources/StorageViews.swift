@@ -29,6 +29,7 @@ private struct StorageAnalysisView: View {
     @State private var agentContext: StorageAgentContext?
     @State private var previewURL: URL?
     @State private var showingCoverage=false
+    @State private var showingComparison=false
     @FocusState private var keyboardArea: StorageKeyboardArea?
     var body: some View {
         VStack(spacing: 0) {
@@ -47,34 +48,27 @@ private struct StorageAnalysisView: View {
         .task { session.loadLocations() }
         .task(id: "\(session.scan?.id ?? ""):\(session.path):\(session.detailed)") { session.loadPresentation(app: model) }
         .sheet(item: $agentContext) { AgentRuleSetupView(model: model, contextPath: $0.path) }
+        .sheet(isPresented: $showingComparison) {
+            if let scan=session.scan { StorageComparisonView(model: model, scanId: scan.id, initialPath: session.path) }
+        }
         .quickLookPreview($previewURL)
     }
     private var entry: some View {
-        VStack(spacing: 24) {
-            Spacer()
-            Image(systemName: "internaldrive.fill").font(.system(size: 76, weight: .light))
-                .foregroundStyle(Color.accentColor.gradient).symbolRenderingMode(.hierarchical)
-            VStack(spacing: 10) {
-                Text(model.t("Space Analysis")).font(.system(size: 30, weight: .semibold))
-                Text(model.t("Find what takes up space. Keep what matters."))
-                    .font(.title3).foregroundStyle(.secondary)
-            }
-            VStack(spacing: 16) {
+        WorkspaceStartPage(eyebrow: model.t("Space Analysis"), title: model.t("See your space clearly."),
+            subtitle: model.t("Find what takes up space. Keep what matters."), kind: .space,
+            footnote: model.t("Scanning reads file sizes. Nothing is selected or deleted automatically.")) {
+            VStack(alignment: .leading, spacing: 18) {
                 Picker(model.t("Scan Location"), selection: $session.location) {
                     ForEach(session.locations) { item in Label(item.name, systemImage: item.symbol).tag(item.path) }
-                }.labelsHidden().frame(width: 290).controlSize(.large)
-                    .accessibilityLabel(model.t("Scan Location"))
-                Button(model.t("Choose Folder…")) { session.chooseFolder(app: model) }.buttonStyle(.link)
-            }.padding(.vertical, 8)
-            Button { session.start(app: model) } label: {
-                Text(model.t("Start Scan")).font(.headline).frame(width: 165).padding(.vertical, 8)
-            }.buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy)
-                .keyboardShortcut(.defaultAction).accessibilityIdentifier("storage.start")
-            Text(model.t("Scanning reads file sizes. Nothing is selected or deleted automatically."))
-                .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            Spacer()
-            Spacer().frame(height: 20)
-        }.padding(30)
+                }.labelsHidden().frame(maxWidth: 310).controlSize(.large).accessibilityLabel(model.t("Scan Location"))
+                HStack(spacing: 18) {
+                    Button { session.start(app: model) } label: { Label(model.t("Start Scan"), systemImage: "magnifyingglass") }
+                        .buttonStyle(WorkspacePrimaryButtonStyle()).disabled(model.busy)
+                        .keyboardShortcut(.defaultAction).accessibilityIdentifier("storage.start")
+                    Button(model.t("Choose Folder…")) { session.chooseFolder(app: model) }.buttonStyle(.link).disabled(model.busy)
+                }
+            }
+        }.accessibilityIdentifier("storage.welcome")
     }
     private var scanning: some View { StorageScanProgressView(model: model, session: session) }
     private var results: some View {
@@ -127,19 +121,19 @@ private struct StorageAnalysisView: View {
                     }
                 }.buttonStyle(.borderless).font(.callout).fixedSize(horizontal: true, vertical: false)
             }.frame(maxWidth: .infinity, alignment: .leading)
-            Picker(model.t("View"), selection: $session.detailed) {
-                Text(model.t("Simple")).tag(false)
-                Text(model.t("Detailed")).tag(true)
-            }.pickerStyle(.segmented).frame(width: 130).accessibilityIdentifier("storage.view-mode")
+            viewMode
             Button { model.ai.requestLaunch(app: model, path: absolute(investigationPath)) } label: {
                 Label(model.t("Investigate"), systemImage: "sparkles")
             }.disabled(session.loadingDirectory || model.busy).help(model.t("Investigate this folder with your model"))
                 .accessibilityIdentifier("storage.investigate")
             Menu {
+                Button(model.t("Compare Analyses…")) { showingComparison=true }
+                    .disabled(session.hasChanges || model.busy).accessibilityIdentifier("storage.compare")
+                Divider()
                 Button(model.t(session.copyingAnalysis ? "Preparing…" : session.analysisCopied ? "Copied" : "Copy for AI")) { session.copyAnalysis(app: model) }
                     .disabled(session.copyingAnalysis || session.loadingDirectory || model.busy).accessibilityIdentifier("storage.copy-analysis")
             } label: { Image(systemName: "ellipsis.circle") }.menuStyle(.borderlessButton).fixedSize()
-                .help(model.t("External AI Tools")).accessibilityLabel(model.t("External AI Tools"))
+                .help(model.t("Analysis Actions")).accessibilityLabel(model.t("Analysis Actions"))
             if session.analysisHandoffStarted {
                 Button(model.t("Review AI Rules…")) {
                     Task { await model.refreshExternalChanges(); model.reviewPersonalRules=true; model.section="rules"; model.externalRulesChanged=false }
@@ -163,6 +157,13 @@ private struct StorageAnalysisView: View {
                 .accessibilityIdentifier("storage.refresh")
             Button(model.t("Start Over")) { session.restart(app: model) }.buttonStyle(.borderless).disabled(model.busy).fixedSize()
         }.padding(.horizontal, 16).frame(height: 42).background(.bar)
+    }
+    private var viewMode: some View {
+        Picker(model.t("View"), selection: $session.detailed) {
+            Text(model.t("Simple")).tag(false)
+            Text(model.t("Detailed")).tag(true)
+        }.pickerStyle(.segmented).labelsHidden().frame(width: 130)
+            .accessibilityLabel(model.t("View")).accessibilityIdentifier("storage.view-mode")
     }
     private var directoryList: some View {
         VStack(spacing: 0) {

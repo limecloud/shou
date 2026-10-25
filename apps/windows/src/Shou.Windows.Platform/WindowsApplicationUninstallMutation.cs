@@ -11,7 +11,7 @@ namespace Shou.Windows.Platform;
 public sealed class WindowsApplicationUninstallMutation : IApplicationUninstallMutation
 {
     // GUI and CLI share the same strict native-host gate. macOS builds remain read-only.
-    public static bool PublicExecutionAvailable => NativeWindowsSupport.IsSupported;
+    public static bool PublicExecutionAvailable => false;
     private static readonly SemaphoreSlim Sessions = new(1, 1);
     public bool Supports(ApplicationInstallerKind kind) => Enum.IsDefined(kind) && NativeWindowsSupport.IsSupported;
 

@@ -144,8 +144,10 @@ public enum PathPattern {
     /// Parse once per scan, rather than once per directory and rule comparison.
     public struct Compiled: Sendable {
         let parts: [String]
+        let literalParts: [String]
         let recursive: Bool
         public init(_ pattern: String, caseSensitive: Bool) {
+            literalParts=pattern.split(separator: "/").map(String.init)
             parts=(caseSensitive ? pattern : pattern.lowercased()).split(separator: "/").map(String.init)
             recursive=parts.contains("**")
         }
@@ -177,12 +179,7 @@ public enum PathPattern {
             return visit(0, 0)
         }
 
-        /// Whether at least one strictly deeper path can match. Callers supply
-        /// segments with the same case normalization used for `matches`.
-        public func couldMatchDescendant(of path: [String]) -> Bool {
-            if !recursive {
-                return path.count < parts.count && zip(parts, path).allSatisfy { segment($0, $1) }
-            }
+        private func reachableStates(after path: [String]) -> [Bool] {
             // States are positions between pattern segments. A recursive wildcard
             // can advance without consuming input or remain while consuming one.
             func expand(_ states: inout [Bool]) {
@@ -198,12 +195,39 @@ public enum PathPattern {
                     else if segment(parts[index], text) { next[index+1]=true }
                 }
                 expand(&next)
-                guard next.contains(true) else { return false }
                 states=next
             }
+            return states
+        }
+
+        /// Whether at least one strictly deeper path can match. Callers supply
+        /// segments with the same case normalization used for `matches`.
+        public func couldMatchDescendant(of path: [String]) -> Bool {
+            if !recursive {
+                return path.count < parts.count && zip(parts, path).allSatisfy { segment($0, $1) }
+            }
+            let states=reachableStates(after: path)
             // Every remaining validated segment has a nonempty witness. The
             // accepting state alone cannot match a strictly deeper path.
             return parts.indices.contains { states[$0] }
+        }
+
+        /// Probe literal next components before a bounded sibling enumeration.
+        /// This only guides discovery; metadata and full manifests remain required.
+        public func literalChildren(of path: [String]) -> Set<String> {
+            let states=reachableStates(after: path)
+            return Set(parts.indices.compactMap { index in
+                let part=parts[index]
+                return states[index] && !part.contains("*") && !part.contains("?") ? literalParts[index] : nil
+            })
+        }
+
+        /// Prefer a branch already inside a multi-component target pattern.
+        public func hasTargetPrefix(_ path: [String]) -> Bool {
+            let states=reachableStates(after: path)
+            return parts.indices.contains { index in
+                states[index] && index > 0 && parts[index-1] != "**"
+            }
         }
     }
 }

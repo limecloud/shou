@@ -249,6 +249,23 @@ public final class StorageCatalog {
             after=rows.last!.1.node.name
         }
     }
+    /// Binary-name keyset pages allow two immutable analyses to be merged
+    /// without loading a wide directory or counting every row first.
+    func namedChildren(of path: String, after: String, limit: Int = 256) throws -> [StorageCatalogItem] {
+        guard (1...256).contains(limit) else { throw ShouError("invalid_argument", "Invalid comparison page size.") }
+        let statement=try prepare("SELECT " + columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) AND e.name>? COLLATE BINARY ORDER BY e.name COLLATE BINARY LIMIT ?")
+        defer { sqlite3_finalize(statement) }
+        try bind(path, 1, to: statement); try bind(after, 2, to: statement)
+        try bind([Int64(limit)], startingAt: 3, to: statement)
+        var rows=[StorageCatalogItem]()
+        while true {
+            if Task.isCancelled { throw ShouError("cancelled", "Analysis comparison stopped.") }
+            let status=sqlite3_step(statement)
+            if status == SQLITE_DONE { return rows }
+            guard status == SQLITE_ROW else { throw failure() }
+            rows.append(try item(statement))
+        }
+    }
     public func children(of path: String) throws -> [StorageCatalogItem] {
         let statement=try prepare("SELECT " + columns + Self.source + "WHERE e.parent=(SELECT id FROM entries WHERE path=?) ORDER BY e.total_allocated DESC,e.name")
         defer { sqlite3_finalize(statement) }

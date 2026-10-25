@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/engineering/implementation-plan.md)
 
 Status: macOS source development is active. Windows read-only implementation is in progress; native acceptance is pending. Use [acceptance](acceptance-and-testing.md) for verification criteria and [SYNC.md](../../SYNC.md) for platform alignment.
 
+See the [next-release development plan](next-release-plan.md) for capability improvements, release options and concrete work packages. It does not replace owning product contracts or actual acceptance status.
+
 ## Product decisions
 
 | Decision | Contract |

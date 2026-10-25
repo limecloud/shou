@@ -48,6 +48,8 @@ Cancellation/timeout terminates only the owned read child, without waiting for k
 
 Block workspace/home/volume roots, system locations, other-user data, out-of-scope targets, root/ancestor links, and unknown link types. Protect identified version metadata, keys/credentials, keychains, Shou configuration/receipts, user source/project roots and their manifests/lockfiles, persistent databases, and container/VM disks.
 
+Space Analysis permits explicit cleanup of direct, single-link regular `.sqlite` indexes under Shou's `storage-catalogs`, including the current index and indexes referenced by old plans. This narrow exception for rebuildable data does not expose record directories, configuration, credentials or execution/recovery journals. A freshly measured complete manifest enters the existing confirmation and live verification; dependent analyses and plans require a new scan after index removal, while independent history and recovery evidence remain. Windows disk indexes are not implemented, so this exception does not open Windows record protection.
+
 A parent containing protected/excluded descendants is blocked as a whole. Changed access, identity, manifests, rules, or exclusions invalidate eligibility.
 
 No classifier can recognize all source, hand-saved artifacts, databases, or offline dependencies. Naming and size are clues, not permission. Clean Git state and old access/modification times do not prove recoverability.
@@ -57,6 +59,10 @@ Distinguish user project manifests from third-party dependency manifests without
 Known internal POSIX symlinks such as npm `.bin` are opaque entries. Do not traverse their targets. Moving the containing directory moves links; permanent removal unlinks them only. Outside objects remain untouched. Unknown Windows reparse types require separate support.
 
 ## 5. Plans and confirmation
+
+Discovery prioritizes literal rule components and project markers without expanding the total budget or target scope. Plan preparation spends expensive policy checks only on explicitly selected paths, retaining all context and outer-match precedence. Changed live safety facts reject the old selection with its path and reasons, rather than being mislabeled as corrupt rule evidence.
+
+macOS Smart Cleanup also permits explicit manual review of matched directories outside automatic eligibility. This reuses Space Analysis direct-removal planning and its current owner, exclusion, protected-location, identity and complete-manifest checks. Such selections are never recommended. Their confirmation visibly distinguishes the user's decision to remove the complete directory from rule-verified rebuildability; preparation performs no deletion, and post-confirmation changes remain blocked. Active-process and source-content rule reasons remain visible but do not themselves prohibit this explicit direct-removal choice. Draft previews and stale root/configuration bindings cannot enter this path.
 
 Read-only scans may persist evidence without moving targets. An incomplete target is never executable. A partial scan may retain independently complete, policy-valid siblings; plans require positive subtree coverage and unchanged full manifests for every selected target. Legacy partial records without coverage do not gain eligibility. Cleanup-mode discovery completion is not proof of whole-tree measurement. Plans bind exact paths, identity, full manifests, rules, configuration, action, digest, and expiry; resolve duplicates and parent/child conflicts first.
 
@@ -100,7 +106,7 @@ Protect temporary and durable data with current-user permissions. Validate locki
 
 ## 9. Windows acceptance
 
-The unreleased v0.14.0 working tree assembles native-platform-limited execution. Closed-gate statements below describe the v0.13.0 baseline, not accepted current mutation support. Generated smart-cleanup UI confirmation/removal/history/replay checks passed; MSI source validation, the native picker and downstream journeys remain blocked. Known failures prevent release; see [SYNC.md](../../SYNC.md).
+The v0.15.0 restricted portable preview closes public GUI/CLI cleanup, uninstall, startup control and privacy/storage removal gates. Historical generated smart-cleanup UI confirmation/removal/history/replay checks passed; MSI source validation, the native picker and downstream journeys remain blocked and cannot be released as public mutation support. See [SYNC.md](../../SYNC.md).
 
 Windows file-cleanup UI source composes the same Core current-confirmation and execution contract; GUI and CLI share a disabled native-acceptance gate. Normal closing requests stop and waits for the current task; forced termination cannot promise complete journaling. Actual outcomes returned after stop must remain visible. A missing readable result does not prove an absence of mutation and cannot restore execution eligibility or automatically replay a plan. State tests and C# reference compilation do not establish native confirmation, deletion or window-close acceptance.
 

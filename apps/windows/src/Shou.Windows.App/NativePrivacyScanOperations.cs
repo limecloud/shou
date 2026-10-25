@@ -27,6 +27,7 @@ internal sealed class NativePrivacyScanOperations : IPrivacyScanOperations
     public Task<System.Collections.Immutable.ImmutableArray<PrivacyReceipt>> ReadHistoryAsync(CancellationToken token) => Task.Run(() => cleanup.HistoryAsync(cancellationToken: token), token);
     public Task<PrivacyReceipt> ExecuteAsync(string planId, IPrivacyConfirmation confirmation, CancellationToken token) => Task.Run(async () =>
     {
+        if (!WindowsCleanupMutation.PublicExecutionAvailable) throw new ShouException("unsupported_capability", "Privacy cleanup is unavailable in this Windows preview.");
         var consent = await cleanup.ConfirmAsync(planId, confirmation, token).ConfigureAwait(false);
         return await cleanup.ExecuteAsync(planId, consent, token).ConfigureAwait(false);
     }, token);

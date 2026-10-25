@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/windows.md)
 
-Status: implementation in progress. Scanning, platform adapters, presentation and CLI have source implementations; WinUI includes storage browsing, application registration browsing, cleanup review and history pages. Cleanup, startup-task control and installer uninstall are enabled only on matching native Windows 11 x64/ARM64 processes; macOS builds remain read-only. The v0.14.0 release workflow builds unsigned, self-contained x64/ARM64 portable previews. Native fixture, installation and full UI/accessibility evidence is tracked in SYNC.md.
+Status: implementation in progress. Scanning, platform adapters, presentation and CLI have source implementations; WinUI includes storage browsing, application registration browsing, cleanup review and history pages. v0.15.0 keeps public GUI/CLI cleanup, startup-task control, installer uninstall and privacy/storage removal gates closed; native adapters remain independently testable with generated fixtures. The release workflow builds unsigned, self-contained x64/ARM64 portable previews. Native fixture, installation and full UI/accessibility evidence is tracked in SYNC.md.
 
 Shou for Windows uses C#, .NET 10 LTS and WinUI 3 from Windows App SDK. The GUI and CLI call the same C# domain services directly. Source editing and portable tests run on macOS; Windows builds and runtime checks run on Windows.
 

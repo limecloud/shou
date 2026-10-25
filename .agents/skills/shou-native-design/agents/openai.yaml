@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shou 原生界面设计"
+  short_description: "仅为本仓库维护全新原生布局、设计资源与真实交互验收规范"
+  default_prompt: "使用 $shou-native-design 改进本仓库的 Shou 原生界面，并同步设计文档与验证证据。"

@@ -61,7 +61,7 @@ public sealed class GeneratedStartupControlTests(ITestOutputHelper output)
         GeneratedStartupTaskFixture fixture, Action? beforeDispatch = null)
     {
         output.WriteLine("Generated startup evidence: " + fixture.Root);
-        Assert.True(WindowsStartupControlMutation.PublicExecutionAvailable);
+        Assert.False(WindowsStartupControlMutation.PublicExecutionAvailable);
         var store = new WindowsRecordStore(WindowsPath.Parse(Path.Combine(fixture.Root, "private-records")));
         Assert.Equal(fixture.OwnerSid, store.OwnerSid);
         var mutation = new TrackedMutation(fixture, beforeDispatch);

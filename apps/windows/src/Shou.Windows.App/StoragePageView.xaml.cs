@@ -18,7 +18,7 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         new Microsoft.UI.Xaml.Automation.Peers.FrameworkElementAutomationPeer(this);
 
     private readonly TextCatalog text = new();
-    private readonly StorageViewModel model = new(new StorageScanner(new WindowsFileSystem()));
+    private readonly StorageViewModel model = new(new HistoricalStorageScanner(new StorageScanner(new WindowsFileSystem()), new(WindowsRecordStore.ForCurrentUser())));
     private readonly nint windowHandle;
     private readonly bool largeFiles;
     private StorageAnalysis? analysis;
@@ -49,18 +49,20 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         StartDescription.Text = text.Get(largeFiles ? "See large files across folders, then choose what to remove." : "Find what takes up space. Keep what matters.");
         var scanLabel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
         var scanIcon = ProductIcon.Create(largeFiles ? "large" : "drive", 16);
-        ProductIcon.Select(scanIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"]);
+        ProductIcon.Select(scanIcon, (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ShouActionTextBrush"]);
         scanLabel.Children.Add(scanIcon); scanLabel.Children.Add(new TextBlock { Text = text.Get("Start Scan"), VerticalAlignment = VerticalAlignment.Center });
         StartButton.Content = scanLabel;
         VolumeIcon.Content = ProductIcon.Create("drive", (double)Application.Current.Resources["ShouCompactIconSize"]);
         if (!largeFiles)
         {
-            StartButton.Style = (Style)Application.Current.Resources["ShouStorageScanButton"];
+            StartButton.Style = (Style)Application.Current.Resources["ShouScanButton"];
             StartButton.Content = text.Get("Start Scan");
             StartDescription.FontSize = (double)Application.Current.Resources["ShouStorageDescriptionSize"];
         }
         ChooseButton.Content = text.Get("Choose Folder…");
+        WorkspaceVisuals.ArrangeLanding(StartContent, StartIcon, StartTitle, StartDescription, largeFiles ? "large-files" : "space");
         RescanButton.Content = text.Get("Rescan");
+        CompareButton.Content = text.Get("Compare Analyses…");
         ReadOnlyNotice.Text = text.Get("Scanning reads file sizes. Nothing is selected or deleted automatically.");
         ScopeNotice.Text = text.Get("Sizes show measured allocated space. Partial coverage does not describe the entire disk. Storage browsing does not authorize deletion.");
         SearchBox.PlaceholderText = text.Get("Filter this folder"); ExtensionsHeading.Text = text.Get("File Extensions");
@@ -115,6 +117,13 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         await model.ScanAsync(root, new(500_000, 64, TimeSpan.FromSeconds(180)));
     }
     private void StopScan(object sender, RoutedEventArgs args) => Cancel();
+    private async void CompareAnalyses(object sender, RoutedEventArgs args)
+    {
+        if (model.IsBusy || HasActiveRemoval || rendered is null || directory is null) return;
+        CompareButton.IsEnabled = false;
+        try { await new StorageComparisonDialog(XamlRoot, rendered.Id, directory.RelativeTo(rendered.Root, true)).ShowAsync(); }
+        finally { if (!disposed) CompareButton.IsEnabled = true; }
+    }
     public void Cancel() { model.Cancel(); removalCancellation?.Cancel(); }
     public void CancelScan() => model.Cancel();
     private void Changed(object? sender, PropertyChangedEventArgs args) => Render();
@@ -127,7 +136,7 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         { rendered = snapshot; analysis = new(snapshot); selection = new(snapshot.Root); directory = snapshot.Root; RefreshResults(); }
         var hasResults = analysis is not null;
         PageToolbar.Visibility = !busy && hasResults ? Visibility.Visible : Visibility.Collapsed;
-        StartContent.Visibility = !busy && !hasResults ? Visibility.Visible : Visibility.Collapsed;
+        LandingScroll.Visibility = StartContent.Visibility = !busy && !hasResults ? Visibility.Visible : Visibility.Collapsed;
         ResultContent.Visibility = !busy && hasResults ? Visibility.Visible : Visibility.Collapsed;
         RescanButton.IsEnabled = StartButton.IsEnabled = !busy && root is not null;
         ScanActivity.Update(busy, text.Get("Scanning…"), "drive", model.Progress?.CurrentPath.Value ?? root?.Value ?? "",
@@ -176,7 +185,7 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
     }
     private async void RemoveSelected(object sender, RoutedEventArgs args)
     {
-        if (disposed || model.IsBusy || HasActiveRemoval || rendered is not { } snapshot || selection is not { Count: > 0 } selected) return;
+        if (!WindowsCleanupMutation.PublicExecutionAvailable || disposed || model.IsBusy || HasActiveRemoval || rendered is not { } snapshot || selection is not { Count: > 0 } selected) return;
         var paths = selected.Items.Select(row => row.Path).ToImmutableArray();
         using var cancellation = new CancellationTokenSource(); removalCancellation = cancellation;
         var completion = new TaskCompletionSource(); removal = completion.Task;

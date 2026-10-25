@@ -37,6 +37,8 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         RangeLabel.Text = text.Get("Time range"); RangeNotice.Text = text.Get("History: visit time · Cookies: last access time");
         StartButton.Content = text.Get("Start Scan");
         StartDescription.Text = text.Get("Scan to see aggregate counts and availability. Browsing records are never displayed.");
+        WorkspaceVisuals.ArrangeLanding(StartContent, StartIcon, PageTitle, StartDescription, "privacy");
+        StartButton.Visibility = Visibility.Visible;
         AutomationProperties.SetName(InfoButton, text.Get("Information"));
         Description.Text = text.Get("Close browsers, choose a time range, and scan supported history and cookies.");
         CookieReviewLabel.Text = text.Get("I understand that clearing cookies can sign me out of websites.");
@@ -79,7 +81,7 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         StopButton.IsEnabled = model.IsBusy && !model.StopRequested;
         PageToolbar.Visibility = ReviewContent.Visibility = model.IsBusy ? Visibility.Collapsed : Visibility.Visible;
         ScanActivity.Update(model.IsBusy, text.Get("Scanning…"), "privacy", stopRequested: model.StopRequested);
-        StartContent.Visibility = !model.IsBusy && model.Scan is null ? Visibility.Visible : Visibility.Collapsed;
+        LandingScroll.Visibility = StartContent.Visibility = !model.IsBusy && model.Scan is null ? Visibility.Visible : Visibility.Collapsed;
         SourcesCard.Visibility = SelectionFooter.Visibility = !model.IsBusy && model.Scan is not null ? Visibility.Visible : Visibility.Collapsed;
         StartButton.IsEnabled = ScanButton.IsEnabled; StopButton.Visibility = model.IsBusy ? Visibility.Visible : Visibility.Collapsed;
         Sources.IsEnabled = !HasActiveCleanup;
@@ -156,7 +158,7 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         ClearSelectionButton.IsEnabled = !model.IsBusy && !HasActiveCleanup && model.SelectedSourceCount > 0;
         SelectionSummary.Text = text.Get("Selected") + " " + model.SelectedSourceCount + " · " + model.SelectedRecordCount + " " + text.Get("records");
         AutomationProperties.SetItemStatus(SelectionSummary, model.SelectedSourceCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        RemoveButton.IsEnabled = NativeWindowsSupport.IsSupported && !model.IsBusy && !HasActiveCleanup && model.SelectedSourceCount > 0 &&
+        RemoveButton.IsEnabled = WindowsCleanupMutation.PublicExecutionAvailable && !model.IsBusy && !HasActiveCleanup && model.SelectedSourceCount > 0 &&
             model.SelectedSources.All(source => model.CanSelect(source.Source.Id));
         ReadReceiptButton.IsEnabled = lastPlanId is not null && !HasActiveCleanup;
     }

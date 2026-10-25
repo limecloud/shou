@@ -26,6 +26,10 @@ Existing coding agents may call the public CLI under their own authorization pol
 
 ## 2. Global behavior
 
+macOS `applications updates source --path PATH` reads app identity and its built-in catalog source without networking. `applications updates check --path PATH --allow-network true` explicitly performs a single-app public catalog request with side effect `network`, without writing cleanup stores. [Update discovery](../product/application-updates.md) owns source, version, privacy and partial-state semantics; unknown exits `6` rather than meaning no update. Windows uses the same command names with `--application-id ID` instead of an application path, backed by independent C# source/identity matching.
+
+macOS adds read-only `diagnostics` and `completion --shell bash|zsh` without opening business records. [User diagnostics and terminal support](../engineering/user-diagnostics.md) owns their fields, privacy, exit codes and completion limits. `analysis history --scan-id ID` and `analysis compare --baseline-id ID --scan-id ID [--path RELATIVE --limit N --max-entries N --max-seconds N]` read existing indexes; the [comparison contract](../product/space-analysis.md#historical-comparison) owns identity, coverage and budgets. Partial queries use the standard envelope and exit `6`; `comparison_unavailable` exits `8`, while cleared-index `analysis_unavailable` retains exit `5`. Windows implements the same diagnostic/comparison command names and adds `powershell` completion. Its `analysis scan` has side effect `snapshot` and saves immutable observation pages. Platform contracts and the current build's discovery own exact budgets/errors.
+
 - Command: `shou`, future Windows `shou.exe`.
 - `--help` explains usage; `shou skills --help` or a command group's name alone limits help to that group, including optional and repeatable arguments. Unknown help targets are rejected.
 - `capabilities --json` reports actual commands, input definitions, limits, and side effects. `capabilities --command "rules import" --json` or `--command skills` narrows discovery without opening cleanup storage.

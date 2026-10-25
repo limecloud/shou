@@ -78,6 +78,7 @@ import SwiftUI
 
 struct SetupView: View {
     @Bindable var model: AppModel
+    @Environment(\.dismiss) private var dismiss
     private var access: ScanAccessController { model.scanAccess }
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -140,7 +141,7 @@ struct SetupView: View {
             HStack {
                 Text(model.t("You can revisit this guide in Settings.")).font(.caption).foregroundStyle(.secondary)
                 Spacer()
-                Button(model.t(access.needsAccess ? "Continue with Accessible Folders" : "Start Using Shou")) { access.finish() }
+                Button(model.t(access.needsAccess ? "Continue with Accessible Folders" : "Start Using Shou")) { access.finish(); dismiss() }
                     .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("setup.continue")
             }

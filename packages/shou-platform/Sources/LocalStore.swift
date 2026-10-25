@@ -130,6 +130,18 @@ public final class LocalRecordStore: RecordStore, @unchecked Sendable {
             try recordMetadata(collection, id: String(name.dropLast(suffix.count)))
         }
     }
+    public func boundedRecords(_ collection: String, limit: Int) throws -> (records: [StoredRecord], truncated: Bool) {
+        guard (1...1024).contains(limit) else { throw ShouError("invalid_argument", "Record inventory limit is invalid.") }
+        let dir=try self.collection(collection); defer { close(dir) }
+        let listing=try NativeDefinitionFiles.names(dir, limit: limit, deadline: ContinuousClock.now.advanced(by: .seconds(2)))
+        let suffix=collection == "storage-catalogs" ? ".sqlite" : ".json"
+        var records=[StoredRecord]()
+        for name in listing.names where name.hasSuffix(suffix) && !name.hasPrefix(".") {
+            if Task.isCancelled { throw ShouError("cancelled", "Analysis comparison stopped.") }
+            if let record=try recordMetadata(collection, id: String(name.dropLast(suffix.count))) { records.append(record) }
+        }
+        return (records, listing.truncated)
+    }
     public func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? {
             try validate(id)
             let dir=try self.collection(collection); defer { close(dir) }

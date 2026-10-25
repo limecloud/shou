@@ -19,7 +19,7 @@
 
 ### Windows 平台边界
 
-Windows 已有独立 C# 只读扫描、CLI 和 WinUI 页面源码。支持固定位置的 Chrome、Chromium、Edge、Brave 历史及 Cookie，以及 Firefox 基础历史结构与 Cookie；不包含 Safari。页面初始不扫描，由用户选择时间范围并明确开始。Core 已实现独立隐私计划、当前确认、执行编排与脱敏回执；未发布 v0.14.0 工作区已加入 `WindowsPrivacyMutation` 原生事务适配并接入 WinUI 的计划／确认／回执；CLI 保留只读扫描入口，只读数量不能作为删除授权。原生运行、ACL、SQLite sidecar 和界面验收待完成。见[原生方案](windows-native-plan.md)。
+Windows 已有独立 C# 只读扫描、CLI 和 WinUI 页面源码。支持固定位置的 Chrome、Chromium、Edge、Brave 历史及 Cookie，以及 Firefox 基础历史结构与 Cookie；不包含 Safari。页面初始不扫描，由用户选择时间范围并明确开始。Core 已实现独立隐私计划、当前确认、执行编排与脱敏回执；v0.15.0 已加入 `WindowsPrivacyMutation` 原生事务适配并接入 WinUI 的计划／确认／回执，但公开移除门禁保持关闭；CLI 保留只读扫描入口，只读数量不能作为删除授权。原生运行、ACL、SQLite sidecar 和界面验收待完成。见[原生方案](windows-native-plan.md)。
 
 `PrivacyCleanupService` 复用现有记录租约，绑定同一扫描中的确切来源、时间窗口、配置及身份／结构／数量证据。计划最长五分钟，且不超过扫描期限；Cookie 退出登录影响同意独立于当前进程的一分钟单次执行确认。全部来源预检先于整批意图，逐项意图先于原生派发。停止会等待已派发操作的真实结果，日志失败禁止启动后续操作，未知结果停止后续来源。任何已有整批意图都阻止计划重放；脱敏回执仅供查询，不能恢复执行资格。
 

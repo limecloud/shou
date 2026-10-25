@@ -361,8 +361,19 @@ struct StorageLocation: Identifiable {
     func waitForOperation() async { await task?.value }
     func restart(app: AppModel) {
         guard !app.busy else { return }
+        resetAnalysis()
+    }
+    private func resetAnalysis() {
         directoryTask?.cancel(); loadingDirectory=false
-        scan=nil; selected=[]; focus=nil; path="."; back=[]; forward=[]
+        presentationTask?.cancel(); presentation=nil; presentationCache=[:]; loadingPresentation=false
+        scan=nil; selected=[]; focus=nil; hovered=nil; path="."; back=[]; forward=[]; query=""; extensionFilter=nil
+        index=StorageIndex(entries: []); entries=[:]; loadedDirectories=[]; removedNodes=[]
+        directoryOffsets=[:]; directoryTotals=[:]
+    }
+    func discardRemovedCatalogs(_ paths: Set<String>) {
+        guard let id=scan?.catalogId,
+              paths.contains(StorageRemovalPolicy.canonical(recordDirectory + "/storage-catalogs/" + id + ".sqlite")) else { return }
+        resetAnalysis()
     }
     func rescanCurrentFolder(app: AppModel) {
         guard !app.busy, let scan else { return }
@@ -433,6 +444,9 @@ struct StorageLocation: Identifiable {
             while path != "." && index.nodes[path] == nil { path=StorageIndex.parent(path) }
         }
         selected=[]; focus=nil
+        let removedPaths=Set(removed.map { StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0)) })
+        app.space.discardRemovedCatalogs(removedPaths)
+        app.largeFiles.storage.discardRemovedCatalogs(removedPaths)
         app.completion=CleanupCompletion(receipts: [receipt], sourceSection: sourceSection)
         app.statusKey=receipt.state == "completed" ? "Selected items processed. Refresh to measure current disk usage." : "Some items could not be removed. Review the result."
         await app.refresh()

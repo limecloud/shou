@@ -2,40 +2,74 @@
 
 English | [简体中文](../zh-CN/engineering/interface-design.md)
 
-## Information hierarchy
+This is Shou's current interface source of truth. The workspace design introduced on 2026-10-25 replaces the sidebar and compact-type baseline. Historical screenshots and parity records do not constrain this redesign. Product, safety and platform contracts retain their own authority.
 
-Lead with the user's task: scan, inspect, select and clean. Keep navigation, page title and the primary action stable. Put exact paths, risks, coverage gaps and rebuild consequences beside the selection they affect. Technical module names and internal plan mechanics do not belong in ordinary user flows.
+## Direction
 
-The main destinations are Smart Cleanup, Large Files, Space Analysis, Rules, Startup Items, Applications, Privacy, History and Settings. The native Windows preview uses a 216-point sidebar grouped into storage and tools, with History and Settings at the bottom. The window owns one title and toolbar; content distinguishes start, scanning, results and failure. Applications and startup items use compact lists with optional details. Rules support the full catalog, source/search filters and location-bound toggles. Storage analysis presents a directory tree, extension totals and an area map. A visible destination does not enable its mutation capability.
+Build an open, legible workspace that users can inspect. Adapt the hierarchy, full-width lists, inline details and stable action areas shown in the reference demonstration, using Shou's own cool neutral surfaces and teal accent. Retain Shou branding and native behavior; do not copy logos, planetary artwork or individual screens pixel for pixel. See the [video review](workspace-design-review.md) for evidence.
 
-## Selection and results
+Give names, paths and sizes the available width instead of persistent navigation columns and competing summaries. Establish a clear hierarchy between page titles, object rows and details. Enlarging every control or adding decorative cards does not create a spacious design. Use panels only for meaningful task or selection boundaries.
 
-Use a shared selection state for list, map and category views. Deduplicate parent/child selections and display allocated-byte estimates consistently. Preserve path origin and filename with a single middle ellipsis, exposing the full value to hover and accessibility.
+## Navigation and composition
 
-The desktop defaults to permanent cleanup. Confirm the current exact selection, irreversible effect and separately consented personal data before execution. Optional Trash or Recycle Bin actions use explicit labels. Results distinguish completed, skipped, failed, cancelled and unknown outcomes; moving to Trash is not described as freed disk space.
+Primary navigation sits at the top: Cleanup, Apps & Projects, Space Analysis and Rules. History and Settings have stable controls on the right. Secondary navigation belongs below it:
 
-The Windows Smart Cleanup source uses a separate completion page instead of presenting an invalidated scan list as the execution result. Success shows the receipt time, an estimate for completed targets and the irreversible-action notice. Issues expose removed/skipped/failed/unverified counts, optional details and routes to rescan, history or back. Missing or mismatched records never imply that files were unchanged. The cleanup action prepares the current exact plan before invoking the existing current-call confirmation; selection menus neither plan nor execute cleanup. Product counts describe rule groups while plans retain every exact location and target. History refreshes on every entry. These completion-page and interaction assertions still require native Windows revalidation.
+| Primary destination | Tasks |
+| --- | --- |
+| Cleanup | Smart Cleanup and Privacy |
+| Apps & Projects | Applications, Developer Projects and Startup Items; leftovers are reached from Applications |
+| Space Analysis | Space Analysis and Large Files |
+| Rules | Built-in/personal rules, scan locations and exclusions |
 
-## Native behavior
+The native title bar retains window controls and contextual tools. Introductions explain purpose; results start directly with contextual tools and data; progress and completion have their own focused composition. Results fill the remaining height. Batch selection actions remain at the bottom. Do not add duplicate version, capacity or permanently empty status bars. Operation status remains accessible.
 
-macOS uses SwiftUI/AppKit and Windows uses WinUI 3. Generate shared colors, typography, spacing, radii and text resources while using native keyboard, focus, dialogs, window and accessibility conventions. Validate light/dark, high contrast, reduced motion, long translations and DPI scaling. UI state may remain portable within a platform; UI framework types stay in the application layer.
+Current shared tokens set the initial window to 1440 × 875 pt with a 960 × 680 pt minimum; the system still restores saved window sizes. Check English, long paths and the minimum window. Reflow filters when necessary instead of shrinking essential text.
 
-## Shared design resources
+## Cleanup workspace
 
-Edit only `assets/design/tokens.json` for extracted design values. Run `python3 "scripts/generate-windows-resources.py"`, then add `--check` to verify reproducibility. The command generates `apps/windows/Generated/Design.xaml` and `apps/macos/Sources/ShouDesign.generated.swift`; neither file is edited manually. The manifest records canonical source and generator digests, and the Swift header records its source digest.
+Before scanning, the default page uses a horizontal hero: a two-line title, purpose, gradient scan button and review-before-removal note on the left; an original translucent folder, layered documents and floating app tiles on the right. `WorkspaceBackdrop` owns a continuous mint-to-ice-blue background across the entire window: primary/secondary navigation, whitespace and content. The gradient is not confined to an illustration or rounded hero panel. Dark appearance has a separate low-luminance palette; increased contrast removes decorative glows. Three illustrated destinations below open existing Apps & Projects, Space Analysis and Rules pages. Optional AI actions occupy a secondary utility row.
 
-Schema version 1 supports named sRGB colors (`#AARRGGBB`), numbers, uniform radii and insets represented by a scalar or a four-edge array `[left, top, right, bottom]`. Edge arrays are accepted only in `thicknesses`, generating Windows `Thickness` and SwiftUI `EdgeInsets` with explicit edge order; uniform scalars retain `CGFloat`. Names must start with `Shou` followed by an uppercase letter and contain only ASCII letters/digits. Names are unique across groups. Numeric values must be finite, nonnegative and at most 4096; booleans, strings, duplicate JSON keys and unsupported groups are rejected. Generated Swift colors retain all four channels; numeric values use `CGFloat`. Design resources do not enter Core or CLI dependencies.
+[WorkspaceIllustration.swift](../../apps/macos/Sources/WorkspaceIllustration.swift) owns editable artwork; [CleanupWelcomeView.swift](../../apps/macos/Sources/CleanupWelcomeView.swift) composes the page. Native vectors and gradients scale without network images or external assets. Shared tokens own colors and extracted layout values; drawing coordinates belong to the artwork source. Decorative space blocks convey neither measured capacity nor cleanup eligibility and are hidden from accessibility. There is no perpetual home animation; hover displacement respects reduced motion. The page scrolls vertically when needed rather than clipping its scan action.
 
-Extracted values include action/artwork dimensions, path width, motion period, sidebar/titlebar/list dimensions, body type, start-page typography, the large-file title size and the summary figure size. SwiftUI consumes the accent, settings spacing/card radius, scan-location padding and cleanup motion values; WinUI consumes the shared accent, spacing, radii, typography, page dimensions, sidebar pill colors and system link colors. Focused sidebar list selection is the system blue pill, with light text and icons; unselected icons use the secondary color. History and Settings use an accent tint when selected. The disk meter uses the secondary color. High contrast keeps the system highlight. macOS uses flat converging-file artwork for scanning and cleanup. Windows uses a native activity ring, with a static alternative when reduced motion or Windows animation preferences require it. Windows stores per-user language, theme and motion preferences; language changes rebuild the window and appearance applies immediately. The v0.13.0 baseline keeps mutation gates closed; the unreleased v0.14.0 tree assembles platform-limited execution with incomplete functional and visual acceptance. Exact Windows artwork, nested area maps, all-DPI and accessibility acceptance still require separate work; compilation and resource checks do not replace layout and interaction evidence.
+Other destinations use distinct compositions from [WorkspacePageArtwork.swift](../../apps/macos/Sources/WorkspacePageArtwork.swift) and a shared `WorkspaceStartPage`. Applications and Startup initially explain their task and offer a read-only check; once started, actual progress and results replace the introduction. Existing results survive navigation. Space Analysis and Large Files retain scope pickers, Projects reuses the common scan, and Privacy retains time range, permanent-removal impact and supported-source limitations. Rules, Settings and populated History show content immediately with compact illustrated headings. Empty history and filtered results have corresponding illustrations. Decoration never grants confirmation authority.
 
-## Validation
+| Page | Artwork |
+| --- | --- |
+| Applications | Layered app panels and icon grid |
+| Developer Projects | Terminal, code and build package |
+| Space Analysis | Space blocks and drive |
+| Large Files | Documents, media and magnifier |
+| Privacy | Browser document, shield and lock |
+| Startup | Power tile and launch arrow |
+| Rules / Settings | Layered adjustment panels with check / gear |
+| History | Receipt and clock |
 
-Use generated data to verify empty, loading, partial, ready, confirming, running, stopping, failed and completed states. Test source-page return, fresh rescanning, selection preservation, confirmation cancellation and accessible labels. Actual UI evidence is separate from state tests. See [workflows](../architecture/workflows-and-sequences.md) and [acceptance](acceptance-and-testing.md).
+Prioritize practical working space: populated Space Analysis, Large Files, Applications, Startup and Privacy omit large artwork and duplicate page titles. Projects retains only a compact introduction. Give remaining height to filters, lists/maps and fixed actions, including at minimum window size.
 
-Page bodies follow the Mac information layout: Smart Cleanup results use category summaries, rule groups and a selection-dependent cleanup footer; applications and startup items use summary figures, honest filter pills, search and inline details; history uses separate cards and a details affordance without invented targets or byte sizes; rules use a banner, a version picker beside the scan location, segmented sources, plus summary, limitation and location; space analysis uses an accent breadcrumb and a Simple/Detailed switch, and Simple view gives the area map the remaining height; the privacy empty state keeps the notice and time range above the canvas and the scan action in the toolbar; settings use grouped cards and show the local data directory plus support links. The title bar is 52 points, navigation rows are 28 points and the status bar is 34 points. Focused sidebar selection is the system blue pill. The space map nests directories and uses extension colors. Registered sizes, unknown startup state, preview gates and unavailable AI/updating remain accurate. Cleanup, uninstall and startup footer eligibility follows current platform, selection and review state; fixed disabled buttons cannot substitute for a working journey. The unreleased tree still requires that acceptance. These are source layout changes; final 1:1 acceptance requires current native Windows screenshots compared at matching states and DPI.
+Results start with categories, location counts and allocated-byte estimates. Full-width categories expand to rules/software, then exact paths. Search uses the same objects. Mixed-state selection reflects the current selection at every level; focus and expansion never select targets.
 
-Applications and startup keep the summary, filters and list inside one card with a 10-point radius. Summary figures are 15 points, names/summary text are 12 points and icon frames are 32 points, based on the Mac views and local preferred-font measurements. Partial coverage opens details from a summary link rather than adding a full warning row above the list. Idle states do not repeat summary counts; failures, stopping and cancellation remain visible. Unneeded paging controls are hidden. Applications initially sort by registered size descending, keeping unknown sizes last and retaining explicit name sorting. These changes still require native Windows screenshots and interaction revalidation; they do not establish accepted 1:1 parity.
+The footer shows selected count, selected capacity and one explicit permanent-cleanup action. Trash remains a secondary choice. Manual-review items may be selected explicitly but never become automatic recommendations. Preparation measures the complete current directory and explains its full impact. Core retains protected-location, exclusion, owner and current-manifest decisions.
 
-The application footer updates its selected count on selection changes without waiting for a list reload; the read-only selection E2E assertion still requires native execution.
+Space Analysis and Large Files retain their existing [storage contract](../product/space-analysis.md). Map area represents occupancy, not blanket cleanup eligibility.
 
-Privacy results use selection, 28-point icon frame, browser/profile and kind, separate record count and 140-point status columns with 14-point row padding. A horizontal footer shows selection totals, Clear and Review; receipts use a separate card. Settings share 20-point page padding, 24-point group spacing, 8-point inner spacing, 19-point icons in 26-point frames, 11-point subtitles, 18-point horizontal/17-point vertical row padding and 58-point inset dividers across platforms. Windows Scan Locations and Exclusions open the existing rule editor; unavailable AI/updating remain explicitly disabled. Privacy history uses a separate collapsible read-only receipt list. Matching-state Windows screenshots and new native-control E2E assertions are not accepted. This does not establish page-by-page 1:1 parity.
+## Applications and projects
+
+Applications use spacious rows with icon, name/version, status, size and last use. Inline details show related components and exact paths. Personal-data consent stays beside component selection. Unknown ownership and shared data remain protected or unavailable. Uninstall retains its independent confirmation contract.
+
+Update checks live in inline app details, explain the single-app network source and start only when clicked. Show versions, observation time and unknown causes; users explicitly open the official entry. Reuse the existing list/disclosure without another top-level update navigation item. [Update discovery](../product/application-updates.md) owns source and version limits.
+
+Developer Projects groups build outputs and dependencies using observed project markers. Unidentified projects explicitly fall back to the scan location. Displayed capacity covers matched cleanup items, not the entire source repository. Smart Cleanup and Projects share candidate identity, rules and selection; project actions prepare only the project scope. See [Apps & Projects](../product/apps-and-projects.md).
+
+## Visual resources
+
+Maintain extracted design values only in `assets/design/tokens.json`. Mac introductions use 72 pt primary navigation; results, scanning and functional lists use a compact 48 pt navigation. Windows currently uses 48 pt navigation throughout. Rules, History and Settings use 22 pt headings; other results omit duplicate page titles, 14 pt object text, 40 pt icons and 28 pt content insets. Row spacing and summary figures also come from generated resources. Keep paths, details and status readable instead of restoring the old 10 pt essential text density.
+
+Check actual light/dark appearance, accent contrast, selection and focus. Pair state colors with text or icons. Map palettes encode data and do not decorate whole pages. Native high contrast, reduced motion, keyboard and accessibility take precedence over decoration.
+
+Run `python3 scripts/generate-windows-resources.py` and `--check` to maintain Windows XAML and `ShouDesign.generated.swift`; never edit generated copies. On Mac, `python3 scripts/workspace_artwork.py` exports ten transparent PNGs and a source/output digest manifest. The Windows generator copies them into `Generated/Illustrations`. After source or token changes, export before generating; both scripts support `--check`. Mac retains the original vectors. The String Catalog owns text. The generator and its tests own schema fields, digests and rejection rules.
+
+## Implementation and verification
+
+macOS has been built and installed over the local application; [SYNC.md](../../SYNC.md) records actual checks. Windows source now implements task-family navigation, the continuous gradient, shared-artwork introductions and full-width cleanup results. Project selection is limited by canonical categories; marker-based project grouping and Mac manual-review parity remain pending. Native XAML builds, actual rendering and page acceptance remain unverified.
+
+Use generated data for empty, loading, partial, ready, confirming, executing, stopping, failed and completed states. Verify primary/secondary navigation, expansion versus selection, filtered selection, footer estimates, confirmation cancellation, the minimum window and both appearances. Delete only generated fixtures; personal data is limited to read-only inspection and cancellation. Builds, state tests and resources do not replace actual UI or signed-installation evidence.

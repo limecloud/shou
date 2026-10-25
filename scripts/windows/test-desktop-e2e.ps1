@@ -98,6 +98,14 @@ function Wait-Page([string]$Page, [string[]]$States = @('ready', 'partial'), [in
     } "page $Page to reach $($States -join '/')" $Seconds
 }
 function Navigate-Page([string]$Page, [string[]]$States = @('ready', 'partial', 'empty')) {
+    $Group = switch ($Page) {
+        'privacy' { 'cleanup' }
+        'startup' { 'applications' }
+        'projects' { 'applications' }
+        'large' { 'storage' }
+        default { $null }
+    }
+    if ($Group) { Invoke-Control "nav.$Group" }
     Invoke-Control "nav.$Page"
     $null = Wait-Page $Page $States
     Assert-That ([string]::IsNullOrEmpty((Find-Control 'window.status').Current.Name)) 'Window reports a page load failure.'
@@ -319,8 +327,11 @@ try {
         $null = Wait-Page 'cleanup' @('ready', 'partial') $ScanTimeoutSeconds
         Assert-That (-not (Find-Control 'cleanup.candidates').Current.IsOffscreen) 'Smart scan did not show results.'
         Set-Text 'cleanup.search' $ShouPayload
-        $Groups = (Find-Control 'cleanup.candidates').FindAll([Windows.Automation.TreeScope]::Descendants,
-            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsExpandCollapsePatternAvailableProperty, $true))
+        $Groups = @(Wait-Until {
+            $Found = (Find-Control 'cleanup.candidates').FindAll([Windows.Automation.TreeScope]::Descendants,
+                [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsExpandCollapsePatternAvailableProperty, $true))
+            if ($Found.Count -gt 0) { $Found }
+        } 'filtered cleanup result groups')
         Assert-That ($Groups.Count -gt 0) 'No cleanup result groups are accessible.'
         foreach ($Group in $Groups) { $Group.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand() }
         $Target = Wait-Until {
@@ -331,8 +342,11 @@ try {
         $null = Wait-Until { (Find-Control 'cleanup.candidates').FindAll([Windows.Automation.TreeScope]::Descendants,
             [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::CheckBox)).Count -eq 0 } 'empty filtered smart results'
         Set-Text 'cleanup.search' $ShouPayload
-        $Groups = (Find-Control 'cleanup.candidates').FindAll([Windows.Automation.TreeScope]::Descendants,
-            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsExpandCollapsePatternAvailableProperty, $true))
+        $Groups = @(Wait-Until {
+            $Found = (Find-Control 'cleanup.candidates').FindAll([Windows.Automation.TreeScope]::Descendants,
+                [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::IsExpandCollapsePatternAvailableProperty, $true))
+            if ($Found.Count -gt 0) { $Found }
+        } 'restored cleanup result groups')
         foreach ($Group in $Groups) { $Group.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Expand() }
         $Target = Wait-Until { Find-GeneratedCleanupTarget } 'selectable generated cleanup target'
         Assert-That ($null -ne $Target -and $Target.Current.IsEnabled) 'Generated target must be selectable.'
@@ -421,6 +435,8 @@ try {
     }
     Run-Step '06-applications-search' {
         Navigate-Page 'applications'
+        Invoke-Control 'applications.start'
+        $null = Wait-Page 'applications' @('ready', 'partial') $ScanTimeoutSeconds
         Assert-CatalogChrome 'applications'
         Set-Text 'applications.search' 'shou-no-such-application-81a0c'
         $null = Wait-Until { (Find-Control 'applications.results').FindAll([Windows.Automation.TreeScope]::Children,
@@ -435,6 +451,8 @@ try {
     }
     Run-Step '07-startup-search' {
         Navigate-Page 'startup'
+        Invoke-Control 'startup.start'
+        $null = Wait-Page 'startup' @('ready', 'partial', 'empty') $ScanTimeoutSeconds
         Assert-CatalogChrome 'startup'
         Set-Text 'startup.search' 'shou-no-such-startup-81a0c'
         $null = Wait-Until { (Find-Control 'startup.results').FindAll([Windows.Automation.TreeScope]::Children,

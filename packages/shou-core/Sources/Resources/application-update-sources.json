@@ -1,0 +1,8 @@
+[
+  {"bundleIdentifier":"com.microsoft.VSCode","bundleName":"Visual Studio Code.app","token":"visual-studio-code"},
+  {"bundleIdentifier":"org.mozilla.firefox","bundleName":"Firefox.app","token":"firefox"},
+  {"bundleIdentifier":"com.googlecode.iterm2","bundleName":"iTerm.app","token":"iterm2"},
+  {"bundleIdentifier":"com.google.Chrome","bundleName":"Google Chrome.app","token":"google-chrome"},
+  {"bundleIdentifier":"org.videolan.vlc","bundleName":"VLC.app","token":"vlc"},
+  {"bundleIdentifier":"com.postmanlabs.mac","bundleName":"Postman.app","token":"postman"}
+]

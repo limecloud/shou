@@ -87,7 +87,7 @@ public struct ShouError: Error, Codable, Sendable, LocalizedError {
         case "plan_stale", "already_executed", "store_busy", "version_conflict", "restore_conflict", "application_running": 4
         case "partial_result", "resource_limit": 6
         case "confirmation_required": 7
-        case "unsupported_platform", "capability_unavailable", "application_activity_unavailable": 8
+        case "unsupported_platform", "capability_unavailable", "application_activity_unavailable", "comparison_unavailable": 8
         case "cancelled": 130
         default: 5
         }

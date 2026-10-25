@@ -22,6 +22,22 @@ struct CommandSpec: Codable, Sendable {
     }
 }
 
+private let completionInputSchema: JSONValue = .object([
+    "type": .string("object"), "additionalProperties": .bool(false), "required": .array([.string("shell")]),
+    "properties": .object([
+        "shell": .object(["type": .string("string"), "enum": .array([.string("bash"), .string("zsh")])])
+    ])
+])
+
+private let applicationUpdateInputSchema: JSONValue = .object([
+    "type": .string("object"), "additionalProperties": .bool(false),
+    "required": .array([.string("path"), .string("allow-network")]),
+    "properties": .object([
+        "path": .object(["type": .string("string")]),
+        "allow-network": .object(["type": .string("string"), "enum": .array([.string("true")])])
+    ])
+])
+
 private let largeFileInputSchema: JSONValue = .object([
     "type": .string("object"), "required": .array([.string("scan-id")]), "additionalProperties": .bool(false),
     "properties": .object([
@@ -30,6 +46,19 @@ private let largeFileInputSchema: JSONValue = .object([
         "type": .object(["type": .string("string"), "enum": .array(StorageFileType.allCases.map { .string($0.rawValue) }), "default": .string("all")]),
         "limit": .object(["type": .string("integer"), "minimum": .integer(1), "maximum": .integer(500), "default": .integer(100)]),
         "cursor": .object(["type": .string("string"), "description": .string("Opaque next_cursor for the same scan, minimum-bytes and type; omit after changing filters.")])
+    ])
+])
+
+private let storageComparisonInputSchema: JSONValue = .object([
+    "type": .string("object"), "additionalProperties": .bool(false),
+    "required": .array([.string("baseline-id"), .string("scan-id")]),
+    "properties": .object([
+        "baseline-id": .object(["type": .string("string")]),
+        "scan-id": .object(["type": .string("string")]),
+        "path": .object(["type": .string("string"), "default": .string(".")]),
+        "limit": .object(["type": .string("integer"), "minimum": .integer(1), "maximum": .integer(100), "default": .integer(50)]),
+        "max-entries": .object(["type": .string("integer"), "minimum": .integer(1), "maximum": .integer(100_000), "default": .integer(100_000)]),
+        "max-seconds": .object(["type": .string("number"), "minimum": .integer(1), "maximum": .integer(30), "default": .integer(10)])
     ])
 ])
 
@@ -60,6 +89,8 @@ private let applicationSummaryInputSchema: JSONValue = .object([
 ])
 
 let commands: [CommandSpec] = [
+    .init("completion", "read", ["shell"], [], inputSchema: completionInputSchema, "Print Bash or Zsh completion generated from public command discovery. Shell is bash or zsh. Does not install, edit shell configuration, open local records or execute operations."),
+    .init("diagnostics", "read", [], [], "Collect a sanitized, metadata-only report of disk capacity, access and local-record directory safety. Never opens or creates the record store, changes permissions or uploads data."),
     .init("capabilities", "read", [], ["command"], "Discover operations, inputs, limits, and platform capabilities without opening storage. Command optionally selects one command or group."),
     .init("agent skill", "read", [], [], "Read the bundled rule-authoring skill and its local entrypoint. External agents use it to ask questions, inspect evidence, and preview custom rules; no model or agent is started."),
     .init("skills list", "read", [], [], "List the bundled rule-authoring skill and supporting files; no record-store access."),
@@ -75,6 +106,8 @@ let commands: [CommandSpec] = [
     .init("applications leftovers show", "read", ["plan-id"], [], "Read the exact leftover selection, digest and expiry."),
     .init("applications leftovers execute", "destructive", ["plan-id"], [], "Recheck owner absence and every manifest before reviewed leftover removal; use shared cleanup history."),
     .init("applications summary", "read", [], ["include-system", "max-entries", "max-seconds"], inputSchema: applicationSummaryInputSchema, "Read application sizes, versions, activity/ownership status (ready/running/admin-required/protected/unavailable) and optional last-used metadata from one inventory. Size is an allocated-byte estimate; no removal manifests are saved. Last-used may be unknown. Per-application measurement budget defaults to 100000 entries/60 seconds. Admin-required items cannot be removed by this build."),
+    .init("applications updates source", "read", ["path"], [], "Describe a supported Homebrew Cask catalog mapping without network access or local-store writes. A mapping does not prove Homebrew installed the application."),
+    .init("applications updates check", "network", ["path", "allow-network"], [], inputSchema: applicationUpdateInputSchema, "Explicitly query formulae.brew.sh for one mapped application. Requires --allow-network true. Compares numeric catalog versions only; unknown is partial/exit 6. No package downloads, installation, inventory upload, redirects or record-store access."),
     .init("applications inspect", "snapshot", ["path"], ["max-entries", "max-seconds"], "Review an application and exact bundle-identifier associations. Personal data is separate; shared groups and package receipts are not removed."),
     .init("applications plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Plan explicitly selected eligible components, including the application. Personal data requires include-user-data true; defaults false. Mode trash (legacy default) or permanent (irreversible)."),
     .init("applications plan show", "read", ["plan-id"], [], "Inspect an uninstall plan, exact components, consent, digest and expiry."),
@@ -113,6 +146,8 @@ let commands: [CommandSpec] = [
     .init("analysis children", "read", ["scan-id"], ["path", "limit", "cursor"], "Browse allocated space in a saved scan; default path is the workspace root (.)."),
     .init("analysis context", "read", ["scan-id"], ["path"], "Export bounded space-analysis evidence and a ready-to-paste agent request from the saved scan; does not rescan or upload."),
     .init("analysis map", "read", ["scan-id"], ["path"], "Read a bounded multilevel space map and scoped extension totals from a saved scan."),
+    .init("analysis history", "read", ["scan-id"], [], "Find earlier disk-index analyses of the same root identity within a bounded directory listing. Reads current metadata and at most 127 enumerated entries, 4 MiB per record and 8 MiB total; ranks only examined candidates by time. Truncation, unavailable or legacy records remain coverage issues."),
+    .init("analysis compare", "read", ["baseline-id", "scan-id"], ["path", "limit", "max-entries", "max-seconds"], inputSchema: storageComparisonInputSchema, "Compare one directory in two immutable disk-index analyses. Limit 1–100 (default 50), max-entries 1–100000 (default 100000), max-seconds 1–30 (default 10). Rank observed changes by magnitude in the examined scope; absent, replaced or incomplete objects have no numeric growth claim. Allocated estimates are not reclaimable bytes; does not scan or authorize removal."),
     .init("analysis large-files", "read", ["scan-id"], ["minimum-bytes", "type", "limit", "cursor"], inputSchema: largeFileInputSchema,
           "Query saved space-analysis evidence across all directories without rescanning. Minimum-bytes is nonnegative allocated bytes (default 52428800 = 50 MiB); type is all (default), video, audio, image, archive, document, ai-model or other, inferred only from filename extensions. Limit 1..500 (default 100). Stable order is allocated bytes descending then full path ascending. Hard links follow saved space accounting; byte totals are estimates. Reuse returned paths with analysis plan, then analysis remove for confirmed execution."),
     .init("plan create", "plan", ["scan-id", "candidate"], ["mode"], repeated: ["candidate"], "Create a plan from explicitly selected candidates. Mode is trash (default) or permanent."),
@@ -216,7 +251,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.14.0"
+    static let version = "0.15.0"
     static func main() async {
         #if canImport(Darwin) || canImport(Glibc)
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
@@ -253,6 +288,34 @@ enum Terminal {
             if args.help {
                 let help=try CLICommandDiscovery.help(for: args.command)
                 if args.json { try output(ResultEnvelope(data: help), json: true) } else { print(help) }
+                return
+            }
+            if args.command == "completion" {
+                let script=try CLICompletion.script(shell: args.value("shell"))
+                if args.json { try result(.object(["shell": .string(args.value("shell")), "script": .string(script)]), json: true) }
+                else { print(script, terminator: "") }
+                return
+            }
+            if args.command == "diagnostics" {
+                let report=try NativeDiagnostics.collect(applicationVersion: version)
+                if args.json { try result(try .from(report), json: true) }
+                else {
+                    print(report.text(locale: args.locale), terminator: "")
+                    if report.status == "partial" { exit(6) }
+                }
+                return
+            }
+            if args.command == "applications updates source" {
+                let application=try NativeApplicationCatalog().application(at: args.value("path"))
+                let source=try ApplicationUpdateChecker.source(for: application)
+                try result(.object(["application": try .from(application), "source": try source.map { try JSONValue.from($0) } ?? .null,
+                    "status": .string(source == nil ? "unsupported" : "available")]), json: args.json)
+                return
+            }
+            if args.command == "applications updates check" {
+                guard args.value("allow-network") == "true" else { throw ShouError("invalid_argument", "Catalog checks require explicit --allow-network true.") }
+                let observation=try await ApplicationUpdateChecker.native().check(path: args.value("path"))
+                try result(try .from(observation), json: args.json)
                 return
             }
             if args.command == "capabilities" {
@@ -468,6 +531,18 @@ enum Terminal {
             case "analysis context":
                 let context=try await engine.storageAnalysisContext(scanId: args.value("scan-id"), path: args.values["path"]?.first ?? ".")
                 value = .object(["context": try .from(context), "text": .string(try context.text(locale: args.locale))])
+            case "analysis history":
+                let history=try await engine.storageComparisonHistory(scanId: args.value("scan-id"))
+                value=try .from(history); warnings=history.issues
+            case "analysis compare":
+                guard let limit=Int(args.values["limit"]?.first ?? "50"),
+                      let entries=Int(args.values["max-entries"]?.first ?? "100000"),
+                      let seconds=Double(args.values["max-seconds"]?.first ?? "10") else {
+                    throw ShouError("invalid_argument", "Comparison budgets must be numeric.")
+                }
+                let comparison=try await engine.compareStorage(baselineId: args.value("baseline-id"), scanId: args.value("scan-id"),
+                    path: args.values["path"]?.first ?? ".", limit: limit, maxEntries: entries, maxSeconds: seconds)
+                value=try .from(comparison); warnings=comparison.issues
             case "analysis map":
                 value=try .from(await engine.storagePresentation(scanId: args.value("scan-id"), path: args.values["path"]?.first ?? "."))
             case "analysis large-files":

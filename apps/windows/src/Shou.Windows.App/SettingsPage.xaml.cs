@@ -38,6 +38,10 @@ public sealed partial class SettingsPage : UserControl
         LocalDataTitle.Text = text.Get("Local data");
         OpenDataButton.Content = text.Get("Open Folder…");
         SupportHeading.Text = text.Get("Support");
+        DiagnosticsTitle.Text = text.Get("Diagnostics");
+        DiagnosticsDescription.Text = text.Get("This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded.");
+        DiagnosticsButton.Content = text.Get("Run Diagnostics…");
+        DiagnosticsIcon.Content = ProductIcon.Create("configuration", (double)Application.Current.Resources["ShouSettingsIconSize"]);
         FeedbackTitle.Text = text.Get("Report an Issue");
         FeedbackDescription.Text = text.Get("Share a problem or suggest an improvement.");
         FeedbackLink.Content = text.Get("Send Feedback…");
@@ -66,6 +70,12 @@ public sealed partial class SettingsPage : UserControl
         initialized = true;
     }
     private void ViewScanLocations(object sender, RoutedEventArgs args) => ScanLocationsRequested?.Invoke(this, EventArgs.Empty);
+    private async void RunDiagnostics(object sender, RoutedEventArgs args)
+    {
+        DiagnosticsButton.IsEnabled = false;
+        try { await new UserDiagnosticsDialog(XamlRoot).ShowAsync(); }
+        finally { DiagnosticsButton.IsEnabled = true; }
+    }
     private void ManageExclusions(object sender, RoutedEventArgs args) => ExclusionsRequested?.Invoke(this, EventArgs.Empty);
     private async void OpenLocalData(object sender, RoutedEventArgs args)
     {

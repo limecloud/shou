@@ -25,6 +25,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
     private readonly InlineDetails inlineDetails;
     private ApplicationPresentationFilter presentation = ApplicationPresentationFilter.All;
     private string? selectedApplicationId;
+    private ApplicationUpdatePanel? updates;
     public bool HasActiveUninstall => uninstall.IsExecuting;
     public event EventHandler? BusyChanged;
 
@@ -32,6 +33,8 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
     {
         InitializeComponent();
         inlineDetails = new(Inspector, PageLayout);
+        LandingHost.Content = WorkspaceVisuals.Landing(text, "Keep the apps you love.",
+            "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage.", "applications", "Scan Applications", "applications.start", Refresh);
         PageTitle.Text = text.Get("Applications");
         NameHeading.Text = text.Get("Name"); SizeHeading.Text = text.Get("Registered size"); StateHeading.Text = text.Get("Status");
         FooterNotice.Text = text.Get(uninstall.ExecutionAvailable
@@ -78,6 +81,9 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         if (disposed) return;
         PageDiagnostics.Update(this, "applications", model.State, model.ErrorCode);
         var busy = model.IsBusy || uninstall.IsBusy;
+        var landing = model.Page is null && !busy;
+        LandingHost.Visibility = landing ? Visibility.Visible : Visibility.Collapsed;
+        PageLayout.Visibility = PageToolbar.Visibility = landing ? Visibility.Collapsed : Visibility.Visible;
         RefreshButton.IsEnabled = !busy;
         SearchBox.IsEnabled = SortBox.IsEnabled = ApplicationsList.IsEnabled = !busy;
         CancelButton.IsEnabled = model.IsBusy && !model.StopRequested || uninstall.IsBusy && !uninstall.StopRequested;
@@ -139,8 +145,10 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
     private void ShowDetails()
     {
         if (ApplicationsList.SelectedItem is not ApplicationDisplay row)
-        { Details.Text = text.Get("Select an application to view its registration details."); return; }
+        { Details.Text = text.Get("Select an application to view its registration details."); updates?.Dispose(); updates = null; UpdatesHost.Content = null; return; }
         var app = row.Application;
+        if (updates?.Application != app) { updates?.Dispose(); updates = new(app); UpdatesHost.Content = updates; }
+        updates.SetBusy(model.IsBusy || uninstall.IsBusy);
         var lines = new List<string> { app.Name, Source(app.Source), app.RegistrationKey };
         if (!string.IsNullOrEmpty(app.Version)) lines.Add(text.Get("Version") + ": " + app.Version);
         if (!string.IsNullOrEmpty(app.Publisher)) lines.Add(text.Get("Publisher") + ": " + app.Publisher);
@@ -223,6 +231,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
     private void UninstallChanged(object? sender, PropertyChangedEventArgs args)
     {
         if (args.PropertyName != nameof(ApplicationUninstallViewModel.State) || disposed) return;
+        updates?.SetBusy(model.IsBusy || uninstall.IsBusy);
         RefreshButton.IsEnabled = SearchBox.IsEnabled = SortBox.IsEnabled = ApplicationsList.IsEnabled = !model.IsBusy && !uninstall.IsBusy;
         PreviousButton.IsEnabled = !model.IsBusy && !uninstall.IsBusy && model.Page?.Offset > 0;
         NextButton.IsEnabled = !model.IsBusy && !uninstall.IsBusy && model.Page?.HasNext == true;
@@ -394,6 +403,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         model.Dispose();
         uninstall.PropertyChanged -= UninstallChanged;
         uninstall.Dispose();
+        updates?.Dispose();
         GC.SuppressFinalize(this);
     }
     [Microsoft.UI.Xaml.Data.Bindable]

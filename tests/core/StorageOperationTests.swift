@@ -2,6 +2,90 @@ import Foundation
 import ShouCore
 import ShouPlatform
 
+func storageCatalogProtectionExemptsOnlyDisposableFiles() throws {
+    let fixture=try Fixture()
+    var file=try fixture.fs.inspectStorageTarget(fixture.workspace.appendingPathComponent("project/target/artifact.bin").path,
+        budget: ScanBudget(), cancelled: { false }).entries[0]
+    let home="/Users/fixture", records=home + "/Library/Application Support/Shou"
+    for root in ["/", "/System/Volumes/Data"] {
+        let path=String(records.dropFirst()) + "/storage-catalogs/storage_fixture.sqlite"
+        try expect(StorageRemovalPolicy.reason(root: root, path: path, entry: file, home: home, protectedPaths: [records]) == nil)
+    }
+    for relative in ["configuration/current.json", "history/execution.json", "storage-plans/plan.json", ".mutation.lock",
+                     "storage-catalogs", "storage-catalogs/nested/file.sqlite", "storage-catalogs/.sqlite", "storage-catalogs/file.sqlite-wal"] {
+        try expect(StorageRemovalPolicy.reason(root: records, path: relative, entry: file, home: home, protectedPaths: [records]) != nil)
+    }
+    let path=records + "/storage-catalogs/storage_fixture.sqlite"
+    for kind in ["directory", "symlink", "special"] {
+        file.kind=kind
+        try expect(!StorageRemovalPolicy.isRemovableCatalog(path, entry: file, recordDirectory: records))
+    }
+    file.kind="file"; file.links=2
+    try expect(!StorageRemovalPolicy.isRemovableCatalog(path, entry: file, recordDirectory: records))
+    file.links=1
+    try expect(StorageRemovalPolicy.reason(root: home + "/.ssh", path: "storage-catalogs/cache.sqlite", entry: file,
+        home: home, protectedPaths: [home + "/.ssh"]) != nil)
+    try expect(StorageRemovalPolicy.reason(root: home, path: "Library/Application Support", entry: file,
+        home: home, protectedPaths: [records]) != nil)
+}
+
+func storageCatalogCleanupAllowsReferencedAndCurrentIndexes() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: NativeFileSystem())
+    _ = try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "generated-workspace")
+    let configuration=try require(fixture.store.read("configuration", id: "current"))
+    let old=try await engine.scanStorage(path: fixture.workspace.path)
+    let pending=try await engine.createStorageRemovalPlan(scanId: old.id, paths: ["project/target"], action: "permanent")
+    let scan=try await engine.scanStorage(path: fixture.base.path)
+    let paths=[old.id, scan.id].map { "store/storage-catalogs/" + $0 + ".sqlite" }
+    let page=try await engine.storageBrowsePage(scanId: scan.id, path: "store/storage-catalogs")
+    try expect(paths.allSatisfy { path in page.removalReasons[path] == nil && page.directory.children.contains { $0.node.path == path } })
+    let selection=try await engine.storageSelection(scanId: scan.id, paths: [], targets: paths, selected: true)
+    try expect(Set(selection.paths) == Set(paths))
+    try await expectThrows { try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["store"]) }
+    let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths + ["workspace/project/target"], action: "permanent")
+    let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    guard receipt.state == "completed" && receipt.items.allSatisfy({ $0.state == "purged" }) else {
+        throw CheckFailure(description: "Catalog cleanup: " + receipt.items.map { $0.relativePath + ": " + $0.state + " " + ($0.error ?? "") }.joined(separator: "; "))
+    }
+    for source in [old, scan] {
+        try expect(!FileManager.default.fileExists(atPath: fixture.store.directory.appendingPathComponent("storage-catalogs/" + source.id + ".sqlite").path))
+        do {
+            _ = try await engine.storageDirectory(scanId: source.id)
+            throw CheckFailure(description: "A cleared index must require a new scan.")
+        } catch let error as ShouError { try expect(error.code == "analysis_unavailable") }
+    }
+    try await expectThrows { try await engine.executeStorageRemoval(planId: pending.id, confirmedDigest: pending.digest, entryPoint: "test") }
+    try await expectThrows { try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
+    try expect(try fixture.store.read("configuration", id: "current") == configuration)
+    try expect(try await engine.history().contains { $0.id == receipt.id })
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/Cargo.toml").path))
+}
+
+func storageCatalogTrashCleanupPreservesRestoreAndRechecksChanges() async throws {
+    let fixture=try Fixture()
+    let native=ShouEngine(store: fixture.store, filesystem: NativeFileSystem())
+    let old=try await native.scanStorage(path: fixture.workspace.path)
+    let engine=ShouEngine(store: fixture.store, filesystem: FixtureFileSystem(native: fixture.fs, trash: fixture.trash))
+    let scan=try await engine.scanStorage(path: fixture.base.path)
+    let path="store/storage-catalogs/" + old.id + ".sqlite"
+    let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: [path])
+    let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    try expect(receipt.items[0].state == "trashed")
+    try await expectThrows { try await native.storageDirectory(scanId: old.id) }
+    let ids=receipt.items.map(\.id)
+    let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: ids, action: "restore")
+    let restored=try await engine.followUp(executionId: receipt.id, itemIds: ids, action: "restore", confirmedDigest: digest)
+    try expect(restored.allSatisfy { $0.state == "completed" })
+    try expect(!(try await native.storageDirectory(scanId: old.id)).children.isEmpty)
+    let fresh=try await engine.scanStorage(path: fixture.base.path)
+    let stale=try await engine.createStorageRemovalPlan(scanId: fresh.id, paths: [path], action: "permanent")
+    let url=fixture.store.directory.appendingPathComponent("storage-catalogs/" + old.id + ".sqlite")
+    let handle=try FileHandle(forWritingTo: url)
+    try handle.seekToEnd(); try handle.write(contentsOf: Data("changed fixture".utf8)); try handle.close()
+    let rejected=try await engine.executeStorageRemoval(planId: stale.id, confirmedDigest: stale.digest, entryPoint: "test")
+    try expect(rejected.items[0].state == "failed" && FileManager.default.fileExists(atPath: url.path))
+}
+
 func storageReviewRefreshesDirectoryChangesBeforeConfirmation() async throws {
     let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: NativeFileSystem())
     let scan=try await engine.scanStorage(path: fixture.workspace.path)

@@ -1,11 +1,13 @@
 ---
 name: shou-windows-cloud-test
-description: "通过阿里云 CLI 和本地无影客户端直接驱动 Shou Windows 测试，复用环境、同步工作区、构建并截图，按用户选择关机保留或释放。用于远程 Windows 验收及 Mac UI 对齐。"
+description: "仅为本 Shou 仓库驱动 Windows 云端构建、真实界面验收与费用收尾，按当前设计基线对齐 macOS。"
 ---
 
 # Shou Windows 云端测试
 
 CLI/API 负责资源、源码同步、构建测试和证据导出；Computer Use 负责本地无影客户端、真实窗口交互与截图。先读取 [快速驱动](references/quick-drive.md)，复用已保存实例与磁盘工具缓存，避免重复购买、下载 SDK 或重新询问账号密码。
+
+本技能仅服务包含本文件的 Shou 仓库；不安装为全局技能，不修改其他项目。界面基线先读仓库[原生界面设计](../../../docs/zh-CN/engineering/interface-design.md)与[跨端对齐](../../../SYNC.md)。新工作台布局取代旧侧栏基线；历史 Mac 紧凑字号、截图或此前“1:1”要求不能自动覆盖用户本次的新设计。共享资源生成不代表 Windows 导航或页面已经完成改造。
 
 **节省测试费用的默认顺序**：云电脑在本地开发、UI 对齐、文档与 Mac 纯 .NET 验证期间保持 `StopCharging` 关机；先完成可在本机完成的工作，准备好同步包和 Windows 验收步骤后，再开机进行集中构建、测试与截图。不要让云电脑空转等待改代码。生命周期始终以本次最新要求为准；用户选择保留一天时，将截止时间写入技能外的 `active-desktop.json.retain_until`，不能将旧会话的保留偏好当作本次释放指令的例外。
 

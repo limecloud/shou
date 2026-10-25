@@ -1,6 +1,6 @@
 <UserControl x:Class="Shou.Windows.App.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer Background="{ThemeResource ShouSettingsBrush}" HorizontalContentAlignment="Stretch">
+    <ScrollViewer HorizontalContentAlignment="Stretch">
         <StackPanel Padding="{StaticResource ShouSettingsPagePadding}" Spacing="{StaticResource ShouPageSpacing}" MaxWidth="{StaticResource ShouSettingsMaxWidth}" HorizontalAlignment="Stretch">
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="GeneralHeading" Style="{StaticResource ShouCaption}" />
@@ -47,6 +47,8 @@
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="SupportHeading" Style="{StaticResource ShouCaption}" />
             <Border Style="{StaticResource ShouCard}"><StackPanel>
+                <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="DiagnosticsIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="DiagnosticsTitle" FontWeight="SemiBold" /><TextBlock x:Name="DiagnosticsDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="DiagnosticsButton" AutomationProperties.AutomationId="settings.diagnostics" Click="RunDiagnostics" VerticalAlignment="Center" /></Grid>
+                <Border Style="{StaticResource ShouSettingsSeparator}" />
                 <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="FeedbackIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="FeedbackTitle" FontWeight="SemiBold" /><TextBlock x:Name="FeedbackDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><HyperlinkButton Grid.Column="2" x:Name="FeedbackLink" Style="{StaticResource ShouLinkButton}" NavigateUri="https://github.com/limecloud/shou/issues" VerticalAlignment="Center" /></Grid>
                 <Border Style="{StaticResource ShouSettingsSeparator}" />
                     <Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="{StaticResource ShouSettingsIconWidth}" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="SourceIcon" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="SourceTitle" FontWeight="SemiBold" /><TextBlock x:Name="SourceDescription" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><HyperlinkButton Grid.Column="2" x:Name="SourceLink" Style="{StaticResource ShouLinkButton}" NavigateUri="https://github.com/limecloud/shou" VerticalAlignment="Center" /></Grid>

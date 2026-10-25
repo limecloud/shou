@@ -48,7 +48,7 @@ class WindowsReleaseTests(unittest.TestCase):
                 receipt = json.loads(bundle.read('BUILD.json'))
                 self.assertEqual('0.14.0', receipt['version'])
                 self.assertEqual('a' * 40, receipt['source_commit'])
-                self.assertTrue(receipt['public_mutation_available'])
+                self.assertFalse(receipt['public_mutation_available'])
                 self.assertEqual('portable-preview', receipt['distribution'])
                 self.assertEqual('unsigned', receipt['signing'])
                 self.assertEqual(len(bundle.namelist()), len(set(bundle.namelist())))

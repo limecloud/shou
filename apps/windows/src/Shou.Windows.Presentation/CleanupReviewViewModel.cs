@@ -14,6 +14,7 @@ public interface ICleanupReviewOperations
 }
 
 public enum CleanupReviewState { Empty, Loading, Discovering, Scanning, Ready, Partial, Preparing, Review, Cancelled, Failed }
+public enum CleanupReviewScope { All, ProjectOutputs }
 public sealed record CleanupCandidateSelection(RuleCandidate Candidate, string ScanId, string WorkspaceId, string RuleName, string Category,
     bool Selected, bool Selectable, bool Recommended);
 public sealed record CleanupRuleGroup(string RuleId, string Name, string Category, int Count, int SelectableCount, int SelectedCount,
@@ -28,7 +29,8 @@ public sealed record CleanupCategorySummary(string Id, int Count, int Selectable
 }
 
 /// <summary>Reviewing and planning have no execution capability or reusable approval value.</summary>
-public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, IReadOnlyDictionary<string, string>? builtinCategories = null) : INotifyPropertyChanged, IDisposable
+public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, IReadOnlyDictionary<string, string>? builtinCategories = null,
+    CleanupReviewScope reviewScope = CleanupReviewScope.All) : INotifyPropertyChanged, IDisposable
 {
     public const int PageSize = 200;
     public const int MaximumSelection = 256;
@@ -394,7 +396,8 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
             var recommended = selectable && candidate.Risk == "review" && snapshot.Scan.IsComplete && snapshot.AnalysisIssues.IsEmpty &&
                 (Batch is null || Batch.State == "complete");
             return new CleanupCandidateSelection(candidate, snapshot.Id, snapshot.WorkspaceId, name, category, false, selectable, recommended);
-        })).OrderBy(row => row.Category, StringComparer.Ordinal).ThenBy(row => row.RuleName, StringComparer.Ordinal)
+        })).Where(row => reviewScope == CleanupReviewScope.All || row.Category is "build" or "dependencies")
+            .OrderBy(row => row.Category, StringComparer.Ordinal).ThenBy(row => row.RuleName, StringComparer.Ordinal)
             .ThenBy(row => row.Candidate.Path.Value, StringComparer.Ordinal).ToImmutableArray();
     }
     private CleanupReviewState CoverageState() => Batch?.State is "partial" or "cancelled" ? CleanupReviewState.Partial : Snapshot is not { } snapshot ? CleanupReviewState.Empty :

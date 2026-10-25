@@ -8,6 +8,39 @@ namespace Shou.Windows.Presentation.Tests;
 public sealed partial class CleanupReviewTests
 {
     [Fact]
+    public async Task ProjectScopeCannotSelectOrPlanHiddenCachesOrPersonalRules()
+    {
+        var build = Candidate(1) with { RuleId = "shou.builtin.build", Risk = "review" };
+        var dependencies = Candidate(2) with { RuleId = "shou.builtin.dependencies", Risk = "review" };
+        var cache = Candidate(3) with { RuleId = "shou.builtin.cache", Risk = "review" };
+        var personal = Candidate(4) with { Risk = "review" };
+        var operations = new Operations { Result = Scan([build, dependencies, cache, personal]) };
+        using var model = new CleanupReviewViewModel(operations, new Dictionary<string, string>
+        {
+            [build.RuleId] = "build", [dependencies.RuleId] = "dependencies", [cache.RuleId] = "cache",
+            [personal.RuleId] = "build"
+        }, CleanupReviewScope.ProjectOutputs);
+        await model.LoadAsync(); await model.ScanAllAsync();
+        Assert.Equal(new[] { "build", "dependencies" }, model.Categories);
+        Assert.Equal(2, model.ResultCount);
+        Assert.False(model.SetSelected(cache.Id, true));
+        Assert.False(model.SetSelected(personal.Id, true));
+        Assert.True(model.SelectRecommended());
+        Assert.Equal(2, model.SelectedCount);
+        model.ClearSelection();
+        model.SetFilter(null, null, "");
+        Assert.True(model.SetCategorySelected(null, true));
+        Assert.Throws<ShouException>(() => model.SetFilter("cache", null, ""));
+        model.SetFilter(null, null, "no-generated-match");
+        Assert.Empty(model.Rows);
+        Assert.Equal(2, model.SelectedCount);
+        await model.PreparePlanAsync();
+        Assert.NotNull(model.Plan);
+        Assert.Equal(new[] { build.Id, dependencies.Id }, operations.Selected.Order().ToArray());
+        Assert.All(model.Plan.Items, item => Assert.Contains(item.CandidateId, new[] { build.Id, dependencies.Id }));
+    }
+
+    [Fact]
     public async Task ProductCountsDescribeRuleGroupsWhileSelectionKeepsEveryExactLocation()
     {
         var operations = new Operations { Locations = [Location(1), Location(2)],

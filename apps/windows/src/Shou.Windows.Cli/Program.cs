@@ -12,6 +12,7 @@ internal static class Program
 
     private static async Task<int> Main(string[] args)
     {
+        if (IsSupportRequest(args)) return await ExecuteAsync(args, "request_" + Guid.NewGuid().ToString("N"));
         if (HostSupported) NativeDiagnostics.Initialize();
         using var diagnostic = OperationDiagnostics.Start("cli.request");
         try
@@ -75,6 +76,14 @@ internal static class Program
                     limitations = new[] { "Local NTFS/ReFS only", "Trash and restore are unavailable", "Rule previews do not grant execution" }
                 });
             if (request.Command == "rules schema") return Write(requestId, RuleResources.CreateValidator().ExportSchema());
+            if (request.Command == "completion")
+            {
+                var shell = request.Required("shell");
+                var script = CommandCompletion.Script(shell);
+                if (json) return Write(requestId, new { shell, script });
+                Console.Write(script);
+                return 0;
+            }
             if (request.Command == "rules catalog" && request.Optional("workspace") is null)
             {
                 var home = WindowsPath.Parse("C:/ShouCatalogValidation");
@@ -82,6 +91,21 @@ internal static class Program
                 return Write(requestId, catalog.Templates);
             }
             RequireWindows();
+            if (request.Command is "applications updates source" or "applications updates check")
+            {
+                var checker = WindowsApplicationUpdateCatalog.CreateChecker();
+                var result = request.Command == "applications updates source"
+                    ? await checker.SourceAsync(request.Required("application-id"), null, cancelled.Token)
+                    : await checker.CheckAsync(request.Required("application-id"), null, cancelled.Token);
+                return Write(requestId, result, result.Status == "partial" ? "partial" : "success", result.Status == "partial" ? 6 : 0);
+            }
+            if (request.Command == "diagnostics")
+            {
+                var report = await new WindowsUserDiagnostics(Version).CollectAsync(cancelled.Token);
+                if (json) return Write(requestId, report, report.Status == "partial" ? "partial" : "success", report.Status == "partial" ? 6 : 0);
+                Console.Write(report.Text(new TextCatalog(locale).Get));
+                return report.Status == "partial" ? 6 : 0;
+            }
             if (request.Command == "startup list")
             {
                 var snapshot = await new StartupInventoryService(new WindowsStartupInventory()).ReadAsync(request.StartupBudget, cancelled.Token);
@@ -105,9 +129,22 @@ internal static class Program
             }
             if (request.Command == "analysis scan")
             {
-                var result = await new StorageScanner(new WindowsFileSystem()).ScanAsync(request.Path!, request.Budget, null, cancelled.Token);
+                var history = new StorageComparisonService(WindowsRecordStore.ForCurrentUser());
+                var result = await new HistoricalStorageScanner(new StorageScanner(new WindowsFileSystem()), history).ScanAsync(request.Path!, request.Budget, null, cancelled.Token);
                 return Write(requestId, result, result.State switch { ScanState.Complete => "success", ScanState.Cancelled => "cancelled", _ => "partial" },
                     result.State switch { ScanState.Complete => 0, ScanState.Cancelled => 130, _ => 6 });
+            }
+            if (request.Command == "analysis history")
+            {
+                var history = await new StorageComparisonService(WindowsRecordStore.ForCurrentUser()).HistoryAsync(request.Required("scan-id"), cancelled.Token);
+                return Write(requestId, history, history.Status == "partial" ? "partial" : "success", history.Status == "partial" ? 6 : 0);
+            }
+            if (request.Command == "analysis compare")
+            {
+                var comparison = await new StorageComparisonService(WindowsRecordStore.ForCurrentUser()).CompareAsync(request.Required("baseline-id"), request.Required("scan-id"),
+                    request.Optional("path") ?? ".", request.PageLimit, int.Parse(request.Optional("max-entries") ?? "100000", System.Globalization.CultureInfo.InvariantCulture),
+                    int.Parse(request.Optional("max-seconds") ?? "10", System.Globalization.CultureInfo.InvariantCulture), cancelled.Token);
+                return Write(requestId, comparison, comparison.Status == "partial" ? "partial" : "success", comparison.Status == "partial" ? 6 : 0);
             }
             var response = await LocalCommands.ExecuteAsync(request, new CliServices(), locale, cancelled.Token);
             return Write(requestId, response.Data, response.Status, response.ExitCode, nextActions: response.NextActions);
@@ -118,7 +155,7 @@ internal static class Program
         }
         catch (Exception error) when (error is ShouException or UnauthorizedAccessException or IOException)
         {
-            if (HostSupported) NativeDiagnostics.Write(error);
+            if (HostSupported && !IsSupportRequest(args)) NativeDiagnostics.Write(error);
             var code = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error";
             var message = error is ShouException ? error.Message : "The local operation could not be completed.";
             var exit = code switch
@@ -128,7 +165,7 @@ internal static class Program
                 "source_changed" or "active_or_inaccessible" or "version_conflict" or "store_busy" or "plan_stale" or "plan_consumed" or "active_target" or "activity_unknown" or "preview_only" or "application_changed" or "startup_changed" => 4,
                 "time_limit" or "resource_limit" or "application_discovery_incomplete" => 6,
                 "confirmation_required" or "installer_data_consent_required" => 7,
-                "unsupported_platform" or "unsupported_filesystem" or "unsupported_location" or "unsupported_capability" => 8,
+                "unsupported_platform" or "unsupported_filesystem" or "unsupported_location" or "unsupported_capability" or "comparison_unavailable" => 8,
                 _ => 5
             };
             return Write(requestId, null, "error", exit, new { code, message, details = new { }, retryable = code == "store_busy" });
@@ -150,6 +187,17 @@ internal static class Program
         var count = arguments.Count(value => value == flag);
         if (count > 1) throw Input("Duplicate arguments are not supported.");
         return arguments.Remove(flag);
+    }
+
+    private static bool IsSupportRequest(string[] args)
+    {
+        var arguments = new List<string>(args);
+        try
+        {
+            RemoveFlag(arguments, "--json"); RemoveFlag(arguments, "--help"); RemoveOption(arguments, "--locale");
+            return arguments.FirstOrDefault() is "diagnostics" or "completion" || arguments.Take(2).SequenceEqual(["applications", "updates"]);
+        }
+        catch (ShouException) { return false; }
     }
 
     private static string? RemoveOption(List<string> arguments, string name)

@@ -8,8 +8,9 @@ namespace Shou.Windows.Platform;
 /// <summary>Removes only frozen entries through verified parent handles. No path-recursive fallback.</summary>
 public sealed class WindowsCleanupMutation : ICleanupMutation
 {
-    // GUI and CLI share the same strict native-host gate. macOS builds remain read-only.
-    public static bool PublicExecutionAvailable => NativeWindowsSupport.IsSupported;
+    // Native fixture adapters remain testable; public preview entry points stay
+    // closed until the complete platform release acceptance is recorded.
+    public static bool PublicExecutionAvailable => false;
     public bool VerifiesMutationManifest => true;
     public bool Supports(CleanupAction action) => action == CleanupAction.Permanent &&
         NativeWindowsSupport.IsSupported;

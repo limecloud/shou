@@ -25,6 +25,7 @@
     <ProjectReference Include="../Shou.Windows.Presentation/Shou.Windows.Presentation.csproj" />
     <Page Include="../../Generated/Design.xaml" Link="Generated/Design.xaml" />
     <Content Include="../../Generated/Shou.ico" Link="Shou.ico" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../../Generated/Illustrations/*.png" Link="Assets/Illustrations/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <PRIResource Include="../../Generated/Strings/**/*.resw" Link="Strings/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
   <!-- MRT Core generates the unpackaged PRI during Build, but does not add it to .NET Publish. -->

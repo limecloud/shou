@@ -100,6 +100,16 @@ public enum StorageSelection {
 }
 
 public enum StorageRemovalPolicy {
+    /// Only disposable, direct catalog files are exempt from record protection.
+    public static func isRemovableCatalog(_ absolutePath: String, entry: FileEntry, recordDirectory: String) -> Bool {
+        guard entry.kind == "file", entry.links == 1 else { return false }
+        let prefix=canonical(recordDirectory) + "/storage-catalogs/", path=canonical(absolutePath)
+        guard path.hasPrefix(prefix), path.hasSuffix(".sqlite") else { return false }
+        let id=path.dropFirst(prefix.count).dropLast(".sqlite".count)
+        return (1...120).contains(id.count) && id.utf8.allSatisfy {
+            (65...90).contains($0) || (97...122).contains($0) || (48...57).contains($0) || $0 == 45 || $0 == 95
+        }
+    }
     public static func canonical(_ path: String) -> String {
         path.hasPrefix("/System/Volumes/Data/") ? String(path.dropFirst("/System/Volumes/Data".count)) : path
     }
@@ -124,13 +134,50 @@ public enum StorageRemovalPolicy {
         let system=["/System", "/usr", "/bin", "/sbin", "/dev", "/etc", "/private/etc", "/private/var/db", "/Library/Apple", "/Library/Security"]
         if system.contains(where: { canonical == $0 || canonical.hasPrefix($0 + "/") }) { return "This system location is protected." }
         let containers=["/", "/Users", "/Applications", "/Volumes", "/opt", "/Library", "/private", "/private/var", "/private/var/folders", home, home + "/Library"]
-        let protected=[home + "/.Trash", home + "/.ssh", home + "/.gnupg", home + "/Library/Mobile Documents", home + "/Library/CloudStorage"] + protectedPaths
+        let protected=[home + "/.Trash", home + "/.ssh", home + "/.gnupg", home + "/Library/Mobile Documents", home + "/Library/CloudStorage"] + protectedPaths.filter {
+            !isRemovableCatalog(canonical, entry: entry, recordDirectory: $0)
+        }.map { Self.canonical($0) }
         if containers.contains(canonical) || protected.contains(where: { canonical == $0 || $0.hasPrefix(canonical + "/") || canonical.hasPrefix($0 + "/") }) { return "This location contains protected data." }
         return nil
     }
 }
 
 extension ShouEngine {
+    /// An explicit manual selection uses the same direct-removal contract as
+    /// Space Analysis. Rule discovery is navigation, never removal authority.
+    public func createReviewedCleanupRemovalPlan(scanId: String, candidateIds: [String], action: String = "permanent") throws -> StorageRemovalPlan {
+        guard ["trash", "permanent"].contains(action), !candidateIds.isEmpty, candidateIds.count <= 5000, Set(candidateIds).count == candidateIds.count else {
+            throw ShouError("invalid_argument", "Explicit, unique candidate IDs are required.")
+        }
+        let snapshot=try scanSnapshot(scanId)
+        let config=try configuration()
+        guard !snapshot.previewOnly else { throw ShouError("partial_result", "Draft previews cannot produce executable plans.") }
+        guard try Digest.of(config) == snapshot.configurationDigest,
+              config.workspaces.contains(where: { $0.id == snapshot.workspace.id && $0.path == snapshot.workspace.path && $0.rootRef == snapshot.workspace.rootRef }) else {
+            throw ShouError("plan_stale", "Configuration changed; scan again.")
+        }
+        let identity=try filesystem.analysisRootIdentity(snapshot.workspace.path)
+        guard identity.sameObject(as: snapshot.workspace.identity), identity.hasSameOwner(as: snapshot.workspace.identity) else {
+            throw ShouError("plan_stale", "Analysis root changed.")
+        }
+        let selected=try candidateIds.map { id -> FileEntry in
+            guard let candidate=snapshot.candidates.first(where: { $0.id == id && !$0.ruleIds.isEmpty }),
+                  StorageRemovalPolicy.validRelative(candidate.relativePath),
+                  let entry=snapshot.entries.first(where: { $0.path == candidate.relativePath && $0.kind == "directory" }) else {
+                throw ShouError("invalid_argument", "Candidate is missing, protected, excluded, or unclassified.", details: ["candidate": id])
+            }
+            return entry
+        }
+        let scan=StorageScan(id: Codec.id("storage"), rootPath: snapshot.workspace.path, identity: identity, createdAt: now(),
+            tree: TreeSnapshot(entries: [identity] + selected, complete: false, issues: [], caseSensitive: snapshot.caseSensitive))
+        try StorageScanRecords.save(scan, store: store) {
+            if Task.isCancelled { throw ShouError("cancelled", "Selection review stopped.") }
+        }
+        // The shared planner remeasures each exact target and enforces owner,
+        // exclusions, protected locations, no-follow reads and complete scope.
+        return try createStorageRemovalPlan(scanId: scan.id, paths: selected.map(\.path), action: action)
+    }
+
     public func scanStorage(path: String, budget: ScanBudget? = nil, progress: @Sendable (ScanProgress) -> Void = { _ in }) throws -> StorageScan {
         maintainDerivedRecordsIfNeeded()
         let path=try filesystem.normalizedPath(path)
@@ -177,11 +224,20 @@ extension ShouEngine {
         return scan
     }
     public func storageScan(_ id: String) throws -> StorageScan {
-        try StorageScanRecords.load(id, store: store)
+        let scan=try StorageScanRecords.load(id, store: store)
+        _ = try storageCatalogURL(for: scan)
+        return scan
     }
-    func catalog(for scan: StorageScan) throws -> StorageCatalog? {
+    private func storageCatalogURL(for scan: StorageScan) throws -> URL? {
         guard let id=scan.catalogId else { return nil }
         guard id == scan.id, let url=try store.storageCatalogURL(id: id) else { throw ShouError("store_corrupt", "Space analysis index is missing.") }
+        guard try store.recordMetadata("storage-catalogs", id: id) != nil else {
+            throw ShouError("analysis_unavailable", "This space analysis was cleared. Scan again.")
+        }
+        return url
+    }
+    func catalog(for scan: StorageScan) throws -> StorageCatalog? {
+        guard let url=try storageCatalogURL(for: scan) else { return nil }
         let catalog=try StorageCatalog(url: url)
         guard try catalog.entry(at: ".")?.entry == scan.identity else { throw ShouError("store_corrupt", "Space analysis index belongs to a different root.") }
         return catalog
@@ -245,9 +301,11 @@ extension ShouEngine {
             }
             // Discovery is a navigation snapshot. A fresh manifest determines the scope
             // shown for confirmation; replacing the selected object still invalidates it.
+            // The current disposable index can grow until its scan is sealed.
             guard let current=tree.entries.first(where: { $0.path == "." }),
                   let saved=try context.entry(path), current.sameObject(as: saved), current.hasSameOwner(as: saved),
-                  current.kind == "directory" || current.metadata == renamed(saved, to: ".").metadata else { throw ShouError("plan_stale", "Selected item changed. Scan again before removing it.", details: ["path": path]) }
+                  current.kind == "directory" || current.metadata == renamed(saved, to: ".").metadata ||
+                  store.protectedPaths.contains(where: { StorageRemovalPolicy.isRemovableCatalog(full, entry: current, recordDirectory: $0) }) else { throw ShouError("plan_stale", "Selected item changed. Scan again before removing it.", details: ["path": path]) }
             if context.containsExclusion(path: path, manifest: tree.entries) {
                 throw ShouError("permission_denied", "This selection contains excluded content.", details: ["path": path])
             }
@@ -284,11 +342,18 @@ extension ShouEngine {
             try StorageRemovalPlanRecords.updateState(plan, store: self.store)
         }
         let context=try storageReviewContext(scan: scan)
+        // The selected catalog may be this request's own evidence source. Read
+        // only the selected identities before any mutation can remove it.
+        var savedEntries=[String: FileEntry]()
+        for item in plan.items {
+            guard let entry=try context.entry(item.path) else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
+            savedEntries[item.path]=entry
+        }
         let validate: (Int, [FileEntry]) throws -> String? = { index, manifest in
             guard try self.filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
             let item=plan.items[index]
-            if let reason=try self.storageRemovalReason(scan: scan, path: item.path, context: context, checkDescendants: false) { return reason }
-            guard let saved=try context.entry(item.path), manifest.first?.sameObject(as: saved) == true else {
+            if let reason=try self.storageRemovalReason(scan: scan, path: item.path, entry: savedEntries[item.path], context: context, checkDescendants: false) { return reason }
+            guard let saved=savedEntries[item.path], manifest.first?.sameObject(as: saved) == true else {
                 throw ShouError("plan_stale", "Selected item changed since confirmation.")
             }
             try FileManifestVerification.beforeMutation(filesystem: self.filesystem, path: items[index].originalPath,

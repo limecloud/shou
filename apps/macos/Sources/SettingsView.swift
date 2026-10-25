@@ -14,8 +14,8 @@ struct SettingsView: View {
     @Bindable var model: AppModel
     @ObservedObject var updater: AppUpdater
     @AppStorage("ShouAppearance") private var appearance="system"
-    @Environment(\.colorScheme) private var colorScheme
     @State private var scanLocations=false
+    @State private var diagnostics=false
 
     var body: some View {
         ScrollView {
@@ -76,6 +76,11 @@ struct SettingsView: View {
                     }
                 }
                 group("Support") {
+                    row("Diagnostics", "Check disk access, free space, and local records without changing files.", icon: "stethoscope") {
+                        Button(model.t("Run Diagnostics…")) { diagnostics=true }
+                            .accessibilityIdentifier("settings.diagnostics")
+                    }
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Report an Issue", "Share a problem or suggest an improvement.", icon: "questionmark.circle") {
                         Link(model.t("Send Feedback…"), destination: URL(string: "https://github.com/limecloud/shou/issues")!)
                     }
@@ -87,15 +92,16 @@ struct SettingsView: View {
                 Text(model.t("Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space."))
                     .font(.caption).foregroundStyle(.secondary)
             }.padding(ShouDesign.settingsPagePadding).frame(maxWidth: ShouDesign.settingsMaxWidth, alignment: .leading).frame(maxWidth: .infinity)
-        }.background(colorScheme == .dark ? Color(nsColor: .windowBackgroundColor) : Color(red: 1, green: 0.976, blue: 0.945))
+        }
             .sheet(isPresented: $scanLocations) { ScanLocationsView(model: model) }
+            .sheet(isPresented: $diagnostics) { DiagnosticsView(model: model) }
     }
 
     private func group<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: ShouDesign.itemSpacing) {
             Text(model.t(title)).font(.caption).foregroundStyle(.secondary)
             VStack(spacing: 0, content: content)
-                .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: ShouDesign.cardRadius))
+                .modifier(WorkspaceSurface())
                 .overlay(RoundedRectangle(cornerRadius: ShouDesign.cardRadius).strokeBorder(.primary.opacity(0.08)))
         }
     }

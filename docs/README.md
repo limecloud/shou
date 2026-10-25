@@ -20,7 +20,8 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 | Install and enable scanning | [Installation and access](product/installation-and-access.md) |
 | Understand product scope | [PRD](product/prd.md) → [Daily cleanup](product/unified-cleanup.md) → [User stories](product/user-stories-and-use-cases.md) |
 | Explore storage | [Space Analysis](product/space-analysis.md) → [Developer scenarios](product/developer-space-scenarios.md) |
-| Manage applications or startup | [Application cleanup](product/application-uninstall.md), [Startup](product/startup-items.md) |
+| Manage applications and developer projects | [Apps & Projects](product/apps-and-projects.md) |
+| Manage applications or startup | [Application cleanup](product/application-uninstall.md), [Update discovery](product/application-updates.md), [Startup](product/startup-items.md) |
 | Understand AI and rules | [AI journeys](product/embedded-ai.md), [Rule specification](rules/rule-specification.md) |
 | Understand safety and results | [Cleanup safety](security/cleanup-safety.md), [Progress](product/operation-progress.md) |
 
@@ -33,6 +34,8 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 | Build the Windows application | [Windows overview](engineering/windows.md) → [Native implementation plan](engineering/windows-native-plan.md) → [SYNC.md](../SYNC.md) |
 | Build and validate macOS | [Development](engineering/development.md) → [Acceptance](engineering/acceptance-and-testing.md) |
 | Plan delivery | [Implementation plan](engineering/implementation-plan.md), [Capability ownership](engineering/capability-plan.md), [Cleanup delivery](engineering/cleanup-delivery.md) |
+| Plan the next release | [Capability improvements, priorities and development packages](engineering/next-release-plan.md) |
+| Diagnose and use terminal support | [Read-only reports, privacy and shell completion](engineering/user-diagnostics.md) |
 | Implement native presentation | [Interface design](engineering/interface-design.md), [macOS experience](product/macos-experience.md), [Localization](product/internationalization.md) |
 | Work on scan performance | [Storage performance](engineering/storage-scan-performance.md), [Space investigation](engineering/space-analysis-agent-design.md) |
 | Work on AI | [AI architecture](architecture/embedded-ai.md) → [Implementation boundaries](engineering/embedded-ai-implementation.md) → [Acceptance](engineering/embedded-ai-acceptance.md) |

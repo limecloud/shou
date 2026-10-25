@@ -33,6 +33,9 @@
   <data name="sf0713a54e75669745d3f65ea" xml:space="preserve">
     <value>已移除 {0} 个条目</value>
   </data>
+  <data name="sacbdad808015c8fb4b974cc0" xml:space="preserve">
+    <value>已检查 {0} 项 · 观察到 {1} 项变化 · 展示 {2} 项</value>
+  </data>
   <data name="sad2c1c2fc9c38ad5ff5dac83" xml:space="preserve">
     <value>{0} 个文件</value>
   </data>
@@ -59,6 +62,9 @@
   </data>
   <data name="s249e0d32569d128d69b37758" xml:space="preserve">
     <value>已扫描 {0} 个位置</value>
+  </data>
+  <data name="sc0faa9468bd9ae00ac452047" xml:space="preserve">
+    <value>已选 {0} 个位置</value>
   </data>
   <data name="s46b57f06abc9cce245326cc7" xml:space="preserve">
     <value>{0} 项匹配</value>
@@ -126,8 +132,17 @@
   <data name="sbc5f660bc678e9e5f125499b" xml:space="preserve">
     <value>4. 清理所选规则，核验结果与保留项。</value>
   </data>
+  <data name="s57f71fd29c506eeddda17e73" xml:space="preserve">
+    <value>少一点堆积，多一点自在</value>
+  </data>
   <data name="s7a2ac525498b7b1e8acdd7f9" xml:space="preserve">
     <value>内置扫描位置没有适用的清理规则。</value>
+  </data>
+  <data name="s32c3fbdc52a60021a22575f7" xml:space="preserve">
+    <value>每次开机，轻装出发。</value>
+  </data>
+  <data name="s4a2749d5e2bd51e7c3f31dad" xml:space="preserve">
+    <value>应用与构建产物，按对象梳理。</value>
   </data>
   <data name="s81217d4a8246c9dd3d53d40b" xml:space="preserve">
     <value>移到废纸篓前必须取得完整目录清单。</value>
@@ -138,6 +153,9 @@
   <data name="se3ad4c2feac4024c46e71966" xml:space="preserve">
     <value>目录或其内部文件近期有修改</value>
   </data>
+  <data name="sad08ef2dbdd5593ab2633c3e" xml:space="preserve">
+    <value>隐私，由你掌握。</value>
+  </data>
   <data name="sb35f9ee9ec146150d8f73291" xml:space="preserve">
     <value>准备就绪，收拾一下。</value>
   </data>
@@ -146,6 +164,9 @@
   </data>
   <data name="sff04e9af9f7c4d95c4467280" xml:space="preserve">
     <value>内置维护规则已定义此缓存范围，请重新扫描。</value>
+  </data>
+  <data name="s9724eacfc54d05ad979c82e9" xml:space="preserve">
+    <value>无法核验与当前系统匹配的目录版本。</value>
   </data>
   <data name="sd0203f50c89ead9fa3480342" xml:space="preserve">
     <value>预设需要名称及明确选择的规则。</value>
@@ -164,6 +185,9 @@
   </data>
   <data name="s959bdbbf7890c3c716266d5e" xml:space="preserve">
     <value>无法启动安全检查所需的只读系统工具。</value>
+  </data>
+  <data name="s0bcdbdb6141a974e27567d1e" xml:space="preserve">
+    <value>为自己的文件夹，定制清理方式。</value>
   </data>
   <data name="s89fc8a07b42c3f6b6a737730" xml:space="preserve">
     <value>无法安全读取某项启动注册。</value>
@@ -357,6 +381,9 @@
   <data name="s32b7b77346a7cb950aaff380" xml:space="preserve">
     <value>分配容量估计</value>
   </data>
+  <data name="sa5c1b673e858430fe643981f" xml:space="preserve">
+    <value>分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。</value>
+  </data>
   <data name="sed64e4c9799abb0ca6f3912c" xml:space="preserve">
     <value>允许访问受 macOS 保护的应用缓存。</value>
   </data>
@@ -380,6 +407,12 @@
   </data>
   <data name="sa6449fe61f8a7a101002ce7b" xml:space="preserve">
     <value>已有进行中的调查。请返回当前调查，或停止后准备此文件夹。</value>
+  </data>
+  <data name="s9b42273ea39ff85f7104ae75" xml:space="preserve">
+    <value>分析操作</value>
+  </data>
+  <data name="s8e897103e54812f9f255dbe2" xml:space="preserve">
+    <value>已停止分析比较。</value>
   </data>
   <data name="s42ff939b34d51709b7b2eeb9" xml:space="preserve">
     <value>正在分析 {0} 项…</value>
@@ -474,6 +507,9 @@
   <data name="s3268eec8d6afab255eea00b2" xml:space="preserve">
     <value>应用卸载</value>
   </data>
+  <data name="scd64194d42f74ae3ea5e8114" xml:space="preserve">
+    <value>应用更新</value>
+  </data>
   <data name="s42a7aad1ba819457f040bc9b" xml:space="preserve">
     <value>此平台暂不支持应用运行状态检查。</value>
   </data>
@@ -491,6 +527,9 @@
   </data>
   <data name="s1a96e0fc291cb9813431bbe2" xml:space="preserve">
     <value>应用缓存</value>
+  </data>
+  <data name="scf8a77c53555053fc10675ea" xml:space="preserve">
+    <value>应用已变化。请重新扫描应用，再检查目录版本。</value>
   </data>
   <data name="sd10c2742d40b31a58c3ee431" xml:space="preserve">
     <value>应用已关闭，请审阅关联文件后继续。</value>
@@ -553,13 +592,16 @@
     <value>应用、归属、配置或组件内容已变化，请重新预览。</value>
   </data>
   <data name="s98e33b0f3104fcf1b812ba2c" xml:space="preserve">
-    <value>应用管理</value>
+    <value>应用</value>
   </data>
   <data name="sfe651d9fd916c333d951ffaa" xml:space="preserve">
     <value>应用检查完成。请在卸载前审阅组件。</value>
   </data>
   <data name="s87a92d9f9bbb8fa1c2de7951" xml:space="preserve">
     <value>应用会按需重建下载与渲染缓存。</value>
+  </data>
+  <data name="s54c7c4eb660f701beeb04854" xml:space="preserve">
+    <value>应用与项目</value>
   </data>
   <data name="s954b53ba2c4c7f944810797a" xml:space="preserve">
     <value>Arc 缓存</value>
@@ -642,6 +684,9 @@
   <data name="se674447337e83c1346f6122e" xml:space="preserve">
     <value>可用</value>
   </data>
+  <data name="sec3fa564cfb186743275b033" xml:space="preserve">
+    <value>磁盘可用空间</value>
+  </data>
   <data name="sa937781461468ab71a6feb8e" xml:space="preserve">
     <value>本机可用位置</value>
   </data>
@@ -680,6 +725,9 @@
   </data>
   <data name="sb882729d9f35ee21b4612c75" xml:space="preserve">
     <value>Bob 翻译 缓存</value>
+  </data>
+  <data name="sdfd043497ebdb816777fbfbe" xml:space="preserve">
+    <value>此记录存储不支持有界记录发现。</value>
   </data>
   <data name="s9695ca99e114b55b30b3be7e" xml:space="preserve">
     <value>Box 缓存</value>
@@ -755,6 +803,9 @@
   </data>
   <data name="se2b941ef0479036e4694344d" xml:space="preserve">
     <value>内置规则和已启用的个人规则已自动选中。</value>
+  </data>
+  <data name="s07986279219883cf0a60aa09" xml:space="preserve">
+    <value>内置规则与已启用的个人规则共用扫描结果和选择。</value>
   </data>
   <data name="s3d0bd2825a5f5df0f0d8f75b" xml:space="preserve">
     <value>已自动选中内置规则项目，个人规则仍需手动加入。</value>
@@ -894,6 +945,12 @@
   <data name="sab85221a476c5bbb86708031" xml:space="preserve">
     <value>Cargo 包源码核验超时。</value>
   </data>
+  <data name="s077eccbc37a438dae4323242" xml:space="preserve">
+    <value>目录版本</value>
+  </data>
+  <data name="s4bc551765c895ae38bcda960" xml:space="preserve">
+    <value>目录版本不代表安装兼容性已核验。请通过应用自身或其官方更新器安装更新。</value>
+  </data>
   <data name="s292c06f0045a45d044be282b" xml:space="preserve">
     <value>分类</value>
   </data>
@@ -918,8 +975,17 @@
   <data name="s4efe2a03c222558b1e631e99" xml:space="preserve">
     <value>请先查看操作记录，再继续操作。</value>
   </data>
+  <data name="s40e171b21b61040000063f9b" xml:space="preserve">
+    <value>检查 Homebrew 目录</value>
+  </data>
   <data name="s267029867186a2e4773ba7c4" xml:space="preserve">
     <value>核对记录位置</value>
+  </data>
+  <data name="s3bde496d5b8adf6e7f2b76e9" xml:space="preserve">
+    <value>检查版本目录</value>
+  </data>
+  <data name="s117ffb822009d7e36fe67efc" xml:space="preserve">
+    <value>检查磁盘权限、可用空间和本地记录，不修改文件。</value>
   </data>
   <data name="s6004b12ae69034a5c04242f9" xml:space="preserve">
     <value>请核对每个路径。处理前会再次复核文件与配置。</value>
@@ -932,6 +998,9 @@
   </data>
   <data name="s4161cfad0e95827925fd3944" xml:space="preserve">
     <value>检查启动项配置</value>
+  </data>
+  <data name="s75e4d1797214185a4b0a4908" xml:space="preserve">
+    <value>请检查用户目录所在磁盘是否可用，然后重新诊断。</value>
   </data>
   <data name="sd54f85636abd6bde88ecf160" xml:space="preserve">
     <value>请核对相对路径、项目标记和发现深度；条件与保护仍然生效。</value>
@@ -957,11 +1026,20 @@
   <data name="sc427df847faf839ff72efb33" xml:space="preserve">
     <value>正在检查所选项…</value>
   </data>
+  <data name="s066e53fd3dbe7ac8fa446133" xml:space="preserve">
+    <value>正在检查系统信息…</value>
+  </data>
   <data name="s91851cac103edeaa370ea867" xml:space="preserve">
     <value>正在检查工具管理的空间…</value>
   </data>
+  <data name="sf66e8d31c012b7148a8e2d6a" xml:space="preserve">
+    <value>仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。</value>
+  </data>
   <data name="sf9ebd9c0124d914422ed8e20" xml:space="preserve">
     <value>仅检查记录中的确切路径与目录清单，保留文件及原始回执。</value>
+  </data>
+  <data name="s74fb103943e71facd255140d" xml:space="preserve">
+    <value>查询此应用的官方稳定版目录。不上传应用清单，不安装更新。</value>
   </data>
   <data name="s8a3abe2abaa1e7dd0d6f7abd" xml:space="preserve">
     <value>为此规则选择文件夹…</value>
@@ -1020,6 +1098,12 @@
   <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
     <value>请选择适用的扫描位置</value>
   </data>
+  <data name="s9c74d90b741f6154fa6d1bb5" xml:space="preserve">
+    <value>选择较早的分析</value>
+  </data>
+  <data name="sf67da1fc879c4b4f5711ce93" xml:space="preserve">
+    <value>请选择同一目录身份的较早分析，已被替换的文件夹不可比较。</value>
+  </data>
   <data name="sd6224bb9f78c0f269d0a6e08" xml:space="preserve">
     <value>请使用尚未存在的版本号，已有版本不能覆盖。</value>
   </data>
@@ -1046,6 +1130,9 @@
   </data>
   <data name="s105aae87dd457078d4a54bf5" xml:space="preserve">
     <value>选择 Shou 使用的界面语言。</value>
+  </data>
+  <data name="s68af92208e0eff13e522aa83" xml:space="preserve">
+    <value>管理随 Mac 启动的应用与后台项目。</value>
   </data>
   <data name="sc2e4c6525e3e3b3244cab824" xml:space="preserve">
     <value>选择你自己的服务以开始调查。</value>
@@ -1161,11 +1248,17 @@
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>清理已结束，部分项目需处理</value>
   </data>
+  <data name="s339d462a7fc512f86ce9aa06" xml:space="preserve">
+    <value>清理预览失败。</value>
+  </data>
   <data name="s66952aa85699518344766c50" xml:space="preserve">
     <value>为你的 Mac 定制清理规则</value>
   </data>
   <data name="s127da8b85fd783de90c6378a" xml:space="preserve">
     <value>清理规则或项目标记已不再匹配此目录，请重新扫描。</value>
+  </data>
+  <data name="s765417e6e8df153b6bf84328" xml:space="preserve">
+    <value>此目录的清理安全检查结果已变化，请重新扫描后再清理。</value>
   </data>
   <data name="s1275c73051f209470123dc8d" xml:space="preserve">
     <value>清理扫描仅统计规则匹配的目标。空间分析可查看其他文件。</value>
@@ -1266,8 +1359,26 @@
   <data name="sc14da4f8739ec93153debea1" xml:space="preserve">
     <value>自动发现常用位置，无需逐个添加项目。</value>
   </data>
+  <data name="s1774b1a3bf4e551817ed20ee" xml:space="preserve">
+    <value>比较空间分析</value>
+  </data>
+  <data name="s31a032a70773288351d18312" xml:space="preserve">
+    <value>比较空间分析…</value>
+  </data>
+  <data name="se0b256b4982da2552ed86250" xml:space="preserve">
+    <value>正在比较分析…</value>
+  </data>
+  <data name="s8d999c80ef9b342e6929b06e" xml:space="preserve">
+    <value>比较预算必须为数值。</value>
+  </data>
+  <data name="sb54ea712b44f96b01e80a1de" xml:space="preserve">
+    <value>无法比较</value>
+  </data>
   <data name="s22a970d2e5b1cc233e462be7" xml:space="preserve">
     <value>已完成</value>
+  </data>
+  <data name="s142303c4d164e20120252db9" xml:space="preserve">
+    <value>完成操作后，可以在这里查看每一项真实结果。</value>
   </data>
   <data name="s18bab71955b1b329cf571c46" xml:space="preserve">
     <value>已完成的操作及其结果记录会显示在这里。</value>
@@ -1401,8 +1512,14 @@
   <data name="s0e0269180969ded37668c242" xml:space="preserve">
     <value>复制路径</value>
   </data>
+  <data name="s54b8e0c0c268c1549af4247c" xml:space="preserve">
+    <value>复制报告</value>
+  </data>
   <data name="scb12df752fde9566bd478868" xml:space="preserve">
     <value>复制请求</value>
+  </data>
+  <data name="s34917f2e48ba792fb6ae2ddd" xml:space="preserve">
+    <value>复制失败，请重试。</value>
   </data>
   <data name="s7ff7556fa398aa944d3ea614" xml:space="preserve">
     <value>复制给 AI</value>
@@ -1439,6 +1556,12 @@
   </data>
   <data name="sa79cbc9cb32aec36caff70da" xml:space="preserve">
     <value>制定可复用规则</value>
+  </data>
+  <data name="scf2b468b2c242c48aaad82bd" xml:space="preserve">
+    <value>当前分析</value>
+  </data>
+  <data name="s09f55a69739cde81b4e08166" xml:space="preserve">
+    <value>当前占用</value>
   </data>
   <data name="sb1862431657c41f542903b74" xml:space="preserve">
     <value>当前用户 Run</value>
@@ -1608,6 +1731,15 @@
   <data name="sd1bc1c34246f9d61f574b63e" xml:space="preserve">
     <value>诊断编号：{0}</value>
   </data>
+  <data name="s268f14bbfe119c1e92150583" xml:space="preserve">
+    <value>诊断</value>
+  </data>
+  <data name="s6b4fdca71171e81030ab9991" xml:space="preserve">
+    <value>诊断未能完成，请检查本地数据位置后重试。</value>
+  </data>
+  <data name="s27a853a6a7fb6828abad4db2" xml:space="preserve">
+    <value>诊断不可用</value>
+  </data>
   <data name="scd4ba293365d1a860a206d9a" xml:space="preserve">
     <value>钉钉网页缓存</value>
   </data>
@@ -1671,6 +1803,12 @@
   <data name="s5af15d6538588ec036c408db" xml:space="preserve">
     <value>磁盘占用</value>
   </data>
+  <data name="s3d1297ced50002670bc6b9b5" xml:space="preserve">
+    <value>磁盘访问</value>
+  </data>
+  <data name="s725436c76386d2244290b655" xml:space="preserve">
+    <value>无法核实磁盘访问权限，不能据此认定扫描覆盖完整。</value>
+  </data>
   <data name="se9042e4c738fad21d196fd34" xml:space="preserve">
     <value>受保护目录可访问</value>
   </data>
@@ -1679,6 +1817,15 @@
   </data>
   <data name="sb581f4646b6d846fc36e0f0b" xml:space="preserve">
     <value>磁盘访问权限待确认</value>
+  </data>
+  <data name="se234c5c060b2b9173f7f7576" xml:space="preserve">
+    <value>无法获取磁盘容量。</value>
+  </data>
+  <data name="s9e98f07444089421948c5a35" xml:space="preserve">
+    <value>已读取磁盘容量，没有扫描文件。</value>
+  </data>
+  <data name="s48b6ba356724e7c373e51d40" xml:space="preserve">
+    <value>磁盘可用空间／总容量（字节）</value>
   </data>
   <data name="s48845bff334a50a59aaecf49" xml:space="preserve">
     <value>关闭提示</value>
@@ -1718,6 +1865,12 @@
   </data>
   <data name="s5e1c49fcb4fc4fff44ea0afa" xml:space="preserve">
     <value>每条建议独立选择。预览会导入默认禁用的草稿；启用和清理仍需审阅。</value>
+  </data>
+  <data name="s278779da850f6ccf5796bce1" xml:space="preserve">
+    <value>较早的分析</value>
+  </data>
+  <data name="s9bce2c2d70995858e60c3a9d" xml:space="preserve">
+    <value>较早的占用</value>
   </data>
   <data name="s06dc95d17246fe97a1a3fb27" xml:space="preserve">
     <value>Microsoft Edge 缓存</value>
@@ -1812,6 +1965,9 @@
   <data name="sec19b7317b8d861407a8c9e4" xml:space="preserve">
     <value>预计可释放</value>
   </data>
+  <data name="sc86b3ce106b33e99c5c6c10d" xml:space="preserve">
+    <value>每次整理，都有记录。</value>
+  </data>
   <data name="s03867aea70acaf4c5dce37a7" xml:space="preserve">
     <value>判断依据</value>
   </data>
@@ -1850,6 +2006,9 @@
   </data>
   <data name="s5b2d465f3bef7871201977d9" xml:space="preserve">
     <value>自动移除过期扫描记录，保留活跃计划、操作历史、恢复数据和你的文件。</value>
+  </data>
+  <data name="s253c4a0cbe4fbb032a16146c" xml:space="preserve">
+    <value>比较同一文件夹的两次分析，了解观察到的空间变化。</value>
   </data>
   <data name="s811c928e3ed769b21787b563" xml:space="preserve">
     <value>请明确选择清理项，且不得重复。</value>
@@ -1935,8 +2094,14 @@
   <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
     <value>扫描已知位置，查看可审阅的缓存与构建产物。</value>
   </data>
+  <data name="sa136956790d76e53807bee61" xml:space="preserve">
+    <value>用空间地图，找到占用大户。</value>
+  </data>
   <data name="s9f71d593604ba6278c97b2eb" xml:space="preserve">
     <value>找出占空间的大文件</value>
+  </data>
+  <data name="s8f82eaf0a024210b1b6e6ada" xml:space="preserve">
+    <value>找到占用最大的文件，腾出所需空间。</value>
   </data>
   <data name="se684c8807f7486a04a3c3cce" xml:space="preserve">
     <value>查找可清理内容</value>
@@ -1946,6 +2111,9 @@
   </data>
   <data name="s8381decc3d33e7420d9ebd33" xml:space="preserve">
     <value>找出空间去向，留住重要内容。</value>
+  </data>
+  <data name="s1a2f29893b70548b71253beb" xml:space="preserve">
+    <value>查找项目产物</value>
   </data>
   <data name="s5d200762006b6b8c6c2b9cd2" xml:space="preserve">
     <value>正在查找扫描位置…</value>
@@ -2043,6 +2211,9 @@
   <data name="s27cbfd7362ed730408b6a900" xml:space="preserve">
     <value>GitHub Desktop 下载缓存</value>
   </data>
+  <data name="s5d864d7c8ac28d6c2979202d" xml:space="preserve">
+    <value>为下一次构建腾出更多空间。</value>
+  </data>
   <data name="sa9f66c524b28de745fbabf8e" xml:space="preserve">
     <value>全局排除</value>
   </data>
@@ -2082,8 +2253,14 @@
   <data name="s16c1dae0d5e8ab83b0749013" xml:space="preserve">
     <value>Gradle 通常会在下次构建时重新生成项目缓存与构建产物。</value>
   </data>
+  <data name="sfb4f7e1c33b7997f2f50454f" xml:space="preserve">
+    <value>按扫描位置归组</value>
+  </data>
   <data name="s77223f5d96053067315da30d" xml:space="preserve">
     <value>HTTP 存储</value>
+  </data>
+  <data name="sda585b0911dc689eec52e2d7" xml:space="preserve">
+    <value>有不确定如何整理的文件夹？</value>
   </data>
   <data name="s4835f47348f1f85b7c4092e5" xml:space="preserve">
     <value>Helium 缓存</value>
@@ -2138,6 +2315,9 @@
   </data>
   <data name="s0e769600933790607b2a13b3" xml:space="preserve">
     <value>操作记录</value>
+  </data>
+  <data name="s42d9acaa0fb44d6f8db37ecd" xml:space="preserve">
+    <value>历史范围仅限可读取的近期分析，部分记录已跳过。</value>
   </data>
   <data name="s5bd5b53315dbc4791c599a18" xml:space="preserve">
     <value>历史核对只观察当前位置，不会改写操作结果或重试未完成的操作。</value>
@@ -2304,6 +2484,9 @@
   <data name="s105e55f334436a6aef2e7033" xml:space="preserve">
     <value>无法验证已安装应用的归属，请重新扫描。</value>
   </data>
+  <data name="sd3ff6dab2b15cf3981af22bd" xml:space="preserve">
+    <value>已安装版本高于目录版本</value>
+  </data>
   <data name="sab844e01a8382909259d1a08" xml:space="preserve">
     <value>安装程序代码</value>
   </data>
@@ -2327,6 +2510,9 @@
   </data>
   <data name="s8027f432a7fb7c273a1a0fde" xml:space="preserve">
     <value>界面语言</value>
+  </data>
+  <data name="sd1d3dace143b5981282f3f25" xml:space="preserve">
+    <value>比较分页大小无效。</value>
   </data>
   <data name="sd1dea6f098412421efcdb252" xml:space="preserve">
     <value>工作区根目录引用无效。</value>
@@ -2357,6 +2543,9 @@
   </data>
   <data name="sdd407e5e0645f53a0866fe78" xml:space="preserve">
     <value>使用你的模型调查此文件夹</value>
+  </data>
+  <data name="s7fdbbeacf3b17e3ca47672d0" xml:space="preserve">
+    <value>用 AI 看一看…</value>
   </data>
   <data name="s241cf44fc26c8e73844551ae" xml:space="preserve">
     <value>调查文件夹</value>
@@ -2453,6 +2642,9 @@
   </data>
   <data name="s5a1233b3dc032c8fd43f2e76" xml:space="preserve">
     <value>保留近期修改的内容</value>
+  </data>
+  <data name="s2bdbcbcc49c79dbf7ab42ff1" xml:space="preserve">
+    <value>留下喜欢的，整理多余的。</value>
   </data>
   <data name="sc02438b6cd8f66744648f626" xml:space="preserve">
     <value>编辑版本时请保留原规则 ID。</value>
@@ -2565,6 +2757,12 @@
   <data name="s65a479025e9fa73c134bcf4d" xml:space="preserve">
     <value>优先本地处理，其次使用固定选项决策，仅在需要开放式理解时调用主模型。</value>
   </data>
+  <data name="s3f35ad5c6d1f4cb05506fd95" xml:space="preserve">
+    <value>本地记录</value>
+  </data>
+  <data name="s7903226f3733e3439ba8b888" xml:space="preserve">
+    <value>本地记录尚未创建，诊断不会创建记录。</value>
+  </data>
   <data name="s10c639e1c159b23523d1071c" xml:space="preserve">
     <value>本地数据存储不可用。</value>
   </data>
@@ -2589,6 +2787,9 @@
   <data name="s14fc7cf0b9307160d441a313" xml:space="preserve">
     <value>Logseq 缓存</value>
   </data>
+  <data name="sf76315f1e77b7b5a475a5ed1" xml:space="preserve">
+    <value>可用空间不足可能导致扫描和操作记录保存失败。</value>
+  </data>
   <data name="s03c1f9828cf46830d2f1c003" xml:space="preserve">
     <value>MPV 缓存</value>
   </data>
@@ -2606,6 +2807,12 @@
   </data>
   <data name="s9bb453d7c4438991809fb88d" xml:space="preserve">
     <value>仅主模型</value>
+  </data>
+  <data name="sfe115c57baab0a161122fc23" xml:space="preserve">
+    <value>调整 Shou 的外观与使用偏好。</value>
+  </data>
+  <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
+    <value>大文件，一目了然。</value>
   </data>
   <data name="s3c764f296aa1f9a6d0bac92d" xml:space="preserve">
     <value>请在“全部位置”中管理这些模式。各条规则的排除项保留在规则定义中。</value>
@@ -2625,11 +2832,20 @@
   <data name="s8be555a12d480b964c31298e" xml:space="preserve">
     <value>目录清单一致</value>
   </data>
+  <data name="s2544e2abfba58b82f8cdf379" xml:space="preserve">
+    <value>手动选择包含未通过自动清理规则的项目。请检查内容并停止相关任务；将删除下列目录的全部内容。</value>
+  </data>
   <data name="se8e419b60dd760c2ccd26d98" xml:space="preserve">
     <value>地图与定位缓存</value>
   </data>
   <data name="sdd913cccfcc9451f78f96686" xml:space="preserve">
     <value>匹配规则</value>
+  </data>
+  <data name="s248b410974ab96f3070313ef" xml:space="preserve">
+    <value>匹配的清理项目</value>
+  </data>
+  <data name="scacfd3023c7da4cb92f4ac5e" xml:space="preserve">
+    <value>与目录版本一致</value>
   </data>
   <data name="s66fc75a702ae2b4f8dc15889" xml:space="preserve">
     <value>与保存的证据一致</value>
@@ -2724,8 +2940,14 @@
   <data name="s8e873d517e50cd690ff39376" xml:space="preserve">
     <value>MongoDB Compass 缓存</value>
   </data>
+  <data name="s98eea4c1c21f333640ea131c" xml:space="preserve">
+    <value>更多操作</value>
+  </data>
   <data name="sd1606911ba0af2a4b4e02e05" xml:space="preserve">
     <value>需要补充证据</value>
+  </data>
+  <data name="s1d8ab65965b1929001a7f791" xml:space="preserve">
+    <value>给下一次构建，留点空间。</value>
   </data>
   <data name="s0eb910af83d5aa755891e66e" xml:space="preserve">
     <value>将推荐项目移入废纸篓…</value>
@@ -2802,6 +3024,9 @@
   <data name="s2721425dafa987c5bd10977a" xml:space="preserve">
     <value>需要核实</value>
   </data>
+  <data name="sc1ebc7817870e5be78fceae5" xml:space="preserve">
+    <value>需要注意</value>
+  </data>
   <data name="s3dddf7d417a7701a80db2d00" xml:space="preserve">
     <value>需要核实</value>
   </data>
@@ -2816,6 +3041,9 @@
   </data>
   <data name="s67be3c294ac30796f980e41f" xml:space="preserve">
     <value>新建规则…</value>
+  </data>
+  <data name="s0b2f7835880477b97fc48623" xml:space="preserve">
+    <value>目录中有更新版本</value>
   </data>
   <data name="sd2bd3615d7d532600abc6c0d" xml:space="preserve">
     <value>最新修改</value>
@@ -2843,6 +3071,9 @@
   </data>
   <data name="s9234a140a02ad74a4bb7893d" xml:space="preserve">
     <value>此分类中没有应用</value>
+  </data>
+  <data name="s3ac55af396adf811becc0f68" xml:space="preserve">
+    <value>此目录中未观察到变化。</value>
   </data>
   <data name="s8d64797630d4b228c81dcafb" xml:space="preserve">
     <value>暂无清理记录</value>
@@ -2889,6 +3120,9 @@
   <data name="s28b940ecbb9c06fc744d898b" xml:space="preserve">
     <value>没有符合条件的大文件</value>
   </data>
+  <data name="s74895f1f032801193ab7f35a" xml:space="preserve">
+    <value>没有匹配的项目产物</value>
+  </data>
   <data name="s4f36612ecc081b9b7c7b6b49" xml:space="preserve">
     <value>无匹配记录</value>
   </data>
@@ -2927,6 +3161,12 @@
   </data>
   <data name="sc9294a330f2a59ffe7f9f244" xml:space="preserve">
     <value>未发现启动项</value>
+  </data>
+  <data name="s4513a76c8f6ffb6dff89a88b" xml:space="preserve">
+    <value>此应用暂无受支持的目录来源。请在应用内检查更新。</value>
+  </data>
+  <data name="s351c0cfbbf0fb9c26946af58" xml:space="preserve">
+    <value>暂无受支持的更新来源</value>
   </data>
   <data name="s00991aac06c453f6e185b0aa" xml:space="preserve">
     <value>未找到此计划的卸载记录。这不能证明当前安装的状态。</value>
@@ -2967,6 +3207,12 @@
   <data name="sd16948e73a6800900e894177" xml:space="preserve">
     <value>未检查</value>
   </data>
+  <data name="seb276c35e8f3c1a46e3e20da" xml:space="preserve">
+    <value>不可比较</value>
+  </data>
+  <data name="sdd1841d295024256e8884cb8" xml:space="preserve">
+    <value>尚未配置</value>
+  </data>
   <data name="s676e09a8105bb5eade087c56" xml:space="preserve">
     <value>尚未在此位置启用。</value>
   </data>
@@ -2984,6 +3230,9 @@
   </data>
   <data name="s040f7884d3b5f35e4c11cc84" xml:space="preserve">
     <value>未统计</value>
+  </data>
+  <data name="s1d3efcd60643d30d8714512a" xml:space="preserve">
+    <value>未观察到</value>
   </data>
   <data name="s3372d1ec5334d2776ea4225e" xml:space="preserve">
     <value>不存在</value>
@@ -3033,8 +3282,17 @@
   <data name="s565339bc4d33d72817b58302" xml:space="preserve">
     <value>好</value>
   </data>
+  <data name="s3eaf8ef549672a650eb1a848" xml:space="preserve">
+    <value>对象已替换</value>
+  </data>
+  <data name="s4db3b860dd3494da9a632485" xml:space="preserve">
+    <value>观察到的变化</value>
+  </data>
   <data name="s580fda75e0d74ab9e76a3d39" xml:space="preserve">
     <value>已读取的索引证据</value>
+  </data>
+  <data name="s2f4add0f44158e9df8df8240" xml:space="preserve">
+    <value>观察时间</value>
   </data>
   <data name="s76da797d9fe96d6816cfd207" xml:space="preserve">
     <value>启动项状态仅代表本次读取结果，launchd 可能在读取后变化。</value>
@@ -3072,6 +3330,9 @@
   <data name="s459f105fc40fb11af98febf5" xml:space="preserve">
     <value>扫描一次，一起收好。</value>
   </data>
+  <data name="s35d35ee8babf63d7d24b0d22" xml:space="preserve">
+    <value>日常缓存与个人项目，共用一套清理规则。</value>
+  </data>
   <data name="s30b1071510017bff73684bf7" xml:space="preserve">
     <value>仅向已披露服务发送限定范围的相对元数据和你的回答，不读取文件正文，不自动删除。</value>
   </data>
@@ -3080,6 +3341,12 @@
   </data>
   <data name="s11c4d284d47b22773ea6368e" xml:space="preserve">
     <value>仅清理已结束的记录，文件保持原位。恢复所需和未结束的记录会保留。</value>
+  </data>
+  <data name="sea4f398630b39bb302855146" xml:space="preserve">
+    <value>仅当前分析观察到</value>
+  </data>
+  <data name="sae6758c3c6c894a02076531e" xml:space="preserve">
+    <value>仅较早分析观察到</value>
   </data>
   <data name="s73a27ebf83dc2f98f4c603f5" xml:space="preserve">
     <value>结果仅包含已统计的空间。部分位置无法读取，不影响其他完整目录的浏览与审阅。</value>
@@ -3129,14 +3396,23 @@
   <data name="s3beda64b2dff3dad820b6f3f" xml:space="preserve">
     <value>打开文件夹…</value>
   </data>
+  <data name="sb584a3378c07e53e037db775" xml:space="preserve">
+    <value>打开 Homebrew 页面</value>
+  </data>
   <data name="s4639c70e5e7714c7041f7842" xml:space="preserve">
     <value>打开调查</value>
   </data>
   <data name="s6523a02041a87469698368dc" xml:space="preserve">
     <value>打开登录项设置</value>
   </data>
+  <data name="s14d3ac68e8ea5bdef92b80b1" xml:space="preserve">
+    <value>打开官方更新页面</value>
+  </data>
   <data name="s82708173ccc1a4f46c5f04f0" xml:space="preserve">
     <value>打开“隐私与安全性 → 完全磁盘访问权限”，开启 Shou。列表中没有时，点击 +，选择应用程序中的 Shou.app。如果 macOS 要求，请退出并重新打开 Shou。</value>
+  </data>
+  <data name="s2578b11c4075416baf1bf573" xml:space="preserve">
+    <value>前往智能清理</value>
   </data>
   <data name="sfdb627efb86ba73e631686e9" xml:space="preserve">
     <value>开放源代码</value>
@@ -3249,6 +3525,9 @@
   <data name="sb4401c24aaaf316c2d9bfa84" xml:space="preserve">
     <value>部分分析结果：某些位置未能完整统计。</value>
   </data>
+  <data name="sd79683a5eda1c30f9c992e42" xml:space="preserve">
+    <value>比较范围不完整。排序仅涵盖已检查项目；覆盖不完整时不提供增长数值结论。</value>
+  </data>
   <data name="s16bfbee23e2d4007b623853c" xml:space="preserve">
     <value>部分测量结果：不包含无法访问或正在变化的内容。</value>
   </data>
@@ -3333,6 +3612,9 @@
   <data name="se85d49611c600d9cd7b5f319" xml:space="preserve">
     <value>个人规则已在外部更新，请逐条审阅后清理。</value>
   </data>
+  <data name="sc2e1753d506ef951419bb3e5" xml:space="preserve">
+    <value>物理内存（字节）</value>
+  </data>
   <data name="s5f7aa779da5a03c87e71983e" xml:space="preserve">
     <value>清理计划摘要校验失败。</value>
   </data>
@@ -3399,6 +3681,9 @@
   <data name="s5b6352e0f78ed3db0478f087" xml:space="preserve">
     <value>预览排除设置…</value>
   </data>
+  <data name="sae9f7e50c3887305b0c80b24" xml:space="preserve">
+    <value>预览报告</value>
+  </data>
   <data name="s93bc3f60445eb1d9c13b2b35" xml:space="preserve">
     <value>预览规则</value>
   </data>
@@ -3450,6 +3735,9 @@
   <data name="s30b1db21e81d109d9bd07652" xml:space="preserve">
     <value>正在处理所选项…</value>
   </data>
+  <data name="sd4d57f163d2785c6310f2bd0" xml:space="preserve">
+    <value>处理器数量</value>
+  </data>
   <data name="s985959785319747668373cc6" xml:space="preserve">
     <value>项目</value>
   </data>
@@ -3500,6 +3788,9 @@
   </data>
   <data name="s03a7f0126a3b9af7957f80e0" xml:space="preserve">
     <value>受保护目录访问受限</value>
+  </data>
+  <data name="sc248e79a44b0d244044d91f9" xml:space="preserve">
+    <value>磁盘访问受限，受保护位置可能无法纳入扫描。</value>
   </data>
   <data name="s3cb83c3676530953dc690143" xml:space="preserve">
     <value>Proxyman 缓存</value>
@@ -3657,6 +3948,9 @@
   <data name="s5bb277b0488cc597cf09301d" xml:space="preserve">
     <value>只读预览</value>
   </data>
+  <data name="sd0aea11446c606f6bd7328ac" xml:space="preserve">
+    <value>仅展示只读观察结果，历史分析不授予清理权限。</value>
+  </data>
   <data name="s42af4796b9059b869f75fb61" xml:space="preserve">
     <value>扫描只读取文件，不会自动勾选或删除任何内容。</value>
   </data>
@@ -3669,6 +3963,9 @@
   <data name="se94931f01d82c1a103ce541e" xml:space="preserve">
     <value>只读系统工具的输出量超出限制。</value>
   </data>
+  <data name="s3ebdd9ba8b813e24e6942218" xml:space="preserve">
+    <value>正在读取分析历史…</value>
+  </data>
   <data name="s940348dae71ebc0ec5fca9fb" xml:space="preserve">
     <value>正在读取目录证据…</value>
   </data>
@@ -3680,6 +3977,9 @@
   </data>
   <data name="sa0ea0d7a695e9f91aa1d8162" xml:space="preserve">
     <value>可卸载</value>
+  </data>
+  <data name="sae004f3ec078ab873d447379" xml:space="preserve">
+    <value>准备清理</value>
   </data>
   <data name="s730acfb4d8a4a77d120bdd93" xml:space="preserve">
     <value>准备分析这个目录</value>
@@ -3740,6 +4040,9 @@
   </data>
   <data name="s92875e14daa764df7745fb48" xml:space="preserve">
     <value>记录的类型、所有者、链接数或大小不受支持。</value>
+  </data>
+  <data name="s3404fa850e49bd37334edf5e" xml:space="preserve">
+    <value>记录枚举上限无效。</value>
   </data>
   <data name="s7549b9705474c24507ea3471" xml:space="preserve">
     <value>记录的废纸篓位置</value>
@@ -3837,6 +4140,9 @@
   <data name="s4403ae673ea3308d36015fc8" xml:space="preserve">
     <value>移除此保护后，需要重新扫描才能审阅清理项目。</value>
   </data>
+  <data name="sb6ce788d9786917c9d19adaa" xml:space="preserve">
+    <value>报告</value>
+  </data>
   <data name="sf6a30a10bc27be0af728295f" xml:space="preserve">
     <value>问题反馈</value>
   </data>
@@ -3899,6 +4205,9 @@
   </data>
   <data name="s2a64df82cdaad5511bea0259" xml:space="preserve">
     <value>保留</value>
+  </data>
+  <data name="s942087cc2d41e01304b71955" xml:space="preserve">
+    <value>重试</value>
   </data>
   <data name="s9236d44a0653cabb58e1e54c" xml:space="preserve">
     <value>返回当前调查</value>
@@ -3981,17 +4290,35 @@
   <data name="sab8efb0e9267c897c8b916d6" xml:space="preserve">
     <value>请重新审阅应用组件。</value>
   </data>
+  <data name="sbc7438a2af5e3518a540ea3b" xml:space="preserve">
+    <value>集中查看应用本体与关联文件，按需选择移除范围。</value>
+  </data>
   <data name="sdcd711845f8f9ef438e99d95" xml:space="preserve">
     <value>审阅后台任务配置，并在 macOS 系统设置中管理登录项。</value>
   </data>
   <data name="s9988ab26a623f1476bda87a9" xml:space="preserve">
     <value>单独审阅浏览器活动与账户数据。</value>
   </data>
+  <data name="s527fe1519eb507e02c36ad0e" xml:space="preserve">
+    <value>按浏览器和时间范围审阅隐私记录。</value>
+  </data>
+  <data name="sa44a207df38d1faad6961d2a" xml:space="preserve">
+    <value>按项目审阅构建产物与依赖，保留源代码。</value>
+  </data>
+  <data name="s26bed9287911b97393b13c15" xml:space="preserve">
+    <value>集中审阅本地及克隆项目的构建产物与依赖，保留项目源码。</value>
+  </data>
   <data name="sc3a182375ecb3a119fcaea70" xml:space="preserve">
     <value>请重新审阅可清理的应用残留；个人数据需要单独同意。</value>
   </data>
   <data name="sce8b2baf8472986e07bbf9e7" xml:space="preserve">
     <value>审阅已不在应用目录及系统注册中发现的应用关联数据。未注册的自定义安装仍可能使用这些数据。</value>
+  </data>
+  <data name="sd37bbf8dba37560fe1d76723" xml:space="preserve">
+    <value>请在设置指南中检查磁盘权限，然后重新扫描。</value>
+  </data>
+  <data name="s66b31cd3b09a2a4846c9890d" xml:space="preserve">
+    <value>请检查大文件和旧扫描索引，释放空间后重新扫描。</value>
   </data>
   <data name="s20a70822946594d2991342d5" xml:space="preserve">
     <value>清理前请重新检查应用残留。</value>
@@ -4004,6 +4331,9 @@
   </data>
   <data name="s2a55683c78691759fb748d98" xml:space="preserve">
     <value>按分类查看，或直接使用推荐选择。</value>
+  </data>
+  <data name="s0efbd1524ba2a8d5e9819f58" xml:space="preserve">
+    <value>请检查已配置的本地数据位置，现有记录和权限均未更改。</value>
   </data>
   <data name="s3d4e3f17ee17c32eccedbe57" xml:space="preserve">
     <value>用当前工作区文件核对规则。预览取消或失败后，需重新预览才能保存。</value>
@@ -4052,6 +4382,12 @@
   </data>
   <data name="s0711a8d636e4c068ae59fa80" xml:space="preserve">
     <value>风险</value>
+  </data>
+  <data name="sfc2bf8fea144af3c40498083" xml:space="preserve">
+    <value>留出空间，</value>
+  </data>
+  <data name="s9302239146645d4dc6ad0f26" xml:space="preserve">
+    <value>根文件夹</value>
   </data>
   <data name="s713ca08761b3d169c80a0a7d" xml:space="preserve">
     <value>规则 JSON</value>
@@ -4104,8 +4440,14 @@
   <data name="s43bbc41bcb0b736204c2b40d" xml:space="preserve">
     <value>规则与清理记录保存在本机。</value>
   </data>
+  <data name="sf48bc99bb89f39113318a151" xml:space="preserve">
+    <value>运行诊断…</value>
+  </data>
   <data name="s59f44ebeed56bb398c136761" xml:space="preserve">
     <value>开始空间分析</value>
+  </data>
+  <data name="sc396e60bf6cb8e3dcb8288fb" xml:space="preserve">
+    <value>对同一文件夹完成两次空间分析后即可比较。已清理索引或旧格式的分析可能无法使用。</value>
   </data>
   <data name="sf4ccae29e1bb0c20a124570a" xml:space="preserve">
     <value>运行中</value>
@@ -4191,6 +4533,9 @@
   <data name="sbe85896dd016457bd6a0f083" xml:space="preserve">
     <value>扫描全部位置</value>
   </data>
+  <data name="sd53e7f9a53ce174ed34bcfa6" xml:space="preserve">
+    <value>扫描应用</value>
+  </data>
   <data name="s3dfb76826fee2ed590869fdf" xml:space="preserve">
     <value>一键扫描</value>
   </data>
@@ -4218,11 +4563,17 @@
   <data name="sd48720dc690a61f1fcd3e9e4" xml:space="preserve">
     <value>仅扫描</value>
   </data>
+  <data name="saf90322a50f9761252661c06" xml:space="preserve">
+    <value>扫描选项</value>
+  </data>
   <data name="sfad20ffae18135ae21155188" xml:space="preserve">
     <value>扫描隐私来源</value>
   </data>
   <data name="scc018bdc832d777479d51b80" xml:space="preserve">
     <value>扫描所选位置</value>
+  </data>
+  <data name="s225aa3dff9b9db048ab7e54c" xml:space="preserve">
+    <value>检查启动项</value>
   </data>
   <data name="s6a2d5b0b32755b661d127fae" xml:space="preserve">
     <value>扫描工作区</value>
@@ -4263,6 +4614,9 @@
   <data name="sb0daf47f06fda541769b292a" xml:space="preserve">
     <value>扫描失败。</value>
   </data>
+  <data name="s4d20593fc457afab16516d9b" xml:space="preserve">
+    <value>先扫描，再由你确认清理范围。</value>
+  </data>
   <data name="s35807dd57f6d0f259b0f3431" xml:space="preserve">
     <value>扫描未完成，清理暂不可用。仍可查看已测量的空间。</value>
   </data>
@@ -4298,6 +4652,9 @@
   </data>
   <data name="s17147ce561479d931277ef70" xml:space="preserve">
     <value>扫描仅读取信息。卸载前需要审阅组件并确认。</value>
+  </data>
+  <data name="s2f026e94cee00737eb58137a" xml:space="preserve">
+    <value>扫描仅读取应用信息，卸载前由你审阅关联组件。</value>
   </data>
   <data name="sc04fafc03cb442898d37249d" xml:space="preserve">
     <value>扫描仅统计文件大小，不会自动选择或删除任何内容。</value>
@@ -4350,6 +4707,9 @@
   <data name="s42e99c17c57fa990505b67e9" xml:space="preserve">
     <value>搜索程序或发布者</value>
   </data>
+  <data name="sedd3c20b1bd9e4b0889e64d7" xml:space="preserve">
+    <value>搜索项目或路径</value>
+  </data>
   <data name="s7d081a49f6e904afcbcc115b" xml:space="preserve">
     <value>搜索规则或路径</value>
   </data>
@@ -4365,8 +4725,17 @@
   <data name="sa20ef7434ccdf23102b96094" xml:space="preserve">
     <value>跨目录汇总大文件，查看后选择要清理的内容。</value>
   </data>
+  <data name="s46c942d86bb6954498ca2ec8" xml:space="preserve">
+    <value>查看处理结果，跟进尚需处理的项目。</value>
+  </data>
+  <data name="se0b6529e0415a5e634ab4fa4" xml:space="preserve">
+    <value>看清空间去向，从大目录逐层查看。</value>
+  </data>
   <data name="sbdc61a90c2f3be4c38187db7" xml:space="preserve">
     <value>查看空间用在哪里</value>
+  </data>
+  <data name="sdeb2950f29974b4ad1921803" xml:space="preserve">
+    <value>看清每一份空间。</value>
   </data>
   <data name="s2a78025de6aae5e7ff88e5a9" xml:space="preserve">
     <value>选择</value>
@@ -4451,6 +4820,9 @@
   </data>
   <data name="s88641bb12a215f8a50ff5fcd" xml:space="preserve">
     <value>选择卸载</value>
+  </data>
+  <data name="sad76f0ba018fa8a6c3dc2a78" xml:space="preserve">
+    <value>可勾选后手动审阅，确认前会重新完整计量目录内容。</value>
   </data>
   <data name="s1d08b8184d3ce128cc75190d" xml:space="preserve">
     <value>请选择需要清理的操作记录。</value>
@@ -4565,6 +4937,9 @@
   </data>
   <data name="sf170fa36eb1980461d63106b" xml:space="preserve">
     <value>保留共享组容器、安装包收据和外部辅助程序。不搜索自定义位置或其他账户；进程检查覆盖当前账户。不存在的关联项目不会加入计划。</value>
+  </data>
+  <data name="sfe5141238d7e9c2893adc221" xml:space="preserve">
+    <value>Shou 诊断报告</value>
   </data>
   <data name="sfb32ba1e97394acee8da9953" xml:space="preserve">
     <value>Shou 无法恢复系统卸载，也不会自动清理残留文件。</value>
@@ -5031,6 +5406,9 @@
   <data name="s652fff53274ad3530fb2198c" xml:space="preserve">
     <value>改用本地密钥存储</value>
   </data>
+  <data name="s6725e7bbcd28f3a8a586fa34" xml:space="preserve">
+    <value>系统</value>
+  </data>
   <data name="s2e6367b208c653a83d246ccd" xml:space="preserve">
     <value>系统后台启动项</value>
   </data>
@@ -5184,11 +5562,20 @@
   <data name="s8876063caab65f3d68571e47" xml:space="preserve">
     <value>内置规则的命名空间不可用于个人规则。</value>
   </data>
+  <data name="sad4b65b5832eb766e3757e82" xml:space="preserve">
+    <value>目录检查未能完成，请重试。</value>
+  </data>
+  <data name="sd495dacffc5ea558dbc5290e" xml:space="preserve">
+    <value>无法核验目录身份或可用状态。</value>
+  </data>
   <data name="s592b72a4479da5ee2aca499f" xml:space="preserve">
     <value>决策服务接收限定范围的相对元数据和保留回答。优先本地处理，仅在需要开放式理解时升级到主模型。两种服务均不能授权删除。</value>
   </data>
   <data name="s13be5d6605e2a623340b67ff" xml:space="preserve">
     <value>决策服务已关闭，当前配置由主模型直接处理。</value>
+  </data>
+  <data name="s740bdf079750ac29c5329c09" xml:space="preserve">
+    <value>磁盘访问检查可用，个别位置仍可能受限。</value>
   </data>
   <data name="sc6794b93b5d56ddcbb8a0096" xml:space="preserve">
     <value>文件在永久删除前发生变化，请重新扫描。</value>
@@ -5252,6 +5639,15 @@
   </data>
   <data name="scf0be61c0ab3ffe617cb2bd4" xml:space="preserve">
     <value>本地 API 密钥不可用，请在 AI 设置中重新保存。</value>
+  </data>
+  <data name="s0f3478fb388e3c6f8b969891" xml:space="preserve">
+    <value>无法检查本地记录目录。</value>
+  </data>
+  <data name="sf0b48626cea0e02785e12393" xml:space="preserve">
+    <value>本地记录目录仅当前用户可访问，未检查其内容或实际写入能力。</value>
+  </data>
+  <data name="s09b46426f17e1ecab1339fc8" xml:space="preserve">
+    <value>本地记录位置未通过私有目录检查。</value>
   </data>
   <data name="s8bb1434fa336fa035c577305" xml:space="preserve">
     <value>无法扫描该位置。</value>
@@ -5427,11 +5823,17 @@
   <data name="s6d10cbf37f4ede330b3e6774" xml:space="preserve">
     <value>无法确定卸载结果。请先读取已保存的记录，再进行后续操作。</value>
   </data>
+  <data name="s8d8aa41a0657543ad4d3239c" xml:space="preserve">
+    <value>版本格式不同或暂不支持比较，请在应用内核对。</value>
+  </data>
   <data name="sc3e61569d474beaaf1a5ad03" xml:space="preserve">
     <value>这些文件将永久移除，此操作无法撤销。</value>
   </data>
   <data name="sf370d0f6a9ea130ef5c1dccd" xml:space="preserve">
     <value>结果仅反映本次核验。不确定的操作仍被阻止，后续操作须在历史中单独审阅并确认。</value>
+  </data>
+  <data name="s2e7abb738415510222e4bf27" xml:space="preserve">
+    <value>此分析无法比较，请对同一文件夹重新完成两次空间分析。</value>
   </data>
   <data name="sa80becd5ed54593a05163294" xml:space="preserve">
     <value>无法安全移除此应用，请查看组件详情。</value>
@@ -5535,6 +5937,9 @@
   <data name="s24a45847dc4ee5260da8044c" xml:space="preserve">
     <value>此计划已有卸载尝试。请读取记录，此计划不能再次执行。</value>
   </data>
+  <data name="s8c890bf7028a9aa4b00a5c96" xml:space="preserve">
+    <value>此平台不使用 macOS 磁盘访问检查。</value>
+  </data>
   <data name="sa4a832f99a9f0c96e24192e1" xml:space="preserve">
     <value>此预览不会删除文件，也不能生成清理计划。</value>
   </data>
@@ -5543,6 +5948,9 @@
   </data>
   <data name="sfdbf826c96a2b923305f74ef" xml:space="preserve">
     <value>此记录存在未完成操作。核验不会重试这些操作，也不授予再次操作的权限。</value>
+  </data>
+  <data name="s6884b19dbb76935457818bf6" xml:space="preserve">
+    <value>报告仅包含有限的系统信息，不含个人路径或文件内容，不会上传。</value>
   </data>
   <data name="s5e89db31c0abbf4b6257d2fe" xml:space="preserve">
     <value>此根目录受保护或不归当前用户所有。</value>
@@ -5567,6 +5975,9 @@
   </data>
   <data name="s848cd5a4fbe8cda671244498" xml:space="preserve">
     <value>此快照已发生变化，请从当前文件夹开始新的调查。</value>
+  </data>
+  <data name="s1b81414ba3ff58320b947071" xml:space="preserve">
+    <value>此空间分析的索引已清理，请重新扫描。</value>
   </data>
   <data name="s791071f0a28c9e339b95869e" xml:space="preserve">
     <value>此启动位置不可用或不受支持。</value>
@@ -5724,6 +6135,9 @@
   <data name="s1c9e6e9f7e242d442878137b" xml:space="preserve">
     <value>返回上一级</value>
   </data>
+  <data name="s13b7baf157e195f0f33da70d" xml:space="preserve">
+    <value>更新状态未知</value>
+  </data>
   <data name="s55fc4744fc8471a92da2d969" xml:space="preserve">
     <value>安装前验证更新签名。</value>
   </data>
@@ -5756,6 +6170,9 @@
   </data>
   <data name="sbb2eaad1cfadf24e2e850e4b" xml:space="preserve">
     <value>填写确切的项目相对目录。模式留空时保护整个项目。</value>
+  </data>
+  <data name="se0577e190241c440e810ab4f" xml:space="preserve">
+    <value>请选择不同的分析及精确的相对目录，结果数为 1–100、检查项目数为 1–100000、用时为 1–30 秒。</value>
   </data>
   <data name="sa2fb8ca79072207bdfd3dbe9" xml:space="preserve">
     <value>选择亮色、暗色或跟随系统设置。</value>
@@ -5963,6 +6380,9 @@
   </data>
   <data name="sc655ee2c11092dd67863e3d5" xml:space="preserve">
     <value>使用的 AI Agent</value>
+  </data>
+  <data name="sc30be0089bce957c673c21da" xml:space="preserve">
+    <value>你的清理规则</value>
   </data>
   <data name="sd0e869b777a6967931bd4373" xml:space="preserve">
     <value>你的回答</value>
@@ -6242,5 +6662,8 @@
   </data>
   <data name="sa196934ea49e9c5d4e2beece" xml:space="preserve">
     <value>uv 依赖包缓存</value>
+  </data>
+  <data name="s9529b71ef7ad17762b40976e" xml:space="preserve">
+    <value>装下更多可能。</value>
   </data>
 </root>

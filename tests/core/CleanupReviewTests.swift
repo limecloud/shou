@@ -20,10 +20,11 @@ func commonReviewGroupsEvidenceWithoutGrantingAuthority() async throws {
     partial.treeComplete=false
     partial.completedPaths=nil
     let partialReview=try CleanupReview(snapshots: [partial])
-    try expect(partialReview.sources.count == 2 && partialReview.sources.allSatisfy { !$0.selectable })
+    try expect(partialReview.sources.count == 2 && partialReview.sources.allSatisfy { $0.selectable && $0.requiresManualReview })
+    try expect(partialReview.recommendedSources.isEmpty)
     partial.completedPaths=["project/target"]
     let coveredReview=try CleanupReview(snapshots: [partial])
-    try expect(coveredReview.sources.filter(\.selectable).map(\.candidate.relativePath) == ["project/target"])
+    try expect(coveredReview.sources.filter { !$0.requiresManualReview }.map(\.candidate.relativePath) == ["project/target"])
     var draft=scan
     draft.previewOnly=true
     try expect(try CleanupReview(snapshots: [draft]).sources.allSatisfy { !$0.selectable })
@@ -57,6 +58,11 @@ func commonReviewSeparatesUserCachesAndCrossProjectArtifacts() async throws {
     try expect(rust.sources.count == 2)
     try expect(Set(rust.sources.map(\.candidate.relativePath)) == ["first/target", "second/target"])
     try expect(projects.sources.contains { $0.candidate.relativePath == "python/__pycache__" })
+    let projectObjects=review.projects(snapshots: scan.snapshots, locations: scan.locations)
+    try expect(Set(projectObjects.map(\.path)) == Set(["first", "second", "python"].map { fixture.workspace.path + "/dev/" + $0 }))
+    try expect(projectObjects.allSatisfy(\.identifiedProject))
+    try expect(Set(projectObjects.flatMap(\.sources).map(\.id)) == Set(projects.sources.map(\.id)))
+    try expect(projectObjects.reduce(Int64(0)) { $0 + $1.bytes } == projects.bytes)
     let userCaches=try require(review.categories.first { $0.id == "userCache" })
     try expect(["Homebrew download caches", "Node.js toolchain caches", "Swift Package Manager caches"].allSatisfy { title in userCaches.groups.contains { $0.title == title } })
     try expect(userCaches.sources.contains { $0.candidate.ruleIds.contains("shou.builtin.pnpm-user-caches") })

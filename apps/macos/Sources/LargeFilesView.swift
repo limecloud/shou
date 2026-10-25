@@ -35,37 +35,31 @@ struct LargeFilesView: View {
         }
     }
     private var entry: some View {
-        VStack(spacing: 22) {
-            Spacer()
-            Image(systemName: "doc.text.magnifyingglass").font(.system(size: 52, weight: .light)).foregroundStyle(Color.accentColor)
-            Text(model.t("Find the files taking up the most space")).font(.title2.weight(.semibold))
-            Text(model.t("See large files across folders, then choose what to remove."))
-                .foregroundStyle(.secondary).multilineTextAlignment(.center)
-            Picker(model.t("Scan Location"), selection: Binding(get: { storage.location }, set: { storage.location=$0 })) {
-                ForEach(storage.locations) { Label($0.name, systemImage: $0.symbol).tag($0.path) }
-            }.frame(width: 300).labelsHidden().accessibilityLabel(model.t("Scan Location"))
-            HStack(spacing: 14) {
-                Button(model.t("Choose Folder…")) { storage.chooseFolder(app: model) }
+        WorkspaceStartPage(eyebrow: model.t("Large Files"), title: model.t("Make room for more."),
+            subtitle: model.t("See large files across folders, then choose what to remove."), kind: .largeFiles,
+            footnote: model.t("Scanning reads file sizes. Nothing is selected or deleted automatically.")) {
+            VStack(alignment: .leading, spacing: 18) {
+                Picker(model.t("Scan Location"), selection: Binding(get: { storage.location }, set: { storage.location=$0 })) {
+                    ForEach(storage.locations) { Label($0.name, systemImage: $0.symbol).tag($0.path) }
+                }.frame(maxWidth: 310).labelsHidden().controlSize(.large).accessibilityLabel(model.t("Scan Location"))
+                HStack(spacing: 18) {
+                    Button { storage.start(app: model) } label: { Label(model.t("Start Scan"), systemImage: "magnifyingglass") }
+                        .buttonStyle(WorkspacePrimaryButtonStyle()).disabled(model.busy || session.loading).accessibilityIdentifier("large-files.start")
+                    Button(model.t("Choose Folder…")) { storage.chooseFolder(app: model) }.buttonStyle(.link).disabled(model.busy || session.loading)
+                }
                 if model.space.scan != nil && !model.space.hasChanges {
                     Button(model.t("Use Latest Space Analysis")) { session.useSpaceAnalysis(app: model) }
-                        .accessibilityIdentifier("large-files.reuse-analysis")
+                        .buttonStyle(.link).disabled(model.busy || session.loading).accessibilityIdentifier("large-files.reuse-analysis")
                 }
-            }.buttonStyle(.link).disabled(model.busy || session.loading)
-            if session.loading {
-                HStack(spacing: 12) {
-                    ProgressView().controlSize(.small)
-                    Text(model.t("Loading measured results…")).foregroundStyle(.secondary)
-                    Button(model.t("Stop")) { session.stop() }
+                if session.loading {
+                    HStack(spacing: 12) {
+                        ProgressView().controlSize(.small)
+                        Text(model.t("Loading measured results…")).foregroundStyle(.secondary)
+                        Button(model.t("Stop")) { session.stop() }
+                    }
                 }
             }
-            Button { storage.start(app: model) } label: {
-                Label(model.t("Start Scan"), systemImage: "magnifyingglass").padding(.horizontal, 18).padding(.vertical, 7)
-            }.buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy || session.loading)
-                .accessibilityIdentifier("large-files.start")
-            Text(model.t("Scanning reads file sizes. Nothing is selected or deleted automatically."))
-                .font(.caption).foregroundStyle(.secondary)
-            Spacer()
-        }.padding(28).frame(maxWidth: .infinity)
+        }.accessibilityIdentifier("large-files.welcome")
     }
     private var results: some View {
         VStack(spacing: 0) {

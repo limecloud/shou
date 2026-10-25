@@ -8,6 +8,7 @@ import re
 import struct
 import xml.etree.ElementTree as ET
 import design_tokens
+import workspace_artwork
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'apps/windows/Generated'
@@ -56,7 +57,9 @@ def resources():
         for key in re.findall(r'\btext\.Get\("([^"\\]+)"\)', source.read_text(encoding='utf-8')):
             if key not in strings:
                 raise ValueError(f'{source.relative_to(ROOT)}: missing catalog key {key!r}')
-    outputs = {}
+    illustrations = workspace_artwork.verified()
+    inputs += ['assets/design/illustrations/manifest.json'] + ['assets/design/illustrations/' + name for name in illustrations]
+    outputs = {'Illustrations/' + name: data for name, data in illustrations.items()}
     for source_locale, windows_locale in [('en', 'en-US'), ('zh-Hans', 'zh-CN')]:
         entries = {}
         tree = ET.Element('root')

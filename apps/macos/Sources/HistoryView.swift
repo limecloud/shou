@@ -20,7 +20,14 @@ struct HistoryView: View {
                 }
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
         }.overlay {
-            if model.history.isEmpty { ContentUnavailableView(model.t("No cleanup history"), systemImage: "clock") }
+            if model.history.isEmpty {
+                WorkspaceStartPage(eyebrow: model.t("History"), title: model.t("Every cleanup, accounted for."),
+                    subtitle: model.t("No cleanup history"), kind: .history,
+                    footnote: model.t("Completed operations and their actual results appear here.")) {
+                    Button { model.section="smart" } label: { Label(model.t("Open Smart Cleanup"), systemImage: "arrow.right") }
+                        .buttonStyle(WorkspacePrimaryButtonStyle()).disabled(model.busy)
+                }
+            }
         }
         }
         .toolbar {

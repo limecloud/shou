@@ -28,6 +28,10 @@ Codex、Claude Code、WorkBuddy 等现有 Agent 在各自权限允许时调用 C
 
 ## 2. 全局合同
 
+macOS `applications updates source --path PATH` 只读应用身份和内置更新来源，不联网；`applications updates check --path PATH --allow-network true` 明确执行单款应用的公开目录网络查询，副作用等级为 `network`，不写清理存储。来源、版本、隐私与部分状态由[应用更新发现](../product/application-updates.md)维护；未知使用退出码 `6`，不是“没有更新”。Windows 使用相同命令名与 `--application-id ID` 代替应用路径，来源和身份匹配由独立 C# 服务实现。
+
+macOS 新增只读支持入口 `diagnostics`、`completion --shell bash|zsh`，不打开业务记录存储；字段、隐私、退出码和补全边界由[用户诊断与终端支持](../engineering/user-diagnostics.md)维护。`analysis history --scan-id ID` 和 `analysis compare --baseline-id ID --scan-id ID [--path RELATIVE --limit N --max-entries N --max-seconds N]` 只读已有索引，[空间比较合同](../product/space-analysis.md#历史分析比较)拥有身份、覆盖与预算。部分查询使用标准信封和退出码 `6`；`comparison_unavailable` 退出 `8`，已清理索引的 `analysis_unavailable` 保持既有退出码 `5`。Windows 已有相同诊断／比较命令，补全增加 `powershell`；其 `analysis scan` 副作用为 `snapshot`，会保存不可变观察页。具体预算和错误以平台合同与当前构建的能力发现为准。
+
 - 命令为 `shou`，未来 Windows 为 `shou.exe`。
 - 人类可读文本支持 `--locale`；语言选择与回退遵循[国际化规范](../product/internationalization.md)，不改变机器字段和安全语义。
 - `--help` 提供人类说明；`shou skills --help` 或直接输入命令组，只显示该组帮助，包含可选参数与重复参数。未知帮助目标会报错。

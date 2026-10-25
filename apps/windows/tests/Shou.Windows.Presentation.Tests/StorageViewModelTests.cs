@@ -89,6 +89,17 @@ public sealed class StorageViewModelTests
     }
 
     [Fact]
+    public async Task AFailedNewScanPreservesTheEarlierPublishedAnalysis()
+    {
+        var scanner = new Scanner(); using var model = new StorageViewModel(scanner);
+        var first = model.ScanAsync(Root); var earlier = Snapshot(ScanState.Complete);
+        scanner.Calls.Dequeue().SetResult(earlier); await first;
+        var next = model.ScanAsync(Root);
+        scanner.Calls.Dequeue().SetException(new ShouException("storage_full", "generated storage exhaustion")); await next;
+        Assert.Same(earlier, model.Snapshot); Assert.Equal(StoragePageState.Failed, model.State);
+    }
+
+    [Fact]
     public async Task ProgressFromSupersededAndCompletedScansCannotLeakIntoCurrentPage()
     {
         var scanner = new Scanner();

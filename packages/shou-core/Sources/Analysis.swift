@@ -24,7 +24,8 @@ public enum Analysis {
     }
 
     public static func candidates(tree: TreeSnapshot, workspace: Workspace, rules: [CleanupRule], now: Date, blockedRules: [String: String] = [:],
-                                  artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), artifactHomeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, maxSeconds: TimeInterval = 60) throws -> [Candidate] {
+                                  artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), artifactHomeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, maxSeconds: TimeInterval = 60,
+                                  selectedPaths: Set<String>? = nil) throws -> [Candidate] {
         try ScanBudget(maxSeconds: maxSeconds).validate()
         let deadline=ProcessInfo.processInfo.systemUptime + maxSeconds
         var byPath: [String: FileEntry]=[:]
@@ -67,6 +68,9 @@ public enum Analysis {
             }
             if nestedBuiltin { matches.removeAll { $0.id.hasPrefix(BuiltinCatalog.prefix) } }
             if matches.contains(where: { $0.id.hasPrefix(BuiltinCatalog.prefix) }) { claimedBuiltinPaths.insert(path) }
+            // Keep all context and outer-match precedence, but spend expensive
+            // ownership/activity checks only on the explicit plan selection.
+            if let selectedPaths, !selectedPaths.contains(path) { continue }
             // Unclassified directories support navigation, but cannot authorize
             // mutation. Only matched targets need a serialized subtree manifest.
             if matches.isEmpty {

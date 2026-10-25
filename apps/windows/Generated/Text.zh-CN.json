@@ -54,6 +54,11 @@
     "resource_id": "sf0713a54e75669745d3f65ea",
     "text": "已移除 %lld 个条目"
   },
+  "%lld examined · %lld changed observations · %lld shown": {
+    "format": "已检查 {0} 项 · 观察到 {1} 项变化 · 展示 {2} 项",
+    "resource_id": "sacbdad808015c8fb4b974cc0",
+    "text": "已检查 %lld 项 · 观察到 %lld 项变化 · 展示 %lld 项"
+  },
   "%lld files": {
     "format": "{0} 个文件",
     "resource_id": "sad2c1c2fc9c38ad5ff5dac83",
@@ -98,6 +103,11 @@
     "format": "已扫描 {0} 个位置",
     "resource_id": "s249e0d32569d128d69b37758",
     "text": "已扫描 %lld 个位置"
+  },
+  "%lld locations selected": {
+    "format": "已选 {0} 个位置",
+    "resource_id": "sc0faa9468bd9ae00ac452047",
+    "text": "已选 %lld 个位置"
   },
   "%lld matches": {
     "format": "{0} 项匹配",
@@ -209,10 +219,25 @@
     "resource_id": "sbc5f660bc678e9e5f125499b",
     "text": "4. 清理所选规则，核验结果与保留项。"
   },
+  "A LITTLE LIGHTER. A LOT MORE ROOM.": {
+    "format": "少一点堆积，多一点自在",
+    "resource_id": "s57f71fd29c506eeddda17e73",
+    "text": "少一点堆积，多一点自在"
+  },
   "A built-in scan location has no scoped rules.": {
     "format": "内置扫描位置没有适用的清理规则。",
     "resource_id": "s7a2ac525498b7b1e8acdd7f9",
     "text": "内置扫描位置没有适用的清理规则。"
+  },
+  "A calmer start.": {
+    "format": "每次开机，轻装出发。",
+    "resource_id": "s32c3fbdc52a60021a22575f7",
+    "text": "每次开机，轻装出发。"
+  },
+  "A clearer view of apps and build outputs.": {
+    "format": "应用与构建产物，按对象梳理。",
+    "resource_id": "s4a2749d5e2bd51e7c3f31dad",
+    "text": "应用与构建产物，按对象梳理。"
   },
   "A complete directory manifest is required before moving to Trash.": {
     "format": "移到废纸篓前必须取得完整目录清单。",
@@ -229,6 +254,11 @@
     "resource_id": "se3ad4c2feac4024c46e71966",
     "text": "目录或其内部文件近期有修改"
   },
+  "A little more privacy.": {
+    "format": "隐私，由你掌握。",
+    "resource_id": "sad08ef2dbdd5593ab2633c3e",
+    "text": "隐私，由你掌握。"
+  },
   "A little setup. More room to breathe.": {
     "format": "准备就绪，收拾一下。",
     "resource_id": "sb35f9ee9ec146150d8f73291",
@@ -243,6 +273,11 @@
     "format": "内置维护规则已定义此缓存范围，请重新扫描。",
     "resource_id": "sff04e9af9f7c4d95c4467280",
     "text": "内置维护规则已定义此缓存范围，请重新扫描。"
+  },
+  "A matching catalog version could not be verified for this system.": {
+    "format": "无法核验与当前系统匹配的目录版本。",
+    "resource_id": "s9724eacfc54d05ad979c82e9",
+    "text": "无法核验与当前系统匹配的目录版本。"
   },
   "A preset requires a name and explicit rules.": {
     "format": "预设需要名称及明确选择的规则。",
@@ -273,6 +308,11 @@
     "format": "无法启动安全检查所需的只读系统工具。",
     "resource_id": "s959bdbbf7890c3c716266d5e",
     "text": "无法启动安全检查所需的只读系统工具。"
+  },
+  "A routine that fits your own folders.": {
+    "format": "为自己的文件夹，定制清理方式。",
+    "resource_id": "s0bcdbdb6141a974e27567d1e",
+    "text": "为自己的文件夹，定制清理方式。"
   },
   "A startup registration could not be read safely.": {
     "format": "无法安全读取某项启动注册。",
@@ -594,6 +634,11 @@
     "resource_id": "s32b7b77346a7cb950aaff380",
     "text": "分配容量估计"
   },
+  "Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion.": {
+    "format": "分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。",
+    "resource_id": "sa5c1b673e858430fe643981f",
+    "text": "分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。"
+  },
   "Allow access to application caches that macOS protects.": {
     "format": "允许访问受 macOS 保护的应用缓存。",
     "resource_id": "sed64e4c9799abb0ca6f3912c",
@@ -633,6 +678,16 @@
     "format": "已有进行中的调查。请返回当前调查，或停止后准备此文件夹。",
     "resource_id": "sa6449fe61f8a7a101002ce7b",
     "text": "已有进行中的调查。请返回当前调查，或停止后准备此文件夹。"
+  },
+  "Analysis Actions": {
+    "format": "分析操作",
+    "resource_id": "s9b42273ea39ff85f7104ae75",
+    "text": "分析操作"
+  },
+  "Analysis comparison stopped.": {
+    "format": "已停止分析比较。",
+    "resource_id": "s8e897103e54812f9f255dbe2",
+    "text": "已停止分析比较。"
   },
   "Analyzing %lld entries…": {
     "format": "正在分析 {0} 项…",
@@ -789,6 +844,11 @@
     "resource_id": "s3268eec8d6afab255eea00b2",
     "text": "应用卸载"
   },
+  "Application Updates": {
+    "format": "应用更新",
+    "resource_id": "scd64194d42f74ae3ea5e8114",
+    "text": "应用更新"
+  },
   "Application activity checking is unavailable on this platform.": {
     "format": "此平台暂不支持应用运行状态检查。",
     "resource_id": "s42a7aad1ba819457f040bc9b",
@@ -818,6 +878,11 @@
     "format": "应用缓存",
     "resource_id": "s1a96e0fc291cb9813431bbe2",
     "text": "应用缓存"
+  },
+  "Application changed. Scan applications again before checking its catalog version.": {
+    "format": "应用已变化。请重新扫描应用，再检查目录版本。",
+    "resource_id": "scf8a77c53555053fc10675ea",
+    "text": "应用已变化。请重新扫描应用，再检查目录版本。"
   },
   "Application closed. Review its components to continue.": {
     "format": "应用已关闭，请审阅关联文件后继续。",
@@ -920,9 +985,9 @@
     "text": "应用、归属、配置或组件内容已变化，请重新预览。"
   },
   "Applications": {
-    "format": "应用管理",
+    "format": "应用",
     "resource_id": "s98e33b0f3104fcf1b812ba2c",
-    "text": "应用管理"
+    "text": "应用"
   },
   "Applications checked. Review components before uninstalling.": {
     "format": "应用检查完成。请在卸载前审阅组件。",
@@ -933,6 +998,11 @@
     "format": "应用会按需重建下载与渲染缓存。",
     "resource_id": "s87a92d9f9bbb8fa1c2de7951",
     "text": "应用会按需重建下载与渲染缓存。"
+  },
+  "Apps & Projects": {
+    "format": "应用与项目",
+    "resource_id": "s54c7c4eb660f701beeb04854",
+    "text": "应用与项目"
   },
   "Arc caches": {
     "format": "Arc 缓存",
@@ -1069,6 +1139,11 @@
     "resource_id": "se674447337e83c1346f6122e",
     "text": "可用"
   },
+  "Available disk space": {
+    "format": "磁盘可用空间",
+    "resource_id": "sec3fa564cfb186743275b033",
+    "text": "磁盘可用空间"
+  },
   "Available on this Mac": {
     "format": "本机可用位置",
     "resource_id": "sa937781461468ab71a6feb8e",
@@ -1133,6 +1208,11 @@
     "format": "Bob 翻译 缓存",
     "resource_id": "sb882729d9f35ee21b4612c75",
     "text": "Bob 翻译 缓存"
+  },
+  "Bounded record discovery is unavailable in this record store.": {
+    "format": "此记录存储不支持有界记录发现。",
+    "resource_id": "sdfd043497ebdb816777fbfbe",
+    "text": "此记录存储不支持有界记录发现。"
   },
   "Box caches": {
     "format": "Box 缓存",
@@ -1258,6 +1338,11 @@
     "format": "内置规则和已启用的个人规则已自动选中。",
     "resource_id": "se2b941ef0479036e4694344d",
     "text": "内置规则和已启用的个人规则已自动选中。"
+  },
+  "Built-in and enabled personal rules share the same scan and selection.": {
+    "format": "内置规则与已启用的个人规则共用扫描结果和选择。",
+    "resource_id": "s07986279219883cf0a60aa09",
+    "text": "内置规则与已启用的个人规则共用扫描结果和选择。"
   },
   "Built-in items are preselected. Personal rules stay opt-in.": {
     "format": "已自动选中内置规则项目，个人规则仍需手动加入。",
@@ -1489,6 +1574,16 @@
     "resource_id": "sab85221a476c5bbb86708031",
     "text": "Cargo 包源码核验超时。"
   },
+  "Catalog Version": {
+    "format": "目录版本",
+    "resource_id": "s077eccbc37a438dae4323242",
+    "text": "目录版本"
+  },
+  "Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates.": {
+    "format": "目录版本不代表安装兼容性已核验。请通过应用自身或其官方更新器安装更新。",
+    "resource_id": "s4bc551765c895ae38bcda960",
+    "text": "目录版本不代表安装兼容性已核验。请通过应用自身或其官方更新器安装更新。"
+  },
   "Category": {
     "format": "分类",
     "resource_id": "s292c06f0045a45d044be282b",
@@ -1529,10 +1624,25 @@
     "resource_id": "s4efe2a03c222558b1e631e99",
     "text": "请先查看操作记录，再继续操作。"
   },
+  "Check Homebrew Catalog": {
+    "format": "检查 Homebrew 目录",
+    "resource_id": "s40e171b21b61040000063f9b",
+    "text": "检查 Homebrew 目录"
+  },
   "Check Recorded Locations": {
     "format": "核对记录位置",
     "resource_id": "s267029867186a2e4773ba7c4",
     "text": "核对记录位置"
+  },
+  "Check Release Catalog": {
+    "format": "检查版本目录",
+    "resource_id": "s3bde496d5b8adf6e7f2b76e9",
+    "text": "检查版本目录"
+  },
+  "Check disk access, free space, and local records without changing files.": {
+    "format": "检查磁盘权限、可用空间和本地记录，不修改文件。",
+    "resource_id": "s117ffb822009d7e36fe67efc",
+    "text": "检查磁盘权限、可用空间和本地记录，不修改文件。"
   },
   "Check every path. Files and configuration will be verified again immediately before processing.": {
     "format": "请核对每个路径。处理前会再次复核文件与配置。",
@@ -1553,6 +1663,11 @@
     "format": "检查启动项配置",
     "resource_id": "s4161cfad0e95827925fd3944",
     "text": "检查启动项配置"
+  },
+  "Check that the home volume is available, then run diagnostics again.": {
+    "format": "请检查用户目录所在磁盘是否可用，然后重新诊断。",
+    "resource_id": "s75e4d1797214185a4b0a4908",
+    "text": "请检查用户目录所在磁盘是否可用，然后重新诊断。"
   },
   "Check the relative path, project markers and discovery depth. Conditions and protections still apply.": {
     "format": "请核对相对路径、项目标记和发现深度；条件与保护仍然生效。",
@@ -1594,15 +1709,30 @@
     "resource_id": "sc427df847faf839ff72efb33",
     "text": "正在检查所选项…"
   },
+  "Checking system facts…": {
+    "format": "正在检查系统信息…",
+    "resource_id": "s066e53fd3dbe7ac8fa446133",
+    "text": "正在检查系统信息…"
+  },
   "Checking tool-managed storage…": {
     "format": "正在检查工具管理的空间…",
     "resource_id": "s91851cac103edeaa370ea867",
     "text": "正在检查工具管理的空间…"
   },
+  "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.": {
+    "format": "仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。",
+    "resource_id": "sf66e8d31c012b7148a8e2d6a",
+    "text": "仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。"
+  },
   "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.": {
     "format": "仅检查记录中的确切路径与目录清单，保留文件及原始回执。",
     "resource_id": "sf9ebd9c0124d914422ed8e20",
     "text": "仅检查记录中的确切路径与目录清单，保留文件及原始回执。"
+  },
+  "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.": {
+    "format": "查询此应用的官方稳定版目录。不上传应用清单，不安装更新。",
+    "resource_id": "s74fb103943e71facd255140d",
+    "text": "查询此应用的官方稳定版目录。不上传应用清单，不安装更新。"
   },
   "Choose Folder for This Rule…": {
     "format": "为此规则选择文件夹…",
@@ -1699,6 +1829,16 @@
     "resource_id": "sd5003f2fe84a092d54996251",
     "text": "请选择适用的扫描位置"
   },
+  "Choose an earlier analysis": {
+    "format": "选择较早的分析",
+    "resource_id": "s9c74d90b741f6154fa6d1bb5",
+    "text": "选择较早的分析"
+  },
+  "Choose an earlier analysis of the same directory identity. Replaced folders cannot be compared.": {
+    "format": "请选择同一目录身份的较早分析，已被替换的文件夹不可比较。",
+    "resource_id": "sf67da1fc879c4b4f5711ce93",
+    "text": "请选择同一目录身份的较早分析，已被替换的文件夹不可比较。"
+  },
   "Choose an unused rule version. Existing versions cannot be overwritten.": {
     "format": "请使用尚未存在的版本号，已有版本不能覆盖。",
     "resource_id": "sd6224bb9f78c0f269d0a6e08",
@@ -1743,6 +1883,11 @@
     "format": "选择 Shou 使用的界面语言。",
     "resource_id": "s105aae87dd457078d4a54bf5",
     "text": "选择 Shou 使用的界面语言。"
+  },
+  "Choose what starts with your Mac.": {
+    "format": "管理随 Mac 启动的应用与后台项目。",
+    "resource_id": "s68af92208e0eff13e522aa83",
+    "text": "管理随 Mac 启动的应用与后台项目。"
   },
   "Choose your own service to begin an investigation.": {
     "format": "选择你自己的服务以开始调查。",
@@ -1934,6 +2079,11 @@
     "resource_id": "s2b7fb300b5457d95ebf3d6ca",
     "text": "清理已结束，部分项目需处理"
   },
+  "Cleanup preview failed.": {
+    "format": "清理预览失败。",
+    "resource_id": "s339d462a7fc512f86ce9aa06",
+    "text": "清理预览失败。"
+  },
   "Cleanup rules made for your Mac": {
     "format": "为你的 Mac 定制清理规则",
     "resource_id": "s66952aa85699518344766c50",
@@ -1943,6 +2093,11 @@
     "format": "清理规则或项目标记已不再匹配此目录，请重新扫描。",
     "resource_id": "s127da8b85fd783de90c6378a",
     "text": "清理规则或项目标记已不再匹配此目录，请重新扫描。"
+  },
+  "Cleanup safety checks changed. Scan again before cleaning this directory.": {
+    "format": "此目录的清理安全检查结果已变化，请重新扫描后再清理。",
+    "resource_id": "s765417e6e8df153b6bf84328",
+    "text": "此目录的清理安全检查结果已变化，请重新扫描后再清理。"
   },
   "Cleanup scans measure rule targets. Run space analysis to include other files.": {
     "format": "清理扫描仅统计规则匹配的目标。空间分析可查看其他文件。",
@@ -2109,10 +2264,40 @@
     "resource_id": "sc14da4f8739ec93153debea1",
     "text": "自动发现常用位置，无需逐个添加项目。"
   },
+  "Compare Analyses": {
+    "format": "比较空间分析",
+    "resource_id": "s1774b1a3bf4e551817ed20ee",
+    "text": "比较空间分析"
+  },
+  "Compare Analyses…": {
+    "format": "比较空间分析…",
+    "resource_id": "s31a032a70773288351d18312",
+    "text": "比较空间分析…"
+  },
+  "Comparing analyses…": {
+    "format": "正在比较分析…",
+    "resource_id": "se0b256b4982da2552ed86250",
+    "text": "正在比较分析…"
+  },
+  "Comparison budgets must be numeric.": {
+    "format": "比较预算必须为数值。",
+    "resource_id": "s8d999c80ef9b342e6929b06e",
+    "text": "比较预算必须为数值。"
+  },
+  "Comparison unavailable": {
+    "format": "无法比较",
+    "resource_id": "sb54ea712b44f96b01e80a1de",
+    "text": "无法比较"
+  },
   "Completed": {
     "format": "已完成",
     "resource_id": "s22a970d2e5b1cc233e462be7",
     "text": "已完成"
+  },
+  "Completed operations and their actual results appear here.": {
+    "format": "完成操作后，可以在这里查看每一项真实结果。",
+    "resource_id": "s142303c4d164e20120252db9",
+    "text": "完成操作后，可以在这里查看每一项真实结果。"
   },
   "Completed operations and their recorded results will appear here.": {
     "format": "已完成的操作及其结果记录会显示在这里。",
@@ -2334,10 +2519,20 @@
     "resource_id": "s0e0269180969ded37668c242",
     "text": "复制路径"
   },
+  "Copy Report": {
+    "format": "复制报告",
+    "resource_id": "s54b8e0c0c268c1549af4247c",
+    "text": "复制报告"
+  },
   "Copy Request": {
     "format": "复制请求",
     "resource_id": "scb12df752fde9566bd478868",
     "text": "复制请求"
+  },
+  "Copy failed. Try again.": {
+    "format": "复制失败，请重试。",
+    "resource_id": "s34917f2e48ba792fb6ae2ddd",
+    "text": "复制失败，请重试。"
   },
   "Copy for AI": {
     "format": "复制给 AI",
@@ -2398,6 +2593,16 @@
     "format": "制定可复用规则",
     "resource_id": "sa79cbc9cb32aec36caff70da",
     "text": "制定可复用规则"
+  },
+  "Current Analysis": {
+    "format": "当前分析",
+    "resource_id": "scf2b468b2c242c48aaad82bd",
+    "text": "当前分析"
+  },
+  "Current Size": {
+    "format": "当前占用",
+    "resource_id": "s09f55a69739cde81b4e08166",
+    "text": "当前占用"
   },
   "Current User Run": {
     "format": "当前用户 Run",
@@ -2679,6 +2884,21 @@
     "resource_id": "sd1bc1c34246f9d61f574b63e",
     "text": "诊断编号：%@"
   },
+  "Diagnostics": {
+    "format": "诊断",
+    "resource_id": "s268f14bbfe119c1e92150583",
+    "text": "诊断"
+  },
+  "Diagnostics could not finish. Check the local data location and try again.": {
+    "format": "诊断未能完成，请检查本地数据位置后重试。",
+    "resource_id": "s6b4fdca71171e81030ab9991",
+    "text": "诊断未能完成，请检查本地数据位置后重试。"
+  },
+  "Diagnostics unavailable": {
+    "format": "诊断不可用",
+    "resource_id": "s27a853a6a7fb6828abad4db2",
+    "text": "诊断不可用"
+  },
   "DingTalk web caches": {
     "format": "钉钉网页缓存",
     "resource_id": "scd4ba293365d1a860a206d9a",
@@ -2784,6 +3004,16 @@
     "resource_id": "s5af15d6538588ec036c408db",
     "text": "磁盘占用"
   },
+  "Disk access": {
+    "format": "磁盘访问",
+    "resource_id": "s3d1297ced50002670bc6b9b5",
+    "text": "磁盘访问"
+  },
+  "Disk access could not be verified; this does not establish complete scan coverage.": {
+    "format": "无法核实磁盘访问权限，不能据此认定扫描覆盖完整。",
+    "resource_id": "s725436c76386d2244290b655",
+    "text": "无法核实磁盘访问权限，不能据此认定扫描覆盖完整。"
+  },
   "Disk access is ready": {
     "format": "受保护目录可访问",
     "resource_id": "se9042e4c738fad21d196fd34",
@@ -2798,6 +3028,21 @@
     "format": "磁盘访问权限待确认",
     "resource_id": "sb581f4646b6d846fc36e0f0b",
     "text": "磁盘访问权限待确认"
+  },
+  "Disk capacity could not be observed.": {
+    "format": "无法获取磁盘容量。",
+    "resource_id": "se234c5c060b2b9173f7f7576",
+    "text": "无法获取磁盘容量。"
+  },
+  "Disk capacity was observed without scanning files.": {
+    "format": "已读取磁盘容量，没有扫描文件。",
+    "resource_id": "s9e98f07444089421948c5a35",
+    "text": "已读取磁盘容量，没有扫描文件。"
+  },
+  "Disk free / capacity (bytes)": {
+    "format": "磁盘可用空间／总容量（字节）",
+    "resource_id": "s48b6ba356724e7c373e51d40",
+    "text": "磁盘可用空间／总容量（字节）"
   },
   "Dismiss": {
     "format": "关闭提示",
@@ -2863,6 +3108,16 @@
     "format": "每条建议独立选择。预览会导入默认禁用的草稿；启用和清理仍需审阅。",
     "resource_id": "s5e1c49fcb4fc4fff44ea0afa",
     "text": "每条建议独立选择。预览会导入默认禁用的草稿；启用和清理仍需审阅。"
+  },
+  "Earlier Analysis": {
+    "format": "较早的分析",
+    "resource_id": "s278779da850f6ccf5796bce1",
+    "text": "较早的分析"
+  },
+  "Earlier Size": {
+    "format": "较早的占用",
+    "resource_id": "s9bce2c2d70995858e60c3a9d",
+    "text": "较早的占用"
   },
   "Edge caches": {
     "format": "Microsoft Edge 缓存",
@@ -3019,6 +3274,11 @@
     "resource_id": "sec19b7317b8d861407a8c9e4",
     "text": "预计可释放"
   },
+  "Every cleanup, accounted for.": {
+    "format": "每次整理，都有记录。",
+    "resource_id": "sc86b3ce106b33e99c5c6c10d",
+    "text": "每次整理，都有记录。"
+  },
   "Evidence": {
     "format": "判断依据",
     "resource_id": "s03867aea70acaf4c5dce37a7",
@@ -3083,6 +3343,11 @@
     "format": "自动移除过期扫描记录，保留活跃计划、操作历史、恢复数据和你的文件。",
     "resource_id": "s5b2d465f3bef7871201977d9",
     "text": "自动移除过期扫描记录，保留活跃计划、操作历史、恢复数据和你的文件。"
+  },
+  "Explain observed space changes between two analyses of the same folder.": {
+    "format": "比较同一文件夹的两次分析，了解观察到的空间变化。",
+    "resource_id": "s253c4a0cbe4fbb032a16146c",
+    "text": "比较同一文件夹的两次分析，了解观察到的空间变化。"
   },
   "Explicit, unique candidate IDs are required.": {
     "format": "请明确选择清理项，且不得重复。",
@@ -3224,10 +3489,20 @@
     "resource_id": "s2cd9a0a13261468ab40fa308",
     "text": "扫描已知位置，查看可审阅的缓存与构建产物。"
   },
+  "Find the files taking up the most room.": {
+    "format": "用空间地图，找到占用大户。",
+    "resource_id": "sa136956790d76e53807bee61",
+    "text": "用空间地图，找到占用大户。"
+  },
   "Find the files taking up the most space": {
     "format": "找出占空间的大文件",
     "resource_id": "s9f71d593604ba6278c97b2eb",
     "text": "找出占空间的大文件"
+  },
+  "Find the files that make the biggest difference.": {
+    "format": "找到占用最大的文件，腾出所需空间。",
+    "resource_id": "s8f82eaf0a024210b1b6e6ada",
+    "text": "找到占用最大的文件，腾出所需空间。"
   },
   "Find what is ready to tidy up": {
     "format": "查找可清理内容",
@@ -3243,6 +3518,11 @@
     "format": "找出空间去向，留住重要内容。",
     "resource_id": "s8381decc3d33e7420d9ebd33",
     "text": "找出空间去向，留住重要内容。"
+  },
+  "Find your project outputs": {
+    "format": "查找项目产物",
+    "resource_id": "s1a2f29893b70548b71253beb",
+    "text": "查找项目产物"
   },
   "Finding scan locations…": {
     "format": "正在查找扫描位置…",
@@ -3404,6 +3684,11 @@
     "resource_id": "s27cbfd7362ed730408b6a900",
     "text": "GitHub Desktop 下载缓存"
   },
+  "Give your next build more room.": {
+    "format": "为下一次构建腾出更多空间。",
+    "resource_id": "s5d864d7c8ac28d6c2979202d",
+    "text": "为下一次构建腾出更多空间。"
+  },
   "Global Exclusions": {
     "format": "全局排除",
     "resource_id": "sa9f66c524b28de745fbabf8e",
@@ -3469,10 +3754,20 @@
     "resource_id": "s16c1dae0d5e8ab83b0749013",
     "text": "Gradle 通常会在下次构建时重新生成项目缓存与构建产物。"
   },
+  "Grouped by scan location": {
+    "format": "按扫描位置归组",
+    "resource_id": "sfb4f7e1c33b7997f2f50454f",
+    "text": "按扫描位置归组"
+  },
   "HTTP storage": {
     "format": "HTTP 存储",
     "resource_id": "s77223f5d96053067315da30d",
     "text": "HTTP 存储"
+  },
+  "Have a folder that needs a closer look?": {
+    "format": "有不确定如何整理的文件夹？",
+    "resource_id": "sda585b0911dc689eec52e2d7",
+    "text": "有不确定如何整理的文件夹？"
   },
   "Helium caches": {
     "format": "Helium 缓存",
@@ -3563,6 +3858,11 @@
     "format": "操作记录",
     "resource_id": "s0e769600933790607b2a13b3",
     "text": "操作记录"
+  },
+  "History is limited to readable recent analyses. Some records were skipped.": {
+    "format": "历史范围仅限可读取的近期分析，部分记录已跳过。",
+    "resource_id": "s42d9acaa0fb44d6f8db37ecd",
+    "text": "历史范围仅限可读取的近期分析，部分记录已跳过。"
   },
   "History observations do not change completed operations or retry unfinished work.": {
     "format": "历史核对只观察当前位置，不会改写操作结果或重试未完成的操作。",
@@ -3839,6 +4139,11 @@
     "resource_id": "s105e55f334436a6aef2e7033",
     "text": "无法验证已安装应用的归属，请重新扫描。"
   },
+  "Installed version is newer than the catalog": {
+    "format": "已安装版本高于目录版本",
+    "resource_id": "sd3ff6dab2b15cf3981af22bd",
+    "text": "已安装版本高于目录版本"
+  },
   "Installer code": {
     "format": "安装程序代码",
     "resource_id": "sab844e01a8382909259d1a08",
@@ -3878,6 +4183,11 @@
     "format": "界面语言",
     "resource_id": "s8027f432a7fb7c273a1a0fde",
     "text": "界面语言"
+  },
+  "Invalid comparison page size.": {
+    "format": "比较分页大小无效。",
+    "resource_id": "sd1d3dace143b5981282f3f25",
+    "text": "比较分页大小无效。"
   },
   "Invalid logical workspace root reference.": {
     "format": "工作区根目录引用无效。",
@@ -3928,6 +4238,11 @@
     "format": "使用你的模型调查此文件夹",
     "resource_id": "sdd407e5e0645f53a0866fe78",
     "text": "使用你的模型调查此文件夹"
+  },
+  "Investigate with AI…": {
+    "format": "用 AI 看一看…",
+    "resource_id": "s7fdbbeacf3b17e3ca47672d0",
+    "text": "用 AI 看一看…"
   },
   "Investigation Folder": {
     "format": "调查文件夹",
@@ -4088,6 +4403,11 @@
     "format": "保留近期修改的内容",
     "resource_id": "s5a1233b3dc032c8fd43f2e76",
     "text": "保留近期修改的内容"
+  },
+  "Keep the apps you love.": {
+    "format": "留下喜欢的，整理多余的。",
+    "resource_id": "s2bdbcbcc49c79dbf7ab42ff1",
+    "text": "留下喜欢的，整理多余的。"
   },
   "Keep the original rule ID when editing a version.": {
     "format": "编辑版本时请保留原规则 ID。",
@@ -4274,6 +4594,16 @@
     "resource_id": "s65a479025e9fa73c134bcf4d",
     "text": "优先本地处理，其次使用固定选项决策，仅在需要开放式理解时调用主模型。"
   },
+  "Local records": {
+    "format": "本地记录",
+    "resource_id": "s3f35ad5c6d1f4cb05506fd95",
+    "text": "本地记录"
+  },
+  "Local records have not been created. Diagnostics does not create them.": {
+    "format": "本地记录尚未创建，诊断不会创建记录。",
+    "resource_id": "s7903226f3733e3439ba8b888",
+    "text": "本地记录尚未创建，诊断不会创建记录。"
+  },
   "Local store is unavailable.": {
     "format": "本地数据存储不可用。",
     "resource_id": "s10c639e1c159b23523d1071c",
@@ -4314,6 +4644,11 @@
     "resource_id": "s14fc7cf0b9307160d441a313",
     "text": "Logseq 缓存"
   },
+  "Low free space can prevent scans and durable operation records.": {
+    "format": "可用空间不足可能导致扫描和操作记录保存失败。",
+    "resource_id": "sf76315f1e77b7b5a475a5ed1",
+    "text": "可用空间不足可能导致扫描和操作记录保存失败。"
+  },
   "MPV caches": {
     "format": "MPV 缓存",
     "resource_id": "s03c1f9828cf46830d2f1c003",
@@ -4343,6 +4678,16 @@
     "format": "仅主模型",
     "resource_id": "s9bb453d7c4438991809fb88d",
     "text": "仅主模型"
+  },
+  "Make Shou work the way you do.": {
+    "format": "调整 Shou 的外观与使用偏好。",
+    "resource_id": "sfe115c57baab0a161122fc23",
+    "text": "调整 Shou 的外观与使用偏好。"
+  },
+  "Make room for more.": {
+    "format": "大文件，一目了然。",
+    "resource_id": "sf35caed894abb5a1dc266e47",
+    "text": "大文件，一目了然。"
   },
   "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition.": {
     "format": "请在“全部位置”中管理这些模式。各条规则的排除项保留在规则定义中。",
@@ -4374,6 +4719,11 @@
     "resource_id": "s8be555a12d480b964c31298e",
     "text": "目录清单一致"
   },
+  "Manual selection includes items outside automatic cleanup. Review their contents and stop related tasks. The complete listed directories will be removed.": {
+    "format": "手动选择包含未通过自动清理规则的项目。请检查内容并停止相关任务；将删除下列目录的全部内容。",
+    "resource_id": "s2544e2abfba58b82f8cdf379",
+    "text": "手动选择包含未通过自动清理规则的项目。请检查内容并停止相关任务；将删除下列目录的全部内容。"
+  },
   "Maps and location caches": {
     "format": "地图与定位缓存",
     "resource_id": "se8e419b60dd760c2ccd26d98",
@@ -4383,6 +4733,16 @@
     "format": "匹配规则",
     "resource_id": "sdd913cccfcc9451f78f96686",
     "text": "匹配规则"
+  },
+  "Matched cleanup items": {
+    "format": "匹配的清理项目",
+    "resource_id": "s248b410974ab96f3070313ef",
+    "text": "匹配的清理项目"
+  },
+  "Matches catalog version": {
+    "format": "与目录版本一致",
+    "resource_id": "scacfd3023c7da4cb92f4ac5e",
+    "text": "与目录版本一致"
   },
   "Matches saved evidence": {
     "format": "与保存的证据一致",
@@ -4539,10 +4899,20 @@
     "resource_id": "s8e873d517e50cd690ff39376",
     "text": "MongoDB Compass 缓存"
   },
+  "More Actions": {
+    "format": "更多操作",
+    "resource_id": "s98eea4c1c21f333640ea131c",
+    "text": "更多操作"
+  },
   "More evidence needed": {
     "format": "需要补充证据",
     "resource_id": "sd1606911ba0af2a4b4e02e05",
     "text": "需要补充证据"
+  },
+  "More room to build.": {
+    "format": "给下一次构建，留点空间。",
+    "resource_id": "s1d8ab65965b1929001a7f791",
+    "text": "给下一次构建，留点空间。"
   },
   "Move Recommended to Trash…": {
     "format": "将推荐项目移入废纸篓…",
@@ -4669,6 +5039,11 @@
     "resource_id": "s2721425dafa987c5bd10977a",
     "text": "需要核实"
   },
+  "Needs attention": {
+    "format": "需要注意",
+    "resource_id": "sc1ebc7817870e5be78fceae5",
+    "text": "需要注意"
+  },
   "Needs verification": {
     "format": "需要核实",
     "resource_id": "s3dddf7d417a7701a80db2d00",
@@ -4693,6 +5068,11 @@
     "format": "新建规则…",
     "resource_id": "s67be3c294ac30796f980e41f",
     "text": "新建规则…"
+  },
+  "Newer version in catalog": {
+    "format": "目录中有更新版本",
+    "resource_id": "s0b2f7835880477b97fc48623",
+    "text": "目录中有更新版本"
   },
   "Newest modification": {
     "format": "最新修改",
@@ -4738,6 +5118,11 @@
     "format": "此分类中没有应用",
     "resource_id": "s9234a140a02ad74a4bb7893d",
     "text": "此分类中没有应用"
+  },
+  "No changed observations in this directory.": {
+    "format": "此目录中未观察到变化。",
+    "resource_id": "s3ac55af396adf811becc0f68",
+    "text": "此目录中未观察到变化。"
   },
   "No cleanup history": {
     "format": "暂无清理记录",
@@ -4814,6 +5199,11 @@
     "resource_id": "s28b940ecbb9c06fc744d898b",
     "text": "没有符合条件的大文件"
   },
+  "No matching project outputs": {
+    "format": "没有匹配的项目产物",
+    "resource_id": "s74895f1f032801193ab7f35a",
+    "text": "没有匹配的项目产物"
+  },
   "No matching records": {
     "format": "无匹配记录",
     "resource_id": "s4f36612ecc081b9b7c7b6b49",
@@ -4878,6 +5268,16 @@
     "format": "未发现启动项",
     "resource_id": "sc9294a330f2a59ffe7f9f244",
     "text": "未发现启动项"
+  },
+  "No supported catalog source for this application. Check for updates in the app.": {
+    "format": "此应用暂无受支持的目录来源。请在应用内检查更新。",
+    "resource_id": "s4513a76c8f6ffb6dff89a88b",
+    "text": "此应用暂无受支持的目录来源。请在应用内检查更新。"
+  },
+  "No supported update source": {
+    "format": "暂无受支持的更新来源",
+    "resource_id": "s351c0cfbbf0fb9c26946af58",
+    "text": "暂无受支持的更新来源"
   },
   "No uninstall record was found for this plan. This does not confirm the current installation state.": {
     "format": "未找到此计划的卸载记录。这不能证明当前安装的状态。",
@@ -4944,6 +5344,16 @@
     "resource_id": "sd16948e73a6800900e894177",
     "text": "未检查"
   },
+  "Not comparable": {
+    "format": "不可比较",
+    "resource_id": "seb276c35e8f3c1a46e3e20da",
+    "text": "不可比较"
+  },
+  "Not configured": {
+    "format": "尚未配置",
+    "resource_id": "sdd1841d295024256e8884cb8",
+    "text": "尚未配置"
+  },
   "Not enabled for this location.": {
     "format": "尚未在此位置启用。",
     "resource_id": "s676e09a8105bb5eade087c56",
@@ -4973,6 +5383,11 @@
     "format": "未统计",
     "resource_id": "s040f7884d3b5f35e4c11cc84",
     "text": "未统计"
+  },
+  "Not observed": {
+    "format": "未观察到",
+    "resource_id": "s1d3efcd60643d30d8714512a",
+    "text": "未观察到"
   },
   "Not present": {
     "format": "不存在",
@@ -5054,10 +5469,25 @@
     "resource_id": "s565339bc4d33d72817b58302",
     "text": "好"
   },
+  "Object replaced": {
+    "format": "对象已替换",
+    "resource_id": "s3eaf8ef549672a650eb1a848",
+    "text": "对象已替换"
+  },
+  "Observed Change": {
+    "format": "观察到的变化",
+    "resource_id": "s4db3b860dd3494da9a632485",
+    "text": "观察到的变化"
+  },
   "Observed Index Evidence": {
     "format": "已读取的索引证据",
     "resource_id": "s580fda75e0d74ab9e76a3d39",
     "text": "已读取的索引证据"
+  },
+  "Observed at": {
+    "format": "观察时间",
+    "resource_id": "s2f4add0f44158e9df8df8240",
+    "text": "观察时间"
   },
   "Observed startup state is best effort; launchd can change after this read.": {
     "format": "启动项状态仅代表本次读取结果，launchd 可能在读取后变化。",
@@ -5119,6 +5549,11 @@
     "resource_id": "s459f105fc40fb11af98febf5",
     "text": "扫描一次，一起收好。"
   },
+  "One set of rules for everyday cleanup and your own projects.": {
+    "format": "日常缓存与个人项目，共用一套清理规则。",
+    "resource_id": "s35d35ee8babf63d7d24b0d22",
+    "text": "日常缓存与个人项目，共用一套清理规则。"
+  },
   "Only bounded relative metadata and your answers are sent to the disclosed services. File contents are excluded. No automatic deletion.": {
     "format": "仅向已披露服务发送限定范围的相对元数据和你的回答，不读取文件正文，不自动删除。",
     "resource_id": "s30b1071510017bff73684bf7",
@@ -5133,6 +5568,16 @@
     "format": "仅清理已结束的记录，文件保持原位。恢复所需和未结束的记录会保留。",
     "resource_id": "s11c4d284d47b22773ea6368e",
     "text": "仅清理已结束的记录，文件保持原位。恢复所需和未结束的记录会保留。"
+  },
+  "Only in current analysis": {
+    "format": "仅当前分析观察到",
+    "resource_id": "sea4f398630b39bb302855146",
+    "text": "仅当前分析观察到"
+  },
+  "Only in earlier analysis": {
+    "format": "仅较早分析观察到",
+    "resource_id": "sae6758c3c6c894a02076531e",
+    "text": "仅较早分析观察到"
   },
   "Only measured space is included. Complete folders remain available even when another location cannot be read.": {
     "format": "结果仅包含已统计的空间。部分位置无法读取，不影响其他完整目录的浏览与审阅。",
@@ -5214,6 +5659,11 @@
     "resource_id": "s3beda64b2dff3dad820b6f3f",
     "text": "打开文件夹…"
   },
+  "Open Homebrew Page": {
+    "format": "打开 Homebrew 页面",
+    "resource_id": "sb584a3378c07e53e037db775",
+    "text": "打开 Homebrew 页面"
+  },
   "Open Investigation": {
     "format": "打开调查",
     "resource_id": "s4639c70e5e7714c7041f7842",
@@ -5224,10 +5674,20 @@
     "resource_id": "s6523a02041a87469698368dc",
     "text": "打开登录项设置"
   },
+  "Open Official Update Page": {
+    "format": "打开官方更新页面",
+    "resource_id": "s14d3ac68e8ea5bdef92b80b1",
+    "text": "打开官方更新页面"
+  },
   "Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks.": {
     "format": "打开“隐私与安全性 → 完全磁盘访问权限”，开启 Shou。列表中没有时，点击 +，选择应用程序中的 Shou.app。如果 macOS 要求，请退出并重新打开 Shou。",
     "resource_id": "s82708173ccc1a4f46c5f04f0",
     "text": "打开“隐私与安全性 → 完全磁盘访问权限”，开启 Shou。列表中没有时，点击 +，选择应用程序中的 Shou.app。如果 macOS 要求，请退出并重新打开 Shou。"
+  },
+  "Open Smart Cleanup": {
+    "format": "前往智能清理",
+    "resource_id": "s2578b11c4075416baf1bf573",
+    "text": "前往智能清理"
   },
   "Open Source": {
     "format": "开放源代码",
@@ -5414,6 +5874,11 @@
     "resource_id": "sb4401c24aaaf316c2d9bfa84",
     "text": "部分分析结果：某些位置未能完整统计。"
   },
+  "Partial comparison. Ranking covers only examined entries; incomplete coverage has no numeric growth conclusion.": {
+    "format": "比较范围不完整。排序仅涵盖已检查项目；覆盖不完整时不提供增长数值结论。",
+    "resource_id": "sd79683a5eda1c30f9c992e42",
+    "text": "比较范围不完整。排序仅涵盖已检查项目；覆盖不完整时不提供增长数值结论。"
+  },
   "Partial measurements — inaccessible or changing content is not included.": {
     "format": "部分测量结果：不包含无法访问或正在变化的内容。",
     "resource_id": "s16bfbee23e2d4007b623853c",
@@ -5554,6 +6019,11 @@
     "resource_id": "se85d49611c600d9cd7b5f319",
     "text": "个人规则已在外部更新，请逐条审阅后清理。"
   },
+  "Physical memory (bytes)": {
+    "format": "物理内存（字节）",
+    "resource_id": "sc2e1753d506ef951419bb3e5",
+    "text": "物理内存（字节）"
+  },
   "Plan digest verification failed.": {
     "format": "清理计划摘要校验失败。",
     "resource_id": "s5f7aa779da5a03c87e71983e",
@@ -5664,6 +6134,11 @@
     "resource_id": "s5b6352e0f78ed3db0478f087",
     "text": "预览排除设置…"
   },
+  "Preview Report": {
+    "format": "预览报告",
+    "resource_id": "sae9f7e50c3887305b0c80b24",
+    "text": "预览报告"
+  },
   "Preview Rule": {
     "format": "预览规则",
     "resource_id": "s93bc3f60445eb1d9c13b2b35",
@@ -5749,6 +6224,11 @@
     "resource_id": "s30b1db21e81d109d9bd07652",
     "text": "正在处理所选项…"
   },
+  "Processor count": {
+    "format": "处理器数量",
+    "resource_id": "sd4d57f163d2785c6310f2bd0",
+    "text": "处理器数量"
+  },
   "Project": {
     "format": "项目",
     "resource_id": "s985959785319747668373cc6",
@@ -5833,6 +6313,11 @@
     "format": "受保护目录访问受限",
     "resource_id": "s03a7f0126a3b9af7957f80e0",
     "text": "受保护目录访问受限"
+  },
+  "Protected locations may be omitted because disk access is limited.": {
+    "format": "磁盘访问受限，受保护位置可能无法纳入扫描。",
+    "resource_id": "sc248e79a44b0d244044d91f9",
+    "text": "磁盘访问受限，受保护位置可能无法纳入扫描。"
   },
   "Proxyman caches": {
     "format": "Proxyman 缓存",
@@ -6094,6 +6579,11 @@
     "resource_id": "s5bb277b0488cc597cf09301d",
     "text": "只读预览"
   },
+  "Read-only observations. Historical analyses do not authorize cleanup.": {
+    "format": "仅展示只读观察结果，历史分析不授予清理权限。",
+    "resource_id": "sd0aea11446c606f6bd7328ac",
+    "text": "仅展示只读观察结果，历史分析不授予清理权限。"
+  },
   "Read-only scanning. Nothing is deleted or selected automatically.": {
     "format": "扫描只读取文件，不会自动勾选或删除任何内容。",
     "resource_id": "s42af4796b9059b869f75fb61",
@@ -6114,6 +6604,11 @@
     "resource_id": "se94931f01d82c1a103ce541e",
     "text": "只读系统工具的输出量超出限制。"
   },
+  "Reading analysis history…": {
+    "format": "正在读取分析历史…",
+    "resource_id": "s3ebdd9ba8b813e24e6942218",
+    "text": "正在读取分析历史…"
+  },
   "Reading directory evidence…": {
     "format": "正在读取目录证据…",
     "resource_id": "s940348dae71ebc0ec5fca9fb",
@@ -6133,6 +6628,11 @@
     "format": "可卸载",
     "resource_id": "sa0ea0d7a695e9f91aa1d8162",
     "text": "可卸载"
+  },
+  "Ready to clean": {
+    "format": "准备清理",
+    "resource_id": "sae004f3ec078ab873d447379",
+    "text": "准备清理"
   },
   "Ready to inspect this folder": {
     "format": "准备分析这个目录",
@@ -6233,6 +6733,11 @@
     "format": "记录的类型、所有者、链接数或大小不受支持。",
     "resource_id": "s92875e14daa764df7745fb48",
     "text": "记录的类型、所有者、链接数或大小不受支持。"
+  },
+  "Record inventory limit is invalid.": {
+    "format": "记录枚举上限无效。",
+    "resource_id": "s3404fa850e49bd37334edf5e",
+    "text": "记录枚举上限无效。"
   },
   "Recorded Trash Location": {
     "format": "记录的废纸篓位置",
@@ -6394,6 +6899,11 @@
     "resource_id": "s4403ae673ea3308d36015fc8",
     "text": "移除此保护后，需要重新扫描才能审阅清理项目。"
   },
+  "Report": {
+    "format": "报告",
+    "resource_id": "sb6ce788d9786917c9d19adaa",
+    "text": "报告"
+  },
   "Report an Issue": {
     "format": "问题反馈",
     "resource_id": "sf6a30a10bc27be0af728295f",
@@ -6498,6 +7008,11 @@
     "format": "保留",
     "resource_id": "s2a64df82cdaad5511bea0259",
     "text": "保留"
+  },
+  "Retry": {
+    "format": "重试",
+    "resource_id": "s942087cc2d41e01304b71955",
+    "text": "重试"
   },
   "Return to Current Investigation": {
     "format": "返回当前调查",
@@ -6634,6 +7149,11 @@
     "resource_id": "sab8efb0e9267c897c8b916d6",
     "text": "请重新审阅应用组件。"
   },
+  "Review applications and their related files in one place.": {
+    "format": "集中查看应用本体与关联文件，按需选择移除范围。",
+    "resource_id": "sbc7438a2af5e3518a540ea3b",
+    "text": "集中查看应用本体与关联文件，按需选择移除范围。"
+  },
   "Review background-task definitions and manage login items in macOS Settings.": {
     "format": "审阅后台任务配置，并在 macOS 系统设置中管理登录项。",
     "resource_id": "sdcd711845f8f9ef438e99d95",
@@ -6644,6 +7164,21 @@
     "resource_id": "s9988ab26a623f1476bda87a9",
     "text": "单独审阅浏览器活动与账户数据。"
   },
+  "Review browser records by source and time range.": {
+    "format": "按浏览器和时间范围审阅隐私记录。",
+    "resource_id": "s527fe1519eb507e02c36ad0e",
+    "text": "按浏览器和时间范围审阅隐私记录。"
+  },
+  "Review build outputs and dependencies by project. Your source stays in place.": {
+    "format": "按项目审阅构建产物与依赖，保留源代码。",
+    "resource_id": "sa44a207df38d1faad6961d2a",
+    "text": "按项目审阅构建产物与依赖，保留源代码。"
+  },
+  "Review build outputs and dependencies from local and cloned projects. Source files are kept.": {
+    "format": "集中审阅本地及克隆项目的构建产物与依赖，保留项目源码。",
+    "resource_id": "s26bed9287911b97393b13c15",
+    "text": "集中审阅本地及克隆项目的构建产物与依赖，保留项目源码。"
+  },
   "Review current eligible leftovers; personal data requires separate consent.": {
     "format": "请重新审阅可清理的应用残留；个人数据需要单独同意。",
     "resource_id": "sc3a182375ecb3a119fcaea70",
@@ -6653,6 +7188,16 @@
     "format": "审阅已不在应用目录及系统注册中发现的应用关联数据。未注册的自定义安装仍可能使用这些数据。",
     "resource_id": "sce8b2baf8472986e07bbf9e7",
     "text": "审阅已不在应用目录及系统注册中发现的应用关联数据。未注册的自定义安装仍可能使用这些数据。"
+  },
+  "Review disk permissions in the Setup Guide, then scan again.": {
+    "format": "请在设置指南中检查磁盘权限，然后重新扫描。",
+    "resource_id": "sd37bbf8dba37560fe1d76723",
+    "text": "请在设置指南中检查磁盘权限，然后重新扫描。"
+  },
+  "Review large files and old scan indexes, then rescan after freeing space.": {
+    "format": "请检查大文件和旧扫描索引，释放空间后重新扫描。",
+    "resource_id": "s66b31cd3b09a2a4846c9890d",
+    "text": "请检查大文件和旧扫描索引，释放空间后重新扫描。"
   },
   "Review leftovers again before cleaning.": {
     "format": "清理前请重新检查应用残留。",
@@ -6673,6 +7218,11 @@
     "format": "按分类查看，或直接使用推荐选择。",
     "resource_id": "s2a55683c78691759fb748d98",
     "text": "按分类查看，或直接使用推荐选择。"
+  },
+  "Review the configured local data location. Existing records and permissions were not changed.": {
+    "format": "请检查已配置的本地数据位置，现有记录和权限均未更改。",
+    "resource_id": "s0efbd1524ba2a8d5e9819f58",
+    "text": "请检查已配置的本地数据位置，现有记录和权限均未更改。"
   },
   "Review the current rule against files in this workspace. A cancelled or failed preview cannot be saved as reviewed.": {
     "format": "用当前工作区文件核对规则。预览取消或失败后，需重新预览才能保存。",
@@ -6753,6 +7303,16 @@
     "format": "风险",
     "resource_id": "s0711a8d636e4c068ae59fa80",
     "text": "风险"
+  },
+  "Room for": {
+    "format": "留出空间，",
+    "resource_id": "sfc2bf8fea144af3c40498083",
+    "text": "留出空间，"
+  },
+  "Root Folder": {
+    "format": "根文件夹",
+    "resource_id": "s9302239146645d4dc6ad0f26",
+    "text": "根文件夹"
   },
   "Rule JSON": {
     "format": "规则 JSON",
@@ -6839,10 +7399,20 @@
     "resource_id": "s43bbc41bcb0b736204c2b40d",
     "text": "规则与清理记录保存在本机。"
   },
+  "Run Diagnostics…": {
+    "format": "运行诊断…",
+    "resource_id": "sf48bc99bb89f39113318a151",
+    "text": "运行诊断…"
+  },
   "Run Space Analysis": {
     "format": "开始空间分析",
     "resource_id": "s59f44ebeed56bb398c136761",
     "text": "开始空间分析"
+  },
+  "Run two space analyses of the same folder to compare them. Cleared and legacy analyses may be unavailable.": {
+    "format": "对同一文件夹完成两次空间分析后即可比较。已清理索引或旧格式的分析可能无法使用。",
+    "resource_id": "sc396e60bf6cb8e3dcb8288fb",
+    "text": "对同一文件夹完成两次空间分析后即可比较。已清理索引或旧格式的分析可能无法使用。"
   },
   "Running": {
     "format": "运行中",
@@ -6984,6 +7554,11 @@
     "resource_id": "sbe85896dd016457bd6a0f083",
     "text": "扫描全部位置"
   },
+  "Scan Applications": {
+    "format": "扫描应用",
+    "resource_id": "sd53e7f9a53ce174ed34bcfa6",
+    "text": "扫描应用"
+  },
   "Scan Common Apps": {
     "format": "一键扫描",
     "resource_id": "s3dfb76826fee2ed590869fdf",
@@ -7029,6 +7604,11 @@
     "resource_id": "sd48720dc690a61f1fcd3e9e4",
     "text": "仅扫描"
   },
+  "Scan Options": {
+    "format": "扫描选项",
+    "resource_id": "saf90322a50f9761252661c06",
+    "text": "扫描选项"
+  },
   "Scan Privacy Sources": {
     "format": "扫描隐私来源",
     "resource_id": "sfad20ffae18135ae21155188",
@@ -7038,6 +7618,11 @@
     "format": "扫描所选位置",
     "resource_id": "scc018bdc832d777479d51b80",
     "text": "扫描所选位置"
+  },
+  "Scan Startup Items": {
+    "format": "检查启动项",
+    "resource_id": "s225aa3dff9b9db048ab7e54c",
+    "text": "检查启动项"
   },
   "Scan Workspace": {
     "format": "扫描工作区",
@@ -7104,6 +7689,11 @@
     "resource_id": "sb0daf47f06fda541769b292a",
     "text": "扫描失败。"
   },
+  "Scan first. Review before anything is removed.": {
+    "format": "先扫描，再由你确认清理范围。",
+    "resource_id": "s4d20593fc457afab16516d9b",
+    "text": "先扫描，再由你确认清理范围。"
+  },
   "Scan is incomplete. Cleanup is unavailable; you can still explore measured space.": {
     "format": "扫描未完成，清理暂不可用。仍可查看已测量的空间。",
     "resource_id": "s35807dd57f6d0f259b0f3431",
@@ -7163,6 +7753,11 @@
     "format": "扫描仅读取信息。卸载前需要审阅组件并确认。",
     "resource_id": "s17147ce561479d931277ef70",
     "text": "扫描仅读取信息。卸载前需要审阅组件并确认。"
+  },
+  "Scanning only reads application information. Review components before uninstalling.": {
+    "format": "扫描仅读取应用信息，卸载前由你审阅关联组件。",
+    "resource_id": "s2f026e94cee00737eb58137a",
+    "text": "扫描仅读取应用信息，卸载前由你审阅关联组件。"
   },
   "Scanning reads file sizes. Nothing is selected or deleted automatically.": {
     "format": "扫描仅统计文件大小，不会自动选择或删除任何内容。",
@@ -7249,6 +7844,11 @@
     "resource_id": "s42e99c17c57fa990505b67e9",
     "text": "搜索程序或发布者"
   },
+  "Search projects or paths": {
+    "format": "搜索项目或路径",
+    "resource_id": "sedd3c20b1bd9e4b0889e64d7",
+    "text": "搜索项目或路径"
+  },
   "Search rules or paths": {
     "format": "搜索规则或路径",
     "resource_id": "s7d081a49f6e904afcbcc115b",
@@ -7274,10 +7874,25 @@
     "resource_id": "sa20ef7434ccdf23102b96094",
     "text": "跨目录汇总大文件，查看后选择要清理的内容。"
   },
+  "See what changed and what needs your attention.": {
+    "format": "查看处理结果，跟进尚需处理的项目。",
+    "resource_id": "s46c942d86bb6954498ca2ec8",
+    "text": "查看处理结果，跟进尚需处理的项目。"
+  },
+  "See what takes up space, then inspect the details.": {
+    "format": "看清空间去向，从大目录逐层查看。",
+    "resource_id": "se0b6529e0415a5e634ab4fa4",
+    "text": "看清空间去向，从大目录逐层查看。"
+  },
   "See where your space goes": {
     "format": "查看空间用在哪里",
     "resource_id": "sbdc61a90c2f3be4c38187db7",
     "text": "查看空间用在哪里"
+  },
+  "See your space clearly.": {
+    "format": "看清每一份空间。",
+    "resource_id": "sdeb2950f29974b4ad1921803",
+    "text": "看清每一份空间。"
   },
   "Select": {
     "format": "选择",
@@ -7418,6 +8033,11 @@
     "format": "选择卸载",
     "resource_id": "s88641bb12a215f8a50ff5fcd",
     "text": "选择卸载"
+  },
+  "Select for manual review. Contents will be fully measured before confirmation.": {
+    "format": "可勾选后手动审阅，确认前会重新完整计量目录内容。",
+    "resource_id": "sad76f0ba018fa8a6c3dc2a78",
+    "text": "可勾选后手动审阅，确认前会重新完整计量目录内容。"
   },
   "Select history records to remove.": {
     "format": "请选择需要清理的操作记录。",
@@ -7608,6 +8228,11 @@
     "format": "保留共享组容器、安装包收据和外部辅助程序。不搜索自定义位置或其他账户；进程检查覆盖当前账户。不存在的关联项目不会加入计划。",
     "resource_id": "sf170fa36eb1980461d63106b",
     "text": "保留共享组容器、安装包收据和外部辅助程序。不搜索自定义位置或其他账户；进程检查覆盖当前账户。不存在的关联项目不会加入计划。"
+  },
+  "Shou Diagnostic Report": {
+    "format": "Shou 诊断报告",
+    "resource_id": "sfe5141238d7e9c2893adc221",
+    "text": "Shou 诊断报告"
   },
   "Shou cannot restore a system uninstall and does not automatically clean residual files.": {
     "format": "Shou 无法恢复系统卸载，也不会自动清理残留文件。",
@@ -8384,6 +9009,11 @@
     "resource_id": "s652fff53274ad3530fb2198c",
     "text": "改用本地密钥存储"
   },
+  "System": {
+    "format": "系统",
+    "resource_id": "s6725e7bbcd28f3a8a586fa34",
+    "text": "系统"
+  },
   "System Background Item": {
     "format": "系统后台启动项",
     "resource_id": "s2e6367b208c653a83d246ccd",
@@ -8639,6 +9269,16 @@
     "resource_id": "s8876063caab65f3d68571e47",
     "text": "内置规则的命名空间不可用于个人规则。"
   },
+  "The catalog check could not finish. Try again.": {
+    "format": "目录检查未能完成，请重试。",
+    "resource_id": "sad4b65b5832eb766e3757e82",
+    "text": "目录检查未能完成，请重试。"
+  },
+  "The catalog identity or availability could not be verified.": {
+    "format": "无法核验目录身份或可用状态。",
+    "resource_id": "sd495dacffc5ea558dbc5290e",
+    "text": "无法核验目录身份或可用状态。"
+  },
   "The decision provider receives bounded relative metadata and retention answers. Local processing comes first; only open-ended understanding escalates to the main model. Neither service can authorize deletion.": {
     "format": "决策服务接收限定范围的相对元数据和保留回答。优先本地处理，仅在需要开放式理解时升级到主模型。两种服务均不能授权删除。",
     "resource_id": "s592b72a4479da5ee2aca499f",
@@ -8648,6 +9288,11 @@
     "format": "决策服务已关闭，当前配置由主模型直接处理。",
     "resource_id": "s13be5d6605e2a623340b67ff",
     "text": "决策服务已关闭，当前配置由主模型直接处理。"
+  },
+  "The disk-access sentinel is readable; individual locations may still be restricted.": {
+    "format": "磁盘访问检查可用，个别位置仍可能受限。",
+    "resource_id": "s740bdf079750ac29c5329c09",
+    "text": "磁盘访问检查可用，个别位置仍可能受限。"
   },
   "The file changed before permanent removal.": {
     "format": "文件在永久删除前发生变化，请重新扫描。",
@@ -8753,6 +9398,21 @@
     "format": "本地 API 密钥不可用，请在 AI 设置中重新保存。",
     "resource_id": "scf0be61c0ab3ffe617cb2bd4",
     "text": "本地 API 密钥不可用，请在 AI 设置中重新保存。"
+  },
+  "The local record directory could not be inspected.": {
+    "format": "无法检查本地记录目录。",
+    "resource_id": "s0f3478fb388e3c6f8b969891",
+    "text": "无法检查本地记录目录。"
+  },
+  "The local record directory is private to the current user. Contents and write access were not tested.": {
+    "format": "本地记录目录仅当前用户可访问，未检查其内容或实际写入能力。",
+    "resource_id": "sf0b48626cea0e02785e12393",
+    "text": "本地记录目录仅当前用户可访问，未检查其内容或实际写入能力。"
+  },
+  "The local record location is not a verified private directory.": {
+    "format": "本地记录位置未通过私有目录检查。",
+    "resource_id": "s09b46426f17e1ecab1339fc8",
+    "text": "本地记录位置未通过私有目录检查。"
   },
   "The location could not be inspected.": {
     "format": "无法扫描该位置。",
@@ -9044,6 +9704,11 @@
     "resource_id": "s6d10cbf37f4ede330b3e6774",
     "text": "无法确定卸载结果。请先读取已保存的记录，再进行后续操作。"
   },
+  "The versions use different or unsupported formats. Compare them in the app.": {
+    "format": "版本格式不同或暂不支持比较，请在应用内核对。",
+    "resource_id": "s8d8aa41a0657543ad4d3239c",
+    "text": "版本格式不同或暂不支持比较，请在应用内核对。"
+  },
   "These files will be permanently removed. This action cannot be undone.": {
     "format": "这些文件将永久移除，此操作无法撤销。",
     "resource_id": "sc3e61569d474beaaf1a5ad03",
@@ -9053,6 +9718,11 @@
     "format": "结果仅反映本次核验。不确定的操作仍被阻止，后续操作须在历史中单独审阅并确认。",
     "resource_id": "sf370d0f6a9ea130ef5c1dccd",
     "text": "结果仅反映本次核验。不确定的操作仍被阻止，后续操作须在历史中单独审阅并确认。"
+  },
+  "This analysis cannot be compared. Run two new space analyses of the same folder.": {
+    "format": "此分析无法比较，请对同一文件夹重新完成两次空间分析。",
+    "resource_id": "s2e7abb738415510222e4bf27",
+    "text": "此分析无法比较，请对同一文件夹重新完成两次空间分析。"
   },
   "This application cannot be safely removed. Review its component details.": {
     "format": "无法安全移除此应用，请查看组件详情。",
@@ -9224,6 +9894,11 @@
     "resource_id": "s24a45847dc4ee5260da8044c",
     "text": "此计划已有卸载尝试。请读取记录，此计划不能再次执行。"
   },
+  "This platform does not use the macOS disk-access sentinel.": {
+    "format": "此平台不使用 macOS 磁盘访问检查。",
+    "resource_id": "s8c890bf7028a9aa4b00a5c96",
+    "text": "此平台不使用 macOS 磁盘访问检查。"
+  },
   "This preview cannot delete files or create a cleanup plan.": {
     "format": "此预览不会删除文件，也不能生成清理计划。",
     "resource_id": "sa4a832f99a9f0c96e24192e1",
@@ -9238,6 +9913,11 @@
     "format": "此记录存在未完成操作。核验不会重试这些操作，也不授予再次操作的权限。",
     "resource_id": "sfdbf826c96a2b923305f74ef",
     "text": "此记录存在未完成操作。核验不会重试这些操作，也不授予再次操作的权限。"
+  },
+  "This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded.": {
+    "format": "报告仅包含有限的系统信息，不含个人路径或文件内容，不会上传。",
+    "resource_id": "s6884b19dbb76935457818bf6",
+    "text": "报告仅包含有限的系统信息，不含个人路径或文件内容，不会上传。"
   },
   "This root is protected or is not owned by the current user.": {
     "format": "此根目录受保护或不归当前用户所有。",
@@ -9278,6 +9958,11 @@
     "format": "此快照已发生变化，请从当前文件夹开始新的调查。",
     "resource_id": "s848cd5a4fbe8cda671244498",
     "text": "此快照已发生变化，请从当前文件夹开始新的调查。"
+  },
+  "This space analysis was cleared. Scan again.": {
+    "format": "此空间分析的索引已清理，请重新扫描。",
+    "resource_id": "s1b81414ba3ff58320b947071",
+    "text": "此空间分析的索引已清理，请重新扫描。"
   },
   "This startup location is unavailable or unsupported.": {
     "format": "此启动位置不可用或不受支持。",
@@ -9539,6 +10224,11 @@
     "resource_id": "s1c9e6e9f7e242d442878137b",
     "text": "返回上一级"
   },
+  "Update status unknown": {
+    "format": "更新状态未知",
+    "resource_id": "s13b7baf157e195f0f33da70d",
+    "text": "更新状态未知"
+  },
   "Updates are verified before installation.": {
     "format": "安装前验证更新签名。",
     "resource_id": "s55fc4744fc8471a92da2d969",
@@ -9593,6 +10283,11 @@
     "format": "填写确切的项目相对目录。模式留空时保护整个项目。",
     "resource_id": "sbb2eaad1cfadf24e2e850e4b",
     "text": "填写确切的项目相对目录。模式留空时保护整个项目。"
+  },
+  "Use distinct analyses, an exact relative directory, limit 1–100, max-entries 1–100000 and max-seconds 1–30.": {
+    "format": "请选择不同的分析及精确的相对目录，结果数为 1–100、检查项目数为 1–100000、用时为 1–30 秒。",
+    "resource_id": "se0577e190241c440e810ab4f",
+    "text": "请选择不同的分析及精确的相对目录，结果数为 1–100、检查项目数为 1–100000、用时为 1–30 秒。"
   },
   "Use light, dark, or your system appearance.": {
     "format": "选择亮色、暗色或跟随系统设置。",
@@ -9938,6 +10633,11 @@
     "format": "使用的 AI Agent",
     "resource_id": "sc655ee2c11092dd67863e3d5",
     "text": "使用的 AI Agent"
+  },
+  "Your Cleanup Rules": {
+    "format": "你的清理规则",
+    "resource_id": "sc30be0089bce957c673c21da",
+    "text": "你的清理规则"
   },
   "Your answer": {
     "format": "你的回答",
@@ -10403,5 +11103,10 @@
     "format": "uv 依赖包缓存",
     "resource_id": "sa196934ea49e9c5d4e2beece",
     "text": "uv 依赖包缓存"
+  },
+  "what comes next.": {
+    "format": "装下更多可能。",
+    "resource_id": "s9529b71ef7ad17762b40976e",
+    "text": "装下更多可能。"
   }
 }

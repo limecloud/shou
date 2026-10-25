@@ -19,6 +19,17 @@ struct PrivacyView: View {
                 OperationProgressView(title: app.t(app.statusKey), symbol: "hand.raised.fill", currentPath: session.progress?.path ?? "",
                     fraction: session.progress.flatMap { $0.itemCount > 0 ? Double($0.processedCount) / Double($0.itemCount) : nil },
                     stopRequested: app.stopRequested, stopLabel: app.t("Stop"), stoppingLabel: app.t("Stopping…"), onStop: session.cancel)
+            } else if session.scan == nil && session.receipt == nil {
+                WorkspaceStartPage(eyebrow: app.t("Privacy"), title: app.t("A little more privacy."),
+                    subtitle: app.t("Scan to see aggregate counts and availability. Browsing records are never displayed."), kind: .privacy,
+                    footnote: app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically.")) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        rangePicker.controlSize(.large)
+                        Button { session.scan(app: app) } label: { Label(app.t("Scan Privacy Sources"), systemImage: "magnifyingglass") }
+                            .buttonStyle(WorkspacePrimaryButtonStyle()).disabled(app.busy).accessibilityIdentifier("privacy.start")
+                        coverageFootnote
+                    }
+                }.accessibilityIdentifier("privacy.welcome")
             } else {
             deletionNotice
             timeControls
@@ -41,8 +52,7 @@ struct PrivacyView: View {
         }
     }
     private var emptyState: some View {
-        ContentUnavailableView(app.t("Review privacy sources"), systemImage: "hand.raised", description: Text(app.t("Scan to see aggregate counts and availability. Browsing records are never displayed.")))
-            .frame(maxHeight: .infinity)
+        WorkspaceEmptyState(title: app.t("Review privacy sources"), description: app.t("Scan to see aggregate counts and availability. Browsing records are never displayed."), kind: .privacy)
     }
     @ViewBuilder private var currentReceipt: some View {
         if let receipt=session.receipt { receiptView(receipt) }
@@ -67,11 +77,14 @@ struct PrivacyView: View {
     }
     private var timeControls: some View {
         HStack {
-            Picker(app.t("Time range"), selection: $session.range) {
-                ForEach(PrivacyTimeRange.allCases, id: \.self) { range in Text(rangeTitle(range)).tag(range) }
-            }.frame(maxWidth: 300).disabled(app.busy)
+            rangePicker
             Text(app.t("History: visit time · Cookies: last access time")).font(.caption).foregroundStyle(.secondary)
         }
+    }
+    private var rangePicker: some View {
+        Picker(app.t("Time range"), selection: $session.range) {
+            ForEach(PrivacyTimeRange.allCases, id: \.self) { range in Text(rangeTitle(range)).tag(range) }
+        }.frame(maxWidth: 300).disabled(app.busy)
     }
     @ViewBuilder private func sourceSelection(_ scan: PrivacyScan) -> some View {
         sourceList(scan)

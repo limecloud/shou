@@ -18,11 +18,11 @@ import Accessibility
                 .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
                 .tint(ShouDesign.accent)
                 .accentColor(ShouDesign.accent)
-                .frame(minWidth: 900, minHeight: 620)
+                .frame(minWidth: 960, minHeight: 680)
                 .background(OperationWindowGuard(model: model))
                 .task { applicationDelegate.model=model; await model.initialize() }
         }
-        .defaultSize(width: 1160, height: 780)
+        .defaultSize(width: ShouDesign.windowWidth, height: ShouDesign.windowHeight)
         .commands {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesButton(model: model, updater: model.updater)
@@ -45,12 +45,14 @@ struct ReviewPrompt: Identifiable {
     let byteEstimate: Int64
     var plans: [ReviewedPlan]=[]
     var impacts: [String]=[]
+    var manualReview=false
 }
 
 struct ReviewedPlan {
     let id: String
     let digest: String
     let workspacePath: String
+    var directRemoval=false
 }
 
 struct CleanupCompletion: Identifiable {
@@ -341,7 +343,7 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func scanCurrentSection() {
-        if section == "smart" { scanCommonLocations() }
+        if section == "smart" || section == "projects" { scanCommonLocations() }
         else if section == "storage" { space.start(app: self, retainPath: true) }
         else if section == "large-files" { largeFiles.storage.start(app: self) }
         else if section == "startup" { scanStartup() }
@@ -506,25 +508,45 @@ struct CleanupCompletion: Identifiable {
             }
         }
     }
-    func previewCommonCleanup(permanent: Bool = true) {
-        guard let engine, !busy, !commonSelected.isEmpty else { return }
-        let sources=commonSelected
+    func previewCommonCleanup(permanent: Bool = true, sourceIds: Set<String>? = nil) {
+        guard let engine, !busy else { return }
+        let sources=commonSelected.filter { sourceIds?.contains($0.id) ?? true }
+        guard !sources.isEmpty else { return }
         let action=permanent ? "permanent" : "trash"
         busy=true; statusKey="Preparing cleanup preview…"
         task=Task {
             defer { busy=false }
             do {
-                var plans: [CleanupPlan]=[]
+                var plans: [ReviewedPlan]=[], paths: [String]=[]
+                var bytes: Int64=0
                 for snapshotId in Set(sources.map(\.snapshotId)).sorted() {
-                    plans.append(try await engine.createPlan(scanId: snapshotId, candidateIds: sources.filter { $0.snapshotId == snapshotId }.map(\.candidate.id), action: action))
+                    let selected=sources.filter { $0.snapshotId == snapshotId }
+                    let automatic=selected.filter { !$0.requiresManualReview }
+                    if !automatic.isEmpty {
+                        let plan=try await engine.createPlan(scanId: snapshotId, candidateIds: automatic.map(\.candidate.id), action: action)
+                        plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.workspace.path))
+                        paths += plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }
+                        bytes += plan.allocatedBytesEstimate
+                    }
+                    let manual=selected.filter(\.requiresManualReview)
+                    if !manual.isEmpty {
+                        let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: snapshotId, candidateIds: manual.map(\.candidate.id), action: action)
+                        plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.rootPath, directRemoval: true))
+                        paths += plan.items.map { StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path) }
+                        bytes += plan.allocatedBytesEstimate
+                    }
                 }
                 prompt=ReviewPrompt(id: UUID().uuidString, digest: "", action: action,
-                    paths: plans.flatMap { plan in plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath } }, itemIds: [],
-                    byteEstimate: plans.reduce(0) { $0 + $1.allocatedBytesEstimate },
-                    plans: plans.map { ReviewedPlan(id: $0.id, digest: $0.digest, workspacePath: $0.workspace.path) },
-                    impacts: Array(Set(plans.flatMap { $0.items.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations } })).sorted())
+                    paths: paths, itemIds: [], byteEstimate: bytes, plans: plans,
+                    impacts: Array(Set(sources.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations + $0.candidate.reasons })).sorted(),
+                    manualReview: sources.contains(where: \.requiresManualReview))
                 statusKey="Ready to review"
-            } catch { self.error=error.localizedDescription }
+            } catch {
+                statusKey="Cleanup preview failed."
+                if let failure=error as? ShouError {
+                    self.error=([failure.message, failure.details["path"], failure.details["reasons"]].compactMap { $0 }).joined(separator: "\n")
+                } else { self.error=error.localizedDescription }
+            }
         }
     }
     func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); ai.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
@@ -815,12 +837,18 @@ struct CleanupCompletion: Identifiable {
                         if Task.isCancelled { failures.append(plan.workspacePath + "\n" + t("Cleanup stopped before this location was processed.")); continue }
                         let processedBefore=processed, total=review.paths.count
                         do {
-                            let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { [weak self] update in
-                            Task { @MainActor in
-                                guard let self, self.isExecuting, self.operationID == operation else { return }
-                                self.updateExecutionProgress(update.inBatch(processedBefore: processedBefore, itemCount: total), operation: execution)
+                            let progress: @Sendable (ExecutionProgress) -> Void = { [weak self] update in
+                                Task { @MainActor in
+                                    guard let self, self.isExecuting, self.operationID == operation else { return }
+                                    self.updateExecutionProgress(update.inBatch(processedBefore: processedBefore, itemCount: total), operation: execution)
+                                }
                             }
-                            })
+                            let receipt: ExecutionReceipt
+                            if plan.directRemoval {
+                                receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop-manual-review", progress: progress)
+                            } else {
+                                receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: progress)
+                            }
                             receipts.append(receipt)
                             processed += receipt.items.filter { !["pending", "moving", "purging"].contains($0.state) }.count
                         }
@@ -888,6 +916,20 @@ struct ContentView: View {
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var inspector=false
     @State private var ruleEditor=false
+    @Environment(\.colorScheme) private var scheme
+    private var pageSubtitle: String {
+        switch model.section {
+        case "applications": "Review applications and their related files in one place."
+        case "startup": "Choose what starts with your Mac."
+        case "storage": "See what takes up space, then inspect the details."
+        case "large-files": "Find the files that make the biggest difference."
+        case "rules": "One set of rules for everyday cleanup and your own projects."
+        case "privacy": "Review browser records by source and time range."
+        case "history": "See what changed and what needs your attention."
+        case "settings": "Make Shou work the way you do."
+        default: ""
+        }
+    }
     private var pageTitle: String {
         switch model.section {
         case "smart": "Smart Cleanup"
@@ -895,18 +937,33 @@ struct ContentView: View {
         case "large-files": "Large Files"
         case "rules": "Rules"
         case "startup": "Startup Items"
-        case "applications": "Application Uninstall"
+        case "applications": "Applications"
+        case "projects": "Developer Projects"
         case "privacy": "Privacy"
         case "history": "History"
         case "settings": "Settings"
         default: "Cleanup"
         }
     }
-    private var navigationSelection: Binding<String> {
-        Binding(get: { model.section }, set: { section in
-            guard ["smart", "overview", "storage", "large-files", "rules", "startup", "applications", "privacy", "history", "settings"].contains(section) else { return }
-            model.section=section
-        })
+    private var showsPageHeading: Bool {
+        switch model.section {
+        case "smart", "projects", "storage", "large-files", "applications", "startup", "privacy": false
+        case "history": !model.history.isEmpty
+        default: true
+        }
+    }
+    private var pageArtwork: WorkspaceArtworkKind? {
+        switch model.section {
+        case "applications": .applications
+        case "startup": .startup
+        case "storage": .space
+        case "large-files": .largeFiles
+        case "rules": .rules
+        case "privacy": .privacy
+        case "history": .history
+        case "settings": .settings
+        default: nil
+        }
     }
     @ViewBuilder private var presentedContent: some View {
         if model.isExecuting { ExecutionProgressView(model: model) }
@@ -920,6 +977,7 @@ struct ContentView: View {
         case "rules": RulesView(model: model, editor: $ruleEditor)
         case "startup": StartupInventoryView(model: model)
         case "applications": ApplicationsView(model: model, session: model.applicationsSession)
+        case "projects": ProjectCleanupView(model: model)
         case "privacy": PrivacyView(app: model, session: model.privacySession)
         case "history": HistoryView(model: model)
         case "settings": SettingsView(model: model, updater: model.updater)
@@ -929,37 +987,12 @@ struct ContentView: View {
         }
     }
     var body: some View {
-        NavigationSplitView {
-            List(selection: navigationSelection) {
-                Section(model.t("Storage")) {
-                    Label(model.t("Smart Cleanup"), systemImage: "sparkle.magnifyingglass").tag("smart")
-                    Label(model.t("Large Files"), systemImage: "doc.text.magnifyingglass").tag("large-files")
-                    Label(model.t("Space Analysis"), systemImage: "square.grid.2x2").tag("storage")
-                }
-                Section(model.t("Tools")) {
-                    Label(model.t("Rules"), systemImage: "line.3.horizontal.decrease.circle").tag("rules")
-                    Label(model.t("Startup Items"), systemImage: "power.circle").tag("startup")
-                    Label(model.t("Application Uninstall"), systemImage: "shippingbox").tag("applications")
-                    Label(model.t("Privacy"), systemImage: "hand.raised").tag("privacy")
-                }
-            }.listStyle(.sidebar)
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    VStack(spacing: 0) {
-                    Button { model.section="history" } label: {
-                        Label(model.t("History"), systemImage: "clock.arrow.circlepath")
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 12).padding(.vertical, 10)
-                            .background(model.section == "history" ? Color.accentColor.opacity(0.14) : .clear, in: RoundedRectangle(cornerRadius: 8))
-                    }.buttonStyle(.plain).padding(.horizontal, 10)
-                    Button { model.section="settings" } label: {
-                        Label(model.t("Settings"), systemImage: "gearshape")
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 12).padding(.vertical, 10)
-                            .background(model.section == "settings" ? Color.accentColor.opacity(0.14) : .clear, in: RoundedRectangle(cornerRadius: 8))
-                    }.buttonStyle(.plain).accessibilityAddTraits(model.section == "settings" ? [.isSelected] : []).padding(10)
-                    }
-                }
-                .navigationSplitViewColumnWidth(min: 190, ideal: 215)
-        } detail: {
+        NavigationStack {
             VStack(spacing: 0) {
+                WorkspaceNavigation(model: model)
+                if !model.isExecuting && model.completion == nil && model.toolCompletion == nil && showsPageHeading {
+                    WorkspaceHeading(title: model.t(pageTitle), subtitle: model.t(pageSubtitle), artwork: pageArtwork)
+                }
                 if model.externalRulesChanged && !model.busy && model.completion == nil {
                     HStack {
                         Label(model.t("Personal rules changed outside Shou. Review each rule before cleanup."), systemImage: "sparkles")
@@ -974,21 +1007,17 @@ struct ContentView: View {
                 }
                 presentedContent
                     .sheet(item: $model.ai.launch) { target in AILaunchView(model: model, session: model.ai, target: target) }
-                Divider()
-                HStack {
-                    Text(model.status).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        .accessibilityIdentifier("operation.status")
-                    Spacer()
-                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.11.0").font(.caption.monospaced()).foregroundStyle(.tertiary)
-                }.padding(10)
+                Text(model.status).font(.caption).frame(height: 0).clipped()
+                    .accessibilityIdentifier("operation.status")
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background { WorkspaceBackdrop().ignoresSafeArea() }
             .overlay {
                 if model.initializing {
                     ActivityIndicator(title: model.t("Opening local data…")).padding(24)
                         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
                 }
             }
-            .navigationTitle(model.t(pageTitle))
+            .navigationTitle(model.displayTitle)
             .toolbar {
                 ToolbarItemGroup {
                     if model.section == "rules" {
@@ -1006,6 +1035,10 @@ struct ContentView: View {
                 }
             }
         }
+        .background { WorkspaceBackdrop().ignoresSafeArea() }
+        .toolbarBackground(.hidden, for: .windowToolbar)
+        .tint(scheme == .dark ? ShouDesign.accentDark : ShouDesign.accent)
+        .accentColor(scheme == .dark ? ShouDesign.accentDark : ShouDesign.accent)
         .sheet(item: $model.prompt) { review in ConfirmationView(model: model, review: review) }
         .sheet(item: $model.historyInspection) { request in HistoryInspectionView(model: model, executionId: request.id) }
         .sheet(isPresented: $ruleEditor) { RuleWizard(model: model, initialPattern: model.ruleDraftPattern) }
@@ -1186,6 +1219,10 @@ struct ConfirmationView: View {
         VStack(alignment: .leading, spacing: 18) {
             Label(title, systemImage: ["purge", "permanent"].contains(review.action) ? "exclamationmark.triangle" : "trash").font(.title2.bold())
             Text(["purge", "permanent"].contains(review.action) ? model.t("This is irreversible. Only the selected items from this cleanup batch will be removed.") : model.t("Check every path. Files and configuration will be verified again immediately before processing.")).foregroundStyle(.secondary)
+            if review.manualReview {
+                Label(model.t("Manual selection includes items outside automatic cleanup. Review their contents and stop related tasks. The complete listed directories will be removed."), systemImage: "exclamationmark.triangle")
+                    .font(.callout).foregroundStyle(.orange)
+            }
             List(review.paths, id: \.self) { Text($0).font(.callout.monospaced()).textSelection(.enabled) }.frame(minHeight: 160, maxHeight: 300)
             if !review.impacts.isEmpty {
                 DisclosureGroup(model.t("Cleanup Impact")) {

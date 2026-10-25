@@ -59,7 +59,7 @@ public sealed class GeneratedMsiUninstallTests(ITestOutputHelper output)
     private async Task<(ApplicationUninstallPlan Plan, WindowsRecordStore Store, ApplicationUninstallService Service, TrackedMutation Mutation)> PrepareAsync(GeneratedMsiFixture fixture)
     {
         output.WriteLine("Generated MSI evidence: " + fixture.Root);
-        Assert.True(WindowsApplicationUninstallMutation.PublicExecutionAvailable);
+        Assert.False(WindowsApplicationUninstallMutation.PublicExecutionAvailable);
         var application = await fixture.DiscoverAsync();
         var reviewer = Reviewer();
         var review = await reviewer.InspectAsync(application.Id);

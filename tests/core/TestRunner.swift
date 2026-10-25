@@ -23,6 +23,35 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 
 @main enum TestRunner {
     static func main() async {
+        if Array(CommandLine.arguments.dropFirst()) == ["--application-updates-only"] {
+            do {
+                try applicationUpdatesCompareOnlyVerifiedNumericVersions()
+                try applicationUpdatesBindCatalogIdentityAndSystemVariants()
+                try await applicationUpdatesRejectChangedAppsAndKeepFailedChecksUnknown()
+                try await applicationUpdatesTransportBoundsAndSanitizesFailures()
+                print("4/4 application update catalog identity, numeric versions, platform variants, stale observations and bounded transport checks passed.")
+            } catch { print("FAIL application updates: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--storage-comparison-only"] {
+            do {
+                try await storageComparisonMergesWideDirectoriesAndBoundsRanking()
+                try await storageComparisonRetainsUnknownCoverageAndRejectsReplacedRoots()
+                try await storageComparisonBoundsHistoryAndHonorsCancellation()
+                try await storageComparisonUsesNativeAllocatedAccounting()
+                print("4/4 storage comparison identity, coverage, bounded merge, history and native accounting checks passed.")
+            } catch { print("FAIL storage comparison: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--diagnostics-only"] {
+            do {
+                try diagnosticsDistinguishesUnknownAndLowCapacity()
+                try nativeDiagnosticsPreservesRecordsAndExcludesPrivateData()
+                try await nativeDiagnosticsHonorsCancellation()
+                print("3/3 diagnostic capacity, privacy, no-write and cancellation checks passed.")
+            } catch { print("FAIL diagnostics: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--ai-safety-only"] {
             do {
                 try aiInvestigationPreservesConnectionAndPhysicalSelectionBoundaries()
@@ -337,7 +366,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await selectiveDiscoveryRejectsReplacedTargetsAndMarkers()
                 try selectiveDiscoveryCancellationKeepsPartialTargetsUnauthorized()
                 try await isolatedCleanupDiscoveryKeepsLaterProjectsWithinSharedBudget()
-                print("9/9 bounded cleanup discovery, later-project coverage, rule policy, replacement, cancellation and isolated-worker checks passed; generated fixtures only.")
+                try await selectiveDiscoveryFindsTargetsAndMarkersInWideDirectories()
+                try await cleanupPlanRechecksOnlySelectedPolicyAndReportsChangedSafety()
+                try await manualCleanupSelectionPreparesFreshScopeAndPermanentlyRemovesOnlyFixture()
+                try await manualCleanupSelectionKeepsExclusionsPreviewAndChangedManifestGates()
+                print("13/13 cleanup discovery, manual selection, fresh scope, permanent removal and safety checks passed; generated fixtures only.")
             } catch { print("FAIL bounded cleanup discovery: \(error)"); Foundation.exit(1) }
             return
         }
@@ -379,11 +412,14 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-only"] {
             do {
+                try storageCatalogProtectionExemptsOnlyDisposableFiles()
+                try await storageCatalogCleanupAllowsReferencedAndCurrentIndexes()
+                try await storageCatalogTrashCleanupPreservesRestoreAndRechecksChanges()
                 try storageSelectionPreservesSiblingsAndDeduplicates()
                 try await storageAnalysisProtectsRootsAndDetectsChanges()
                 try await storageRemovalRechecksCurrentExclusionsAndNewDescendants()
                 try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: true)
-                print("4/4 storage tests passed; only generated fixtures were mutated.")
+                print("7/7 storage tests passed; only generated fixtures were mutated.")
             } catch { print("FAIL storage tests: \(error)"); Foundation.exit(1) }
             return
         }
@@ -454,6 +490,17 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Installed application caches retain shared protection and no-follow boundaries", { try await installedApplicationCachesRetainSharedProtectionAndNoFollowBoundaries() }),
             ("Installed application cache discovery reports incomplete and ambiguous owners", { try await installedApplicationCachesReportInventoryGapsAndAmbiguousOwners() }),
             ("Installed application cache evidence preserves legacy digests", { try await installedApplicationCachesKeepLegacyRecordsAndBindEvidenceDigests() }),
+            ("Application updates compare only numeric versions", { try applicationUpdatesCompareOnlyVerifiedNumericVersions() }),
+            ("Application updates bind catalog identity and system variants", { try applicationUpdatesBindCatalogIdentityAndSystemVariants() }),
+            ("Application updates reject changed apps and preserve unknown failures", { try await applicationUpdatesRejectChangedAppsAndKeepFailedChecksUnknown() }),
+            ("Application update transport bounds and sanitizes failures", { try await applicationUpdatesTransportBoundsAndSanitizesFailures() }),
+            ("Storage comparison merges and bounds wide directories", { try await storageComparisonMergesWideDirectoriesAndBoundsRanking() }),
+            ("Storage comparison retains unknown coverage and rejects replaced roots", { try await storageComparisonRetainsUnknownCoverageAndRejectsReplacedRoots() }),
+            ("Storage comparison bounds history and honors cancellation", { try await storageComparisonBoundsHistoryAndHonorsCancellation() }),
+            ("Storage comparison uses native allocated accounting", { try await storageComparisonUsesNativeAllocatedAccounting() }),
+            ("Diagnostic capacity and unknown states remain distinct", { try diagnosticsDistinguishesUnknownAndLowCapacity() }),
+            ("Native diagnostics preserves records and excludes private data", { try nativeDiagnosticsPreservesRecordsAndExcludesPrivateData() }),
+            ("Native diagnostics honors cancellation", { try await nativeDiagnosticsHonorsCancellation() }),
             ("Disk access policy preserves exact protected boundaries", { try scanAccessPolicyProtectsExactBoundaries() }),
             ("Limited scan retains accessible sibling coverage", { try await scanAccessSkipsContainersAndPreservesAccessibleCoverage() }),
             ("CLI installation preserves arguments and conflicting entries", { try cliInstallationIsRepeatableAndPreservesConflicts() }),
@@ -606,6 +653,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Built-in binding validation, isolation and benchmark", { try await builtinCatalogBindingPreservesValidationAndIsolation() }),
             ("Built-in protected descendants", { try await builtinRulesPreserveProtectedDescendants() }),
             ("Storage selection preserves siblings and deduplicates", { try storageSelectionPreservesSiblingsAndDeduplicates() }),
+            ("Disposable catalog selection preserves other record protection", { try storageCatalogProtectionExemptsOnlyDisposableFiles() }),
+            ("Referenced and current catalogs support explicit cleanup", { try await storageCatalogCleanupAllowsReferencedAndCurrentIndexes() }),
+            ("Catalog cleanup preserves recovery and rejects changed files", { try await storageCatalogTrashCleanupPreservesRestoreAndRechecksChanges() }),
             ("Storage browsing shares protection and selection without mutation", { try await storageBrowsingSelectionSharesProtectionAndHierarchyWithoutMutation() }),
             ("Storage browsing pages and selection expansion retain exact scope", { try await storageBrowsingPagesAreBoundedAndExpandedSelectionsNeverTruncate() }),
             ("Storage name search covers unloaded children and binds continuation", { try await storageNameSearchReadsEveryImmediateChildAndBindsContinuation() }),
@@ -684,6 +734,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Cleanup discovery rejects replaced targets and project markers", { try await selectiveDiscoveryRejectsReplacedTargetsAndMarkers() }),
             ("Cancelled cleanup discovery never returns authorized targets", { try selectiveDiscoveryCancellationKeepsPartialTargetsUnauthorized() }),
             ("Isolated cleanup discovery preserves later projects within shared budgets", { try await isolatedCleanupDiscoveryKeepsLaterProjectsWithinSharedBudget() }),
+            ("Wide projects retain target and marker discovery", { try await selectiveDiscoveryFindsTargetsAndMarkersInWideDirectories() }),
+            ("Plans scope policy checks and report changed safety", { try await cleanupPlanRechecksOnlySelectedPolicyAndReportsChangedSafety() }),
+            ("Manual selection prepares fresh scope and permanently removes generated data", { try await manualCleanupSelectionPreparesFreshScopeAndPermanentlyRemovesOnlyFixture() }),
+            ("Manual selection keeps exclusions, preview and changed-manifest gates", { try await manualCleanupSelectionKeepsExclusionsPreviewAndChangedManifestGates() }),
             ("Native read-only artifact and retained archive facts", { try nativeArtifactFactsVerifyRetainedCargoSources() }),
             ("Cross-process mutation lock", { try crossProcessLockCannotBeAcquiredTwice() }),
             ("Restore conflict and Trash expansion", { try await restoreNeverOverwritesAndTrashExpansionBlocksPurge() }),

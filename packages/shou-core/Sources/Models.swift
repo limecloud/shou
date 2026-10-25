@@ -265,12 +265,16 @@ public protocol RecordStore: Sendable {
     func write(_ collection: String, id: String, data: Data) throws
     func removeHistoryRecord(_ collection: String, id: String) throws
     func records(_ collection: String) throws -> [StoredRecord]
+    func boundedRecords(_ collection: String, limit: Int) throws -> (records: [StoredRecord], truncated: Bool)
     func recordMetadata(_ collection: String, id: String) throws -> StoredRecord?
     func removeDerivedRecord(_ record: StoredRecord) throws
     func ids(_ collection: String) throws -> [String]
     func lock() throws -> any StoreLease
 }
 extension RecordStore {
+    public func boundedRecords(_ collection: String, limit: Int) throws -> (records: [StoredRecord], truncated: Bool) {
+        throw ShouError("capability_unavailable", "Bounded record discovery is unavailable in this record store.")
+    }
     public func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? {
         try records(collection).first { $0.id == id }
     }

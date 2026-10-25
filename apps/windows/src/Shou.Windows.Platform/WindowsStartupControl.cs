@@ -136,7 +136,7 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
 
 public sealed class WindowsStartupControlMutation : IStartupControlMutation
 {
-    public static bool PublicExecutionAvailable => NativeWindowsSupport.IsSupported;
+    public static bool PublicExecutionAvailable => false;
     public bool Available => NativeWindowsSupport.IsSupported;
 
     public async Task<StartupControlNativeResult> ApplyAsync(StartupControlReview review, DateTimeOffset authorizationExpiresAt, CancellationToken cancellationToken)

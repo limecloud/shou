@@ -30,7 +30,6 @@ public sealed class StorageViewModel(IStorageScanner scanner) : INotifyPropertyC
         using var current = new CancellationTokenSource();
         operation = current;
         State = StoragePageState.Scanning;
-        Snapshot = null;
         ErrorCode = null;
         Progress = null;
         NotifyAll();

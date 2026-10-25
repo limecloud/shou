@@ -32,6 +32,8 @@ public sealed partial class StartupPage : UserControl, IPageChrome, IDisposable
     {
         InitializeComponent();
         inlineDetails = new(Inspector, PageLayout);
+        LandingHost.Content = WorkspaceVisuals.Landing(text, "A calmer start.",
+            "Browse startup registrations and review eligible current-user scheduled tasks.", "startup", "Scan Startup Items", "startup.start", Refresh);
         PageTitle.Text = text.Get("Startup Items");
         FooterNotice.Text = text.Get(control.ExecutionAvailable
             ? "Review the exact task and confirm the requested switch before this review expires."
@@ -73,6 +75,9 @@ public sealed partial class StartupPage : UserControl, IPageChrome, IDisposable
         if (disposed) return;
         PageDiagnostics.Update(this, "startup", model.State, model.ErrorCode);
         var busy = model.IsBusy || control.IsBusy;
+        var landing = model.Page is null && !busy;
+        LandingHost.Visibility = landing ? Visibility.Visible : Visibility.Collapsed;
+        PageLayout.Visibility = PageToolbar.Visibility = landing ? Visibility.Collapsed : Visibility.Visible;
         RefreshButton.IsEnabled = SearchBox.IsEnabled = SourceBox.IsEnabled = Registrations.IsEnabled = !busy;
         foreach (var pill in new[] { FilterAll, FilterEnabled, FilterDisabled, FilterUnknown }) pill.IsEnabled = !busy;
         CancelButton.IsEnabled = model.IsBusy && !model.StopRequested;
