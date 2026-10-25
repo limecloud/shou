@@ -398,13 +398,13 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         scan = run(['scan', '--workspace', workspace, '--json'])['data']
         assert scan['rules'] == preview['rules'] and scan['candidate_count'] == 1 and scan['preview_only'] is False
         scan_results = run(['scan', 'results', '--scan-id', scan['scan_id'], '--json'])['data']
-        assert scan_results['preview_only'] is False and scan_results['execution_available'] is True
+        assert scan_results['preview_only'] is False and scan_results['execution_available'] is False
         selected = scan_results['candidates'][0]['id']
         plan = run(['plan', 'create', '--scan-id', scan['scan_id'], '--candidate', selected, '--mode', 'permanent', '--json'])['data']
         plan_id = plan['id']
         assert plan['action'] == 'permanent' and len(plan['items']) == 1
         assert run(['plan', 'show', '--plan-id', plan_id, '--json'])['data']['digest'] == plan['digest']
-        assert run(['plan', 'execute', '--plan-id', plan_id, '--json'], 7)['error']['code'] == 'confirmation_required'
+        assert run(['plan', 'execute', '--plan-id', plan_id, '--json'], 8)['error']['code'] == 'unsupported_capability'
         assert run(['history', 'list', '--json'])['data']['entries'] == []
         assert run(['plan', 'create', '--scan-id', scan['scan_id'], '--candidate', selected, '--json'], 8)['error']['code'] == 'unsupported_capability'
         draft_candidate = results['candidates'][0]['id']
