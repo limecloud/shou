@@ -12,12 +12,20 @@ concurrency:
 
 jobs:
   generated-system:
-    runs-on: windows-2025
+    name: Generated ${{ matrix.fixture }} (${{ matrix.host.name }})
+    runs-on: ${{ matrix.host.runner }}
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         fixture: [msi, startup]
+        host:
+          - runner: windows-2025
+            name: windows-server-2025-x64
+            architecture: x64
+          - runner: windows-11-arm
+            name: windows-11-arm64
+            architecture: arm64
     defaults:
       run:
         shell: pwsh
@@ -31,6 +39,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+      - name: Require matching native PowerShell and .NET architectures
+        run: |
+          $Architecture = '${{ matrix.host.architecture }}'
+          if ([Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant() -ne $Architecture -or [Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant() -ne $Architecture) { throw 'Native Windows and PowerShell architectures must match the matrix.' }
+          $Info = dotnet --info | Out-String
+          if ($LASTEXITCODE -ne 0 -or $Info -notmatch ('RID:\s+win-' + $Architecture)) { throw 'The .NET SDK must run natively.' }
+          Write-Output $Info
       - name: Exercise only newly generated system fixtures
         run: |
           if ('${{ matrix.fixture }}' -eq 'msi') {
@@ -42,6 +57,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: generated-${{ matrix.fixture }}-windows-server-2025-x64
+          name: generated-${{ matrix.fixture }}-${{ matrix.host.name }}
           path: ${{ runner.temp }}/ShouBuild/generated-${{ matrix.fixture }}/run-*
           if-no-files-found: error
