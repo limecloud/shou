@@ -17,6 +17,11 @@ public static class MonitorUiNative {
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindowExW(IntPtr parent, IntPtr after, string className, string name);
  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
+ [DllImport("user32.dll")] public static extern IntPtr SendMessageW(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam);
+ [DllImport("user32.dll")] public static extern int GetMenuItemCount(IntPtr menu);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetMenuStringW(IntPtr menu, uint item, System.Text.StringBuilder text, int capacity, uint flags);
+ [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] public static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
 }
 '@
 $Output = Join-Path $ArtifactsRoot ('monitor-ui-' + [Guid]::NewGuid().ToString('N'))
@@ -77,7 +82,7 @@ try {
     if ((Get-Monitor 'monitor.status').Current.Name -ne $Frozen) { throw 'Paused monitor continued updating.' }
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -eq 0 } 'registered tray icon' | Out-Null
     [MonitorUiNative]::PostMessageW($Handle, 0x8047, [UIntPtr]::new(71), [IntPtr]::new(0x205)) | Out-Null
-    $Menu = Wait-Monitor {
+    $Popup = Wait-Monitor {
         # Win32 popup menus can appear under the owner rather than as UIA root children.
         $Popup = [IntPtr]::Zero
         do {
@@ -85,17 +90,31 @@ try {
             if ($Popup -ne [IntPtr]::Zero) {
                 $OwnerProcess = [uint32]0
                 [MonitorUiNative]::GetWindowThreadProcessId($Popup, [ref]$OwnerProcess) | Out-Null
-                if ($OwnerProcess -eq $App.Id) { return [Windows.Automation.AutomationElement]::FromHandle($Popup) }
+                if ($OwnerProcess -eq $App.Id) { return $Popup }
             }
         } while ($Popup -ne [IntPtr]::Zero)
     } 'native tray popup'
-    $Items = @($Menu.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
-    $Labels = @($Items | ForEach-Object { $_.Current.Name })
+    $NativeMenu = Wait-Monitor {
+        $MenuHandle = [MonitorUiNative]::SendMessageW($Popup, 0x01E1, [UIntPtr]::Zero, [IntPtr]::Zero)
+        if ($MenuHandle -ne [IntPtr]::Zero -and [MonitorUiNative]::GetMenuItemCount($MenuHandle) -gt 0) { return $MenuHandle }
+    } 'populated native menu'
+    $Labels = @(for ($Index=0; $Index -lt [MonitorUiNative]::GetMenuItemCount($NativeMenu); $Index++) {
+        $Label = [Text.StringBuilder]::new(1024)
+        [MonitorUiNative]::GetMenuStringW($NativeMenu, [uint32]$Index, $Label, $Label.Capacity, 0x400) | Out-Null
+        $Label.ToString()
+    })
     $Labels | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Output '02-tray-menu.json') -Encoding utf8
     if (($Labels -join ' ') -notmatch 'CPU.*GPU') { throw 'Tray menu is missing resource readings.' }
-    $Resume = $Items | Where-Object { $_.Current.Name -match 'Resume Monitoring|\u7ee7\u7eed\u76d1\u63a7' } | Select-Object -First 1
+    $Resume = $Labels | Where-Object { $_ -match 'Resume Monitoring|\u7ee7\u7eed\u76d1\u63a7' } | Select-Object -First 1
     if ($null -eq $Resume) { throw 'Tray menu is missing resume.' }
-    $Resume.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+    # Only the fixture-owned foreground popup may receive keyboard navigation.
+    $ForegroundProcess = [uint32]0
+    [MonitorUiNative]::GetWindowThreadProcessId([MonitorUiNative]::GetForegroundWindow(), [ref]$ForegroundProcess) | Out-Null
+    if ($ForegroundProcess -ne $App.Id) { throw 'The fixture lost foreground ownership before menu navigation.' }
+    foreach ($Key in @([byte]0x24, [byte]0x28, [byte]0x0D)) {
+        [MonitorUiNative]::keybd_event($Key, 0, 0, [UIntPtr]::Zero)
+        [MonitorUiNative]::keybd_event($Key, 0, 2, [UIntPtr]::Zero)
+    }
     Wait-Monitor { (Get-Monitor 'monitor.status').Current.Name -match 'Live|\u5b9e\u65f6' } 'tray resume' | Out-Null
     $Checks.Add('native tray registration, resource menu and resume command')
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -ne 0 } 'tray icon removal' | Out-Null
