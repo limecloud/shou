@@ -8,6 +8,7 @@ internal sealed class MonitorTrayIcon : IDisposable
     private const uint Callback = 0x8000 + 71;
     private readonly nint window;
     private readonly SubclassProc callback;
+    private readonly int attachError;
     private readonly Action open, pause, disable, quit;
     private readonly uint taskbarCreated = RegisterWindowMessageW("TaskbarCreated");
     private nint icon;
@@ -19,6 +20,7 @@ internal sealed class MonitorTrayIcon : IDisposable
     {
         this.window = window; this.open = open; this.pause = pause; this.disable = disable; this.quit = quit;
         callback = Handle; attached = SetWindowSubclass(window, callback, 71, 0);
+        if (!attached) attachError = Marshal.GetLastWin32Error();
     }
     public bool Update(bool enabled, string summary, string openLabel, string pauseLabel, string disableLabel, string quitLabel, string[] details)
     {
@@ -26,12 +28,14 @@ internal sealed class MonitorTrayIcon : IDisposable
         this.enabled = enabled; this.summary = summary; this.openLabel = openLabel; this.pauseLabel = pauseLabel; this.disableLabel = disableLabel;
         this.quitLabel = quitLabel; this.details = details;
         if (!enabled) { Remove(); return true; }
-        if (!attached) return false;
+        if (!attached) { NativeFailure("monitor.tray.attach", attachError); return false; }
         if (icon == 0) icon = LoadImageW(0, System.IO.Path.Combine(AppContext.BaseDirectory, "Shou.ico"), 1, 32, 32, 0x10);
-        if (icon == 0) return false;
+        if (icon == 0) { NativeFailure("monitor.tray.icon"); return false; }
         var data = Data(); var result = Shell_NotifyIconW(visible ? 1u : 0u, ref data);
+        if (!result) NativeFailure("monitor.tray.register");
         visible = result; return result;
     }
+    private static void NativeFailure(string stage, int? error = null) => Shou.Windows.Platform.NativeDiagnostics.Write(new System.ComponentModel.Win32Exception(error ?? Marshal.GetLastWin32Error()), stage);
     private NotifyData Data() => new()
     {
         Size = (uint)Marshal.SizeOf<NotifyData>(), Window = window, Id = 71, Flags = 1 | 2 | 4, CallbackMessage = Callback, Icon = icon,
@@ -88,11 +92,11 @@ internal sealed class MonitorTrayIcon : IDisposable
         public uint InfoFlags; public Guid Guid; public nint BalloonIcon;
     }
     [StructLayout(LayoutKind.Sequential)] private struct Point { public int X, Y; }
-    [DllImport("comctl32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetWindowSubclass(nint hwnd, SubclassProc callback, nuint id, nuint data);
+    [DllImport("comctl32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetWindowSubclass(nint hwnd, SubclassProc callback, nuint id, nuint data);
     [DllImport("comctl32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool RemoveWindowSubclass(nint hwnd, SubclassProc callback, nuint id);
     [DllImport("comctl32.dll")] private static extern nint DefSubclassProc(nint hwnd, uint message, nuint wparam, nint lparam);
-    [DllImport("shell32.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool Shell_NotifyIconW(uint message, ref NotifyData data);
-    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern nint LoadImageW(nint instance, string path, uint type, int width, int height, uint flags);
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool Shell_NotifyIconW(uint message, ref NotifyData data);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern nint LoadImageW(nint instance, string path, uint type, int width, int height, uint flags);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool DestroyIcon(nint icon);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern uint RegisterWindowMessageW(string message);
     [DllImport("user32.dll")] private static extern nint CreatePopupMenu();

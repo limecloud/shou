@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/engineering/next-release-plan.md)
 
 Updated: 2026-10-26. Status: v0.15.0 published; remaining roadmap work is in progress. Read-only diagnostics, shell completion, analysis comparison and update discovery have independent macOS and Windows source implementations; owning contracts and SYNC record verification and platform differences. This document prioritizes the next release without changing product, safety, rule or release contracts. v0.15.0 includes the current workspace, diagnostics, completion, comparison and read-only catalog checks; other work packages remain in the roadmap.
 
+The selected `v0.16.0` scope adds independent read-only monitoring, menu-bar/tray summaries and Dock/taskbar entry points under the [system monitor contract](../product/system-monitor.md). Version declarations, builds and release verification advance together; SYNC records the publication result.
+
 ## 1. Planning baseline and sources of truth
 
 The published `v0.15.0` baseline is commit `ec91a357b6cadd8c286fe6ae38bed6adf8ff5350`. Remaining roadmap items and later working-tree edits are outside that tag. [SYNC.md](../../SYNC.md) owns actual checks, failures and native limitations; this plan is not an acceptance record.

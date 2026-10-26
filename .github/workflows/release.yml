@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.15.0
+        default: v0.16.0
 
 permissions:
   contents: read
@@ -182,6 +182,11 @@ jobs:
         run: |
           $Version = $env:SHOU_RELEASE_TAG.Substring(1)
           ./scripts/windows/verify-publish.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/payload/publish" -Version $Version
+      - name: Native x64 monitor panels and tray commands
+        if: matrix.runtime == 'win-x64'
+        run: |
+          powershell.exe -NoProfile -STA -File scripts/windows/test-monitor-ui.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/payload/publish" -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/tests/evidence/monitor"
+          if ($LASTEXITCODE -ne 0) { throw 'Release monitor UI acceptance failed.' }
       - name: Verify architecture, runtime, resources, version and archives
         run: |
           $Arguments = @('--payload-root', "$env:RUNNER_TEMP/ShouBuild/payload/publish", '--output', 'dist/windows', '--version', $env:SHOU_RELEASE_TAG.Substring(1), '--runtime', '${{ matrix.runtime }}', '--source', '${{ needs.source.outputs.commit }}')
@@ -199,7 +204,9 @@ jobs:
         with:
           name: shou-release-windows-test-results
           if-no-files-found: ignore
-          path: ${{ runner.temp }}/ShouBuild/tests/results
+          path: |
+            ${{ runner.temp }}/ShouBuild/tests/results
+            ${{ runner.temp }}/ShouBuild/tests/evidence
 
   publish:
     needs: [source, package, windows]

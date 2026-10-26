@@ -1,23 +1,17 @@
-Shou v0.15.0 introduces the new native workspace and read-only tools for understanding disk usage and application versions.
+Shou v0.16.0 adds native, read-only system monitoring and desktop resource summaries on macOS and Windows.
 
-- Top task navigation, a continuous light/dark gradient, original task illustrations, full-width expandable rows and a stable selection footer follow the current shared design. Populated pages prioritize controls and results.
-- Settings and CLI diagnostics produce a bounded report of capacity, access and record-directory safety. Reports omit personal paths and contents and are never uploaded automatically.
-- Space analysis can compare two retained observations of the same folder. Identity, accounting and coverage checks distinguish measurable changes from missing, replaced or incomplete observations. Historical results never authorize deletion.
-- Application details can explicitly check a supported public release catalog: six stable applications through Homebrew Cask on macOS, and registered Visual Studio Code x64 stable installations on Windows. Checks show versions, observation time and the official update page; they do not download or install updates.
-- The CLI generates static Bash/Zsh completion; Windows also generates PowerShell completion. It does not modify shell profiles. macOS developer discovery prioritizes literal output paths and project markers in wide directories while retaining activity and exact-scope protection.
+- Eight resource panels cover load, CPU, GPU, memory, battery, system-volume space and disk IO, network IO, and thermals/fans. Real two-minute trends and a searchable process table use the current workspace gradient and shared design values.
+- Opt-in macOS menu-bar and Windows notification-area menus show resource readings and the top three CPU processes. Commands open monitoring, pause/resume, disable the summary, and quit normally. Dock and native Windows taskbar Jump List tasks open monitoring directly, including the unpackaged Windows app.
+- One serial sampler serves the page and summary. Warmup, pause, sleep, source changes and failures reset rate baselines. Process identity includes start time; CPU uses total machine capacity. History stays in memory, with no process termination, sensor controls or automatic startup.
+- Unsupported or unreadable sensors stay unavailable. macOS reads supported fixed AppleSMC sensors; Windows uses supported read-only APIs and does not install a temperature driver. Neither platform fabricates health scores or missing measurements.
 
-Both platforms have independent implementations of diagnostics, completion, comparison and catalog checks. Windows downloads are **unsigned portable previews for Windows 11**, with self-contained x64/ARM64 app and CLI ZIPs. Public cleanup, application uninstall and startup mutation gates remain closed. ARM64 runtime, complete UI/accessibility, native MSI/task acceptance, signing, installation and updating remain pending; cross-compilation and x64 startup checks do not establish them. `BUILD.json` and checksums identify each archive's source and final bytes.
+macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed update metadata and checksums. The app uses an ad-hoc signature and is not Apple-notarized. Windows downloads remain unsigned, self-contained x64/ARM64 portable previews for Windows 11; public cleanup, uninstall and startup mutation gates stay closed. Complete Windows UI/accessibility, broad hardware compatibility, signing, installation and updating remain separate acceptance work. GitHub publication does not publish packages to npm. The existing v0.15.0 tag and assets are preserved.
 
-macOS requires version 14 or later and supports Apple Silicon and Intel. Assets include universal DMG/ZIP, standalone CLI, Sparkle-signed update metadata and checksums. The application uses an ad-hoc signature and is not Apple-notarized. Permanent deletion cannot be undone through Shou. GitHub publication does not publish packages to npm.
+简体中文：Shou v0.16.0 新增 macOS／Windows 原生只读系统监控及桌面资源摘要。
 
-简体中文：Shou v0.15.0 带来新的原生工作台，以及空间变化、诊断和应用版本的只读工具。
+- 八个面板展示负载、CPU、GPU、内存、电池、系统卷空间与磁盘读写、网络收发、温度与风扇；两分钟真实趋势与可搜索进程表沿用当前工作台渐变和共享设计值。
+- 主动开启的 macOS 菜单栏／Windows 托盘展示资源读数与前三个 CPU 进程，支持打开监控、暂停／继续、关闭摘要及正常退出。Dock 与原生 Windows 任务栏 Jump List 可直接打开监控，便携版同样支持。
+- 页面和摘要共用串行采样。首次读取、暂停、休眠、来源变化及失败后重建速率基线；进程以 PID 和开始时间共同标识，CPU 按整机容量计量。历史只留在内存，不提供终止进程、传感器控制或开机常驻。
+- 不可读或不支持的传感器保持缺失；macOS 读取受支持的固定 AppleSMC 传感器，Windows 使用只读系统 API，不安装温度驱动。两端均不编造健康分数或未知读数。
 
-- 顶部任务导航、贯穿窗口的深浅色渐变、原创任务插画、全宽展开行与稳定选择底栏遵循最新共享设计；结果页优先展示操作和数据。
-- 设置与 CLI 提供有界诊断报告，检查容量、访问和记录目录安全；省略个人路径及内容，不自动上传。
-- 空间分析可比较同一目录保留的两次观察，核验身份、计量口径和覆盖，明确区分可比较变化、缺失、替换及不完整观察；历史结果不授予删除权限。
-- 应用详情可由用户主动查询受支持的公开发布目录：macOS 通过 Homebrew Cask 查询六种稳定版应用，Windows 支持注册身份明确的 Visual Studio Code x64 稳定版。展示版本、观察时间及官方更新入口，不下载或安装更新。
-- CLI 输出静态 Bash／Zsh 补全，Windows 另支持 PowerShell；不改 Shell 配置。macOS 在宽目录中优先发现固定产物路径和项目标记，保留活动保护及精确范围核验。
-
-诊断、补全、空间比较及目录查询已有双端独立实现。Windows 为 **Windows 11 未签名便携预览**，提供 x64／ARM64 自包含应用与 CLI ZIP，清理、应用卸载和启动项变更的公开门禁继续关闭。ARM64 运行、完整界面／辅助功能、原生 MSI／任务验收、签名、安装及更新仍待完成，不能由交叉构建或 x64 启动检查替代。归档内 `BUILD.json` 和校验和记录确切源码与文件字节。
-
-macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新元数据和校验和；应用使用 ad-hoc 签名，未经 Apple 公证。永久删除无法通过 Shou 撤销。GitHub 发布不会自动发布 npm 包。
+macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新元数据和校验和；应用为 ad-hoc 签名，未经 Apple 公证。Windows 继续提供 Windows 11 的未签名 x64／ARM64 自包含便携预览，公开清理、卸载和启动项变更门禁保持关闭；完整界面／辅助功能、广泛硬件兼容、签名、安装与更新分别验收。GitHub 发布不会自动发布 npm 包。保留既有 v0.15.0 标签和附件。
