@@ -21,7 +21,9 @@ public static class MonitorUiNative {
  [DllImport("user32.dll")] public static extern int GetMenuItemCount(IntPtr menu);
  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetMenuStringW(IntPtr menu, uint item, System.Text.StringBuilder text, int capacity, uint flags);
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
- [DllImport("user32.dll")] public static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
+ [DllImport("user32.dll")] public static extern bool GetMenuItemRect(IntPtr window, IntPtr menu, uint item, out Rect rect);
+ [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
+ [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint x, uint y, uint data, UIntPtr extra);
 }
 '@
 $Output = Join-Path $ArtifactsRoot ('monitor-ui-' + [Guid]::NewGuid().ToString('N'))
@@ -105,16 +107,22 @@ try {
     })
     $Labels | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Output '02-tray-menu.json') -Encoding utf8
     if (($Labels -join ' ') -notmatch 'CPU.*GPU') { throw 'Tray menu is missing resource readings.' }
-    $Resume = $Labels | Where-Object { $_ -match 'Resume Monitoring|\u7ee7\u7eed\u76d1\u63a7' } | Select-Object -First 1
-    if ($null -eq $Resume) { throw 'Tray menu is missing resume.' }
-    # Only the fixture-owned foreground popup may receive keyboard navigation.
+    $ResumeIndex = -1
+    for ($Index=0; $Index -lt $Labels.Count; $Index++) {
+        if ($Labels[$Index] -match 'Resume Monitoring|\u7ee7\u7eed\u76d1\u63a7') { $ResumeIndex=$Index; break }
+    }
+    if ($ResumeIndex -lt 0) { throw 'Tray menu is missing resume.' }
+    Save-Monitor '02-tray-popup'
+    # Click the observed command rectangle only while this fixture owns the foreground popup.
     $ForegroundProcess = [uint32]0
     [MonitorUiNative]::GetWindowThreadProcessId([MonitorUiNative]::GetForegroundWindow(), [ref]$ForegroundProcess) | Out-Null
     if ($ForegroundProcess -ne $App.Id) { throw 'The fixture lost foreground ownership before menu navigation.' }
-    foreach ($Key in @([byte]0x24, [byte]0x28, [byte]0x0D)) {
-        [MonitorUiNative]::keybd_event($Key, 0, 0, [UIntPtr]::Zero)
-        [MonitorUiNative]::keybd_event($Key, 0, 2, [UIntPtr]::Zero)
-    }
+    $CommandBounds = [MonitorUiNative+Rect]::new()
+    if (-not [MonitorUiNative]::GetMenuItemRect([IntPtr]::Zero, $NativeMenu, [uint32]$ResumeIndex, [ref]$CommandBounds) -or
+        $CommandBounds.Right -le $CommandBounds.Left -or $CommandBounds.Bottom -le $CommandBounds.Top) { throw 'Resume command has no usable native bounds.' }
+    if (-not [MonitorUiNative]::SetCursorPos([int](($CommandBounds.Left+$CommandBounds.Right)/2), [int](($CommandBounds.Top+$CommandBounds.Bottom)/2))) { throw 'Could not target the observed resume command.' }
+    [MonitorUiNative]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
+    [MonitorUiNative]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)
     Wait-Monitor { (Get-Monitor 'monitor.status').Current.Name -match 'Live|\u5b9e\u65f6' } 'tray resume' | Out-Null
     $Checks.Add('native tray registration, resource menu and resume command')
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -ne 0 } 'tray icon removal' | Out-Null
