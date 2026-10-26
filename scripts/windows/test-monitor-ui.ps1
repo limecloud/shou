@@ -10,7 +10,22 @@ using System.Runtime.InteropServices;
 public static class MonitorUiNative {
  [StructLayout(LayoutKind.Sequential)] public struct Rect { public int Left, Top, Right, Bottom; }
  [StructLayout(LayoutKind.Sequential)] public struct IconId { public uint Size; public IntPtr Window; public uint Id; public Guid Guid; }
+ [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] public struct IconData {
+  public uint Size; public IntPtr Window; public uint Id, Flags, CallbackMessage; public IntPtr Icon;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=128)] public string Tip;
+  public uint State, StateMask;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string Info;
+  public uint Version;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=64)] public string InfoTitle;
+  public uint InfoFlags; public Guid Guid; public IntPtr BalloonIcon;
+ }
  [DllImport("shell32.dll")] public static extern int Shell_NotifyIconGetRect(ref IconId id, out Rect rect);
+ [DllImport("shell32.dll", CharSet=CharSet.Unicode, SetLastError=true)] public static extern bool Shell_NotifyIconW(uint command, ref IconData data);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)] public static extern IntPtr CreateWindowExW(uint extended, string className, string name, uint style, int x, int y, int width, int height, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr parameter);
+ [DllImport("user32.dll")] public static extern bool DestroyWindow(IntPtr window);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr LoadIconW(IntPtr instance, IntPtr id);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)] public static extern IntPtr LoadImageW(IntPtr instance, string path, uint type, int width, int height, uint flags);
+ [DllImport("user32.dll")] public static extern bool DestroyIcon(IntPtr icon);
  [DllImport("user32.dll")] public static extern bool PostMessageW(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam);
  [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr window, int x, int y, int width, int height, bool repaint);
  [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr window);
@@ -51,6 +66,31 @@ function Toggle-Monitor { (Get-Monitor 'monitor.background').GetCurrentPattern([
 function Get-IconResult {
     $Bounds = [MonitorUiNative+Rect]::new()
     [MonitorUiNative]::Shell_NotifyIconGetRect([ref]$Icon, [ref]$Bounds)
+}
+function Save-NotificationProbe {
+    $Fixture = [MonitorUiNative]::CreateWindowExW(0, 'STATIC', 'Shou notification fixture', 0, 0, 0, 0, 0, [IntPtr]::Zero, [IntPtr]::Zero, [IntPtr]::Zero, [IntPtr]::Zero)
+    $SystemIcon = [MonitorUiNative]::LoadIconW([IntPtr]::Zero, [IntPtr]::new(32512))
+    $FileIcon = [MonitorUiNative]::LoadImageW([IntPtr]::Zero, (Join-Path $PublishRoot 'app/Shou.ico'), 1, 32, 32, 0x10)
+    $Results = @()
+    try {
+        foreach ($Owner in @([ordered]@{ name='fixture'; handle=$Fixture }, [ordered]@{ name='app'; handle=$Icon.Window })) {
+            foreach ($Image in @([ordered]@{ name='system'; handle=$SystemIcon }, [ordered]@{ name='app'; handle=$FileIcon })) {
+                foreach ($Size in @([Runtime.InteropServices.Marshal]::SizeOf([MonitorUiNative+IconData]::new()), 952)) {
+                    $Data = [MonitorUiNative+IconData]::new()
+                    $Data.Size=$Size; $Data.Window=$Owner.handle; $Data.Id=72; $Data.Flags=7; $Data.CallbackMessage=0x8048; $Data.Icon=$Image.handle
+                    $Data.Tip='Shou notification fixture'; $Data.Info=''; $Data.InfoTitle=''
+                    $Added = [MonitorUiNative]::Shell_NotifyIconW(0, [ref]$Data)
+                    $NativeError = [Runtime.InteropServices.Marshal]::GetLastWin32Error()
+                    $Results += [ordered]@{ owner=$Owner.name; icon=$Image.name; size=$Size; owner_valid=($Owner.handle -ne [IntPtr]::Zero); icon_valid=($Image.handle -ne [IntPtr]::Zero); added=$Added; error=$NativeError }
+                    [MonitorUiNative]::Shell_NotifyIconW(2, [ref]$Data) | Out-Null
+                }
+            }
+        }
+    } finally {
+        if ($FileIcon -ne [IntPtr]::Zero) { [MonitorUiNative]::DestroyIcon($FileIcon) | Out-Null }
+        if ($Fixture -ne [IntPtr]::Zero) { [MonitorUiNative]::DestroyWindow($Fixture) | Out-Null }
+        $Results | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $Output 'notification-probe.json') -Encoding utf8
+    }
 }
 function Save-Monitor([string]$Name) {
     $Bounds = $Window.Current.BoundingRectangle
@@ -151,7 +191,11 @@ try {
     if (-not $App.WaitForExit(15000) -or $App.ExitCode -ne 0) { throw 'Monitor failed normal close.' }
     if ((Get-IconResult) -eq 0) { throw 'Tray icon remained registered after app exit.' }
     $Checks.Add('normal exit releases the tray icon')
-} catch { $Failure = $_.Exception.ToString(); if ($null -ne $Window) { try { Save-Monitor 'failure' } catch {} }; throw }
+} catch {
+    $Failure = $_.Exception.ToString()
+    if ($null -ne $Window) { try { Save-Monitor 'failure' } catch {}; try { Save-NotificationProbe } catch { $_ | Out-String | Set-Content -LiteralPath (Join-Path $Output 'notification-probe-error.txt') } }
+    throw
+}
 finally {
     if ($null -ne $App -and -not $App.HasExited) { $App.CloseMainWindow() | Out-Null }
     [ordered]@{ source=(git rev-parse HEAD); architecture=[Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString();
