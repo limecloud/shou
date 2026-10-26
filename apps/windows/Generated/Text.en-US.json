@@ -8334,6 +8334,11 @@
     "resource_id": "s70d64ba4c248acbbc45d9720",
     "text": "Select this application to review removal. macOS may ask you to authenticate after confirmation."
   },
+  "Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion.": {
+    "format": "Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion.",
+    "resource_id": "se3c8316f2876480440705e9f",
+    "text": "Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion."
+  },
   "Select up to 256 items for one review.": {
     "format": "Select up to 256 items for one review.",
     "resource_id": "sf0da2b113b9c58ecf644233b",

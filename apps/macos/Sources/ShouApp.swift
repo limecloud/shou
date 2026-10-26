@@ -413,10 +413,10 @@ struct CleanupCompletion: Identifiable {
     func scanApplications() {
         applicationsSession.scan(app: self)
     }
-    func scanCommonLocations(cleanAfterScan: Bool = false, permanentAfterScan: Bool = true, accessChecked: Bool = false) {
+    func scanCommonLocations(accessChecked: Bool = false) {
         guard let engine, !busy else { return }
         if !accessChecked {
-            scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(cleanAfterScan: cleanAfterScan, permanentAfterScan: permanentAfterScan, accessChecked: true) }
+            scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(accessChecked: true) }
             return
         }
         busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonRefinements=[]
@@ -440,16 +440,6 @@ struct CleanupCompletion: Identifiable {
                 commonSelection=Set(commonRecommended.map(\.id))
                 statusKey=systemResult?.status == "complete" ? "Common app scan complete" : "Some locations could not be fully scanned."
                 await refresh()
-                if cleanAfterScan && !commonRecommended.isEmpty {
-                    // Let the scan state settle before opening the native
-                    // confirmation sheet. The plan is still created by Core;
-                    // it is simply not a user-facing intermediate screen.
-                    Task { @MainActor [weak self] in
-                        guard let self else { return }
-                        while self.busy { await Task.yield() }
-                        self.previewCommonCleanup(permanent: permanentAfterScan)
-                    }
-                }
             } catch {
                 if !Task.isCancelled { self.error=error.localizedDescription }
                 statusKey="Scan stopped."; await refresh()
@@ -465,14 +455,6 @@ struct CleanupCompletion: Identifiable {
         }
         scanProgress=update
         return true
-    }
-    func quickCleanCommon(permanent: Bool = true) {
-        if systemResult == nil {
-            scanCommonLocations(cleanAfterScan: true, permanentAfterScan: permanent)
-        } else {
-            commonSelection=Set(commonRecommended.map(\.id))
-            previewCommonCleanup(permanent: permanent)
-        }
     }
     func activateSystemSnapshot(_ value: ScanSnapshot) {
         guard !busy else { return }
@@ -522,46 +504,42 @@ struct CleanupCompletion: Identifiable {
             }
         }
     }
-    func previewCommonCleanup(permanent: Bool = true, sourceIds: Set<String>? = nil) {
-        guard let engine, !busy else { return }
+    func executeCommonCleanup(permanent: Bool = true, sourceIds: Set<String>? = nil) {
+        guard !busy else { return }
+        // The inline action confirms the visible selection, including this page's scope.
         let sources=commonSelected.filter { sourceIds?.contains($0.id) ?? true }
         guard !sources.isEmpty else { return }
         let action=permanent ? "permanent" : "trash"
-        busy=true; statusKey="Preparing cleanup preview…"
-        task=Task {
-            defer { busy=false }
-            do {
-                var plans: [ReviewedPlan]=[], paths: [String]=[]
-                var bytes: Int64=0
-                for snapshotId in Set(sources.map(\.snapshotId)).sorted() {
-                    let selected=sources.filter { $0.snapshotId == snapshotId }
-                    let automatic=selected.filter { !$0.requiresManualReview }
-                    if !automatic.isEmpty {
-                        let plan=try await engine.createPlan(scanId: snapshotId, candidateIds: automatic.map(\.candidate.id), action: action)
-                        plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.workspace.path))
-                        paths += plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }
-                        bytes += plan.allocatedBytesEstimate
-                    }
-                    let manual=selected.filter(\.requiresManualReview)
-                    if !manual.isEmpty {
-                        let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: snapshotId, candidateIds: manual.map(\.candidate.id), action: action)
-                        plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.rootPath, directRemoval: true))
-                        paths += plan.items.map { StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path) }
-                        bytes += plan.allocatedBytesEstimate
-                    }
-                }
-                prompt=ReviewPrompt(id: UUID().uuidString, digest: "", action: action,
-                    paths: paths, itemIds: [], byteEstimate: bytes, plans: plans,
-                    impacts: Array(Set(sources.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations + $0.candidate.reasons })).sorted(),
-                    manualReview: sources.contains(where: \.requiresManualReview))
-                statusKey="Ready to review"
-            } catch {
-                statusKey="Cleanup preview failed."
-                if let failure=error as? ShouError {
-                    self.error=([failure.message, failure.details["path"], failure.details["reasons"]].compactMap { $0 }).joined(separator: "\n")
-                } else { self.error=error.localizedDescription }
+        startReviewedExecution(total: sources.count, action: action) {
+            try await self.prepareCommonCleanup(sources: sources, action: action)
+        }
+    }
+    private func prepareCommonCleanup(sources: [CleanupSource], action: String) async throws -> ReviewPrompt {
+        guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }
+        var plans: [ReviewedPlan]=[], paths: [String]=[]
+        var bytes: Int64=0
+        for snapshotId in Set(sources.map(\.snapshotId)).sorted() {
+            try Task.checkCancellation()
+            let selected=sources.filter { $0.snapshotId == snapshotId }
+            let automatic=selected.filter { !$0.requiresManualReview }
+            if !automatic.isEmpty {
+                let plan=try await engine.createPlan(scanId: snapshotId, candidateIds: automatic.map(\.candidate.id), action: action)
+                plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.workspace.path))
+                paths += plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }
+                bytes += plan.allocatedBytesEstimate
+            }
+            let manual=selected.filter(\.requiresManualReview)
+            if !manual.isEmpty {
+                let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: snapshotId, candidateIds: manual.map(\.candidate.id), action: action)
+                plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.rootPath, directRemoval: true))
+                paths += plan.items.map { StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path) }
+                bytes += plan.allocatedBytesEstimate
             }
         }
+        return ReviewPrompt(id: UUID().uuidString, digest: "", action: action,
+            paths: paths, itemIds: [], byteEstimate: bytes, plans: plans,
+            impacts: Array(Set(sources.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations + $0.candidate.reasons })).sorted(),
+            manualReview: sources.contains(where: \.requiresManualReview))
     }
     func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); ai.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
     func stopAndWaitForExecution() async -> Bool {
@@ -707,18 +685,13 @@ struct CleanupCompletion: Identifiable {
             space.navigate(StorageIndex.parent(path)); space.focus=path
         } else { space.start(app: self) }
     }
-    func previewCleanup(permanent: Bool = true) {
-        guard let engine, let snapshot, !busy, !selected.isEmpty else { return }
-        busy=true; statusKey="Preparing cleanup preview…"
-        task=Task {
-            defer { busy=false }
-            do {
-                let action=permanent ? "permanent" : "trash"
-                let plan=try await engine.createPlan(scanId: snapshot.id, candidateIds: selected.filter(\.eligible).map(\.id), action: action)
-                prompt=ReviewPrompt(id: plan.id, digest: plan.digest, action: action, paths: plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }, itemIds: [], byteEstimate: plan.allocatedBytesEstimate,
-                    impacts: Array(Set(plan.items.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations })).sorted())
-                statusKey="Ready to review"
-            } catch { self.error=error.localizedDescription }
+    func executeCleanup(permanent: Bool = true) {
+        guard let engine, let snapshot, !busy, !selected.isEmpty, selected.allSatisfy(\.eligible), !snapshot.previewOnly else { return }
+        let candidateIds=selected.map(\.id), action=permanent ? "permanent" : "trash"
+        startReviewedExecution(total: candidateIds.count, action: action) {
+            let plan=try await engine.createPlan(scanId: snapshot.id, candidateIds: candidateIds, action: action)
+            return ReviewPrompt(id: plan.id, digest: plan.digest, action: action,
+                paths: plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }, itemIds: [], byteEstimate: plan.allocatedBytesEstimate)
         }
     }
     func review(_ receipt: ExecutionReceipt, items: [ItemReceipt], action: String) {
@@ -835,74 +808,95 @@ struct CleanupCompletion: Identifiable {
         }
     }
     func confirm(_ review: ReviewPrompt) {
-        guard let engine, !busy else { return }
+        startReviewedExecution(total: review.itemIds.isEmpty ? review.paths.count : review.itemIds.count, action: review.action) { review }
+    }
+    private func startReviewedExecution(total: Int, action: String, prepare: @escaping () async throws -> ReviewPrompt) {
+        guard engine != nil, !busy else { return }
         let sourceSection=section
-        prompt=nil; busy=true; scanProgress=nil
-        let execution=beginExecution(total: review.itemIds.isEmpty ? review.paths.count : review.itemIds.count, action: review.action)
+        prompt=nil; busy=true; scanProgress=nil; statusKey="Checking selected files…"
+        let execution=beginExecution(total: total, action: action, stage: "preparing")
         let operation=UUID(); operationID=operation
         task=Task {
             defer { busy=false; isExecuting=false; stopRequested=false }
             do {
-                if ["trash", "permanent"].contains(review.action) {
-                    let plans=review.plans.isEmpty ? [ReviewedPlan(id: review.id, digest: review.digest, workspacePath: "")] : review.plans
-                    var receipts: [ExecutionReceipt]=[], failures: [String]=[]
-                    var processed=0
-                    for plan in plans {
-                        if Task.isCancelled { failures.append(plan.workspacePath + "\n" + t("Cleanup stopped before this location was processed.")); continue }
-                        let processedBefore=processed, total=review.paths.count
-                        do {
-                            let progress: @Sendable (ExecutionProgress) -> Void = { [weak self] update in
-                                Task { @MainActor in
-                                    guard let self, self.isExecuting, self.operationID == operation else { return }
-                                    self.updateExecutionProgress(update.inBatch(processedBefore: processedBefore, itemCount: total), operation: execution)
-                                }
-                            }
-                            let receipt: ExecutionReceipt
-                            if plan.directRemoval {
-                                receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop-manual-review", progress: progress)
-                            } else {
-                                receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: progress)
-                            }
-                            receipts.append(receipt)
-                            processed += receipt.items.filter { !["pending", "moving", "purging"].contains($0.state) }.count
-                        }
-                        catch {
-                            if (error as? ShouError)?.code != "cancelled" { operationHadError=true }
-                            failures.append(plan.workspacePath + "\n" + error.localizedDescription)
-                        }
-                    }
-                    if receipts.contains(where: { $0.items.contains { ["failed", "unknown", "moving"].contains($0.state) } }) { operationHadError=true }
-                    let succeeded=Set(receipts.flatMap(\.items).filter { ["purged", "trashed"].contains($0.state) }.map(\.originalPath))
-                    let retryPaths=Set(review.paths).subtracting(succeeded)
-                    let retryWorkspaces=systemResult?.snapshots.map(\.workspace).filter { root in retryPaths.contains { $0.hasPrefix(root.path + "/") } } ?? []
-                    completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: sourceSection, retryPaths: retryPaths, retryWorkspaces: retryWorkspaces)
-                    commonSelection=[]
-                    // A failed permanent item may already have removed descendants.
-                    // Every attempted execution invalidates the old scan evidence.
-                    snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview()
-                    statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }
-                        ? (review.action == "permanent" ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.")
-                        : "Some items were not moved. Inspect history."
-                } else {
-                    let results=try await engine.followUp(executionId: review.id, itemIds: review.itemIds, action: review.action, confirmedDigest: review.digest, progress: { [weak self] update in
+                let review=try await prepare()
+                try Task.checkCancellation()
+                try await executeReviewedCleanup(review, sourceSection: sourceSection, execution: execution, operation: operation)
+            } catch {
+                if Task.isCancelled { statusKey="Operation stopped. Review History for remaining items." }
+                else {
+                    operationHadError=true
+                    let failure=error as? ShouError
+                    let details=([error.localizedDescription, failure?.details["path"], failure?.details["reasons"]].compactMap { $0 }).joined(separator: "\n")
+                    if ["permanent", "trash"].contains(action) {
+                        completion=CleanupCompletion(receipts: [], failures: [details], sourceSection: sourceSection)
+                        statusKey="Some items could not be removed. Review the result."
+                    } else { self.error=details }
+                }
+                await refresh()
+            }
+        }
+    }
+    private func executeReviewedCleanup(_ review: ReviewPrompt, sourceSection: String, execution: UUID, operation: UUID) async throws {
+        guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }
+        if ["trash", "permanent"].contains(review.action) {
+            let plans=review.plans.isEmpty ? [ReviewedPlan(id: review.id, digest: review.digest, workspacePath: "")] : review.plans
+            var receipts: [ExecutionReceipt]=[], failures: [String]=[]
+            var processed=0
+            for plan in plans {
+                if Task.isCancelled { failures.append(plan.workspacePath + "\n" + t("Cleanup stopped before this location was processed.")); continue }
+                let processedBefore=processed, total=review.paths.count
+                do {
+                    let progress: @Sendable (ExecutionProgress) -> Void = { [weak self] update in
                         Task { @MainActor in
                             guard let self, self.isExecuting, self.operationID == operation else { return }
-                            self.updateExecutionProgress(update, operation: execution)
+                            self.updateExecutionProgress(update.inBatch(processedBefore: processedBefore, itemCount: total), operation: execution)
                         }
-                    })
-                    if results.contains(where: { $0.state != "completed" }) {
-                        operationHadError=true
-                        statusKey="Some selected items could not be processed. Inspect history."
-                        error=results.compactMap(\.error).joined(separator: "\n")
-                    } else if Task.isCancelled && results.count < review.itemIds.count {
-                        statusKey="Operation stopped. Review History for remaining items."
-                    } else {
-                        statusKey=review.action == "restore" ? "Selected items restored." : "Selected items permanently removed."
                     }
+                    let receipt: ExecutionReceipt
+                    if plan.directRemoval {
+                        receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop-manual-review", progress: progress)
+                    } else {
+                        receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: progress)
+                    }
+                    receipts.append(receipt)
+                    processed += receipt.items.filter { !["pending", "moving", "purging"].contains($0.state) }.count
                 }
-                snapshot=nil; selection=[]; section="history"; await refresh()
-            } catch { self.error=error.localizedDescription; await refresh() }
+                catch {
+                    if (error as? ShouError)?.code != "cancelled" { operationHadError=true }
+                    failures.append(plan.workspacePath + "\n" + error.localizedDescription)
+                }
+            }
+            if receipts.contains(where: { $0.items.contains { ["failed", "unknown", "moving"].contains($0.state) } }) { operationHadError=true }
+            let succeeded=Set(receipts.flatMap(\.items).filter { ["purged", "trashed"].contains($0.state) }.map(\.originalPath))
+            let retryPaths=Set(review.paths).subtracting(succeeded)
+            let retryWorkspaces=systemResult?.snapshots.map(\.workspace).filter { root in retryPaths.contains { $0.hasPrefix(root.path + "/") } } ?? []
+            completion=CleanupCompletion(receipts: receipts, failures: failures, sourceSection: sourceSection, retryPaths: retryPaths, retryWorkspaces: retryWorkspaces)
+            commonSelection=[]
+            // A failed permanent item may already have removed descendants.
+            // Every attempted execution invalidates the old scan evidence.
+            snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview()
+            statusKey=failures.isEmpty && receipts.allSatisfy { $0.state == "completed" }
+                ? (review.action == "permanent" ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.")
+                : "Some items were not moved. Inspect history."
+        } else {
+            let results=try await engine.followUp(executionId: review.id, itemIds: review.itemIds, action: review.action, confirmedDigest: review.digest, progress: { [weak self] update in
+                Task { @MainActor in
+                    guard let self, self.isExecuting, self.operationID == operation else { return }
+                    self.updateExecutionProgress(update, operation: execution)
+                }
+            })
+            if results.contains(where: { $0.state != "completed" }) {
+                operationHadError=true
+                statusKey="Some selected items could not be processed. Inspect history."
+                error=results.compactMap(\.error).joined(separator: "\n")
+            } else if Task.isCancelled && results.count < review.itemIds.count {
+                statusKey="Operation stopped. Review History for remaining items."
+            } else {
+                statusKey=review.action == "restore" ? "Selected items restored." : "Selected items permanently removed."
+            }
         }
+        snapshot=nil; selection=[]; section="history"; await refresh()
     }
     func saveRule(_ data: Data, requireNewVersion: Bool = false) async throws {
         guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }

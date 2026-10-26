@@ -62,7 +62,7 @@
                     <Button Grid.Column="3" x:Name="SelectionMenuButton" AutomationProperties.AutomationId="cleanup.selection-menu" Style="{StaticResource ShouBorderedButton}" VerticalAlignment="Center"><Button.Flyout><MenuFlyout>
                         <MenuFlyoutItem x:Name="RecommendedMenuItem" Click="SelectRecommended" /><MenuFlyoutItem x:Name="ReviewableMenuItem" Click="SelectReviewable" /><MenuFlyoutItem x:Name="AllEligibleMenuItem" Click="SelectAllEligible" /><MenuFlyoutSeparator /><MenuFlyoutItem x:Name="ClearSelectionMenuItem" AutomationProperties.AutomationId="cleanup.clear" Click="ClearSelection" />
                     </MenuFlyout></Button.Flyout></Button>
-                    <Button Grid.Column="4" x:Name="CleanButton" AutomationProperties.AutomationId="cleanup.execute" Click="ExecuteCleanup" IsEnabled="False" Style="{StaticResource ShouPrimaryButton}" VerticalAlignment="Center" />
+                    <Button Grid.Column="4" x:Name="CleanButton" AutomationProperties.AutomationId="cleanup.execute" Click="ExecuteCleanup" IsEnabled="False" Style="{StaticResource ShouDestructiveButton}" VerticalAlignment="Center" />
                 </Grid>
                 <TextBlock x:Name="UnavailableNotice" Style="{StaticResource ShouCaption}" TextWrapping="Wrap" />
             </StackPanel>

@@ -134,7 +134,7 @@ sequenceDiagram
 
 Source connects `ApplicationUninstallService`, `WindowsApplicationUninstallMutation`, CLI terminal confirmation/outcome queries and WinUI execution interaction. GUI and CLI share `WindowsApplicationUninstallMutation.PublicExecutionAvailable`, currently `false`; the UI disables execution and public `applications uninstall` returns `unsupported_capability`/exit 8 without prompting or invoking an installer. Native uninstall, installer data effects and interruption behavior are unaccepted.
 
-Confirmation freshly checks identity and installation-directory activity and presents the full plan, system identity, data effects, possible shutdown of installer-managed apps/services and the lack of Shou restore. CLI requires `UNINSTALL <uninstall_plan_id>`. WinUI uses a separate dialog defaulting to Cancel; users actively select Uninstall after reviewing the application, exact identity and system effects. The data-effects checkbox is not execution confirmation. There is no unattended approval option. Consent belongs to its issuing service instance, binds plan ID/digest, expires within one minute and the plan lifetime, and can be consumed once.
+Confirmation freshly checks identity and installation-directory activity and presents the full plan, system identity, data effects, possible shutdown of installer-managed apps/services and the lack of Shou restore. CLI requires `UNINSTALL <uninstall_plan_id>`. WinUI shows the application, verified installation identity and system effects inline. After separately acknowledging data effects, clicking the red Uninstall Permanently footer button confirms that installation, prepares a fresh plan and validates execution without another dialog. The data-effects checkbox is not execution confirmation. There is no unattended approval option. Consent belongs to its issuing service instance, binds plan ID/digest, expires within one minute and the plan lifetime, and can be consumed once.
 
 Execution holds the existing cross-process mutation lease, rereads and validates the plan/consent/current review, and writes no intent for stale preflight. It then durably publishes `uninstalling` before Platform rechecks the actor, identity, activity and authorization deadline and invokes the system installer. System APIs provide no atomic transaction covering identity checks and uninstall. External installation changes and installer custom actions still require native verification; the system installation is not frozen.
 
@@ -195,7 +195,7 @@ sequenceDiagram
 
 ### WinUI confirmation and window lifecycle
 
-The applications page separates installer-data acknowledgement, plan preparation and current execution confirmation. Starting execution clears the executable page plan and acknowledgement while retaining its exact ID for read-only queries. Expired plans and clock rollback prevent dispatch. The confirmation adapter uses DispatcherQueue to return to the UI thread; cancellation, an unavailable page or failed dispatch cannot grant consent. Native UI verification remains pending.
+The applications page reviews installation identity and data effects inline, with data consent initially unchecked. Its red footer action becomes available only for that reviewed and acknowledged installation; the click freezes it, prepares the plan internally and submits current confirmation without a Prepare Plan button or duplicate dialog. Starting execution clears the executable page plan and acknowledgement while retaining its exact ID for read-only queries. Expired plans and clock rollback prevent dispatch. The confirmation adapter uses DispatcherQueue to return to the UI thread; cancellation, an unavailable page or failed dispatch cannot grant consent. Native UI verification remains pending.
 
 From confirmation until the execution task returns, selection, refresh and navigation to other pages are disabled. Stop or normal window closing requests cancellation and keeps the window open while awaiting the actual outcome; MSI cancellation remains in the installer UI. A real outcome arriving after Stop must still be shown. Users may close the window after completion. Forced process termination can leave only `uninstalling`, which establishes neither continued installer execution nor completion.
 
@@ -207,14 +207,13 @@ sequenceDiagram
   participant Page as Applications page
   participant VM as Page state
   participant Service as Uninstall service
-  participant Dialog as UI confirmation
-  User->>Page: Execute prepared plan
-  Page->>VM: ExecuteAsync separate confirmation adapter
+  participant Dialog as Current-click confirmation adapter
+  User->>Page: Review inline, acknowledge and click red uninstall
+  Page->>VM: Prepare exact plan and ExecuteAsync
   VM->>VM: Keep query ID Clear plan Prevent replay
   VM->>Service: Confirm and execute exact plan
   Service->>Dialog: Request confirmation through DispatcherQueue
-  Dialog-->>User: Default Cancel Show identity and effects
-  User->>Dialog: Actively confirm uninstall
+  Dialog->>Dialog: Check this one-use click and page visibility
   Dialog-->>Service: Current confirmation
   User->>Page: Stop or normal window close
   Page->>VM: Request cancellation Keep window and navigation
@@ -238,7 +237,7 @@ Users need to compare applications, select several, review associated data inlin
 | Running application | Request normal quit, then rescan; no forced termination or automatic selection |
 | Administrator application | Selectable lock indicator; eligible current-user/root-owned bundles use Finder’s native Trash operation, with macOS authentication when required; associated data is kept |
 | Protected application | System/current applications, other-user content and unverifiable targets remain unavailable |
-| Uninstall | Desktop defaults to native Trash after exact application/component confirmation; permanent removal remains an explicit alternative for eligible user-owned applications |
+| Uninstall | Review components and personal-data impact inline; click the red Delete Permanently footer button once to confirm the exact selection, validate and execute without another dialog. Trash remains a secondary menu action. Administrator applications require explicit Trash and system authentication |
 | Results and recovery | Shared per-item history; only verified Trash items can be restored; permanent removal cannot be restored |
 
 List totals describe bundle allocation; the bottom bar describes the actual selected bundles and associated components. Neither promises exclusively reclaimable bytes. Missing last-used metadata stays unknown rather than using modification time. Coverage gaps, unavailable sizes and activity checks remain explicit. Refreshing or changing selection invalidates prior confirmation; mutations require a new scan for current totals and status.

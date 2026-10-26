@@ -8,6 +8,7 @@ TASK_SIGNING_IDENTITY=${SHOU_SIGNING_IDENTITY:--}
 case "$TASK_CONFIGURATION" in debug|release) ;; *) echo "Usage: sh scripts/build-macos.sh [debug|release] [native|universal]" >&2; exit 2 ;; esac
 case "$TASK_ARCHITECTURES" in native|universal) ;; *) echo "Unknown architecture: $TASK_ARCHITECTURES" >&2; exit 2 ;; esac
 python3 "scripts/update-localizations.py" --check
+python3 "scripts/workspace_artwork.py" --check
 if [ "$TASK_ARCHITECTURES" = universal ]; then
     for TASK_ARCH in arm64 x86_64; do
         swift build --jobs 4 -c "$TASK_CONFIGURATION" --arch "$TASK_ARCH" --product ShouDesktop
@@ -39,6 +40,9 @@ info['ShouSigningMode']='ad-hoc' if sys.argv[2] == '-' else 'developer-id'
 path.write_bytes(plistlib.dumps(info))
 PY
 cp "assets/brand/Shou.icns" "$TASK_APP/Contents/Resources/Shou.icns"
+cp "assets/brand/shou-mascot.png" "$TASK_APP/Contents/Resources/ShouMascot.png"
+mkdir -p "$TASK_APP/Contents/Resources/Illustrations"
+cp "assets/design/illustrations/"*.png "$TASK_APP/Contents/Resources/Illustrations/"
 cp "LICENSE" "$TASK_APP/Contents/Resources/LICENSE.txt"
 install -m 644 ".build/checkouts/swift-ai-sdk/LICENSE" "$TASK_APP/Contents/Resources/SwiftAISDK-LICENSE.txt"
 cp ".build/artifacts/sparkle/Sparkle/LICENSE" "$TASK_APP/Contents/Resources/Sparkle-LICENSE.txt"

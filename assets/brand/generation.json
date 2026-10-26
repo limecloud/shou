@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-26",
+  "mode": "imagegen bundled CLI / user-authorized compatible API",
+  "requested_model": "gpt-image-2",
+  "requested_size": "1024x1024",
+  "requested_quality": "high",
+  "response": {
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "sha256": "44f923d9eac36adf8c0c2afddea195fa48b72e847ccb9e09dc617d3c3600db6e"
+  },
+  "canonical_master": {
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "sha256": "fa300e5aa65c1754bcc8d22627b1b56d155bc5e14e192816195c0cef3f99233c"
+  },
+  "preparation": {
+    "alpha_remap": "clamp((alpha - 230) * 255 / 18, 0, 255)",
+    "alpha_filters": "median 15, minimum 3, Gaussian contour radius 14, threshold 128, Gaussian antialias radius 0.85 at original resolution; RGB unchanged",
+    "resize": "Lanczos to 1024 \u00d7 1024",
+    "background": "diagonal sRGB #FAFAF1 to #D3EFE5",
+    "grounding_shadow": "ellipse (190,822,840,878), RGBA (20,74,64,40), Gaussian radius 14",
+    "script": "scripts/prepare-brand-artwork.py; scripts/artwork_alpha.py"
+  },
+  "credentials_stored": false,
+  "page_mascot": {
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "sha256": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
+    "preparation": "Same corrected alpha, cropped to alpha bounds with 48px padding on a square transparent canvas, Lanczos to 1024px."
+  }
+}

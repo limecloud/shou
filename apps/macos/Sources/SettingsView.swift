@@ -40,13 +40,23 @@ struct SettingsView: View {
                             .accessibilityIdentifier("settings.reduceMotion")
                     }
                 }
-                group("Software Updates") {
+                group("About Shou") {
+                    HStack(spacing: ShouDesign.sectionSpacing) {
+                        Image(nsImage: AppIdentity.icon).resizable().interpolation(.high).scaledToFit()
+                            .frame(width: ShouDesign.brandIconSize, height: ShouDesign.brandIconSize)
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""))
+                                .font(.system(size: ShouDesign.bodyFontSize, weight: .semibold))
+                            Text(model.t("Updates are verified before installation."))
+                                .font(.system(size: ShouDesign.settingsSubtitleSize)).foregroundStyle(.secondary)
+                        }
+                        Spacer(minLength: 24)
+                        CheckForUpdatesButton(model: model, updater: updater).controlSize(.regular)
+                    }.padding(ShouDesign.settingsRowPadding)
+                    Divider().padding(ShouDesign.settingsSeparatorInset)
                     row("Automatic update checks", "Get notified when a new version is available.", icon: "arrow.triangle.2.circlepath") {
                         Toggle(model.t("Automatic update checks"), isOn: $updater.automaticChecks).labelsHidden().toggleStyle(.switch)
-                    }
-                    Divider().padding(ShouDesign.settingsSeparatorInset)
-                    row("Shou " + (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.11.0"), "Updates are verified before installation.", icon: "shippingbox") {
-                        Button(model.t("Check for Updates…")) { updater.checkForUpdates() }.disabled(!updater.canCheckForUpdates || model.busy)
                     }
                 }
                 AIConnectionsSettings(model: model, session: model.ai)

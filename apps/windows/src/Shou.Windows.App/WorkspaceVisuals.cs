@@ -58,13 +58,38 @@ internal static class WorkspaceVisuals
         content.HorizontalAlignment = HorizontalAlignment.Stretch;
         content.Children.Add(grid);
         // Reduce decorative art at the minimum window size while preserving the actual controls.
-        content.SizeChanged += (_, _) =>
+        ScrollViewer? viewport = null;
+        void FitLanding(object? sender, SizeChangedEventArgs? args)
         {
             grid.Width = Math.Min(grid.MaxWidth, content.ActualWidth);
-            var narrow = content.ActualWidth < 800;
-            var width = narrow ? 260 : 400;
+            var compact = content.ActualWidth < 1000 ||
+                viewport is { ActualHeight: > 0 } && viewport.ActualHeight < (double)Application.Current.Resources["ShouHomeCompactHeightBreakpoint"];
+            words.Spacing = compact ? (double)Application.Current.Resources["ShouHomeCompactSpacing"] : 20;
+            var inset = compact ? (double)Application.Current.Resources["ShouHomeCompactInset"] : 28;
+            content.Margin = new Thickness(inset);
+            var width = compact ? (double)Application.Current.Resources["ShouHomeCompactArtworkWidth"] : 400;
             grid.ColumnDefinitions[1].Width = new GridLength(width);
-            if (icon.Content is Image image) { image.Width = width; image.Height = narrow ? 230 : 310; }
+            if (icon.Content is Image image)
+            {
+                image.Width = width;
+                image.Height = compact ? (double)Application.Current.Resources["ShouHomeCompactArtworkHeight"] : 310;
+            }
+        }
+        content.SizeChanged += FitLanding;
+        content.Loaded += (_, _) =>
+        {
+            if (viewport is not null) viewport.SizeChanged -= FitLanding;
+            for (DependencyObject? parent = VisualTreeHelper.GetParent(content); parent is not null; parent = VisualTreeHelper.GetParent(parent))
+            {
+                if (parent is ScrollViewer scroll) { viewport = scroll; break; }
+            }
+            if (viewport is not null) viewport.SizeChanged += FitLanding;
+            FitLanding(null, null);
+        };
+        content.Unloaded += (_, _) =>
+        {
+            if (viewport is not null) viewport.SizeChanged -= FitLanding;
+            viewport = null;
         };
     }
 
@@ -85,7 +110,7 @@ internal static class WorkspaceVisuals
 
     public static FrameworkElement Destinations(TextCatalog text, Action<string> navigate)
     {
-        var grid = new Grid { ColumnSpacing = 16, Margin = new Thickness(0, 20, 0, 0) };
+        var grid = new Grid { ColumnSpacing = 16, Margin = new Thickness(0, 12, 0, 0) };
         var entries = new[]
         {
             ("applications", "Apps & Projects", "A clearer view of apps and build outputs.", "applications"),
@@ -96,19 +121,21 @@ internal static class WorkspaceVisuals
         {
             var (page, title, subtitle, artwork) = entries[index];
             grid.ColumnDefinitions.Add(new ColumnDefinition());
-            var content = new StackPanel { Spacing = 10 };
+            var content = new StackPanel { Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
             content.Children.Add(new TextBlock { Text = text.Get(title), FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 TextWrapping = TextWrapping.Wrap });
-            var detail = new Grid { ColumnSpacing = 8 };
+            var detail = new Grid { ColumnSpacing = 12 };
             detail.ColumnDefinitions.Add(new ColumnDefinition());
             detail.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             var description = new TextBlock { Text = text.Get(subtitle), TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Center };
             ThemeResources.Apply(description, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
-            detail.Children.Add(description);
-            var picture = Artwork(artwork, 80, 70); Grid.SetColumn(picture, 1); detail.Children.Add(picture);
-            content.Children.Add(detail);
-            var button = new Button { Content = content, Padding = new Thickness(22), HorizontalAlignment = HorizontalAlignment.Stretch,
+            description.FontSize = (double)Application.Current.Resources["ShouCaptionFontSize"];
+            content.Children.Add(description);
+            detail.Children.Add(content);
+            var size = (double)Application.Current.Resources["ShouHomeCardArtworkSize"];
+            var picture = Artwork(artwork, size, size); Grid.SetColumn(picture, 1); detail.Children.Add(picture);
+            var button = new Button { Content = detail, Padding = new Thickness(16), HorizontalAlignment = HorizontalAlignment.Stretch,
                 HorizontalContentAlignment = HorizontalAlignment.Stretch, MinHeight = (double)Application.Current.Resources["ShouHomeCardHeight"],
                 CornerRadius = (CornerRadius)Application.Current.Resources["ShouHomeCardRadius"] };
             ThemeResources.Apply(button, Control.BackgroundProperty, "Background", "ShouSurfaceBrush");

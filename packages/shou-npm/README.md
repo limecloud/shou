@@ -25,7 +25,7 @@ Full Disk Access, or enable AI connections. Ordinary scanning and cleanup run
 locally without a model. Optional AI investigation uses an explicitly configured
 service.
 
-Version `0.16.0` supports **macOS 14 or later only**, on Apple Silicon
+Version `0.17.0` supports **macOS 14 or later only**, on Apple Silicon
 and Intel, using an ad-hoc signed executable without Apple notarization. Terminal
 and desktop privacy access are independent. Windows packages are not published.
 The source template is private and must be staged before publication. Routing and
@@ -52,10 +52,10 @@ versions. For an existing Windows x64 development payload:
 
 ```sh
 sh "scripts/build-windows-cli.sh" win-x64
-python3 "scripts/package-npm.py" platform --development --version 0.16.0 \
+python3 "scripts/package-npm.py" platform --development --version 0.17.0 \
   --platform win32-x64 --payload ".build/windows/publish/win-x64/cli" \
   --licenses ".build/windows/publish/win-x64/cli/notices" --output ".build/npm/win32-x64"
-python3 "scripts/package-npm.py" launcher --development --version 0.16.0 \
+python3 "scripts/package-npm.py" launcher --development --version 0.17.0 \
   --platform-package ".build/npm/win32-x64" --output ".build/npm/launcher"
 ```
 

@@ -45,6 +45,9 @@ if args.app:
     icon = app / 'Contents/Resources/Shou.icns'
     assert icon.read_bytes()[:4] == b'icns'
     assert icon.read_bytes() == Path('assets/brand/Shou.icns').read_bytes(), 'Stale packaged application icon'
+    assert (app / 'Contents/Resources/ShouMascot.png').read_bytes() == Path('assets/brand/shou-mascot.png').read_bytes(), 'Stale packaged brand mascot'
+    for artwork in Path('assets/design/illustrations').glob('*.png'):
+        assert (app / 'Contents/Resources/Illustrations' / artwork.name).read_bytes() == artwork.read_bytes(), 'Stale packaged task illustration: ' + artwork.name
     assert (app / 'Contents/Resources/LICENSE.txt').read_bytes() == Path('LICENSE').read_bytes()
     assert (app / 'Contents/Resources/Sparkle-LICENSE.txt').read_bytes() == Path('.build/artifacts/sparkle/Sparkle/LICENSE').read_bytes()
     assert (app / 'Contents/Resources/SwiftAISDK-LICENSE.txt').read_bytes() == Path('.build/checkouts/swift-ai-sdk/LICENSE').read_bytes()

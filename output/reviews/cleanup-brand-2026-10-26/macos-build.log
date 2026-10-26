@@ -1,0 +1,24 @@
+Localization resources verified: 2296 keys, 2 languages.
+Workspace artwork verified: 10 transparent illustrations, source and output SHA-256.
+[0/1] Planning build
+Building for debugging...
+[0/3] Write swift-version--1AB21518FC5DEDBE.txt
+[1/4] Write sources
+[3/6] Compiling ShouMac WorkspaceIllustration.swift
+[4/6] Emitting module ShouMac
+[4/7] Write Objects.LinkFileList
+[5/7] Linking ShouDesktop
+[6/7] Applying ShouDesktop
+Build of product 'ShouDesktop' complete! (43.81s)
+Building for debugging...
+[0/3] Write swift-version--1AB21518FC5DEDBE.txt
+Build of product 'shou' complete! (1.34s)
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app/Contents/Resources/Shou_ShouAgentSupport.bundle: replacing existing signature
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app/Contents/Resources/Shou_ShouCore.bundle: replacing existing signature
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app/Contents/Helpers/Shou_ShouAgentSupport.bundle: replacing existing signature
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app/Contents/Helpers/Shou_ShouContracts.bundle: replacing existing signature
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app/Contents/Helpers/Shou_ShouCore.bundle: replacing existing signature
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app/Contents/Helpers/shou: replacing existing signature
+/Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app: replacing existing signature
+Desktop and CLI products verified as distinct native executables.
+Built /Users/coso/Documents/dev/ai/bugu/shou/.build/cleanup-ui-integrated/Shou.app (temporary ad-hoc signature; privacy access may need reauthorization after updates; not notarized).

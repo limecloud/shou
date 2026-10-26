@@ -27,7 +27,7 @@ public sealed partial class SettingsPage : UserControl
         ThemeDescription.Text = text.Get("Choose light, dark, or follow your system settings.");
         MotionTitle.Text = text.Get("Reduce Motion");
         MotionDescription.Text = text.Get("Use static indicators and immediate transitions. Otherwise, follow Windows animation settings.");
-        AboutHeading.Text = text.Get("Software Updates"); UpdateButton.Content = text.Get("Check for Updates…");
+        AboutHeading.Text = text.Get("About Shou"); UpdateButton.Content = text.Get("Check for Updates…");
         ToolTipService.SetToolTip(UpdateButton, text.Get("Automatic updates are not available in this Windows preview."));
         ScanningHeading.Text = text.Get("Scanning and Privacy");
         LocationsTitle.Text = text.Get("Scan Locations");
@@ -53,11 +53,13 @@ public sealed partial class SettingsPage : UserControl
         catch (Exception error) { NativeDiagnostics.Write(error); LocalDataDescription.Text = text.Get("Local data"); OpenDataButton.IsEnabled = false; }
         AiHeading.Text = text.Get("AI Investigation"); AiTitle.Text = text.Get("Enable AI Investigation");
         AiNotice.Text = text.Get("AI investigation is not available in this Windows preview."); AutomationProperties.SetName(AiToggle, AiTitle.Text);
-        foreach (var (host, name) in new[] { (LanguageIcon, "language"), (ThemeIcon, "appearance"), (MotionIcon, "motion"), (PackageIcon, "applications"), (LocationsIcon, "configuration"), (ExclusionsIcon, "privacy"), (LocalDataIcon, "drive"), (FeedbackIcon, "history"), (SourceIcon, "configuration") })
+        foreach (var (host, name) in new[] { (LanguageIcon, "language"), (ThemeIcon, "appearance"), (MotionIcon, "motion"), (LocationsIcon, "configuration"), (ExclusionsIcon, "privacy"), (LocalDataIcon, "drive"), (FeedbackIcon, "history"), (SourceIcon, "configuration") })
         {
             var icon = ProductIcon.Create(name, (double)Application.Current.Resources["ShouSettingsIconSize"]);
             ProductIcon.Select(icon, "TextFillColorSecondaryBrush"); host.Content = icon;
         }
+        var brandSize = (double)Application.Current.Resources["ShouBrandIconSize"];
+        PackageIcon.Content = WorkspaceVisuals.Artwork("brand-icon", brandSize, brandSize);
         VersionText.Text = "Shou " + typeof(SettingsPage).Assembly.GetName().Version?.ToString(3);
         PreviewNotice.Text = text.Get("Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.");
         LanguageBox.ItemsSource = new[] { text.Get("Follow System"), "简体中文", "English" };

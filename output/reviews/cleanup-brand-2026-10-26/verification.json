@@ -1,0 +1,284 @@
+{
+  "date": "2026-10-26",
+  "os": "macOS 15.8.1 / 24H32 / ARM64",
+  "source_head": "082ea3d4a1404a98ebce17c4a86ac581f2f6783f",
+  "source_state": "uncommitted shared workspace; independent monitor work retained",
+  "installed_package_hashes": {
+    "Contents/Resources/Shou.icns": "76c7a0d96993a8d69636ab72cbf38c5ccd3d5d91e3ad9609f80b07a3fce71a40",
+    "Contents/Resources/ShouMascot.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
+    "Contents/Resources/Illustrations/cleanup.png": "b951e33992ffbeefbfa2b40a40db89cf56f8c7bc56484d9d780a3d8bf4933324",
+    "Contents/Resources/Illustrations/applications.png": "4786dab7178003b2d452262737ebce740198d93d53c2d8161bfbf162937177cb",
+    "Contents/Resources/Illustrations/projects.png": "7309c40a36e461c00a7c50e461d7dd5b1d0e51ebfd4917a26f797f426ed00e9b",
+    "Contents/Resources/Illustrations/space.png": "77283c2fec7883d4c0bb0897877927f6932af4d5592152634db620930f892418",
+    "Contents/Resources/Illustrations/large-files.png": "75e6c885035662dda6fd5ca49c164788801c199255bdf3b88c1c812629fe2f6e",
+    "Contents/Resources/Illustrations/privacy.png": "aaf953fd251ab6e03dee73fdb6197305eaf355493cbf965cd2e1103d8b58974e",
+    "Contents/Resources/Illustrations/startup.png": "037e1ec9b918d877870b60a6632447aedc19b7af8acdd8a35259f0c0a9001542",
+    "Contents/Resources/Illustrations/rules.png": "4b1ce5f18bea09e10586d5bb3b443058ac2f0c7ac2ff47f59f7c425aa6c32fdb",
+    "Contents/Resources/Illustrations/history.png": "f3e6a9095e8b5ecaa5e1657a3ec7f74478f921d5ae334284d7eeed8ddb3d756f",
+    "Contents/Resources/Illustrations/settings.png": "cbdef3510bf3c57c4986abfeaeba77d86e5e39405528cc2e0c6276ef5287d970",
+    "Contents/MacOS/Shou": "5cb6f3647be9dd33f161a33a18c20a5924a73764d57213b5d308628a22d28fad",
+    "Contents/Helpers/shou": "d2a68fcd1a1f1ed179c4832d2877e35f015a334b20be3857ac76d431fd469659"
+  },
+  "screenshots": [
+    {
+      "file": "01-home-light.png",
+      "raw": "01-home-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1440,
+        875
+      ],
+      "sha256": "891b358539024fb4ddaa0c36edcf05824b729095d10d8c9d7d80176b2e873f58"
+    },
+    {
+      "file": "02-home-compact-light.png",
+      "raw": "02-home-compact-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1269,
+        733
+      ],
+      "sha256": "f39b4dfb76cdf53b693785e20cc9031d6221b96e8709ff844a1b403d19c7263d"
+    },
+    {
+      "file": "03-home-minimum-light.png",
+      "raw": "03-home-minimum-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "ef33f6dc716948811a1d82e4fb300d86434994f3bcf322015f9c8460e82a6f1b"
+    },
+    {
+      "file": "04-applications-light.png",
+      "raw": "04-applications-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "992cbad562375da9867e2e84f8cefc1e0b67966397f1a3af4cae37bdbd863e05"
+    },
+    {
+      "file": "05-projects-light.png",
+      "raw": "05-projects-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "a3cdccf305aabdcd5049cdc22b2f411dd9cc05675ddcf767f2bb98a32f4b05ba"
+    },
+    {
+      "file": "06-startup-light.png",
+      "raw": "06-startup-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "f3de30efcdda60fff99b2db9ce4f80e3c08fe408cdf4f89c09c16aa18421f5eb"
+    },
+    {
+      "file": "07-space-light.png",
+      "raw": "07-space-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "ce54ac08a23e3b407bc736995f0c403150769d1a8aacc471c9cdc349e3e1d5a3"
+    },
+    {
+      "file": "08-large-files-light.png",
+      "raw": "08-large-files-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "b59b307bcf8ba47787d61a9f0d4fff23fefd54719d8894bed2d45a5023ef4b1c"
+    },
+    {
+      "file": "09-cleanup-return-light.png",
+      "raw": "09-cleanup-return-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        961,
+        732
+      ],
+      "sha256": "35bde506ca3f540b70a5ae378cb4cb2f80bacf1b058a94840bfd4d577ddfef4e"
+    },
+    {
+      "file": "10-privacy-light.png",
+      "raw": "10-privacy-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "7e37d280b89b972f1354b7ab6abd8deb3b2f50bd72c7759f64753ae2182872bf"
+    },
+    {
+      "file": "11-rules-light.png",
+      "raw": "11-rules-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "3840dfd124460519a87500c5a21d884377e57b749b3ec9e5da327251c7a2f6fd"
+    },
+    {
+      "file": "12-history-light.png",
+      "raw": "12-history-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "3ae202e2f21c3d3d20e11d7e97aa18a2cd4e5b157b9c77388e62fc2fdd90a729"
+    },
+    {
+      "file": "13-settings-about-light.png",
+      "raw": "13-settings-about-light.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "9022afb26d754691883268c8848a21c44ed07e527d68ceceab5f3906c4b4ddb7"
+    },
+    {
+      "file": "14-settings-dark.png",
+      "raw": "14-settings-dark.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "fb0544f5e19ae81a1e5dab0fef6c769c025bf1c61750b630f5939f1be0389d2a"
+    },
+    {
+      "file": "15-home-dark.png",
+      "raw": "15-home-dark.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "1226566a74bd0b0a10e1e25111911b1c1d4aa6bfce81ca58ae39a80f49c9fc37"
+    },
+    {
+      "file": "16-settings-return.png",
+      "raw": "16-settings-return.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "a4a7cc09b4f30cf2c993cd46170eef7d270eee3bbfc59db9bef9d78d95a57b8b"
+    },
+    {
+      "file": "17-home-final.png",
+      "raw": "17-home-final.jpg",
+      "raw_format": "JPEG",
+      "pixels": [
+        1268,
+        732
+      ],
+      "sha256": "136a8a414b00f640bf1682a56a92dd72535aa9c476e35cfa184bc55082ea556a"
+    }
+  ],
+  "native_windows_ui_verified": false,
+  "windows_task_png_count": 10,
+  "windows_ico_embedded_png_count": 4,
+  "xaml_xml_well_formed": true,
+  "test_notes": {
+    "earlier_swift_domain_passed": 306,
+    "earlier_full_macos_script_passed": false,
+    "native_node_fixture_block": "build_process_running",
+    "earlier_portable_dotnet_passed": 1245,
+    "earlier_windows_skipped": 88,
+    "earlier_windows_cli_contracts": 192
+  },
+  "website_manifest": {
+    "format_version": 1,
+    "outputs": {
+      "apple-touch-icon.png": "59f5bf662d90e4b8833803121d98d09022a3765e1d08ac42386fc40cf8eb16d7",
+      "favicon-16.png": "383654b8a8fca8f87d0cca4a7f5223080cbfb758614afd3d8781722886c4bef1",
+      "favicon-32.png": "d9ec18fc79f7e337c56b2f5218c087c6950db523f72f9fc68e06516544aebb6c",
+      "favicon.ico": "69294b3458db2cea3c31f7dfaba67e02717c36a19982d1a448b2ee6b9d035e33",
+      "icon-192.png": "55a7e3d5b968b1fe4c0301da05de9701b2481220e397305f926345dff0f5df82",
+      "icon-512.png": "75926e89368843c1ad4007cda6c273731591dca2eeb7368809de78854c7d94bf",
+      "illustrations/applications.webp": "f3416b29be780c67241fbfa6f5a77168616e642891645704bbabb8c9f8df1966",
+      "illustrations/cleanup.webp": "10b5a6de6561ea41d1fda85be9a6a570a3a634173819161992e35e4726b2486f",
+      "illustrations/history.webp": "d908bced55740a333f82394a65d41c73c8c63e4cac31fef15cc7211efa9d19ca",
+      "illustrations/large-files.webp": "25fc408c3bc5a17bab7a4cdfe4ce5961bfddf4cc924464fbd7fe92be3461ed26",
+      "illustrations/privacy.webp": "a274011796ce92657819566976e01f47519f1d57aeb99ce74e8011f3c52d792d",
+      "illustrations/projects.webp": "5b1762d0a3e957367329b4ff3bac58e37af8b3a5fd5bc5a24367aef78ec5af93",
+      "illustrations/rules.webp": "74bce5f423cd2952470e15a1f9904e3a1b401d2aedfc33bec532aff9aa792bf8",
+      "illustrations/settings.webp": "51a66a59332532408cb4e9eb96028d72b06d70c57fb5f64d961919f1eede2f5a",
+      "illustrations/space.webp": "92d5b20be287a26fa42c476737ab466525380b146215501ff00323d8ae4dbc9b",
+      "illustrations/startup.webp": "5295e5fb7c2862c5108dc03d0d17c54d9c2545fdd8447641f2f8fa3a00ccaf89",
+      "logo-horizontal-dark.png": "605f82f3b34e8784cd6b18882114d844cb136b31db1e56121d3b4b64339e558a",
+      "logo-horizontal-dark.webp": "80e691fd92aa9bc414e9287a67d0e743b89e5df11560d31c1f98e5971a270aaa",
+      "logo-horizontal-light.png": "d3113fa463656938a6e39b5911ca6bcb9bf8bcc11c1b21fce5f87e840cc76a53",
+      "logo-horizontal-light.webp": "aaad8559726b76d8cf12579bd703e5ad3b3f8c5e1eecaf264c588b5d2a6be7b9",
+      "logo-symbol.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
+      "logo-symbol.webp": "5a91846496df492f6c1bb3e4917ccef3a637e882015f08fa0fc0196482218026"
+    },
+    "sources": {
+      "assets/brand/shou-icon-1024.png": "55e9ce599fe9ab2e31713c311bf5e50c0a52a9d5614d3eabcb60a9c6b9bcfbc2",
+      "assets/brand/shou-mascot-source.png": "fa300e5aa65c1754bcc8d22627b1b56d155bc5e14e192816195c0cef3f99233c",
+      "assets/brand/shou-mascot.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
+      "assets/design/illustrations/applications.png": "4786dab7178003b2d452262737ebce740198d93d53c2d8161bfbf162937177cb",
+      "assets/design/illustrations/cleanup.png": "b951e33992ffbeefbfa2b40a40db89cf56f8c7bc56484d9d780a3d8bf4933324",
+      "assets/design/illustrations/history.png": "f3e6a9095e8b5ecaa5e1657a3ec7f74478f921d5ae334284d7eeed8ddb3d756f",
+      "assets/design/illustrations/large-files.png": "75e6c885035662dda6fd5ca49c164788801c199255bdf3b88c1c812629fe2f6e",
+      "assets/design/illustrations/privacy.png": "aaf953fd251ab6e03dee73fdb6197305eaf355493cbf965cd2e1103d8b58974e",
+      "assets/design/illustrations/projects.png": "7309c40a36e461c00a7c50e461d7dd5b1d0e51ebfd4917a26f797f426ed00e9b",
+      "assets/design/illustrations/rules.png": "4b1ce5f18bea09e10586d5bb3b443058ac2f0c7ac2ff47f59f7c425aa6c32fdb",
+      "assets/design/illustrations/settings.png": "cbdef3510bf3c57c4986abfeaeba77d86e5e39405528cc2e0c6276ef5287d970",
+      "assets/design/illustrations/space.png": "77283c2fec7883d4c0bb0897877927f6932af4d5592152634db620930f892418",
+      "assets/design/illustrations/startup.png": "037e1ec9b918d877870b60a6632447aedc19b7af8acdd8a35259f0c0a9001542",
+      "assets/design/tokens.json": "64aabd8173ae04c70cc291d3411df7fb1b64e51b00ac761095c55ecb203fdbbd",
+      "scripts/export-web-brand.py": "2ef92177387f735bf6ffe38f69c7996ead92a35f4e88f7af5a868f1db25e3e69"
+    },
+    "wordmark_font": {
+      "embedded": false,
+      "name": [
+        "Arial Rounded MT Bold",
+        "Regular"
+      ],
+      "sha256": "a74ea71c366f15c81f9ce00a757cefb938cda21c0d32e51037d9a038e5ebc14b"
+    }
+  },
+  "checks": {
+    "artwork": {
+      "exit_code": 0,
+      "output": "Workspace artwork verified: 10 transparent illustrations, source and output SHA-256.\n"
+    },
+    "windows_resources": {
+      "exit_code": 0,
+      "output": "Windows resources verified: 23 files, 2 locales; Swift design constants verified.\n"
+    },
+    "website": {
+      "exit_code": 0,
+      "output": "Website brand kit verified: 22 files; no network access required.\n"
+    },
+    "localizations": {
+      "exit_code": 0,
+      "output": "Localization resources verified: 2296 keys, 2 languages.\n"
+    },
+    "docs": {
+      "exit_code": 0,
+      "output": "Documentation verified: 125 Markdown files, 1202 local links, 11 README languages.\n"
+    },
+    "diff": {
+      "exit_code": 0,
+      "output": ""
+    }
+  }
+}

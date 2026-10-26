@@ -39,7 +39,7 @@
                 <TextBlock Grid.Column="1" x:Name="SelectionDetails" AutomationProperties.AutomationId="storage.selection" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Style="{StaticResource ShouCaption}" />
                 <Button Grid.Column="2" x:Name="ClearSelectionButton" Click="ClearStorageSelection" Style="{StaticResource ShouToolbarButton}" />
                 <Button Grid.Column="3" x:Name="PreviousButton" Click="Previous" Style="{StaticResource ShouToolbarButton}" /><Button Grid.Column="4" x:Name="NextButton" Click="Next" Style="{StaticResource ShouToolbarButton}" />
-                <Button Grid.Column="5" x:Name="RemoveButton" AutomationProperties.AutomationId="storage.remove" Click="RemoveSelected" IsEnabled="False" Style="{StaticResource ShouPrimaryButton}" />
+                <Button Grid.Column="5" x:Name="RemoveButton" AutomationProperties.AutomationId="storage.remove" Click="RemoveSelected" IsEnabled="False" Style="{StaticResource ShouDestructiveButton}" />
             </Grid>
         </Grid>
         <InfoBar x:Name="FailureNotice" IsOpen="False" IsClosable="False" Severity="Error" VerticalAlignment="Bottom" Margin="16" />

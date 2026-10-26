@@ -8,9 +8,10 @@ struct CleanupWelcomeView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let compact = geometry.size.width < 1100 || geometry.size.height < ShouDesign.homeCompactHeightBreakpoint
             ScrollView {
-                VStack(alignment: .leading, spacing: ShouDesign.sectionSpacing) {
-                    hero(compact: geometry.size.width < 1100)
+                VStack(alignment: .leading, spacing: compact ? ShouDesign.homeCompactSpacing : ShouDesign.sectionSpacing) {
+                    hero(compact: compact)
                     HStack(spacing: 16) {
                         destination("Apps & Projects", subtitle: "A clearer view of apps and build outputs.", kind: .applications, section: "applications")
                         destination("Space Analysis", subtitle: "Find the files taking up the most room.", kind: .space, section: "storage")
@@ -28,7 +29,7 @@ struct CleanupWelcomeView: View {
                     }.font(.callout).buttonStyle(.link).padding(.horizontal, 4).padding(.bottom, 8)
                 }
                 .frame(maxWidth: ShouDesign.homeMaxWidth)
-                .padding(ShouDesign.workspaceInset)
+                .padding(compact ? ShouDesign.homeCompactInset : ShouDesign.workspaceInset)
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .center)
             }
         }
@@ -38,7 +39,7 @@ struct CleanupWelcomeView: View {
 
     private func hero(compact: Bool) -> some View {
         HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: compact ? ShouDesign.homeCompactSpacing : 18) {
                 Label(model.t("A LITTLE LIGHTER. A LOT MORE ROOM."), systemImage: "sparkle")
                     .font(.system(size: ShouDesign.captionFontSize, weight: .medium))
                     .tracking(model.language == .english ? 1.4 : 2)
@@ -66,7 +67,6 @@ struct CleanupWelcomeView: View {
                     .buttonStyle(WorkspacePrimaryButtonStyle()).fixedSize().accessibilityIdentifier("smart.start")
                     Menu {
                         Button(model.t("Scan Common Locations")) { model.scanCommonLocations() }
-                        Button(model.t("Scan & Free Space")) { model.quickCleanCommon() }
                         Divider()
                         Button(model.t("Scan Locations…"), action: showLocations)
                     } label: {
@@ -86,11 +86,13 @@ struct CleanupWelcomeView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading).layoutPriority(1)
             WorkspaceIllustration()
-                .frame(width: compact ? 330 : ShouDesign.homeArtworkWidth, height: ShouDesign.homeArtworkHeight)
+                .frame(width: compact ? ShouDesign.homeCompactArtworkWidth : ShouDesign.homeArtworkWidth,
+                       height: compact ? ShouDesign.homeCompactArtworkHeight : ShouDesign.homeArtworkHeight)
+                .accessibilityHidden(true)
         }
-        .padding(.leading, compact ? 30 : 42).padding(.trailing, compact ? 8 : 22)
-        .padding(.vertical, 28)
-        .frame(minHeight: ShouDesign.heroHeight)
+        .padding(.leading, compact ? 8 : 42).padding(.trailing, compact ? 0 : 22)
+        .padding(.vertical, compact ? 12 : 28)
+        .frame(minHeight: compact ? ShouDesign.homeCompactHeroHeight : ShouDesign.heroHeight)
     }
 
     private func destination(_ title: String, subtitle: String, kind: WorkspaceArtworkKind, section: String) -> some View {
@@ -112,18 +114,14 @@ private struct WorkspaceDestinationCard: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    Text(title).font(.system(size: 16, weight: .medium)).foregroundStyle(.primary)
-                    Spacer(minLength: 4)
-                    Image(systemName: "arrow.up.right").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
-                }
-                HStack(spacing: 4) {
-                    Text(subtitle).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                    WorkspaceFeatureArtwork(kind: kind).frame(width: 90, height: 80)
-                }
-            }.padding(22).frame(maxWidth: .infinity, minHeight: ShouDesign.homeCardHeight, alignment: .leading)
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(title).font(.system(size: ShouDesign.bodyFontSize, weight: .semibold)).foregroundStyle(.primary)
+                    Text(subtitle).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }.frame(maxWidth: .infinity, alignment: .leading)
+                WorkspacePageArtwork(kind: kind)
+                    .frame(width: ShouDesign.homeCardArtworkSize, height: ShouDesign.homeCardArtworkSize)
+            }.padding(16).frame(maxWidth: .infinity, minHeight: ShouDesign.homeCardHeight, alignment: .leading)
                 .background(scheme == .dark ? ShouDesign.surfaceDark : ShouDesign.surfaceLight, in: RoundedRectangle(cornerRadius: ShouDesign.homeCardRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: ShouDesign.homeCardRadius)

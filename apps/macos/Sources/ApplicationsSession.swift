@@ -20,7 +20,6 @@ import ShouPlatform
     var applicationCount=0
     var currentPath=""
     var hasChanges=false
-    var plan: ApplicationUninstallBatchPlan?
     private var operation=UUID()
     private var task: Task<Void, Never>?
 
@@ -149,30 +148,22 @@ import ShouPlatform
         }
     }
 
-    func prepare(app: AppModel, action: String) {
-        guard let engine=app.engine, !app.busy, !selectedAppIDs.isEmpty else { return }
+    func removeSelected(app: AppModel, action: String) {
+        guard let engine=app.engine, !app.busy, !hasChanges, !selectedAppIDs.isEmpty else { return }
         let choices=selectedAppIDs.sorted().compactMap { id -> ApplicationUninstallSelection? in
             guard let review=reviews[id], let components=selection[id] else { return nil }
             return ApplicationUninstallSelection(reviewId: review.id, componentIds: components.sorted(), includeUserData: personalDataConsent.contains(id))
         }
-        preparing=true; stopRequested=false; processedCount=0; applicationCount=0; currentPath=""; app.busy=true; app.statusKey="Preparing cleanup preview…"
-        task=Task {
-            defer { preparing=false; app.busy=false }
-            do {
-                plan=try await engine.createUninstallBatchPlan(selections: choices, action: action)
-                app.statusKey="Ready to review"
-            } catch { if !Task.isCancelled { app.error=error.localizedDescription }; app.statusKey="Review application components again." }
-        }
-    }
-
-    func execute(_ reviewed: ApplicationUninstallBatchPlan, app: AppModel) {
-        guard let engine=app.engine, !app.busy, plan?.id == reviewed.id else { return }
-        plan=nil; app.busy=true
-        let execution=app.beginExecution(total: reviewed.plans.reduce(0) { $0 + $1.components.count }, action: reviewed.action)
+        guard choices.count == selectedAppIDs.count, action != "permanent" || !selectionRequiresAdministrator else { return }
+        preparing=true; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
+        let execution=app.beginExecution(total: selectedComponents.count, action: action, stage: "preparing")
         let token=UUID(); operation=token
         task=Task {
-            defer { app.busy=false; app.isExecuting=false; app.stopRequested=false }
+            defer { preparing=false; app.busy=false; app.isExecuting=false; app.stopRequested=false }
             do {
+                let reviewed=try await engine.createUninstallBatchPlan(selections: choices, action: action)
+                try Task.checkCancellation()
+                preparing=false
                 let receipt=try await engine.executeUninstallBatch(planId: reviewed.id, confirmedDigest: reviewed.digest, entryPoint: "desktop", progress: { [weak self, weak app] update in
                     Task { @MainActor in
                         guard let self, self.operation == token, let app, app.isExecuting else { return }
@@ -197,7 +188,9 @@ import ShouPlatform
                 await app.refresh()
             } catch {
                 app.operationHadError=true
-                if !Task.isCancelled { app.error=error.localizedDescription }
+                if !Task.isCancelled {
+                    app.completion=CleanupCompletion(receipts: [], failures: [error.localizedDescription], sourceSection: "applications")
+                }
                 let activityUnavailable=(error as? ShouError)?.code == "application_activity_unavailable"
                 app.statusKey=activityUnavailable ? "Application processes and helpers could not be verified." : "Review application components again."
                 hasChanges = !activityUnavailable

@@ -51,6 +51,8 @@ def resources():
         'assets/brand/Shou.iconset/icon_32x32.png',
         'assets/brand/Shou.iconset/icon_128x128.png',
         'assets/brand/Shou.iconset/icon_256x256.png',
+        'assets/brand/shou-mascot.png',
+        'assets/brand/shou-icon-1024.png',
     ]
     strings = json.loads((ROOT / inputs[0]).read_text(encoding='utf-8'))['strings']
     for source in (ROOT / 'apps/windows/src').rglob('*.cs'):
@@ -60,6 +62,8 @@ def resources():
     illustrations = workspace_artwork.verified()
     inputs += ['assets/design/illustrations/manifest.json'] + ['assets/design/illustrations/' + name for name in illustrations]
     outputs = {'Illustrations/' + name: data for name, data in illustrations.items()}
+    outputs['Illustrations/brand-mascot.png'] = (ROOT / 'assets/brand/shou-mascot.png').read_bytes()
+    outputs['Illustrations/brand-icon.png'] = (ROOT / 'assets/brand/shou-icon-1024.png').read_bytes()
     for source_locale, windows_locale in [('en', 'en-US'), ('zh-Hans', 'zh-CN')]:
         entries = {}
         tree = ET.Element('root')

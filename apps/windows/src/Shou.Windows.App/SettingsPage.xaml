@@ -28,7 +28,7 @@
             </StackPanel>
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="AboutHeading" Style="{StaticResource ShouCaption}" />
-            <Border Style="{StaticResource ShouCard}"><Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="PackageIcon" Width="{StaticResource ShouSettingsIconWidth}" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="VersionText" FontWeight="SemiBold" /><TextBlock x:Name="PreviewNotice" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="UpdateButton" IsEnabled="False" VerticalAlignment="Center" /></Grid></Border>
+            <Border Style="{StaticResource ShouCard}"><Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="PackageIcon" Width="{StaticResource ShouBrandIconSize}" Height="{StaticResource ShouBrandIconSize}" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="VersionText" FontWeight="SemiBold" /><TextBlock x:Name="PreviewNotice" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="UpdateButton" IsEnabled="False" VerticalAlignment="Center" /></Grid></Border>
             </StackPanel>
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="AiHeading" Style="{StaticResource ShouCaption}" />

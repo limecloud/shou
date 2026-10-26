@@ -72,9 +72,9 @@ sequenceDiagram
 
 ## User experience
 
-1. Open Smart Cleanup and choose Start Scan. The adjacent menu offers Scan & Free Space and Scan Locations.
+1. Open Smart Cleanup and choose Start Scan. The adjacent menu offers Scan Common Locations and Scan Locations. Scanning only shows results and never deletes automatically.
 2. Shou finds fixed cache roots, conventional project collections and previously included folders. It applies built-in and enabled personal rules and selects eligible results.
-3. Confirm the concrete paths once. Permanent removal is the default; Trash is an explicit alternative. Outcomes and recovery capabilities remain itemized.
+3. Review and select exact paths in the results. Click the prominent red Delete Permanently button once to confirm the current scope, validate and execute without a second dialog. Trash remains an explicit alternative; actual outcomes stay itemized.
 
 The first page presents original folder artwork, a soft gradient and one primary scan action, followed by illustrated links to existing application/project, storage and rule pages. Its secondary row offers optional AI investigation; the native toolbar retains disk capacity. Scan Locations is an optional view in Smart Cleanup and Settings. Include Folder supports several extra folders at once and remembers them for later scans. Advanced rule previews can still open one folder's detail view, with a return action to Smart Cleanup.
 
@@ -102,7 +102,7 @@ Discovery probes literal rule components and project markers before bounded sibl
 
 The cleanup footer exposes a primary permanent-cleanup button and a separate menu for Trash. Preparing a plan checks policy only for the explicit selection while preserving ancestor matches and all saved context. A changed activity or ownership check reports the affected path and blocking reasons and requires a new scan; it is not reported as a corrupt saved rule. No deletion occurs during preparation.
 
-On macOS, matching directories outside automatic cleanup remain manually selectable, including incomplete targets and contents needing a personal decision. They never enter recommendations or the eligible-only selection commands. Manual review uses the existing Space Analysis direct-removal planner: it binds the original root and selected object identities, measures the current complete directories, enforces current exclusions, owner and protected-location checks, and presents a new exact-scope confirmation. The visible warning explains that automatic rule safety/rebuildability has not been established, related tasks should be stopped, and entire listed directories will be removed. Preparation may include contents added since discovery; changes after confirmation reject execution. Excluded targets, protected record locations and draft previews remain unavailable. This explicit path does not change automatic rule eligibility or create unattended deletion authority. Windows manual selection/removal remains planned.
+On macOS, matching directories outside automatic cleanup remain manually selectable, including incomplete targets and contents needing a personal decision. They never enter recommendations or the eligible-only selection commands. Manual review uses the existing Space Analysis direct-removal planner: it binds the original root and selected object identities, measures the current complete directories, enforces current exclusions, owner and protected-location checks, then freezes the selected whole directories on the deletion click and validates execution without a second dialog. The inline warning explains that automatic rule safety/rebuildability has not been established, related tasks should be stopped, and entire listed directories will be removed. Whole-directory selection includes all current contents; changes after plan creation reject execution. Excluded targets, protected record locations and draft previews remain unavailable. This explicit path does not change automatic rule eligibility or create unattended deletion authority. Windows manual selection/removal remains planned.
 
 An incomplete directory offers Continue Scanning This Directory in its details and context menu. This read-only operation measures that exact target with a separate finite budget, under the original root, enabled rules, exclusions and safety checks. Progress identifies the directory and supports Stop. A successful result replaces only that directory's displayed evidence; other results and selections remain, and the refreshed target requires a new selection. Cancellation or failure keeps the previous result. Configuration or identity changes require a fresh scan. Completing one directory does not mark its parent collection complete, and a target that still exceeds the limit remains blocked.
 
@@ -182,7 +182,7 @@ sequenceDiagram
   participant FS as Platform adapter
   participant Apps as Application catalog and activity
   participant Store as Local records
-  User->>UI: Start Scan, or Scan & Free Space
+  User->>UI: Start Scan
   UI->>Engine: scanKnownLocations(includeProjects: true)
   Engine->>FS: Probe conventional directories and verify identities
   Engine->>Store: Reuse policy, register missing eligible roots

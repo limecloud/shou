@@ -133,7 +133,6 @@ struct ApplicationsView: View {
         }) {
             ApplicationOrphansView(model: model, onReviewCoverage: { showCoverageAfterOrphans=true })
         }
-        .sheet(item: $session.plan) { plan in ApplicationBatchConfirmation(model: model, session: session, plan: plan) }
         .toolbar { ToolbarItemGroup { header } }
     }
 
@@ -229,14 +228,10 @@ struct ApplicationsView: View {
             if !session.selectedAppIDs.isEmpty {
                 Button(model.t("Clear Selection")) { session.clear(app: model) }.disabled(model.busy).accessibilityIdentifier("applications.clear")
             }
-            Menu {
-                Button(model.t("Move Selected to Trash…")) { session.prepare(app: model, action: "trash") }
-                Button(model.t("Permanently Uninstall Selected…"), role: .destructive) { session.prepare(app: model, action: "permanent") }
-                    .disabled(session.selectionRequiresAdministrator)
-            } label: { Label(model.t("Uninstall Selected…"), systemImage: "shippingbox") }
-                primaryAction: { session.prepare(app: model, action: "trash") }
-                .fixedSize().buttonStyle(.borderedProminent).controlSize(.large)
-                .disabled(model.busy || session.selectedAppIDs.isEmpty || session.hasChanges).accessibilityIdentifier("applications.uninstall")
+            CleanupActionButton(model: model, enabled: !model.busy && !session.selectedAppIDs.isEmpty && !session.hasChanges,
+                clean: { session.removeSelected(app: model, action: "permanent") },
+                trash: { session.removeSelected(app: model, action: "trash") }, identifier: "applications.uninstall",
+                permanentEnabled: !session.selectionRequiresAdministrator)
         }.padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 12).background(.bar)
     }
     private var coverage: some View {
@@ -383,6 +378,7 @@ private struct ApplicationUninstallRow: View {
                 HStack { ProgressView().controlSize(.small); Text(model.t("Reviewing application components…")).font(.caption) }.padding(.vertical, 12)
             } else {
                 if session.reviews[app.id]?.requiresAdministrator != true && components.contains(where: \.requiresUserDataConsent) {
+                    Text(model.t("Personal app data selected; work and sign-in information may be lost.")).font(.caption).foregroundStyle(.orange)
                     Toggle(model.t("Allow selecting personal app data"), isOn: Binding(get: { session.personalDataConsent.contains(app.id) }, set: { session.allowPersonalData(app.id, allowed: $0, app: model) }))
                         .toggleStyle(.checkbox).font(.caption).disabled(model.busy).accessibilityIdentifier("applications.personalData." + app.id)
                 }
@@ -425,49 +421,5 @@ private struct ApplicationUninstallRow: View {
         case .webKit: "WebKit data"
         case .httpStorage: "HTTP storage"
         }
-    }
-}
-
-private struct ApplicationBatchConfirmation: View {
-    var model: AppModel
-    @Bindable var session: ApplicationsSession
-    let plan: ApplicationUninstallBatchPlan
-    var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Label(model.t(plan.action == "permanent" ? "Permanently uninstall these applications?" : "Move these applications to Trash?"), systemImage: "shippingbox")
-                .font(.title2.weight(.semibold))
-            Text(String(format: model.t("%lld applications selected"), plan.plans.count) + " · " + model.bytes(plan.allocatedBytesEstimate)).foregroundStyle(.secondary)
-            Text(model.t(plan.action == "permanent" ? "The selected applications and components will be permanently removed. This action cannot be undone." : "You can restore these items from History. Moving to Trash does not free disk space."))
-                .font(.callout).foregroundStyle(plan.action == "permanent" ? Color.red : Color.secondary)
-            if plan.plans.contains(where: { $0.components.contains(where: \.requiresAdministrator) }) {
-                Label(model.t("macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept."), systemImage: "lock.fill")
-                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            }
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    ForEach(plan.plans) { application in
-                        VStack(alignment: .leading, spacing: 7) {
-                            Text(application.application.name).font(.headline)
-                            ForEach(application.components) { component in
-                                HStack(alignment: .top) {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(component.path).font(.caption.monospaced()).textSelection(.enabled)
-                                        if component.requiresUserDataConsent { Text(model.t("Personal app data selected; work and sign-in information may be lost.")).font(.caption).foregroundStyle(.orange) }
-                                    }
-                                    Spacer()
-                                    Text(model.bytes(component.allocatedBytesEstimate)).font(.caption).monospacedDigit()
-                                }
-                            }
-                        }
-                    }
-                }.padding(20)
-            }.frame(minHeight: 100, maxHeight: 300).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
-            HStack {
-                Spacer()
-                Button(model.t("Cancel")) { session.plan=nil }.keyboardShortcut(.cancelAction)
-                Button(model.t(plan.action == "permanent" ? "Uninstall Permanently" : "Move to Trash"), role: .destructive) { session.execute(plan, app: model) }
-                    .buttonStyle(.borderedProminent).tint(plan.action == "permanent" ? .red : .accentColor).accessibilityIdentifier("applications.confirm")
-            }
-        }.padding(26).frame(width: 660)
     }
 }

@@ -12,7 +12,6 @@ struct ApplicationOrphansView: View {
     @State private var loading=false
     @State private var issue: String?
     @State private var incompleteInventory=false
-    @State private var plan: ApplicationOrphanPlan?
     @State private var operation: Task<Void,Never>?
     private var eligible: [UninstallComponent] { review?.components.filter { $0.eligible && (!$0.requiresUserDataConsent || includePersonalData) } ?? [] }
     var body: some View {
@@ -29,7 +28,7 @@ struct ApplicationOrphansView: View {
                 Button(model.t("Deselect All")) { selected=[] }
                 Spacer()
                 Toggle(model.t("Include personal application data"), isOn: $includePersonalData).toggleStyle(.checkbox)
-            }.font(.callout)
+            }.font(.callout).disabled(loading)
             List(review?.components ?? []) { component in
                 HStack {
                     Toggle("", isOn: Binding(get: { selected.contains(component.id) }, set: { if $0 { selected.insert(component.id) } else { selected.remove(component.id) } }))
@@ -43,7 +42,7 @@ struct ApplicationOrphansView: View {
                     Text(model.t(component.kind.rawValue)).font(.caption).foregroundStyle(.secondary)
                     Text(model.bytes(component.allocatedBytesEstimate)).monospacedDigit().frame(width: 86, alignment: .trailing)
                 }.padding(.vertical, 5)
-            }.overlay { if review?.components.isEmpty == true { ContentUnavailableView(model.t("No verified application leftovers found."), systemImage: "checkmark.circle") } }
+            }.disabled(loading).overlay { if review?.components.isEmpty == true { ContentUnavailableView(model.t("No verified application leftovers found."), systemImage: "checkmark.circle") } }
             if let issue {
                 HStack {
                     Text(model.t(issue)).font(.caption).foregroundStyle(.red)
@@ -52,19 +51,23 @@ struct ApplicationOrphansView: View {
                     }
                 }
             }
+            Text(model.t("Selected files are permanently removed. Personal data cannot be restored.")).font(.caption).foregroundStyle(.secondary)
             HStack {
                 Text(model.bytes(eligible.filter { selected.contains($0.id) }.reduce(0) { $0 + $1.allocatedBytesEstimate })).font(.headline)
                 Spacer()
                 Button(model.t("Back")) { dismiss() }.keyboardShortcut(.cancelAction)
-                Button(model.t("Clean Permanently…")) { prepare() }.buttonStyle(.borderedProminent).disabled(loading || selected.isEmpty || model.busy)
+                Button(role: .destructive) { prepare() } label: {
+                    Label(model.t("Delete Permanently"), systemImage: "trash")
+                        .font(.headline).frame(minWidth: ShouDesign.primaryActionMinWidth, minHeight: ShouDesign.primaryActionContentMinHeight)
+                }.buttonStyle(.borderedProminent).tint(.red).controlSize(.large)
+                    .help(model.t("Permanent deletion cannot be undone."))
+                    .accessibilityHint(model.t("Permanent deletion cannot be undone."))
+                    .disabled(loading || selected.isEmpty || model.busy)
             }
         }.padding(22).frame(width: 800, height: 600)
             .onAppear { load() }.onDisappear { operation?.cancel() }
             .onChange(of: includePersonalData) { _, enabled in if !enabled { selected.formIntersection(Set(eligible.map(\.id))) } }
-            .alert(model.t("Permanently delete selected leftovers?"), isPresented: Binding(get: { plan != nil }, set: { if !$0 { plan=nil } })) {
-                Button(model.t("Cancel"), role: .cancel) { plan=nil }
-                Button(model.t("Clean Permanently"), role: .destructive) { if let plan { dismiss(); model.executeApplicationOrphans(plan) }; plan=nil }
-            } message: { Text(model.t("Selected files are permanently removed. Personal data cannot be restored.")) }
+
     }
     private func load() {
         guard !loading, let engine=model.engine else { return }
@@ -84,11 +87,17 @@ struct ApplicationOrphansView: View {
         }
     }
     private func prepare() {
-        guard let engine=model.engine, let review else { return }
+        guard let engine=model.engine, let review, !loading, !model.busy, !selected.isEmpty else { return }
+        let componentIds=Array(selected), consent=includePersonalData
         loading=true
         operation=Task {
             defer { loading=false }
-            do { plan=try await engine.createApplicationOrphanPlan(reviewId: review.id, componentIds: Array(selected), includeUserData: includePersonalData) }
+            do {
+                let plan=try await engine.createApplicationOrphanPlan(reviewId: review.id, componentIds: componentIds, includeUserData: consent)
+                try Task.checkCancellation()
+                model.executeApplicationOrphans(plan)
+                dismiss()
+            }
             catch { issue=error.localizedDescription }
         }
     }

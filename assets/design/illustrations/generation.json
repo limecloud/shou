@@ -1,0 +1,133 @@
+{
+  "credentials_stored": false,
+  "date": "2026-10-26",
+  "images": {
+    "applications": {
+      "master_sha256": "7a8943d8c0127ea0b8f4701be180b9e5ce07c55f4fe561d003c4097670f0caca",
+      "master_size": [
+        1241,
+        789
+      ],
+      "response_sha256": "60fbfb14fd896dacc15c831cdb885c1d87576d04ea1e356899b690ca55dc38c8",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "cleanup": {
+      "master_sha256": "13055d2a1f45bb0b29a7b101cd2d787fbb56c3f11e1c67c371b92b2c2f36ebd8",
+      "master_size": [
+        1108,
+        1032
+      ],
+      "response_sha256": "61daec2b58fb46de57e00a03e1e72e19a78f771781941ba5be13fe79ed62fe1b",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "history": {
+      "master_sha256": "fbc76a9bcf1b0a3615c9b14887d50bb1c00272025efe89af5de7c82a039893b2",
+      "master_size": [
+        1233,
+        801
+      ],
+      "response_sha256": "c69b1c074df1eddb92079987e3b1a1dbfc66c80094e83474ad5dc1c35d7a846d",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "large-files": {
+      "master_sha256": "d23b232d573b4b7b024f317a07d01c54274edca2a849bde668d817e7252695aa",
+      "master_size": [
+        1217,
+        913
+      ],
+      "response_sha256": "e399736b98ce15d6e6501cfb61fdc8a3bea6e8e15a34348bce2d96df2f639b20",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "privacy": {
+      "master_sha256": "17e2be2f57f8da3a670fea6d3f33b9e7270d0e69de911f097e195e78983bad2a",
+      "master_size": [
+        1234,
+        920
+      ],
+      "response_sha256": "fe8c4b2a9cb34bd422c5505eb451753dcf79e128ba30c9fe5424eae2c373956d",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "projects": {
+      "master_sha256": "d81a83a5ef186372f527037643ddd1d29a559e0b9fb5887d5f5210ca09ac3a93",
+      "master_size": [
+        1212,
+        786
+      ],
+      "response_sha256": "22ced81d836e87197da893a496f0352428b7f7ea0d63f72d43a7ad9270483fc7",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "rules": {
+      "master_sha256": "2bacdf045949e3b197562a367badab440c5e231405a24dce34125f48bcf7b477",
+      "master_size": [
+        1217,
+        761
+      ],
+      "response_sha256": "b0f2ad44813083855ed51b66393e961933ea03427b3ec2a7fd6b88b598b7dccc",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "settings": {
+      "master_sha256": "38f7c6df8f3d21ef11a662c708cbd7df060f080721ffe53e892968bec51c1972",
+      "master_size": [
+        1214,
+        877
+      ],
+      "response_sha256": "b8ae9b941fb6a9eb04d4ed04a5cb13051bd5b155e8c829afbdc5f6ded3a853c2",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "space": {
+      "master_sha256": "a5758d83b197f7327de318f0cff2c97bf0cadbdceea6512da3e4a543b3fda23f",
+      "master_size": [
+        1266,
+        734
+      ],
+      "response_sha256": "c9a3276b372e695ce3de3efcdbddb82e2caa188de8cb79c275fda48aec1e205e",
+      "response_size": [
+        1254,
+        1254
+      ]
+    },
+    "startup": {
+      "master_sha256": "d1cf5c7c904700370dcd4bb4ca13fb459e5fa4089abdf7fa6a2d220e25d86db3",
+      "master_size": [
+        1226,
+        764
+      ],
+      "response_sha256": "352f75a406f7fff3f5a866b5c18462a683069c6f5efc58c8774b707ee463e13d",
+      "response_size": [
+        1254,
+        1254
+      ]
+    }
+  },
+  "mode": "bundled imagegen CLI edit with the same mascot reference",
+  "preparation": "Alpha clamp((a-230)*255/18), median 15, minimum 3, Gaussian contour radius 6, threshold 128, Gaussian antialias radius 0.85; RGB unchanged; crop and 4.5% transparent margin.",
+  "quality": "high",
+  "reference": "assets/design/illustrations/source/reference.png",
+  "reference_sha256": "fa9d114e71aea4bcbbdbe260b4a798595c56d492d4f547cd0edace5433897b80",
+  "requested_model": "gpt-image-2",
+  "requested_size": "1024x1024"
+}

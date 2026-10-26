@@ -2,7 +2,7 @@
 
 [English](../../engineering/npm-distribution.md) | 简体中文
 
-发布范围：`@limecloud/shou@0.16.0` 通过精确版本的 ARM64 与 x64 平台包支持 macOS。当前源码已实现平台启动器、分平台打包及离线安装验证入口，源码模板为私有的 `0.16.0`。Windows 自包含 CLI 开发产物已可构建；Windows 原生 npm 验收、签名与 registry 发布仍待完成。
+发布范围：`@limecloud/shou@0.17.0` 通过精确版本的 ARM64 与 x64 平台包支持 macOS。当前源码已实现平台启动器、分平台打包及离线安装验证入口，源码模板为私有的 `0.17.0`。Windows 自包含 CLI 开发产物已可构建；Windows 原生 npm 验收、签名与 registry 发布仍待完成。
 
 ## 公开入口
 
@@ -28,13 +28,13 @@ Node.js 只负责运行 npm 启动器。通过独立原生压缩包安装 CLI �
 
 | 包名 | `os` / `cpu` | 内容 | 状态 |
 | --- | --- | --- | --- |
-| `@limecloud/shou` | 本次产物包含的系统与架构组合 | 启动器、文档、精确依赖版本 | v0.16.0 macOS 发布范围 |
-| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI 与必要资源 | v0.16.0；发布 CI 分架构验证原生安装 |
-| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI 与必要资源 | v0.16.0；发布 CI 分架构验证原生安装 |
+| `@limecloud/shou` | 本次产物包含的系统与架构组合 | 启动器、文档、精确依赖版本 | v0.17.0 macOS 发布范围 |
+| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI 与必要资源 | v0.17.0；发布 CI 分架构验证原生安装 |
+| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI 与必要资源 | v0.17.0；发布 CI 分架构验证原生安装 |
 | `@limecloud/shou-win32-arm64` | `win32` / `arm64` | 自包含 .NET CLI 与必要资源 | 开发打包已实现，原生 npm 验收待完成 |
 | `@limecloud/shou-win32-x64` | `win32` / `x64` | 自包含 .NET CLI 与必要资源 | 开发打包已实现，原生 npm 验收待完成 |
 
-v0.16.0 仅包含上述两个 macOS 平台包，Windows 子包仍为开发产物。源码模板设置 `private=true`，不直接发布。打包脚本只按实际输入的平台包生成主包依赖；开发模式始终私有。正式产物须通过验收并确认平台子包在 registry 可用，才能发布相应主包。源码中的路由能力不代表已发布平台支持。
+v0.17.0 仅包含上述两个 macOS 平台包，Windows 子包仍为开发产物。源码模板设置 `private=true`，不直接发布。打包脚本只按实际输入的平台包生成主包依赖；开发模式始终私有。正式产物须通过验收并确认平台子包在 registry 可用，才能发布相应主包。源码中的路由能力不代表已发布平台支持。
 
 ```mermaid
 flowchart TD
@@ -65,16 +65,16 @@ flowchart TD
 `scripts/package-npm.py` 提供 `platform` 与 `launcher` 两个子命令，不执行发布。Windows 示例使用已有自包含开发产物：
 
 ```sh
-python3 "scripts/package-npm.py" platform --development --version 0.16.0 \
+python3 "scripts/package-npm.py" platform --development --version 0.17.0 \
   --platform win32-x64 --payload ".build/windows/publish/win-x64/cli" \
   --licenses ".build/windows/publish/win-x64/cli/notices" --output ".build/npm/win32-x64"
-python3 "scripts/package-npm.py" launcher --development --version 0.16.0 \
+python3 "scripts/package-npm.py" launcher --development --version 0.17.0 \
   --platform-package ".build/npm/win32-x64" --output ".build/npm/launcher"
 node --test "tests/npm/launcher.test.cjs"
 python3 "tests/npm/test-packaging.py"
 ```
 
-ARM64 使用对应平台名与产物目录。macOS 输入为单架构 Swift CLI 和相邻三个资源 bundle，依赖声明目录须包含 `SwiftAISDK-LICENSE.txt`。Windows 构建入口从实际还原包生成 .NET 许可证、第三方声明和 Windows SDK 来源及许可链接到 `notices`，打包完整复制。两端原生版本必须与本次 npm 版本一致；macOS 应用、CLI 与 npm 本次使用 `0.16.0`，Windows 原生版本同步为 `0.16.0`，GitHub 提供便携预览包；Windows npm 产物仍使用私有开发模式，原生签名与 npm 分发验收完成后再纳入公开启动器。
+ARM64 使用对应平台名与产物目录。macOS 输入为单架构 Swift CLI 和相邻三个资源 bundle，依赖声明目录须包含 `SwiftAISDK-LICENSE.txt`。Windows 构建入口从实际还原包生成 .NET 许可证、第三方声明和 Windows SDK 来源及许可链接到 `notices`，打包完整复制。两端原生版本必须与本次 npm 版本一致；macOS 应用、CLI 与 npm 本次使用 `0.17.0`，Windows 原生版本同步为 `0.17.0`，GitHub 提供便携预览包；Windows npm 产物仍使用私有开发模式，原生签名与 npm 分发验收完成后再纳入公开启动器。
 
 每个产物记录源提交、提交树、工作区内容摘要、是否有未提交变更、原生检查及签名检查结果和最终文件哈希。主包拒绝不同版本、不同源码状态或验后变化的平台包。正式模式要求干净的源码 checkout，在匹配原生系统与架构查询版本和资源并验证签名；开发模式允许跨平台静态检查，但不会记录为原生验收通过。打包不修改、重签名或压缩原生可执行文件。
 

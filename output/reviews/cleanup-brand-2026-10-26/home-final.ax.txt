@@ -1,0 +1,44 @@
+Window: "Shou · 收拾一下", App: Shou · 收拾一下.
+0 标准窗口 Shou · 收拾一下, ID: workspace-AppWindow-1, Secondary Actions: Raise
+	1 container
+		2 按钮 (selected) Description: 清理, ID: navigation.smart, Secondary Actions: Cancel
+		3 按钮 Description: 应用与项目, ID: navigation.applications, Secondary Actions: Cancel
+		4 按钮 Description: 空间分析, ID: navigation.storage, Secondary Actions: Cancel
+		5 按钮 Description: 监控, ID: navigation.monitor, Secondary Actions: Cancel
+		6 按钮 Description: 清理规则, ID: navigation.rules, Secondary Actions: Cancel
+		7 按钮 Description: 操作记录, ID: navigation.history, Secondary Actions: Cancel
+		8 按钮 Description: 设置, ID: navigation.settings, Secondary Actions: Cancel
+		9 按钮 (selected) Description: 智能清理, ID: navigation.smart.detail, Secondary Actions: Cancel
+		10 按钮 Description: 隐私清理, ID: navigation.privacy.detail, Secondary Actions: Cancel
+		11 文本 Value: 完整扫描受保护的应用数据，需要完全磁盘访问权限。, Secondary Actions: Cancel
+		12 按钮 Description: 完善设置…, ID: scan.finish-setup, Secondary Actions: Cancel
+		13 滚动区 ID: smart.welcome, Secondary Actions: Cancel
+			14 text 少一点堆积，多一点自在 留出空间，、装下更多可能。 应用缓存、开发构建产物与个人规则，一次扫描，一起收好。
+			15 按钮 Description: 开始扫描, ID: smart.start
+			16 弹出式按钮 Description: 扫描选项, ID: smart.scan-options
+			17 按钮 Description: 扫描位置…, ID: smart.locations
+			18 文本 先扫描，再由你确认清理范围。
+			19 按钮 Description: 应用与项目、应用与构建产物，按对象梳理。, ID: smart.destination.applications
+			20 按钮 Description: 空间分析、用空间地图，找到占用大户。, ID: smart.destination.storage
+			21 按钮 Description: 你的清理规则、为自己的文件夹，定制清理方式。, ID: smart.destination.rules
+			22 文本 有不确定如何整理的文件夹？
+			23 链接 Description: 用 AI 看一看…, ID: smart.ai.investigate
+			24 链接 Description: 外部 AI 工具…, ID: smart.agent.setup
+		25 图像 Description: internaldrive.badge.exclamationmark, Secondary Actions: Cancel
+	26 工具栏
+		27 弹出式按钮 地球仪键, Description: 语言, ID: globe
+		28 进度指示条 Description: Macintosh HD、100.89 GB 可用、磁盘占用, Value: 0.7959237796790279
+	29 关闭按钮
+	30 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	31 最小化按钮
+	32 文本 Shou · 收拾一下
+33 menu bar
+	34 Shou
+	35 文件
+	36 编辑
+	37 显示
+	38 清理
+	39 窗口
+	40 帮助
+
+The focused UI element is 0 标准窗口 Shou · 收拾一下, ID: workspace-AppWindow-1, Secondary Actions: Raise

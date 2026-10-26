@@ -17,8 +17,8 @@ struct CleanupSourceRow: View {
                                 .font(.caption).foregroundStyle(.secondary)
                             ForEach(source.candidate.reasons, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.orange) }
                             if source.requiresManualReview && source.selectable {
-                                Text(model.t("Select for manual review. Contents will be fully measured before confirmation."))
-                                    .font(.caption).foregroundStyle(.secondary)
+                                Text(model.t("Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion."))
+                                    .font(.caption).foregroundStyle(.orange)
                             }
                             if source.candidate.reasons.contains("incomplete_scan") {
                                 Button(model.t("Continue Scanning This Directory")) { model.continueCleanupScan(source) }

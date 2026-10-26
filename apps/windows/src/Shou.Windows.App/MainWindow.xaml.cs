@@ -119,7 +119,7 @@ public sealed partial class MainWindow : Window
         if (next != "privacy") privacy?.CancelScan();
         monitor?.SetVisible(next == "monitor");
         destination = next;
-        PageTitle.Text = TitleFor(next);
+        PageTitle.Text = "Shou";
         UpdateWorkspaceNavigation();
         DiskCapacity.Visibility = next is "cleanup" or "large" ? Visibility.Visible : Visibility.Collapsed;
         if (next is "cleanup" or "large") RefreshDiskCapacity();

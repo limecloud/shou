@@ -30,11 +30,6 @@ struct WorkspaceNavigation: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 24) {
-                HStack(spacing: 10) {
-                    Image(nsImage: AppIdentity.icon).resizable().frame(width: compact ? 26 : 32, height: compact ? 26 : 32).accessibilityHidden(true)
-                    Text("Shou").font(.system(size: 20, weight: .medium))
-                }
-                Spacer(minLength: 8)
                 HStack(spacing: 6) {
                     navigation("smart", "Cleanup", "sparkle.magnifyingglass")
                     navigation("applications", "Apps & Projects", "square.stack.3d.up")

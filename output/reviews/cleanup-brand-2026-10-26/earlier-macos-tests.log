@@ -1,0 +1,597 @@
+Localization resources verified: 2225 keys, 2 languages.
+Windows resources verified: 21 files, 2 locales; Swift design constants verified.
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
+Rule catalog verified: 250 rules, 771 patterns, 89 locations; 8 rejected negative fixtures. Native acceptance is separate.
+Documentation verified: 119 Markdown files, 1121 local links, 11 README languages.
+[0/1] Planning build
+[1/1] Compiling plugin GenerateManual
+[2/2] Compiling plugin GenerateDoccReference
+Building for debugging...
+[2/9] Write swift-version--1AB21518FC5DEDBE.txt
+Build complete! (40.49s)
+Desktop and CLI products verified as distinct native executables.
+PASS Paged storage manifests preserve corruption and retention boundaries
+PASS Storage manifest publication failures and legacy plans remain safe
+PASS Cancelling permanent verification never removes files
+PASS Execution progress preserves batch totals and partial boundaries
+PASS Execution progress rejects late stages and nested-entry regressions
+PASS Privacy progress follows committed source outcomes
+PASS Privacy progress cancellation preserves remaining sources
+PASS Installed application caches use ordinary cleanup and preserve applications
+PASS Installed application cache activity and identity are revalidated
+PASS Installed application caches recheck at each mutation boundary
+PASS Installed application caches preserve static scope and disabled rules
+PASS Installed application caches retain shared protection and no-follow boundaries
+PASS Installed application cache discovery reports incomplete and ambiguous owners
+PASS Installed application cache evidence preserves legacy digests
+PASS Application updates compare only numeric versions
+PASS Application updates bind catalog identity and system variants
+PASS Application updates reject changed apps and preserve unknown failures
+PASS Application update transport bounds and sanitizes failures
+PASS Storage comparison merges and bounds wide directories
+PASS Storage comparison retains unknown coverage and rejects replaced roots
+PASS Storage comparison bounds history and honors cancellation
+PASS Storage comparison uses native allocated accounting
+PASS Diagnostic capacity and unknown states remain distinct
+PASS Native diagnostics preserves records and excludes private data
+PASS Native diagnostics honors cancellation
+PASS Disk access policy preserves exact protected boundaries
+PASS Limited scan retains accessible sibling coverage
+PASS CLI installation preserves arguments and conflicting entries
+PASS CLI installation preserves symbolic links
+PASS Bulk metadata preserves exact stat evidence
+PASS Catalog parent IDs preserve nested names and totals
+PASS Directory workers observe parent task cancellation
+PASS Streaming storage catalog measures later siblings
+PASS Presentation reads saved scope, paging and agent context
+PASS Nested map bounds, omissions, area and cancellation
+PASS Storage catalog deduplicates hard links without following symlinks
+PASS Storage catalog prepares private files after existing-file refusal
+Generated catalog exhaustion during append: storage_full, ["sqlite_code": "13", "sqlite_extended_code": "13"]
+Generated catalog exhaustion during sealing: storage_full, ["sqlite_code": "13", "sqlite_extended_code": "13"]
+PASS Full storage catalog preserves the previous analysis
+PASS Storage catalog exposes unreadable directory coverage
+PASS Cancelled storage catalog is never published
+PASS Large-file filters reuse saved evidence without rescanning
+PASS Large-file index preserves threshold boundaries and legacy catalogs
+PASS Large-file pagination keeps global binary path order
+PASS Large-file legacy and catalog hard-link accounting agree
+PASS Large-file filters and cursors reject invalid evidence
+PASS Large-file result pages stay bounded and cancellable
+PASS Large-file selections retain removal-plan revalidation
+PASS Storage progress reports exact limit and post-scan stages
+PASS Progress uses known work and compact paths
+PASS History retention preserves recovery and target files
+PASS Large receipt journals retain recovery without rewriting manifests
+PASS Large receipt journal failures preserve durable mutation intent
+PASS History retention protects active records and store boundaries
+PASS Storage coverage distinguishes system and user access
+PASS Storage review refreshes directory changes before confirmation
+PASS Storage incomplete review stays retryable
+PASS Storage native removal reports manifest progress
+PASS Paged read worker preserves evidence and cancels loading
+PASS Large storage pages round-trip and reject corruption
+PASS Storage cancellation does not publish incomplete pages
+PASS Storage index cancels without changing accounting
+PASS SHA-256 known vector
+PASS Schema and round trip
+PASS Personal draft authoring uses the closed portable contract
+PASS Exact folder authoring cannot broaden workspace scope
+PASS Personal rule revisions preserve old bindings and reject stale saves
+PASS Personal draft preview explains conditions and stays disabled
+PASS Independent personal rules preserve unselected drafts through cleanup
+PASS Personal draft age explanations preserve decision boundaries
+PASS Wildcard semantics
+PASS Wildcard language equivalence
+PASS Wildcard descendant-prefix soundness
+PASS Canonical digest
+PASS JSON envelope escaping
+PASS UTC decision precision
+PASS Chinese desktop default and saved language
+PASS Runtime localization switches in both directions
+PASS Privacy ranges preserve unselected relations and receipts
+PASS Privacy cookies require separate consent and use last access time
+PASS Privacy epochs preserve bookmarks and downloads
+PASS Privacy refuses running, stale, excluded and unsupported sources
+PASS Privacy transactions roll back and unknown schemas stay unavailable
+PASS Privacy integer time bounds, WAL and unknown cascades
+PASS Application discovery validates before read and cancellation
+PASS Application catalog preserves distinct paths and explicit scope
+PASS Application catalog rejects unsafe metadata with explicit gaps
+PASS File targets bind bounded content and preserve legacy manifests
+PASS Uninstall preview separates personal data without file mutation
+PASS Application summaries stream one inventory and conservative ownership
+PASS Native application summaries avoid manifests and link traversal
+PASS Application batch uses one receipt and restores two applications
+PASS Application batch permanent default cannot restore; single Trash remains compatible
+PASS Application batch preflights consent, activity, stale evidence and overlaps
+PASS Permanent uninstall rechecks activity before mutation intent
+PASS Uninstall includes only verified shared group containers
+PASS Uninstall restores independent component origins
+PASS Uninstall refuses stale evidence, running apps, sharing and exclusions
+PASS Uninstall rechecks activity before mutation intent
+PASS Uninstall coverage gaps and personal-data consent resist tampering
+PASS Uninstall parent siblings preserve identity without weakening target checks
+PASS Native uninstall activity and explicit container metadata
+PASS Native application activity skips only kernel-verified zombies
+PASS Native application activity preserves live helper protection
+PASS Native application activity preserves unlinked helper protection
+PASS Uninstall activity failures preserve their cause and allow a clean retry
+PASS Administrator uninstall requires native Trash and preserves app data on cancellation
+PASS Native application Trash preserves cancellation and verifies moved contents
+PASS Native application Trash rejects stale linked and foreign-owned targets
+PASS Startup discovery validates before read and cancellation
+PASS Startup control requires explicit capability and action
+PASS Startup groups use exact identity and retain mixed states
+PASS Startup filters distinguish unknown and missing targets
+PASS Startup legacy payloads decode and configured defaults remain explicit
+PASS Startup discovery resolves applications without false leftovers
+PASS Startup control verifies readback and preflighted fixture removal
+PASS Startup background archives enforce bounded data-only parsing
+PASS System startup toggles use fixed authorization and verified readback
+PASS Login startup control revalidates native registration identity
+PASS Launchctl state parsing stays bounded and explicit
+PASS Native startup control refuses system and out-of-scope definitions
+PASS Startup definitions keep state unknown and omit credentials
+PASS Startup discovery rejects links, special and invalid definitions
+PASS Startup discovery retains explicit budget gaps
+PASS Explicit platform-scoped known locations
+PASS Automatic project discovery reuses scope and exclusions
+PASS Scan location inventory distinguishes automatic, included and built-in roots
+PASS Conventional location boundaries follow platform paths
+PASS Project discovery respects explicit nested policy
+PASS Project discovery cancels before registration
+PASS Project discovery covers additional collections and toolchains
+PASS Project artifacts require exact local markers
+PASS Enabled personal rules join repeated cleanup
+PASS Native location availability uses directory metadata
+PASS Native root identity requires search without enumeration
+PASS Read worker preserves direct evidence without a store
+Isolated worker batch: 9 roots, 9 complete snapshots, peak 2 reads; generated fixtures only.
+PASS Isolated worker batch preserves every cache and project root within capacity
+PASS Read worker accepts snake-case protocol fields
+PASS Read worker cancellation terminates only its child
+PASS Read worker wall timeout returns no evidence
+PASS Container ownership workers cancel and time out
+PASS Read worker failures and malformed responses stay blocked
+PASS Read worker caps live children and recovers capacity
+PASS Known location registration probes only its requested root
+PASS Batch preparation probes once and reports its root
+PASS Rule-scan progress remains cumulative across worker phases
+PASS Batch scan progress remains cumulative across locations and failure
+PASS Batch scan cancellation does not invent completion
+PASS Preparation cancellation prevents root registration
+PASS Fixed app rules retain personal data
+PASS Known location configuration reuse
+PASS Batch evidence and partial results
+PASS Application activity policy and revalidation
+PASS Expanded cache and user-data boundaries
+PASS Expanded application secret protection
+PASS Catalog rules preserves profiles and developer state
+PASS Catalog declarations retain protection and platform boundaries
+PASS Declarative application activity metadata
+PASS Generated Rust requires trusted rule facts
+PASS Generated Rust retains authored sources
+PASS Artifacts block tracked and active content
+PASS Additional project sources require verified generated layouts
+PASS Additional project artifacts protect authored content
+PASS Project artifact activity stays scoped and verified
+PASS Browser runtimes require global activity and source checks
+PASS Artifact changes immediately before moving preserve files
+PASS Binary-only Rust still checks activity and ownership
+PASS Project build activity stays scoped; Cargo remains global
+PASS Native build activity verifies current-process scope
+PASS Artifact exceptions retain hard protections
+PASS Generated Swift stays inside verified products
+PASS Cargo sources require exact per-crate evidence
+PASS First scan built-in discovery and cleanup
+PASS Built-in disable invalidates evidence
+PASS Built-in scope, namespace and presets
+PASS Enabled rule presets preserve reviewed configuration and disabled bindings
+builtin binding benchmark: iterations=40 rules=16 elapsed=0.026035s
+PASS Built-in binding validation, isolation and benchmark
+PASS Built-in protected descendants
+storage wide selection: entries=70000 select-and-filtered-deselect=0.284s
+PASS Storage selection preserves siblings and deduplicates
+PASS Disposable catalog selection preserves other record protection
+PASS Referenced and current catalogs support explicit cleanup
+PASS Catalog cleanup preserves recovery and rejects changed files
+PASS Storage browsing shares protection and selection without mutation
+PASS Storage browsing pages and selection expansion retain exact scope
+PASS Storage name search covers unloaded children and binds continuation
+PASS Storage preview is bounded, read-only and identity-bound
+PASS Storage analysis separates read scope and stale removal
+PASS Storage removal rechecks exclusions and new descendants
+PASS Native space analysis large-file Trash restore and permanent removal
+PASS Storage and treemap accounting
+PASS Non-overlapping cleanup overview
+PASS Unified review evidence and eligibility
+PASS Unified review separates user caches and cross-project artifacts
+PASS Unified review replaces only the refined target
+PASS Unified review rejects stale and repeated refinement conflicts
+PASS Cleanup target rescan and isolated execution
+PASS Cleanup target rescan requires current enabled evidence
+PASS Cleanup target rescan rejects replaced bindings and markers
+PASS Cleanup target rescan rechecks sources and build activity
+PASS Cleanup target rescan retains finite limits and cancellation
+PASS Cleanup target rescan rejects changes during measurement
+PASS Cleanup target rescan retains canonical generated-source policy
+PASS Cleanup target rescan matches isolated-worker evidence
+PASS Disabled imports and non-executable previews
+PASS Trash and restore loop; replay refusal
+PASS Trash root comparison allows only directory ctime
+PASS Verified Trash root ctime drift still restores
+PASS Trash root ctime exception never authorizes cleanup
+PASS Changed Trash metadata, identity and descendants stay blocked
+Cleanup scheduler fixture: serial 2.862s, bounded concurrent 1.132s, peak 4 readers; simulated 20ms/root latency, not a real-disk speed ratio.
+PASS Cleanup scan uses bounded workers with serial parity
+PASS System scan honors platform read capacity
+Native metadata fixture: 8 roots, 1024 generated files; serial 0.153s, four-worker 0.059s. Warm filesystem, serial first; no cold-cache or product speed claim.
+PASS Native cleanup concurrency preserves generated filesystem evidence
+PASS Derived record retention preserves active plans and recovery
+PASS Orphan cleanup verifies absence, consent and shared recovery
+PASS Orphan cleanup retains unknown owners and changed or excluded targets
+PASS Agent rules measure new coverage and persist opt-in reuse
+PASS AI connections, private scope and physical folder selections
+PASS Replaceable AI decisions and credential-wait revocation
+PASS Private local AI credentials and independent provider accounts
+PASS Application closing binds identity and verifies remaining owners
+PASS Tool cleanup uses fixed owner operations and verifies outcomes
+PASS Tool cleanup rejects remote, stale and unknown outcomes
+PASS Tool cleanup review expires during owner preview
+PASS Native tool adapter bounds generated process groups and output
+PASS Record retention groups publications and rejects changed evidence
+PASS History summaries page and reject stale caches
+PASS Full descendant manifest invalidation
+permanent removal: entries=10013 depth=12 elapsed=0.978s
+PASS Native purge reports progress for deep directories
+PASS Native purge rejects replaced cached directories
+PASS Native purge preserves unplanned files
+PASS Permanent removal continues past permission failures and later targets
+PASS Native purge handles nested and retained hard links
+PASS Permanent rule batch handles hard links across targets
+PASS Permanent storage batch handles shared files and directories
+PASS Permanent removal refuses external hard-link changes
+PASS Permanent removal reconciles only observed unlink effects
+PASS Permanent batch refuses external changes after its own unlink
+PASS Recorded Trash purge handles shared hard links across targets
+PASS Configuration invalidation
+PASS Global exclusions protect current/future roots and reject forged plans
+PASS Project exclusions remain literal and workspace-scoped
+PASS Global exclusion storage preserves legacy and downgrade boundaries
+PASS Protected descendants
+PASS Opaque links preserve external targets
+PASS Ancestor link refusal
+PASS Explicit resource budget
+PASS Scan budgets survive planning; tampered budgets cannot execute
+PASS Partial root complete target cleanup and restore
+PASS Legacy and boundary coverage stay blocked
+PASS Execution reproduces target coverage
+PASS Coverage does not bypass target changes
+PASS Selective discovery prunes protected trees
+PASS Selective fixed patterns skip unreachable subtrees
+PASS Selective targets retain manifests and markers
+PASS Selective cleanup and restore use measured evidence
+PASS Cleanup discovery shares finite budgets across large and later projects
+PASS Fair discovery retains rule markers, exclusions and disabled bindings
+PASS Cleanup discovery rejects replaced targets and project markers
+PASS Cancelled cleanup discovery never returns authorized targets
+PASS Isolated cleanup discovery preserves later projects within shared budgets
+PASS Wide projects retain target and marker discovery
+PASS Plans scope policy checks and report changed safety
+PASS Manual selection prepares fresh scope and permanently removes generated data
+PASS Manual selection keeps exclusions, preview and changed-manifest gates
+PASS Native read-only artifact and retained archive facts
+PASS Cross-process mutation lock
+PASS Restore conflict and Trash expansion
+PASS Immutable rule versions
+PASS Rule revisions stay disabled and invalidate old evidence
+PASS Journal failure prevents mutation
+PASS History inspection preserves receipts and verifies conflict and restore
+PASS History inspection blocks changed and bounded evidence
+PASS Per-item journal boundaries survive write failure
+PASS Follow-up cancellation preserves unstarted items and completed receipts
+PASS Follow-up eligibility stays isolated by execution
+PASS Follow-up progress preserves durable cancellation boundaries
+PASS Follow-up progress counts failed outcomes without overwriting
+PASS Unfinished restore is never retried by inspection
+PASS Process exit after move preserves intent and rejects replay
+PASS Directory replacement refusal
+PASS Stored plans do not grant authority
+PASS Confirmation and partial-scan gates
+PASS Store protection within workspace
+PASS Workspace removal preserves files
+PASS Workspace root remount refreshes binding
+PASS Reject pattern /tmp/cache
+PASS Reject pattern ../target
+PASS Reject pattern **/../target
+PASS Reject pattern **/foo**
+PASS Reject pattern **/*
+PASS Reject pattern *
+PASS Reject pattern **
+PASS Reject pattern a//target
+PASS Reject pattern ~/**/target
+PASS Reject pattern ${HOME}/target
+PASS Reject pattern C:/target
+PASS Reject pattern a\target
+PASS Reject pattern $(id)/target
+PASS Reject contract field shell
+PASS Reject contract field schema_version
+PASS Reject contract field action
+PASS Reject contract field scope
+PASS Reject contract field conditions
+PASS Native file Trash and conflict-safe restoration
+PASS Native uninstall and independent restoration of generated components
+PASS Native Trash cancellation after intent completes one item and restores
+PASS native Trash → restore: shou.builtin.rust-target (1 patterns)
+PASS native Trash → restore: shou.builtin.node-dependencies (1 patterns)
+PASS native Trash → restore: shou.builtin.node-build-cache (4 patterns)
+PASS native Trash → restore: shou.builtin.swift-build (4 patterns)
+PASS native Trash → restore: shou.builtin.python-bytecode (1 patterns)
+PASS native Trash → restore: shou.builtin.pytest-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.gradle-build (2 patterns)
+PASS native Trash → restore: shou.builtin.gradle-kotlin-build (2 patterns)
+PASS native Trash → restore: shou.builtin.flutter-build (2 patterns)
+PASS native Trash → restore: shou.builtin.cmake-build (3 patterns)
+PASS native Trash → restore: shou.builtin.maven-build (1 patterns)
+PASS native Trash → restore: shou.builtin.node-build-outputs (2 patterns)
+PASS native Trash → restore: shou.builtin.node-local-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.python-analysis-cache (2 patterns)
+PASS native Trash → restore: shou.builtin.python-setup-cache (3 patterns)
+PASS native Trash → restore: shou.builtin.python-requirements-cache (3 patterns)
+PASS native Trash → restore: shou.builtin.npm-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.cargo-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.tool-caches (3 patterns)
+PASS native Trash → restore: shou.builtin.xcode-derived-data (1 patterns)
+PASS native Trash → restore: shou.builtin.chrome-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.codex-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.claude-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.qq-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.wechat-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.chrome-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.codex-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.claude-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.claude-preview-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.qq-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.edge-caches (25 patterns)
+PASS native Trash → restore: shou.builtin.edge-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.brave-caches (25 patterns)
+PASS native Trash → restore: shou.builtin.brave-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.arc-caches (25 patterns)
+PASS native Trash → restore: shou.builtin.arc-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.vivaldi-caches (25 patterns)
+PASS native Trash → restore: shou.builtin.vivaldi-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.chromium-caches (25 patterns)
+PASS native Trash → restore: shou.builtin.chromium-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.firefox-caches (2 patterns)
+PASS native Trash → restore: shou.builtin.chrome-profile-downloads (4 patterns)
+PASS native Trash → restore: shou.builtin.slack-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.slack-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.discord-caches (9 patterns)
+PASS native Trash → restore: shou.builtin.discord-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.figma-caches (9 patterns)
+PASS native Trash → restore: shou.builtin.figma-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.notion-caches (9 patterns)
+PASS native Trash → restore: shou.builtin.notion-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.obsidian-caches (9 patterns)
+PASS native Trash → restore: shou.builtin.obsidian-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.github-desktop-caches (9 patterns)
+PASS native Trash → restore: shou.builtin.github-desktop-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.insomnia-caches (9 patterns)
+PASS native Trash → restore: shou.builtin.insomnia-user-caches (2 patterns)
+PASS native Trash → restore: shou.builtin.postman-caches (18 patterns)
+PASS native Trash → restore: shou.builtin.teams-caches (3 patterns)
+PASS native Trash → restore: shou.builtin.teams-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.vscode-caches (5 patterns)
+PASS native Trash → restore: shou.builtin.cursor-caches (5 patterns)
+PASS native Trash → restore: shou.builtin.workbuddy-caches (20 patterns)
+PASS native Trash → restore: shou.builtin.lark-aha-caches (30 patterns)
+PASS native Trash → restore: shou.builtin.lark-iron-caches (44 patterns)
+PASS native Trash → restore: shou.builtin.wechat-profiles-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.wechat-cache-profiles-caches (10 patterns)
+PASS native Trash → restore: shou.builtin.tencent-meeting-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.dingtalk-web-caches (4 patterns)
+PASS native Trash → restore: shou.builtin.jetbrains-caches (14 patterns)
+PASS native Trash → restore: shou.builtin.python-downloads (3 patterns)
+PASS native Trash → restore: shou.builtin.yarn-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.cocoapods-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.go-build (1 patterns)
+PASS native Trash → restore: shou.builtin.uv-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.deno-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.composer-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.electron-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.developer-user-cache (6 patterns)
+PASS native Trash → restore: shou.builtin.yarn-berry-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.go-module-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.composer-legacy-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.quicklook-cache (2 patterns)
+PASS native Trash → restore: shou.builtin.help-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.cargo-extracted-sources (1 patterns)
+PASS native Trash → restore: shou.builtin.app-zed-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-us-zoom-xos-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-ru-keepcoder-telegram-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-net-whatsapp-whatsapp-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-skype-skype-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tencent-weworkmac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-openai-chat-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-lmstudio-lmstudio-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-bohemiancoding-sketch3-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-adobe-bridge-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-net-telestream-screenflow10-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-apple-finalcut-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-blackmagic-design-davinciresolve-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-org-blenderfoundation-blender-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-maxon-cinema4d-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tw93-miaoyan-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-klee-desktop-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-orabrowser-app-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-filo-client-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-flomoapp-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-apple-music-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-apple-podcasts-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-apple-tv-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-tv-plex-player-desktop-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-netease-163music-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tencent-qqmusic-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tencent-qqmusicmac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-kugou-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-kuwo-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-colliderli-iina-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-org-videolan-vlc-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-io-mpv-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-iqiyi-player-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tencent-tenvideo-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-tv-danmaku-bili-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-net-xmac-aria2gui-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-org-m0k-transmission-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-qbittorrent-qbittorrent-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-charlessoft-pacifist-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-valvesoftware-steam-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-epicgames-epicgameslauncher-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-blizzard-battle-net-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-gog-galaxy-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-net-pcsx2-pcsx2-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-net-rpcs3-rpcs3-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-youdao-youdaodict-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-bob-build-bob-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-reincubate-camo-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-xnipapp-xnip-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-readdle-smartemail-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-todoist-mac-todoist-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-dev-warp-warp-stable-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-mitchellh-ghostty-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-runjuu-input-source-pro-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-macos-wakatime-wakatime-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-ws-stash-app-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-logseq-logseq-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-runningwithcrayons-alfred-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-cx-c3-theunarchiver-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-teamviewer-teamviewer-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-sequel-ace-sequel-ace-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-eggerapps-sequel-pro-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-navicat-navicatpremium-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-redis-redisinsight-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-postmanlabs-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-konghq-insomnia-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tinyapp-tableplus-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-getpaw-paw-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-charlesproxy-charles-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-proxyman-nsproxy-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-unity3d-unityhub-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-mongodb-compass-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-github-githubdesktop-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-apple-safari-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-microsoft-edgemac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-company-thebrowser-dia-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-net-imput-helium-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-yandex-yandexbrowser-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-operasoftware-opera-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-comet-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-kagi-kagimacos-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-zen-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-tencent-qqbrowser3-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-baidu-netdisk-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-alibaba-teambitiondisk-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-box-desktop-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-microsoft-word-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-microsoft-excel-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-microsoft-powerpoint-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-kingsoft-wpsoffice-mac-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-org-mozilla-thunderbird-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-utmapp-utm-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-vmware-fusion-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.app-com-parallels-desktop-console-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.zed-caches (2 patterns)
+PASS native Trash → restore: shou.builtin.codebuddy-cn-caches (7 patterns)
+PASS native Trash → restore: shou.builtin.sketch-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.spacedrive-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.steam-caches (4 patterns)
+PASS native Trash → restore: shou.builtin.battle-net-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.minecraft-caches (2 patterns)
+PASS native Trash → restore: shou.builtin.pcsx2-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.stremio-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.wetype-caches (2 patterns)
+PASS native Trash → restore: shou.builtin.antigravity-caches (5 patterns)
+PASS native Trash → restore: shou.builtin.filo-caches (5 patterns)
+PASS native Trash → restore: shou.builtin.qoder-caches (7 patterns)
+PASS native Trash → restore: shou.builtin.firefox-support-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.dia-caches (7 patterns)
+PASS native Trash → restore: shou.builtin.dia-downloads-caches (2 patterns)
+PASS native Trash → restore: shou.builtin.helium-caches (7 patterns)
+PASS native Trash → restore: shou.builtin.yandex-caches (4 patterns)
+PASS native Trash → restore: shou.builtin.qqbrowser-caches (6 patterns)
+PASS native Trash → restore: shou.builtin.vscode-app-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.notion-app-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.teams-app-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.vscode-diagnostic-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.codebuddy-cn-diagnostic-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.teams-diagnostic-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.steam-diagnostic-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.minecraft-diagnostic-logs (2 patterns)
+PASS native Trash → restore: shou.builtin.qoder-diagnostic-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.zed-user-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.claude-user-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.jetbrains-user-logs (1 patterns)
+PASS native Trash → restore: shou.builtin.app-developer-cache (10 patterns)
+PASS native Trash → restore: shou.builtin.app-pyenv-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-rbenv-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-bundler-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-hex-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-opam-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-android-generated (2 patterns)
+PASS native Trash → restore: shou.builtin.app-expo-downloads (7 patterns)
+PASS native Trash → restore: shou.builtin.app-turbo-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-vite-downloads (1 patterns)
+PASS native Trash → restore: shou.builtin.app-docker-buildx (1 patterns)
+PASS native Trash → restore: shou.builtin.pnpm-user-caches (1 patterns)
+PASS native Trash → restore: shou.builtin.pnpm-store (1 patterns)
+PASS native Trash → restore: shou.builtin.browser-automation-caches (4 patterns)
+PASS native Trash → restore: shou.builtin.geo-services-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.apple-intelligence-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.suggestions-cache (1 patterns)
+PASS native Trash → restore: shou.builtin.apple-media-cache (1 patterns)
+Native cleanup verified: 227 rules, 691 patterns; restored file hashes and retained files match; purge disabled.
+PASS Complete catalog with native Trash and restoration
+306/306 tests passed; all file mutations used isolated temporary fixtures.
+159 real CLI contract checks passed; no cleanup targets were modified.
+24 CLI support checks passed: diagnostics privacy/no writes, Bash behavior and available-shell syntax.
+10 application-update CLI checks passed; network=False; generated app metadata preserved and no record store created.
+PASS tool scan/target-only scope, executable/arguments/yes refusal, empty history and CLI discovery; no installed tool or cleanup confirmation executed
+34 storage CLI checks passed; no file removal was authorized.
+PASS responses: tool round trip, scoped metadata, question/resume, disabled draft and native preview
+PASS chat_completions: tool round trip, scoped metadata, question/resume, disabled draft and native preview
+PASS anthropic: tool round trip, scoped metadata, question/resume, disabled draft and native preview
+PASS Jev-first supported: configured main model, bounded decisions, guarded drafts and ZERO main-model calls
+PASS Jev-first uncertain: configured main model, bounded decisions, guarded drafts and ZERO main-model calls
+PASS Jev-first retain: configured main model, bounded decisions, guarded drafts and ZERO main-model calls
+PASS Jev-first malformed: configured main model, bounded decisions, guarded drafts and ZERO main-model calls
+PASS necessary escalation: bounded evidence, user clarification, explicit reason, one main-model request
+PASS disabled Jev: retained configuration, unavailable decision key never read, ZERO Jev calls and main-model takeover
+PASS Jev response limits, redirect refusal and provider-error redaction
+PASS private local credentials across CLI restarts, independent services, rotation and redaction
+PASS recoverable connection removal, inactive-use refusal and restored credential references
+PASS 117 AI CLI checks, scope/privacy, budgets, cancellation and unchanged fixture files
+34 large-file CLI checks passed; saved catalog reused, both non-TTY removal modes refused, no removal executed.
+Evidence: /Users/coso/Documents/dev/ai/bugu/shou/.build/storage-large-files-20261026-071301
+CLI launcher verified: relocated resources, quoted paths, argument/exit forwarding, repeated install and conflict preservation.
+4 compact CLI confirmation checks passed; all operations were cancelled.
+Generated fixture evidence: /private/var/folders/87/s6cpr7hd1_v43cs833x4s_900000gn/T/shou-uninstall-cli-_pv_41d5
+PASS native CLI uninstall: explicit consent, TTY cancellation/refusal, five-component Trash, independent restore, hashes and retained sentinel; no purge.
+19 application summary/batch CLI checks passed; generated apps restored after Trash, then generated app/cache components permanently removed; personal preferences retained.
+Evidence: /Users/coso/Documents/dev/ai/bugu/shou/.build/application-batch-cli
+16 privacy CLI checks passed; only generated source IDs selected; TTY cancellation preserved data; confirmed deletion preserved old records and download history; receipts sanitized; replay rejected.
+Evidence: /Users/coso/Documents/dev/ai/bugu/shou/.build/privacy-cli
+13 installed-cache CLI checks passed; generated cache only, real TTY cancellation and native Trash restoration verified.
+Evidence: /Users/coso/Documents/dev/ai/bugu/shou/.build/installed-cache-cli-27255f55acfc480f8b3dead6733f0a10
+Traceback (most recent call last):
+  File "/Users/coso/Documents/dev/ai/bugu/shou/scripts/verify-native-cli.py", line 157, in <module>
+    followup(trash(), 'restore')
+             ~~~~~^^
+  File "/Users/coso/Documents/dev/ai/bugu/shou/scripts/verify-native-cli.py", line 111, in trash
+    assert len(selected) == 2 and all(item['eligible'] for item in selected), selected
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [{'allocated_bytes_estimate': 69632, 'eligible': True, 'id': 'candidate_3f101c99-39c9-4552-a83d-e6ded2cc1db4', 'limitations': ['High risk: review and select explicitly. Stop Cargo, rustc and rust-analyzer first. Generated source is allowed only inside verified build-script OUT_DIR after Git and process checks. Preserve manual edits, custom deliverables and files that cannot be rebuilt.'], 'logical_bytes': 69632, 'manifest_digest': 'sha256:f456b0f51b5ba800f8266a14fa9f01685410cd5d244c6862da8257c40144b94a', 'newest_modified_at': '2026-10-25T23:13:19.773433685Z', 'reasons': [], 'rebuild_notes': ['Cargo normally regenerates compiled outputs and build-script generated source on the next build.'], 'relative_path': 'Rust 项目/target', 'risk': 'high', 'rule_ids': ['shou.builtin.rust-target'], 'rule_versions': {'shou.builtin.rust-target': '1.1.0'}}, {'allocated_bytes_estimate': 69632, 'eligible': False, 'id': 'candidate_8be48397-0605-4222-816e-eb27b586c56b', 'limitations': ['Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.'], 'logical_bytes': 69632, 'manifest_digest': '', 'newest_modified_at': '2026-10-25T23:13:19.772086859Z', 'reasons': ['build_process_running'], 'rebuild_notes': ["Reinstall dependencies with the project's package manager."], 'relative_path': 'web/node_modules', 'risk': 'high', 'rule_ids': ['shou.builtin.node-dependencies'], 'rule_versions': {'shou.builtin.node-dependencies': '1.0.0'}}]

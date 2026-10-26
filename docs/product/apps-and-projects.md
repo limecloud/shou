@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/product/apps-and-projects.md)
 
 Apps & Projects puts applications, developer projects and startup items under one navigation family, organized around recognizable objects. This macOS iteration includes application inventory/component review, project-output grouping, shared rule selection and single-source read-only update discovery. Automatic installation, Git remote-state investigation and whole-project removal are outside this implementation. Windows source includes navigation, marker-based project grouping and a shared scan/selection model; native interaction acceptance for the new project UI remains pending. Core deduplicates candidates and projects canonical built-in project templates plus personal rules with project evidence. Project recommendations, clearing and plans affect only that scope and preserve selected caches outside it. Update discovery has independent Windows source; manual-review differences remain, so this is not complete Mac parity.
 
+Smart Cleanup, Projects, application components, Space Analysis and Large Files share one scope confirmation: review and select inline, then click the red Delete Permanently footer button to freeze that selection, validate and execute without another dialog. Project cleanup stays within its page scope; application personal-data consent and administrator authentication retain their separate requirements.
+
 ## Applications
 
 Application bundles, verified related caches and user data expand within the same object row. Components retain their exact paths, byte estimates, ownership and current eligibility. Running applications, duplicate installations, shared components and unknown ownership continue to follow the independent [uninstall contract](application-uninstall.md).

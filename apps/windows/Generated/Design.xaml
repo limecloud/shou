@@ -78,6 +78,7 @@
   <Color x:Key="ShouTitlebarDark">#FF1B272E</Color>
   <Color x:Key="ShouTitlebarLight">#FFF6F8F9</Color>
   <x:Double x:Key="ShouBodyFontSize">14</x:Double>
+  <x:Double x:Key="ShouBrandIconSize">64</x:Double>
   <x:Double x:Key="ShouCaptionFontSize">12</x:Double>
   <x:Double x:Key="ShouCatalogIconSize">40</x:Double>
   <x:Double x:Key="ShouCatalogTextFontSize">14</x:Double>
@@ -105,6 +106,7 @@
   <x:Double x:Key="ShouCompletionMetricsWidth">560</x:Double>
   <x:Double x:Key="ShouCompletionTitleSize">22</x:Double>
   <x:Double x:Key="ShouControlHeight">32</x:Double>
+  <x:Double x:Key="ShouDestructiveActionMinHeight">48</x:Double>
   <x:Double x:Key="ShouDiagnosticsSheetHeight">640</x:Double>
   <x:Double x:Key="ShouDiagnosticsSheetWidth">820</x:Double>
   <x:Double x:Key="ShouDiskMeterWidth">190</x:Double>
@@ -114,7 +116,14 @@
   <x:Double x:Key="ShouHeroTitleSize">42</x:Double>
   <x:Double x:Key="ShouHomeArtworkHeight">330</x:Double>
   <x:Double x:Key="ShouHomeArtworkWidth">440</x:Double>
-  <x:Double x:Key="ShouHomeCardHeight">164</x:Double>
+  <x:Double x:Key="ShouHomeCardArtworkSize">64</x:Double>
+  <x:Double x:Key="ShouHomeCardHeight">112</x:Double>
+  <x:Double x:Key="ShouHomeCompactArtworkHeight">224</x:Double>
+  <x:Double x:Key="ShouHomeCompactArtworkWidth">260</x:Double>
+  <x:Double x:Key="ShouHomeCompactHeightBreakpoint">620</x:Double>
+  <x:Double x:Key="ShouHomeCompactHeroHeight">264</x:Double>
+  <x:Double x:Key="ShouHomeCompactInset">20</x:Double>
+  <x:Double x:Key="ShouHomeCompactSpacing">10</x:Double>
   <x:Double x:Key="ShouHomeMaxWidth">1180</x:Double>
   <x:Double x:Key="ShouItemSpacing">8</x:Double>
   <x:Double x:Key="ShouLargeFileTitleSize">22</x:Double>
@@ -201,8 +210,8 @@
   <x:Double x:Key="ShouTitlebarHeight">52</x:Double>
   <x:Double x:Key="ShouToolbarHeight">44</x:Double>
   <x:Double x:Key="ShouVolumePickerWidth">292</x:Double>
-  <x:Double x:Key="ShouWindowHeight">875</x:Double>
-  <x:Double x:Key="ShouWindowWidth">1440</x:Double>
+  <x:Double x:Key="ShouWindowHeight">800</x:Double>
+  <x:Double x:Key="ShouWindowWidth">1280</x:Double>
   <x:Double x:Key="ShouWorkspaceCompactHeaderHeight">48</x:Double>
   <x:Double x:Key="ShouWorkspaceHeaderHeight">72</x:Double>
   <x:Double x:Key="ShouWorkspaceIconSize">40</x:Double>

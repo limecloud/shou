@@ -53,8 +53,8 @@ struct ProjectCleanupView: View {
                     Spacer()
                     Button(model.t("Clear Selection")) { model.selectCommon(projectSources, selected: false) }.disabled(model.busy || selected.isEmpty)
                     CleanupActionButton(model: model, enabled: !model.busy && !selected.isEmpty,
-                        clean: { model.previewCommonCleanup(sourceIds: Set(projectSources.map(\.id))) },
-                        trash: { model.previewCommonCleanup(permanent: false, sourceIds: Set(projectSources.map(\.id))) })
+                        clean: { model.executeCommonCleanup(sourceIds: Set(projectSources.map(\.id))) },
+                        trash: { model.executeCommonCleanup(permanent: false, sourceIds: Set(projectSources.map(\.id))) })
                 }.padding(ShouDesign.workspaceInset).background(.bar)
             }
         }

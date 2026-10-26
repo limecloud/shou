@@ -136,7 +136,7 @@ struct SmartScanView: View {
                     Button(model.t("Clear Selection")) { model.commonSelection=[] }
                 }.fixedSize().disabled(model.busy)
                 CleanupActionButton(model: model, enabled: !model.busy && !model.commonSelected.isEmpty,
-                    clean: { model.previewCommonCleanup() }, trash: { model.previewCommonCleanup(permanent: false) })
+                    clean: { model.executeCommonCleanup() }, trash: { model.executeCommonCleanup(permanent: false) })
             }.padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 18)
         }.background(.bar)
     }

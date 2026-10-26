@@ -1,0 +1,52 @@
+{
+  "format_version": 1,
+  "outputs": {
+    "apple-touch-icon.png": "59f5bf662d90e4b8833803121d98d09022a3765e1d08ac42386fc40cf8eb16d7",
+    "favicon-16.png": "383654b8a8fca8f87d0cca4a7f5223080cbfb758614afd3d8781722886c4bef1",
+    "favicon-32.png": "d9ec18fc79f7e337c56b2f5218c087c6950db523f72f9fc68e06516544aebb6c",
+    "favicon.ico": "69294b3458db2cea3c31f7dfaba67e02717c36a19982d1a448b2ee6b9d035e33",
+    "icon-192.png": "55a7e3d5b968b1fe4c0301da05de9701b2481220e397305f926345dff0f5df82",
+    "icon-512.png": "75926e89368843c1ad4007cda6c273731591dca2eeb7368809de78854c7d94bf",
+    "illustrations/applications.webp": "f3416b29be780c67241fbfa6f5a77168616e642891645704bbabb8c9f8df1966",
+    "illustrations/cleanup.webp": "10b5a6de6561ea41d1fda85be9a6a570a3a634173819161992e35e4726b2486f",
+    "illustrations/history.webp": "d908bced55740a333f82394a65d41c73c8c63e4cac31fef15cc7211efa9d19ca",
+    "illustrations/large-files.webp": "25fc408c3bc5a17bab7a4cdfe4ce5961bfddf4cc924464fbd7fe92be3461ed26",
+    "illustrations/privacy.webp": "a274011796ce92657819566976e01f47519f1d57aeb99ce74e8011f3c52d792d",
+    "illustrations/projects.webp": "5b1762d0a3e957367329b4ff3bac58e37af8b3a5fd5bc5a24367aef78ec5af93",
+    "illustrations/rules.webp": "74bce5f423cd2952470e15a1f9904e3a1b401d2aedfc33bec532aff9aa792bf8",
+    "illustrations/settings.webp": "51a66a59332532408cb4e9eb96028d72b06d70c57fb5f64d961919f1eede2f5a",
+    "illustrations/space.webp": "92d5b20be287a26fa42c476737ab466525380b146215501ff00323d8ae4dbc9b",
+    "illustrations/startup.webp": "5295e5fb7c2862c5108dc03d0d17c54d9c2545fdd8447641f2f8fa3a00ccaf89",
+    "logo-horizontal-dark.png": "605f82f3b34e8784cd6b18882114d844cb136b31db1e56121d3b4b64339e558a",
+    "logo-horizontal-dark.webp": "80e691fd92aa9bc414e9287a67d0e743b89e5df11560d31c1f98e5971a270aaa",
+    "logo-horizontal-light.png": "d3113fa463656938a6e39b5911ca6bcb9bf8bcc11c1b21fce5f87e840cc76a53",
+    "logo-horizontal-light.webp": "aaad8559726b76d8cf12579bd703e5ad3b3f8c5e1eecaf264c588b5d2a6be7b9",
+    "logo-symbol.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
+    "logo-symbol.webp": "5a91846496df492f6c1bb3e4917ccef3a637e882015f08fa0fc0196482218026"
+  },
+  "sources": {
+    "assets/brand/shou-icon-1024.png": "55e9ce599fe9ab2e31713c311bf5e50c0a52a9d5614d3eabcb60a9c6b9bcfbc2",
+    "assets/brand/shou-mascot-source.png": "fa300e5aa65c1754bcc8d22627b1b56d155bc5e14e192816195c0cef3f99233c",
+    "assets/brand/shou-mascot.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
+    "assets/design/illustrations/applications.png": "4786dab7178003b2d452262737ebce740198d93d53c2d8161bfbf162937177cb",
+    "assets/design/illustrations/cleanup.png": "b951e33992ffbeefbfa2b40a40db89cf56f8c7bc56484d9d780a3d8bf4933324",
+    "assets/design/illustrations/history.png": "f3e6a9095e8b5ecaa5e1657a3ec7f74478f921d5ae334284d7eeed8ddb3d756f",
+    "assets/design/illustrations/large-files.png": "75e6c885035662dda6fd5ca49c164788801c199255bdf3b88c1c812629fe2f6e",
+    "assets/design/illustrations/privacy.png": "aaf953fd251ab6e03dee73fdb6197305eaf355493cbf965cd2e1103d8b58974e",
+    "assets/design/illustrations/projects.png": "7309c40a36e461c00a7c50e461d7dd5b1d0e51ebfd4917a26f797f426ed00e9b",
+    "assets/design/illustrations/rules.png": "4b1ce5f18bea09e10586d5bb3b443058ac2f0c7ac2ff47f59f7c425aa6c32fdb",
+    "assets/design/illustrations/settings.png": "cbdef3510bf3c57c4986abfeaeba77d86e5e39405528cc2e0c6276ef5287d970",
+    "assets/design/illustrations/space.png": "77283c2fec7883d4c0bb0897877927f6932af4d5592152634db620930f892418",
+    "assets/design/illustrations/startup.png": "037e1ec9b918d877870b60a6632447aedc19b7af8acdd8a35259f0c0a9001542",
+    "assets/design/tokens.json": "64aabd8173ae04c70cc291d3411df7fb1b64e51b00ac761095c55ecb203fdbbd",
+    "scripts/export-web-brand.py": "2ef92177387f735bf6ffe38f69c7996ead92a35f4e88f7af5a868f1db25e3e69"
+  },
+  "wordmark_font": {
+    "embedded": false,
+    "name": [
+      "Arial Rounded MT Bold",
+      "Regular"
+    ],
+    "sha256": "a74ea71c366f15c81f9ce00a757cefb938cda21c0d32e51037d9a038e5ebc14b"
+  }
+}

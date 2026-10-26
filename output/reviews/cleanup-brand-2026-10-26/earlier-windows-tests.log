@@ -1,0 +1,240 @@
+Windows resources verified: 21 files, 2 locales; Swift design constants verified.
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Shou.Windows.Core -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core/release/Shou.Windows.Core.dll
+  Shou.Windows.Core.Tests -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core.Tests/release/Shou.Windows.Core.Tests.dll
+/Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core.Tests/release/Shou.Windows.Core.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   725，已跳过:     0，总计:   725，持续时间: 45 s - Shou.Windows.Core.Tests.dll (net10.0)
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Shou.Windows.Core -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core/release/Shou.Windows.Core.dll
+  Shou.Windows.Presentation -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Presentation/release/Shou.Windows.Presentation.dll
+  Shou.Windows.Presentation.Tests -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Presentation.Tests/release/Shou.Windows.Presentation.Tests.dll
+/Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Presentation.Tests/release/Shou.Windows.Presentation.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:   285，已跳过:     0，总计:   285，持续时间: 908 ms - Shou.Windows.Presentation.Tests.dll (net10.0)
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Shou.Windows.Core -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core/release/Shou.Windows.Core.dll
+  Shou.Windows.Platform -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Platform/release/Shou.Windows.Platform.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:05.96
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Shou.Windows.Core -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core/release/Shou.Windows.Core.dll
+  Shou.Windows.Platform -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Platform/release/Shou.Windows.Platform.dll
+  Shou.Windows.Platform.Tests -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Platform.Tests/release/Shou.Windows.Platform.Tests.dll
+/Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Platform.Tests/release/Shou.Windows.Platform.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+[xUnit.net 00:00:00.73]     Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.ReadOnlySnapshotReportsAllFourSourcesWithinTheSharedBudget [SKIP]
+[xUnit.net 00:00:00.74]     Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.MissingWorktreeCorruptAndLockedIndexesCannotProveAnUntrackedTarget [SKIP]
+[xUnit.net 00:00:00.74]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedHardLinkedDatabaseIsRejectedBeforeSqliteAccess [SKIP]
+[xUnit.net 00:00:00.77]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.FixedGeneratedSourcePinsAclAndIdentityWithoutChangingDatabaseBytes [SKIP]
+[xUnit.net 00:00:00.77]     Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.ActualGitIndexTracksUnicodePathsWithoutChangingMetadataOrSourceBytes [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.ReadOnlySnapshotReportsAllFourSourcesWithinTheSharedBudget [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.MissingWorktreeCorruptAndLockedIndexesCannotProveAnUntrackedTarget [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedHardLinkedDatabaseIsRejectedBeforeSqliteAccess [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.FixedGeneratedSourcePinsAclAndIdentityWithoutChangingDatabaseBytes [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.ActualGitIndexTracksUnicodePathsWithoutChangingMetadataOrSourceBytes [1 ms]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedAdminOwnedBrowserDirectoryIsRejectedWithoutAclRepair [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.NestedRepositoriesDoNotHideOuterTrackedContent [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedWalDatabaseCanBeInspectedWhileWalAndShmAreOpen [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.JunctionAndHardLinkedTrackingMetadataRemainUnavailableAndPreserveOutsideBytes [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.PrivacyPinAllowsSqliteWritesButPreventsDeletion [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedAnchorWithInheritableForeignWriteIsRejectedBeforeReadingDatabase [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedAdminOwnedAppDataAnchorKeepsItsAclAndDatabaseBytesDuringInspection [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.PreCancelledDiscoveryDoesNotEnumerateRegistrations [SKIP]
+[xUnit.net 00:00:00.79]     Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.EntryLimitPreservesPartialRegistryCoverage [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedAdminOwnedBrowserDirectoryIsRejectedWithoutAclRepair [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.NestedRepositoriesDoNotHideOuterTrackedContent [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedWalDatabaseCanBeInspectedWhileWalAndShmAreOpen [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsArtifactTrackingTests.JunctionAndHardLinkedTrackingMetadataRemainUnavailableAndPreserveOutsideBytes [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.PrivacyPinAllowsSqliteWritesButPreventsDeletion [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedAnchorWithInheritableForeignWriteIsRejectedBeforeReadingDatabase [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyDatabaseTests.GeneratedAdminOwnedAppDataAnchorKeepsItsAclAndDatabaseBytesDuringInspection [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.PreCancelledDiscoveryDoesNotEnumerateRegistrations [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.EntryLimitPreservesPartialRegistryCoverage [1 ms]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.ReadsOnlyBoundedRegistrationMetadataFromGeneratedRegistryFixtures [SKIP]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.RuleReadingIsBoundedAndDoesNotChangeTheSource [SKIP]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsCleanupTests.NewDescendantsAndChangedMarkersRefuseTheWholeTargetBeforeMutation [SKIP]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsCleanupTests.HardLinksOrLockedFilesAreRejectedBeforeTheFirstDisposition [SKIP]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsCleanupTests.RestartManagerObservesFixtureFileUseWithoutStoppingTheOwner [SKIP]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsCleanupTests.RemovesOnlyTheFrozenTreeAndKeepsSourcesAndMarkers [SKIP]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsCleanupTests.StoppingInsideExactManifestVerificationDoesNotRemoveAnyFixtureEntry [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationInventoryTests.ReadsOnlyBoundedRegistrationMetadataFromGeneratedRegistryFixtures [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.RuleReadingIsBoundedAndDoesNotChangeTheSource [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.NewDescendantsAndChangedMarkersRefuseTheWholeTargetBeforeMutation [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.HardLinksOrLockedFilesAreRejectedBeforeTheFirstDisposition [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.RestartManagerObservesFixtureFileUseWithoutStoppingTheOwner [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.RemovesOnlyTheFrozenTreeAndKeepsSourcesAndMarkers [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.StoppingInsideExactManifestVerificationDoesNotRemoveAnyFixtureEntry [1 ms]
+[xUnit.net 00:00:00.80]     Shou.Windows.Platform.Tests.WindowsCleanupTests.MultipleDirectoryPagesAndDeepParentsKeepExactProgressAndPreserveSources [SKIP]
+[xUnit.net 00:00:00.81]     Shou.Windows.Platform.Tests.WindowsCleanupTests.ReplacedTargetsAndJunctionsNeverExposeOutsideFilesToDeletion [SKIP]
+[xUnit.net 00:00:00.81]     Shou.Windows.Platform.Tests.WindowsCleanupTests.CancellationAndUnsupportedTrashNeverStartDeletion [SKIP]
+[xUnit.net 00:00:00.81]     Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.PreCancelledMutationCannotReadIdentityOrStartAnInstaller [SKIP]
+[xUnit.net 00:00:00.81]     Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.PreCancellationDoesNotReadInstallationIdentity [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.MultipleDirectoryPagesAndDeepParentsKeepExactProgressAndPreserveSources [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.ReplacedTargetsAndJunctionsNeverExposeOutsideFilesToDeletion [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupTests.CancellationAndUnsupportedTrashNeverStartDeletion [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.PreCancelledMutationCannotReadIdentityOrStartAnInstaller [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.PreCancellationDoesNotReadInstallationIdentity [1 ms]
+[xUnit.net 00:00:00.82]     Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.AbsentGeneratedMsiProductIsNotAnInstalledIdentity [SKIP]
+[xUnit.net 00:00:00.82]     Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.UnsupportedRegistrationDoesNotLaunchAnInstaller [SKIP]
+[xUnit.net 00:00:00.82]     Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.MissingInstallationCannotInvokeAnInstaller [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.AbsentGeneratedMsiProductIsNotAnInstalledIdentity [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.UnsupportedRegistrationDoesNotLaunchAnInstaller [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationUninstallTests.MissingInstallationCannotInvokeAnInstaller [1 ms]
+[xUnit.net 00:00:00.83]     Shou.Windows.Platform.Tests.WindowsCleanupScannerTests.JunctionTargetCannotExposeOutsideBytesOrPositiveCoverage [SKIP]
+[xUnit.net 00:00:00.83]     Shou.Windows.Platform.Tests.WindowsCleanupScannerTests.LockedTargetKeepsIndependentSiblingCoverage [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupScannerTests.JunctionTargetCannotExposeOutsideBytesOrPositiveCoverage [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupScannerTests.LockedTargetKeepsIndependentSiblingCoverage [1 ms]
+[xUnit.net 00:00:00.83]     Shou.Windows.Platform.Tests.WindowsCleanupScannerTests.FindsUnicodeTargetInWideDirectoryAndRechecksSelectionWithoutSourceEnumeration [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsCleanupScannerTests.FindsUnicodeTargetInWideDirectoryAndRechecksSelectionWithoutSourceEnumeration [1 ms]
+[xUnit.net 00:00:00.83]     Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.FixedSourceDiscoveryRetainsTenSourcesWithinOneBudget [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.EntryLimitCannotPretendRemainingRegistryValuesWereRead [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.FixedSourceDiscoveryRetainsTenSourcesWithinOneBudget [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.EntryLimitCannotPretendRemainingRegistryValuesWereRead [1 ms]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.GeneratedCookiesRemoveOnlyTheExactTimeWindowAndPreserveUnrelatedTables [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.ExistingNonemptyRollbackJournalIsRejectedBeforeInspectionOrMutation [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.MissingGeneratedSourceIsNotStartedAndCannotReportAnUnknownMutation [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.ChangedGeneratedDatabaseAndExpiredAuthorizationCannotDeleteRows [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.GeneratedFirefoxHistoryRetainsBookmarksAndExcludedVisitTypes [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.GeneratedChromiumHistoryMaintainsReferencesAndRetainsOtherVisits [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.CancelledTransactionCanRollbackWithoutItsProgressCallbackInterruptingCleanup [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.PreCancelledImageInspectionDoesNotEnumerateOrReadAProcess [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.GeneratedCookiesRemoveOnlyTheExactTimeWindowAndPreserveUnrelatedTables [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.ExistingNonemptyRollbackJournalIsRejectedBeforeInspectionOrMutation [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.MissingGeneratedSourceIsNotStartedAndCannotReportAnUnknownMutation [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.ChangedGeneratedDatabaseAndExpiredAuthorizationCannotDeleteRows [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.GeneratedFirefoxHistoryRetainsBookmarksAndExcludedVisitTypes [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.GeneratedChromiumHistoryMaintainsReferencesAndRetainsOtherVisits [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPrivacyMutationTests.CancelledTransactionCanRollbackWithoutItsProgressCallbackInterruptingCleanup [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.PreCancelledImageInspectionDoesNotEnumerateOrReadAProcess [1 ms]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.ReusedOrMismatchedProcessNameCannotProduceAnImageScope [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.GeneratedInstallationDirectoryCanBeInspectedWithoutAnInstallerOrTargetChanges [SKIP]
+[xUnit.net 00:00:00.84]     Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.CurrentProcessImageIsObservedWithoutWorkingDirectoryOrPrivateMemory [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsUserDiagnosticsTests.ReportPreservesExistingRecordsAndDoesNotCreateALease [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsUserDiagnosticsTests.MissingRecordsAreNotProvisionedByDiagnostics [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.CurrentProcessDirectoryMatchesNativeDirectoryIdentity [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.PreCancelledSnapshotsDoNotStartNativeEnumeration [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.NativeSnapshotIncludesTheCurrentProcessAndContainsOnlyBoundedNames [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.Wow64ProcessDirectoryIsReadWithoutReadingArgumentsOrEnvironment [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.ReusedOrMismatchedProcessNameCannotProduceAnImageScope [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.GeneratedInstallationDirectoryCanBeInspectedWithoutAnInstallerOrTargetChanges [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsApplicationActivityTests.CurrentProcessImageIsObservedWithoutWorkingDirectoryOrPrivateMemory [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsUserDiagnosticsTests.ReportPreservesExistingRecordsAndDoesNotCreateALease [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsUserDiagnosticsTests.MissingRecordsAreNotProvisionedByDiagnostics [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.CurrentProcessDirectoryMatchesNativeDirectoryIdentity [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.PreCancelledSnapshotsDoNotStartNativeEnumeration [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.NativeSnapshotIncludesTheCurrentProcessAndContainsOnlyBoundedNames [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsProcessInventoryTests.Wow64ProcessDirectoryIsReadWithoutReadingArgumentsOrEnvironment [1 ms]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.ScansUnicodePathsAndPreservesEveryFixtureByte [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.RuleReadingRejectsHardLinksAndJunctionAncestors [SKIP]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.ReadsNativeFileIdOwnerAndAllocatedSize [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.ScansUnicodePathsAndPreservesEveryFixtureByte [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.RuleReadingRejectsHardLinksAndJunctionAncestors [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.ReadsNativeFileIdOwnerAndAllocatedSize [1 ms]
+[xUnit.net 00:00:00.85]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.LockedFilesKeepOtherResultsAndExplicitCoverageGaps [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.DeduplicatesNativeHardLinks [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.HandlesPathsBeyondTheWin32ShortPathLimit [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsFileSystemTests.JunctionsCannotExposeOutsideFiles [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.LockedFilesKeepOtherResultsAndExplicitCoverageGaps [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.DeduplicatesNativeHardLinks [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.HandlesPathsBeyondTheWin32ShortPathLimit [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsFileSystemTests.JunctionsCannotExposeOutsideFiles [1 ms]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.ConcurrentLeasesFailWithoutReadingOrChangingRecords [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.MissingReadsDoNotCreateTheDataDirectory [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.ReadLeaseListsOnlyExactExecutionKeysAndSharesTheMutationLock [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.PublishesPrivateRecordsAndPreservesThemAcrossStoreInstances [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.RejectsPublicAclsWithoutChangingExistingPermissions [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.CancelledUpdatesAndInvalidKeysDoNotPublishRecords [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.RejectsHardLinkedRecordsAndJunctionDataRoots [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsRecordStoreTests.AsyncLeaseKeepsTheCrossProcessLockWithoutKeepingTheAcquisitionToken [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.ConcurrentLeasesFailWithoutReadingOrChangingRecords [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.MissingReadsDoNotCreateTheDataDirectory [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.ReadLeaseListsOnlyExactExecutionKeysAndSharesTheMutationLock [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.PublishesPrivateRecordsAndPreservesThemAcrossStoreInstances [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.RejectsPublicAclsWithoutChangingExistingPermissions [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.CancelledUpdatesAndInvalidKeysDoNotPublishRecords [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.RejectsHardLinkedRecordsAndJunctionDataRoots [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsRecordStoreTests.AsyncLeaseKeepsTheCrossProcessLockWithoutKeepingTheAcquisitionToken [1 ms]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.GeneratedRegistryValuesRemainReadOnlyAndNeverExposeArguments [SKIP]
+[xUnit.net 00:00:00.86]     Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.GeneratedStartupFolderIsReadWithoutResolvingShortcutsOrChangingBytes [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.GeneratedRegistryValuesRemainReadOnlyAndNeverExposeArguments [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.WindowsStartupInventoryTests.GeneratedStartupFolderIsReadWithoutResolvingShortcutsOrChangingBytes [1 ms]
+[xUnit.net 00:00:00.87]     Shou.Windows.Platform.Tests.ProvisionedProfileTests.FirstDiagnosticWriteDoesNotBreakFirstRecordPublication [SKIP]
+[xUnit.net 00:00:00.87]     Shou.Windows.Platform.Tests.ProvisionedProfileTests.WritableForeignAncestorIsRejectedWithoutRepairOrRecordPublication [SKIP]
+[xUnit.net 00:00:00.87]     Shou.Windows.Platform.Tests.ProvisionedProfileTests.ProvisionedAdminOwnedParentAndLegacyContainerCreatePrivateUserLeaves [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.ProvisionedProfileTests.FirstDiagnosticWriteDoesNotBreakFirstRecordPublication [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.ProvisionedProfileTests.WritableForeignAncestorIsRejectedWithoutRepairOrRecordPublication [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.ProvisionedProfileTests.ProvisionedAdminOwnedParentAndLegacyContainerCreatePrivateUserLeaves [1 ms]
+[xUnit.net 00:00:00.87]     Shou.Windows.Platform.Tests.WindowsPackagedStartupTasksTests.GeneratedManifestAncestorsCannotTraverseAJunction [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPackagedStartupTasksTests.GeneratedManifestAncestorsCannotTraverseAJunction [1 ms]
+[xUnit.net 00:00:00.88]     Shou.Windows.Platform.Tests.WindowsScheduledStartupTasksTests.LocalSchedulerReadIsBoundedAndNeverSerializesDefinitionArguments [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsScheduledStartupTasksTests.LocalSchedulerReadIsBoundedAndNeverSerializesDefinitionArguments [1 ms]
+[xUnit.net 00:00:00.89]     Shou.Windows.Platform.Tests.WindowsPackagedStartupTasksTests.GeneratedManifestReadingIsBoundedAndAcceptsReadOnlyHardLinkMetadata [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.WindowsPackagedStartupTasksTests.GeneratedManifestReadingIsBoundedAndAcceptsReadOnlyHardLinkMetadata [1 ms]
+[xUnit.net 00:00:00.89]     Shou.Windows.Platform.Tests.NativeDiagnosticsTests.DiagnosticFilesRejectHardLinksAndKeepTheOutsideBytes [SKIP]
+[xUnit.net 00:00:00.89]     Shou.Windows.Platform.Tests.NativeDiagnosticsTests.ConcurrentEventsAreValidJsonAndRotationStaysBounded [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.NativeDiagnosticsTests.DiagnosticFilesRejectHardLinksAndKeepTheOutsideBytes [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.NativeDiagnosticsTests.ConcurrentEventsAreValidJsonAndRotationStaysBounded [1 ms]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.MismatchedRegistrationMetadataCannotIdentifyTheGeneratedInstallation [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.RemovedInstallationAfterConfirmationCannotDispatchOrPersistAnUninstallIntent [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.LockedGeneratedPayloadPreventsPlanningAndKeepsEveryFixtureByte [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.DeclinedCurrentConfirmationLeavesGeneratedInstallationAndNoExecutionIntent [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.DifferentActorAtNativeBoundaryCannotChangeTheGeneratedInstallation [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.ExactGeneratedMsiUninstallRecordsRealOutcomeAndKeepsUnregisteredDataWithoutReplay [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.MismatchedRegistrationMetadataCannotIdentifyTheGeneratedInstallation [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.RemovedInstallationAfterConfirmationCannotDispatchOrPersistAnUninstallIntent [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.LockedGeneratedPayloadPreventsPlanningAndKeepsEveryFixtureByte [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.DeclinedCurrentConfirmationLeavesGeneratedInstallationAndNoExecutionIntent [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.DifferentActorAtNativeBoundaryCannotChangeTheGeneratedInstallation [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedMsiUninstallTests.ExactGeneratedMsiUninstallRecordsRealOutcomeAndKeepsUnregisteredDataWithoutReplay [1 ms]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedStartupControlTests.DifferentActorAtNativeBoundaryCannotSetGeneratedTask [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedStartupControlTests.StopDuringConfirmationCannotBecomeApproval [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedStartupControlTests.ExactGeneratedTaskRoundTripRecordsRealSwitchesAndCannotReplayOrLeakArguments [SKIP]
+[xUnit.net 00:00:00.96]     Shou.Windows.Platform.Tests.GeneratedStartupControlTests.DefinitionChangedDuringConfirmationPreventsMutationAndIntent [SKIP]
+[xUnit.net 00:00:00.97]     Shou.Windows.Platform.Tests.GeneratedStartupControlTests.DeclinedCurrentConfirmationLeavesGeneratedTaskAndNoIntent [SKIP]
+[xUnit.net 00:00:00.97]     Shou.Windows.Platform.Tests.GeneratedStartupControlTests.StopAfterDurableIntentBeforeDispatchRecordsCancellationWithoutSettingTask [SKIP]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedStartupControlTests.DifferentActorAtNativeBoundaryCannotSetGeneratedTask [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedStartupControlTests.StopDuringConfirmationCannotBecomeApproval [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedStartupControlTests.ExactGeneratedTaskRoundTripRecordsRealSwitchesAndCannotReplayOrLeakArguments [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedStartupControlTests.DefinitionChangedDuringConfirmationPreventsMutationAndIntent [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedStartupControlTests.DeclinedCurrentConfirmationLeavesGeneratedTaskAndNoIntent [1 ms]
+  已跳过 Shou.Windows.Platform.Tests.GeneratedStartupControlTests.StopAfterDurableIntentBeforeDispatchRecordsCancellationWithoutSettingTask [1 ms]
+
+已通过! - 失败:     0，通过:   201，已跳过:    88，总计:   289，持续时间: 233 ms - Shou.Windows.Platform.Tests.dll (net10.0)
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Shou.Windows.Core -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core/release/Shou.Windows.Core.dll
+  Shou.Windows.Platform -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Platform/release/Shou.Windows.Platform.dll
+  Shou.Windows.Cli -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Cli/release/shou.dll
+
+已成功生成。
+    0 个警告
+    0 个错误
+
+已用时间 00:00:03.45
+  正在确定要还原的项目…
+  所有项目均是最新的，无法还原。
+  Shou.Windows.Core -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Core/release/Shou.Windows.Core.dll
+  Shou.Windows.Platform -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Platform/release/Shou.Windows.Platform.dll
+  Shou.Windows.Cli -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Cli/release/shou.dll
+  Shou.Windows.Cli.Tests -> /Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Cli.Tests/release/Shou.Windows.Cli.Tests.dll
+/Users/coso/Documents/dev/ai/bugu/shou/.build/windows/bin/Shou.Windows.Cli.Tests/release/Shou.Windows.Cli.Tests.dll (.NETCoreApp,Version=v10.0)的测试运行
+总共 1 个测试文件与指定模式相匹配。
+
+已通过! - 失败:     0，通过:    34，已跳过:     0，总计:    34，持续时间: 310 ms - Shou.Windows.Cli.Tests.dll (net10.0)
+192 .NET CLI contract checks passed, including relocation and unsupported-path refusal. Native filesystem acceptance is separate.

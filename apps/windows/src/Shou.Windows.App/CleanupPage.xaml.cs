@@ -93,7 +93,8 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         RuleFilter.SelectionChanged += (_, _) => ChangeFilter(categoryChanged: false);
         PreviousButton.Content = text.Get("Previous");
         NextButton.Content = text.Get("Next");
-        CleanButton.Content = text.Get("Clean & Free Space");
+        CleanButton.Content = text.Get("Delete Permanently");
+        AutomationProperties.SetHelpText(CleanButton, text.Get("Permanent deletion cannot be undone."));
         EstimatedHeading.Text = text.Get("Estimated Space to Free");
         ToolTipService.SetToolTip(CleanButton, text.Get(execution.ExecutionAvailable
             ? "These files will be permanently removed. This action cannot be undone."
@@ -194,7 +195,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             ScanState.Text = text.Get(model.Batch?.State == "complete" || model.Batch is null && model.Snapshot?.Scan.IsComplete == true ? "Scan Complete" : "Partial Scan");
             PreviousButton.IsEnabled = !IsBusy && model.HasPrevious;
             NextButton.IsEnabled = !IsBusy && model.HasNext;
-            CleanButton.IsEnabled = !IsBusy && execution.ExecutionAvailable && (execution.CanExecute || model.CanPreparePlan);
+            CleanButton.IsEnabled = !IsBusy && execution.ExecutionAvailable && model.CanPreparePlan;
             SelectionMenuButton.IsEnabled = !IsBusy && model.ResultCount > 0;
             PreviousButton.Visibility = model.HasPrevious ? Visibility.Visible : Visibility.Collapsed;
             NextButton.Visibility = model.HasNext ? Visibility.Visible : Visibility.Collapsed;
@@ -403,15 +404,12 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     private async void ExecuteCleanup(object sender, RoutedEventArgs args) => await GuardAsync(async () =>
     {
         if (IsBusy || !execution.ExecutionAvailable) return;
-        if (!execution.CanExecute)
-        {
-            if (!model.CanPreparePlan) return;
-            await model.PreparePlanAsync();
-            if (disposed || model.Plan is not { } prepared) return;
-            execution.BindPlan(prepared);
-        }
-        if (!execution.CanExecute || execution.Plan is not { } plan) return;
-        activeExecution = execution.ExecuteAsync(new WinUICleanupConfirmation(this, text, plan));
+        if (!model.CanPreparePlan) return;
+        await model.PreparePlanAsync();
+        if (disposed || model.Plan is not { } plan) return;
+        execution.BindPlan(plan);
+        if (!execution.CanExecute) return;
+        activeExecution = execution.ExecuteAsync(WinUICleanupConfirmation.Create(this, plan));
         model.InvalidateConfiguration();
         BusyChanged?.Invoke(this, EventArgs.Empty);
         try { await activeExecution; }

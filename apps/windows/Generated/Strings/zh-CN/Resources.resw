@@ -5001,6 +5001,9 @@
   <data name="s70d64ba4c248acbbc45d9720" xml:space="preserve">
     <value>选择此应用以审阅卸载内容。确认后，macOS 可能会要求验证身份。</value>
   </data>
+  <data name="se3c8316f2876480440705e9f" xml:space="preserve">
+    <value>勾选将移除整个目录。请先停止相关任务；删除前会校验全部内容。</value>
+  </data>
   <data name="sf0da2b113b9c58ecf644233b" xml:space="preserve">
     <value>每次最多审阅 256 个项目。</value>
   </data>

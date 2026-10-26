@@ -53,13 +53,13 @@ public sealed class ApplicationUninstallViewModelTests
     {
         public Task<bool> RequestAsync(ApplicationUninstallPlan plan, CancellationToken cancellationToken) => Task.FromResult(false);
     }
-    private sealed class Clock(DateTimeOffset now) : TimeProvider
+    internal sealed class Clock(DateTimeOffset now) : TimeProvider
     {
         public DateTimeOffset Now { get; set; } = now;
         public override DateTimeOffset GetUtcNow() => Now;
     }
 
-    private static ApplicationUninstallReview Review(bool blocked = false, string name = "Example") => new(
+    internal static ApplicationUninstallReview Review(bool blocked = false, string name = "Example") => new(
         new("application_" + new string('a', 64), ApplicationSource.CurrentUserRegistry, "{00000000-0000-0000-0000-000000000001}", name,
             "1.0", "Publisher", null, null, false, [], true),
         new(new(ApplicationInstallerKind.Msi, "{00000000-0000-0000-0000-000000000001}", MsiInstallationContext.UserUnmanaged,
@@ -67,7 +67,7 @@ public sealed class ApplicationUninstallViewModelTests
         new(ActivityState.Idle, "no_observed_installation_users"), DateTimeOffset.UtcNow,
         blocked ? ["protected_application"] : [], ["installer_managed_data_may_be_removed"], "sha256:" + new string('b', 64));
 
-    private static ApplicationUninstallPlan Plan(ApplicationUninstallReview review) => new(1, "uninstall_plan_" + new string('0', 32),
+    internal static ApplicationUninstallPlan Plan(ApplicationUninstallReview review) => new(1, "uninstall_plan_" + new string('0', 32),
         "S-1-5-21-1000", review.ObservedAt, review.ObservedAt.AddMinutes(15), review, true, "sha256:" + new string('c', 64));
 
     private static async Task<ApplicationUninstallReview> LoadAsync(Operations operations, ApplicationUninstallViewModel model, bool blocked = false)

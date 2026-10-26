@@ -192,12 +192,11 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         ResultContent.IsHitTestVisible = PageToolbar.IsHitTestVisible = false;
         BusyChanged?.Invoke(this, EventArgs.Empty);
         using var diagnostic = OperationDiagnostics.Start("ui.storage.remove");
-        WinUICleanupConfirmation? confirmation = null;
         try
         {
             var operations = new NativeReviewOperations();
             var plan = await operations.CreateStoragePlanAsync(snapshot, paths, cancellation.Token);
-            confirmation = new WinUICleanupConfirmation(this, text, plan);
+            var confirmation = WinUICleanupConfirmation.Create(this, plan);
             var result = await operations.ExecuteAsync(plan.Id, confirmation, cancellation.Token);
             diagnostic.Complete(result.State.ToString().ToLowerInvariant(), result.Items.Length);
             var removed = plan.Items.Where(item => result.Items.Any(value => value.ItemId == item.Id && value.State == CleanupItemState.Purged)).Select(item => item.Path).ToArray();
@@ -207,10 +206,6 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
             FailureNotice.Message = ReviewText.ExecutionState(text, result.State) + " · " + result.Id + Environment.NewLine +
                 string.Join(Environment.NewLine, result.Items.Where(item => item.State != CleanupItemState.Purged).Select(item => ReviewText.ItemState(text, item.State) + " · " + ReviewText.Error(text, item.Reason)));
             FailureNotice.IsOpen = true;
-        }
-        catch (ShouException error) when (error.Code == "confirmation_required" && confirmation?.WasDeclined == true)
-        {
-            diagnostic.Complete("cancelled");
         }
         catch (Exception error) { diagnostic.Fail(error); Fail(error); }
         finally

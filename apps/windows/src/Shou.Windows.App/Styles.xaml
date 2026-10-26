@@ -3,6 +3,8 @@
     <!-- Native high-contrast resources retain priority over the product accent. -->
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
+            <StaticResource x:Key="ShouDestructiveBackgroundBrush" ResourceKey="SystemFillColorCriticalBrush" />
+            <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{StaticResource ShouTextDark}" />
             <LinearGradientBrush x:Key="ShouActionBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="{StaticResource ShouActionStart}" Offset="0" /><GradientStop Color="{StaticResource ShouActionEnd}" Offset="1" /></LinearGradientBrush>
             <SolidColorBrush x:Key="ShouActionTextBrush" Color="{StaticResource ShouActionText}" />
             <LinearGradientBrush x:Key="ShouWorkspaceBrush" StartPoint="0,0" EndPoint="1,1">
@@ -34,6 +36,8 @@
             <SolidColorBrush x:Key="ShouMapTextBrush" Color="{StaticResource ShouMapText}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
+            <StaticResource x:Key="ShouDestructiveBackgroundBrush" ResourceKey="SystemFillColorCriticalBrush" />
+            <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{StaticResource ShouTextLight}" />
             <LinearGradientBrush x:Key="ShouActionBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="{StaticResource ShouActionStart}" Offset="0" /><GradientStop Color="{StaticResource ShouActionEnd}" Offset="1" /></LinearGradientBrush>
             <SolidColorBrush x:Key="ShouActionTextBrush" Color="{StaticResource ShouActionText}" />
             <LinearGradientBrush x:Key="ShouWorkspaceBrush" StartPoint="0,0" EndPoint="1,1">
@@ -65,6 +69,8 @@
             <SolidColorBrush x:Key="ShouMapTextBrush" Color="{StaticResource ShouMapText}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="ShouDestructiveBackgroundBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="ShouActionBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="ShouActionTextBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="ShouWorkspaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
@@ -172,6 +178,27 @@
         <Setter Property="MinHeight" Value="{StaticResource ShouPrimaryActionContentMinHeight}" />
         <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
         <Setter Property="CornerRadius" Value="6" />
+    </Style>
+    <Style x:Key="ShouDestructiveButton" TargetType="Button" BasedOn="{StaticResource ShouPrimaryButton}">
+        <Setter Property="MinWidth" Value="{StaticResource ShouPrimaryActionMinWidth}" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouDestructiveActionMinHeight}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Background" Value="{ThemeResource ShouDestructiveBackgroundBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource ShouDestructiveTextBrush}" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+            <Grid>
+                <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Presenter.BorderBrush" Value="{ThemeResource ShouDestructiveTextBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Presenter.Background" Value="{ThemeResource ShouDestructiveTextBrush}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource ShouDestructiveBackgroundBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Presenter.Background" Value="{ThemeResource ControlFillColorDisabledBrush}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource TextFillColorDisabledBrush}" /><Setter Target="Presenter.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" /></VisualState.Setters></VisualState>
+                </VisualStateGroup></VisualStateManager.VisualStateGroups>
+                <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                    Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+            </Grid>
+        </ControlTemplate></Setter.Value></Setter>
     </Style>
     <Style x:Key="ShouBorderedButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
         <Setter Property="MinWidth" Value="0" />

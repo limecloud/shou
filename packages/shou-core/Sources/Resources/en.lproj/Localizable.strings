@@ -1666,6 +1666,7 @@
 "Select history records to remove." = "Select history records to remove.";
 "Select the application and eligible components; personal data requires separate consent." = "Select the application and eligible components; personal data requires separate consent.";
 "Select this application to review removal. macOS may ask you to authenticate after confirmation." = "Select this application to review removal. macOS may ask you to authenticate after confirmation.";
+"Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion." = "Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion.";
 "Select up to 256 items for one review." = "Select up to 256 items for one review.";
 "Selected" = "Selected";
 "Selected Scan Location" = "Selected Scan Location";

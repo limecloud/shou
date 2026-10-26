@@ -1666,6 +1666,7 @@
 "Select history records to remove." = "请选择需要清理的操作记录。";
 "Select the application and eligible components; personal data requires separate consent." = "请选择应用及可处理的组件；个人数据需要单独同意。";
 "Select this application to review removal. macOS may ask you to authenticate after confirmation." = "选择此应用以审阅卸载内容。确认后，macOS 可能会要求验证身份。";
+"Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion." = "勾选将移除整个目录。请先停止相关任务；删除前会校验全部内容。";
 "Select up to 256 items for one review." = "每次最多审阅 256 个项目。";
 "Selected" = "已选";
 "Selected Scan Location" = "所选扫描位置";

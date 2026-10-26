@@ -2,9 +2,9 @@
 
 English | [简体中文](../zh-CN/engineering/next-release-plan.md)
 
-Updated: 2026-10-26. Status: v0.15.0 published; remaining roadmap work is in progress. Read-only diagnostics, shell completion, analysis comparison and update discovery have independent macOS and Windows source implementations; owning contracts and SYNC record verification and platform differences. This document prioritizes the next release without changing product, safety, rule or release contracts. v0.15.0 includes the current workspace, diagnostics, completion, comparison and read-only catalog checks; other work packages remain in the roadmap.
+Updated: 2026-10-26. Status: v0.16.0 published; the complete v0.17.0 workspace update is entering release verification, with remaining roadmap work in progress. Read-only diagnostics, shell completion, analysis comparison and update discovery have independent macOS and Windows source implementations; owning contracts and SYNC record verification and platform differences. This document prioritizes the next release without changing product, safety, rule or release contracts. v0.15.0 includes the current workspace, diagnostics, completion, comparison and read-only catalog checks; other work packages remain in the roadmap.
 
-The selected `v0.16.0` scope adds independent read-only monitoring, menu-bar/tray summaries and Dock/taskbar entry points under the [system monitor contract](../product/system-monitor.md). Version declarations, builds and release verification advance together; SYNC records the publication result.
+`v0.16.0` delivered independent read-only monitoring, menu-bar/tray summaries and Dock/taskbar entry points under the [system monitor contract](../product/system-monitor.md). This `v0.17.0` release includes the previously unpublished brand, shared task illustrations, latest native workspace on both platforms and inline scope confirmation, together with the complete working-tree source, assets, documentation and acceptance records. Version declarations, builds and release verification advance together; SYNC records the publication result.
 
 ## 1. Planning baseline and sources of truth
 

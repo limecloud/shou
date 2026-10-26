@@ -43,7 +43,9 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         EstimatedLabel.Text = text.Get("Estimated Size");
         CoverageLabel.Text = text.Get("Partial Coverage");
         AutomationProperties.SetName(CoverageButton, text.Get("Partial Coverage"));
-        UninstallFooterButton.Content = text.Get("Uninstall Selected…");
+        UninstallFooterButton.Content = text.Get("Uninstall Permanently");
+        ToolTipService.SetToolTip(UninstallFooterButton, text.Get("Permanent deletion cannot be undone."));
+        AutomationProperties.SetHelpText(UninstallFooterButton, text.Get("Permanent deletion cannot be undone."));
         ToolTipService.SetToolTip(UninstallFooterButton, text.Get(uninstall.ExecutionAvailable
             ? "Select an application to view its registration details."
             : "Select an application to inspect its installation. System uninstall is unavailable in this preview."));
@@ -64,8 +66,6 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         NextButton.Content = text.Get("Next");
         CoverageNotice.Message = text.Get("Some application registrations could not be read. The list may be incomplete.");
         InspectButton.Content = text.Get("Review Uninstall");
-        PreparePlanButton.Content = text.Get("Prepare Uninstall Plan");
-        ExecuteButton.Content = text.Get("Uninstall");
         ReadExecutionButton.Content = text.Get("Read Uninstall Record");
         InstallerDataDescription.Text = text.Get("I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan.");
         model.PropertyChanged += Changed;
@@ -246,15 +246,13 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         var selectedCount = selectedApplicationId is null ? 0 : 1;
         SelectionSummary.Text = text.Format("%lld applications selected", selectedCount);
         AutomationProperties.SetItemStatus(SelectionSummary, selectedCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        UninstallFooterButton.IsEnabled = uninstall.ExecutionAvailable && selectedApplicationId is not null && !model.IsBusy && !uninstall.IsBusy;
+        UninstallFooterButton.IsEnabled = uninstall.ExecutionAvailable && uninstall.CanPreparePlan &&
+            uninstall.Review?.Application.Id == selectedApplicationId && !model.IsBusy;
         InspectButton.IsEnabled = selectedApplicationId is not null && !model.IsBusy && !uninstall.IsBusy;
-        InstallerDataConsent.Visibility = PreparePlanButton.Visibility = uninstall.Review?.CanPreparePlan == true ? Visibility.Visible : Visibility.Collapsed;
-        ExecuteButton.Visibility = uninstall.Plan is null ? Visibility.Collapsed : Visibility.Visible;
+        InstallerDataConsent.Visibility = uninstall.Review?.CanPreparePlan == true ? Visibility.Visible : Visibility.Collapsed;
         ReadExecutionButton.Visibility = uninstall.CanReadExecution ? Visibility.Visible : Visibility.Collapsed;
         InstallerDataConsent.IsEnabled = uninstall.Review?.CanPreparePlan == true && !uninstall.IsBusy;
         InstallerDataConsent.IsChecked = uninstall.AllowInstallerDataChanges;
-        PreparePlanButton.IsEnabled = uninstall.CanPreparePlan;
-        ExecuteButton.IsEnabled = uninstall.CanExecute;
         ReadExecutionButton.IsEnabled = uninstall.CanReadExecution;
         if (uninstall.IsBusy)
         { UninstallStatus.Text = uninstall.IsExecuting ? text.Get(uninstall.StopRequested
@@ -284,7 +282,10 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
             return;
         }
         var identity = review.Installation.Identity!;
-        UninstallStatus.Text = (identity.Kind == ApplicationInstallerKind.Msi ? "MSI" : "MSIX") + Environment.NewLine + identity.SystemId +
+        UninstallStatus.Text = string.Join(Environment.NewLine, new[]
+            { review.Installation.Name, review.Installation.Version, review.Installation.Publisher, review.Installation.InstalledRoot?.Path.Value }
+            .Where(value => !string.IsNullOrEmpty(value))) + Environment.NewLine +
+            (identity.Kind == ApplicationInstallerKind.Msi ? "MSI" : "MSIX") + Environment.NewLine + identity.SystemId +
             Environment.NewLine + text.Get("The system installer may stop managed apps or services and remove data. Shou cannot restore this operation.") +
             Environment.NewLine + text.Get(uninstall.ExecutionAvailable
                 ? "Review the installer data changes before preparing an uninstall plan."
@@ -351,42 +352,21 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         try { await uninstall.InspectAsync(id); }
         catch (Exception error) { NativeDiagnostics.Write(error); }
     }
-    private async void ReviewSelectedUninstall(object sender, RoutedEventArgs args)
-    {
-        if (selectedApplicationId is not { } id || uninstall.IsBusy || model.IsBusy) return;
-        try
-        {
-            var content = new StackPanel { Spacing = 12 };
-            await uninstall.InspectAsync(id);
-            content.Children.Add(new TextBlock { Text = UninstallStatus.Text, TextWrapping = TextWrapping.Wrap });
-            if (uninstall.Review is not { CanPreparePlan: true })
-            {
-                await new ContentDialog { XamlRoot = XamlRoot, Title = text.Get("Review Uninstall"), Content = content, CloseButtonText = text.Get("Done") }.ShowAsync();
-                return;
-            }
-            var consent = new CheckBox { Content = new TextBlock { Text = InstallerDataDescription.Text, TextWrapping = TextWrapping.Wrap } };
-            content.Children.Add(consent);
-            var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = text.Get("Review Uninstall"), Content = content, PrimaryButtonText = text.Get("Prepare Uninstall Plan"), CloseButtonText = text.Get("Cancel"), DefaultButton = ContentDialogButton.Close, IsPrimaryButtonEnabled = false };
-            consent.Checked += (_, _) => dialog.IsPrimaryButtonEnabled = true;
-            consent.Unchecked += (_, _) => dialog.IsPrimaryButtonEnabled = false;
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary || consent.IsChecked != true || disposed) return;
-            uninstall.SetDataConsent(true);
-            await uninstall.PreparePlanAsync();
-            if (!uninstall.CanExecute) return;
-            await uninstall.ExecuteAsync(new WinUIApplicationUninstallConfirmation(this, text));
-            if (!disposed && uninstall.Execution?.State == ApplicationUninstallState.Completed) await model.RefreshAsync();
-        }
-        catch (Exception error) { NativeDiagnostics.Write(error); if (!disposed) UninstallStatus.Text = UninstallError(error is ShouException known ? known.Code : "io_error"); }
-    }
     private void ChangeInstallerDataConsent(object sender, RoutedEventArgs args) => uninstall.SetDataConsent(InstallerDataConsent.IsChecked == true);
-    private async void PrepareUninstallPlan(object sender, RoutedEventArgs args)
-    {
-        try { await uninstall.PreparePlanAsync(); }
-        catch (Exception error) { NativeDiagnostics.Write(error); }
-    }
     private async void ExecuteUninstall(object sender, RoutedEventArgs args)
     {
-        try { await uninstall.ExecuteAsync(new WinUIApplicationUninstallConfirmation(this, text)); }
+        if (disposed || model.IsBusy || !uninstall.ExecutionAvailable || !uninstall.CanPreparePlan ||
+            uninstall.Review is not { } review || review.Application.Id != selectedApplicationId) return;
+        try
+        {
+            await uninstall.PreparePlanAsync();
+            if (disposed || !uninstall.CanExecute || uninstall.Plan is not { } plan) return;
+            if (plan.Review.Digest != review.Digest || plan.Review.Application.Id != review.Application.Id ||
+                plan.Review.Installation.Identity != review.Installation.Identity || !plan.AllowInstallerDataChanges)
+                throw new ShouException("plan_stale", "The uninstall selection changed.");
+            await uninstall.ExecuteAsync(WinUIApplicationUninstallConfirmation.Create(this, plan));
+            if (!disposed && uninstall.Execution?.State == ApplicationUninstallState.Completed) await model.RefreshAsync();
+        }
         catch (Exception error) { NativeDiagnostics.Write(error); if (!disposed) UninstallStatus.Text = UninstallError(error is ShouException known ? known.Code : "io_error"); }
     }
     private async void ReadUninstallExecution(object sender, RoutedEventArgs args)

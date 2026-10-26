@@ -881,6 +881,22 @@
         }
       }
     },
+    "A matching catalog version could not be verified for this system.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A matching catalog version could not be verified for this system."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核验与当前系统匹配的目录版本。"
+          }
+        }
+      }
+    },
     "A preset requires a name and explicit rules.": {
       "localizations": {
         "en": {
@@ -1053,6 +1069,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "卸载前需要有效的应用标识和元数据。"
+          }
+        }
+      }
+    },
+    "AC Power": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AC Power"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电源供电"
           }
         }
       }
@@ -1357,6 +1389,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有权限读取此启动项来源。"
+          }
+        }
+      }
+    },
+    "Active Ethernet / Wi-Fi interfaces": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active Ethernet / Wi-Fi interfaces"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动的以太网 / Wi-Fi 接口"
           }
         }
       }
@@ -1933,6 +1981,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "全部位置"
+          }
+        }
+      }
+    },
+    "All readable physical disks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All readable physical disks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部可读物理磁盘"
           }
         }
       }
@@ -2689,6 +2753,22 @@
         }
       }
     },
+    "Application Updates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application Updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用更新"
+          }
+        }
+      }
+    },
     "Application activity checking is unavailable on this platform.": {
       "localizations": {
         "en": {
@@ -2781,6 +2861,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用缓存"
+          }
+        }
+      }
+    },
+    "Application changed. Scan applications again before checking its catalog version.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application changed. Scan applications again before checking its catalog version."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用已变化。请重新扫描应用，再检查目录版本。"
           }
         }
       }
@@ -3729,6 +3825,54 @@
         }
       }
     },
+    "Battery": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电池"
+          }
+        }
+      }
+    },
+    "Battery Health": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battery Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电池健康"
+          }
+        }
+      }
+    },
+    "Battery Power": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Battery Power"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电池供电"
+          }
+        }
+      }
+    },
     "Battle.net caches": {
       "localizations": {
         "en": {
@@ -4465,6 +4609,22 @@
         }
       }
     },
+    "Busiest GPU engine or device": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Busiest GPU engine or device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最繁忙的 GPU 引擎或设备"
+          }
+        }
+      }
+    },
     "CLI": {
       "localizations": {
         "en": {
@@ -4525,6 +4685,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "CMake 通常可以根据保留的项目源码重新生成已配置的构建产物。"
+          }
+        }
+      }
+    },
+    "CPU and memory load; not a hardware health score.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU and memory load; not a hardware health score."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "依据 CPU 与内存负载判断，不代表硬件健康评分。"
+          }
+        }
+      }
+    },
+    "CPU cores and memory details": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU cores and memory details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每核 CPU 与内存详情"
           }
         }
       }
@@ -4993,6 +5185,38 @@
         }
       }
     },
+    "Catalog Version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catalog Version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录版本"
+          }
+        }
+      }
+    },
+    "Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录版本不代表安装兼容性已核验。请通过应用自身或其官方更新器安装更新。"
+          }
+        }
+      }
+    },
     "Category": {
       "localizations": {
         "en": {
@@ -5053,6 +5277,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在更改计划任务…"
+          }
+        }
+      }
+    },
+    "Charging": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Charging"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "充电中"
           }
         }
       }
@@ -5121,6 +5361,22 @@
         }
       }
     },
+    "Check Homebrew Catalog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Homebrew Catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查 Homebrew 目录"
+          }
+        }
+      }
+    },
     "Check Recorded Locations": {
       "localizations": {
         "en": {
@@ -5133,6 +5389,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "核对记录位置"
+          }
+        }
+      }
+    },
+    "Check Release Catalog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Release Catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查版本目录"
           }
         }
       }
@@ -5393,6 +5665,22 @@
         }
       }
     },
+    "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。"
+          }
+        }
+      }
+    },
     "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.": {
       "localizations": {
         "en": {
@@ -5405,6 +5693,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅检查记录中的确切路径与目录清单，保留文件及原始回执。"
+          }
+        }
+      }
+    },
+    "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询此应用的官方稳定版目录。不上传应用清单，不安装更新。"
           }
         }
       }
@@ -6993,6 +7297,22 @@
         }
       }
     },
+    "Collecting rate baseline…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collecting rate baseline…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在建立速率基线…"
+          }
+        }
+      }
+    },
     "Colors indicate extensions, not cleanup eligibility.": {
       "localizations": {
         "en": {
@@ -7185,6 +7505,22 @@
         }
       }
     },
+    "Complete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整覆盖"
+          }
+        }
+      }
+    },
     "Completed": {
       "localizations": {
         "en": {
@@ -7293,6 +7629,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Composer 旧版下载缓存"
+          }
+        }
+      }
+    },
+    "Compressed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compressed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压缩内存"
           }
         }
       }
@@ -7953,6 +8305,22 @@
         }
       }
     },
+    "Copy failed. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy failed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制失败，请重试。"
+          }
+        }
+      }
+    },
     "Copy for AI": {
       "localizations": {
         "en": {
@@ -8049,6 +8417,22 @@
         }
       }
     },
+    "Counter unavailable or source changed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counter unavailable or source changed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计数器不可用或来源已改变。"
+          }
+        }
+      }
+    },
     "Coverage Issues": {
       "localizations": {
         "en": {
@@ -8141,6 +8525,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "制定可复用规则"
+          }
+        }
+      }
+    },
+    "Critical": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Critical"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "严重"
           }
         }
       }
@@ -8365,6 +8765,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "通过 AI 定制…"
+          }
+        }
+      }
+    },
+    "Cycles": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "循环次数"
           }
         }
       }
@@ -9281,6 +9697,22 @@
         }
       }
     },
+    "Disable Summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disable Summary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭摘要"
+          }
+        }
+      }
+    },
     "Disable startup definition?": {
       "localizations": {
         "en": {
@@ -9437,6 +9869,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "发现深度必须为 1 至 32 的整数。"
+          }
+        }
+      }
+    },
+    "Disk": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘"
+          }
+        }
+      }
+    },
+    "Disk Activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk Activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘活动"
           }
         }
       }
@@ -10721,6 +11185,54 @@
         }
       }
     },
+    "Fair": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fair"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轻度升温"
+          }
+        }
+      }
+    },
+    "Fan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "风扇"
+          }
+        }
+      }
+    },
+    "Fan telemetry unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fan telemetry unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "风扇数据不可用"
+          }
+        }
+      }
+    },
     "Figma caches": {
       "localizations": {
         "en": {
@@ -11489,6 +12001,22 @@
         }
       }
     },
+    "GPU counters are unavailable on this device.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPU counters are unavailable on this device."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此设备无法读取 GPU 计数器。"
+          }
+        }
+      }
+    },
     "General": {
       "localizations": {
         "en": {
@@ -11981,6 +12509,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "高风险"
+          }
+        }
+      }
+    },
+    "High resource usage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High resource usage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资源负载较高"
           }
         }
       }
@@ -13089,6 +13633,22 @@
         }
       }
     },
+    "Installed version is newer than the catalog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed version is newer than the catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装版本高于目录版本"
+          }
+        }
+      }
+    },
     "Installer code": {
       "localizations": {
         "en": {
@@ -14097,6 +14657,22 @@
         }
       }
     },
+    "Last 2 minutes · Gaps mean unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last 2 minutes · Gaps mean unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近 2 分钟 · 断线表示数据不可用"
+          }
+        }
+      }
+    },
     "Last 24 hours": {
       "localizations": {
         "en": {
@@ -14369,6 +14945,22 @@
         }
       }
     },
+    "Live · Every 2 seconds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live · Every 2 seconds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时 · 每 2 秒采样"
+          }
+        }
+      }
+    },
     "Load More": {
       "localizations": {
         "en": {
@@ -14637,6 +15229,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "逻辑大小"
+          }
+        }
+      }
+    },
+    "Logical cores": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logical cores"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "逻辑核心"
           }
         }
       }
@@ -14993,6 +15601,22 @@
         }
       }
     },
+    "Matches catalog version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matches catalog version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与目录版本一致"
+          }
+        }
+      }
+    },
     "Matches saved evidence": {
       "localizations": {
         "en": {
@@ -15149,6 +15773,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在统计应用大小…"
+          }
+        }
+      }
+    },
+    "Memory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内存"
+          }
+        }
+      }
+    },
+    "Memory Pressure": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memory Pressure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内存压力"
+          }
+        }
+      }
+    },
+    "Menu bar summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menu bar summary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "菜单栏摘要"
           }
         }
       }
@@ -15485,6 +16157,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "MongoDB Compass 缓存"
+          }
+        }
+      }
+    },
+    "Monitor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "监控"
+          }
+        }
+      }
+    },
+    "Monitoring paused": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitoring paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "监控已暂停"
           }
         }
       }
@@ -15985,6 +16689,38 @@
         }
       }
     },
+    "Network": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络"
+          }
+        }
+      }
+    },
+    "Network Activity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Network Activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "网络活动"
+          }
+        }
+      }
+    },
     "Network workspaces are outside the supported execution scope.": {
       "localizations": {
         "en": {
@@ -16029,6 +16765,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "新建规则…"
+          }
+        }
+      }
+    },
+    "Newer version in catalog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer version in catalog"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录中有更新版本"
           }
         }
       }
@@ -16433,6 +17185,22 @@
         }
       }
     },
+    "No matching processes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matching processes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有匹配的进程。"
+          }
+        }
+      }
+    },
     "No matching project outputs": {
       "localizations": {
         "en": {
@@ -16461,22 +17229,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "无匹配记录"
-          }
-        }
-      }
-    },
-    "No supported browser databases were found. Unavailable profiles are not counted as empty.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No supported browser databases were found. Unavailable profiles are not counted as empty."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。"
           }
         }
       }
@@ -16557,6 +17309,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "未记录路径"
+          }
+        }
+      }
+    },
+    "No readable internal battery was found.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No readable internal battery was found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到可读的内置电池。"
           }
         }
       }
@@ -16669,6 +17437,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "未发现启动项"
+          }
+        }
+      }
+    },
+    "No supported browser databases were found. Unavailable profiles are not counted as empty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No supported browser databases were found. Unavailable profiles are not counted as empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发现支持的浏览器数据库。无法访问的资料不会被计为没有记录。"
+          }
+        }
+      }
+    },
+    "No supported catalog source for this application. Check for updates in the app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No supported catalog source for this application. Check for updates in the app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此应用暂无受支持的目录来源。请在应用内检查更新。"
+          }
+        }
+      }
+    },
+    "No supported update source": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No supported update source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无受支持的更新来源"
           }
         }
       }
@@ -17297,6 +18113,22 @@
         }
       }
     },
+    "Observation incomplete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observation incomplete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "观察尚不完整"
+          }
+        }
+      }
+    },
     "Observed Change": {
       "localizations": {
         "en": {
@@ -17341,6 +18173,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "观察时间"
+          }
+        }
+      }
+    },
+    "Observed load normal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Observed load normal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已观察负载正常"
           }
         }
       }
@@ -17453,6 +18301,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "离线安装可能需要重新下载依赖包。保留项目依赖、全局可执行程序和配置。"
+          }
+        }
+      }
+    },
+    "Oldest → Latest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oldest → Latest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "较早 → 最新"
           }
         }
       }
@@ -17889,6 +18753,22 @@
         }
       }
     },
+    "Open Homebrew Page": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Homebrew Page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 Homebrew 页面"
+          }
+        }
+      }
+    },
     "Open Investigation": {
       "localizations": {
         "en": {
@@ -17917,6 +18797,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开登录项设置"
+          }
+        }
+      }
+    },
+    "Open Official Update Page": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Official Update Page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开官方更新页面"
           }
         }
       }
@@ -17965,6 +18861,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "开放源代码"
+          }
+        }
+      }
+    },
+    "Open System Monitor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Monitor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开系统监控"
           }
         }
       }
@@ -18593,6 +19505,22 @@
         }
       }
     },
+    "Partial process coverage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partial process coverage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进程覆盖不完整"
+          }
+        }
+      }
+    },
     "Partially Enabled": {
       "localizations": {
         "en": {
@@ -18621,6 +19549,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "部分完成"
+          }
+        }
+      }
+    },
+    "Pause Monitoring": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause Monitoring"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂停监控"
           }
         }
       }
@@ -19633,6 +20577,54 @@
         }
       }
     },
+    "Process": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Process"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进程"
+          }
+        }
+      }
+    },
+    "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。"
+          }
+        }
+      }
+    },
+    "Processes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进程"
+          }
+        }
+      }
+    },
     "Processing Strategy": {
       "localizations": {
         "en": {
@@ -20449,6 +21441,22 @@
         }
       }
     },
+    "Quit Shou": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit Shou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出 Shou"
+          }
+        }
+      }
+    },
     "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.": {
       "localizations": {
         "en": {
@@ -20637,6 +21645,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已读取"
+          }
+        }
+      }
+    },
+    "Read / Write": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read / Write"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取 / 写入"
           }
         }
       }
@@ -20877,6 +21901,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "只读系统工具的输出量超出限制。"
+          }
+        }
+      }
+    },
+    "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只读监控 · 历史仅保留在内存中 · 离开本页后停止采样，除非已开启摘要。"
           }
         }
       }
@@ -21201,6 +22241,22 @@
         }
       }
     },
+    "Receive / Send": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receive / Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收 / 发送"
+          }
+        }
+      }
+    },
     "Recent Tool Cleanups": {
       "localizations": {
         "en": {
@@ -21229,6 +22285,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "最近的隐私清理记录"
+          }
+        }
+      }
+    },
+    "Recent resource trend": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent resource trend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近期资源趋势"
           }
         }
       }
@@ -21825,6 +22897,22 @@
         }
       }
     },
+    "Report": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报告"
+          }
+        }
+      }
+    },
     "Report an Issue": {
       "localizations": {
         "en": {
@@ -21933,6 +23021,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新扫描当前文件夹"
+          }
+        }
+      }
+    },
+    "Resource Status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resource Status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资源状态"
           }
         }
       }
@@ -22129,6 +23233,22 @@
         }
       }
     },
+    "Resume Monitoring": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume Monitoring"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续监控"
+          }
+        }
+      }
+    },
     "Retain this content": {
       "localizations": {
         "en": {
@@ -22157,6 +23277,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "保留"
+          }
+        }
+      }
+    },
+    "Retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
           }
         }
       }
@@ -23505,6 +24641,22 @@
         }
       }
     },
+    "Sampling failed; showing the last observation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sampling failed; showing the last observation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "采样失败，正在显示上次观察结果。"
+          }
+        }
+      }
+    },
     "Save": {
       "localizations": {
         "en": {
@@ -24801,6 +25953,22 @@
         }
       }
     },
+    "Search name or PID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search name or PID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜索名称或 PID"
+          }
+        }
+      }
+    },
     "Search programs or publishers": {
       "localizations": {
         "en": {
@@ -25489,6 +26657,22 @@
         }
       }
     },
+    "Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勾选将移除整个目录。请先停止相关任务；删除前会校验全部内容。"
+          }
+        }
+      }
+    },
     "Select up to 256 items for one review.": {
       "localizations": {
         "en": {
@@ -25773,6 +26957,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sequel Pro 缓存"
+          }
+        }
+      }
+    },
+    "Serious": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serious"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明显升温"
           }
         }
       }
@@ -26317,6 +27517,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "显示 %lld 个位置，共匹配 %lld 个"
+          }
+        }
+      }
+    },
+    "Showing %lld of %lld matching processes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing %lld of %lld matching processes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示 %lld 项，共 %lld 个匹配进程。"
           }
         }
       }
@@ -28481,6 +29697,22 @@
         }
       }
     },
+    "Swap Used": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swap Used"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已用交换空间"
+          }
+        }
+      }
+    },
     "Swift Package Manager caches": {
       "localizations": {
         "en": {
@@ -28605,6 +29837,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "系统缓存"
+          }
+        }
+      }
+    },
+    "System Monitor": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System Monitor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统监控"
           }
         }
       }
@@ -28765,6 +30013,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "完成 Windows 原生验证前，系统卸载不可用。"
+          }
+        }
+      }
+    },
+    "System volume available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System volume available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统卷可用空间"
+          }
+        }
+      }
+    },
+    "System volume usage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System volume usage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统卷占用"
           }
         }
       }
@@ -28989,6 +30269,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "告诉现有 AI Agent 想清理什么，由它追问并制定适合你的规则。"
+          }
+        }
+      }
+    },
+    "Temperature: available sensor average. Fans are controlled by the system.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Temperature: available sensor average. Fans are controlled by the system."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "温度为可读传感器均值，风扇由系统调节。"
           }
         }
       }
@@ -29389,6 +30685,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "内置规则的命名空间不可用于个人规则。"
+          }
+        }
+      }
+    },
+    "The catalog check could not finish. Try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The catalog check could not finish. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目录检查未能完成，请重试。"
+          }
+        }
+      }
+    },
+    "The catalog identity or availability could not be verified.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The catalog identity or availability could not be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核验目录身份或可用状态。"
           }
         }
       }
@@ -30641,6 +31969,22 @@
         }
       }
     },
+    "The tray summary could not be opened.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The tray summary could not be opened."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法开启托盘摘要。"
+          }
+        }
+      }
+    },
     "The uninstall attempt failed. The installer may have made changes.": {
       "localizations": {
         "en": {
@@ -30749,6 +32093,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法确定卸载结果。请先读取已保存的记录，再进行后续操作。"
+          }
+        }
+      }
+    },
+    "The versions use different or unsupported formats. Compare them in the app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The versions use different or unsupported formats. Compare them in the app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本格式不同或暂不支持比较，请在应用内核对。"
+          }
+        }
+      }
+    },
+    "Thermals & Fans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thermals & Fans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "温度与风扇"
           }
         }
       }
@@ -31761,6 +33137,38 @@
         }
       }
     },
+    "Top CPU processes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top CPU processes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU 占用最高的进程"
+          }
+        }
+      }
+    },
+    "Total machine capacity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total machine capacity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "整机总容量"
+          }
+        }
+      }
+    },
     "Transmission caches": {
       "localizations": {
         "en": {
@@ -31805,6 +33213,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "移到废纸篓后未返回目标位置。请检查系统废纸篓后再重试。"
+          }
+        }
+      }
+    },
+    "Tray summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tray summary"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "托盘摘要"
           }
         }
       }
@@ -32401,6 +33825,22 @@
         }
       }
     },
+    "Update status unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update status unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新状态未知"
+          }
+        }
+      }
+    },
     "Updates are verified before installation.": {
       "localizations": {
         "en": {
@@ -32413,6 +33853,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "安装前验证更新签名。"
+          }
+        }
+      }
+    },
+    "Uptime: %lld hours": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uptime: %lld hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已运行：%lld 小时"
           }
         }
       }
@@ -33329,6 +34785,22 @@
         }
       }
     },
+    "Windows does not expose these hardware sensors through the supported read-only APIs.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows does not expose these hardware sensors through the supported read-only APIs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。"
+          }
+        }
+      }
+    },
     "Windows identifies this as a system package.": {
       "localizations": {
         "en": {
@@ -33469,6 +34941,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描位置"
+          }
+        }
+      }
+    },
+    "Write": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写入"
           }
         }
       }
@@ -35213,1478 +36701,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "装下更多可能。"
-          }
-        }
-      }
-    },
-    "Application Updates": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Application Updates"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用更新"
-          }
-        }
-      }
-    },
-    "Check Homebrew Catalog": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check Homebrew Catalog"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检查 Homebrew 目录"
-          }
-        }
-      }
-    },
-    "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。"
-          }
-        }
-      }
-    },
-    "Catalog Version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Catalog Version"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目录版本"
-          }
-        }
-      }
-    },
-    "Open Homebrew Page": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Homebrew Page"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开 Homebrew 页面"
-          }
-        }
-      }
-    },
-    "Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目录版本不代表安装兼容性已核验。请通过应用自身或其官方更新器安装更新。"
-          }
-        }
-      }
-    },
-    "No supported catalog source for this application. Check for updates in the app.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No supported catalog source for this application. Check for updates in the app."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此应用暂无受支持的目录来源。请在应用内检查更新。"
-          }
-        }
-      }
-    },
-    "Application changed. Scan applications again before checking its catalog version.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Application changed. Scan applications again before checking its catalog version."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用已变化。请重新扫描应用，再检查目录版本。"
-          }
-        }
-      }
-    },
-    "The catalog check could not finish. Try again.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The catalog check could not finish. Try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目录检查未能完成，请重试。"
-          }
-        }
-      }
-    },
-    "Newer version in catalog": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Newer version in catalog"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "目录中有更新版本"
-          }
-        }
-      }
-    },
-    "Matches catalog version": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Matches catalog version"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "与目录版本一致"
-          }
-        }
-      }
-    },
-    "Installed version is newer than the catalog": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installed version is newer than the catalog"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已安装版本高于目录版本"
-          }
-        }
-      }
-    },
-    "Update status unknown": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Update status unknown"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新状态未知"
-          }
-        }
-      }
-    },
-    "No supported update source": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No supported update source"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂无受支持的更新来源"
-          }
-        }
-      }
-    },
-    "The versions use different or unsupported formats. Compare them in the app.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The versions use different or unsupported formats. Compare them in the app."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "版本格式不同或暂不支持比较，请在应用内核对。"
-          }
-        }
-      }
-    },
-    "A matching catalog version could not be verified for this system.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A matching catalog version could not be verified for this system."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法核验与当前系统匹配的目录版本。"
-          }
-        }
-      }
-    },
-    "The catalog identity or availability could not be verified.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The catalog identity or availability could not be verified."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法核验目录身份或可用状态。"
-          }
-        }
-      }
-    },
-    "Retry": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Retry"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重试"
-          }
-        }
-      }
-    },
-    "Report": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Report"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "报告"
-          }
-        }
-      }
-    },
-    "Copy failed. Try again.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy failed. Try again."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "复制失败，请重试。"
-          }
-        }
-      }
-    },
-    "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "查询此应用的官方稳定版目录。不上传应用清单，不安装更新。"
-          }
-        }
-      }
-    },
-    "Check Release Catalog": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check Release Catalog"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检查版本目录"
-          }
-        }
-      }
-    },
-    "Open Official Update Page": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open Official Update Page"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开官方更新页面"
-          }
-        }
-      }
-    },
-    "System Monitor": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "System Monitor"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "系统监控"
-          }
-        }
-      }
-    },
-    "Monitor": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monitor"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监控"
-          }
-        }
-      }
-    },
-    "Monitoring paused": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monitoring paused"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监控已暂停"
-          }
-        }
-      }
-    },
-    "Sampling failed; showing the last observation.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sampling failed; showing the last observation."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "采样失败，正在显示上次观察结果。"
-          }
-        }
-      }
-    },
-    "Collecting rate baseline…": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Collecting rate baseline…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在建立速率基线…"
-          }
-        }
-      }
-    },
-    "Live · Every 2 seconds": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live · Every 2 seconds"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "实时 · 每 2 秒采样"
-          }
-        }
-      }
-    },
-    "Menu bar summary": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Menu bar summary"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "菜单栏摘要"
-          }
-        }
-      }
-    },
-    "Tray summary": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tray summary"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "托盘摘要"
-          }
-        }
-      }
-    },
-    "Resume Monitoring": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resume Monitoring"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "继续监控"
-          }
-        }
-      }
-    },
-    "Pause Monitoring": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pause Monitoring"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停监控"
-          }
-        }
-      }
-    },
-    "Resource Status": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Resource Status"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "资源状态"
-          }
-        }
-      }
-    },
-    "Disk Activity": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disk Activity"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "磁盘活动"
-          }
-        }
-      }
-    },
-    "Network Activity": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Network Activity"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "网络活动"
-          }
-        }
-      }
-    },
-    "Thermals & Fans": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Thermals & Fans"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "温度与风扇"
-          }
-        }
-      }
-    },
-    "Last 2 minutes · Gaps mean unavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Last 2 minutes · Gaps mean unavailable"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最近 2 分钟 · 断线表示数据不可用"
-          }
-        }
-      }
-    },
-    "CPU cores and memory details": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU cores and memory details"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每核 CPU 与内存详情"
-          }
-        }
-      }
-    },
-    "Compressed": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Compressed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "压缩内存"
-          }
-        }
-      }
-    },
-    "Swap Used": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Swap Used"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已用交换空间"
-          }
-        }
-      }
-    },
-    "Memory Pressure": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Memory Pressure"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "内存压力"
-          }
-        }
-      }
-    },
-    "Processes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Processes"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "进程"
-          }
-        }
-      }
-    },
-    "Search name or PID": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Search name or PID"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "搜索名称或 PID"
-          }
-        }
-      }
-    },
-    "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。"
-          }
-        }
-      }
-    },
-    "No matching processes.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No matching processes."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有匹配的进程。"
-          }
-        }
-      }
-    },
-    "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "只读监控 · 历史仅保留在内存中 · 离开本页后停止采样，除非已开启摘要。"
-          }
-        }
-      }
-    },
-    "Recent resource trend": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recent resource trend"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "近期资源趋势"
-          }
-        }
-      }
-    },
-    "Oldest → Latest": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oldest → Latest"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "较早 → 最新"
-          }
-        }
-      }
-    },
-    "Read / Write": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read / Write"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "读取 / 写入"
-          }
-        }
-      }
-    },
-    "Receive / Send": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Receive / Send"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "接收 / 发送"
-          }
-        }
-      }
-    },
-    "All readable physical disks": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All readable physical disks"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全部可读物理磁盘"
-          }
-        }
-      }
-    },
-    "Active Ethernet / Wi-Fi interfaces": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Active Ethernet / Wi-Fi interfaces"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "活动的以太网 / Wi-Fi 接口"
-          }
-        }
-      }
-    },
-    "Counter unavailable or source changed.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Counter unavailable or source changed."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "计数器不可用或来源已改变。"
-          }
-        }
-      }
-    },
-    "Total machine capacity": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Total machine capacity"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "整机总容量"
-          }
-        }
-      }
-    },
-    "Busiest GPU engine or device": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Busiest GPU engine or device"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "最繁忙的 GPU 引擎或设备"
-          }
-        }
-      }
-    },
-    "GPU counters are unavailable on this device.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GPU counters are unavailable on this device."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此设备无法读取 GPU 计数器。"
-          }
-        }
-      }
-    },
-    "No readable internal battery was found.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No readable internal battery was found."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未找到可读的内置电池。"
-          }
-        }
-      }
-    },
-    "Open System Monitor": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Open System Monitor"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开系统监控"
-          }
-        }
-      }
-    },
-    "Disable Summary": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disable Summary"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "关闭摘要"
-          }
-        }
-      }
-    },
-    "Observation incomplete": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Observation incomplete"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "观察尚不完整"
-          }
-        }
-      }
-    },
-    "High resource usage": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "High resource usage"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "资源负载较高"
-          }
-        }
-      }
-    },
-    "Observed load normal": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Observed load normal"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已观察负载正常"
-          }
-        }
-      }
-    },
-    "CPU and memory load; not a hardware health score.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU and memory load; not a hardware health score."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "依据 CPU 与内存负载判断，不代表硬件健康评分。"
-          }
-        }
-      }
-    },
-    "Fan telemetry unavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fan telemetry unavailable"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "风扇数据不可用"
-          }
-        }
-      }
-    },
-    "Temperature: available sensor average. Fans are controlled by the system.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Temperature: available sensor average. Fans are controlled by the system."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "温度为可读传感器均值，风扇由系统调节。"
-          }
-        }
-      }
-    },
-    "Battery Health": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battery Health"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池健康"
-          }
-        }
-      }
-    },
-    "Cycles": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cycles"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "循环次数"
-          }
-        }
-      }
-    },
-    "Logical cores": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Logical cores"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "逻辑核心"
-          }
-        }
-      }
-    },
-    "System volume available": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "System volume available"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "系统卷可用空间"
-          }
-        }
-      }
-    },
-    "System volume usage": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "System volume usage"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "系统卷占用"
-          }
-        }
-      }
-    },
-    "Windows does not expose these hardware sensors through the supported read-only APIs.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Windows does not expose these hardware sensors through the supported read-only APIs."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。"
-          }
-        }
-      }
-    },
-    "The tray summary could not be opened.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The tray summary could not be opened."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无法开启托盘摘要。"
-          }
-        }
-      }
-    },
-    "Top CPU processes": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Top CPU processes"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU 占用最高的进程"
-          }
-        }
-      }
-    },
-    "Partial process coverage": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Partial process coverage"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "进程覆盖不完整"
-          }
-        }
-      }
-    },
-    "Complete": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Complete"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "完整覆盖"
-          }
-        }
-      }
-    },
-    "AC Power": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AC Power"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电源供电"
-          }
-        }
-      }
-    },
-    "Battery Power": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battery Power"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池供电"
-          }
-        }
-      }
-    },
-    "Charging": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Charging"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "充电中"
-          }
-        }
-      }
-    },
-    "Fair": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fair"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "轻度升温"
-          }
-        }
-      }
-    },
-    "Serious": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Serious"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "明显升温"
-          }
-        }
-      }
-    },
-    "Critical": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Critical"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "严重"
-          }
-        }
-      }
-    },
-    "Fan": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fan"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "风扇"
-          }
-        }
-      }
-    },
-    "Quit Shou": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quit Shou"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "退出 Shou"
-          }
-        }
-      }
-    },
-    "Battery": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Battery"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池"
-          }
-        }
-      }
-    },
-    "Disk": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Disk"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "磁盘"
-          }
-        }
-      }
-    },
-    "Memory": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Memory"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "内存"
-          }
-        }
-      }
-    },
-    "Network": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Network"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "网络"
-          }
-        }
-      }
-    },
-    "Process": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Process"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "进程"
-          }
-        }
-      }
-    },
-    "Write": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Write"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "写入"
-          }
-        }
-      }
-    },
-    "Showing %lld of %lld matching processes.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Showing %lld of %lld matching processes."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "显示 %lld 项，共 %lld 个匹配进程。"
-          }
-        }
-      }
-    },
-    "Uptime: %lld hours": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uptime: %lld hours"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已运行：%lld 小时"
           }
         }
       }

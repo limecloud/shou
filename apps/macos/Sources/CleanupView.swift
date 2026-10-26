@@ -8,17 +8,29 @@ struct CleanupActionButton: View {
     let enabled: Bool
     let clean: () -> Void
     let trash: () -> Void
+    var identifier="cleanup.clean"
+    var permanentEnabled=true
 
     var body: some View {
-        HStack(spacing: 4) {
-            Button(model.t("Clean & Free Space"), action: clean)
-                .buttonStyle(.borderedProminent).controlSize(.large)
-                .accessibilityIdentifier("cleanup.clean")
+        HStack(spacing: ShouDesign.itemSpacing) {
+            Button(role: .destructive, action: clean) {
+                Label(model.t("Delete Permanently"), systemImage: "trash")
+                    .font(.headline)
+                    .frame(minWidth: ShouDesign.primaryActionMinWidth, minHeight: ShouDesign.primaryActionContentMinHeight)
+            }
+                .buttonStyle(.borderedProminent).tint(.red).controlSize(.large)
+                .disabled(!permanentEnabled)
+                .accessibilityIdentifier(identifier)
+                .help(model.t("Permanent deletion cannot be undone."))
+                .accessibilityHint(model.t("Permanent deletion cannot be undone."))
             Menu {
-                Button(model.t("Move Selected to Trash…"), action: trash)
-            } label: { Image(systemName: "chevron.down") }
-                .menuStyle(.borderlessButton).fixedSize()
-                .accessibilityLabel(model.t("More Actions"))
+                Button(model.t("Move to Trash"), action: trash)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .frame(width: ShouDesign.pageSpacing, height: ShouDesign.primaryActionContentMinHeight)
+            }
+                .menuStyle(.borderlessButton).fixedSize().controlSize(.large)
+                .accessibilityLabel(model.t("Move to Trash"))
         }.fixedSize().disabled(!enabled)
     }
 }
@@ -93,7 +105,7 @@ struct CleanupSummary: View {
                 Spacer()
                 CleanupActionButton(model: model,
                     enabled: !model.busy && !model.selected.isEmpty && !model.selected.contains { !$0.eligible } && model.snapshot?.previewOnly != true,
-                    clean: { model.previewCleanup() }, trash: { model.previewCleanup(permanent: false) })
+                    clean: { model.executeCleanup() }, trash: { model.executeCleanup(permanent: false) })
             }
             CapacityDots(segments: segments.map { ($0.1,$0.2) }, scanning: model.scanning).frame(height: 88).accessibilityHidden(true)
             ScrollView(.horizontal, showsIndicators: false) {
