@@ -5,6 +5,8 @@ Shou v0.16.0 adds native, read-only system monitoring and desktop resource summa
 - One serial sampler serves the page and summary. Warmup, pause, sleep, source changes and failures reset rate baselines. Process identity includes start time; CPU uses total machine capacity. History stays in memory, with no process termination, sensor controls or automatic startup.
 - Unsupported or unreadable sensors stay unavailable. macOS reads supported fixed AppleSMC sensors; Windows uses supported read-only APIs and does not install a temperature driver. Neither platform fabricates health scores or missing measurements.
 
+Acceptance limit: Windows x64 tray commands passed native UI checks. The Windows 11 ARM64 hosted runner rejects both the app's icon and independent system-icon fixtures, so ARM64 tray commands remain unaccepted there; the monitor page works. Mac menu-bar/Dock clicks remain outside the available automation evidence.
+
 macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed update metadata and checksums. The app uses an ad-hoc signature and is not Apple-notarized. Windows downloads remain unsigned, self-contained x64/ARM64 portable previews for Windows 11; public cleanup, uninstall and startup mutation gates stay closed. Complete Windows UI/accessibility, broad hardware compatibility, signing, installation and updating remain separate acceptance work. GitHub publication does not publish packages to npm. The existing v0.15.0 tag and assets are preserved.
 
 简体中文：Shou v0.16.0 新增 macOS／Windows 原生只读系统监控及桌面资源摘要。
@@ -13,5 +15,7 @@ macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone 
 - 主动开启的 macOS 菜单栏／Windows 托盘展示资源读数与前三个 CPU 进程，支持打开监控、暂停／继续、关闭摘要及正常退出。Dock 与原生 Windows 任务栏 Jump List 可直接打开监控，便携版同样支持。
 - 页面和摘要共用串行采样。首次读取、暂停、休眠、来源变化及失败后重建速率基线；进程以 PID 和开始时间共同标识，CPU 按整机容量计量。历史只留在内存，不提供终止进程、传感器控制或开机常驻。
 - 不可读或不支持的传感器保持缺失；macOS 读取受支持的固定 AppleSMC 传感器，Windows 使用只读系统 API，不安装温度驱动。两端均不编造健康分数或未知读数。
+
+验收限制：Windows x64 托盘命令已通过原生界面测试。Windows 11 ARM64 托管 runner 同时拒绝应用图标和独立系统图标夹具，因此该环境的 ARM64 托盘命令仍未验收，监控页面可用。Mac 菜单栏／Dock 点击仍缺少当前自动化工具可取得的实机证据。
 
 macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新元数据和校验和；应用为 ad-hoc 签名，未经 Apple 公证。Windows 继续提供 Windows 11 的未签名 x64／ARM64 自包含便携预览，公开清理、卸载和启动项变更门禁保持关闭；完整界面／辅助功能、广泛硬件兼容、签名、安装与更新分别验收。GitHub 发布不会自动发布 npm 包。保留既有 v0.15.0 标签和附件。

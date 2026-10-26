@@ -40,3 +40,5 @@ macOS 保留系统正常的关窗与退出区别。Windows 正常关窗沿用退
 Swift／C# Core 定义观察、差分与有界历史；Platform 只读采集；Swift Session／Windows Presentation 管理生命周期；SwiftUI／WinUI 只呈现与调度。共享文案从 String Catalog 生成，视觉复用现有 token。
 
 验收覆盖首样本、倒退、长间隔、来源变化、多 processor group 完整性、PID 重用、缺失、历史上限、暂停、隐藏、背景启用、错误、迟到结果及释放。原生采样、WinUI 编译、桌面交互、菜单／托盘、最小窗口、明暗外观和安装分别取证；实际状态见 [SYNC.md](../../../SYNC.md)。本功能纳入 `v0.16.0`，保留已发布的 `v0.15.0` 标签及清理安全合同。
+
+当前桌面证据覆盖 Mac 监控页面与 Windows x64 监控／托盘命令。Windows 11 ARM64 托管 runner 的页面、搜索与暂停可用，但通知图标注册失败；独立生成窗口和系统图标探针同样失败，因此该宿主的 ARM64 托盘命令仍未通过验收。界面会明确报告注册失败并关闭后台采样。Mac 菜单栏／Dock 点击也仍缺少当前自动化工具可取得的实机证据。
