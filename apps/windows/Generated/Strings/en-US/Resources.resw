@@ -3315,6 +3315,9 @@
   <data name="s9e4daf9e5441d363312dc0f4" xml:space="preserve">
     <value>Non-UTF-8 filenames cannot be safely represented in this build.</value>
   </data>
+  <data name="sa7248eeb45eb1ce247f81693" xml:space="preserve">
+    <value>Normal</value>
+  </data>
   <data name="sd16948e73a6800900e894177" xml:space="preserve">
     <value>Not checked</value>
   </data>
@@ -6488,6 +6491,9 @@
   </data>
   <data name="sb503d18f9b511853180c682b" xml:space="preserve">
     <value>WakaTime caches</value>
+  </data>
+  <data name="se981ddae45d8f4ca53f1ccbe" xml:space="preserve">
+    <value>Warning</value>
   </data>
   <data name="s03cf8278f6639a0aff6e6b58" xml:space="preserve">
     <value>Warp caches</value>

@@ -1104,6 +1104,7 @@
 "Node.js local tool caches" = "Node.js 项目工具缓存";
 "Node.js toolchain caches" = "Node.js 工具链缓存";
 "Non-UTF-8 filenames cannot be safely represented in this build." = "当前版本无法安全处理非 UTF-8 文件名。";
+"Normal" = "正常";
 "Not checked" = "未检查";
 "Not comparable" = "不可比较";
 "Not configured" = "尚未配置";
@@ -2162,6 +2163,7 @@
 "Waiting for confirmation or the system installer result. Keep this window open." = "正在等待确认或系统安装程序的结果，请保持窗口打开。";
 "Waiting for your answer" = "等待你的回答";
 "WakaTime caches" = "WakaTime 缓存";
+"Warning" = "警告";
 "Warp caches" = "Warp 缓存";
 "Watched paths" = "路径监听";
 "WeChat code caches" = "微信代码缓存";

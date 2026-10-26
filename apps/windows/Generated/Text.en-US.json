@@ -5524,6 +5524,11 @@
     "resource_id": "s9e4daf9e5441d363312dc0f4",
     "text": "Non-UTF-8 filenames cannot be safely represented in this build."
   },
+  "Normal": {
+    "format": "Normal",
+    "resource_id": "sa7248eeb45eb1ce247f81693",
+    "text": "Normal"
+  },
   "Not checked": {
     "format": "Not checked",
     "resource_id": "sd16948e73a6800900e894177",
@@ -10813,6 +10818,11 @@
     "format": "WakaTime caches",
     "resource_id": "sb503d18f9b511853180c682b",
     "text": "WakaTime caches"
+  },
+  "Warning": {
+    "format": "Warning",
+    "resource_id": "se981ddae45d8f4ca53f1ccbe",
+    "text": "Warning"
   },
   "Warp caches": {
     "format": "Warp caches",

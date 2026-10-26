@@ -5524,6 +5524,11 @@
     "resource_id": "s9e4daf9e5441d363312dc0f4",
     "text": "当前版本无法安全处理非 UTF-8 文件名。"
   },
+  "Normal": {
+    "format": "正常",
+    "resource_id": "sa7248eeb45eb1ce247f81693",
+    "text": "正常"
+  },
   "Not checked": {
     "format": "未检查",
     "resource_id": "sd16948e73a6800900e894177",
@@ -10813,6 +10818,11 @@
     "format": "WakaTime 缓存",
     "resource_id": "sb503d18f9b511853180c682b",
     "text": "WakaTime 缓存"
+  },
+  "Warning": {
+    "format": "警告",
+    "resource_id": "se981ddae45d8f4ca53f1ccbe",
+    "text": "警告"
   },
   "Warp caches": {
     "format": "Warp 缓存",

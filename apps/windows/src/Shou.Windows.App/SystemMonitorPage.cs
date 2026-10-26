@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
 using Microsoft.UI.Xaml.Media;
@@ -183,6 +184,7 @@ internal sealed class MonitorProcessRow(MonitorProcessUsage initial) : INotifyPr
 
 internal sealed class MonitorMetricCard : UserControl
 {
+    private readonly string title;
     private readonly TextBlock value = new() { FontSize = (double)Application.Current.Resources["ShouSummaryFigureSize"], FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis };
     private readonly TextBlock detail = new() { TextWrapping = TextWrapping.Wrap, MaxLines = 3, Height = 54 };
     private readonly TextBlock middle = new() { TextWrapping = TextWrapping.Wrap, MaxLines = 2, Height = 42 };
@@ -191,6 +193,7 @@ internal sealed class MonitorMetricCard : UserControl
     private readonly ProgressBar meter = new() { Height = 6, MinHeight = 0, Maximum = 100, Visibility = Visibility.Collapsed, Margin = new(0, 18, 0, 18) };
     public MonitorMetricCard(string title)
     {
+        this.title = title;
         var surface = new Border { CornerRadius = (CornerRadius)Application.Current.Resources["ShouCardRadius"], Padding = new(16), BorderThickness = new(1) };
         ThemeResources.Apply(surface, Border.BackgroundProperty, "Background", "ShouSurfaceBrush"); ThemeResources.Apply(surface, Border.BorderBrushProperty, "BorderBrush", "ShouDividerBrush");
         var content = new StackPanel { Spacing = 9 }; var top = new Grid(); top.ColumnDefinitions.Add(new()); top.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -203,6 +206,13 @@ internal sealed class MonitorMetricCard : UserControl
         value.Text = number; value.FontSize = number.Length > 16 ? 18 : (double)Application.Current.Resources["ShouSummaryFigureSize"];
         middle.Text = description ?? ""; middle.Visibility = description is null ? Visibility.Collapsed : Visibility.Visible;
         Trend.Visibility = description is null ? Visibility.Visible : Visibility.Collapsed; detail.Text = footer;
+        AutomationProperties.SetName(this, string.Join(" · ", new[] { title, number, description, footer }.Where(item => !string.IsNullOrEmpty(item))));
+    }
+    protected override AutomationPeer OnCreateAutomationPeer() => new MetricPeer(this);
+    private sealed class MetricPeer(MonitorMetricCard owner) : FrameworkElementAutomationPeer(owner)
+    {
+        protected override string GetClassNameCore() => nameof(MonitorMetricCard);
+        protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Group;
     }
     public void SetVolume(ulong? total, ulong? available)
     {

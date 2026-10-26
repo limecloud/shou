@@ -1104,6 +1104,7 @@
 "Node.js local tool caches" = "Node.js local tool caches";
 "Node.js toolchain caches" = "Node.js toolchain caches";
 "Non-UTF-8 filenames cannot be safely represented in this build." = "Non-UTF-8 filenames cannot be safely represented in this build.";
+"Normal" = "Normal";
 "Not checked" = "Not checked";
 "Not comparable" = "Not comparable";
 "Not configured" = "Not configured";
@@ -2162,6 +2163,7 @@
 "Waiting for confirmation or the system installer result. Keep this window open." = "Waiting for confirmation or the system installer result. Keep this window open.";
 "Waiting for your answer" = "Waiting for your answer";
 "WakaTime caches" = "WakaTime caches";
+"Warning" = "Warning";
 "Warp caches" = "Warp caches";
 "Watched paths" = "Watched paths";
 "WeChat code caches" = "WeChat code caches";
