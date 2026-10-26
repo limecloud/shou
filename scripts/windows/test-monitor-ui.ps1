@@ -15,6 +15,8 @@ public static class MonitorUiNative {
  [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr window, int x, int y, int width, int height, bool repaint);
  [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr window);
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindowExW(IntPtr parent, IntPtr after, string className, string name);
+ [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
 }
 '@
 $Output = Join-Path $ArtifactsRoot ('monitor-ui-' + [Guid]::NewGuid().ToString('N'))
@@ -76,10 +78,16 @@ try {
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -eq 0 } 'registered tray icon' | Out-Null
     [MonitorUiNative]::PostMessageW($Handle, 0x8047, [UIntPtr]::new(71), [IntPtr]::new(0x205)) | Out-Null
     $Menu = Wait-Monitor {
-        [Windows.Automation.AutomationElement]::RootElement.FindFirst([Windows.Automation.TreeScope]::Children,
-            [Windows.Automation.AndCondition]::new(
-                [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty, $App.Id),
-                [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::Menu)))
+        # Win32 popup menus can appear under the owner rather than as UIA root children.
+        $Popup = [IntPtr]::Zero
+        do {
+            $Popup = [MonitorUiNative]::FindWindowExW([IntPtr]::Zero, $Popup, '#32768', $null)
+            if ($Popup -ne [IntPtr]::Zero) {
+                $OwnerProcess = [uint32]0
+                [MonitorUiNative]::GetWindowThreadProcessId($Popup, [ref]$OwnerProcess) | Out-Null
+                if ($OwnerProcess -eq $App.Id) { return [Windows.Automation.AutomationElement]::FromHandle($Popup) }
+            }
+        } while ($Popup -ne [IntPtr]::Zero)
     } 'native tray popup'
     $Items = @($Menu.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
     $Labels = @($Items | ForEach-Object { $_.Current.Name })

@@ -58,9 +58,7 @@ import ShouCore
         let command=NSMenuItem(title:title,action:action,keyEquivalent:""); command.target=self; menu.addItem(command)
     }
     @objc private func openMonitor() {
-        guard model?.busy != true else { return }
-        model?.section="monitor"; NSApp.activate(ignoringOtherApps:true)
-        NSApp.windows.first(where:{ $0.canBecomeMain })?.makeKeyAndOrderFront(nil)
+        model?.openSystemMonitor()
     }
     @objc private func togglePause() { session.setPaused(!session.paused) }
     @objc private func disable() { session.setBackgroundEnabled(false) }

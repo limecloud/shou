@@ -43,9 +43,7 @@ final class ShouApplicationDelegate: NSObject, NSApplicationDelegate {
         return menu
     }
     @objc private func openMonitor() {
-        guard let model, !model.busy else { return }
-        model.section="monitor"; NSApp.activate(ignoringOtherApps:true)
-        NSApp.windows.first(where:{ $0.canBecomeMain })?.makeKeyAndOrderFront(nil)
+        model?.openSystemMonitor()
     }
     @objc private func pauseMonitor() { if let model { model.monitor.setPaused(!model.monitor.paused) } }
 

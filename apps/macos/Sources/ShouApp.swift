@@ -12,7 +12,7 @@ import Accessibility
     @AppStorage("ShouAppearance") private var appearance="system"
     init() { NSApplication.shared.applicationIconImage=AppIdentity.icon }
     var body: some Scene {
-        WindowGroup(model.displayTitle) {
+        WindowGroup(model.displayTitle, id: "workspace") {
             ContentView(model: model)
                 .environment(\.locale, model.language.locale)
                 .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
@@ -103,6 +103,18 @@ struct CleanupCompletion: Identifiable {
     var privacySession=PrivacySession()
     let monitor=SystemMonitorSession(source:NativeSystemMonitor())
     @ObservationIgnored var monitorStatusItem: MonitorStatusItem?
+    @ObservationIgnored var openMainWindow: (() -> Void)?
+    func openSystemMonitor() {
+        guard !busy else { return }
+        section="monitor"
+        if let window=NSApp.windows.first(where:{ $0.canBecomeMain }) {
+            window.makeKeyAndOrderFront(nil)
+            monitor.setVisible(true)
+        } else {
+            openMainWindow?()
+        }
+        NSApp.activate(ignoringOtherApps:true)
+    }
     var browsingPath="."
     var focusedPath: String?
     var ruleDraftPattern=""
@@ -915,6 +927,7 @@ struct CleanupCompletion: Identifiable {
 
 struct ContentView: View {
     @Bindable var model: AppModel
+    @Environment(\.openWindow) private var openWindow
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @State private var inspector=false
     @State private var ruleEditor=false
@@ -983,7 +996,9 @@ struct ContentView: View {
         case "projects": ProjectCleanupView(model: model)
         case "privacy": PrivacyView(app: model, session: model.privacySession)
         case "monitor": SystemMonitorView(model:model,session:model.monitor)
-                .onAppear { if model.monitorStatusItem == nil { model.monitorStatusItem=MonitorStatusItem(model:model) } }
+                .onAppear {
+                    if model.monitorStatusItem == nil { model.monitorStatusItem=MonitorStatusItem(model:model) }
+                }
         case "history": HistoryView(model: model)
         case "settings": SettingsView(model: model, updater: model.updater)
         case "storage": StorageBrowser(model: model, inspector: inspector)
@@ -1053,6 +1068,10 @@ struct ContentView: View {
             Button(model.t("OK")) { model.error=nil }
         } message: { Text(model.diagnostic(model.error ?? "")) }
         .environment(\.shouReduceMotion, model.reduceMotion)
+        .onAppear {
+            let action=openWindow
+            model.openMainWindow={ action(id:"workspace") }
+        }
         .transaction { transaction in
             if systemReduceMotion || model.reduceMotion {
                 transaction.animation=nil
