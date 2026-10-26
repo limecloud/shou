@@ -30,6 +30,7 @@ $Output = Join-Path $ArtifactsRoot ('monitor-ui-' + [Guid]::NewGuid().ToString('
 New-Item -ItemType Directory -Path $Output -Force | Out-Null
 $Checks = [Collections.Generic.List[string]]::new()
 $App = $null; $Window = $null; $Failure = $null; $Icon = [MonitorUiNative+IconId]::new()
+$ShellBefore = [IntPtr]::Zero; $ShellAfter = [IntPtr]::Zero; $ShellStarted = $false
 function Wait-Monitor([scriptblock]$Condition, [string]$Description) {
     $Deadline = [DateTime]::UtcNow.AddSeconds(30)
     do {
@@ -64,6 +65,17 @@ function Save-Monitor([string]$Name) {
     }) | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $Output ($Name + '.json')) -Encoding utf8
 }
 try {
+    $ShellBefore = [MonitorUiNative]::FindWindowExW([IntPtr]::Zero, [IntPtr]::Zero, 'Shell_TrayWnd', $null)
+    # A fresh hosted image can have an interactive desktop without Explorer's notification area.
+    # Initialize only that disposable test desktop; ordinary developer/user sessions are unchanged.
+    if ($ShellBefore -eq [IntPtr]::Zero -and $env:GITHUB_ACTIONS -eq 'true' -and $env:RUNNER_ENVIRONMENT -eq 'github-hosted') {
+        Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') | Out-Null
+        $ShellStarted = $true
+    }
+    $ShellAfter = Wait-Monitor {
+        $Handle = [MonitorUiNative]::FindWindowExW([IntPtr]::Zero, [IntPtr]::Zero, 'Shell_TrayWnd', $null)
+        if ($Handle -ne [IntPtr]::Zero) { $Handle }
+    } 'Explorer notification area on the test desktop'
     $Executable = Join-Path (Resolve-Path -LiteralPath $PublishRoot).Path 'app/Shou.Windows.App.exe'
     $App = Start-Process -FilePath $Executable -ArgumentList '--page monitor' -PassThru
     $Handle = Wait-Monitor { $App.Refresh(); if ($App.MainWindowHandle -ne [IntPtr]::Zero) { $App.MainWindowHandle } } 'monitor window'
@@ -144,6 +156,7 @@ finally {
     if ($null -ne $App -and -not $App.HasExited) { $App.CloseMainWindow() | Out-Null }
     [ordered]@{ source=(git rev-parse HEAD); architecture=[Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString();
         os=[Environment]::OSVersion.VersionString; passed=($null -eq $Failure); checks=@($Checks); failure=$Failure;
+        shell_present_before=($ShellBefore -ne [IntPtr]::Zero); hosted_shell_started=$ShellStarted; shell_present_after=($ShellAfter -ne [IntPtr]::Zero);
         scope='Automated read-only monitor UI and native notification menu, not full desktop E2E or signed installation.' } |
         ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $Output 'verification.json') -Encoding utf8
 }
