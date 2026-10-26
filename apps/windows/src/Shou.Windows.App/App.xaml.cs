@@ -20,9 +20,13 @@ public partial class App : Application
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         await AppearanceSettings.LoadAsync();
-        window = new MainWindow(args.Arguments.Trim() == "--page monitor" ? "monitor" : "cleanup");
+        // Unpackaged WinUI launches do not populate LaunchActivatedEventArgs.Arguments.
+        var command = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        var monitorRequested = command is ["--page", "monitor"] || args.Arguments.Trim() == "--page monitor";
+        MonitorTaskbar.InitializeIdentity();
+        window = new MainWindow(monitorRequested ? "monitor" : "cleanup");
         window.Activate();
-        await MonitorTaskbar.PrepareAsync();
+        MonitorTaskbar.Prepare();
     }
 
     internal void ReloadWindow(string page)
