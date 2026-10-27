@@ -154,8 +154,17 @@ public sealed class PrivacyDatabaseInspectionTests
     public void ProgressHandlerCancelsAnActiveQueryWithoutReturningRows()
     {
         using var db = new Database(HistorySchema); using var stop = new CancellationTokenSource();
-        using var connection = new PrivacySqlite(db.Path, true, stop.Token); stop.CancelAfter(TimeSpan.FromMilliseconds(20));
-        Assert.ThrowsAny<OperationCanceledException>(() => connection.Query("WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n) SELECT count(*) FROM n;"));
+        using var connection = new PrivacySqlite(db.Path, true, stop.Token);
+        using var ready = new ManualResetEventSlim();
+        // Parallel synchronous native tests can starve thread-pool timers on ARM64.
+        var cancellation = new Thread(() => { ready.Set(); Thread.Sleep(20); stop.Cancel(); }) { IsBackground = true };
+        cancellation.Start();
+        try
+        {
+            Assert.True(ready.Wait(TimeSpan.FromSeconds(5)), "The dedicated cancellation thread did not start.");
+            Assert.ThrowsAny<OperationCanceledException>(() => connection.Query("WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n) SELECT count(*) FROM n;"));
+        }
+        finally { Assert.True(cancellation.Join(TimeSpan.FromSeconds(5)), "The dedicated cancellation thread did not finish."); }
     }
 
     [Fact]
