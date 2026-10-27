@@ -27,7 +27,7 @@ internal static class WorkspaceVisuals
         words.Children.Add(new TextBlock { Text = title, FontSize = (double)Application.Current.Resources["ShouSummaryFigureSize"], FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         var detail = new TextBlock { Text = subtitle, TextWrapping = TextWrapping.Wrap };
         ThemeResources.Apply(detail, TextBlock.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
-        words.Children.Add(detail);
+        if (subtitle.Length > 0) words.Children.Add(detail);
         var picture = Artwork(artwork, 84, 56); Grid.SetColumn(picture, 1);
         grid.Children.Add(words); grid.Children.Add(picture);
         return grid;
@@ -118,9 +118,9 @@ internal static class WorkspaceVisuals
         var grid = new Grid { ColumnSpacing = 16, Margin = new Thickness(0, 12, 0, 0), HorizontalAlignment = HorizontalAlignment.Stretch };
         var entries = new[]
         {
-            ("applications", "Apps & Projects", "A clearer view of apps and build outputs.", "applications"),
+            ("applications", "Applications", "Manage installed apps and updates.", "applications"),
             ("storage", "Space Analysis", "Find the files taking up the most room.", "space"),
-            ("configuration", "Your Cleanup Rules", "A routine that fits your own folders.", "rules")
+            ("privacy", "Privacy", "Review browser history and site data.", "privacy")
         };
         for (var index = 0; index < entries.Length; index++)
         {
@@ -141,7 +141,7 @@ internal static class WorkspaceVisuals
             var size = (double)Application.Current.Resources["ShouHomeCardArtworkSize"];
             var picture = Artwork(artwork, size, size); Grid.SetColumn(picture, 1); detail.Children.Add(picture);
             var button = new Button { Content = detail, Padding = new Thickness(16), HorizontalAlignment = HorizontalAlignment.Stretch,
-                MinWidth = 0,
+                MinWidth = 0, BorderThickness = new Thickness(0.5),
                 HorizontalContentAlignment = HorizontalAlignment.Stretch, MinHeight = (double)Application.Current.Resources["ShouHomeCardHeight"],
                 CornerRadius = (CornerRadius)Application.Current.Resources["ShouHomeCardRadius"] };
             ThemeResources.Apply(button, Control.BackgroundProperty, "Background", "ShouSurfaceBrush");

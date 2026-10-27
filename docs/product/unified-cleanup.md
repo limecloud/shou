@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/product/unified-cleanup.md)
 
-Shou saves the user time by discovering cleanup targets together. Top navigation groups tasks, with Developer Projects under Apps & Projects; users do not need to register workspaces first. Smart Cleanup covers application caches, developer caches, project artifacts and enabled personal rules in one scan and one exact-scope cleanup confirmation.
+Shou saves the user time by discovering cleanup targets together. Primary navigation groups Cleanup, Applications, Space Analysis and Monitor. Cleanup Options contains project cleanup and rules; Toolbox contains professional management; users do not need to register workspaces first. Smart Cleanup covers application caches, developer caches, project artifacts and enabled personal rules in one scan and one exact-scope cleanup confirmation.
 
 ## Windows scanning and review
 

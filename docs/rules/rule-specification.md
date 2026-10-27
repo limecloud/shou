@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/rules/rule-specification.md)
 
 Status: format `1.0` development contract with a Swift engine implementation. Field structure is owned by the [JSON Schema](../../packages/shou-contracts/rule.schema.json); this document owns semantics. Complete release validation is pending.
 
+Rule management configures Smart Cleanup and is reached through Cleanup Options → Cleanup Rules, without a primary navigation entry. Personal-rule changes, external AI drafts and review can still open the page directly; contextual navigation returns to Smart Cleanup.
+
 ## 1. Scope
 
 Rules describe where to look, what directories to match, what retention conditions apply, and why processing may be appropriate. They grant no access or execution approval and contain no scripts or direct permanent-delete action.

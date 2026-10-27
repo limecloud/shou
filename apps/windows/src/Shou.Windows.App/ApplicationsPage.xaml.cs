@@ -26,8 +26,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
     private ApplicationPresentationFilter presentation = ApplicationPresentationFilter.All;
     private string? selectedApplicationId;
     private ApplicationUpdatePanel? updates;
-    private ManagedPackageUpdatesDialog? packageUpdates;
-    public bool HasActiveUninstall => uninstall.IsExecuting || packageUpdates?.IsExecuting == true;
+    public bool HasActiveUninstall => uninstall.IsExecuting;
     public event EventHandler? BusyChanged;
 
     public ApplicationsPage()
@@ -62,7 +61,6 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         SizeSort.Content = text.Get("Registered size");
         SortBox.SelectedIndex = 1;
         RefreshButton.Content = text.Get("Refresh");
-        ManageUpdatesButton.Content = text.Get("Application Updates");
         CancelButton.Content = text.Get("Stop");
         PreviousButton.Content = text.Get("Previous");
         NextButton.Content = text.Get("Next");
@@ -87,7 +85,6 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         LandingHost.Visibility = landing ? Visibility.Visible : Visibility.Collapsed;
         PageLayout.Visibility = landing ? Visibility.Collapsed : Visibility.Visible;
         PageToolbar.Visibility = Visibility.Visible;
-        ManageUpdatesButton.IsEnabled = !busy;
         RefreshButton.IsEnabled = !busy;
         SearchBox.IsEnabled = SortBox.IsEnabled = ApplicationsList.IsEnabled = !busy;
         CancelButton.IsEnabled = model.IsBusy && !model.StopRequested || uninstall.IsBusy && !uninstall.StopRequested;
@@ -216,17 +213,6 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         catch (Exception error) { NativeDiagnostics.Write(error); }
     }
     private void Cancel(object sender, RoutedEventArgs args) { model.Cancel(); uninstall.Cancel(); }
-    private async void ManageUpdates(object sender, RoutedEventArgs args)
-    {
-        if (disposed || model.IsBusy || uninstall.IsBusy || packageUpdates is not null) return;
-        var dialog = new ManagedPackageUpdatesDialog(XamlRoot);
-        packageUpdates = dialog;
-        dialog.ExecutionChanged += PackageUpdateExecutionChanged;
-        try { await dialog.ShowAsync(); }
-        catch (Exception error) { NativeDiagnostics.Write(error); }
-        finally { dialog.ExecutionChanged -= PackageUpdateExecutionChanged; packageUpdates = null; BusyChanged?.Invoke(this, EventArgs.Empty); }
-    }
-    private void PackageUpdateExecutionChanged(object? sender, EventArgs args) => BusyChanged?.Invoke(this, EventArgs.Empty);
     private void Previous(object sender, RoutedEventArgs args) { if (!uninstall.IsBusy) model.PreviousPage(); }
     private void Next(object sender, RoutedEventArgs args) { if (!uninstall.IsBusy) model.NextPage(); }
     private void SelectApplication(object sender, SelectionChangedEventArgs args)
@@ -389,7 +375,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         try { await uninstall.ReadExecutionAsync(); }
         catch (Exception error) { NativeDiagnostics.Write(error); if (!disposed) UninstallStatus.Text = UninstallError(error is ShouException known ? known.Code : "io_error") + RecordReference(); }
     }
-    public void RequestUninstallStop() { uninstall.Cancel(); packageUpdates?.RequestStop(); }
+    public void RequestUninstallStop() { uninstall.Cancel(); }
     public void Dispose()
     {
         if (disposed) return;
@@ -399,7 +385,6 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         uninstall.PropertyChanged -= UninstallChanged;
         uninstall.Dispose();
         updates?.Dispose();
-        packageUpdates?.RequestStop();
         GC.SuppressFinalize(this);
     }
     [Microsoft.UI.Xaml.Data.Bindable]

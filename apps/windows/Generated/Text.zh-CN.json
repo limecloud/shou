@@ -1924,6 +1924,11 @@
     "resource_id": "sc372f825b04edac58ec1afc3",
     "text": "检查更新…"
   },
+  "Check for updates to installed software.": {
+    "format": "检查已安装软件的可用更新。",
+    "resource_id": "sd860bf693956ea9ea7537dd9",
+    "text": "检查已安装软件的可用更新。"
+  },
   "Check installed applications": {
     "format": "检查已安装应用",
     "resource_id": "s62ad8a5ecd06834db21d2784",
@@ -2358,6 +2363,11 @@
     "format": "清理影响",
     "resource_id": "s2fbbcfa6b6759ac02d5b67c6",
     "text": "清理影响"
+  },
+  "Cleanup Options": {
+    "format": "清理选项",
+    "resource_id": "s24f3383dd8dac9661ffd4c7b",
+    "text": "清理选项"
   },
   "Cleanup Plan": {
     "format": "清理计划",
@@ -4164,6 +4174,11 @@
     "resource_id": "s325f60fbc7ed91c5413fee95",
     "text": "查找扫描位置"
   },
+  "Find caches and temporary files you can clear.": {
+    "format": "扫描可清理的缓存与临时文件。",
+    "resource_id": "s84d2551092c02e48efe9b729",
+    "text": "扫描可清理的缓存与临时文件。"
+  },
   "Find known app caches without choosing folders.": {
     "format": "自动查找常用软件缓存，无需选择目录。",
     "resource_id": "sbdc2b30ed8227e986f52f6ab",
@@ -5719,6 +5734,11 @@
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "大文件，一目了然。"
   },
+  "Manage AI apps and connections.": {
+    "format": "管理 AI 应用与连接配置。",
+    "resource_id": "s438b2ceca5ba20b1604fbd05",
+    "text": "管理 AI 应用与连接配置。"
+  },
   "Manage Databases": {
     "format": "管理数据库",
     "resource_id": "sa7ce49eacadd57176cfb3652",
@@ -5738,6 +5758,16 @@
     "format": "针对确切的 MySQL 实例管理数据库、账号与备份。",
     "resource_id": "s276932f367e0900611340c0f",
     "text": "针对确切的 MySQL 实例管理数据库、账号与备份。"
+  },
+  "Manage installed apps and updates.": {
+    "format": "查看应用、更新与卸载。",
+    "resource_id": "s02a6c3bbe3260a7a4960591e",
+    "text": "查看应用、更新与卸载。"
+  },
+  "Manage services and development tools.": {
+    "format": "管理服务与开发工具。",
+    "resource_id": "sfafe413140a27c56fdacb7fe",
+    "text": "管理服务与开发工具。"
   },
   "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition.": {
     "format": "请在“全部位置”中管理这些模式。各条规则的排除项保留在规则定义中。",
@@ -8798,6 +8828,11 @@
     "format": "单独审阅浏览器活动与账户数据。",
     "resource_id": "s9988ab26a623f1476bda87a9",
     "text": "单独审阅浏览器活动与账户数据。"
+  },
+  "Review browser history and site data.": {
+    "format": "查看浏览记录与网站数据。",
+    "resource_id": "scfc13c8c845e962648aff009",
+    "text": "查看浏览记录与网站数据。"
   },
   "Review browser records by source and time range.": {
     "format": "按浏览器和时间范围审阅隐私记录。",

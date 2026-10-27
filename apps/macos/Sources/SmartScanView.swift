@@ -4,7 +4,6 @@ import AppKit
 
 struct SmartScanView: View {
     @Bindable var model: AppModel
-    @ReduceMotion private var reduceMotion
     @State private var category="all"
     @State private var query=""
     @State private var showIssues=false
@@ -36,7 +35,6 @@ struct SmartScanView: View {
                 locationBrowser
             }
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: model.scanning)
         .onChange(of: model.systemResult?.snapshots.count) { _, _ in
             if !model.commonReview.categories.contains(where: { $0.id == category }) {
                 category="all"
@@ -47,13 +45,10 @@ struct SmartScanView: View {
         .toolbar {
             ToolbarItemGroup {
                 if !model.scanning && model.systemResult != nil {
-                    Button { model.ai.requestLaunch(app: model) } label: { Label(model.t("Investigate Other Space…"), systemImage: "sparkles") }
-                        .disabled(model.busy).accessibilityIdentifier("smart.ai.other-space")
                     if model.commonReview.sources.contains(where: { $0.candidate.reasons.contains("application_running") }) {
                         CleanupApplicationCloseButton(model: model)
                     }
-                    Button { scanLocations=true } label: { Label(model.t("Scan Locations…"), systemImage: "folder.badge.gearshape") }
-                        .labelStyle(.iconOnly).help(model.t("Scan Locations…")).disabled(model.busy)
+
                 }
                 DiskCapacityView(model: model)
             }
@@ -71,6 +66,7 @@ struct SmartScanView: View {
                     Text(model.t("All Items")).tag("all")
                     ForEach(model.commonReview.categories) { Text(title($0.id)).tag($0.id) }
                 }.frame(maxWidth: 230)
+                CleanupOptionsMenu(model: model, showLocations: { scanLocations=true }, showAgentSetup: { agentSetup=true })
             }.padding(.horizontal, ShouDesign.workspaceInset).padding(.bottom, 18)
             ScrollView {
                 LazyVStack(spacing: 14) {

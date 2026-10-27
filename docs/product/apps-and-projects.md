@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/product/apps-and-projects.md)
 
-Apps & Projects puts applications, developer projects and startup items under one navigation family, organized around recognizable objects. macOS includes application inventory/component review, project-output grouping, shared rule selection, single-app read-only update discovery and reviewed Homebrew/mise package upgrades. Windows has independent discovery and official WinGet upgrade source alongside navigation, marker-based project grouping and a shared scan/selection model. Unattended installation, Git remote-state investigation and whole-project removal are outside this implementation. Native acceptance and manual-review differences remain separately tracked; source availability does not establish complete platform parity.
+Applications groups installed apps, Software Updates and Startup Items. Project outputs belong to Smart Cleanup, with Project Cleanup reached through Cleanup Options rather than an application tab. macOS includes application inventory/component review, project-output grouping, shared rule selection, single-app read-only update discovery and reviewed Homebrew/mise package upgrades. Windows has independent discovery and official WinGet upgrade source alongside navigation, marker-based project grouping and a shared scan/selection model. Unattended installation, Git remote-state investigation and whole-project removal are outside this implementation. Native acceptance and manual-review differences remain separately tracked; source availability does not establish complete platform parity.
 
 Core deduplicates cleanup candidates and projects canonical built-in project templates plus personal rules with project evidence. Project recommendations, clearing and plans affect only that scope and preserve selected caches outside it. Package upgrades use an independent selection and authorization path.
 
@@ -18,7 +18,7 @@ Read-only update discovery lives in inline app details. Users explicitly query o
 
 ## Packages and upgrades
 
-macOS Applications offers Homebrew and mise source views; Windows Applications offers an official WinGet update task. Users can search the provider's installed records, filter updates and select eligible targets. A package record alone does not establish ownership of an app path or project. Without a verified mapping, Shou does not merge it into app uninstall selection or count its contents again as cleanup capacity.
+Software Updates under Applications offers Homebrew and mise sources on macOS and the official WinGet source on Windows. Entering the page does not start a check. Users can search the provider's installed records, filter updates and select eligible targets. A package record alone does not establish ownership of an app path or project. Without a verified mapping, Shou does not merge it into app uninstall selection or count its contents again as cleanup capacity.
 
 Upgrades require review and confirmation of a frozen exact selection, followed by source/identity/version rechecks and individual results. This is a separate installation task with its own action labels and short-lived, single-use authority. It cannot reuse the red permanent-delete action, cleanup consent or an earlier update attempt. Managers/installers can change dependencies and data; cancellation is not rollback, and unknown outcomes require checking installed versions before retrying.
 

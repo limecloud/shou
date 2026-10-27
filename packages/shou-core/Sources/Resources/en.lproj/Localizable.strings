@@ -384,6 +384,7 @@
 "Check disk access, free space, and local records without changing files." = "Check disk access, free space, and local records without changing files.";
 "Check every path. Files and configuration will be verified again immediately before processing." = "Check every path. Files and configuration will be verified again immediately before processing.";
 "Check for Updates…" = "Check for Updates…";
+"Check for updates to installed software." = "Check for updates to installed software.";
 "Check installed applications" = "Check installed applications";
 "Check installed versions again before another upgrade." = "Check installed versions again before another upgrade.";
 "Check startup definitions" = "Check startup definitions";
@@ -471,6 +472,7 @@
 "Cleanup" = "Cleanup";
 "Cleanup Category" = "Cleanup Category";
 "Cleanup Impact" = "Cleanup Impact";
+"Cleanup Options" = "Cleanup Options";
 "Cleanup Plan" = "Cleanup Plan";
 "Cleanup Rule" = "Cleanup Rule";
 "Cleanup Rules" = "Cleanup Rules";
@@ -832,6 +834,7 @@
 "Filter this folder" = "Filter this folder";
 "Final Cut Pro caches" = "Final Cut Pro caches";
 "Find Scan Locations" = "Find Scan Locations";
+"Find caches and temporary files you can clear." = "Find caches and temporary files you can clear.";
 "Find known app caches without choosing folders." = "Find known app caches without choosing folders.";
 "Find large files" = "Find large files";
 "Find reviewable caches and build artifacts in known locations." = "Find reviewable caches and build artifacts in known locations.";
@@ -1143,10 +1146,13 @@
 "Main model only" = "Main model only";
 "Make Shou work the way you do." = "Make Shou work the way you do.";
 "Make room for more." = "Make room for more.";
+"Manage AI apps and connections." = "Manage AI apps and connections.";
 "Manage Databases" = "Manage Databases";
 "Manage Instance" = "Manage Instance";
 "Manage Tool" = "Manage Tool";
 "Manage databases, accounts and backups in the context of an exact MySQL instance." = "Manage databases, accounts and backups in the context of an exact MySQL instance.";
+"Manage installed apps and updates." = "Manage installed apps and updates.";
+"Manage services and development tools." = "Manage services and development tools.";
 "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition." = "Manage these patterns in All Locations. Per-rule exclusions remain in each rule definition.";
 "Manage this item in Login Items Settings." = "Manage this item in Login Items Settings.";
 "Managed by the system; no action is needed." = "Managed by the system; no action is needed.";
@@ -1759,6 +1765,7 @@
 "Review applications and their related files in one place." = "Review applications and their related files in one place.";
 "Review background-task definitions and manage login items in macOS Settings." = "Review background-task definitions and manage login items in macOS Settings.";
 "Review browser activity and account data separately." = "Review browser activity and account data separately.";
+"Review browser history and site data." = "Review browser history and site data.";
 "Review browser records by source and time range." = "Review browser records by source and time range.";
 "Review build outputs and dependencies by project. Your source stays in place." = "Review build outputs and dependencies by project. Your source stays in place.";
 "Review build outputs and dependencies from local and cloned projects. Source files are kept." = "Review build outputs and dependencies from local and cloned projects. Source files are kept.";

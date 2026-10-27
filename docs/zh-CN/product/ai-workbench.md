@@ -2,6 +2,8 @@
 
 [English](../../product/ai-workbench.md) | 简体中文
 
+从右侧工具箱进入 AI 工作台；工具箱本身不扫描软件。
+
 AI 工作台独立组织 Claude Code、Claude Desktop、Codex、Gemini CLI、Grok Build、OpenCode、OpenClaw、Hermes、Pi、MiniMax Code、Kimi、Oh My Pi、Copilot CLI 及目录中的其他 AI 软件。它与“开发者工具”的语言、数据库、Web 服务分开，也与 Shou 自身的可选 AI 规则调查分开。
 
 当前接通的是软件目录、只读已有安装识别、多副本来源／版本展示、收藏和共享的软件包审阅服务。详情保留实际路径，不把同名不同位置静默合并。仅发现文件时不声称程序能正常运行；缺少包来源、版本或已支持卸载适配时，保留发现记录和官方指南。

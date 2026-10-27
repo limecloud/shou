@@ -2,6 +2,8 @@
 
 English | [简体中文](../zh-CN/product/ai-workbench.md)
 
+Enter AI Workbench from the Toolbox utility entry; the toolbox itself does not inventory software.
+
 AI Workbench separately organizes Claude Code/Desktop, Codex, Gemini CLI, Grok Build, OpenCode, OpenClaw, Hermes, Pi, MiniMax Code, Kimi, Oh My Pi, Copilot CLI and other cataloged AI software. It is distinct from developer runtimes/servers and from Shou's optional AI rule investigation.
 
 The current implementation provides catalog browsing, read-only installation discovery, multiple-copy/source/version presentation, favorites and the shared package review service. Details preserve actual locations. File discovery does not establish runtime health; missing source, version or uninstall adapters retain an observation and official guide.

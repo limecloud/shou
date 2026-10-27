@@ -2,7 +2,7 @@ import AppKit
 import ShouCore
 import SwiftUI
 
-struct ApplicationsWorkspaceView: View {
+struct SoftwareUpdatesView: View {
     @Bindable var model: AppModel
     @Bindable var updates: PackageUpdatesSession
 
@@ -10,18 +10,13 @@ struct ApplicationsWorkspaceView: View {
         VStack(spacing: 10) {
             HStack {
                 Picker(model.t("Software source"), selection: $updates.source) {
-                    Text(model.t("Applications")).tag("applications")
                     Text("Homebrew").tag("homebrew")
                     Text("mise").tag("mise")
                 }.pickerStyle(.segmented).frame(maxWidth: 360).disabled(model.busy)
-                    .accessibilityIdentifier("applications.source")
+                    .accessibilityIdentifier("updates.source")
                 Spacer()
             }.padding(.horizontal, ShouDesign.workspaceInset)
-            if updates.source == "applications" {
-                ApplicationsView(model: model, session: model.applicationsSession)
-            } else {
-                PackageUpdatesView(model: model, session: updates)
-            }
+            PackageUpdatesView(model: model, session: updates)
         }.padding(.top, 8).font(ShouType.body).foregroundStyle(ShouPalette.text).tint(ShouPalette.accent)
             .onChange(of: updates.source) { _, _ in updates.changeSource() }
     }
@@ -43,7 +38,7 @@ private struct PackageUpdatesView: View {
 
     var body: some View {
         if !hasContent && !session.loading {
-            WorkspaceStartPage(eyebrow: title, title: model.t("Keep your tools up to date."),
+            WorkspaceStartPage(eyebrow: title, title: model.t("Software Updates"),
                 subtitle: model.t(session.source == "mise" ? "Review globally configured developer tools without changing project versions." : "Review installed Formula and Cask packages, compare versions, then choose what to upgrade."),
                 kind: session.source == "mise" ? .projects : .applications,
                 footnote: model.t("Uses package manager metadata, which may be cached. Upgrades start only after your confirmation.")) {

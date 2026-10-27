@@ -14,12 +14,12 @@ struct ProjectCleanupView: View {
     var body: some View {
         VStack(spacing: 0) {
             if model.systemResult != nil && !model.scanning {
-                WorkspaceHeading(title: model.t("Developer Projects"), subtitle: model.t("Review build outputs and dependencies from local and cloned projects. Source files are kept."), artwork: .projects)
+                WorkspaceHeading(title: model.t("Project Cleanup"), subtitle: "", artwork: .projects)
             }
             if model.scanning {
                 ScanActivity(model: model).frame(maxHeight: .infinity)
             } else if model.systemResult == nil {
-                WorkspaceStartPage(eyebrow: model.t("Developer Projects"), title: model.t("More room to build."),
+                WorkspaceStartPage(eyebrow: model.t("Project Cleanup"), title: model.t("More room to build."),
                     subtitle: model.t("Review build outputs and dependencies from local and cloned projects. Source files are kept."), kind: .projects,
                     footnote: model.t("Built-in and enabled personal rules share the same scan and selection.")) {
                     HStack(spacing: 18) {
@@ -101,7 +101,7 @@ private struct ProjectCleanupRow: View {
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
-                    Text(model.bytes(project.bytes)).font(.system(size: 16, weight: .medium)).monospacedDigit()
+                    Text(model.bytes(project.bytes)).font(ShouType.body.weight(.medium)).monospacedDigit()
                     Text(model.t("Matched cleanup items")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
             }.padding(.vertical, 8)

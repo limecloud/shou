@@ -5,7 +5,7 @@
         <Grid.RowDefinitions><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
         <StackPanel x:Name="PageToolbar" Orientation="Horizontal" Spacing="8">
             <Button x:Name="InfoButton" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE946;" /><Button.Flyout><Flyout><StackPanel Width="380" Spacing="12"><TextBlock x:Name="Description" TextWrapping="Wrap" /><InfoBar x:Name="CoverageNotice" IsClosable="False" Severity="Warning" /><TextBlock x:Name="CoverageText" TextWrapping="Wrap" Style="{StaticResource ShouCaption}" /></StackPanel></Flyout></Button.Flyout></Button>
-            <Button x:Name="ManageUpdatesButton" Click="ManageUpdates" Style="{StaticResource ShouToolbarButton}" AutomationProperties.AutomationId="applications.updates" /><Button x:Name="RefreshButton" Click="Refresh" Style="{StaticResource ShouToolbarButton}" /><Button x:Name="CancelButton" Click="Cancel" Style="{StaticResource ShouToolbarButton}" />
+            <Button x:Name="RefreshButton" Click="Refresh" Style="{StaticResource ShouToolbarButton}" /><Button x:Name="CancelButton" Click="Cancel" Style="{StaticResource ShouToolbarButton}" />
         </StackPanel>
         <Border Grid.Row="0" Margin="20,0,20,10" Style="{StaticResource ShouCatalogCard}"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
         <StackPanel Spacing="0">

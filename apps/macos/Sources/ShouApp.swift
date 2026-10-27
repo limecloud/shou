@@ -938,7 +938,7 @@ struct ContentView: View {
         case "startup": "Choose what starts with your Mac."
         case "storage": "See what takes up space, then inspect the details."
         case "large-files": "Find the files that make the biggest difference."
-        case "rules": "One set of rules for everyday cleanup and your own projects."
+        case "rules": ""
         case "privacy": "Review browser records by source and time range."
         case "history": "See what changed and what needs your attention."
         case "settings": "Make Shou work the way you do."
@@ -950,12 +950,14 @@ struct ContentView: View {
         case "smart": "Smart Cleanup"
         case "storage": "Space Analysis"
         case "large-files": "Large Files"
-        case "rules": "Rules"
+        case "rules": "Cleanup Rules"
         case "startup": "Startup Items"
         case "applications": "Applications"
+        case "updates": "Software Updates"
+        case "tools": "Toolbox"
         case "developer-tools": "Developer Tools"
         case "ai-tools": "AI Workbench"
-        case "projects": "Developer Projects"
+        case "projects": "Project Cleanup"
         case "privacy": "Privacy"
         case "monitor": "System Monitor"
         case "history": "History"
@@ -965,7 +967,7 @@ struct ContentView: View {
     }
     private var showsPageHeading: Bool {
         switch model.section {
-        case "smart", "projects", "storage", "large-files", "applications", "startup", "privacy", "monitor", "developer-tools", "ai-tools": false
+        case "smart", "projects", "storage", "large-files", "applications", "updates", "tools", "startup", "privacy", "monitor", "developer-tools", "ai-tools": false
         case "history": !model.history.isEmpty
         default: true
         }
@@ -996,7 +998,9 @@ struct ContentView: View {
         case "smart": SmartScanView(model: model)
         case "rules": RulesView(model: model, editor: $ruleEditor)
         case "startup": StartupInventoryView(model: model)
-        case "applications": ApplicationsWorkspaceView(model: model, updates: model.packageUpdates)
+        case "applications": ApplicationsView(model: model, session: model.applicationsSession)
+        case "updates": SoftwareUpdatesView(model: model, updates: model.packageUpdates)
+        case "tools": ToolboxView(model: model)
         case "developer-tools", "ai-tools": DeveloperToolsView(model: model, session: model.developerTools).id(model.section)
         case "projects": ProjectCleanupView(model: model)
         case "privacy": PrivacyView(app: model, session: model.privacySession)

@@ -26,6 +26,8 @@ public sealed partial class MainWindow : Window
     private SystemMonitorPage? monitor;
     private DeveloperToolsPage? developerTools;
     private DeveloperToolsPage? aiTools;
+    private SoftwareUpdatesPage? softwareUpdates;
+    private ToolboxPage? toolbox;
     private bool initialized, closed;
     private string destination = "cleanup";
     private readonly Dictionary<Button, FrameworkElement> navigationIcons = [];
@@ -58,7 +60,7 @@ public sealed partial class MainWindow : Window
                 button.Content = content;
             }
             AutomationProperties.SetName(button, PrimaryTitle(button, name));
-            var detail = ReferenceEquals(button, CleanupDetailNavigation) || ReferenceEquals(button, ApplicationsDetailNavigation) || ReferenceEquals(button, StorageDetailNavigation) || ReferenceEquals(button, DeveloperToolsNavigation);
+            var detail = ReferenceEquals(button, CleanupDetailNavigation) || ReferenceEquals(button, ApplicationsDetailNavigation) || ReferenceEquals(button, StorageDetailNavigation) || ReferenceEquals(button, DeveloperToolsNavigation) || ReferenceEquals(button, ToolboxDetailNavigation);
             AutomationProperties.SetAutomationId(button, "nav." + name + (detail ? ".detail" : ""));
         }
         languageIcon = ProductIcon.Create("language", 16);
@@ -74,7 +76,7 @@ public sealed partial class MainWindow : Window
             args.Cancel = true;
             cleanup?.RequestCleanupStop(); projects?.RequestCleanupStop(); applications?.RequestUninstallStop(); startup?.RequestStartupStop();
             storage?.Cancel(); largeFiles?.Cancel();
-            privacy?.CancelCleanup();
+            privacy?.CancelCleanup(); softwareUpdates?.RequestStop();
             ShowStatus(text.Get("Stopping at a safe boundary…"));
         };
         Closed += (_, _) =>
@@ -84,7 +86,7 @@ public sealed partial class MainWindow : Window
             cleanupReview?.Dispose();
             privacy?.Dispose(); history?.Dispose(); storage?.Dispose(); largeFiles?.Dispose();
             monitor?.Dispose();
-            developerTools?.Dispose(); aiTools?.Dispose();
+            developerTools?.Dispose(); aiTools?.Dispose(); softwareUpdates?.Dispose();
         };
         WindowRoot.Loaded += (_, _) => UpdateWorkspaceNavigation();
         initialized = true;
@@ -94,24 +96,24 @@ public sealed partial class MainWindow : Window
     [DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(nint window);
 
-    private bool HasMutation => cleanup?.HasActiveCleanup == true || projects?.HasActiveCleanup == true || applications?.HasActiveUninstall == true || startup?.HasActiveStartupChange == true || storage?.HasActiveRemoval == true || largeFiles?.HasActiveRemoval == true || privacy?.HasActiveCleanup == true || developerTools?.HasActiveMutation == true || aiTools?.HasActiveMutation == true;
+    private bool HasMutation => cleanup?.HasActiveCleanup == true || projects?.HasActiveCleanup == true || applications?.HasActiveUninstall == true || startup?.HasActiveStartupChange == true || storage?.HasActiveRemoval == true || largeFiles?.HasActiveRemoval == true || privacy?.HasActiveCleanup == true || developerTools?.HasActiveMutation == true || aiTools?.HasActiveMutation == true || softwareUpdates?.IsExecuting == true;
     private Button Item(string page) => page switch
     {
         "large" => LargeFilesNavigation, "storage" => StorageNavigation, "configuration" => ConfigurationNavigation,
         "applications" => ApplicationsNavigation, "projects" => ProjectsNavigation, "startup" => StartupNavigation, "privacy" => PrivacyNavigation,
         "history" => HistoryNavigation, "settings" => SettingsNavigation, "monitor" => MonitorNavigation,
-        "developer-tools" => ToolsNavigation, "ai-tools" => AiToolsNavigation, _ => CleanupNavigation
+        "tools" => ToolsNavigation, "updates" => UpdatesNavigation, "developer-tools" => DeveloperToolsNavigation, "ai-tools" => AiToolsNavigation, _ => CleanupNavigation
     };
 
     private Button[] NavigationItems => [CleanupNavigation, LargeFilesNavigation, StorageNavigation, ConfigurationNavigation,
         ApplicationsNavigation, StartupNavigation, PrivacyNavigation, HistoryNavigation, SettingsNavigation,
-        ProjectsNavigation, CleanupDetailNavigation, ApplicationsDetailNavigation, StorageDetailNavigation, MonitorNavigation, ToolsNavigation, DeveloperToolsNavigation, AiToolsNavigation];
+        ProjectsNavigation, UpdatesNavigation, ToolboxDetailNavigation, CleanupDetailNavigation, ApplicationsDetailNavigation, StorageDetailNavigation, MonitorNavigation, ToolsNavigation, DeveloperToolsNavigation, AiToolsNavigation];
     private string TitleFor(string page) => text.Get(page switch
     {
         "large" => "Large Files", "storage" => "Space Analysis", "configuration" => "Cleanup Rules",
-        "startup" => "Startup Items", "applications" => "Applications", "projects" => "Developer Projects", "privacy" => "Privacy",
+        "startup" => "Startup Items", "applications" => "Applications", "projects" => "Project Cleanup", "privacy" => "Privacy",
         "history" => "History", "settings" => "Settings", "monitor" => "System Monitor",
-        "developer-tools" => "Developer Tools", "ai-tools" => "AI Workbench", _ => "Smart Cleanup"
+        "tools" => "Toolbox", "updates" => "Software Updates", "developer-tools" => "Developer Tools", "ai-tools" => "AI Workbench", _ => "Smart Cleanup"
     });
     private async void Navigate(object sender, RoutedEventArgs args)
     {
@@ -135,6 +137,12 @@ public sealed partial class MainWindow : Window
             Task load = Task.CompletedTask;
             switch (next)
             {
+                case "tools":
+                    toolbox ??= new(nextDestination => { _ = ShowPageAsync(nextDestination); });
+                    page = toolbox; break;
+                case "updates":
+                    if (softwareUpdates is null) { softwareUpdates = new(); softwareUpdates.ExecutionChanged += (_, _) => UpdateNavigation(); }
+                    page = softwareUpdates; break;
                 case "developer-tools":
                     if (developerTools is null) { developerTools = new(WinRT.Interop.WindowNative.GetWindowHandle(this)); developerTools.BusyChanged += (_, _) => UpdateNavigation(); }
                     page = developerTools; load = developerTools.EnsureLoadedAsync(); break;
@@ -225,7 +233,7 @@ public sealed partial class MainWindow : Window
             ToolbarHost.Content = null;
             var toolbar = page is IPageChrome chrome ? chrome.Toolbar : null;
             PageHeading.Content = next is "configuration" or "settings" or "history"
-                ? WorkspaceVisuals.Heading(TitleFor(next), text.Get(next == "configuration" ? "One set of rules for everyday cleanup and your own projects." : next == "settings" ? "Make Shou work the way you do." : "See what changed and what needs your attention."), next == "configuration" ? "rules" : next)
+                ? WorkspaceVisuals.Heading(TitleFor(next), text.Get(next == "configuration" ? "" : next == "settings" ? "Make Shou work the way you do." : "See what changed and what needs your attention."), next == "configuration" ? "rules" : next)
                 : null;
             PageHost.Content = page;
             ToolbarHost.Content = toolbar;
@@ -260,10 +268,10 @@ public sealed partial class MainWindow : Window
         if (HasMutation) { storage?.CancelScan(); largeFiles?.CancelScan(); }
     }
     private string PrimaryTitle(Button button, string page) => ReferenceEquals(button, CleanupNavigation) ? text.Get("Cleanup") :
-        ReferenceEquals(button, ApplicationsNavigation) ? text.Get("Apps & Projects") : ReferenceEquals(button, ToolsNavigation) ? text.Get("Tools") : ReferenceEquals(button, ConfigurationNavigation) ? text.Get("Rules") : ReferenceEquals(button, MonitorNavigation) ? text.Get("Monitor") : TitleFor(page);
+        ReferenceEquals(button, ApplicationsNavigation) ? text.Get("Applications") : ReferenceEquals(button, ToolsNavigation) ? text.Get("Toolbox") : ReferenceEquals(button, MonitorNavigation) ? text.Get("Monitor") : TitleFor(page);
     private static string Family(string page) => page switch
     {
-        "privacy" => "cleanup", "projects" or "startup" => "applications", "large" => "storage", "ai-tools" => "developer-tools", _ => page
+        "privacy" or "projects" or "configuration" => "cleanup", "updates" or "startup" => "applications", "large" => "storage", "developer-tools" or "ai-tools" => "tools", _ => page
     };
     private void UpdateWorkspaceNavigation()
     {
@@ -272,11 +280,14 @@ public sealed partial class MainWindow : Window
         CleanupTasks.Visibility = Family(destination) == "cleanup" ? Visibility.Visible : Visibility.Collapsed;
         ApplicationTasks.Visibility = Family(destination) == "applications" ? Visibility.Visible : Visibility.Collapsed;
         StorageTasks.Visibility = Family(destination) == "storage" ? Visibility.Visible : Visibility.Collapsed;
-        ToolTasks.Visibility = Family(destination) == "developer-tools" ? Visibility.Visible : Visibility.Collapsed;
+        ToolTasks.Visibility = Family(destination) == "tools" && destination != "tools" ? Visibility.Visible : Visibility.Collapsed;
+        TaskNavigation.Visibility = destination is "settings" or "history" or "monitor" or "tools" ? Visibility.Collapsed : Visibility.Visible;
+        ProjectsNavigation.Visibility = destination == "projects" ? Visibility.Visible : Visibility.Collapsed;
+        ConfigurationNavigation.Visibility = destination == "configuration" ? Visibility.Visible : Visibility.Collapsed;
         foreach (var button in NavigationItems)
         {
             var primary = ReferenceEquals(button, CleanupNavigation) || ReferenceEquals(button, ApplicationsNavigation) ||
-                ReferenceEquals(button, StorageNavigation) || ReferenceEquals(button, ConfigurationNavigation) || ReferenceEquals(button, MonitorNavigation) || ReferenceEquals(button, ToolsNavigation);
+                ReferenceEquals(button, StorageNavigation) || ReferenceEquals(button, MonitorNavigation) || ReferenceEquals(button, ToolsNavigation);
             var selected = (string)button.Tag == (primary ? Family(destination) : destination);
             ThemeResources.Apply(button, Control.BackgroundProperty, "Background", selected ? "ShouNavSelectionBrush" : "ShouTransparentBrush");
             ThemeResources.Apply(button, Control.ForegroundProperty, "Foreground", selected ? "ShouAccentBrush" : "TextFillColorSecondaryBrush");

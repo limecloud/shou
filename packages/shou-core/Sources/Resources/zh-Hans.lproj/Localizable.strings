@@ -384,6 +384,7 @@
 "Check disk access, free space, and local records without changing files." = "检查磁盘权限、可用空间和本地记录，不修改文件。";
 "Check every path. Files and configuration will be verified again immediately before processing." = "请核对每个路径。处理前会再次复核文件与配置。";
 "Check for Updates…" = "检查更新…";
+"Check for updates to installed software." = "检查已安装软件的可用更新。";
 "Check installed applications" = "检查已安装应用";
 "Check installed versions again before another upgrade." = "再次升级前，请重新检查已安装版本。";
 "Check startup definitions" = "检查启动项配置";
@@ -471,6 +472,7 @@
 "Cleanup" = "清理";
 "Cleanup Category" = "清理类别";
 "Cleanup Impact" = "清理影响";
+"Cleanup Options" = "清理选项";
 "Cleanup Plan" = "清理计划";
 "Cleanup Rule" = "清理规则";
 "Cleanup Rules" = "清理规则";
@@ -832,6 +834,7 @@
 "Filter this folder" = "筛选当前文件夹";
 "Final Cut Pro caches" = "Final Cut Pro 缓存";
 "Find Scan Locations" = "查找扫描位置";
+"Find caches and temporary files you can clear." = "扫描可清理的缓存与临时文件。";
 "Find known app caches without choosing folders." = "自动查找常用软件缓存，无需选择目录。";
 "Find large files" = "查找大文件";
 "Find reviewable caches and build artifacts in known locations." = "扫描已知位置，查看可审阅的缓存与构建产物。";
@@ -1143,10 +1146,13 @@
 "Main model only" = "仅主模型";
 "Make Shou work the way you do." = "调整 Shou 的外观与使用偏好。";
 "Make room for more." = "大文件，一目了然。";
+"Manage AI apps and connections." = "管理 AI 应用与连接配置。";
 "Manage Databases" = "管理数据库";
 "Manage Instance" = "管理实例";
 "Manage Tool" = "管理工具";
 "Manage databases, accounts and backups in the context of an exact MySQL instance." = "针对确切的 MySQL 实例管理数据库、账号与备份。";
+"Manage installed apps and updates." = "查看应用、更新与卸载。";
+"Manage services and development tools." = "管理服务与开发工具。";
 "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition." = "请在“全部位置”中管理这些模式。各条规则的排除项保留在规则定义中。";
 "Manage this item in Login Items Settings." = "请在系统设置的登录项页面管理此项目。";
 "Managed by the system; no action is needed." = "此位置由系统管理，无需处理。";
@@ -1759,6 +1765,7 @@
 "Review applications and their related files in one place." = "集中查看应用本体与关联文件，按需选择移除范围。";
 "Review background-task definitions and manage login items in macOS Settings." = "审阅后台任务配置，并在 macOS 系统设置中管理登录项。";
 "Review browser activity and account data separately." = "单独审阅浏览器活动与账户数据。";
+"Review browser history and site data." = "查看浏览记录与网站数据。";
 "Review browser records by source and time range." = "按浏览器和时间范围审阅隐私记录。";
 "Review build outputs and dependencies by project. Your source stays in place." = "按项目审阅构建产物与依赖，保留源代码。";
 "Review build outputs and dependencies from local and cloned projects. Source files are kept." = "集中审阅本地及克隆项目的构建产物与依赖，保留项目源码。";

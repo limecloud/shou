@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/product/developer-tools.md)
 
-Tools contains separate Developer Tools and [AI Workbench](ai-workbench.md) pages. Runtimes, servers and developer utilities belong to the former; AI software belongs to the latter. Project artifact cleanup remains under Apps & Projects. Discovery, package installation and cleanup authority are independent.
+The Toolbox utility entry first presents Developer Tools and [AI Workbench](ai-workbench.md) modules without starting inventory; each module loads after selection. Runtimes, servers and developer utilities belong to the former; AI software belongs to the latter. Project artifact cleanup belongs to Smart Cleanup through Cleanup Options. Discovery, package installation and cleanup authority are independent.
 
 ## Scope and implementation
 

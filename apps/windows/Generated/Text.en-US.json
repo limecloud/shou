@@ -1924,6 +1924,11 @@
     "resource_id": "sc372f825b04edac58ec1afc3",
     "text": "Check for Updates…"
   },
+  "Check for updates to installed software.": {
+    "format": "Check for updates to installed software.",
+    "resource_id": "sd860bf693956ea9ea7537dd9",
+    "text": "Check for updates to installed software."
+  },
   "Check installed applications": {
     "format": "Check installed applications",
     "resource_id": "s62ad8a5ecd06834db21d2784",
@@ -2358,6 +2363,11 @@
     "format": "Cleanup Impact",
     "resource_id": "s2fbbcfa6b6759ac02d5b67c6",
     "text": "Cleanup Impact"
+  },
+  "Cleanup Options": {
+    "format": "Cleanup Options",
+    "resource_id": "s24f3383dd8dac9661ffd4c7b",
+    "text": "Cleanup Options"
   },
   "Cleanup Plan": {
     "format": "Cleanup Plan",
@@ -4164,6 +4174,11 @@
     "resource_id": "s325f60fbc7ed91c5413fee95",
     "text": "Find Scan Locations"
   },
+  "Find caches and temporary files you can clear.": {
+    "format": "Find caches and temporary files you can clear.",
+    "resource_id": "s84d2551092c02e48efe9b729",
+    "text": "Find caches and temporary files you can clear."
+  },
   "Find known app caches without choosing folders.": {
     "format": "Find known app caches without choosing folders.",
     "resource_id": "sbdc2b30ed8227e986f52f6ab",
@@ -5719,6 +5734,11 @@
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "Make room for more."
   },
+  "Manage AI apps and connections.": {
+    "format": "Manage AI apps and connections.",
+    "resource_id": "s438b2ceca5ba20b1604fbd05",
+    "text": "Manage AI apps and connections."
+  },
   "Manage Databases": {
     "format": "Manage Databases",
     "resource_id": "sa7ce49eacadd57176cfb3652",
@@ -5738,6 +5758,16 @@
     "format": "Manage databases, accounts and backups in the context of an exact MySQL instance.",
     "resource_id": "s276932f367e0900611340c0f",
     "text": "Manage databases, accounts and backups in the context of an exact MySQL instance."
+  },
+  "Manage installed apps and updates.": {
+    "format": "Manage installed apps and updates.",
+    "resource_id": "s02a6c3bbe3260a7a4960591e",
+    "text": "Manage installed apps and updates."
+  },
+  "Manage services and development tools.": {
+    "format": "Manage services and development tools.",
+    "resource_id": "sfafe413140a27c56fdacb7fe",
+    "text": "Manage services and development tools."
   },
   "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition.": {
     "format": "Manage these patterns in All Locations. Per-rule exclusions remain in each rule definition.",
@@ -8798,6 +8828,11 @@
     "format": "Review browser activity and account data separately.",
     "resource_id": "s9988ab26a623f1476bda87a9",
     "text": "Review browser activity and account data separately."
+  },
+  "Review browser history and site data.": {
+    "format": "Review browser history and site data.",
+    "resource_id": "scfc13c8c845e962648aff009",
+    "text": "Review browser history and site data."
   },
   "Review browser records by source and time range.": {
     "format": "Review browser records by source and time range.",

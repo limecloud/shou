@@ -4,7 +4,7 @@ import ShouCore
 import ShouPlatform
 
 @MainActor @Observable final class PackageUpdatesSession {
-    var source="applications"
+    var source="homebrew"
     var inventories=[PackageUpdateProvider: PackageUpdateInventory]()
     var selection=Set<String>()
     var plan: PackageUpdatePlan?

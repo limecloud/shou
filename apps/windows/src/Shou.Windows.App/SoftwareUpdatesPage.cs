@@ -7,7 +7,7 @@ using Shou.Windows.Platform;
 
 namespace Shou.Windows.App;
 
-internal sealed class ManagedPackageUpdatesDialog : ContentDialog
+internal sealed class SoftwareUpdatesPage : UserControl, IDisposable
 {
     private readonly TextCatalog text = new();
     private readonly TextBlock reviewNotice;
@@ -24,21 +24,22 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
     private ManagedPackageUpdatePlan? review;
     private ImmutableArray<ManagedPackageUpdateResult> results = [];
     private CancellationTokenSource? operation;
+    private readonly Button primary = new();
+    private readonly Button secondary = new();
+    private readonly Grid layout;
+    private readonly FrameworkElement landing;
     private bool busy;
     private bool closed;
     internal bool IsExecuting { get; private set; }
     internal event EventHandler? ExecutionChanged;
 
-    internal ManagedPackageUpdatesDialog(XamlRoot root)
+    internal SoftwareUpdatesPage()
     {
-        XamlRoot = root; FontSize = (double)Application.Current.Resources["ShouBodyFontSize"];
-        Title = text.Get("Application Updates");
-        CloseButtonText = text.Get("Close");
-        DefaultButton = ContentDialogButton.None;
-        PrimaryButtonStyle = (Style)Application.Current.Resources["AccentButtonStyle"];
-        Resources["ContentDialogMaxWidth"] = 960d;
-        Resources["ContentDialogMinWidth"] = 640d;
-        AutomationProperties.SetAutomationId(this, "applications.updates.dialog");
+        FontSize = (double)Application.Current.Resources["ShouBodyFontSize"];
+        primary.Style = (Style)Application.Current.Resources["ShouScanButton"];
+        secondary.Style = (Style)Application.Current.Resources["ShouBorderedButton"];
+        AutomationProperties.SetAutomationId(this, "updates.page");
+        AutomationProperties.SetAutomationId(primary, "updates.confirm");
         AutomationProperties.SetLiveSetting(status, Microsoft.UI.Xaml.Automation.Peers.AutomationLiveSetting.Polite);
         search.PlaceholderText = text.Get("Search applications…");
         AutomationProperties.SetName(search, text.Get("Search applications…"));
@@ -50,15 +51,30 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
         tools.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         tools.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         tools.Children.Add(search); Grid.SetColumn(updatesOnly, 1); tools.Children.Add(updatesOnly); Grid.SetColumn(refresh, 2); tools.Children.Add(refresh);
-        var body = new StackPanel { Spacing = 12 };
-        body.Children.Add(tools);
-        body.Children.Add(selectUpdates);
-        body.Children.Add(progress);
-        body.Children.Add(status);
-        body.Children.Add(new ScrollViewer { Content = rows, MaxHeight = 380, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
+        var body = layout = new Grid { Margin = new Thickness((double)Application.Current.Resources["ShouWorkspaceInset"]), RowSpacing = 12, Visibility = Visibility.Collapsed };
+        body.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        body.RowDefinitions.Add(new() { Height = new GridLength(1, GridUnitType.Star) });
+        body.RowDefinitions.Add(new() { Height = GridLength.Auto });
+        var header = new StackPanel { Spacing = 12 };
+        header.Children.Add(WorkspaceVisuals.Heading(text.Get("Software Updates"), "", "applications"));
+        header.Children.Add(new TextBlock { Text = "WinGet", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        header.Children.Add(tools);
+        header.Children.Add(selectUpdates);
+        header.Children.Add(progress);
+        header.Children.Add(status);
+        body.Children.Add(header);
+        var list = new ScrollViewer { Content = rows, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        Grid.SetRow(list, 1); body.Children.Add(list);
         reviewNotice = Label("Installers may request administrator approval, close applications, or change their data. Shou does not restart Windows or restore an upgrade.");
-        reviewNotice.Visibility = Visibility.Collapsed; body.Children.Add(reviewNotice);
-        Content = body;
+        reviewNotice.Visibility = Visibility.Collapsed;
+        var footer = new StackPanel { Spacing = 12 };
+        footer.Children.Add(reviewNotice);
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right };
+        actions.Children.Add(secondary); actions.Children.Add(primary); footer.Children.Add(actions);
+        Grid.SetRow(footer, 2); body.Children.Add(footer);
+        landing = WorkspaceVisuals.Landing(text, "Software Updates", "Check for updates to installed software.", "applications",
+            "Check Software Updates", "updates.check", async (_, _) => await CheckAsync());
+        var root = new Grid(); root.Children.Add(landing); root.Children.Add(body); Content = root;
         search.TextChanged += (_, _) => RenderRows();
         updatesOnly.Click += (_, _) => RenderRows();
         selectUpdates.Click += (_, _) =>
@@ -68,17 +84,14 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
             RenderRows();
         };
         refresh.Click += async (_, _) => await CheckAsync();
-        Opened += async (_, _) => await CheckAsync();
-        PrimaryButtonClick += async (_, args) => { args.Cancel = true; if (review is null) await ReviewAsync(); else await UpgradeAsync(); };
-        SecondaryButtonClick += (_, args) =>
+        primary.Click += async (_, _) => { if (review is null) await ReviewAsync(); else await UpgradeAsync(); };
+        secondary.Click += (_, _) =>
         {
-            args.Cancel = true;
             if (busy) RequestStop();
             else { review = null; status.Text = text.Get("Cancelled"); SetBusy(false); RenderRows(); }
         };
-        CloseButtonClick += (_, args) => { if (IsExecuting) { args.Cancel = true; RequestStop(); } };
-        Closing += (_, args) => { if (IsExecuting) { args.Cancel = true; RequestStop(); } };
-        Closed += (_, _) => { closed = true; operation?.Cancel(); };
+        SetBusy(false);
+
     }
 
     internal void RequestStop()
@@ -90,6 +103,7 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
     private async Task CheckAsync()
     {
         if (busy || closed) return;
+        landing.Visibility = Visibility.Collapsed; layout.Visibility = Visibility.Visible;
         using var cancellation = new CancellationTokenSource();
         operation = cancellation;
         SetBusy(true);
@@ -166,7 +180,8 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
         search.IsEnabled = updatesOnly.IsEnabled = selectUpdates.IsEnabled = refresh.IsEnabled = !value && review is null;
         progress.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
         progress.IsIndeterminate = value && AppearanceSettings.AnimationsEnabled;
-        SecondaryButtonText = value ? text.Get("Stop") : review is not null ? text.Get("Cancel") : "";
+        secondary.Content = text.Get(value ? "Stop" : "Cancel");
+        secondary.Visibility = value || review is not null ? Visibility.Visible : Visibility.Collapsed;
         UpdateAction();
     }
 
@@ -223,8 +238,8 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
 
     private void UpdateAction()
     {
-        PrimaryButtonText = text.Get(review is not null ? "Confirm Upgrade" : "Review Selected Updates…");
-        IsPrimaryButtonEnabled = !busy && (review is not null || snapshot?.Complete == true && selection.Count > 0);
+        primary.Content = text.Get(review is not null ? "Confirm Upgrade" : "Review Selected Updates…");
+        primary.IsEnabled = !busy && (review is not null || snapshot?.Complete == true && selection.Count > 0);
     }
 
     private string Reason(string? reason) => text.Get(reason switch
@@ -239,6 +254,11 @@ internal sealed class ManagedPackageUpdatesDialog : ContentDialog
         "package_source_unverified" => "The official WinGet source could not be verified. Custom sources are not used.",
         _ => "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer."
     });
+
+    public void Dispose()
+    {
+        closed = true; operation?.Cancel(); GC.SuppressFinalize(this);
+    }
 
     private TextBlock Label(string value) => new() { Text = text.Get(value), TextWrapping = TextWrapping.Wrap };
 }

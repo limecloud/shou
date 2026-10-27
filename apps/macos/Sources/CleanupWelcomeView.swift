@@ -13,20 +13,10 @@ struct CleanupWelcomeView: View {
                 VStack(alignment: .leading, spacing: compact ? ShouDesign.homeCompactSpacing : ShouDesign.sectionSpacing) {
                     hero(compact: compact)
                     HStack(spacing: 16) {
-                        destination("Apps & Projects", subtitle: "A clearer view of apps and build outputs.", kind: .applications, section: "applications")
+                        destination("Applications", subtitle: "Manage installed apps and updates.", kind: .applications, section: "applications")
                         destination("Space Analysis", subtitle: "Find the files taking up the most room.", kind: .space, section: "storage")
-                        destination("Your Cleanup Rules", subtitle: "A routine that fits your own folders.", kind: .rules, section: "rules")
+                        destination("Privacy", subtitle: "Review browser history and site data.", kind: .privacy, section: "privacy")
                     }
-                    HStack(spacing: 10) {
-                        Image(systemName: "sparkles").foregroundStyle(ShouPalette.accent).accessibilityHidden(true)
-                        Text(model.t("Have a folder that needs a closer look?"))
-                            .foregroundStyle(ShouPalette.secondary)
-                        Button(model.t("Investigate with AI…")) { model.ai.requestLaunch(app: model) }
-                            .accessibilityIdentifier("smart.ai.investigate")
-                        Spacer(minLength: 8)
-                        Button(model.t("External AI Tools…"), action: showAgentSetup)
-                            .accessibilityIdentifier("smart.agent.setup")
-                    }.font(ShouType.body).buttonStyle(.link).padding(.horizontal, 4).padding(.bottom, 8)
                 }
                 .frame(maxWidth: ShouDesign.homeMaxWidth)
                 .padding(compact ? ShouDesign.homeCompactInset : ShouDesign.workspaceInset)
@@ -40,10 +30,6 @@ struct CleanupWelcomeView: View {
     private func hero(compact: Bool) -> some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: compact ? ShouDesign.homeCompactSpacing : 18) {
-                Label(model.t("A LITTLE LIGHTER. A LOT MORE ROOM."), systemImage: "sparkle")
-                    .font(.system(size: ShouDesign.captionFontSize, weight: .medium))
-                    .tracking(model.language == .english ? 1.4 : 2)
-                    .foregroundStyle(scheme == .dark ? ShouDesign.accentDark : ShouDesign.artworkDeep)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(model.t("Room for"))
                     Text(model.t("what comes next."))
@@ -52,8 +38,8 @@ struct CleanupWelcomeView: View {
                 .font(.system(size: compact ? ShouDesign.heroCompactTitleSize : ShouDesign.heroTitleSize, weight: .semibold))
                 .tracking(-0.8).fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
-                Text(model.t("Scan app caches, developer build outputs, and your personal cleanup rules together."))
-                    .font(.system(size: ShouDesign.bodyFontSize + 1)).foregroundStyle(ShouPalette.secondary)
+                Text(model.t("Find caches and temporary files you can clear."))
+                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     .lineSpacing(4).fixedSize(horizontal: false, vertical: true).frame(maxWidth: 430, alignment: .leading)
                 HStack(spacing: 12) {
                     Button { model.scanCommonLocations() } label: {
@@ -65,21 +51,8 @@ struct CleanupWelcomeView: View {
                         }
                     }
                     .buttonStyle(WorkspacePrimaryButtonStyle()).fixedSize().accessibilityIdentifier("smart.start")
-                    Menu {
-                        Button(model.t("Scan Common Locations")) { model.scanCommonLocations() }
-                        Divider()
-                        Button(model.t("Scan Locations…"), action: showLocations)
-                    } label: {
-                        Image(systemName: "ellipsis").frame(width: 26, height: 40)
-                    }
-                    .menuStyle(.borderlessButton).fixedSize()
-                    .help(model.t("Scan Options")).accessibilityLabel(model.t("Scan Options"))
-                    .accessibilityIdentifier("smart.scan-options")
-                    Button(action: showLocations) { Image(systemName: "slider.horizontal.3").frame(width: 40, height: 40) }
-                        .buttonStyle(.plain).foregroundStyle(ShouPalette.secondary)
-                        .background(.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
-                        .help(model.t("Scan Locations…")).accessibilityLabel(model.t("Scan Locations…"))
-                        .accessibilityIdentifier("smart.locations")
+                    CleanupOptionsMenu(model: model, showLocations: showLocations, showAgentSetup: showAgentSetup)
+                        .fixedSize().menuStyle(.borderlessButton)
                 }.padding(.top, 3)
                 Label(model.t("Scan first. Review before anything is removed."), systemImage: "checkmark.shield")
                     .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
@@ -109,7 +82,6 @@ private struct WorkspaceDestinationCard: View {
     let action: () -> Void
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
-    @ReduceMotion private var reduceMotion
     @State private var hovering=false
 
     var body: some View {
@@ -127,11 +99,8 @@ private struct WorkspaceDestinationCard: View {
                     RoundedRectangle(cornerRadius: ShouDesign.homeCardRadius)
                         .stroke(hovering ? ShouPalette.accent.opacity(0.5) : .primary.opacity(contrast == .increased ? 0.35 : 0.07), lineWidth: ShouDesign.hairlineWidth)
                 }
-                .shadow(color: ShouDesign.artworkInk.opacity(scheme == .dark ? 0 : hovering ? 0.07 : 0.025), radius: hovering ? 16 : 10, y: hovering ? 7 : 3)
-                .offset(y: hovering && !reduceMotion ? -2 : 0)
         }
         .buttonStyle(.plain).onHover { hovering=$0 }
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: hovering)
         .accessibilityElement(children: .combine)
     }
 }

@@ -1155,6 +1155,9 @@
   <data name="sc372f825b04edac58ec1afc3" xml:space="preserve">
     <value>检查更新…</value>
   </data>
+  <data name="sd860bf693956ea9ea7537dd9" xml:space="preserve">
+    <value>检查已安装软件的可用更新。</value>
+  </data>
   <data name="s62ad8a5ecd06834db21d2784" xml:space="preserve">
     <value>检查已安装应用</value>
   </data>
@@ -1415,6 +1418,9 @@
   </data>
   <data name="s2fbbcfa6b6759ac02d5b67c6" xml:space="preserve">
     <value>清理影响</value>
+  </data>
+  <data name="s24f3383dd8dac9661ffd4c7b" xml:space="preserve">
+    <value>清理选项</value>
   </data>
   <data name="s0133d45f5d26eb7f9209cc8a" xml:space="preserve">
     <value>清理计划</value>
@@ -2499,6 +2505,9 @@
   <data name="s325f60fbc7ed91c5413fee95" xml:space="preserve">
     <value>查找扫描位置</value>
   </data>
+  <data name="s84d2551092c02e48efe9b729" xml:space="preserve">
+    <value>扫描可清理的缓存与临时文件。</value>
+  </data>
   <data name="sbdc2b30ed8227e986f52f6ab" xml:space="preserve">
     <value>自动查找常用软件缓存，无需选择目录。</value>
   </data>
@@ -3432,6 +3441,9 @@
   <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
     <value>大文件，一目了然。</value>
   </data>
+  <data name="s438b2ceca5ba20b1604fbd05" xml:space="preserve">
+    <value>管理 AI 应用与连接配置。</value>
+  </data>
   <data name="sa7ce49eacadd57176cfb3652" xml:space="preserve">
     <value>管理数据库</value>
   </data>
@@ -3443,6 +3455,12 @@
   </data>
   <data name="s276932f367e0900611340c0f" xml:space="preserve">
     <value>针对确切的 MySQL 实例管理数据库、账号与备份。</value>
+  </data>
+  <data name="s02a6c3bbe3260a7a4960591e" xml:space="preserve">
+    <value>查看应用、更新与卸载。</value>
+  </data>
+  <data name="sfafe413140a27c56fdacb7fe" xml:space="preserve">
+    <value>管理服务与开发工具。</value>
   </data>
   <data name="s3c764f296aa1f9a6d0bac92d" xml:space="preserve">
     <value>请在“全部位置”中管理这些模式。各条规则的排除项保留在规则定义中。</value>
@@ -5279,6 +5297,9 @@
   </data>
   <data name="s9988ab26a623f1476bda87a9" xml:space="preserve">
     <value>单独审阅浏览器活动与账户数据。</value>
+  </data>
+  <data name="scfc13c8c845e962648aff009" xml:space="preserve">
+    <value>查看浏览记录与网站数据。</value>
   </data>
   <data name="s527fe1519eb507e02c36ad0e" xml:space="preserve">
     <value>按浏览器和时间范围审阅隐私记录。</value>

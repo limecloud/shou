@@ -50,15 +50,31 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         var scanIcon = ProductIcon.Create("cleanup"); ProductIcon.Select(scanIcon, "ShouActionTextBrush");
         scanLabel.Children.Add(scanIcon); scanLabel.Children.Add(new TextBlock { Text = text.Get("Start Scan") }); StartButton.Content = scanLabel;
         CommonScanItem.Text = text.Get("Scan Common Locations"); LocationsMenuItem.Text = text.Get("Scan Locations…");
+        var options = new Button { Content = text.Get("Cleanup Options"), Style = (Style)Application.Current.Resources["ShouToolbarButton"] };
+        AutomationProperties.SetAutomationId(options, "cleanup.options");
+        var menu = new MenuFlyout();
+        options.Flyout = menu;
+        PageToolbar.Children.Add(options);
+        foreach (var flyout in new[] { menu, (MenuFlyout)StartMenuButton.Flyout })
+        {
+            foreach (var (title, page) in new[] { ("Cleanup Rules", "configuration"), ("Project Cleanup", "projects") })
+            {
+                var item = new MenuFlyoutItem { Text = text.Get(title) };
+                item.Click += (_, _) => { if (!IsBusy) DestinationRequested?.Invoke(page); };
+                flyout.Items.Add(item);
+            }
+        }
+        FreeSpaceItem.Visibility = Visibility.Collapsed;
+        InvestigateLink.Visibility = ExternalToolsLink.Visibility = LocationsLink.Visibility = Visibility.Collapsed;
         FreeSpaceItem.Text = text.Get("Scan & Free Space");
         ToolTipService.SetToolTip(FreeSpaceItem, text.Get("Cleanup execution is unavailable in this development build."));
         InvestigateLink.Content = text.Get("Investigate a Folder with AI…"); ExternalToolsLink.Content = text.Get("External AI Tools…"); LocationsLink.Content = text.Get("Scan Locations…");
         ToolTipService.SetToolTip(InvestigateLink, text.Get("AI investigation is not available in this Windows preview."));
         ToolTipService.SetToolTip(ExternalToolsLink, text.Get("AI investigation is not available in this Windows preview."));
-        AutomationProperties.SetName(StartMenuButton, text.Get("Start Scan"));
+        AutomationProperties.SetName(StartMenuButton, text.Get("Cleanup Options"));
         RescanButton.Content = text.Get("Scan Again");
         LocationMenuButton.Content = text.Get("Scan Locations");
-        StartDescription.Text = text.Get("Scan app caches, developer build outputs, and your personal cleanup rules together.");
+        StartDescription.Text = text.Get("Find caches and temporary files you can clear.");
         if (projectsOnly)
         {
             PageTitle.Text = text.Get("More room to build.");

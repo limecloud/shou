@@ -12,7 +12,7 @@ Smart Cleanup scans known application caches, developer tools and project locati
 
 Applications and Startup initially show illustrated introductions with explicit read-only scan buttons. Returning to a page with existing results retains those results. Space Analysis, Large Files, Projects and Privacy use the same composition with their own scope controls; Rules, Settings and populated History use compact illustrated headings. A continuous window-wide gradient runs behind navigation and content, while working surfaces retain readable contrast.
 
-Top navigation groups Cleanup, Apps & Projects, Space Analysis and Rules, with stable History and Settings controls. Privacy is under Cleanup; Applications, Developer Projects and Startup Items share a family; Space Analysis includes the directory view and Large Files. Native toolbars retain contextual actions. Navigation changes do not enable unsupported system capabilities.
+Top navigation groups Cleanup, Applications, Space Analysis and Monitor, with Toolbox, History and Settings utilities. Privacy belongs to Cleanup; rules and project cleanup are in Cleanup Options. Applications includes Software Updates and Startup Items. Space Analysis includes the directory view and Large Files. Toolbox selects AI Workbench or Developer Tools before loading a module. Native toolbars retain contextual actions. Navigation changes do not enable unsupported system capabilities.
 
 ## Scan, inspect and select
 

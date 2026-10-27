@@ -6170,6 +6170,22 @@
         }
       }
     },
+    "Check for updates to installed software.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for updates to installed software."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查已安装软件的可用更新。"
+          }
+        }
+      }
+    },
     "Check installed applications": {
       "localizations": {
         "en": {
@@ -7558,6 +7574,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "清理影响"
+          }
+        }
+      }
+    },
+    "Cleanup Options": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup Options"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理选项"
           }
         }
       }
@@ -13353,6 +13385,22 @@
         }
       }
     },
+    "Find caches and temporary files you can clear.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find caches and temporary files you can clear."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描可清理的缓存与临时文件。"
+          }
+        }
+      }
+    },
     "Find known app caches without choosing folders.": {
       "localizations": {
         "en": {
@@ -18349,6 +18397,22 @@
         }
       }
     },
+    "Manage AI apps and connections.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage AI apps and connections."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理 AI 应用与连接配置。"
+          }
+        }
+      }
+    },
     "Manage Databases": {
       "localizations": {
         "en": {
@@ -18409,6 +18473,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "针对确切的 MySQL 实例管理数据库、账号与备份。"
+          }
+        }
+      }
+    },
+    "Manage installed apps and updates.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage installed apps and updates."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看应用、更新与卸载。"
+          }
+        }
+      }
+    },
+    "Manage services and development tools.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage services and development tools."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理服务与开发工具。"
           }
         }
       }
@@ -28215,6 +28311,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "单独审阅浏览器活动与账户数据。"
+          }
+        }
+      }
+    },
+    "Review browser history and site data.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review browser history and site data."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看浏览记录与网站数据。"
           }
         }
       }
@@ -39793,7 +39905,6 @@
       }
     },
     "Toolbox": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {

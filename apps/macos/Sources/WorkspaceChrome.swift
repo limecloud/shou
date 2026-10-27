@@ -8,9 +8,8 @@ struct WorkspaceNavigation: View {
     private var compact: Bool {
         switch model.section {
         case "smart", "projects": model.systemResult != nil || model.scanning
-        case "applications": model.packageUpdates.source == "applications"
-            ? model.applicationsSession.catalog != nil || !model.applicationsSession.items.isEmpty || model.applicationsSession.scanning
-            : model.packageUpdates.loading || model.packageUpdates.inventory != nil || !model.packageUpdates.results.isEmpty
+        case "applications": model.applicationsSession.catalog != nil || !model.applicationsSession.items.isEmpty || model.applicationsSession.scanning
+        case "updates": model.packageUpdates.loading || model.packageUpdates.inventory != nil || !model.packageUpdates.results.isEmpty
         case "startup": model.startupInventory != nil || model.startupLoading
         case "storage": model.space.scan != nil || model.space.scanning
         case "large-files": model.largeFiles.storage.scan != nil || model.largeFiles.storage.scanning
@@ -21,11 +20,10 @@ struct WorkspaceNavigation: View {
 
     private var family: String {
         switch model.section {
-        case "applications", "projects", "startup": "applications"
-        case "developer-tools", "ai-tools": "tools"
+        case "applications", "updates", "startup": "applications"
+        case "tools", "developer-tools", "ai-tools": "tools"
         case "storage", "large-files": "storage"
-        case "rules": "rules"
-        case "privacy", "smart", "overview": "smart"
+        case "rules", "projects", "privacy", "smart", "overview": "smart"
         default: model.section
         }
     }
@@ -35,13 +33,12 @@ struct WorkspaceNavigation: View {
             HStack(spacing: 24) {
                 HStack(spacing: 6) {
                     navigation("smart", "Cleanup", "sparkle.magnifyingglass")
-                    navigation("applications", "Apps & Projects", "square.stack.3d.up")
-                    navigation("tools", "Tools", "hammer")
+                    navigation("applications", "Applications", "square.stack.3d.up")
                     navigation("storage", "Space Analysis", "square.grid.2x2")
                     navigation("monitor", "Monitor", "waveform.path.ecg")
-                    navigation("rules", "Rules", "slider.horizontal.3")
                 }
                 Spacer(minLength: 8)
+                navigation("tools", "Toolbox", "square.grid.2x2")
                 Button { open("history") } label: { Image(systemName: "clock.arrow.circlepath") }
                     .buttonStyle(.plain).help(model.t("History")).accessibilityLabel(model.t("History"))
                     .accessibilityIdentifier("navigation.history")
@@ -53,22 +50,25 @@ struct WorkspaceNavigation: View {
             .frame(height: compact ? ShouDesign.workspaceCompactHeaderHeight : ShouDesign.workspaceHeaderHeight)
             .disabled(model.busy)
 
-            if ["smart", "applications", "storage", "tools"].contains(family) {
+            if ["smart", "applications", "storage", "tools"].contains(family) && model.section != "tools" {
                 HStack(spacing: 22) {
                     switch family {
                     case "applications":
                         subsection("applications", "Applications")
-                        subsection("projects", "Developer Projects")
+                        subsection("updates", "Software Updates")
                         subsection("startup", "Startup Items")
                     case "storage":
                         subsection("storage", "Space Analysis")
                         subsection("large-files", "Large Files")
                     case "tools":
+                        subsection("tools", "Toolbox")
                         subsection("developer-tools", "Developer Tools")
                         subsection("ai-tools", "AI Workbench")
                     default:
                         subsection("smart", "Smart Cleanup")
                         subsection("privacy", "Privacy")
+                        if model.section == "projects" { subsection("projects", "Project Cleanup") }
+                        if model.section == "rules" { subsection("rules", "Cleanup Rules") }
                     }
                     Spacer()
                 }
@@ -108,7 +108,7 @@ struct WorkspaceNavigation: View {
     private func open(_ section: String) {
         guard !model.busy else { return }
         model.completion=nil; model.toolCompletion=nil
-        model.section=section == "tools" ? "developer-tools" : section
+        model.section=section
     }
 }
 
