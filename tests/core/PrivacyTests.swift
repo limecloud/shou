@@ -44,6 +44,61 @@ private func chromeSchema(recent: Int64, old: Int64, constraint: String = "") ->
     """
 }
 
+func privacyDiscoveryPermissionFailureKeepsAccessibleSources() async throws {
+    for (deniedRoot, accessibleHistory) in [
+        ("Library/Application Support/Firefox/Profiles", chromeHistory),
+        ("Library/Application Support/Google/Chrome", "Library/Application Support/Chromium/Default/History")
+    ] {
+        let fixture=try Fixture(), service=privacyService(fixture)
+        let recent=Int64((privacyDate.timeIntervalSince1970 + 11_644_473_600 - 60) * 1_000_000)
+        let history=fixture.workspace.appendingPathComponent(accessibleHistory)
+        try privacySQL(history, chromeSchema(recent: recent, old: recent-7_200_000_000))
+        let denied=fixture.workspace.appendingPathComponent(deniedRoot)
+        try FileManager.default.createDirectory(at: denied, withIntermediateDirectories: true)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: denied.path)
+        defer { try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: denied.path) }
+        let scan=try await service.scan(range: .lastHour)
+        let source=try require(scan.sources.first { $0.definition.relativePath == accessibleHistory })
+        try expect(source.status == .ready && source.recordCount == 1)
+        try expect(scan.issues.contains("privacy_discovery_incomplete") && scan.issues.contains("permission_denied"))
+        try expect(try await service.scan(id: scan.id).issues == scan.issues)
+        try expect(try privacyScalar(history, "SELECT COUNT(*) FROM visits") == 2)
+    }
+}
+
+func privacyDiscoveryRejectsLinkedRootsAndPreservesLimitsAndCancellation() async throws {
+    let fixture=try Fixture(), service=privacyService(fixture)
+    try expect(try NativePrivacySources().discoverWithCoverage(home: fixture.workspace).issues.isEmpty)
+    let outside=fixture.base.appendingPathComponent("outside/Default/History")
+    try privacySQL(outside, chromeSchema(recent: 0, old: 0))
+    let root=fixture.workspace.appendingPathComponent("Library/Application Support/Google/Chrome")
+    try FileManager.default.createDirectory(at: root.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try FileManager.default.createSymbolicLink(at: root, withDestinationURL: outside.deletingLastPathComponent().deletingLastPathComponent())
+    let history=fixture.workspace.appendingPathComponent("Library/Application Support/Chromium/Default/History")
+    try privacySQL(history, chromeSchema(recent: 0, old: 0))
+    let scan=try await service.scan(range: .allTime)
+    try expect(scan.issues == ["io_error", "privacy_discovery_incomplete"])
+    try expect(!scan.sources.contains { $0.definition.bundleIdentifier == "com.google.Chrome" })
+    try expect(scan.sources.contains { $0.definition.relativePath == "Library/Application Support/Chromium/Default/History" && $0.status == .ready })
+    try expect(try privacyScalar(outside, "SELECT COUNT(*) FROM visits") == 2)
+    try FileManager.default.removeItem(at: root)
+    for index in 0...256 {
+        try FileManager.default.createDirectory(at: root.appendingPathComponent("Profile \(index)"), withIntermediateDirectories: true)
+    }
+    do {
+        _ = try await service.scan(range: .allTime)
+        throw CheckFailure(description: "Profile discovery limits must abort scanning.")
+    } catch let error as ShouError { try expect(error.code == "privacy_source_limit") }
+    let cancelled=Task {
+        withUnsafeCurrentTask { $0?.cancel() }
+        return try NativePrivacySources().discoverWithCoverage(home: fixture.workspace)
+    }
+    do {
+        _ = try await cancelled.value
+        throw CheckFailure(description: "Cancelled discovery must abort scanning.")
+    } catch let error as ShouError { try expect(error.code == "cancelled") }
+}
+
 func privacyChromiumRangePreservesUnselectedRelationsAndReceipts() async throws {
     let fixture=try Fixture(), service=privacyService(fixture)
     let recent=Int64((privacyDate.timeIntervalSince1970 + 11_644_473_600 - 60) * 1_000_000)
