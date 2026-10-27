@@ -52,45 +52,22 @@ struct CapacityValue: View {
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(measured ? bytes : 0)))
             Text(measured ? formatted(unit: true) : "")
-                .font(.system(size: 14, weight: .semibold)).foregroundStyle(.secondary)
+                .font(.system(size: 14, weight: .semibold)).foregroundStyle(ShouPalette.secondary)
         }
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.35), value: bytes)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: measured)
+        .animation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration)), value: bytes)
+        .animation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration)), value: measured)
     }
 }
 
 struct CapacityDots: View {
     let segments: [(Int64, Color)]
     let scanning: Bool
-    @ReduceMotion private var reduceMotion
-    @Environment(\.colorScheme) private var colorScheme
+    var body: some View { field.accessibilityHidden(true) }
 
-    var body: some View {
-        ZStack {
-            if scanning && !reduceMotion {
-                // Only this decorative field redraws. The scan and its counts
-                // advance independently; a sweep does not imply a percentage.
-                TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { timeline in
-                    field(phase: timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 3.0) / 3.0)
-                }.transition(.opacity)
-            } else { field(phase: nil).transition(.opacity) }
-        }.animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: scanning)
-            .accessibilityHidden(true)
-    }
-
-    private func field(phase: Double?) -> some View {
-        // Explicit sRGB avoids resolving NSColor appearances for decorative dots.
-        // Category colors are resolved once per path, only in the static field.
-        let gray=colorScheme == .dark ? 0.46 : 0.66
-        var palette=[Color(.sRGB, red: gray, green: gray, blue: gray, opacity: 0.55)]
-        let levels=5
+    private var field: some View {
+        var palette=[ShouPalette.secondary]
         var thresholds: [Double]=[]
-        if scanning {
-            for level in 1...levels {
-                palette.append(Color(.sRGB, red: 0.78, green: 0.34, blue: 0.03,
-                                     opacity: 0.15 + Double(level) / Double(levels) * 0.65))
-            }
-        } else {
+        if !scanning {
             let total=segments.reduce(0.0) { $0 + Double(max(0, $1.0)) }
             var cumulative=0.0
             for segment in segments {
@@ -108,18 +85,13 @@ struct CapacityDots: View {
                     let fraction=(Double(column * rows + row) + 0.5) / Double(columns * rows)
                     let rect=CGRect(x: Double(column) * step, y: Double(row) * step + 2, width: radius * 2, height: radius * 2)
                     var bucket=0
-                    if scanning, let phase {
-                        let position=Double(column) / Double(columns) + Double(row) * 0.012
-                        let distance=abs(position - (phase * 1.5 - 0.2))
-                        let strength=max(0, 1 - distance / 0.18)
-                        if strength > 0 { bucket=min(levels, max(1, Int(ceil(strength * Double(levels))))) }
-                    } else if !scanning, let index=thresholds.firstIndex(where: { fraction <= $0 }) {
+                    if !scanning, let index=thresholds.firstIndex(where: { fraction <= $0 }) {
                         bucket=index + 1
                     }
                     paths[bucket].addEllipse(in: rect)
                 }
             }
-            // At most six fills per animated frame, independent of the dot count.
+            // Fill each category once, independent of the dot count.
             for index in paths.indices where !paths[index].isEmpty {
                 context.fill(paths[index], with: context.resolve(.color(palette[index])))
             }

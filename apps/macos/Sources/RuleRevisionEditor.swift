@@ -26,24 +26,24 @@ struct RuleRevisionEditor: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(model.t("Edit Personal Rule")).font(.title2.bold())
-            Text(original.rule.id + " · " + original.rule.version).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
-            Text(model.t("Edit the complete JSON definition. Keep the rule ID and use an unused version.")).font(.callout).foregroundStyle(.secondary)
+            Text(model.t("Edit Personal Rule")).font(ShouType.title.bold())
+            Text(original.rule.id + ", " + original.rule.version).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
+            Text(model.t("Edit the complete JSON definition. Keep the rule ID and use an unused version.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             TextEditor(text: $text)
-                .font(.system(.body, design: .monospaced))
+                .font(ShouType.body.monospaced())
                 .padding(8)
-                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.quaternary))
+                .background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(ShouPalette.border, lineWidth: ShouDesign.hairlineWidth))
                 .accessibilityLabel(model.t("Rule JSON"))
                 .accessibilityIdentifier("rules.revision.json")
                 .disabled(saving)
             if let issue {
-                ScrollView { Text(issue).font(.caption.monospaced()).foregroundStyle(.red).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(maxHeight: 85)
+                ScrollView { Text(issue).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.danger).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(maxHeight: 85)
                     .accessibilityIdentifier("rules.revision.issue")
             } else if validatedData != nil {
-                Label(model.t("Rule is valid. Ready to save as a disabled version."), systemImage: "checkmark.circle").font(.caption).foregroundStyle(.green)
+                Label(model.t("Rule is valid. Ready to save as a disabled version."), systemImage: "checkmark.circle").font(ShouType.caption).foregroundStyle(ShouPalette.success)
             }
-            Text(model.t("The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again.")).font(.caption).foregroundStyle(.secondary)
+            Text(model.t("The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             HStack {
                 Button(model.t("Validate Rule")) { validate() }.disabled(saving || model.busy)
                     .accessibilityIdentifier("rules.revision.validate")

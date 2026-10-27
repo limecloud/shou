@@ -76,7 +76,7 @@ private struct StorageAnalysisView: View {
             navigation
             Divider()
             if let suffix=session.extensionFilter {
-                HStack { Text(model.t("Highlighted extension") + ": " + (suffix.isEmpty ? model.t("No Extension") : "." + suffix)); Button(model.t("Clear")) { session.extensionFilter=nil }; Spacer() }.font(.caption).padding(6)
+                HStack { Text(model.t("Highlighted extension") + ": " + (suffix.isEmpty ? model.t("No Extension") : "." + suffix)); Button(model.t("Clear")) { session.extensionFilter=nil }; Spacer() }.font(ShouType.caption).padding(6)
             }
             if session.detailed {
                 StorageDetailedView(session: session, model: model)
@@ -116,10 +116,10 @@ private struct StorageAnalysisView: View {
                     }
                     let parts=session.path == "." ? [] : session.path.split(separator: "/").map(String.init)
                     ForEach(parts.indices, id: \.self) { i in
-                        Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
+                        Image(systemName: "chevron.right").font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                         Button(parts[i]) { session.navigate(parts[...i].joined(separator: "/")) }
                     }
-                }.buttonStyle(.borderless).font(.callout).fixedSize(horizontal: true, vertical: false)
+                }.buttonStyle(.borderless).font(ShouType.body).fixedSize(horizontal: true, vertical: false)
             }.frame(maxWidth: .infinity, alignment: .leading)
             viewMode
             Button { model.ai.requestLaunch(app: model, path: absolute(investigationPath)) } label: {
@@ -143,7 +143,7 @@ private struct StorageAnalysisView: View {
                 Button { showingCoverage=true } label: {
                     Label(model.t("Scan Coverage"), systemImage: session.actionableCoverage.isEmpty ? "info.circle" : "exclamationmark.triangle")
                 }.labelStyle(.iconOnly).buttonStyle(.borderless)
-                    .foregroundStyle(session.actionableCoverage.isEmpty ? Color.secondary : Color.orange)
+                    .foregroundStyle(session.actionableCoverage.isEmpty ? ShouPalette.secondary : ShouPalette.warning)
                     .help(coverageDescription).accessibilityLabel(model.t("Scan Coverage") + ": " + coverageDescription)
                     .accessibilityIdentifier("storage.coverage")
                     .popover(isPresented: $showingCoverage) {
@@ -168,7 +168,7 @@ private struct StorageAnalysisView: View {
     private var directoryList: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                Image(systemName: "magnifyingglass").foregroundStyle(ShouPalette.secondary)
                 TextField(model.t("Filter this folder"), text: $session.query).textFieldStyle(.plain)
                     .accessibilityIdentifier("storage.filter")
                 if !session.query.isEmpty { Button { session.query="" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain) }
@@ -180,7 +180,7 @@ private struct StorageAnalysisView: View {
                     enabled: !eligible.isEmpty && !model.busy, label: model.t("Select All in This Folder"),
                     identifier: "storage.select-all") { session.selectVisible(app: model) }
                     .frame(width: 18, height: 18).help(model.t("Select All in This Folder"))
-                Text(model.t("Name")).font(.caption.weight(.medium))
+                Text(model.t("Name")).font(ShouType.caption.weight(.medium))
                 Spacer()
                 Picker(model.t("Sort"), selection: $session.sort) {
                     Text(model.t("Size")).tag("size")
@@ -200,9 +200,9 @@ private struct StorageAnalysisView: View {
                 .onChange(of: session.focus) { _, path in if let path { withAnimation { proxy.scrollTo(path, anchor: .center) } } }
             }
             if session.children.isEmpty {
-                Text(model.t(session.query.isEmpty ? "This folder is empty." : "No matching items.")).font(.callout).foregroundStyle(.secondary).padding()
+                Text(model.t(session.query.isEmpty ? "This folder is empty." : "No matching items.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary).padding()
             }
-        }.background(Color(nsColor: .controlBackgroundColor))
+        }.background(ShouPalette.surface)
     }
     private func row(_ node: StorageNode) -> some View {
         let reason=session.reason(node), checked=session.isSelected(node.path)
@@ -219,25 +219,25 @@ private struct StorageAnalysisView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text(node.name).font(.system(size: 13, weight: .medium)).lineLimit(1).truncationMode(.middle)
                     if node.isComplete == false {
-                        Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
+                        Image(systemName: "exclamationmark.circle").foregroundStyle(ShouPalette.warning)
                             .help(model.t("Incomplete measurement. The displayed size is a lower bound."))
                     }
                     Spacer(minLength: 4)
-                    Text(measuredSize(node, model: model)).font(.system(size: 12, weight: .medium, design: .rounded)).monospacedDigit().foregroundStyle(.secondary)
+                    Text(measuredSize(node, model: model)).font(.system(size: 12, weight: .medium, design: .rounded)).monospacedDigit().foregroundStyle(ShouPalette.secondary)
                 }
                 GeometryReader { geo in
                     Capsule().fill(color(node.path).opacity(0.65)).frame(width: max(2, geo.size.width * min(1, Double(node.allocatedBytes) / Double(max(1, session.index.nodes[session.path]?.allocatedBytes ?? 1)))))
                 }.frame(height: 3)
                 if node.kind == "directory" {
-                    Text(String(format: model.t("%lld files"), node.fileCount)).font(.system(size: 10)).foregroundStyle(.tertiary)
+                    Text(String(format: model.t("%lld files"), node.fileCount)).font(.system(size: ShouDesign.captionFontSize)).foregroundStyle(ShouPalette.secondary)
                 }
             }
             if node.kind == "directory" {
-                Button { session.navigate(node.path) } label: { Image(systemName: "chevron.right").font(.caption.weight(.semibold)).frame(width: 20, height: 32) }
-                    .buttonStyle(.plain).foregroundStyle(.secondary).help(model.t("Open Directory")).accessibilityLabel(model.t("Open Directory") + " " + node.name)
+                Button { session.navigate(node.path) } label: { Image(systemName: "chevron.right").font(ShouType.caption.weight(.semibold)).frame(width: 20, height: 32) }
+                    .buttonStyle(.plain).foregroundStyle(ShouPalette.secondary).help(model.t("Open Directory")).accessibilityLabel(model.t("Open Directory") + " " + node.name)
             } else { Color.clear.frame(width: 20) }
         }.padding(.horizontal, 14).padding(.vertical, 10)
-            .background(emphasized ? Color.accentColor.opacity(0.12) : checked ? Color.accentColor.opacity(0.045) : .clear)
+            .background(emphasized ? ShouPalette.accent.opacity(0.12) : checked ? ShouPalette.accent.opacity(0.045) : .clear)
             .contentShape(Rectangle()).onTapGesture(count: 2) { if node.kind == "directory" { session.navigate(node.path) } }
             .onTapGesture { session.focus=node.path; keyboardArea = .list }
             .contextMenu { actions(node) }
@@ -246,9 +246,9 @@ private struct StorageAnalysisView: View {
         VStack(alignment: .leading, spacing: 14) {
             let node=session.index.nodes[session.hovered ?? session.focus ?? session.path]
             HStack(alignment: .firstTextBaseline) {
-                Text(node?.path == "." ? model.t("Measured Space") : node?.name ?? model.t("Measured Space")).font(.headline).lineLimit(1).truncationMode(.middle)
+                Text(node?.path == "." ? model.t("Measured Space") : node?.name ?? model.t("Measured Space")).font(ShouType.body.weight(.semibold)).lineLimit(1).truncationMode(.middle)
                 Spacer()
-                Text(measuredSize(node, model: model)).font(.title3.weight(.semibold)).monospacedDigit()
+                Text(measuredSize(node, model: model)).font(ShouType.body.weight(.semibold)).monospacedDigit()
             }
             StorageTreemap(session: session, model: model, color: color,
                 focus: { session.focus=$0; keyboardArea = .map },
@@ -257,16 +257,16 @@ private struct StorageAnalysisView: View {
                 .focusable().focusEffectDisabled().focused($keyboardArea, equals: .map)
                 .onKeyPress(keys: [.space, .escape, "a"], action: handleKeyPress)
             HStack {
-                Image(systemName: "cursorarrow").foregroundStyle(.tertiary)
-                Text(model.t("Click to inspect. Double-click a folder to open it.")).font(.caption).foregroundStyle(.secondary)
+                Image(systemName: "cursorarrow").foregroundStyle(ShouPalette.secondary)
+                Text(model.t("Click to inspect. Double-click a folder to open it.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             if inspector, let path=session.focus, let node=session.index.nodes[path] {
                 Divider()
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(absolute(path)).font(.caption.monospaced()).textSelection(.enabled).lineLimit(3).truncationMode(.middle)
-                        Text(model.bytes(node.allocatedBytes) + " · " + String(format: model.t("%lld files"), node.fileCount)).font(.caption).foregroundStyle(.secondary)
-                        if let reason=session.reason(node) { Text(model.t(reason)).font(.caption).foregroundStyle(.secondary) }
+                        Text(absolute(path)).font(ShouType.caption.monospaced()).textSelection(.enabled).lineLimit(3).truncationMode(.middle)
+                        Text(model.bytes(node.allocatedBytes) + ", " + String(format: model.t("%lld files"), node.fileCount)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                        if let reason=session.reason(node) { Text(model.t(reason)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                     }
                     Spacer()
                     Menu { actions(node) } label: { Image(systemName: "ellipsis.circle") }.menuStyle(.borderlessButton).frame(width: 25)
@@ -276,10 +276,10 @@ private struct StorageAnalysisView: View {
     }
     private var selectionBar: some View {
         HStack(spacing: 14) {
-            Image(systemName: "checkmark.circle").foregroundStyle(session.selected.isEmpty ? Color.secondary : Color.accentColor)
+            Image(systemName: "checkmark.circle").foregroundStyle(session.selected.isEmpty ? ShouPalette.secondary : ShouPalette.accent)
             VStack(alignment: .leading, spacing: 3) {
-                Text(session.selected.isEmpty ? model.t("Select files or folders to remove") : String(format: model.t("%lld items selected"), session.selected.count)).font(.callout)
-                if !session.selected.isEmpty { Text(model.bytes(session.selectedBytes)).font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
+                Text(session.selected.isEmpty ? model.t("Select files or folders to remove") : String(format: model.t("%lld items selected"), session.selected.count)).font(ShouType.body)
+                if !session.selected.isEmpty { Text(model.bytes(session.selectedBytes)).font(ShouType.caption.monospacedDigit()).foregroundStyle(ShouPalette.secondary) }
             }
             if !session.selected.isEmpty { Button(model.t("Clear Selection")) { session.selected=[] }.buttonStyle(.borderless).disabled(model.busy) }
             Spacer()
@@ -318,7 +318,7 @@ private struct StorageAnalysisView: View {
     }
     private func absolute(_ path: String) -> String { StorageRemovalPolicy.absolute(root: session.scan?.rootPath ?? session.location, relative: path) }
     private func color(_ path: String) -> Color {
-        let palette=[Color(red: 0.25, green: 0.55, blue: 0.72), Color(red: 0.42, green: 0.61, blue: 0.37), Color(red: 0.56, green: 0.44, blue: 0.65), Color(red: 0.85, green: 0.53, blue: 0.3), Color(red: 0.32, green: 0.63, blue: 0.59), Color(red: 0.72, green: 0.43, blue: 0.5)]
+        let palette=[ShouDesign.simpleMapBlue, ShouDesign.simpleMapGreen, ShouDesign.simpleMapPurple, ShouDesign.simpleMapOrange, ShouDesign.simpleMapTeal, ShouDesign.simpleMapRose]
         let hash=path.utf8.reduce(UInt64(5381)) { ($0 &* 33) &+ UInt64($1) }
         return palette[Int(hash % UInt64(palette.count))]
     }
@@ -333,9 +333,9 @@ struct StorageCoverageView: View {
     private var notes: [StorageCoverageNote] { session.coverageNotes.filter { showingSystem || !$0.systemManaged } }
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Scan Coverage")).font(.headline)
+            Text(model.t("Scan Coverage")).font(ShouType.body.weight(.semibold))
             Text(model.t("Only measured space is included. Complete folders remain available even when another location cannot be read."))
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 14) {
                     ForEach(Array(notes.prefix(50).enumerated()), id: \.offset) { _, note in
@@ -343,12 +343,12 @@ struct StorageCoverageView: View {
                     }
                 }.padding(.trailing, 8)
             }.frame(maxHeight: 280)
-            if notes.isEmpty { Text(model.t("No access changes are needed for system-managed locations.")).font(.callout).foregroundStyle(.secondary) }
+            if notes.isEmpty { Text(model.t("No access changes are needed for system-managed locations.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary) }
             if notes.count > 50 {
-                Text(model.t("Showing the first 50 scan notes.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Showing the first 50 scan notes.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             if session.coverageNotes.contains(where: \.systemManaged) {
-                Toggle(model.t("Show system-managed locations"), isOn: $showingSystem).font(.caption)
+                Toggle(model.t("Show system-managed locations"), isOn: $showingSystem).font(ShouType.caption)
             }
             Divider()
             HStack {
@@ -368,16 +368,16 @@ struct StorageCoverageView: View {
         return HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 5) {
                 Text(model.t(note.systemManaged ? "Managed by the system; no action is needed." : reason(note.code)))
-                    .font(.callout.weight(.medium))
+                    .font(ShouType.body.weight(.medium))
                 if !note.path.isEmpty {
-                    Text(ProgressPresentation.shortPath(note.path)).font(.caption)
-                        .foregroundStyle(.secondary).textSelection(.enabled).help(note.path)
+                    Text(ProgressPresentation.shortPath(note.path)).font(ShouType.caption)
+                        .foregroundStyle(ShouPalette.secondary).textSelection(.enabled).help(note.path)
                 }
                 if !note.systemManaged && ["authorization_required", "unreadable", "unreadable_directory"].contains(note.code) {
                     HStack {
                         Button(model.t("Finish Setup…")) { dismiss(); model.scanAccess.showingSetup=true }
                         Button(model.t("Reveal in Finder")) { session.reveal(note.path) }
-                    }.font(.caption).buttonStyle(.link)
+                    }.font(ShouType.caption).buttonStyle(.link)
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
             if !note.path.isEmpty {
@@ -434,7 +434,7 @@ private struct StorageTreemap: View {
                             if tile.width > 65 && tile.height > 42 {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(node.kind == "remainder" ? model.t("Other Entries") : node.name).font(.system(size: tile.width > 200 ? 15 : 12, weight: .medium)).lineLimit(2).truncationMode(.middle)
-                                    Text(measuredSize(node, model: model)).font(.system(size: 11, design: .rounded)).monospacedDigit().opacity(0.85)
+                                    Text(measuredSize(node, model: model)).font(.system(size: ShouDesign.captionFontSize, design: .rounded)).monospacedDigit().opacity(0.85)
                                 }.padding(12).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading).foregroundStyle(.white)
                             }
                             if tile.width > 45 && tile.height > 40, session.reason(node) == nil {
@@ -451,7 +451,7 @@ private struct StorageTreemap: View {
                         .onTapGesture { if node.kind != "remainder" { focus(node.path) } }
                         .onHover { session.hovered=$0 ? node.path : nil }
                         .position(x: tile.x+tile.width/2, y: tile.y+tile.height/2)
-                        .help(node.path + " · " + model.bytes(node.allocatedBytes))
+                        .help(node.path + ", " + model.bytes(node.allocatedBytes))
                         .accessibilityLabel(node.name + " " + model.bytes(node.allocatedBytes))
                         .contextMenu {
                             if node.kind != "remainder" {

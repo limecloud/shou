@@ -42,7 +42,7 @@ struct PrivacyView: View {
     }
     private var deletionNotice: some View {
         Text(app.t("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically."))
-            .font(.callout).foregroundStyle(.secondary)
+            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
     }
     @ViewBuilder private var selectionContent: some View {
         if let scan=session.scan {
@@ -62,7 +62,7 @@ struct PrivacyView: View {
     }
     private var coverageFootnote: some View {
         Text(app.t("Supported: standard Chrome, Chromium, Edge, Brave and Firefox profiles; Safari history. Safari cookies, site storage, saved passwords, autofill, custom profiles, extensions and cloud copies are not cleaned."))
-            .font(.caption).foregroundStyle(.secondary)
+            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
     }
     private func cookieReviewChanged(_ allowed: Bool) {
         guard !allowed else { return }
@@ -78,7 +78,7 @@ struct PrivacyView: View {
     private var timeControls: some View {
         HStack {
             rangePicker
-            Text(app.t("History: visit time · Cookies: last access time")).font(.caption).foregroundStyle(.secondary)
+            Text(app.t("History: visit time, Cookies: last access time")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
         }
     }
     private var rangePicker: some View {
@@ -104,7 +104,7 @@ struct PrivacyView: View {
     }
     private var selectionFooter: some View {
         HStack {
-            Text(selectionSummary).foregroundStyle(.secondary)
+            Text(selectionSummary).foregroundStyle(ShouPalette.secondary)
             Spacer()
             Button(app.t("Clear Selection")) { session.selected=[] }.disabled(app.busy || session.selected.isEmpty)
             Button(app.t("Review Permanent Deletion…")) { session.review(app: app) }
@@ -113,7 +113,7 @@ struct PrivacyView: View {
         }
     }
     private var selectionSummary: String {
-        app.t("Selected") + " \(session.selected.count) · \(session.selectedCount) " + app.t("records")
+        app.t("Selected") + " \(session.selected.count), \(session.selectedCount) " + app.t("records")
     }
     private var reviewDisabled: Bool {
         app.busy || session.selected.isEmpty || (session.selectedSources.contains(where: \.requiresSignOutConsent) && !session.allowCookieReview)
@@ -128,10 +128,10 @@ struct PrivacyView: View {
     }
     private func receiptItemRow(_ item: PrivacyItemResult) -> some View {
         HStack {
-            Text(item.sourceId).font(.caption.monospaced()).lineLimit(1)
+            Text(item.sourceId).font(ShouType.caption.monospaced()).lineLimit(1)
             Spacer()
-            Text("\(item.removedRecords) · " + item.state).font(.caption)
-            if let reason=item.reason { Text(reason).font(.caption).foregroundStyle(.secondary) }
+            Text("\(item.removedRecords), " + item.state).font(ShouType.caption)
+            if let reason=item.reason { Text(reason).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
         }
     }
     private var recentHistory: some View {
@@ -147,29 +147,29 @@ struct PrivacyView: View {
     }
     private func historyReceipt(_ receipt: PrivacyReceipt) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(app.date(receipt.createdAt) + " · " + receipt.state).font(.caption.bold())
+            Text(app.date(receipt.createdAt) + ", " + receipt.state).font(ShouType.caption.bold())
             ForEach(receipt.items) { item in
-                Text(historyItemText(item)).font(.caption.monospaced()).textSelection(.enabled)
+                Text(historyItemText(item)).font(ShouType.caption.monospaced()).textSelection(.enabled)
             }
         }
     }
     private func historyItemText(_ item: PrivacyItemResult) -> String {
         var fields=[item.sourceId, String(item.removedRecords), item.state]
         if let reason=item.reason { fields.append(reason) }
-        return fields.joined(separator: " · ")
+        return fields.joined(separator: ", ")
     }
     private func sourceRow(_ source: PrivacySource) -> some View {
         HStack(spacing: ShouDesign.privacySpacing) {
             Toggle("", isOn: selectionBinding(source.id))
                 .toggleStyle(.checkbox).labelsHidden().disabled(sourceDisabled(source)).accessibilityIdentifier("privacy.source.\(source.id)")
-            Image(systemName: source.definition.kind == .cookies ? "person.crop.circle.badge.exclamationmark" : "clock.arrow.circlepath").font(.title3).frame(width: ShouDesign.privacyIconWidth)
+            Image(systemName: source.definition.kind == .cookies ? "person.crop.circle.badge.exclamationmark" : "clock.arrow.circlepath").font(ShouType.body).frame(width: ShouDesign.privacyIconWidth)
             VStack(alignment: .leading, spacing: 4) {
-                Text(source.definition.browserName + " · " + source.definition.profile).font(.body.weight(.medium))
-                Text(kindTitle(source.definition.kind)).font(.caption).foregroundStyle(.secondary)
+                Text(source.definition.browserName + ", " + source.definition.profile).font(ShouType.body.weight(.medium))
+                Text(kindTitle(source.definition.kind)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             Spacer()
             Text(source.recordCount.map { String($0) } ?? "—").monospacedDigit()
-            Text(statusTitle(source.status)).font(.caption).foregroundStyle(source.eligible ? Color.secondary : Color.orange).frame(width: ShouDesign.privacyStatusWidth, alignment: .trailing)
+            Text(statusTitle(source.status)).font(ShouType.caption).foregroundStyle(source.eligible ? ShouPalette.secondary : ShouPalette.warning).frame(width: ShouDesign.privacyStatusWidth, alignment: .trailing)
         }.padding(ShouDesign.privacyRowPadding).help(source.reason ?? "").overlay(alignment: .bottom) { Divider() }
     }
     private func selectionBinding(_ sourceID: String) -> Binding<Bool> {
@@ -191,7 +191,7 @@ struct PrivacyView: View {
     private func kindTitle(_ kind: PrivacyDataKind) -> String {
         switch kind {
         case .history: app.t("Browsing history")
-        case .cookies: app.t("Cookies · may sign you out")
+        case .cookies: app.t("Cookies, may sign you out")
         case .siteStorage: app.t("Site storage")
         case .passwords: app.t("Saved passwords")
         case .autofill: app.t("Autofill")
@@ -229,27 +229,27 @@ private struct PrivacyConfirmation: View {
     }
     private var title: some View {
         Label(app.t("Permanently delete privacy records?"), systemImage: "exclamationmark.triangle.fill")
-            .font(.title2.bold()).foregroundStyle(.red)
+            .font(ShouType.title.bold()).foregroundStyle(ShouPalette.danger)
     }
     private var scopeSummary: some View {
-        Text("\(plan.sources.count) " + app.t("sources") + " · \(plan.recordCount) " + app.t("records"))
+        Text("\(plan.sources.count) " + app.t("sources") + ", \(plan.recordCount) " + app.t("records"))
     }
     private var impactNotice: some View {
         Text(app.t("This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope."))
-            .font(.callout).foregroundStyle(.secondary)
+            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
     }
     private var sources: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(plan.sources) { source in
-                    Text("\(source.definition.browserName) · \(source.definition.profile) · \(source.definition.kind.rawValue) · \(source.recordCount ?? 0)")
+                    Text("\(source.definition.browserName), \(source.definition.profile), \(source.definition.kind.rawValue), \(source.recordCount ?? 0)")
                 }
             }.frame(maxWidth: .infinity, alignment: .leading)
         }.frame(maxHeight: 180)
     }
     private var timeBounds: some View {
         Text((plan.rangeStart.map { app.date($0) } ?? app.t("All time")) + " → " + app.date(plan.rangeEnd))
-            .font(.caption).foregroundStyle(.secondary)
+            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
     }
     @ViewBuilder private var consentControls: some View {
         Toggle(app.t("I understand that deletion is permanent and has no restore."), isOn: $permanent).toggleStyle(.checkbox)
@@ -264,7 +264,7 @@ private struct PrivacyConfirmation: View {
             Button(app.t("Delete Permanently"), role: .destructive) {
                 session.execute(app: app, plan: plan, signOut: signOut)
             }
-            .buttonStyle(.borderedProminent).tint(.red).disabled(!permanent || (plan.requiresSignOutConsent && !signOut))
+            .buttonStyle(.borderedProminent).tint(ShouPalette.danger).disabled(!permanent || (plan.requiresSignOutConsent && !signOut))
             .accessibilityIdentifier("privacy.confirm-delete")
         }
     }

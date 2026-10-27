@@ -81,8 +81,8 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
             """);
         AutomationProperties.SetAutomationId(list, "monitor.processes"); AutomationProperties.SetName(list, T("Processes"));
         body.Children.Add(list); body.Children.Add(coverage); AutomationProperties.SetAutomationId(coverage, "monitor.coverage");
-        body.Children.Add(Caption(T("Last 2 minutes · Gaps mean unavailable")));
-        body.Children.Add(Caption(T("Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.")));
+        body.Children.Add(Caption(T("Last 2 minutes, Gaps mean unavailable")));
+        body.Children.Add(Caption(T("Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled.")));
         var scroll = new ScrollViewer { Content = body, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         Grid.SetRow(scroll, 1); Children.Add(scroll);
         model.PropertyChanged += ModelChanged;
@@ -100,23 +100,23 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
     {
         if (disposed) return;
         var observation = model.Sample?.Observation;
-        status.Text = T(model.Paused ? "Monitoring paused" : model.Failed ? "Sampling failed; showing the last observation." : model.Sample is null ? "Collecting rate baseline…" : "Live · Every 2 seconds") + (observation is null ? "" : " · " + observation.Timestamp.ToLocalTime().ToString("T"));
+        status.Text = T(model.Paused ? "Monitoring paused" : model.Failed ? "Sampling failed; showing the last observation." : model.Sample is null ? "Collecting rate baseline…" : "Live, Every 2 seconds") + (observation is null ? "" : ", " + observation.Timestamp.ToLocalTime().ToString("T"));
         pause.Content = T(model.Paused ? "Resume Monitoring" : "Pause Monitoring"); background.IsOn = model.BackgroundEnabled;
-        if (!tray.Update(model.BackgroundEnabled, "Shou · CPU " + Percent(Value("cpu")) + " · " + T("Memory") + " " + Percent(Value("memory")) + " · " + status.Text,
+        if (!tray.Update(model.BackgroundEnabled, "Shou, CPU " + Percent(Value("cpu")) + ", " + T("Memory") + " " + Percent(Value("memory")) + ", " + status.Text,
             T("Open System Monitor"), T(model.Paused ? "Resume Monitoring" : "Pause Monitoring"), T("Disable Summary"), T("Quit Shou"), SummaryLines()))
         { model.SetBackgroundEnabled(false); status.Text = T("The tray summary could not be opened."); }
         var cpu = Value("cpu"); var memory = Value("memory");
         cards["overview"].Update(T(model.Paused || model.Failed || cpu is null || memory is null ? "Observation incomplete" : cpu >= 90 || memory >= 90 ? "High resource usage" : "Observed load normal"),
-            (observation?.Hardware ?? "—") + " · " + (observation?.OperatingSystem ?? ""), T("CPU and memory load; not a hardware health score.") + "\n" + text.Format("Uptime: %lld hours", (int)((observation?.Uptime ?? 0) / 3600)));
+            (observation?.Hardware ?? "—") + ", " + (observation?.OperatingSystem ?? ""), T("CPU and memory load; not a hardware health score.") + "\n" + text.Format("Uptime: %lld hours", (int)((observation?.Uptime ?? 0) / 3600)));
         foreach (var key in new[] { "cpu", "gpu", "memory", "battery", "networkReceive" })
         {
             var detail = key switch
             {
-                "memory" => Bytes(observation?.MemoryUsed) + " / " + Bytes(observation?.MemoryTotal) + " · " + T("Swap Used") + " " + Bytes(observation?.SwapUsed),
-                "battery" when Value(key) is not null => T(observation?.PowerSource ?? "Unavailable") + " · " + T("Battery Health") + " " + Percent(observation?.BatteryHealth) + " · " + T("Cycles") + " " + (observation?.BatteryCycles?.ToString() ?? "—"),
+                "memory" => Bytes(observation?.MemoryUsed) + " / " + Bytes(observation?.MemoryTotal) + ", " + T("Swap Used") + " " + Bytes(observation?.SwapUsed),
+                "battery" when Value(key) is not null => T(observation?.PowerSource ?? "Unavailable") + ", " + T("Battery Health") + " " + Percent(observation?.BatteryHealth) + ", " + T("Cycles") + " " + (observation?.BatteryCycles?.ToString() ?? "—"),
                 "networkReceive" when Value(key) is not null => "↑ " + Rate("networkSend") + "\n" + T("Active Ethernet / Wi-Fi interfaces"),
                 _ when Value(key) is null => T(observation?.Issues.GetValueOrDefault(key) ?? (model.Sample?.Baseline != false ? "Collecting rate baseline…" : "Counter unavailable or source changed.")),
-                "cpu" => T("Total machine capacity") + " · " + observation?.LogicalCpuCount + " " + T("Logical cores"),
+                "cpu" => T("Total machine capacity") + ", " + observation?.LogicalCpuCount + " " + T("Logical cores"),
                 _ => T("Busiest GPU engine or device")
             };
             cards[key].Update(key == "networkReceive" ? "↓ " + Rate(key) : Percent(Value(key)), null, detail);
@@ -124,17 +124,17 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
             if (key is "cpu" or "gpu") cards[key].Badge.Text = ((key == "cpu" ? observation?.CpuTemperature : observation?.GpuTemperature)?.ToString("F0") ?? "— ") + "°C";
         }
         var disk = cards["diskRead"];
-        disk.Update(Bytes(observation?.VolumeAvailable), null, T("System volume available") + " / " + Bytes(observation?.VolumeTotal) + "\n" + T("Read") + " " + Rate("diskRead") + " · " + T("Write") + " " + Rate("diskWrite"));
+        disk.Update(Bytes(observation?.VolumeAvailable), null, T("System volume available") + " / " + Bytes(observation?.VolumeTotal) + "\n" + T("Read") + " " + Rate("diskRead") + ", " + T("Write") + " " + Rate("diskWrite"));
         disk.SetVolume(observation?.VolumeTotal, observation?.VolumeAvailable);
         cards["thermal"].Update(T(observation?.ThermalState ?? "Unavailable"), T("Fan telemetry unavailable"), T("Windows does not expose these hardware sensors through the supported read-only APIs."));
         coreDetails.Children.Clear();
         if (model.Sample is { } sample)
         {
             var cores = new VariableSizedWrapGrid { Orientation = Orientation.Horizontal, ItemWidth = 140, ItemHeight = 28, MaximumRowsOrColumns = 6 };
-            for (var i = 0; i < sample.Cores.Length; i++) cores.Children.Add(Caption("CPU " + (i + 1) + " · " + Percent(sample.Cores[i])));
+            for (var i = 0; i < sample.Cores.Length; i++) cores.Children.Add(Caption("CPU " + (i + 1) + ", " + Percent(sample.Cores[i])));
             coreDetails.Children.Add(cores);
         }
-        coreDetails.Children.Add(Caption(T("Compressed") + ": " + Bytes(observation?.MemoryCompressed) + " · " + T("Swap Used") + ": " + Bytes(observation?.SwapUsed) + " · " + T("Memory Pressure") + ": " + T(observation?.MemoryPressure ?? "Unavailable")));
+        coreDetails.Children.Add(Caption(T("Compressed") + ": " + Bytes(observation?.MemoryCompressed) + ", " + T("Swap Used") + ": " + Bytes(observation?.SwapUsed) + ", " + T("Memory Pressure") + ": " + T(observation?.MemoryPressure ?? "Unavailable")));
         RefreshProcesses();
     }
     private void RefreshProcesses()
@@ -156,15 +156,15 @@ internal sealed class SystemMonitorPage : Grid, IDisposable
     {
         var observation = model.Sample?.Observation;
         var values = new List<string> {
-            "CPU " + Percent(Value("cpu")) + " · GPU " + Percent(Value("gpu")),
-            T("Memory") + " " + Bytes(observation?.MemoryUsed) + " / " + Bytes(observation?.MemoryTotal) + " · " + Percent(Value("memory")),
-            T("Disk") + " · " + T("Read") + " " + Rate("diskRead") + " · " + T("Write") + " " + Rate("diskWrite"),
-            T("Network") + " · ↓ " + Rate("networkReceive") + " · ↑ " + Rate("networkSend"),
-            T("Battery") + " " + Percent(Value("battery")) + " · " + T(observation?.PowerSource ?? "Unavailable"),
-            T("Thermals & Fans") + " · " + T(observation?.ThermalState ?? "Unavailable"), T("Top CPU processes")
+            "CPU " + Percent(Value("cpu")) + ", GPU " + Percent(Value("gpu")),
+            T("Memory") + " " + Bytes(observation?.MemoryUsed) + " / " + Bytes(observation?.MemoryTotal) + ", " + Percent(Value("memory")),
+            T("Disk") + ", " + T("Read") + " " + Rate("diskRead") + ", " + T("Write") + " " + Rate("diskWrite"),
+            T("Network") + ", ↓ " + Rate("networkReceive") + ", ↑ " + Rate("networkSend"),
+            T("Battery") + " " + Percent(Value("battery")) + ", " + T(observation?.PowerSource ?? "Unavailable"),
+            T("Thermals & Fans") + ", " + T(observation?.ThermalState ?? "Unavailable"), T("Top CPU processes")
         };
         values.AddRange((model.Sample?.Processes ?? []).OrderByDescending(item => item.CpuPercent ?? -1).ThenBy(item => item.Counter.Pid).Take(3)
-            .Select(item => (item.Counter.Name.Length > 40 ? item.Counter.Name[..40] : item.Counter.Name) + " · " + Percent(item.CpuPercent)));
+            .Select(item => (item.Counter.Name.Length > 40 ? item.Counter.Name[..40] : item.Counter.Name) + ", " + Percent(item.CpuPercent)));
         return [.. values];
     }
     public void Dispose() { if (disposed) return; disposed = true; model.PropertyChanged -= ModelChanged; model.Dispose(); tray.Dispose(); }
@@ -206,7 +206,7 @@ internal sealed class MonitorMetricCard : UserControl
         value.Text = number; value.FontSize = number.Length > 16 ? 18 : (double)Application.Current.Resources["ShouSummaryFigureSize"];
         middle.Text = description ?? ""; middle.Visibility = description is null ? Visibility.Collapsed : Visibility.Visible;
         Trend.Visibility = description is null ? Visibility.Visible : Visibility.Collapsed; detail.Text = footer;
-        AutomationProperties.SetName(this, string.Join(" · ", new[] { title, number, description, footer }.Where(item => !string.IsNullOrEmpty(item))));
+        AutomationProperties.SetName(this, string.Join(", ", new[] { title, number, description, footer }.Where(item => !string.IsNullOrEmpty(item))));
     }
     protected override AutomationPeer OnCreateAutomationPeer() => new MetricPeer(this);
     private sealed class MetricPeer(MonitorMetricCard owner) : FrameworkElementAutomationPeer(owner)

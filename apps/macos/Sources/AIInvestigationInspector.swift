@@ -10,7 +10,7 @@ struct AIInvestigationInspector: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Label(model.t("AI Investigation"), systemImage: "sparkles").font(.headline)
+                Label(model.t("AI Investigation"), systemImage: "sparkles").font(ShouType.body.weight(.semibold))
                 Spacer()
                 Button { session.loadHistory(app: model) } label: { Image(systemName: "clock.arrow.circlepath") }
                     .buttonStyle(.plain).help(model.t("Saved Investigations"))
@@ -23,22 +23,22 @@ struct AIInvestigationInspector: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(model.t("Investigation Folder")).font(.caption).foregroundStyle(.secondary)
-                        Label(session.folder, systemImage: "folder").font(.callout.weight(.medium))
+                        Text(model.t("Investigation Folder")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                        Label(session.folder, systemImage: "folder").font(ShouType.body.weight(.medium))
                             .lineLimit(3).truncationMode(.middle).textSelection(.enabled)
                     }
                     if session.stale(app: model) {
                         Label(model.t("This snapshot changed. Start a new investigation from the current folder."), systemImage: "arrow.clockwise.circle")
-                            .font(.callout).foregroundStyle(.orange)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.warning)
                     }
                     if !session.enabled {
-                        Label(model.t("AI is off. Local scanning and cleanup remain available."), systemImage: "pause.circle").font(.callout)
+                        Label(model.t("AI is off. Local scanning and cleanup remain available."), systemImage: "pause.circle").font(ShouType.body)
                         Toggle(model.t("Enable AI Investigation"), isOn: $session.enabled).toggleStyle(.switch)
                             .accessibilityIdentifier("ai.inspector.enable")
                     }
                     if let state=session.investigation { investigation(state) }
                     else { setup }
-                    if let issue=session.issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
+                    if let issue=session.issue { Text(model.diagnostic(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.danger).textSelection(.enabled) }
                 }.padding(16)
             }
             Divider()
@@ -50,7 +50,7 @@ struct AIInvestigationInspector: View {
                     Button(model.t("New Investigation")) { session.requestLaunch(app: model, path: session.folder) }
                         .disabled(model.busy || model.space.scanning)
                     Spacer()
-                } else { Label(model.t("Nothing is deleted automatically"), systemImage: "hand.raised").font(.caption).foregroundStyle(.secondary) }
+                } else { Label(model.t("Nothing is deleted automatically"), systemImage: "hand.raised").font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
             }.padding(14)
         }.background(.background)
             .accessibilityIdentifier("ai.investigation.inspector")
@@ -60,21 +60,21 @@ struct AIInvestigationInspector: View {
     }
     private var history: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Saved Investigations")).font(.title2.bold())
+            Text(model.t("Saved Investigations")).font(ShouType.title.bold())
             Text(model.t("Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours."))
-                .font(.callout).foregroundStyle(.secondary)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             if session.loadingHistory { ProgressView() }
             List(selection: $historySelection) {
                 ForEach(session.savedInvestigations) { state in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(state.scope).font(.headline)
-                        Text(state.connection.name + " · " + model.t(statusTitle(state.status))).font(.caption)
-                        Text(state.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
+                        Text(state.scope).font(ShouType.body.weight(.semibold))
+                        Text(state.connection.name + ", " + model.t(statusTitle(state.status))).font(ShouType.caption)
+                        Text(state.createdAt, style: .date).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading)
                         .tag(state.id)
                 }
             }.disabled(session.loadingHistory)
-            if let issue=session.issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
+            if let issue=session.issue { Text(model.diagnostic(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.danger).textSelection(.enabled) }
             HStack {
                 Spacer()
                 Button(model.t("Done")) { session.showingHistory=false }.keyboardShortcut(.cancelAction)
@@ -88,7 +88,7 @@ struct AIInvestigationInspector: View {
     }
     private var setup: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(model.t("Understand large folders and turn useful findings into reusable rules.")).font(.callout)
+            Text(model.t("Understand large folders and turn useful findings into reusable rules.")).font(ShouType.body)
             Picker(model.t("Investigation Goal"), selection: $session.goal) {
                 Text(model.t("Understand this folder")).tag(AIInvestigationGoal.investigate)
                 Text(model.t("Show largest entries locally")).tag(AIInvestigationGoal.space)
@@ -104,7 +104,7 @@ struct AIInvestigationInspector: View {
                 }.frame(maxWidth: .infinity)
             } else {
                 Picker(model.t("AI Configuration"), selection: $session.connectionId) {
-                    ForEach(session.connections.filter(\.usesMainModel)) { Text($0.name + " · " + $0.serviceSummary).tag($0.id) }
+                    ForEach(session.connections.filter(\.usesMainModel)) { Text($0.name + ", " + $0.serviceSummary).tag($0.id) }
                 }.pickerStyle(.menu)
                 if let connection=session.connections.first(where: { $0.id == session.connectionId }) {
                     AIConnectionSummary(model: model, connection: connection)
@@ -113,35 +113,35 @@ struct AIInvestigationInspector: View {
                 TextField(model.t("What should be kept? (optional)"), text: $session.request, axis: .vertical)
                     .lineLimit(3...6).textFieldStyle(.roundedBorder).accessibilityIdentifier("ai.investigation.request")
                 Label(model.t("Sends relative folder names, sizes and your answers to the selected service. File contents and absolute home paths are excluded. Results are saved locally."), systemImage: "arrow.up.doc")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                 Button { session.start(app: model) } label: {
                     Text(model.t("Start Investigation")).frame(maxWidth: .infinity)
                 }.buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(!session.enabled || session.stale(app: model) || session.request.count > 2000 || model.busy)
                     .accessibilityIdentifier("ai.investigation.start")
-                if session.request.count > 2000 { Text(model.t("Keep investigation instructions within 2000 characters.")).font(.caption).foregroundStyle(.orange) }
+                if session.request.count > 2000 { Text(model.t("Keep investigation instructions within 2000 characters.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
             }
         }
     }
     @ViewBuilder private func investigation(_ state: AIInvestigation) -> some View {
         progressHeader(state)
-        if !state.summary.isEmpty { Text(state.summary).font(.callout).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
+        if !state.summary.isEmpty { Text(state.summary).font(ShouType.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
         if !state.evidence.isEmpty { evidenceDisclosure(state) }
         if let reviews=state.decisionReviews, !reviews.isEmpty { decisionDisclosure(reviews) }
-        if let issue=state.issue { Text(model.diagnostic(issue)).font(.callout).foregroundStyle(.orange) }
+        if let issue=state.issue { Text(model.diagnostic(issue)).font(ShouType.body).foregroundStyle(ShouPalette.warning) }
         if state.status == .waiting && !session.running { questionForm(state) }
         if !state.advice.isEmpty { suggestions(state) }
         else if !session.running && state.status != .waiting {
             Label(model.t("No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation."), systemImage: "info.circle")
-                .font(.callout).foregroundStyle(.secondary)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
         }
         if let usage=state.serviceUsage {
             DisclosureGroup(model.t("Service Usage")) {
                 ForEach(usage) { value in
-                    Text(value.service + ": " + String(format: model.t("%lld requests · %lld reported tokens"), value.requests, value.reportedTokens)).font(.caption.monospacedDigit())
+                    Text(value.service + ": " + String(format: model.t("%lld requests, %lld reported tokens"), value.requests, value.reportedTokens)).font(ShouType.caption.monospacedDigit())
                 }
-                Text(model.t("Cost unavailable without your provider's actual rates.")).font(.caption).foregroundStyle(.secondary)
-                ForEach(state.escalationReasons ?? [], id: \.self) { Text($0).font(.caption) }
+                Text(model.t("Cost unavailable without your provider's actual rates.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                ForEach(state.escalationReasons ?? [], id: \.self) { Text($0).font(ShouType.caption) }
             }
         }
     }
@@ -149,13 +149,13 @@ struct AIInvestigationInspector: View {
         DisclosureGroup(model.t("Structured Decisions")) {
             VStack(alignment: .leading, spacing: 10) {
                 Text(model.t("A decision confidence is not a guarantee of safe deletion. Rule preview and your confirmation are still required."))
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 ForEach(Array(reviews.enumerated()), id: \.offset) { _, review in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(review.path).font(.caption.monospaced()).textSelection(.enabled)
+                        Text(review.path).font(ShouType.caption.monospaced()).textSelection(.enabled)
                         Text(model.t(verdictTitle(review.verdict)))
-                            .font(.callout)
-                        Text(review.model).font(.caption).foregroundStyle(.secondary)
+                            .font(ShouType.body)
+                        Text(review.model).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     }
                 }
             }.padding(.top, 8)
@@ -177,11 +177,11 @@ struct AIInvestigationInspector: View {
                 if session.running { ProgressView().controlSize(.small) }
                 else { Image(systemName: state.status == .waiting ? "questionmark.bubble" : state.status == .complete ? "checkmark.circle" : "pause.circle") }
                 Text(model.t(session.stopping ? "Stopping investigation…" : session.running ? state.activity : statusTitle(state.status)))
-                    .font(.callout.weight(.medium))
+                    .font(ShouType.body.weight(.medium))
             }.accessibilityElement(children: .combine)
-            Text(state.connection.name + " · " + state.connection.serviceSummary).font(.caption).foregroundStyle(.secondary)
-            Text(String(format: model.t("%lld steps · %lld evidence rows"), state.steps, state.evidenceRows))
-                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+            Text(state.connection.name + ", " + state.connection.serviceSummary).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            Text(String(format: model.t("%lld steps, %lld evidence rows"), state.steps, state.evidenceRows))
+                .font(ShouType.caption.monospacedDigit()).foregroundStyle(ShouPalette.secondary)
         }
     }
     private func statusTitle(_ status: AIInvestigationStatus) -> String {
@@ -198,15 +198,15 @@ struct AIInvestigationInspector: View {
         DisclosureGroup(model.t("Observed Index Evidence")) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(model.t("Saved scan metadata; current files are checked again in rule preview."))
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 ForEach(Array(state.evidence.prefix(40))) { item in
                     HStack(alignment: .firstTextBaseline) {
                         Text(AIEvidencePolicy.relative(item.path, scope: state.scope)).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
                         Spacer(minLength: 8)
                         Text((item.complete ? "" : "≥ ") + model.bytes(item.allocatedBytes)).monospacedDigit().fixedSize()
-                    }.font(.caption)
+                    }.font(ShouType.caption)
                 }
-                if state.evidence.count > 40 { Text(model.t("Showing the first 40 paths. Use a smaller folder for a focused investigation.")).font(.caption).foregroundStyle(.secondary) }
+                if state.evidence.count > 40 { Text(model.t("Showing the first 40 paths. Use a smaller folder for a focused investigation.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
             }.padding(.top, 8)
         }
     }
@@ -225,7 +225,7 @@ struct AIInvestigationInspector: View {
     }
     private func questionCard(_ question: AIQuestion) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(question.text).font(.headline).textSelection(.enabled)
+            Text(question.text).font(ShouType.body.weight(.semibold)).textSelection(.enabled)
             ForEach(question.choices, id: \.self) { choice in
                 Button { session.answers[question.id]=choice } label: {
                     HStack(alignment: .top) {
@@ -241,22 +241,22 @@ struct AIInvestigationInspector: View {
     }
     @ViewBuilder private func suggestions(_ state: AIInvestigation) -> some View {
         Divider()
-        Text(model.t("Rule Suggestions")).font(.headline)
+        Text(model.t("Rule Suggestions")).font(ShouType.body.weight(.semibold))
         Text(model.t("Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review."))
-            .font(.caption).foregroundStyle(.secondary)
+            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
         ForEach(state.advice) { advice in adviceCard(advice, state: state) }
     }
     private func adviceCard(_ advice: AIAdvice, state: AIInvestigation) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(advice.rule.name).font(.headline)
+            Text(advice.rule.name).font(ShouType.body.weight(.semibold))
             if let evidence=state.evidence.first(where: { $0.path == advice.path }) {
-                Text((evidence.complete ? "" : "≥ ") + model.bytes(evidence.allocatedBytes)).font(.title3.weight(.semibold)).monospacedDigit()
+                Text((evidence.complete ? "" : "≥ ") + model.bytes(evidence.allocatedBytes)).font(ShouType.body.weight(.semibold)).monospacedDigit()
             }
-            Text(advice.path).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
-            Text(advice.explanation).font(.callout).textSelection(.enabled)
+            Text(advice.path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
+            Text(advice.explanation).font(ShouType.body).textSelection(.enabled)
             DisclosureGroup(model.t("Rebuild Requirements")) {
-                Text(advice.rule.risk.rebuildNote).font(.callout).textSelection(.enabled)
-                ForEach(advice.rule.risk.limitations, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.secondary) }
+                Text(advice.rule.risk.rebuildNote).font(ShouType.body).textSelection(.enabled)
+                ForEach(advice.rule.risk.limitations, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
             }
             Button(model.t("Preview This Rule…")) { session.preview(advice, app: model) }
                 .disabled(session.running || session.importing || session.stale(app: model) || model.busy)

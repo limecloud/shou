@@ -1,0 +1,1448 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    {
+      "id": "console",
+      "title": "Service Groups"
+    },
+    {
+      "id": "site",
+      "title": "Sites & Certificates"
+    },
+    {
+      "id": "ai-coding",
+      "title": "AI Coding"
+    },
+    {
+      "id": "ai",
+      "title": "AI & Automation"
+    },
+    {
+      "id": "containers",
+      "title": "Containers"
+    },
+    {
+      "id": "network",
+      "title": "Network Tunnels"
+    },
+    {
+      "id": "web",
+      "title": "Web Servers"
+    },
+    {
+      "id": "languages",
+      "title": "Languages & Runtimes"
+    },
+    {
+      "id": "databases",
+      "title": "Databases"
+    },
+    {
+      "id": "queues",
+      "title": "Caches & Queues"
+    },
+    {
+      "id": "governance",
+      "title": "Service Governance"
+    },
+    {
+      "id": "mail",
+      "title": "Mail Servers"
+    },
+    {
+      "id": "dns",
+      "title": "DNS Servers"
+    },
+    {
+      "id": "ftp",
+      "title": "FTP Servers"
+    },
+    {
+      "id": "search",
+      "title": "Search Engines"
+    },
+    {
+      "id": "storage",
+      "title": "Object Storage"
+    },
+    {
+      "id": "other",
+      "title": "Developer Utilities"
+    }
+  ],
+  "tools": [
+    {
+      "id": "startup-group",
+      "name": "Service Groups",
+      "category": "console",
+      "homepage": "https://brew.sh/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "sites",
+      "name": "Sites",
+      "category": "site",
+      "homepage": "https://developer.mozilla.org/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "mkcert",
+      "name": "MkCert",
+      "category": "site",
+      "homepage": "https://github.com/FiloSottile/mkcert",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "mkcert"
+        }
+      ],
+      "commands": [
+        "mkcert"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "antigravity",
+      "name": "Antigravity CLI",
+      "category": "ai-coding",
+      "homepage": "https://antigravity.google/",
+      "packages": [],
+      "commands": [
+        "agy",
+        "antigravity"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code",
+      "category": "ai-coding",
+      "homepage": "https://claude.com/product/claude-code",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "claude-code"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Anthropic.ClaudeCode"
+        }
+      ],
+      "commands": [
+        "claude"
+      ],
+      "npmPackages": [
+        "@anthropic-ai/claude-code"
+      ]
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "category": "ai-coding",
+      "homepage": "https://github.com/openai/codex",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "codex"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "OpenAI.Codex"
+        }
+      ],
+      "commands": [
+        "codex"
+      ],
+      "npmPackages": [
+        "@openai/codex"
+      ]
+    },
+    {
+      "id": "copilot",
+      "name": "GitHub Copilot CLI",
+      "category": "ai-coding",
+      "homepage": "https://github.com/github/copilot-cli",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "copilot-cli"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "GitHub.Copilot"
+        }
+      ],
+      "commands": [
+        "copilot"
+      ],
+      "npmPackages": [
+        "@github/copilot"
+      ]
+    },
+    {
+      "id": "kimi",
+      "name": "Kimi",
+      "category": "ai-coding",
+      "homepage": "https://moonshotai.github.io/kimi-cli/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "kimi-cli"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "MoonshotAI.KimiCLI"
+        }
+      ],
+      "commands": [
+        "kimi"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "opencode",
+      "name": "OpenCode",
+      "category": "ai-coding",
+      "homepage": "https://opencode.ai/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "opencode"
+        }
+      ],
+      "commands": [
+        "opencode"
+      ],
+      "npmPackages": [
+        "opencode-ai"
+      ]
+    },
+    {
+      "id": "cliproxyapi",
+      "name": "CLIProxyAPI",
+      "category": "ai",
+      "homepage": "https://github.com/router-for-me/CLIProxyAPI",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "cliproxyapi"
+        }
+      ],
+      "commands": [
+        "cli-proxy-api",
+        "CLIProxyAPI"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "hermes",
+      "name": "Hermes",
+      "category": "ai",
+      "homepage": "https://hermes-agent.nousresearch.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "hermes-agent"
+        }
+      ],
+      "commands": [
+        "hermes"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "mcp",
+      "name": "MCP Server",
+      "category": "ai",
+      "homepage": "https://modelcontextprotocol.io/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "category": "ai",
+      "homepage": "https://n8n.io/",
+      "packages": [],
+      "commands": [
+        "n8n"
+      ],
+      "npmPackages": [
+        "n8n"
+      ]
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "category": "ai",
+      "homepage": "https://ollama.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "ollama"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Ollama.Ollama"
+        }
+      ],
+      "commands": [
+        "ollama"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "openclaw",
+      "name": "OpenClaw",
+      "category": "ai",
+      "homepage": "https://openclaw.ai/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "openclaw"
+        }
+      ],
+      "commands": [
+        "openclaw"
+      ],
+      "npmPackages": [
+        "openclaw"
+      ]
+    },
+    {
+      "id": "podman",
+      "name": "Podman",
+      "category": "containers",
+      "homepage": "https://podman.io/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "podman"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "RedHat.Podman"
+        }
+      ],
+      "commands": [
+        "podman"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "cloudflare-tunnel",
+      "name": "Cloudflare Tunnel",
+      "category": "network",
+      "homepage": "https://developers.cloudflare.com/cloudflare-one/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "cloudflared",
+      "name": "Cloudflared",
+      "category": "network",
+      "homepage": "https://developers.cloudflare.com/cloudflare-one/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "cloudflared"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Cloudflare.cloudflared"
+        }
+      ],
+      "commands": [
+        "cloudflared"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "apache",
+      "name": "Apache",
+      "category": "web",
+      "homepage": "https://httpd.apache.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "httpd"
+        }
+      ],
+      "commands": [
+        "httpd"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "caddy",
+      "name": "Caddy",
+      "category": "web",
+      "homepage": "https://caddyserver.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "caddy"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "CaddyServer.Caddy"
+        }
+      ],
+      "commands": [
+        "caddy"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "frankenphp",
+      "name": "FrankenPHP",
+      "category": "web",
+      "homepage": "https://frankenphp.dev/",
+      "packages": [],
+      "commands": [
+        "frankenphp"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "httpserver",
+      "name": "HTTP Server",
+      "category": "web",
+      "homepage": "https://github.com/http-party/http-server",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "http-server"
+        }
+      ],
+      "commands": [
+        "http-server"
+      ],
+      "npmPackages": [
+        "http-server"
+      ]
+    },
+    {
+      "id": "nginx",
+      "name": "Nginx",
+      "category": "web",
+      "homepage": "https://nginx.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "nginx"
+        }
+      ],
+      "commands": [
+        "nginx"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "tomcat",
+      "name": "Tomcat",
+      "category": "web",
+      "homepage": "https://tomcat.apache.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "tomcat"
+        }
+      ],
+      "commands": [
+        "catalina"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "bun",
+      "name": "Bun",
+      "category": "languages",
+      "homepage": "https://bun.sh/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "bun"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Oven-sh.Bun"
+        }
+      ],
+      "commands": [
+        "bun"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "deno",
+      "name": "Deno",
+      "category": "languages",
+      "homepage": "https://deno.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "deno"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "DenoLand.Deno"
+        }
+      ],
+      "commands": [
+        "deno"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "dotnet",
+      "name": ".NET",
+      "category": "languages",
+      "homepage": "https://dotnet.microsoft.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "dotnet"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Microsoft.DotNet.SDK.10"
+        }
+      ],
+      "commands": [
+        "dotnet"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "erlang",
+      "name": "Erlang",
+      "category": "languages",
+      "homepage": "https://www.erlang.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "erlang"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Erlang.ErlangOTP"
+        }
+      ],
+      "commands": [
+        "erl"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "flutter",
+      "name": "Flutter",
+      "category": "languages",
+      "homepage": "https://flutter.dev/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "flutter"
+        }
+      ],
+      "commands": [
+        "flutter"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "go",
+      "name": "Go",
+      "category": "languages",
+      "homepage": "https://go.dev/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "go"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "GoLang.Go"
+        }
+      ],
+      "commands": [
+        "go"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "gradle",
+      "name": "Gradle",
+      "category": "languages",
+      "homepage": "https://gradle.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "gradle"
+        }
+      ],
+      "commands": [
+        "gradle"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "java",
+      "name": "Java",
+      "category": "languages",
+      "homepage": "https://openjdk.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "openjdk"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "EclipseAdoptium.Temurin.25.JDK"
+        }
+      ],
+      "commands": [
+        "java"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "category": "languages",
+      "homepage": "https://nodejs.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "node"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "OpenJS.NodeJS.LTS"
+        }
+      ],
+      "commands": [
+        "node"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "perl",
+      "name": "Perl",
+      "category": "languages",
+      "homepage": "https://www.perl.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "perl"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "StrawberryPerl.StrawberryPerl"
+        }
+      ],
+      "commands": [
+        "perl"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "php",
+      "name": "PHP",
+      "category": "languages",
+      "homepage": "https://www.php.net/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "php"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "PHP.PHP.8.4"
+        }
+      ],
+      "commands": [
+        "php"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "php-fpm",
+      "name": "PHP-FPM",
+      "category": "languages",
+      "homepage": "https://www.php.net/manual/en/install.fpm.php",
+      "packages": [],
+      "commands": [
+        "php-fpm"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "category": "languages",
+      "homepage": "https://www.python.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "python@3.15"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Python.Python.3.14"
+        },
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "python@3.14"
+        },
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "python@3.13"
+        }
+      ],
+      "commands": [
+        "python3",
+        "python"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "roadrunner",
+      "name": "RoadRunner",
+      "category": "languages",
+      "homepage": "https://roadrunner.dev/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "roadrunner"
+        }
+      ],
+      "commands": [
+        "rr"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "ruby",
+      "name": "Ruby",
+      "category": "languages",
+      "homepage": "https://www.ruby-lang.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "ruby"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "RubyInstallerTeam.Ruby.3.4"
+        }
+      ],
+      "commands": [
+        "ruby"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "category": "languages",
+      "homepage": "https://www.rust-lang.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "rust"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Rustlang.Rustup"
+        }
+      ],
+      "commands": [
+        "rustc"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "swoole-cli",
+      "name": "Swoole CLI",
+      "category": "languages",
+      "homepage": "https://github.com/swoole/swoole-cli",
+      "packages": [],
+      "commands": [
+        "swoole-cli"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "zig",
+      "name": "Zig",
+      "category": "languages",
+      "homepage": "https://ziglang.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "zig"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "zig.zig"
+        }
+      ],
+      "commands": [
+        "zig"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "clickhouse",
+      "name": "ClickHouse",
+      "category": "databases",
+      "homepage": "https://clickhouse.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "clickhouse"
+        }
+      ],
+      "commands": [
+        "clickhouse"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "mariadb",
+      "name": "MariaDB",
+      "category": "databases",
+      "homepage": "https://mariadb.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "mariadb"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "MariaDB.Server"
+        }
+      ],
+      "commands": [
+        "mariadbd"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "category": "databases",
+      "homepage": "https://www.mongodb.com/",
+      "packages": [
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "MongoDB.Server"
+        }
+      ],
+      "commands": [
+        "mongod"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL",
+      "category": "databases",
+      "homepage": "https://www.mysql.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "mysql"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Oracle.MySQL"
+        },
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "mysql@8.0"
+        },
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "mysql@8.4"
+        }
+      ],
+      "commands": [
+        "mysqld"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "neo4j",
+      "name": "Neo4j",
+      "category": "databases",
+      "homepage": "https://neo4j.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "neo4j"
+        }
+      ],
+      "commands": [
+        "neo4j"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "category": "databases",
+      "homepage": "https://www.postgresql.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "postgresql@18"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "PostgreSQL.PostgreSQL.17"
+        },
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "postgresql@17"
+        }
+      ],
+      "commands": [
+        "postgres"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "qdrant",
+      "name": "Qdrant",
+      "category": "databases",
+      "homepage": "https://qdrant.tech/",
+      "packages": [],
+      "commands": [
+        "qdrant"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "memcached",
+      "name": "Memcached",
+      "category": "queues",
+      "homepage": "https://memcached.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "memcached"
+        }
+      ],
+      "commands": [
+        "memcached"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "rabbitmq",
+      "name": "RabbitMQ",
+      "category": "queues",
+      "homepage": "https://www.rabbitmq.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "rabbitmq"
+        }
+      ],
+      "commands": [
+        "rabbitmq-server"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "redis",
+      "name": "Redis",
+      "category": "queues",
+      "homepage": "https://redis.io/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "redis"
+        }
+      ],
+      "commands": [
+        "redis-server"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "consul",
+      "name": "Consul",
+      "category": "governance",
+      "homepage": "https://www.consul.io/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "consul"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Hashicorp.Consul"
+        }
+      ],
+      "commands": [
+        "consul"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "etcd",
+      "name": "Etcd",
+      "category": "governance",
+      "homepage": "https://etcd.io/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "etcd"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "etcd-io.etcd"
+        }
+      ],
+      "commands": [
+        "etcd"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "rnacos",
+      "name": "R-Nacos",
+      "category": "governance",
+      "homepage": "https://github.com/r-nacos/r-nacos",
+      "packages": [],
+      "commands": [
+        "rnacos"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "temporal",
+      "name": "Temporal",
+      "category": "governance",
+      "homepage": "https://temporal.io/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "temporal-cli",
+      "name": "Temporal CLI",
+      "category": "governance",
+      "homepage": "https://temporal.io/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "temporal"
+        },
+        {
+          "provider": "winget",
+          "kind": "package",
+          "token": "Temporal.TemporalCLI"
+        }
+      ],
+      "commands": [
+        "temporal"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "mailpit",
+      "name": "Mailpit",
+      "category": "mail",
+      "homepage": "https://mailpit.axllent.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "mailpit"
+        }
+      ],
+      "commands": [
+        "mailpit"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "dns",
+      "name": "DNS Server",
+      "category": "dns",
+      "homepage": "https://www.isc.org/bind/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "bind"
+        }
+      ],
+      "commands": [
+        "named"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "numa",
+      "name": "Numa",
+      "category": "dns",
+      "homepage": "https://github.com/numa-dns/numa",
+      "packages": [],
+      "commands": [
+        "numa"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "ftp-srv",
+      "name": "ftp-srv",
+      "category": "ftp",
+      "homepage": "https://github.com/QuorumDMS/ftp-srv",
+      "packages": [],
+      "commands": [
+        "ftp-srv"
+      ],
+      "npmPackages": [
+        "ftp-srv"
+      ]
+    },
+    {
+      "id": "pure-ftpd",
+      "name": "Pure-FTPd",
+      "category": "ftp",
+      "homepage": "https://www.pureftpd.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "pure-ftpd"
+        }
+      ],
+      "commands": [
+        "pure-ftpd"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "elasticsearch",
+      "name": "Elasticsearch",
+      "category": "search",
+      "homepage": "https://www.elastic.co/elasticsearch/",
+      "packages": [],
+      "commands": [
+        "elasticsearch"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "meilisearch",
+      "name": "Meilisearch",
+      "category": "search",
+      "homepage": "https://www.meilisearch.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "meilisearch"
+        }
+      ],
+      "commands": [
+        "meilisearch"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "typesense",
+      "name": "Typesense",
+      "category": "search",
+      "homepage": "https://typesense.org/",
+      "packages": [],
+      "commands": [
+        "typesense-server"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "zincsearch",
+      "name": "ZincSearch",
+      "category": "search",
+      "homepage": "https://zincsearch-docs.zinc.dev/",
+      "packages": [],
+      "commands": [
+        "zinc"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "minio",
+      "name": "MinIO",
+      "category": "storage",
+      "homepage": "https://min.io/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "minio"
+        }
+      ],
+      "commands": [
+        "minio"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "rustfs",
+      "name": "RustFS",
+      "category": "storage",
+      "homepage": "https://rustfs.com/",
+      "packages": [],
+      "commands": [
+        "rustfs"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "cron",
+      "name": "Scheduled Tasks",
+      "category": "other",
+      "homepage": "https://developer.apple.com/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "category": "other",
+      "homepage": "https://git-scm.com/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "git"
+        }
+      ],
+      "commands": [
+        "git"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "toolbox",
+      "name": "Toolbox",
+      "category": "other",
+      "homepage": "https://developer.mozilla.org/",
+      "packages": [],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "composer",
+      "name": "Composer",
+      "category": "other",
+      "homepage": "https://getcomposer.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "composer"
+        }
+      ],
+      "commands": [
+        "composer"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "maven",
+      "name": "Maven",
+      "category": "other",
+      "homepage": "https://maven.apache.org/",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "maven"
+        }
+      ],
+      "commands": [
+        "mvn"
+      ],
+      "npmPackages": []
+    },
+    {
+      "id": "claude-desktop",
+      "name": "Claude Desktop",
+      "category": "ai-coding",
+      "homepage": "https://claude.ai/download",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "cask",
+          "token": "claude"
+        }
+      ],
+      "commands": [],
+      "npmPackages": []
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini CLI",
+      "category": "ai-coding",
+      "homepage": "https://github.com/google-gemini/gemini-cli",
+      "packages": [
+        {
+          "provider": "homebrew",
+          "kind": "formula",
+          "token": "gemini-cli"
+        }
+      ],
+      "commands": [
+        "gemini"
+      ],
+      "npmPackages": [
+        "@google/gemini-cli"
+      ]
+    },
+    {
+      "id": "grok",
+      "name": "Grok Build",
+      "category": "ai-coding",
+      "homepage": "https://github.com/xai-org/grok-cli",
+      "packages": [],
+      "commands": [
+        "grok"
+      ],
+      "npmPackages": [
+        "@xai-official/grok"
+      ]
+    },
+    {
+      "id": "pi",
+      "name": "Pi",
+      "category": "ai-coding",
+      "homepage": "https://github.com/earendil-works/pi-mono",
+      "packages": [],
+      "commands": [
+        "pi"
+      ],
+      "npmPackages": [
+        "@earendil-works/pi-coding-agent",
+        "@mariozechner/pi-coding-agent"
+      ]
+    },
+    {
+      "id": "minimax-code",
+      "name": "MiniMax Code",
+      "category": "ai-coding",
+      "homepage": "https://platform.minimax.io/",
+      "packages": [],
+      "commands": [
+        "mcode"
+      ],
+      "npmPackages": [
+        "@minimax-ai/code"
+      ]
+    },
+    {
+      "id": "oh-my-pi",
+      "name": "Oh My Pi",
+      "category": "ai-coding",
+      "homepage": "https://github.com/can1357/oh-my-pi",
+      "packages": [],
+      "commands": [
+        "omp"
+      ],
+      "npmPackages": [
+        "@oh-my-pi/pi-coding-agent"
+      ]
+    }
+  ]
+}

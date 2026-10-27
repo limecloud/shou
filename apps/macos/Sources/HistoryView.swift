@@ -44,7 +44,7 @@ struct HistoryView: View {
             }.disabled(removal?.executionIds.isEmpty != false)
         } message: {
             if let removal {
-                Text(String(format: model.t("%lld records · %@ of local data"), locale: model.language.locale, removal.executionIds.count, model.bytes(Int64(removal.recordBytes))) + "\n" +
+                Text(String(format: model.t("%lld records, %@ of local data"), locale: model.language.locale, removal.executionIds.count, model.bytes(Int64(removal.recordBytes))) + "\n" +
                      model.t(includeRecoverable ? "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records." : "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept."))
             }
         }
@@ -79,16 +79,16 @@ private struct HistoryReceiptView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: receipt.state == "completed" ? "checkmark.circle.fill" : "exclamationmark.circle")
-                    .foregroundStyle(receipt.state == "completed" ? Color.green : Color.orange)
+                    .foregroundStyle(receipt.state == "completed" ? ShouPalette.success : ShouPalette.warning)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(receipt.items.first.map { URL(fileURLWithPath: $0.originalPath).lastPathComponent } ?? model.t("Cleanup"))
-                        .font(.headline).lineLimit(1)
-                    Text(model.date(receipt.createdAt) + " · " + model.t(receipt.state == "executing" ? "Unfinished cleanup" : receipt.state))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.body.weight(.semibold)).lineLimit(1)
+                    Text(model.date(receipt.createdAt) + ", " + model.t(receipt.state == "executing" ? "Unfinished cleanup" : receipt.state))
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
                 Spacer()
                 Text(model.bytes(receipt.items.reduce(0) { $0 + (["purged", "trashed"].contains($1.state) ? $1.allocatedBytesEstimate : 0) }))
-                    .monospacedDigit().foregroundStyle(.secondary)
+                    .monospacedDigit().foregroundStyle(ShouPalette.secondary)
                 Button(model.t(expanded ? "Hide Details" : "Details")) { expanded.toggle() }.buttonStyle(.borderless)
                     .accessibilityIdentifier("history.details." + receipt.id)
                 Menu { Button(model.t("Remove Record…"), role: .destructive, action: remove) }
@@ -96,7 +96,7 @@ private struct HistoryReceiptView: View {
                     .disabled(model.busy || receipt.state == "executing")
             }
             if expanded {
-            Text(receipt.id).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+            Text(receipt.id).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) {
                     SelectionCheckbox(state: selected.isEmpty ? .off : selected.count == available.count ? .on : .mixed,
@@ -104,10 +104,10 @@ private struct HistoryReceiptView: View {
                         identifier: "history.selectAll." + receipt.id) {
                         selection=selected.count == available.count ? [] : availableIDs
                     }.frame(width: 18, height: 20)
-                    Text(model.t("Select available items in this cleanup")).font(.callout)
+                    Text(model.t("Select available items in this cleanup")).font(ShouType.body)
                     Spacer()
                     Text(String(format: model.t("%lld items selected"), locale: model.language.locale, selected.count))
-                        .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).monospacedDigit()
                     Button(model.t("Clear Selection")) { selection=[] }.disabled(model.busy || selected.isEmpty)
                 }.padding(12)
                 HStack(spacing: 8) {
@@ -129,8 +129,8 @@ private struct HistoryReceiptView: View {
                     Divider()
                 }
                 Text(model.t(receipt.items.contains { $0.state == "purged" } ? "Permanently removed items cannot be restored." : "Moved to Trash; this is not freed space."))
-                    .font(.caption).foregroundStyle(.secondary).padding(12)
-            }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(12)
+            }.background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 12))
             }
         }.padding(16).background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 12))
             .onChange(of: availableIDs) { _, ids in selection.formIntersection(ids) }
@@ -147,12 +147,12 @@ private struct HistoryReceiptView: View {
                 if $0 { selection.insert(item.id) } else { selection.remove(item.id) }
             })) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(item.relativePath).font(.body.monospaced())
-                    if item.uninstallOrigin != nil { Text(item.originalPath).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled) }
+                    Text(item.relativePath).font(ShouType.body.monospaced())
+                    if item.uninstallOrigin != nil { Text(item.originalPath).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled) }
                     Text(model.diagnostic(pending ? "Follow-up needs verification" : item.error ?? completed?.action ?? state))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     if latest?.state == "failed", let error=latest?.error {
-                        Text(model.diagnostic(error)).font(.caption).foregroundStyle(.orange).textSelection(.enabled)
+                        Text(model.diagnostic(error)).font(ShouType.caption).foregroundStyle(ShouPalette.warning).textSelection(.enabled)
                     }
                 }
             }.toggleStyle(.checkbox).disabled(model.busy || !selectable)

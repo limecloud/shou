@@ -4,20 +4,25 @@ from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 import argparse
+import atexit
+import base64
 import json
 import os
 import plistlib
+import secrets
 import subprocess
 import tempfile
 import uuid
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('application', type=Path)
-parser.add_argument('private_key', type=Path)
+parser.add_argument('private_key', type=Path, nargs='?')
+parser.add_argument('--fixture-key', action='store_true', help='Generate an isolated test-only key; never access the production key or keychain.')
 parser.add_argument('--installed-app', type=Path, help='Use an actual previous release for the installed copy.')
 arguments = parser.parse_args()
 source = arguments.application.resolve()
-key = arguments.private_key.resolve()
+if bool(arguments.private_key) == arguments.fixture_key:
+    parser.error('Pass a private-key file or --fixture-key, exclusively.')
 installed_source = arguments.installed_app.resolve() if arguments.installed_app else source
 new_version = plistlib.loads((source / 'Contents/Info.plist').read_bytes())['CFBundleVersion']
 old_version = plistlib.loads((installed_source / 'Contents/Info.plist').read_bytes())['CFBundleVersion'] if arguments.installed_app else '0.0.9'
@@ -25,6 +30,20 @@ assert old_version != new_version, 'The installed and update versions must diffe
 root = Path(__file__).resolve().parents[1]
 # Keep isolated application data outside privacy-protected source folders.
 base = Path(tempfile.mkdtemp(prefix='shou-update-acceptance-')).resolve()
+public = None
+if arguments.fixture_key:
+    key = base / 'fixture-private-key'
+    atexit.register(key.unlink, missing_ok=True)
+    with os.fdopen(os.open(key, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), 'w') as stream:
+        stream.write(base64.b64encode(secrets.token_bytes(32)).decode() + '\n')
+    public = subprocess.check_output(['swift', '-e', '''import Foundation
+import CryptoKit
+let encoded=try String(contentsOfFile: CommandLine.arguments[1], encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+let key=try Curve25519.Signing.PrivateKey(rawRepresentation: Data(base64Encoded: encoded)!)
+print(key.publicKey.rawRepresentation.base64EncodedString())
+''', str(key)], text=True).strip()
+else:
+    key = arguments.private_key.resolve()
 web = base / 'web'
 web.mkdir()
 server = HTTPServer(('127.0.0.1', 0), partial(SimpleHTTPRequestHandler, directory=str(web)))
@@ -47,14 +66,19 @@ for directory, version, original in [('installed', old_version, installed_source
                 SUFeedURL=feed, SUEnableAutomaticChecks=False,
                 LSEnvironment={'SHOU_DATA_DIR': str(data_directory)},
                 NSAppTransportSecurity={'NSAllowsLocalNetworking': True})
+    if public:
+        info['SUPublicEDKey'] = public
     info_path.write_bytes(plistlib.dumps(info))
     subprocess.run(['codesign', '--force', '--sign', '-', str(app)], check=True)
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
 subprocess.run(['ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', str(base / 'new/Shou.app'), str(web / f'Shou-{new_version}.zip')], check=True)
 tools = root / '.build/artifacts/sparkle/Sparkle/bin'
-subprocess.run([str(tools / 'generate_appcast'), '--ed-key-file', str(key), '--download-url-prefix', f'http://127.0.0.1:{server.server_port}/',
+subprocess.run(['python3', str(root / 'scripts/render-update-notes.py'), str(root / '.github/release-notes.md'), str(web / f'Shou-{new_version}.html')], check=True)
+subprocess.run([str(tools / 'generate_appcast'), '--ed-key-file', str(key), '--embed-release-notes', '--download-url-prefix', f'http://127.0.0.1:{server.server_port}/',
                 '--maximum-deltas', '0', '-o', str(web / 'appcast.xml'), str(web)], check=True)
 subprocess.run([str(tools / 'sign_update'), '--ed-key-file', str(key), '--verify', str(web / 'appcast.xml')], check=True)
+if arguments.fixture_key:
+    key.unlink()
 environment = os.environ | {'SHOU_DATA_DIR': str(data_directory)}
 result = subprocess.run([str(source / 'Contents/Helpers/shou'), 'workspaces', 'add', '--path', str(workspace), '--root-ref', 'desktop-acceptance', '--json'],
                         env=environment, capture_output=True, text=True, check=True)
@@ -69,3 +93,5 @@ try:
     server.serve_forever()
 finally:
     server.server_close()
+    if arguments.fixture_key:
+        key.unlink(missing_ok=True)

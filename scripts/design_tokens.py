@@ -44,7 +44,16 @@ def load():
                 raise ValueError(f'Duplicate design source key: {key}')
             result[key] = value
         return result
-    return validate(json.loads(SOURCE.read_text(encoding='utf-8'), object_pairs_hook=unique_pairs))
+    tokens = validate(json.loads(SOURCE.read_text(encoding='utf-8'), object_pairs_hook=unique_pairs))
+    reference = json.loads((ROOT / 'assets/design/radix-colors.json').read_text(encoding='utf-8'))
+    if set(reference['tokens']) != set(tokens['colors']):
+        raise ValueError('Every color token must have Radix scale provenance')
+    for key, origin in reference['tokens'].items():
+        value = reference['palettes'][origin['appearance']][origin['scale'] + str(origin['step'])][1:]
+        expected = '#FF' + value if len(value) == 6 else '#' + value[6:] + value[:6]
+        if tokens['colors'][key].upper() != expected.upper():
+            raise ValueError(f'{key}: color differs from the declared Radix scale')
+    return tokens
 
 
 def xaml(tokens):

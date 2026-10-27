@@ -56,7 +56,7 @@ struct OperationProgressView: View {
             OperationProgressMeter(fraction: fraction, label: title, compact: compact)
                 .padding(.top, compact ? ShouDesign.operationCompactMeterTop : ShouDesign.operationMeterTop)
             Text(currentPath.isEmpty ? " " : ProgressPresentation.singleLinePath(currentPath))
-                .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
+                .font(ShouType.code).foregroundStyle(ShouPalette.secondary)
                 .lineLimit(1).truncationMode(.middle).help(currentPath)
                 .frame(maxWidth: ShouDesign.cleanupPathMaxWidth)
                 .frame(height: compact ? ShouDesign.operationCompactPathHeight : ShouDesign.operationPathHeight)
@@ -102,6 +102,6 @@ struct OperationProgressMeter: View {
             }
             .progressViewStyle(.linear).controlSize(compact ? .regular : .large)
             .accessibilityLabel(label).accessibilityIdentifier("operation.progress")
-        }.animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: value)
+        }.animation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration)), value: value)
     }
 }

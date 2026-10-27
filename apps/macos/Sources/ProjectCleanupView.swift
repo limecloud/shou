@@ -47,7 +47,7 @@ struct ProjectCleanupView: View {
                 Divider()
                 HStack(spacing: 18) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(String(format: model.t("%lld locations selected"), locale: model.language.locale, selected.count)).font(.caption).foregroundStyle(.secondary)
+                        Text(String(format: model.t("%lld locations selected"), locale: model.language.locale, selected.count)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                         Text(model.bytes(selectedBytes)).font(.system(size: ShouDesign.summaryFigureSize, weight: .medium)).monospacedDigit()
                     }
                     Spacer()
@@ -93,16 +93,16 @@ private struct ProjectCleanupRow: View {
                     model.selectCommon(selectable, selected: selected.count != selectable.count)
                 }.frame(width: 22, height: 24)
                 Image(systemName: project.identifiedProject ? "chevron.left.forwardslash.chevron.right" : "folder")
-                    .font(.title2).foregroundStyle(Color.accentColor).frame(width: ShouDesign.workspaceIconSize)
+                    .font(ShouType.title).foregroundStyle(ShouPalette.accent).frame(width: ShouDesign.workspaceIconSize)
                 VStack(alignment: .leading, spacing: 6) {
                     Text(URL(fileURLWithPath: project.path).lastPathComponent).font(.system(size: ShouDesign.bodyFontSize, weight: .medium))
-                    Text(project.path).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle).help(project.path)
-                    if !project.identifiedProject { Text(model.t("Grouped by scan location")).font(.caption).foregroundStyle(.secondary) }
+                    Text(project.path).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle).help(project.path)
+                    if !project.identifiedProject { Text(model.t("Grouped by scan location")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 6) {
                     Text(model.bytes(project.bytes)).font(.system(size: 16, weight: .medium)).monospacedDigit()
-                    Text(model.t("Matched cleanup items")).font(.caption).foregroundStyle(.secondary)
+                    Text(model.t("Matched cleanup items")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
             }.padding(.vertical, 8)
         }

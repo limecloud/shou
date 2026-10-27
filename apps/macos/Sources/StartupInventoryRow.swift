@@ -61,23 +61,23 @@ struct StartupInventoryRow: View {
                     HStack(spacing: 12) {
                         artwork
                         Text(group.name).font(.system(size: 12, weight: .medium)).lineLimit(1).truncationMode(.middle)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(ShouPalette.text)
                         Spacer(minLength: 0)
                     }.frame(maxWidth: .infinity, minHeight: 46, alignment: .leading).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain).accessibilityLabel(group.name)
                 .accessibilityIdentifier("startup.group." + group.id)
                 rowActions
-                Text(model.t(sourceTitle)).font(.system(size: 10)).foregroundStyle(.secondary)
+                Text(model.t(sourceTitle)).font(.system(size: ShouDesign.captionFontSize)).foregroundStyle(ShouPalette.secondary)
                     .padding(.horizontal, 7).padding(.vertical, 3).background(.quaternary.opacity(0.5), in: Capsule())
                 if group.items.count > 1 {
                     Text(String(format: model.t("%lld startup entries"), locale: model.language.locale, group.items.count))
-                        .font(.caption2).foregroundStyle(.secondary).fixedSize()
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize()
                 }
                 groupControl
                 Button(action: toggleExpanded) {
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 10, weight: .semibold)).foregroundStyle(.secondary).frame(width: 24, height: 28)
+                        .font(.system(size: ShouDesign.captionFontSize, weight: .semibold)).foregroundStyle(ShouPalette.secondary).frame(width: 24, height: 28)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain).accessibilityLabel(model.t(expanded ? "Collapse startup details" : "Expand startup details"))
@@ -85,7 +85,7 @@ struct StartupInventoryRow: View {
             }.padding(.horizontal, 10)
             if expanded { details }
         }
-        .background(expanded || hovered || actionFocused ? Color.primary.opacity(0.045) : .clear, in: RoundedRectangle(cornerRadius: 8))
+        .background(expanded || hovered || actionFocused ? ShouPalette.text.opacity(0.045) : .clear, in: RoundedRectangle(cornerRadius: 8))
         .onHover { hovered=$0 }
         .contextMenu {
             if let revealPath { Button(model.t("Reveal in Finder")) { reveal(revealPath) } }
@@ -103,8 +103,8 @@ struct StartupInventoryRow: View {
         if let path=group.applicationPath {
             Image(nsImage: StartupArtwork.icon(path)).resizable().interpolation(.high).scaledToFit().frame(width: 32, height: 32)
         } else {
-            Image(systemName: "doc.badge.gearshape").font(.system(size: 19)).foregroundStyle(.secondary)
-                .frame(width: 32, height: 32).background(Color.secondary.opacity(0.10), in: RoundedRectangle(cornerRadius: 7))
+            Image(systemName: "doc.badge.gearshape").font(.system(size: 19)).foregroundStyle(ShouPalette.secondary)
+                .frame(width: 32, height: 32).background(ShouPalette.secondary.opacity(0.10), in: RoundedRectangle(cornerRadius: 7))
         }
     }
 
@@ -119,7 +119,7 @@ struct StartupInventoryRow: View {
                     .help(model.t("Reveal in Finder")).accessibilityLabel(model.t("Reveal in Finder"))
             }
         }
-        .font(.system(size: 12)).foregroundStyle(.secondary).buttonStyle(.plain)
+        .font(.system(size: 12)).foregroundStyle(ShouPalette.secondary).buttonStyle(.plain)
         .opacity(hovered || expanded || actionFocused ? 1 : 0).focused($actionFocused)
     }
 
@@ -134,7 +134,7 @@ struct StartupInventoryRow: View {
                 .help(model.t(group.controllableItems.isEmpty ? "Manage this item in Login Items Settings." : "Changes apply to future launches."))
                 .accessibilityIdentifier("startup.toggle." + group.id)
         } else {
-            Text(model.t(startupStateTitle(group.configuredState))).font(.caption2).foregroundStyle(.secondary).fixedSize()
+            Text(model.t(startupStateTitle(group.configuredState))).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize()
         }
     }
 
@@ -151,7 +151,7 @@ struct StartupInventoryRow: View {
                         Spacer(minLength: 4)
                         if item.targetState == "missing" {
                             Label(model.t("Startup Leftovers"), systemImage: "exclamationmark.triangle")
-                                .font(.caption2).foregroundStyle(.orange)
+                                .font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                         }
                         if group.items.count > 1 && group.controllableItems.contains(where: { $0.id == item.id }) {
                             Toggle(model.t(item.configuredState == "enabled" ? "Disable" : "Enable") + " " + item.label,
@@ -166,12 +166,12 @@ struct StartupInventoryRow: View {
                     detail(model.t("Startup State"), value: model.t(startupStateTitle(item.configuredState)))
                     detail(model.t("Runtime State"), value: model.t(startupStateTitle(item.runtimeState)))
                     if !item.triggers.isEmpty {
-                        detail(model.t("Trigger clues"), value: item.triggers.map { model.t(triggerTitle($0)) }.joined(separator: " · "))
+                        detail(model.t("Trigger clues"), value: item.triggers.map { model.t(triggerTitle($0)) }.joined(separator: ", "))
                     }
                     if item.controlCapability == "system_settings" {
                         Button { SMAppService.openSystemSettingsLoginItems() } label: {
                             Label(model.t("Open Login Items Settings"), systemImage: "arrow.up.forward.app")
-                        }.buttonStyle(.link).font(.caption).padding(.vertical, 3)
+                        }.buttonStyle(.link).font(ShouType.caption).padding(.vertical, 3)
                     }
                 }.padding(.bottom, 10)
             }
@@ -180,15 +180,15 @@ struct StartupInventoryRow: View {
 
     private func detail(_ label: String, value: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
-            Text(label).foregroundStyle(.secondary).frame(width: 96, alignment: .leading)
+            Text(label).foregroundStyle(ShouPalette.secondary).frame(width: 96, alignment: .leading)
             Text(value).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
-        }.font(.caption)
+        }.font(ShouType.caption)
     }
 
     private func pathDetail(_ label: String, path: String) -> some View {
         HStack(alignment: .center, spacing: 8) {
-            Text(label).foregroundStyle(.secondary).frame(width: 100, alignment: .leading)
-            Text(path).font(.caption.monospaced()).lineLimit(1).truncationMode(.middle).textSelection(.enabled).help(path)
+            Text(label).foregroundStyle(ShouPalette.secondary).frame(width: 100, alignment: .leading)
+            Text(path).font(ShouType.caption.monospaced()).lineLimit(1).truncationMode(.middle).textSelection(.enabled).help(path)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button {
                 NSPasteboard.general.clearContents(); NSPasteboard.general.setString(path, forType: .string)
@@ -196,7 +196,7 @@ struct StartupInventoryRow: View {
                 .buttonStyle(.plain).help(model.t("Copy Path")).accessibilityLabel(model.t("Copy Path"))
             Button { reveal(path) } label: { Image(systemName: "folder").frame(width: 22, height: 22) }
                 .buttonStyle(.plain).help(model.t("Reveal in Finder")).accessibilityLabel(model.t("Reveal in Finder"))
-        }.font(.caption)
+        }.font(ShouType.caption)
     }
 
     private func reveal(_ path: String) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)]) }

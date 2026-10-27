@@ -110,7 +110,7 @@ public sealed partial class StartupPage : UserControl, IPageChrome, IDisposable
                 StartupPageState.Cancelled => text.Get("Cancelled"),
                 _ => ""
             });
-        CoverageText.Text = model.Page is { } result ? string.Join(" · ", result.Sources.Select(Coverage)) : "";
+        CoverageText.Text = model.Page is { } result ? string.Join(", ", result.Sources.Select(Coverage)) : "";
         var selected = (Registrations.SelectedItem as StartupDisplay)?.Item.Id;
         var ordered = model.Page?.Items.OrderBy(item => item.Source).ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase).ToArray();
         var rows = ordered?.Select(item =>
@@ -231,7 +231,7 @@ public sealed partial class StartupPage : UserControl, IPageChrome, IDisposable
         var description = status is null ? text.Get(item.Issues.Contains("scheduled_task_status_changed")
             ? "Task status changed during scanning. Scan again to check it."
             : "Task status could not be read. Scan again to check it.") :
-            text.Format("Task Scheduler reports: %@ · %@.", text.Get(status.Enabled ? "Enabled" : "Disabled"), text.Get(status.State switch
+            text.Format("Task Scheduler reports: %@, %@.", text.Get(status.Enabled ? "Enabled" : "Disabled"), text.Get(status.State switch
             {
                 ScheduledTaskState.Disabled => "Disabled", ScheduledTaskState.Queued => "Queued",
                 ScheduledTaskState.Ready => "Ready to run", ScheduledTaskState.Running => "Running", _ => "Task Scheduler state unknown"

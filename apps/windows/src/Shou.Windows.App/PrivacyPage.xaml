@@ -19,7 +19,7 @@
                 <Border x:Name="SourcesCard" Style="{StaticResource ShouCatalogCard}" Visibility="Collapsed">
                     <ListView x:Name="Sources" AutomationProperties.AutomationId="privacy.sources" SelectionMode="None" ItemContainerStyle="{StaticResource ShouPrivacySourceItem}">
                         <ListView.ItemTemplate><DataTemplate>
-                            <Grid Padding="{StaticResource ShouPrivacyRowPadding}" ColumnSpacing="{StaticResource ShouPrivacySpacing}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1">
+                            <Grid Padding="{StaticResource ShouPrivacyRowPadding}" ColumnSpacing="{StaticResource ShouPrivacySpacing}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,0.5">
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                 <CheckBox Tag="{Binding}" IsEnabled="{Binding Selectable}" IsChecked="{Binding Selected, Mode=OneWay}" AutomationProperties.Name="{Binding AccessibleName}" AutomationProperties.AutomationId="{Binding AutomationId}" Click="ToggleSource" VerticalAlignment="Center" />
                                 <ContentControl Grid.Column="1" Width="{StaticResource ShouPrivacyIconWidth}" Content="{Binding Icon}" VerticalAlignment="Center" HorizontalAlignment="Center" />

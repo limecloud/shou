@@ -9,14 +9,14 @@ struct ScanLocationsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Scan Locations")).font(.title2.weight(.semibold))
+            Text(model.t("Scan Locations")).font(ShouType.title.weight(.semibold))
             Text(model.t("Common locations are found automatically. Extra folders only need to be included once."))
-                .font(.callout).foregroundStyle(.secondary)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             List {
                 Section(model.t("Developer Projects")) {
                     if model.projectLocations.isEmpty {
                         Text(model.t("No conventional project folders found. Include another folder or ask your AI agent."))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ShouPalette.secondary)
                     }
                     ForEach(model.projectLocations) { location in
                         HStack(spacing: 12) {
@@ -55,15 +55,15 @@ struct ScanLocationsView: View {
 
     private func locationLabel(_ location: KnownLocation, symbol: String) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).foregroundStyle(.secondary).frame(width: 22)
+            Image(systemName: symbol).foregroundStyle(ShouPalette.secondary).frame(width: 22)
             VStack(alignment: .leading, spacing: 4) {
                 Text(location.category == "build" ? URL(fileURLWithPath: location.path).lastPathComponent : model.t(location.title))
-                    .font(.callout.weight(.medium))
-                Text(location.path).font(.caption.monospaced()).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle).help(location.path)
+                    .font(ShouType.body.weight(.medium))
+                Text(location.path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle).help(location.path)
             }
             Spacer()
             if location.availabilityIssue != nil {
-                Image(systemName: "exclamationmark.triangle").foregroundStyle(.orange).help(model.t("Unable to scan this location"))
+                Image(systemName: "exclamationmark.triangle").foregroundStyle(ShouPalette.warning).help(model.t("Unable to scan this location"))
             }
         }.padding(.vertical, 6)
     }

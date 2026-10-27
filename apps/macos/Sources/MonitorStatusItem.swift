@@ -20,9 +20,9 @@ import ShouCore
             let menu=NSMenu(); menu.delegate=self; item?.menu=menu
         }
         func percent(_ key: String) -> String { session.sample?.values[key].map { String(format:"%.0f%%",$0) } ?? "—" }
-        let state=session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : "Live · Every 2 seconds"
-        item?.button?.title=(session.paused || session.failed ? "◷ " : "")+"CPU "+percent("cpu")+" · "+t("Memory")+" "+percent("memory")
-        item?.button?.toolTip="Shou · "+t("System Monitor")+" · "+t(state)
+        let state=session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : "Live, Every 2 seconds"
+        item?.button?.title=(session.paused || session.failed ? "◷ " : "")+"CPU "+percent("cpu")+", "+t("Memory")+" "+percent("memory")
+        item?.button?.toolTip="Shou, "+t("System Monitor")+", "+t(state)
     }
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
@@ -31,19 +31,19 @@ import ShouCore
         func bytes(_ value: UInt64?) -> String { value.map { ByteCountFormatter.string(fromByteCount:Int64(clamping:$0),countStyle:.decimal) } ?? "—" }
         func rate(_ key: String) -> String { session.sample?.values[key].map { bytes(UInt64(min(Double(Int64.max),$0)))+"/s" } ?? "—" }
         let observation=session.sample?.observation
-        info("Shou · "+t("System Monitor"))
-        info(t(session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : "Live · Every 2 seconds")+(observation.map { " · "+$0.timestamp.formatted(date:.omitted,time:.standard) } ?? ""))
+        info("Shou, "+t("System Monitor"))
+        info(t(session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : "Live, Every 2 seconds")+(observation.map { ", "+$0.timestamp.formatted(date:.omitted,time:.standard) } ?? ""))
         menu.addItem(.separator())
-        info("CPU "+percent("cpu")+" · GPU "+percent("gpu"))
-        info(t("Memory")+" "+bytes(observation?.memoryUsed)+" / "+bytes(observation?.memoryTotal)+" · "+percent("memory"))
-        info(t("Disk")+" · "+t("Read")+" "+rate("diskRead")+" · "+t("Write")+" "+rate("diskWrite"))
-        info(t("Network")+" · ↓ "+rate("networkReceive")+" · ↑ "+rate("networkSend"))
-        info(t("Battery")+" "+percent("battery")+" · "+t(observation?.powerSource ?? "Unavailable"))
-        info(t("Thermals & Fans")+" · "+t(observation?.thermalState ?? "Unavailable")+" · "+(observation?.fanRPM.first.map { String(format:"%.0f RPM",$0) } ?? "—"))
+        info("CPU "+percent("cpu")+", GPU "+percent("gpu"))
+        info(t("Memory")+" "+bytes(observation?.memoryUsed)+" / "+bytes(observation?.memoryTotal)+", "+percent("memory"))
+        info(t("Disk")+", "+t("Read")+" "+rate("diskRead")+", "+t("Write")+" "+rate("diskWrite"))
+        info(t("Network")+", ↓ "+rate("networkReceive")+", ↑ "+rate("networkSend"))
+        info(t("Battery")+" "+percent("battery")+", "+t(observation?.powerSource ?? "Unavailable"))
+        info(t("Thermals & Fans")+", "+t(observation?.thermalState ?? "Unavailable")+", "+(observation?.fanRPM.first.map { String(format:"%.0f RPM",$0) } ?? "—"))
         if let processes=session.sample?.processes, !processes.isEmpty {
             menu.addItem(.separator()); info(t("Top CPU processes"))
             for process in processes.sorted(by:{ ($0.cpuPercent ?? -1) > ($1.cpuPercent ?? -1) }).prefix(3) {
-                info(String(process.counter.name.prefix(40))+" · "+(process.cpuPercent.map { String(format:"%.1f%%",$0) } ?? "—"))
+                info(String(process.counter.name.prefix(40))+", "+(process.cpuPercent.map { String(format:"%.1f%%",$0) } ?? "—"))
             }
         }
         menu.addItem(.separator())

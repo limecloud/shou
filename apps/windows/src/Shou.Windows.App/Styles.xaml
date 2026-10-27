@@ -3,8 +3,25 @@
     <!-- Native high-contrast resources retain priority over the product accent. -->
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-            <StaticResource x:Key="ShouDestructiveBackgroundBrush" ResourceKey="SystemFillColorCriticalBrush" />
-            <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{StaticResource ShouTextDark}" />
+            <SolidColorBrush x:Key="ShouTextBrush" Color="{StaticResource ShouTextLight}" />
+            <SolidColorBrush x:Key="ShouSecondaryTextBrush" Color="{StaticResource ShouTextSecondaryLight}" />
+            <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="{StaticResource ShouTextLight}" />
+            <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="{StaticResource ShouTextSecondaryLight}" />
+            <SolidColorBrush x:Key="SystemFillColorSuccessBrush" Color="{StaticResource ShouSuccessLight}" />
+            <SolidColorBrush x:Key="SystemFillColorCautionBrush" Color="{StaticResource ShouWarningLight}" />
+            <SolidColorBrush x:Key="SystemFillColorCriticalBrush" Color="{StaticResource ShouDangerFillLight}" />
+            <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource ShouSurfaceLight}" />
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{StaticResource ShouNavHoverLight}" />
+            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{StaticResource ShouNavSelectionLight}" />
+            <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource ShouDividerLight}" />
+            <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ShouTextLight}" />
+            <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource ShouSurfaceLight}" />
+            <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource ShouTextLight}" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource ShouDividerLight}" />
+            <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="{StaticResource ShouActionText}" />
+            <SolidColorBrush x:Key="ShouDestructiveBackgroundBrush" Color="{StaticResource ShouDangerFillLight}" />
+            <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{StaticResource ShouActionText}" />
             <LinearGradientBrush x:Key="ShouActionBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="{StaticResource ShouActionStart}" Offset="0" /><GradientStop Color="{StaticResource ShouActionEnd}" Offset="1" /></LinearGradientBrush>
             <SolidColorBrush x:Key="ShouActionTextBrush" Color="{StaticResource ShouActionText}" />
             <LinearGradientBrush x:Key="ShouWorkspaceBrush" StartPoint="0,0" EndPoint="1,1">
@@ -24,8 +41,8 @@
             <SolidColorBrush x:Key="ShouDividerBrush" Color="{StaticResource ShouDividerLight}" />
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ShouAccent}" />
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="{StaticResource ShouAccent}" />
-            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="{StaticResource ShouAccent}" Opacity="0.9" />
-            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="{StaticResource ShouAccent}" Opacity="0.8" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="{StaticResource ShouAccent}" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="{StaticResource ShouAccent}" />
             <SolidColorBrush x:Key="ShouAccentBrush" Color="{StaticResource ShouAccent}" />
             <SolidColorBrush x:Key="ShouNavHoverBrush" Color="{StaticResource ShouNavHoverLight}" />
             <SolidColorBrush x:Key="ShouNavSelectionBrush" Color="{StaticResource ShouNavSelectionLight}" />
@@ -36,7 +53,24 @@
             <SolidColorBrush x:Key="ShouMapTextBrush" Color="{StaticResource ShouMapText}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
-            <StaticResource x:Key="ShouDestructiveBackgroundBrush" ResourceKey="SystemFillColorCriticalBrush" />
+            <SolidColorBrush x:Key="ShouTextBrush" Color="{StaticResource ShouTextDark}" />
+            <SolidColorBrush x:Key="ShouSecondaryTextBrush" Color="{StaticResource ShouTextSecondaryDark}" />
+            <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="{StaticResource ShouTextDark}" />
+            <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="{StaticResource ShouTextSecondaryDark}" />
+            <SolidColorBrush x:Key="SystemFillColorSuccessBrush" Color="{StaticResource ShouSuccessDark}" />
+            <SolidColorBrush x:Key="SystemFillColorCautionBrush" Color="{StaticResource ShouWarningDark}" />
+            <SolidColorBrush x:Key="SystemFillColorCriticalBrush" Color="{StaticResource ShouDangerFillDark}" />
+            <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource ShouSurfaceDark}" />
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{StaticResource ShouNavHoverDark}" />
+            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{StaticResource ShouNavSelectionDark}" />
+            <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource ShouDividerDark}" />
+            <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ShouTextDark}" />
+            <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource ShouSurfaceDark}" />
+            <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource ShouTextDark}" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource ShouDividerDark}" />
+            <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="{StaticResource ShouAccentDark}" />
+            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="{StaticResource ShouSurfaceDark}" />
+            <SolidColorBrush x:Key="ShouDestructiveBackgroundBrush" Color="{StaticResource ShouDangerFillDark}" />
             <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{StaticResource ShouTextLight}" />
             <LinearGradientBrush x:Key="ShouActionBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="{StaticResource ShouActionStart}" Offset="0" /><GradientStop Color="{StaticResource ShouActionEnd}" Offset="1" /></LinearGradientBrush>
             <SolidColorBrush x:Key="ShouActionTextBrush" Color="{StaticResource ShouActionText}" />
@@ -57,8 +91,8 @@
             <SolidColorBrush x:Key="ShouDividerBrush" Color="{StaticResource ShouDividerDark}" />
             <SolidColorBrush x:Key="SystemAccentColorBrush" Color="{StaticResource ShouAccentDark}" />
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="{StaticResource ShouAccentDark}" />
-            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="{StaticResource ShouAccentDark}" Opacity="0.9" />
-            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="{StaticResource ShouAccentDark}" Opacity="0.8" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="{StaticResource ShouAccentDark}" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="{StaticResource ShouAccentDark}" />
             <SolidColorBrush x:Key="ShouAccentBrush" Color="{StaticResource ShouAccentDark}" />
             <SolidColorBrush x:Key="ShouNavHoverBrush" Color="{StaticResource ShouNavHoverDark}" />
             <SolidColorBrush x:Key="ShouNavSelectionBrush" Color="{StaticResource ShouNavSelectionDark}" />
@@ -69,6 +103,8 @@
             <SolidColorBrush x:Key="ShouMapTextBrush" Color="{StaticResource ShouMapText}" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="HighContrast">
+            <SolidColorBrush x:Key="ShouTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+            <SolidColorBrush x:Key="ShouSecondaryTextBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
             <SolidColorBrush x:Key="ShouDestructiveBackgroundBrush" Color="{ThemeResource SystemColorHighlightColor}" />
             <SolidColorBrush x:Key="ShouDestructiveTextBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
             <SolidColorBrush x:Key="ShouActionBrush" Color="{ThemeResource SystemColorHighlightColor}" />
@@ -108,16 +144,16 @@
         <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" />
         <Setter Property="Padding" Value="8,2" /><Setter Property="CornerRadius" Value="6" />
         <Setter Property="Background" Value="{ThemeResource ShouSurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ShouDividerBrush}" /><Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ShouDividerBrush}" /><Setter Property="BorderThickness" Value="0.5" />
     </Style>
     <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
         <Setter Property="MinWidth" Value="0" />
         <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="CornerRadius" Value="6" /><Setter Property="BorderThickness" Value="0.5" />
     </Style>
     <Style TargetType="TextBlock"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /></Style>
-    <Style TargetType="TextBox"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="Padding" Value="10,4" /><Setter Property="CornerRadius" Value="6" /><Setter Property="BorderThickness" Value="1" /></Style>
-    <Style TargetType="ComboBox"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="CornerRadius" Value="6" /></Style>
+    <Style TargetType="TextBox"><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="Padding" Value="10,4" /><Setter Property="CornerRadius" Value="6" /><Setter Property="BorderThickness" Value="0.5" /></Style>
+    <Style TargetType="ComboBox"><Setter Property="BorderThickness" Value="0.5" /><Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" /><Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" /><Setter Property="CornerRadius" Value="6" /></Style>
     <Style x:Key="ShouTopNavigationButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
         <Setter Property="Padding" Value="14,8" /><Setter Property="CornerRadius" Value="22" />
         <Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" />
@@ -234,7 +270,7 @@
         <Setter Property="Width" Value="{StaticResource ShouSwitchWidth}" /><Setter Property="Height" Value="{StaticResource ShouSwitchHeight}" />
         <Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="UseSystemFocusVisuals" Value="True" />
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
-            <Border x:Name="Track" Background="{ThemeResource ShouSwitchOffBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="1" CornerRadius="11">
+            <Border x:Name="Track" Background="{ThemeResource ShouSwitchOffBrush}" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0.5" CornerRadius="11">
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroup x:Name="CommonStates"><VisualState x:Name="Normal" /><VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Track.Opacity" Value="0.85" /></VisualState.Setters></VisualState><VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Track.Opacity" Value="0.7" /></VisualState.Setters></VisualState><VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Track.Opacity" Value="0.45" /></VisualState.Setters></VisualState></VisualStateGroup>
                     <VisualStateGroup x:Name="CheckStates"><VisualState x:Name="Unchecked" /><VisualState x:Name="Checked"><VisualState.Setters><Setter Target="Track.Background" Value="{ThemeResource ShouAccentBrush}" /><Setter Target="Thumb.HorizontalAlignment" Value="Right" /></VisualState.Setters></VisualState></VisualStateGroup>
@@ -255,7 +291,7 @@
     <Style x:Key="ShouCard" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource ShouSurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource ShouDividerBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderThickness" Value="0.5" />
         <Setter Property="CornerRadius" Value="{StaticResource ShouCardRadius}" />
     </Style>
     <Style x:Key="ShouCatalogCard" TargetType="Border" BasedOn="{StaticResource ShouCard}">

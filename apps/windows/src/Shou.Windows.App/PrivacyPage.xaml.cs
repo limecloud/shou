@@ -34,7 +34,7 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         ProductIcon.Select(icon, "TextFillColorTertiaryBrush");
         StartIcon.Content = icon;
         PageNotice.Text = text.Get("Close the browser first. Cleaning permanently deletes selected database records. It does not move them to Trash or provide restore. No sources are selected automatically.");
-        RangeLabel.Text = text.Get("Time range"); RangeNotice.Text = text.Get("History: visit time · Cookies: last access time");
+        RangeLabel.Text = text.Get("Time range"); RangeNotice.Text = text.Get("History: visit time, Cookies: last access time");
         StartButton.Content = text.Get("Start Scan");
         StartDescription.Text = text.Get("Scan to see aggregate counts and availability. Browsing records are never displayed.");
         WorkspaceVisuals.ArrangeLanding(StartContent, StartIcon, PageTitle, StartDescription, "privacy");
@@ -118,15 +118,15 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         public string Kind { get; }
         public string Count { get; }
         public string Status { get; }
-        public string AccessibleName => Title + " · " + Kind;
+        public string AccessibleName => Title + ", " + Kind;
         public string AutomationId => "privacy.source." + Source.Source.Id;
         public FrameworkElement Icon { get; }
         public bool Selected { get; private set; }
         public bool Selectable { get; private set; }
         public SourceRow(PrivacySourceObservation source, TextCatalog text)
         {
-            Source = source; Title = source.Source.Browser + " · " + source.Source.Profile;
-            Kind = text.Get(source.Source.Kind == PrivacyDataKind.History ? "Browsing history" : "Cookies · may sign you out");
+            Source = source; Title = source.Source.Browser + ", " + source.Source.Profile;
+            Kind = text.Get(source.Source.Kind == PrivacyDataKind.History ? "Browsing history" : "Cookies, may sign you out");
             Count = source.RecordCount?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "—";
             Status = text.Get(source.State switch
             {
@@ -161,7 +161,7 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         CookieReview.IsEnabled = !model.IsBusy && !HasActiveCleanup;
         CookieReview.IsChecked = model.AllowCookieReview;
         ClearSelectionButton.IsEnabled = !model.IsBusy && !HasActiveCleanup && model.SelectedSourceCount > 0;
-        SelectionSummary.Text = text.Get("Selected") + " " + model.SelectedSourceCount + " · " + model.SelectedRecordCount + " " + text.Get("records");
+        SelectionSummary.Text = text.Get("Selected") + " " + model.SelectedSourceCount + ", " + model.SelectedRecordCount + " " + text.Get("records");
         AutomationProperties.SetItemStatus(SelectionSummary, model.SelectedSourceCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
         RemoveButton.IsEnabled = WindowsCleanupMutation.PublicExecutionAvailable && !model.IsBusy && !HasActiveCleanup && model.SelectedSourceCount > 0 &&
             model.SelectedSources.All(source => model.CanSelect(source.Source.Id));
@@ -180,8 +180,8 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
             var cookies = selected.Any(source => source.Source.Kind == PrivacyDataKind.Cookies);
             var plan = await operations.CreatePlanAsync(scan.Id, selected.Select(source => source.Source.Id).ToArray(), cookies && model.AllowCookieReview, cancellation.Token);
             var content = new StackPanel { Spacing = 12 };
-            content.Children.Add(new TextBlock { Text = string.Join(Environment.NewLine, plan.Sources.Select(source => source.Source.Browser + " · " + source.Source.Profile + " · " +
-                text.Get(source.Source.Kind == PrivacyDataKind.History ? "Browsing history" : "Cookies · may sign you out") + " · " + source.RecordCount)), TextWrapping = TextWrapping.Wrap });
+            content.Children.Add(new TextBlock { Text = string.Join(Environment.NewLine, plan.Sources.Select(source => source.Source.Browser + ", " + source.Source.Profile + ", " +
+                text.Get(source.Source.Kind == PrivacyDataKind.History ? "Browsing history" : "Cookies, may sign you out") + ", " + source.RecordCount)), TextWrapping = TextWrapping.Wrap });
             content.Children.Add(new TextBlock { Text = text.Format("Fixed range: %@ to %@", plan.Window.Start?.ToLocalTime().ToString("g") ?? text.Get("All time"), plan.Window.End.ToLocalTime().ToString("g")), TextWrapping = TextWrapping.Wrap });
             content.Children.Add(new TextBlock { Text = text.Get("This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope."), TextWrapping = TextWrapping.Wrap });
             var permanent = new CheckBox { Content = new TextBlock { Text = text.Get("I understand that deletion is permanent and has no restore."), TextWrapping = TextWrapping.Wrap } };
@@ -225,11 +225,11 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
         ReceiptCard.Visibility = Visibility.Visible;
     }
     private ReceiptRow[] ReceiptRows(PrivacyReceipt receipt) => receipt.Items.Select(item => new ReceiptRow(item.SourceId,
-            (item.RemovedRecords?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "—") + " · " + text.Get(item.State switch
+            (item.RemovedRecords?.ToString(System.Globalization.CultureInfo.CurrentCulture) ?? "—") + ", " + text.Get(item.State switch
             {
                 PrivacyItemState.Completed => "Completed", PrivacyItemState.Failed => "Failed", PrivacyItemState.Cancelled => "Cancelled",
                 PrivacyItemState.Skipped => "Skipped", PrivacyItemState.Pending => "Not started", PrivacyItemState.Executing => "In progress", _ => "Needs Verification"
-            }) + (item.Reason is null ? "" : " · " + ReviewText.Error(text, item.Reason)))).ToArray();
+            }) + (item.Reason is null ? "" : ", " + ReviewText.Error(text, item.Reason)))).ToArray();
     public async Task LoadHistoryAsync()
     {
         if (disposed) return;
@@ -241,9 +241,9 @@ public sealed partial class PrivacyPage : UserControl, IPageChrome, IDisposable
             var history = await operations.ReadHistoryAsync(current.Token);
             if (disposed || !ReferenceEquals(historyRead, current)) { diagnostic.Complete("superseded"); return; }
             current.Token.ThrowIfCancellationRequested();
-            HistoryItems.ItemsSource = history.Select(receipt => new HistoryReceiptRow(receipt.StartedAt.ToLocalTime().ToString("g") + " · " +
+            HistoryItems.ItemsSource = history.Select(receipt => new HistoryReceiptRow(receipt.StartedAt.ToLocalTime().ToString("g") + ", " +
                 text.Get(receipt.State switch { PrivacyExecutionState.Completed => "Completed", PrivacyExecutionState.Partial => "Partially completed", _ => "In progress" }),
-                ReceiptRows(receipt).Select(row => row.SourceId + " · " + row.Detail).ToArray())).ToArray();
+                ReceiptRows(receipt).Select(row => row.SourceId + ", " + row.Detail).ToArray())).ToArray();
             AutomationProperties.SetItemStatus(HistoryItems, history.Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
             HistorySection.Visibility = history.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
             HistoryFailure.IsOpen = false;

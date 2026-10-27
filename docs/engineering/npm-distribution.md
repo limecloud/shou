@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/npm-distribution.md)
 
-Release scope: `@limecloud/shou@0.17.0` supports macOS through exact-version ARM64 and x64 platform packages. The source implements platform routing, native-package staging and an offline installation verifier; the source template is private `0.17.0`. Windows self-contained development payloads can be built. Native Windows npm acceptance, signing and registry publication remain pending.
+Release scope: `@limecloud/shou@0.18.0` supports macOS through exact-version ARM64 and x64 platform packages. The source implements platform routing, native-package staging and an offline installation verifier; the source template is private `0.18.0`. Windows self-contained development payloads can be built. Native Windows npm acceptance, signing and registry publication remain pending.
 
 ## Public entry
 
@@ -28,13 +28,13 @@ The design uses a small JavaScript launcher with platform-specific `optionalDepe
 
 | Package | `os` / `cpu` | Payload | Status |
 | --- | --- | --- | --- |
-| `@limecloud/shou` | OS/CPU pairs included in this staged artifact | Launcher, documentation and exact dependency versions | v0.17.0 macOS release scope |
-| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI and required resources | v0.17.0; native installation checked per architecture by release CI |
-| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI and required resources | v0.17.0; native installation checked per architecture by release CI |
+| `@limecloud/shou` | OS/CPU pairs included in this staged artifact | Launcher, documentation and exact dependency versions | v0.18.0 macOS release scope |
+| `@limecloud/shou-darwin-arm64` | `darwin` / `arm64` | Swift CLI and required resources | v0.18.0; native installation checked per architecture by release CI |
+| `@limecloud/shou-darwin-x64` | `darwin` / `x64` | Swift CLI and required resources | v0.18.0; native installation checked per architecture by release CI |
 | `@limecloud/shou-win32-arm64` | `win32` / `arm64` | Self-contained .NET CLI and required resources | Development staging implemented; native npm acceptance pending |
 | `@limecloud/shou-win32-x64` | `win32` / `x64` | Self-contained .NET CLI and required resources | Development staging implemented; native npm acceptance pending |
 
-Only the two macOS platform packages are included in v0.17.0. Windows packages remain development output. The source template sets `private=true` and is not published directly. Staging generates main-package dependencies only from supplied platform packages; development mode always stays private. Release artifacts must pass acceptance and their platform packages must be available in the registry before the corresponding main package is published. Source routing does not establish published platform support.
+Only the two macOS platform packages are included in v0.18.0. Windows packages remain development output. The source template sets `private=true` and is not published directly. Staging generates main-package dependencies only from supplied platform packages; development mode always stays private. Release artifacts must pass acceptance and their platform packages must be available in the registry before the corresponding main package is published. Source routing does not establish published platform support.
 
 ```mermaid
 flowchart TD
@@ -65,16 +65,16 @@ Platform packages export `payload.json` and `package.json`. Descriptor version 1
 `scripts/package-npm.py` provides `platform` and `launcher` subcommands and never publishes. For an existing self-contained Windows development payload:
 
 ```sh
-python3 "scripts/package-npm.py" platform --development --version 0.17.0 \
+python3 "scripts/package-npm.py" platform --development --version 0.18.0 \
   --platform win32-x64 --payload ".build/windows/publish/win-x64/cli" \
   --licenses ".build/windows/publish/win-x64/cli/notices" --output ".build/npm/win32-x64"
-python3 "scripts/package-npm.py" launcher --development --version 0.17.0 \
+python3 "scripts/package-npm.py" launcher --development --version 0.18.0 \
   --platform-package ".build/npm/win32-x64" --output ".build/npm/launcher"
 node --test "tests/npm/launcher.test.cjs"
 python3 "tests/npm/test-packaging.py"
 ```
 
-Use the corresponding platform name and payload for ARM64. macOS input contains a thin Swift executable and its three adjacent resource bundles; the dependency-notice directory includes `SwiftAISDK-LICENSE.txt`. Windows build entry points generate .NET licenses, third-party notices and Windows SDK origin/license links from the actual restored packages into `notices`; staging copies them intact. Native versions must match the npm version. The macOS app, CLI and npm release use `0.17.0`. Windows native payloads also report `0.17.0` and ship as GitHub portable previews. Windows npm staging remains private development output until native signing and npm acceptance are complete.
+Use the corresponding platform name and payload for ARM64. macOS input contains a thin Swift executable and its three adjacent resource bundles; the dependency-notice directory includes `SwiftAISDK-LICENSE.txt`. Windows build entry points generate .NET licenses, third-party notices and Windows SDK origin/license links from the actual restored packages into `notices`; staging copies them intact. Native versions must match the npm version. The macOS app, CLI and npm release use `0.18.0`. Windows native payloads also report `0.18.0` and ship as GitHub portable previews. Windows npm staging remains private development output until native signing and npm acceptance are complete.
 
 Each artifact records source commit/tree, working-tree content digest, dirty status, native/signature checks and final file hashes. Main-package staging rejects different versions, different source states and modified native packages. Release mode requires a clean checkout, matching native OS/architecture, native version/resource queries and signature verification. Development mode permits cross-host static checks and does not record them as native acceptance. Staging never rewrites, resigns or compresses native executables.
 

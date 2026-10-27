@@ -97,19 +97,18 @@ struct SmartScanView: View {
                 Text(model.t("Ready to clean")).font(.system(size: ShouDesign.workspaceTitleSize, weight: .medium))
                 HStack(spacing: 10) {
                     Text(String(format: model.t("%lld cleanup items found"), locale: model.language.locale, allGroups.count))
-                    Text("·")
                     Text(model.t(model.systemResult?.status == "complete" ? "Scan Complete" : "Partial Scan"))
                     if let result=model.systemResult, !result.issues.isEmpty {
                         Button { showIssues.toggle() } label: { Image(systemName: "info.circle") }
                             .buttonStyle(.plain).accessibilityLabel(model.t("Some locations need attention"))
                             .popover(isPresented: $showIssues) { issues(result) }
                     }
-                }.font(.callout).foregroundStyle(.secondary)
+                }.font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 6) {
                 Text(model.bytes(model.commonReview.bytes)).font(.system(size: ShouDesign.workspaceTitleSize, weight: .medium)).monospacedDigit()
-                Text(model.t("Found (estimate)")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Found (estimate)")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             Button { model.scanCommonLocations() } label: { Image(systemName: "arrow.clockwise") }
                 .buttonStyle(.bordered).controlSize(.large).help(model.t("Scan Again"))
@@ -123,7 +122,7 @@ struct SmartScanView: View {
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(String(format: model.t("%lld items selected"), locale: model.language.locale, selectedGroupCount))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     Text(model.t("Estimated Space to Free") + " " + model.bytes(model.commonSelectedBytes)).font(.system(size: ShouDesign.summaryFigureSize, weight: .medium)).monospacedDigit()
                         .contentTransition(.numericText(value: Double(model.commonSelectedBytes)))
                 }
@@ -148,11 +147,11 @@ struct SmartScanView: View {
     private func issues(_ result: SystemScanResult) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text(model.t("Some locations need attention")).font(.headline)
+                Text(model.t("Some locations need attention")).font(ShouType.body.weight(.semibold))
                 ForEach(Array(result.issues.enumerated()), id: \.offset) { _, issue in
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(model.t(result.locations.first { $0.id == issue.locationId }?.title ?? issue.locationId)).font(.callout.weight(.medium))
-                        Text(model.t(issue.message)).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                        Text(model.t(result.locations.first { $0.id == issue.locationId }?.title ?? issue.locationId)).font(ShouType.body.weight(.medium))
+                        Text(model.t(issue.message)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
                     }
                 }
             }.padding(20)
@@ -173,7 +172,7 @@ private struct SoftwareIcon: View {
     var body: some View {
         Group {
             if let icon=AppIdentity.applicationIcon(identifiers) { Image(nsImage: icon).resizable().interpolation(.high) }
-            else { Image(systemName: fallback).resizable().scaledToFit().padding(3).foregroundStyle(.secondary) }
+            else { Image(systemName: fallback).resizable().scaledToFit().padding(3).foregroundStyle(ShouPalette.secondary) }
         }.frame(width: ShouDesign.workspaceIconSize, height: ShouDesign.workspaceIconSize).accessibilityHidden(true)
     }
 }
@@ -190,8 +189,8 @@ struct CommonRuleRow: View {
     var body: some View {
         DisclosureGroup(isExpanded: $expanded) {
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(Array(Set(group.sources.flatMap { $0.candidate.rebuildNotes })).sorted(), id: \.self) { Text(model.t($0)).font(.callout).foregroundStyle(.secondary) }
-                ForEach(Array(Set(group.sources.flatMap { $0.candidate.limitations })).sorted(), id: \.self) { Label(model.t($0), systemImage: "info.circle").font(.caption).foregroundStyle(.secondary) }
+                ForEach(Array(Set(group.sources.flatMap { $0.candidate.rebuildNotes })).sorted(), id: \.self) { Text(model.t($0)).font(ShouType.body).foregroundStyle(ShouPalette.secondary) }
+                ForEach(Array(Set(group.sources.flatMap { $0.candidate.limitations })).sorted(), id: \.self) { Label(model.t($0), systemImage: "info.circle").font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                 ForEach(group.sources.prefix(visibleCount)) { source in
                     CleanupSourceRow(model: model, source: source)
                 }
@@ -211,14 +210,14 @@ struct CommonRuleRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(model.t(group.title)).font(.system(size: ShouDesign.bodyFontSize, weight: .medium))
                     Text(String(format: model.t("%lld locations"), locale: model.language.locale, group.sources.count))
-                        .font(.caption).foregroundStyle(.secondary)
-                    if selectable.isEmpty || group.sources.contains(where: \.requiresManualReview) { Text(model.t("Review required")).font(.caption).foregroundStyle(.secondary) }
-                    else if group.sources.contains(where: { $0.candidate.risk == "high" }) { Text(model.t("High risk")).font(.caption).foregroundStyle(.orange) }
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    if selectable.isEmpty || group.sources.contains(where: \.requiresManualReview) { Text(model.t("Review required")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
+                    else if group.sources.contains(where: { $0.candidate.risk == "high" }) { Text(model.t("High risk")).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
                 }
                 Spacer(minLength: 5)
                 VStack(alignment: .trailing, spacing: 3) {
-                    Text(model.bytes(group.bytes)).font(.callout).monospacedDigit()
-                    if selectedBytes > 0 { Text(model.t("Selected") + " " + model.bytes(selectedBytes)).font(.caption).foregroundStyle(.secondary).monospacedDigit() }
+                    Text(model.bytes(group.bytes)).font(ShouType.body).monospacedDigit()
+                    if selectedBytes > 0 { Text(model.t("Selected") + " " + model.bytes(selectedBytes)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).monospacedDigit() }
                 }
             }.padding(.vertical, ShouDesign.workspaceRowPadding).accessibilityElement(children: .contain)
         }

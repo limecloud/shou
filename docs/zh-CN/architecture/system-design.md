@@ -45,6 +45,8 @@ flowchart TB
 
 Core 拥有这些决策及所需能力接口；Platform 负责原生访问、身份、进程和存储；UI 负责导航、选择、呈现与调度。Windows Presentation 保持页面状态可在 macOS 独立测试。见[仓库边界](monorepo-and-platforms.md)。
 
+[工具管理](../product/developer-tools.md)使用独立目录、只读安装观察与软件包计划，不把发现或清理候选转换成卸载权限。Swift／C# Core 分别校验目录与当前一次性计划；Platform 分别读取管理器／文件事实并执行固定包操作，UI 组织开发者工具与 AI 工作台。AI 软件管理与可选规则调查不是同一领域；未接入来源、服务与配置功能的状态须如实保留。
+
 ## 统一遍历边界
 
 各平台内部把目录读取、清单比较与不可变分页记录作为可复用底层能力。macOS 计量与目标检查共用 `NativeDirectoryReader`；Windows 扫描与原生核验共用基于句柄的 `NativeDirectoryReader`。Core 在一次请求内建立索引和策略上下文，供分类、选择与审阅复用，不跨操作缓存授权证据。

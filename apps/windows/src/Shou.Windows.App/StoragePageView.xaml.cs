@@ -203,8 +203,8 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
             rendered = snapshot with { Entries = snapshot.Entries.Where(value => !removed.Any(path => value.Entry.Path.IsWithin(path, caseSensitive: true))).ToImmutableArray() };
             analysis = new(rendered); selection?.Clear(); RefreshResults();
             FailureNotice.Severity = result.State == CleanupExecutionState.Completed ? InfoBarSeverity.Success : InfoBarSeverity.Warning;
-            FailureNotice.Message = ReviewText.ExecutionState(text, result.State) + " · " + result.Id + Environment.NewLine +
-                string.Join(Environment.NewLine, result.Items.Where(item => item.State != CleanupItemState.Purged).Select(item => ReviewText.ItemState(text, item.State) + " · " + ReviewText.Error(text, item.Reason)));
+            FailureNotice.Message = ReviewText.ExecutionState(text, result.State) + ", " + result.Id + Environment.NewLine +
+                string.Join(Environment.NewLine, result.Items.Where(item => item.State != CleanupItemState.Purged).Select(item => ReviewText.ItemState(text, item.State) + ", " + ReviewText.Error(text, item.Reason)));
             FailureNotice.IsOpen = true;
         }
         catch (Exception error) { diagnostic.Fail(error); Fail(error); }
@@ -220,7 +220,7 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         focus = row;
         UpdateMapHeading();
         DrawMap();
-        ToolTipService.SetToolTip(SelectionDetails, row.Path.Value + " · " + row.DisplaySize);
+        ToolTipService.SetToolTip(SelectionDetails, row.Path.Value + ", " + row.DisplaySize);
     }
     private void OpenDirectory(WindowsPath path)
     {

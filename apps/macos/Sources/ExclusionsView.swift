@@ -43,8 +43,8 @@ struct ExclusionsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Exclusions")).font(.title2.bold())
-            Text(model.t("Excluded content also protects its parent cleanup target. Changes require a fresh scan.")).font(.callout).foregroundStyle(.secondary)
+            Text(model.t("Exclusions")).font(ShouType.title.bold())
+            Text(model.t("Excluded content also protects its parent cleanup target. Changes require a fresh scan.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             Picker(model.t("Exclusion Scope"), selection: $scope) {
                 Text(model.t("All Workspaces")).tag("global")
                 Text(model.t("Workspace")).tag("workspace")
@@ -57,14 +57,14 @@ struct ExclusionsView: View {
                         Text(model.knownLocations.first { $0.path == root.path }.map { model.t($0.title) } ?? root.path).tag(root.id)
                     }
                 }.disabled(saving || model.configuration.workspaces.isEmpty)
-                if let workspace { Text(workspace.path).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled) }
+                if let workspace { Text(workspace.path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled) }
             } else {
-                Text(model.t("Global patterns apply relative to every current and future workspace. Earlier builds cannot read the upgraded configuration.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Global patterns apply relative to every current and future workspace. Earlier builds cannot read the upgraded configuration.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             if scope == "project" {
                 TextField(model.t("Project directory relative to workspace"), text: $project).textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("exclusions.project")
-                Text(model.t("Use an exact relative project directory. Leave the pattern empty to protect the whole project.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Use an exact relative project directory. Leave the pattern empty to protect the whole project.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             HStack {
                 TextField(model.t("Relative exclusion pattern"), text: $pattern).textFieldStyle(.roundedBorder)
@@ -74,19 +74,19 @@ struct ExclusionsView: View {
                     .accessibilityIdentifier("exclusions.add")
             }.disabled(saving)
             if let resolvedPattern {
-                Text(resolvedPattern).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                Text(resolvedPattern).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
             } else {
-                Text(model.t("Use relative patterns such as **/target/** or **/keep/**. Absolute paths and parent traversal are not allowed.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Use relative patterns such as **/target/** or **/keep/**. Absolute paths and parent traversal are not allowed.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
-            if let message=issue ?? inputIssue { Text(message).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
+            if let message=issue ?? inputIssue { Text(message).font(ShouType.caption).foregroundStyle(ShouPalette.danger).textSelection(.enabled) }
             Divider()
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(model.t(scope == "global" ? "Global Exclusions" : "Workspace Exclusions")).font(.headline)
-                    if entries.isEmpty { Text(model.t("No exclusions in this scope.")).foregroundStyle(.secondary).padding(.vertical, 12) }
+                    Text(model.t(scope == "global" ? "Global Exclusions" : "Workspace Exclusions")).font(ShouType.body.weight(.semibold))
+                    if entries.isEmpty { Text(model.t("No exclusions in this scope.")).foregroundStyle(ShouPalette.secondary).padding(.vertical, 12) }
                     ForEach(entries, id: \.self) { entry in
                         HStack {
-                            Text(entry).font(.callout.monospaced()).textSelection(.enabled)
+                            Text(entry).font(ShouType.body.monospaced()).textSelection(.enabled)
                             Spacer()
                             Button { remove(entry) } label: { Label(model.t("Remove Exclusion"), systemImage: "xmark.circle") }
                                 .disabled(saving || model.busy).buttonStyle(.bordered)
@@ -94,9 +94,9 @@ struct ExclusionsView: View {
                     }
                     if scope != "global", !globalPatterns.isEmpty {
                         Divider()
-                        Text(model.t("Inherited Global Exclusions")).font(.headline)
-                        ForEach(globalPatterns, id: \.self) { Text($0).font(.callout.monospaced()).textSelection(.enabled) }
-                        Text(model.t("Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition.")).font(.caption).foregroundStyle(.secondary)
+                        Text(model.t("Inherited Global Exclusions")).font(ShouType.body.weight(.semibold))
+                        ForEach(globalPatterns, id: \.self) { Text($0).font(ShouType.body.monospaced()).textSelection(.enabled) }
+                        Text(model.t("Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }

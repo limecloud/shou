@@ -39,9 +39,9 @@ struct AgentRuleSetupView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Label(model.t("Customize with AI"), systemImage: "sparkles").font(.title2.bold())
+            Label(model.t("Customize with AI"), systemImage: "sparkles").font(ShouType.title.bold())
             Text(model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ShouPalette.secondary)
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Picker(model.t("Your AI Agent"), selection: $client) {
@@ -55,36 +55,36 @@ struct AgentRuleSetupView: View {
                 }
                 if let selected = AgentSkillInstallation.Client(rawValue: client) {
                     Text(selected.skillsDirectory().appendingPathComponent(ShouAgentSkill.name).path)
-                        .font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                        .font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
                     Text(model.t(client == "codex" ? "After installation, use $shou-rule-authoring in Codex. Restart Codex if it does not appear." : "After installation, use /shou-rule-authoring in a local Claude Code session."))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 } else {
                     Text(model.t("In WorkBuddy, open Skills → Add Skill → Upload Skill, select the ZIP, enable it, and start a new task."))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
                 if let installation {
                     Label(model.t(installation.state == "already_current" ? "Skill is already up to date." : "Skill installed. Open your agent to use it."), systemImage: "checkmark.circle.fill")
-                        .font(.caption).foregroundStyle(.green).accessibilityIdentifier("rules.agent.installed")
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.success).accessibilityIdentifier("rules.agent.installed")
                 }
-                if exported { Text(model.t("Skill ZIP exported. Upload it in WorkBuddy to finish installation.")).font(.caption).foregroundStyle(.green) }
+                if exported { Text(model.t("Skill ZIP exported. Upload it in WorkBuddy to finish installation.")).font(ShouType.caption).foregroundStyle(ShouPalette.success) }
             }
-            .padding(14).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
+            .padding(14).background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 10))
             VStack(alignment: .leading, spacing: 12) {
                 Label(model.t("1. Copy the request to Codex, Claude Code, or WorkBuddy."), systemImage: "doc.on.doc")
                 Label(model.t("2. Answer questions about your projects and what to keep."), systemImage: "text.bubble")
                 Label(model.t("3. Review the draft in Shou, then enable it when ready."), systemImage: "checkmark.circle")
                 Label(model.t("4. Clean selected rules, then verify the result and retained items."), systemImage: "checkmark.seal")
-            }.font(.callout)
+            }.font(ShouType.body)
             ScrollView {
-                Text(prompt).font(.callout.monospaced()).textSelection(.enabled)
+                Text(prompt).font(ShouType.body.monospaced()).textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(14)
             }
-            .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.primary.opacity(0.1)))
+            .background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(ShouPalette.border, lineWidth: ShouDesign.hairlineWidth))
             .accessibilityIdentifier("rules.agent.prompt")
             Text(model.t("Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou."))
-                .font(.caption).foregroundStyle(.secondary)
-            if let issue { Text(issue).font(.caption).foregroundStyle(.red) }
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            if let issue { Text(issue).font(ShouType.caption).foregroundStyle(ShouPalette.danger) }
             HStack {
                 Button(model.t("Show Skill in Finder…")) {
                     do { NSWorkspace.shared.activateFileViewerSelecting([try ShouAgentSkill.directory().appendingPathComponent("SKILL.md")]) }

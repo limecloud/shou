@@ -12,12 +12,13 @@ Give names, paths and sizes the available width instead of persistent navigation
 
 ## Navigation and composition
 
-Primary navigation sits at the top: Cleanup, Apps & Projects, Space Analysis, Monitor and Rules. History and Settings have stable controls on the right. Secondary navigation belongs below it:
+Primary navigation sits at the top: Cleanup, Apps & Projects, Tools, Space Analysis, Monitor and Rules. History and Settings have stable controls on the right. Secondary navigation belongs below it:
 
 | Primary destination | Tasks |
 | --- | --- |
 | Cleanup | Smart Cleanup and Privacy |
 | Apps & Projects | Applications, Developer Projects and Startup Items; leftovers are reached from Applications |
+| Tools | [Developer Tools](../product/developer-tools.md) and [AI Workbench](../product/ai-workbench.md), independent of project cleanup |
 | Space Analysis | Space Analysis and Large Files |
 | Rules | Built-in/personal rules, scan locations and exclusions |
 
@@ -58,7 +59,13 @@ Space Analysis and Large Files retain their existing [storage contract](../produ
 
 Applications use spacious rows with icon, name/version, status, size and last use. Inline details show related components and exact paths. Personal-data consent stays beside component selection. Unknown ownership and shared data remain protected or unavailable. Uninstall retains independent component, personal-data and system-identity checks, with one inline action confirming the current selection and no duplicate dialog.
 
-Update checks live in inline app details, explain the single-app network source and start only when clicked. Show versions, observation time and unknown causes; users explicitly open the official entry. Reuse the existing list/disclosure without another top-level update navigation item. [Update discovery](../product/application-updates.md) owns source and version limits.
+Update checks live in inline app details, explain the single-app network source and start only when clicked. Show versions, observation time and unknown causes; users explicitly open the official entry. Reuse the existing list/disclosure without another top-level update navigation item. [Update discovery and controlled upgrades](../product/application-updates.md) owns source and version limits.
+
+macOS Applications uses Applications / Homebrew / mise source tabs. Package-manager start pages keep the shared artwork; checked results use the full-width list. Names, installed/target versions, package kind, eligibility, search, updates-only filtering and the stable action footer remain visible. Individual or batch upgrades enter an inline frozen-selection review, then the primary Confirm Upgrade action executes once. Keep it distinct from red permanent deletion without another confirmation. Results distinguish verified, not started, blocked before dispatch and uncertain outcomes; another check is required before retrying.
+
+Windows opens a native WinGet window from Application Updates with version comparison, filtering and selection. Review freezes and displays the complete selected scope, including packages hidden by a filter; search and selection are disabled until Cancel returns to selection. The blue Confirm Upgrade action executes the plan once without another dialog. Execution blocks exit; Stop waits for the current installer result. Platform sources differ, so inactive Homebrew/mise placeholders do not establish parity. See [application-upgrade design analysis](application-upgrade-review.md) for reference evidence and adoption boundaries.
+
+Shou self-updates live in Settings → About Shou without another top-level navigation item. Native update windows emphasize the brand icon, version difference, scrollable notes and primary update action, with checking, up-to-date, incompatible and connection-failure feedback. macOS shows the last check and automatic check/install options; Windows portable builds explain manual replacement, and closing the dialog promises no background reminder. [Desktop update behavior](releasing.md#desktop-update-behavior) owns installation and signature boundaries.
 
 Developer Projects groups build outputs and dependencies using observed project markers. Unidentified projects explicitly fall back to the scan location. Displayed capacity covers matched cleanup items, not the entire source repository. Smart Cleanup and Projects share candidate identity, rules and selection; project actions prepare only the project scope. See [Apps & Projects](../product/apps-and-projects.md).
 
@@ -81,3 +88,25 @@ Use generated data for empty, loading, partial, ready, confirming, executing, st
 ## System monitor
 
 Monitoring uses two rows of eight panels: resource status, CPU, GPU, memory; battery, disk, network, thermals and fans. Trends sit inside their panels above the full-width process list with search/sort; per-core CPU and memory details expand progressively. Retain the full-window gradient, readable translucent surfaces, shared radii and body text, with scrolling at 960 × 680. Explain the load-status basis without an unsupported health score; unknown sensors stay missing. Status bar, Dock, tray and supported taskbar entries share sampling state and strings, with open/pause/disable commands and normal native exit. The [monitoring contract](../product/system-monitor.md) owns metrics, permissions and verification.
+
+## Interface style baseline
+
+Applies to every native page in this repository, including the added Developer Tools, AI Workbench, MySQL administration and update interfaces. Existing pages are included.
+
+1. Do not use middle dots as copy separators. Prefer aligned columns for source/version/state, colons for label/value pairs, and commas or line breaks for sequences. Preserve original filenames, code and log contents.
+2. Remove repeated headings, standing tutorials and explanatory clutter. Keep relevant state, scope, limitations, failures and consequences. Put consequences in the existing review step without repeated confirmation.
+3. Write concise, accurate copy for the current audience. Use clear action verbs; avoid casual wording, invented terms and unnecessary implementation details.
+4. Use [Radix UI Colors](https://www.radix-ui.com/colors/docs/palette-composition/understanding-the-scale) for all custom interface colors. Shared tokens own editable design values; the [scale mapping](../../assets/design/radix-colors.json) records the official revision and provenance, checked offline by the generator. Slate is neutral, Teal is the accent, and Green/Amber/Red express success/attention/danger. Steps 1–2 are backgrounds, 3–5 interactive surfaces, 6–8 borders/focus, 9–10 solid actions, 11 supporting/semantic text and 12 primary text. Accent text uses Teal 11; check text contrast on solid buttons. System-owned windows and high-contrast mode retain native accessibility semantics. Brand bitmaps are distinct from interface colors.
+5. Align text baselines, optical icon centers and table columns. Nested radii follow the outer radius minus padding; inner radii never exceed outer radii. Use square inner regions when padding consumes the radius and avoid nested cards.
+6. Custom borders and separators use shared `ShouHairlineWidth = 0.5` logical units: pt on macOS and DIP on WinUI. Native focus rings and data chart strokes retain their functional dimensions.
+7. Avoid decorative animation. Necessary transitions use ease-out/250 ms and respect Reduce Motion. Avoid simultaneous loading indicators and looping decoration.
+8. Prefer three text sizes per page, never more than four, with a minimum of 12. Working pages use 12/14/22: 14 body, 12 paths/supporting state and 22 main headings. Use weight, semantic color and spacing for remaining hierarchy. Review icon sizes separately.
+9. Reduce extra decisions. Put necessary choices in existing source/object selection or review steps. Preserve exact scope and single confirmation contracts without redundant dialogs or removing required consequences.
+10. Use radii and shadows to establish useful control boundaries. Prefer whitespace and 0.5 separators for lists; no decorative colored card edge. Preserve capsule switches and usable hit targets.
+11. Remove Eyebrows/Overlines that repeat headings. Keep one only when it adds classification or context; use typography, weight and whitespace for hierarchy.
+
+The repository skill references this section; do not install global rules. Native acceptance covers both appearances, minimum window size, long paths, list selection and existing reviews. Synchronized Windows source/resources do not establish WinUI acceptance.
+
+## Tool rail and source table
+
+Developer Tools and AI Workbench share a compact toolbar, 232 pt independently scrolling category rail and persistent source/version/path table. My Workspace is the default; Add Tools incorporates installed state. Direct capsule switches control only a unique verified source; multiple versions are explicit, and unknown/unsupported/gated state is labeled. Configuration & Extensions retains the same shell. Widths come from canonical tokens. Verify the minimum viewport without letting oversized artwork displace working rows. See [tool management](../product/developer-tools.md).

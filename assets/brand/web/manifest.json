@@ -17,10 +17,10 @@
     "illustrations/settings.webp": "51a66a59332532408cb4e9eb96028d72b06d70c57fb5f64d961919f1eede2f5a",
     "illustrations/space.webp": "92d5b20be287a26fa42c476737ab466525380b146215501ff00323d8ae4dbc9b",
     "illustrations/startup.webp": "5295e5fb7c2862c5108dc03d0d17c54d9c2545fdd8447641f2f8fa3a00ccaf89",
-    "logo-horizontal-dark.png": "605f82f3b34e8784cd6b18882114d844cb136b31db1e56121d3b4b64339e558a",
-    "logo-horizontal-dark.webp": "80e691fd92aa9bc414e9287a67d0e743b89e5df11560d31c1f98e5971a270aaa",
-    "logo-horizontal-light.png": "d3113fa463656938a6e39b5911ca6bcb9bf8bcc11c1b21fce5f87e840cc76a53",
-    "logo-horizontal-light.webp": "aaad8559726b76d8cf12579bd703e5ad3b3f8c5e1eecaf264c588b5d2a6be7b9",
+    "logo-horizontal-dark.png": "858bc224153bb8a8db7efe64053bcd3df92004ad3f623454afcf725d56821a8c",
+    "logo-horizontal-dark.webp": "49fd133f9e4d73733cabf29253716de2ceff36c86377067397605166bdbd5f16",
+    "logo-horizontal-light.png": "faa52a533d8b1e838d6f9b822631c698adcb484a9d6ba95edc206b88226ee07b",
+    "logo-horizontal-light.webp": "8a203a255f283ec3e8fe92a536bf50d64adf2312e43a68f60a4edac0127c212c",
     "logo-symbol.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
     "logo-symbol.webp": "5a91846496df492f6c1bb3e4917ccef3a637e882015f08fa0fc0196482218026"
   },
@@ -38,7 +38,7 @@
     "assets/design/illustrations/settings.png": "cbdef3510bf3c57c4986abfeaeba77d86e5e39405528cc2e0c6276ef5287d970",
     "assets/design/illustrations/space.png": "77283c2fec7883d4c0bb0897877927f6932af4d5592152634db620930f892418",
     "assets/design/illustrations/startup.png": "037e1ec9b918d877870b60a6632447aedc19b7af8acdd8a35259f0c0a9001542",
-    "assets/design/tokens.json": "64aabd8173ae04c70cc291d3411df7fb1b64e51b00ac761095c55ecb203fdbbd",
+    "assets/design/tokens.json": "4571ac66463d78a0e1db9c0b3027405a1e04b91ae0b850e0c94c457e04e23190",
     "scripts/export-web-brand.py": "2ef92177387f735bf6ffe38f69c7996ead92a35f4e88f7af5a868f1db25e3e69"
   },
   "wordmark_font": {

@@ -25,10 +25,21 @@
           "Microsoft.WindowsAppSDK.WinUI": "[1.8.260803003]"
         }
       },
+      "Microsoft.WindowsPackageManager.ComInterop": {
+        "type": "Direct",
+        "requested": "[1.10.340, )",
+        "resolved": "1.10.340",
+        "contentHash": "iNWZhSuGh33/BHK0v0g19LShBMuWYqeLnjjTCLd76txXcXa8vHOZRZ70FVo+2icl1k8dw3rSW7vB4lt5lbu94g=="
+      },
       "Microsoft.Web.WebView2": {
         "type": "Transitive",
         "resolved": "1.0.3179.45",
         "contentHash": "3pokSH5CnN0G6rGhGFo1y87inxYhNxBQ2Vdf0wlvBj99KHxQJormjDACmqRnFeUsmuNFIhWwfAL1ztq7wD5qRA=="
+      },
+      "Microsoft.Windows.CsWinRT": {
+        "type": "Transitive",
+        "resolved": "2.2.0",
+        "contentHash": "R8MDVawukHrKgYCFgYaoLfbAna/FrImEFRxDK9k8ITbrXv3KLE5uN6tRqrNV83H4MFdqJ/uiA/hg1cSsXkl0vw=="
       },
       "Microsoft.Windows.SDK.BuildTools.MSIX": {
         "type": "Transitive",
@@ -126,13 +137,15 @@
       "shou.windows.platform": {
         "type": "Project",
         "dependencies": {
-          "Shou.Windows.Core": "[1.0.0, )"
+          "Microsoft.Windows.CsWinRT": "[2.2.0, )",
+          "Microsoft.WindowsPackageManager.ComInterop": "[1.10.340, )",
+          "Shou.Windows.Core": "[0.17.0, )"
         }
       },
       "shou.windows.presentation": {
         "type": "Project",
         "dependencies": {
-          "Shou.Windows.Core": "[1.0.0, )"
+          "Shou.Windows.Core": "[0.17.0, )"
         }
       }
     },

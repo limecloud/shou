@@ -14,35 +14,35 @@ struct HistoryInspectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Verify Cleanup Locations")).font(.title2.bold())
-            Text(model.t("Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.")).font(.callout).foregroundStyle(.secondary)
-            Text(executionId).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+            Text(model.t("Verify Cleanup Locations")).font(ShouType.title.bold())
+            Text(model.t("Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+            Text(executionId).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
             if checking {
                 ActivityIndicator(title: model.t("Verifying recorded locations…")).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let report {
                 if report.unfinished {
                     Label(model.t("This record has unfinished actions. Verification does not retry them or authorize another operation."), systemImage: "exclamationmark.triangle")
-                        .font(.callout).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                        .font(ShouType.body).foregroundStyle(ShouPalette.warning).fixedSize(horizontal: false, vertical: true)
                 }
-                Text(model.date(report.checkedAt)).font(.caption).foregroundStyle(.secondary)
+                Text(model.date(report.checkedAt)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 12) {
                         ForEach(report.items) { item in
                             VStack(alignment: .leading, spacing: 10) {
-                                Text(item.relativePath).font(.callout.monospaced().bold()).textSelection(.enabled)
+                                Text(item.relativePath).font(ShouType.body.monospaced().bold()).textSelection(.enabled)
                                 Label(model.t(label(item.state)), systemImage: ["needs_verification", "missing", "restore_conflict"].contains(item.state) ? "exclamationmark.triangle" : "checkmark.circle")
-                                    .font(.callout).foregroundStyle(["needs_verification", "missing", "restore_conflict"].contains(item.state) ? Color.orange : Color.primary)
+                                    .font(ShouType.body).foregroundStyle(["needs_verification", "missing", "restore_conflict"].contains(item.state) ? ShouPalette.warning : ShouPalette.text)
                                 observation(item.original, title: "Original Location")
                                 observation(item.trash, title: "Recorded Trash Location")
                                 if item.followUp?.state == "pending" {
-                                    Text(model.t("Follow-up needs verification")).font(.caption).foregroundStyle(.orange)
+                                    Text(model.t("Follow-up needs verification")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                                 }
                             }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
                                 .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 9))
                         }
                     }
                 }
-                Text(model.t("These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             } else if let issue {
                 ContentUnavailableView { Label(model.t("Verification unavailable"), systemImage: "exclamationmark.triangle") }
                     description: { Text(model.diagnostic(issue)) }
@@ -64,9 +64,9 @@ struct HistoryInspectionView: View {
 
     private func observation(_ value: HistoryObjectObservation, title: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack { Text(model.t(title)).font(.caption.bold()); Spacer(); Text(model.t(observationLabel(value.state))).font(.caption) }
-            if let path=value.path { Text(path).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
-            if let issue=value.issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.secondary) }
+            HStack { Text(model.t(title)).font(ShouType.caption.bold()); Spacer(); Text(model.t(observationLabel(value.state))).font(ShouType.caption) }
+            if let path=value.path { Text(path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
+            if let issue=value.issue { Text(model.diagnostic(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
         }
     }
     private func label(_ state: String) -> String {

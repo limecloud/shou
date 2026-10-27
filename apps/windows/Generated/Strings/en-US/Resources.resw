@@ -18,6 +18,9 @@
   <data name="sf81c8a21cee5f74226753576" xml:space="preserve">
     <value>{0} applications selected</value>
   </data>
+  <data name="s498a8c95b6128f85a89cb1e0" xml:space="preserve">
+    <value>{0} available application updates</value>
+  </data>
   <data name="s18e99d8099999283b973f64f" xml:space="preserve">
     <value>{0} cleanup items found</value>
   </data>
@@ -34,10 +37,19 @@
     <value>{0} entries removed</value>
   </data>
   <data name="sacbdad808015c8fb4b974cc0" xml:space="preserve">
-    <value>{0} examined · {1} changed observations · {2} shown</value>
+    <value>{0} examined, {1} changed observations, {2} shown</value>
+  </data>
+  <data name="s32c5d82610d94fa7c237938f" xml:space="preserve">
+    <value>{0} examined, {1} changed observations, {2} shown</value>
   </data>
   <data name="sad2c1c2fc9c38ad5ff5dac83" xml:space="preserve">
     <value>{0} files</value>
+  </data>
+  <data name="s7341164a0136104384cc1746" xml:space="preserve">
+    <value>{0} installed, {1} updates</value>
+  </data>
+  <data name="s8735f566d9ec9216044fcc97" xml:space="preserve">
+    <value>{0} installed, {1} updates</value>
   </data>
   <data name="sd798260585aa4d8d018535a8" xml:space="preserve">
     <value>{0} items</value>
@@ -76,7 +88,10 @@
     <value>{0} matching records</value>
   </data>
   <data name="s4078dde1648488e2a308e2a6" xml:space="preserve">
-    <value>{0} matching · {1} protected · {2} outside conditions</value>
+    <value>{0} matching, {1} protected, {2} outside conditions</value>
+  </data>
+  <data name="s995561eb2d74030a8d16c6ce" xml:space="preserve">
+    <value>{0} matching, {1} protected, {2} outside conditions</value>
   </data>
   <data name="sa27e3ae01c93934682ebc6c7" xml:space="preserve">
     <value>{0} of {1} applications checked</value>
@@ -86,6 +101,9 @@
   </data>
   <data name="s454dc3e04a4e7565f0afefb3" xml:space="preserve">
     <value>{0} of {1} items processed</value>
+  </data>
+  <data name="scfbec74918baae02ba284f3b" xml:space="preserve">
+    <value>{0} of {1} processed</value>
   </data>
   <data name="s97e84e9686f8c900d5d36d18" xml:space="preserve">
     <value>{0} of {1} selected</value>
@@ -97,16 +115,25 @@
     <value>{0} privacy sources inspected</value>
   </data>
   <data name="s83f58353b6a36cacffc3c629" xml:space="preserve">
-    <value>{0} records · {1} of local data</value>
+    <value>{0} records, {1} of local data</value>
+  </data>
+  <data name="s023956f4cec8a2eade0b1acf" xml:space="preserve">
+    <value>{0} records, {1} of local data</value>
   </data>
   <data name="s1d9d4b71f176c81de203110d" xml:space="preserve">
     <value>{0} registered applications</value>
   </data>
   <data name="s3cb3a1ae7e99a62e03c2156c" xml:space="preserve">
-    <value>{0} requests · {1} reported tokens</value>
+    <value>{0} requests, {1} reported tokens</value>
+  </data>
+  <data name="s619812deebdc43b18b26cdcf" xml:space="preserve">
+    <value>{0} requests, {1} reported tokens</value>
   </data>
   <data name="s9cbe2bacb675df35838fb53e" xml:space="preserve">
     <value>{0} rules</value>
+  </data>
+  <data name="s7aeb346773d61f7a02ca6818" xml:space="preserve">
+    <value>{0} selected</value>
   </data>
   <data name="s331107e811b4edef4e078554" xml:space="preserve">
     <value>{0} startup entries</value>
@@ -118,7 +145,10 @@
     <value>{0} startup registrations</value>
   </data>
   <data name="sd109a57a4f6e238f9fd99cfe" xml:space="preserve">
-    <value>{0} steps · {1} evidence rows</value>
+    <value>{0} steps, {1} evidence rows</value>
+  </data>
+  <data name="s44982d8e86c32fbc71469770" xml:space="preserve">
+    <value>{0} steps, {1} evidence rows</value>
   </data>
   <data name="scfde3d12249ea109f0bb8609" xml:space="preserve">
     <value>1. Copy the request to Codex, Claude Code, or WorkBuddy.</value>
@@ -168,8 +198,17 @@
   <data name="s9724eacfc54d05ad979c82e9" xml:space="preserve">
     <value>A matching catalog version could not be verified for this system.</value>
   </data>
+  <data name="s514ae280152796a07b1ccb08" xml:space="preserve">
+    <value>A new localhost account receives privileges on this database only. Existing usernames are rejected; no global grant or GRANT OPTION is added.</value>
+  </data>
+  <data name="s8a8aa52abbb1752e7346190c" xml:space="preserve">
+    <value>A new version of Shou is available.</value>
+  </data>
   <data name="sd0203f50c89ead9fa3480342" xml:space="preserve">
     <value>A preset requires a name and explicit rules.</value>
+  </data>
+  <data name="s5b977e0d20caead9bafb51ac" xml:space="preserve">
+    <value>A process from this installation is running outside the selected service source. Manage it in its owning application.</value>
   </data>
   <data name="sddd7b84279f88aa08afe4e26" xml:space="preserve">
     <value>A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count.</value>
@@ -204,6 +243,12 @@
   <data name="sd5975f41c92a72b5411b1152" xml:space="preserve">
     <value>AC Power</value>
   </data>
+  <data name="s5510f99112dc8ca136cc3916" xml:space="preserve">
+    <value>AI &amp; Automation</value>
+  </data>
+  <data name="scde8865d66e3661590bcc613" xml:space="preserve">
+    <value>AI Coding</value>
+  </data>
   <data name="s2ec14428b5e2e2a75454f92c" xml:space="preserve">
     <value>AI Configuration</value>
   </data>
@@ -215,6 +260,9 @@
   </data>
   <data name="se0d0824b7191c007ec14817c" xml:space="preserve">
     <value>AI Models</value>
+  </data>
+  <data name="se314e0f99514e9aee074dfd5" xml:space="preserve">
+    <value>AI Workbench</value>
   </data>
   <data name="sfe0b8f5290d335196adac406" xml:space="preserve">
     <value>AI configuration not found.</value>
@@ -252,6 +300,9 @@
   <data name="se7cbee14fdd1677475f7101a" xml:space="preserve">
     <value>About Shou</value>
   </data>
+  <data name="sf63cc362a035eeff9a7d99b8" xml:space="preserve">
+    <value>Access Log</value>
+  </data>
   <data name="sd27df137f79b64adebb9526b" xml:space="preserve">
     <value>Access required</value>
   </data>
@@ -260,6 +311,18 @@
   </data>
   <data name="s25c936bed9bec336b77643e8" xml:space="preserve">
     <value>Access to this startup source was denied.</value>
+  </data>
+  <data name="s7e1b0d5641f2640ce9a953ec" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="s975260b5b61ba21b645d121d" xml:space="preserve">
+    <value>Accounts &amp; Passwords</value>
+  </data>
+  <data name="s415256733b72931fc64c7233" xml:space="preserve">
+    <value>Accounts retain their Host. MySQL does not provide plaintext passwords.</value>
+  </data>
+  <data name="sff8059dc6752afdd30d27593" xml:space="preserve">
+    <value>Actions</value>
   </data>
   <data name="s7fa43836f82d58cd2c361702" xml:space="preserve">
     <value>Active Ethernet / Wi-Fi interfaces</value>
@@ -275,6 +338,9 @@
   </data>
   <data name="s2635159e1a961ff9049b29b2" xml:space="preserve">
     <value>Add Exclusion</value>
+  </data>
+  <data name="s377d8e1f7e419af64ec4f37a" xml:space="preserve">
+    <value>Add Tools</value>
   </data>
   <data name="s144a41cdae6d286a2f8fce92" xml:space="preserve">
     <value>Add Workspace</value>
@@ -296,6 +362,12 @@
   </data>
   <data name="s7eb8bb827a22fe3156299e80" xml:space="preserve">
     <value>Add a project folder to inspect build outputs and project caches.</value>
+  </data>
+  <data name="sde161ac4087726413ce474f5" xml:space="preserve">
+    <value>Add to Workspace</value>
+  </data>
+  <data name="sa4fd24b0745f59f0fee2f738" xml:space="preserve">
+    <value>Add tools to your workspace</value>
   </data>
   <data name="s4c24a265255d754be0b2b56c" xml:space="preserve">
     <value>Additional Cleanup Estimate</value>
@@ -366,6 +438,12 @@
   <data name="sc6cc0996b16b8ee8e1757e57" xml:space="preserve">
     <value>All Scanned Folders</value>
   </data>
+  <data name="sb877e9212b41f8c8763b89c6" xml:space="preserve">
+    <value>All Sources</value>
+  </data>
+  <data name="sfbf893b063f6d4a2e9d2937c" xml:space="preserve">
+    <value>All Tools</value>
+  </data>
   <data name="sbc01325482f36133553683ef" xml:space="preserve">
     <value>All Types</value>
   </data>
@@ -408,6 +486,9 @@
   <data name="sb4839d001cbee958aca2adb6" xml:space="preserve">
     <value>An application or build tool may be using these files. Close it and scan again.</value>
   </data>
+  <data name="s627a90a6fe86a4acc8291a62" xml:space="preserve">
+    <value>An executable was found. Its version and runtime health have not been tested; discovery does not authorize uninstalling it.</value>
+  </data>
   <data name="s7ba8bd13c8ab6f7413d5d148" xml:space="preserve">
     <value>An existing CLI entry or parent is a symbolic link. It has been preserved.</value>
   </data>
@@ -434,6 +515,9 @@
   </data>
   <data name="s152ac585820c7b4c0b2cc4a3" xml:space="preserve">
     <value>Android generated caches</value>
+  </data>
+  <data name="sd08edd7f50ad0834af7a2b94" xml:space="preserve">
+    <value>Another Shou operation is using the local records. Try again after it finishes.</value>
   </data>
   <data name="sdceec8a15c6c437d2af2b329" xml:space="preserve">
     <value>Another Shou process is changing configuration or executing a plan.</value>
@@ -597,6 +681,9 @@
   <data name="s4d2263027bba56273e7d1161" xml:space="preserve">
     <value>Application uninstall</value>
   </data>
+  <data name="sff67105d6cadcb4ee052c3c1" xml:space="preserve">
+    <value>Application updates could not be checked. Try again.</value>
+  </data>
   <data name="sb3a195de0cfd913f1b39ff1e" xml:space="preserve">
     <value>Application, ownership, configuration or component contents changed; preview again.</value>
   </data>
@@ -690,8 +777,20 @@
   <data name="s3d6b341f2ae705b962c2d41a" xml:space="preserve">
     <value>Automatic updates are not available in this Windows preview.</value>
   </data>
+  <data name="sdd75d691cb513f28cfc216fb" xml:space="preserve">
+    <value>Automatically download and install updates</value>
+  </data>
   <data name="se674447337e83c1346f6122e" xml:space="preserve">
     <value>Available</value>
+  </data>
+  <data name="s331c0999db94a7c405a11aa5" xml:space="preserve">
+    <value>Available MySQL Packages</value>
+  </data>
+  <data name="s85de6a698ab1022ce5d32838" xml:space="preserve">
+    <value>Available Packages</value>
+  </data>
+  <data name="s12d731498e0517ac28fa4b6a" xml:space="preserve">
+    <value>Available Version</value>
   </data>
   <data name="sec3fa564cfb186743275b033" xml:space="preserve">
     <value>Available disk space</value>
@@ -704,6 +803,9 @@
   </data>
   <data name="s76900f1bfd16c8d4dd3d25e6" xml:space="preserve">
     <value>Back</value>
+  </data>
+  <data name="sfdc5ec700f27d86d45697891" xml:space="preserve">
+    <value>Back Up Selected Databases</value>
   </data>
   <data name="s14a3259a06c5fe41c704ff04" xml:space="preserve">
     <value>Back to Applications</value>
@@ -755,6 +857,9 @@
   </data>
   <data name="sc2d784268f63bb3763bacf0f" xml:space="preserve">
     <value>Brave download caches</value>
+  </data>
+  <data name="s46f0a270e0634307192b8e5c" xml:space="preserve">
+    <value>Browse All Tools</value>
   </data>
   <data name="sa3652e0db877bb4c17f98c59" xml:space="preserve">
     <value>Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings.</value>
@@ -813,6 +918,9 @@
   <data name="s54738fc4410d89648f4b59e9" xml:space="preserve">
     <value>Build tools recreate outputs when needed</value>
   </data>
+  <data name="s107315bb36c93d941f8147fa" xml:space="preserve">
+    <value>Build your developer workspace</value>
+  </data>
   <data name="safe03e65d305a9d8fd6dde07" xml:space="preserve">
     <value>Building the space map…</value>
   </data>
@@ -861,6 +969,9 @@
   <data name="saa70cf17297a4c4ca5479d90" xml:space="preserve">
     <value>Built-in scan locations are unavailable.</value>
   </data>
+  <data name="s90ce3961dd0e3f7606a0dc7e" xml:space="preserve">
+    <value>Bun storage</value>
+  </data>
   <data name="sb16b5175a5dffe32a7cf375a" xml:space="preserve">
     <value>Bundler download caches</value>
   </data>
@@ -887,6 +998,9 @@
   </data>
   <data name="sca12403385f178e38998d8b5" xml:space="preserve">
     <value>Cache Files</value>
+  </data>
+  <data name="s7fe16052b506a5f49b125866" xml:space="preserve">
+    <value>Caches &amp; Queues</value>
   </data>
   <data name="s224798dd3e432670e86dc8a5" xml:space="preserve">
     <value>Calculating…</value>
@@ -972,6 +1086,9 @@
   <data name="sab85221a476c5bbb86708031" xml:space="preserve">
     <value>Cargo source verification exceeded its time budget.</value>
   </data>
+  <data name="sebb6ec275cba28814e65bf39" xml:space="preserve">
+    <value>Cask</value>
+  </data>
   <data name="s077eccbc37a438dae4323242" xml:space="preserve">
     <value>Catalog Version</value>
   </data>
@@ -981,6 +1098,9 @@
   <data name="s292c06f0045a45d044be282b" xml:space="preserve">
     <value>Category</value>
   </data>
+  <data name="s31d2260d39b24f3b8b5057e2" xml:space="preserve">
+    <value>Change Account Password</value>
+  </data>
   <data name="s2adfaac9db7c36a040aa4f99" xml:space="preserve">
     <value>Changed since operation</value>
   </data>
@@ -989,6 +1109,9 @@
   </data>
   <data name="sb0f8ebff66fbded3703f2176" xml:space="preserve">
     <value>Changing the scheduled task…</value>
+  </data>
+  <data name="s346e389250d576796b50c6cc" xml:space="preserve">
+    <value>Character Set</value>
   </data>
   <data name="s22b693223fcb3be360b175bc" xml:space="preserve">
     <value>Charging</value>
@@ -1014,6 +1137,12 @@
   <data name="s3bde496d5b8adf6e7f2b76e9" xml:space="preserve">
     <value>Check Release Catalog</value>
   </data>
+  <data name="sc9725578854ce6222a59e6c5" xml:space="preserve">
+    <value>Check Software Updates</value>
+  </data>
+  <data name="sa4738b604a205c2e2304adaa" xml:space="preserve">
+    <value>Check Updates</value>
+  </data>
   <data name="s117ffb822009d7e36fe67efc" xml:space="preserve">
     <value>Check disk access, free space, and local records without changing files.</value>
   </data>
@@ -1026,11 +1155,20 @@
   <data name="s62ad8a5ecd06834db21d2784" xml:space="preserve">
     <value>Check installed applications</value>
   </data>
+  <data name="se227e142b356193a8781b92a" xml:space="preserve">
+    <value>Check installed versions again before another upgrade.</value>
+  </data>
   <data name="s4161cfad0e95827925fd3944" xml:space="preserve">
     <value>Check startup definitions</value>
   </data>
   <data name="s75e4d1797214185a4b0a4908" xml:space="preserve">
     <value>Check that the home volume is available, then run diagnostics again.</value>
+  </data>
+  <data name="safdecda74b071d2364b68b5f" xml:space="preserve">
+    <value>Check the database name, account, character set and selected instance.</value>
+  </data>
+  <data name="s692d88e61784ed4d29ec5b69" xml:space="preserve">
+    <value>Check the official WinGet catalog, review exact versions, then update the applications you select.</value>
   </data>
   <data name="sd54f85636abd6bde88ecf160" xml:space="preserve">
     <value>Check the relative path, project markers and discovery depth. Conditions and protections still apply.</value>
@@ -1038,11 +1176,20 @@
   <data name="sd6d07c512675c55089535ebf" xml:space="preserve">
     <value>Check the selected location and relative paths. A rule's location reference can be registered only once.</value>
   </data>
+  <data name="s00e84ea9ffa8190764315589" xml:space="preserve">
+    <value>Checking Service…</value>
+  </data>
   <data name="s214602b235b77871221d99af" xml:space="preserve">
     <value>Checking a rule suggestion…</value>
   </data>
   <data name="s7a897eac65196253b887c606" xml:space="preserve">
     <value>Checking disk access…</value>
+  </data>
+  <data name="s497a19986d82eb1fb4f14a56" xml:space="preserve">
+    <value>Checking for updates…</value>
+  </data>
+  <data name="sa96ed511e79235efd0e41880" xml:space="preserve">
+    <value>Checking installed software…</value>
   </data>
   <data name="s39a2a253b76649850d95e65a" xml:space="preserve">
     <value>Checking is read-only. No startup setting or file is changed.</value>
@@ -1068,8 +1215,14 @@
   <data name="sf9ebd9c0124d914422ed8e20" xml:space="preserve">
     <value>Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.</value>
   </data>
+  <data name="s322ebb70320df6d66f7cd67a" xml:space="preserve">
+    <value>Checks the official GitHub release. Downloads open only when you choose.</value>
+  </data>
   <data name="s74fb103943e71facd255140d" xml:space="preserve">
     <value>Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.</value>
+  </data>
+  <data name="s8670fb940b0e9d1c370ecb2a" xml:space="preserve">
+    <value>Choose Configuration File</value>
   </data>
   <data name="s8a3abe2abaa1e7dd0d6f7abd" xml:space="preserve">
     <value>Choose Folder for This Rule…</value>
@@ -1077,11 +1230,17 @@
   <data name="se272a99cb1842ce2358dd3b4" xml:space="preserve">
     <value>Choose Folder…</value>
   </data>
+  <data name="s7fc490550d738b3340c4fcdf" xml:space="preserve">
+    <value>Choose Log File</value>
+  </data>
   <data name="sb5a8a9cba3f590b8c9bc044a" xml:space="preserve">
     <value>Choose Project Folder…</value>
   </data>
   <data name="sa3a419d7e44b0d416e3709c7" xml:space="preserve">
     <value>Choose a .zip file for the Skill package.</value>
+  </data>
+  <data name="sc7bd40bc64cc1051c5198092" xml:space="preserve">
+    <value>Choose a database</value>
   </data>
   <data name="s9a81d770e056a2f6ecd401e7" xml:space="preserve">
     <value>Choose a development workspace. Scanning does not delete files.</value>
@@ -1113,6 +1272,9 @@
   <data name="s178e23383a530e74f5427eb9" xml:space="preserve">
     <value>Choose a scan location to manage built-in rules, or import a personal rule.</value>
   </data>
+  <data name="sadeb4e8e06f52fc24edcfd1f" xml:space="preserve">
+    <value>Choose a tool to manage its sources and versions.</value>
+  </data>
   <data name="s3bb5a035d01aefa41019ee2d" xml:space="preserve">
     <value>Choose a valid connection name and identifier.</value>
   </data>
@@ -1124,6 +1286,9 @@
   </data>
   <data name="sb734e42ebc552ff3582e22b4" xml:space="preserve">
     <value>Choose an absolute Skill path without traversal components.</value>
+  </data>
+  <data name="s0e4dbf48c2e075e25b6f9a4d" xml:space="preserve">
+    <value>Choose an account</value>
   </data>
   <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
     <value>Choose an applicable scan location</value>
@@ -1154,6 +1319,9 @@
   </data>
   <data name="sd08dcbcd3ba5d7b04dfa93a3" xml:space="preserve">
     <value>Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation.</value>
+  </data>
+  <data name="sfe5ab1f838cda1d52a94cec6" xml:space="preserve">
+    <value>Choose the exact log file for this instance.</value>
   </data>
   <data name="s1abd0b6009c104c1e510fb00" xml:space="preserve">
     <value>Choose the language used by Shou.</value>
@@ -1311,6 +1479,9 @@
   <data name="s290129e7ce1fa658b784ffdd" xml:space="preserve">
     <value>Clear Finished Records…</value>
   </data>
+  <data name="s01af7232ba0109965b625279" xml:space="preserve">
+    <value>Clear Log…</value>
+  </data>
   <data name="sd043e23a91ae5068843ed774" xml:space="preserve">
     <value>Clear Records</value>
   </data>
@@ -1322,6 +1493,9 @@
   </data>
   <data name="s3b7ea51793e9d906afa06afb" xml:space="preserve">
     <value>Clear search</value>
+  </data>
+  <data name="s9a81378b00d70e669413ed91" xml:space="preserve">
+    <value>Clearing…</value>
   </data>
   <data name="scc67f624e55b2570139f819d" xml:space="preserve">
     <value>Click to inspect. Double-click a folder to open it.</value>
@@ -1455,6 +1629,12 @@
   <data name="s648ae7e1eb17d527cb9d61da" xml:space="preserve">
     <value>Conditions matched. This remains a disabled draft until you explicitly enable it and scan again.</value>
   </data>
+  <data name="s23f858cbf12ac06b355174db" xml:space="preserve">
+    <value>Configuration &amp; Extensions</value>
+  </data>
+  <data name="scbcd58e17e8d72c9120b1306" xml:space="preserve">
+    <value>Configuration File</value>
+  </data>
   <data name="sc6a91fe878482e381905a6e2" xml:space="preserve">
     <value>Configuration Name</value>
   </data>
@@ -1466,6 +1646,18 @@
   </data>
   <data name="s6ce66e4feb699e663802d5cc" xml:space="preserve">
     <value>Configuration or directory identity changed during the scan; scan again.</value>
+  </data>
+  <data name="s6b5b3c69e02dd47e73c93615" xml:space="preserve">
+    <value>Configuration saved.</value>
+  </data>
+  <data name="s062578c64f1250902b3b4f10" xml:space="preserve">
+    <value>Configuration saved. Changes apply the next time this service starts.</value>
+  </data>
+  <data name="s1064c8b90898e7ccb04ebadf" xml:space="preserve">
+    <value>Configuration saved. For a stopped independent instance, review its updated registration before starting.</value>
+  </data>
+  <data name="sdefbecddf67b6bc1d984c455" xml:space="preserve">
+    <value>Configuration saved. Restart the selected instance to apply it.</value>
   </data>
   <data name="s43c16728d1edcb054ba450e4" xml:space="preserve">
     <value>Configure Jev before disabling the main model.</value>
@@ -1488,20 +1680,41 @@
   <data name="seebdd24a77d9ad32222660c0" xml:space="preserve">
     <value>Confirm</value>
   </data>
+  <data name="s81e717165d8c676df5f684d0" xml:space="preserve">
+    <value>Confirm Installation</value>
+  </data>
+  <data name="s169c0dc4024ea9cc3ea07ba7" xml:space="preserve">
+    <value>Confirm MySQL Change</value>
+  </data>
+  <data name="sb571523cc08114cf03669fd6" xml:space="preserve">
+    <value>Confirm Registration Change</value>
+  </data>
   <data name="s84b224b7a6366ba71de58b05" xml:space="preserve">
     <value>Confirm Task Change</value>
   </data>
   <data name="se664b7299fe5bb7b19f94169" xml:space="preserve">
     <value>Confirm Uninstall</value>
   </data>
+  <data name="s71a4ab02e4c28d259904eb60" xml:space="preserve">
+    <value>Confirm Upgrade</value>
+  </data>
   <data name="s2f53113cb55cc15b71b63e66" xml:space="preserve">
     <value>Confirmation does not match the current plan.</value>
+  </data>
+  <data name="s0ddce6dfc13917f48d596193" xml:space="preserve">
+    <value>Connect &amp; Read Databases</value>
   </data>
   <data name="s9e066c1418cb47ff692f5fb1" xml:space="preserve">
     <value>Connect a Model</value>
   </data>
+  <data name="s6abacc13bbc8daf2f867467c" xml:space="preserve">
+    <value>Connect to MySQL</value>
+  </data>
   <data name="sde3b8953c62f56a5d08967f4" xml:space="preserve">
-    <value>Connected · Tool calling verified</value>
+    <value>Connected, Tool calling verified</value>
+  </data>
+  <data name="s645488645c2ea4beb3b3c8e5" xml:space="preserve">
+    <value>Connected, Tool calling verified</value>
   </data>
   <data name="s639a40e82b9a96f0cbeed5f0" xml:space="preserve">
     <value>Connection</value>
@@ -1520,6 +1733,9 @@
   </data>
   <data name="sd1a7f6aa971cb794e4956ee4" xml:space="preserve">
     <value>Container ownership could not be verified.</value>
+  </data>
+  <data name="sa22daa7f02a26cc2335378ad" xml:space="preserve">
+    <value>Containers</value>
   </data>
   <data name="s44b21ad209c317545b3546bf" xml:space="preserve">
     <value>Contains excluded content; the entire cleanup target is preserved</value>
@@ -1543,7 +1759,10 @@
     <value>Cookies</value>
   </data>
   <data name="s830d88bc8378fa714b88b4cb" xml:space="preserve">
-    <value>Cookies · may sign you out</value>
+    <value>Cookies, may sign you out</value>
+  </data>
+  <data name="s91b198382098f29499b55a31" xml:space="preserve">
+    <value>Cookies, may sign you out</value>
   </data>
   <data name="s8d525e5f158b9afe05f3122a" xml:space="preserve">
     <value>Copied</value>
@@ -1557,6 +1776,9 @@
   <data name="scb12df752fde9566bd478868" xml:space="preserve">
     <value>Copy Request</value>
   </data>
+  <data name="s650b57da627dfff50a5b4038" xml:space="preserve">
+    <value>Copy Socket Path</value>
+  </data>
   <data name="s34917f2e48ba792fb6ae2ddd" xml:space="preserve">
     <value>Copy failed. Try again.</value>
   </data>
@@ -1569,8 +1791,17 @@
   <data name="se2bafe481054865047b4c331" xml:space="preserve">
     <value>Cost unavailable without your provider's actual rates.</value>
   </data>
+  <data name="s32b8c4321a02118b6bd72202" xml:space="preserve">
+    <value>Could not check for updates. Check your connection and try again.</value>
+  </data>
   <data name="sc1ae3d9cbdb129d9fc30dcd4" xml:space="preserve">
     <value>Could not copy analysis.</value>
+  </data>
+  <data name="sdb56d9bff47abb86661194c8" xml:space="preserve">
+    <value>Could not inspect</value>
+  </data>
+  <data name="s066b493971b47db5b2a3bcee" xml:space="preserve">
+    <value>Could not open this location.</value>
   </data>
   <data name="s236c3bc5b628813a9bc490a4" xml:space="preserve">
     <value>Could not save the API key in Keychain.</value>
@@ -1583,6 +1814,15 @@
   </data>
   <data name="s639d0416e7b06b817b7925cd" xml:space="preserve">
     <value>Coverage Issues</value>
+  </data>
+  <data name="sa4772bd4c2a746f4bf95ffea" xml:space="preserve">
+    <value>Create Database</value>
+  </data>
+  <data name="s1e4f1b1792b2b17ad03e7856" xml:space="preserve">
+    <value>Create Independent Instance</value>
+  </data>
+  <data name="scc3be6efc0d6fd9b1416c6ab" xml:space="preserve">
+    <value>Create Local Account &amp; Grant Database Access</value>
   </data>
   <data name="s7bb9e1a2e97fa6218604a5c8" xml:space="preserve">
     <value>Create Rule for This Folder…</value>
@@ -1598,6 +1838,15 @@
   </data>
   <data name="sa79cbc9cb32aec36caff70da" xml:space="preserve">
     <value>Create reusable rules</value>
+  </data>
+  <data name="s8e75c9032cc14db29ff86de0" xml:space="preserve">
+    <value>Creating a database does not change any existing user's password. Create a separate local account below if needed.</value>
+  </data>
+  <data name="s6180aff23c233402f41e0a7d" xml:space="preserve">
+    <value>Credentials are kept for this session only.</value>
+  </data>
+  <data name="s9596c4bafbfdb1b4db2c0e37" xml:space="preserve">
+    <value>Credentials stay in this session. Passwords are not read from MySQL or saved in operation records.</value>
   </data>
   <data name="s427dd2969bd140bec3c1bcc7" xml:space="preserve">
     <value>Critical</value>
@@ -1626,6 +1875,9 @@
   <data name="s3e688e7b2bc8788cef2d6b87" xml:space="preserve">
     <value>Current user agents</value>
   </data>
+  <data name="sa74487de8969b1f177259bc4" xml:space="preserve">
+    <value>Current version</value>
+  </data>
   <data name="s89449ba4b00add4dd5769aea" xml:space="preserve">
     <value>Current-user MSIX package</value>
   </data>
@@ -1647,6 +1899,9 @@
   <data name="s864514a2f754b2ac0efc8092" xml:space="preserve">
     <value>Cycles</value>
   </data>
+  <data name="sf00366461f56a972d0c24bee" xml:space="preserve">
+    <value>DNS Servers</value>
+  </data>
   <data name="s338dab2f7b43bd272b1fed05" xml:space="preserve">
     <value>DaVinci Resolve caches</value>
   </data>
@@ -1655,6 +1910,24 @@
   </data>
   <data name="sc8e913b6756395d9e9e2fbe2" xml:space="preserve">
     <value>Data storage</value>
+  </data>
+  <data name="sfa7fe67124e94375d97e5089" xml:space="preserve">
+    <value>Database</value>
+  </data>
+  <data name="s15f0fd55dd5c59cd5dabc096" xml:space="preserve">
+    <value>Database Name</value>
+  </data>
+  <data name="se06a03be48c5645efd333866" xml:space="preserve">
+    <value>Database actions use this instance's local port or socket. Configuration changes do not restart it automatically.</value>
+  </data>
+  <data name="s61d2afe2349913ce5b96de25" xml:space="preserve">
+    <value>Databases</value>
+  </data>
+  <data name="s67e3d5f432cbf4f91f921119" xml:space="preserve">
+    <value>Databases &amp; Accounts</value>
+  </data>
+  <data name="sff6ad30f4b2693a383fd64ec" xml:space="preserve">
+    <value>Databases were read, but this login cannot read mysql.user. Account actions are unavailable.</value>
   </data>
   <data name="s6864d47145463dc60e93ea75" xml:space="preserve">
     <value>Days since newest change (0–3650)</value>
@@ -1675,13 +1948,19 @@
     <value>Decision Provider</value>
   </data>
   <data name="sad5da6f78307876ddba8e808" xml:space="preserve">
-    <value>Decision Service · First</value>
+    <value>Decision Service, First</value>
+  </data>
+  <data name="sbd59b25b244f14df76ae83a7" xml:space="preserve">
+    <value>Decision Service, First</value>
   </data>
   <data name="s0cfe8de8c0f07d8ef4966ae9" xml:space="preserve">
     <value>Decision Variable Name</value>
   </data>
   <data name="sd4de725a85cd13ddebeec7b5" xml:space="preserve">
     <value>Decision service is off. The main model takes over; saved decision settings and keys are kept.</value>
+  </data>
+  <data name="s3c98f26cc06872181b203394" xml:space="preserve">
+    <value>Declared Dependencies</value>
   </data>
   <data name="s9813fafb098c218090536790" xml:space="preserve">
     <value>Definition</value>
@@ -1728,6 +2007,9 @@
   <data name="s2e41b118eb209c139f2bcbf6" xml:space="preserve">
     <value>Dependencies</value>
   </data>
+  <data name="s711595f184a741e167aa1950" xml:space="preserve">
+    <value>Dependency</value>
+  </data>
   <data name="sbe32f2f4594061ccca06d6fa" xml:space="preserve">
     <value>Dependency content hypothesis</value>
   </data>
@@ -1749,6 +2031,9 @@
   <data name="s45989de49fb7f66dfe17a8fc" xml:space="preserve">
     <value>Details</value>
   </data>
+  <data name="s59e3784e6b89d94fd05e813b" xml:space="preserve">
+    <value>Detected executable</value>
+  </data>
   <data name="s24beca8cbc25b0e4db95de74" xml:space="preserve">
     <value>Developer Projects</value>
   </data>
@@ -1758,6 +2043,9 @@
   <data name="s85c1562cd9ce8d744d652564" xml:space="preserve">
     <value>Developer Tools</value>
   </data>
+  <data name="s7f14d2891ba54da0ae7aa6f4" xml:space="preserve">
+    <value>Developer Utilities</value>
+  </data>
   <data name="s35dac0e5f019fb1bf3dfaead" xml:space="preserve">
     <value>Developer download and analysis caches</value>
   </data>
@@ -1766,6 +2054,15 @@
   </data>
   <data name="s8b9fce2095cb6a7a05b1802b" xml:space="preserve">
     <value>Developer tool caches</value>
+  </data>
+  <data name="sfac8e508a112dcaf5e9e63a0" xml:space="preserve">
+    <value>Developer tool change verified</value>
+  </data>
+  <data name="sdaaab9bcc4d66bf4e855c3d4" xml:space="preserve">
+    <value>Developer tool result needs verification</value>
+  </data>
+  <data name="s176756bcdfcc8bf9238f14c0" xml:space="preserve">
+    <value>Developer tool results are ready.</value>
   </data>
   <data name="s7a203f473b62208e58b0fcc3" xml:space="preserve">
     <value>Developer tools download or rebuild cached data when needed.</value>
@@ -1836,11 +2133,17 @@
   <data name="s6bf797dd4c42d18eabfb1d53" xml:space="preserve">
     <value>Disabled version: {0}</value>
   </data>
+  <data name="sacfc5be785a9bb3da11c9f05" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
   <data name="scb9792b274d64a040061b65c" xml:space="preserve">
     <value>Discord caches</value>
   </data>
   <data name="s739977946c596e1291d8d4e6" xml:space="preserve">
     <value>Discord download caches</value>
+  </data>
+  <data name="s2f6f264ede98cbf41244ba19" xml:space="preserve">
+    <value>Discover AI assistants and every installed copy. Keep their sources and versions clear.</value>
   </data>
   <data name="s138ab30e69b3033645ab66b5" xml:space="preserve">
     <value>Discover files</value>
@@ -1850,6 +2153,9 @@
   </data>
   <data name="s67e7cc5123c61ae7e875b249" xml:space="preserve">
     <value>Discovery depth must be a whole number from 1 to 32.</value>
+  </data>
+  <data name="sc5efad541f9cc4914fa67406" xml:space="preserve">
+    <value>Discovery is partial. Some managers or locations could not be read; missing results do not prove that a tool is uninstalled.</value>
   </data>
   <data name="s340e0cf3bfa8d23dad5fa375" xml:space="preserve">
     <value>Disk</value>
@@ -1902,6 +2208,9 @@
   <data name="sfd49b3df779c683645aba6d6" xml:space="preserve">
     <value>Dot path components are not supported.</value>
   </data>
+  <data name="s6ea67f029794022bc9d2f49a" xml:space="preserve">
+    <value>Download Update</value>
+  </data>
   <data name="sdab8e872ae9468f5457c84fd" xml:space="preserve">
     <value>Draft preview only. Enable the rule and rescan before cleanup.</value>
   </data>
@@ -1920,8 +2229,14 @@
   <data name="sba4404031b6c47f5baeb64fd" xml:space="preserve">
     <value>Each configuration includes a main model. Turn the decision service on to save tokens, or off to use the main model directly. Keys stay in private local storage.</value>
   </data>
+  <data name="sa8c3b52a07574e6cc1c72744" xml:space="preserve">
+    <value>Each instance has its own data directory, configuration, port and socket. Creating one never imports or reinitializes an existing data directory.</value>
+  </data>
   <data name="s5e1c49fcb4fc4fff44ea0afa" xml:space="preserve">
     <value>Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review.</value>
+  </data>
+  <data name="sc64b4b8dc945b04954c56b01" xml:space="preserve">
+    <value>Each switch controls only its displayed source and version. Other installations and login-start settings are kept.</value>
   </data>
   <data name="s278779da850f6ccf5796bce1" xml:space="preserve">
     <value>Earlier Analysis</value>
@@ -1934,6 +2249,9 @@
   </data>
   <data name="s767963847c9fd3c742dc945c" xml:space="preserve">
     <value>Edit Connection…</value>
+  </data>
+  <data name="s1b02f1c35bef3559611dfb8b" xml:space="preserve">
+    <value>Edit Instance Registration</value>
   </data>
   <data name="s067942261e5de3556692f084" xml:space="preserve">
     <value>Edit Personal Rule</value>
@@ -2013,6 +2331,9 @@
   <data name="s797bf117f5dfa4b300ee48a9" xml:space="preserve">
     <value>Epic Games caches</value>
   </data>
+  <data name="sa9ef28420874a26868cab7aa" xml:space="preserve">
+    <value>Error Log</value>
+  </data>
   <data name="sb9cf00e141c561db5b7cdc43" xml:space="preserve">
     <value>Estimated Removal</value>
   </data>
@@ -2052,11 +2373,17 @@
   <data name="s72cd8a64e591c9ee6a255b4e" xml:space="preserve">
     <value>Executable</value>
   </data>
+  <data name="seb7082ef62f7c1e077d2b13f" xml:space="preserve">
+    <value>Executable path</value>
+  </data>
   <data name="sb865078824ab82796fb7b679" xml:space="preserve">
     <value>Executable path unknown</value>
   </data>
   <data name="s4bc8a835d1c6edbffe3e4ba4" xml:space="preserve">
     <value>Execution journal manifests are missing or inconsistent.</value>
+  </data>
+  <data name="sebce85fe2009745bf317f82c" xml:space="preserve">
+    <value>Existing Installations</value>
   </data>
   <data name="s33f0babf357de687724cde15" xml:space="preserve">
     <value>Expand startup details</value>
@@ -2079,17 +2406,29 @@
   <data name="s93bd8bfaac4c28d346fa65d5" xml:space="preserve">
     <value>Expo download caches</value>
   </data>
+  <data name="s9a5e4d9513126f648a112642" xml:space="preserve">
+    <value>Export Failed</value>
+  </data>
   <data name="s6642394c77d454778ea5169d" xml:space="preserve">
     <value>Export Rule…</value>
   </data>
   <data name="sfe5cdf67f12ba5778116cd95" xml:space="preserve">
     <value>Export Skill ZIP…</value>
   </data>
+  <data name="s391065e4dc23592acd6913e7" xml:space="preserve">
+    <value>Exported</value>
+  </data>
   <data name="s3c593f6e8c8adf829f543c13" xml:space="preserve">
     <value>External AI Tools</value>
   </data>
   <data name="s558e136435ee809198fe2516" xml:space="preserve">
     <value>External AI Tools…</value>
+  </data>
+  <data name="s0fcb46976554ccf5f9e5f7ba" xml:space="preserve">
+    <value>External Service</value>
+  </data>
+  <data name="sba77305056b1f6fa606240d0" xml:space="preserve">
+    <value>FTP Servers</value>
   </data>
   <data name="s031a8f0f659df890dfd53c92" xml:space="preserve">
     <value>Failed</value>
@@ -2142,6 +2481,9 @@
   <data name="sfb97368fb3a362f0b0c7ab8a" xml:space="preserve">
     <value>Filo caches</value>
   </data>
+  <data name="s532cd08030389d54f20629f0" xml:space="preserve">
+    <value>Filter Databases</value>
+  </data>
   <data name="s789c5511835bbb692f54b873" xml:space="preserve">
     <value>Filter this folder</value>
   </data>
@@ -2159,6 +2501,12 @@
   </data>
   <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
     <value>Find reviewable caches and build artifacts in known locations.</value>
+  </data>
+  <data name="s76b94e08fb861f79bf3274c5" xml:space="preserve">
+    <value>Find runtimes and servers. Discover existing installations before adding anything new.</value>
+  </data>
+  <data name="s2b6d808e34d13f6a201b8855" xml:space="preserve">
+    <value>Find runtimes, servers and AI tools. Pin your favorites, then manage each installation explicitly.</value>
   </data>
   <data name="sa136956790d76e53807bee61" xml:space="preserve">
     <value>Find the files taking up the most room.</value>
@@ -2208,6 +2556,9 @@
   <data name="s9e3ebdab648a9cf100238462" xml:space="preserve">
     <value>Flutter build outputs and Dart tool caches</value>
   </data>
+  <data name="s0e432f64effc6c25b993dabc" xml:space="preserve">
+    <value>FlyEnv storage</value>
+  </data>
   <data name="sacbd23e4e0768fb400106840" xml:space="preserve">
     <value>Folder relative to workspace</value>
   </data>
@@ -2229,8 +2580,14 @@
   <data name="s013dfb6d9610191fecee88fc" xml:space="preserve">
     <value>For example, project/.build-cache/keep/**. Preserving a child blocks its whole parent cleanup target; Shou does not delete around it. Global and workspace protections still apply.</value>
   </data>
+  <data name="sd00bd4ec32e4e1cc45ddae0a" xml:space="preserve">
+    <value>Formula</value>
+  </data>
   <data name="sf1c65e14817efef2b77973a4" xml:space="preserve">
     <value>Forward</value>
+  </data>
+  <data name="sb0ee315f4ac6af09d05f9e6f" xml:space="preserve">
+    <value>Found</value>
   </data>
   <data name="sd7c932e4580e12b09ccb3468" xml:space="preserve">
     <value>Found (estimate)</value>
@@ -2286,6 +2643,9 @@
   <data name="sa9f66c524b28de745fbabf8e" xml:space="preserve">
     <value>Global Exclusions</value>
   </data>
+  <data name="s6d084d656916e87e1126b134" xml:space="preserve">
+    <value>Global Instructions</value>
+  </data>
   <data name="s807078427b9ef8381ac6ddac" xml:space="preserve">
     <value>Global patterns apply relative to every current and future scan location. Earlier builds cannot read the upgraded configuration.</value>
   </data>
@@ -2324,6 +2684,9 @@
   </data>
   <data name="sfb4f7e1c33b7997f2f50454f" xml:space="preserve">
     <value>Grouped by scan location</value>
+  </data>
+  <data name="sd87d6fae2b07d108d057f5d1" xml:space="preserve">
+    <value>Guide available</value>
   </data>
   <data name="s77223f5d96053067315da30d" xml:space="preserve">
     <value>HTTP storage</value>
@@ -2398,16 +2761,34 @@
     <value>History verification cancelled.</value>
   </data>
   <data name="s20174a01c49a9d4caebd6041" xml:space="preserve">
-    <value>History: visit time · Cookies: last access time</value>
+    <value>History: visit time, Cookies: last access time</value>
+  </data>
+  <data name="s2f6b1e83bb215355628d2963" xml:space="preserve">
+    <value>History: visit time, Cookies: last access time</value>
   </data>
   <data name="sa581327f9cd049a5f9c01b43" xml:space="preserve">
     <value>Homebrew download caches</value>
+  </data>
+  <data name="sa9dc90e9c6619c1f28dc4fe0" xml:space="preserve">
+    <value>Homebrew inventory could not be read.</value>
+  </data>
+  <data name="s7a37a3c29748396352586fab" xml:space="preserve">
+    <value>Homebrew is not available in a supported location. Install it from its official website, then inspect again.</value>
   </data>
   <data name="s66235349d87300261c65744b" xml:space="preserve">
     <value>Homebrew old versions and downloads</value>
   </data>
   <data name="s4bb22d7264cd65df67a3f0de" xml:space="preserve">
     <value>Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download.</value>
+  </data>
+  <data name="sc62d69a9b083eb53b9831007" xml:space="preserve">
+    <value>Homebrew source</value>
+  </data>
+  <data name="s24d88937f8c6d0d0923187d4" xml:space="preserve">
+    <value>Homebrew will install this package and may install or upgrade its dependencies. It may run package setup steps. Shou does not automatically install Homebrew, use sudo or accept license agreements.</value>
+  </data>
+  <data name="s8313362c6b05d906b02f64ea" xml:space="preserve">
+    <value>Homebrew will permanently uninstall this package. Shou does not request data removal, zap, force or dependency cleanup. Package uninstall hooks may still change files they own; back up important data first.</value>
   </data>
   <data name="s13782de5eae0b10a14ef0955" xml:space="preserve">
     <value>How can these files be rebuilt?</value>
@@ -2487,6 +2868,9 @@
   <data name="s020abd1568ca4fb2ae0b42e3" xml:space="preserve">
     <value>Incomplete scan: </value>
   </data>
+  <data name="s5baa0d901d83a20bc82ed991" xml:space="preserve">
+    <value>Independent MySQL Instances</value>
+  </data>
   <data name="s1cb0ba125f84c982b00ba363" xml:space="preserve">
     <value>Information</value>
   </data>
@@ -2495,6 +2879,12 @@
   </data>
   <data name="sb1f774deb2bc5a6d8e7c8a46" xml:space="preserve">
     <value>Inherited global protections: {0}</value>
+  </data>
+  <data name="s9c55c8a8d85e503756f6fdd7" xml:space="preserve">
+    <value>Initial Root Password</value>
+  </data>
+  <data name="sbb7ae57f2fd4d89c410c8092" xml:space="preserve">
+    <value>Initialize New Instance</value>
   </data>
   <data name="s6d19fe2452a64c476a02a88d" xml:space="preserve">
     <value>Input Source Pro caches</value>
@@ -2505,14 +2895,29 @@
   <data name="s896c550ae83578a1ecedaf0b" xml:space="preserve">
     <value>Insomnia download caches</value>
   </data>
+  <data name="sac1dc3720410436bce3b08af" xml:space="preserve">
+    <value>Inspect Again</value>
+  </data>
+  <data name="sed1f7f142aaa11dfd3cd4024" xml:space="preserve">
+    <value>Inspect Tool</value>
+  </data>
   <data name="s4798c4db947934208f0b0f6f" xml:space="preserve">
     <value>Inspect before you tidy</value>
+  </data>
+  <data name="s1091d1129de8d7b8dcb0bdc4" xml:space="preserve">
+    <value>Inspect local configuration, MCP declarations, instructions and skills. Values and credentials stay out of this view. Open the owning folder to manage files with your editor.</value>
+  </data>
+  <data name="s82a3b35848ee6a2dd137d26f" xml:space="preserve">
+    <value>Inspect the selected source before installing or uninstalling. Existing installations from other managers are not claimed by this source.</value>
   </data>
   <data name="sf855b0a61e476e04ecd018bf" xml:space="preserve">
     <value>Inspected</value>
   </data>
   <data name="s50d0e47a4ecb7b16038748c8" xml:space="preserve">
     <value>Inspecting directory evidence…</value>
+  </data>
+  <data name="scbad8ee3f91b3adad476da3f" xml:space="preserve">
+    <value>Inspecting…</value>
   </data>
   <data name="sda188e3b1cefc8a70813b78e" xml:space="preserve">
     <value>Inspector</value>
@@ -2526,11 +2931,38 @@
   <data name="s925e5a0a8cbffb7542198e6c" xml:space="preserve">
     <value>Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.</value>
   </data>
+  <data name="s08c4fc9ca5192d838855fa82" xml:space="preserve">
+    <value>Installation &amp; Instance</value>
+  </data>
+  <data name="s5478ff5175c76923f3ac39d3" xml:space="preserve">
+    <value>Installation &amp; Versions</value>
+  </data>
+  <data name="s291b5e758c2826b0c41d660f" xml:space="preserve">
+    <value>Installation Scope</value>
+  </data>
+  <data name="s7c60fc2f80865f5bab5b34c3" xml:space="preserve">
+    <value>Installation Source</value>
+  </data>
   <data name="s5981faea80e843103c7b5f9a" xml:space="preserve">
     <value>Installation and CLI</value>
   </data>
+  <data name="sf8b32f4e92bd84ce1fcd177b" xml:space="preserve">
+    <value>Installed</value>
+  </data>
   <data name="s556e91b00d5393f30ac0128d" xml:space="preserve">
     <value>Installed Dependencies</value>
+  </data>
+  <data name="s71bbc8b565074a56805334bc" xml:space="preserve">
+    <value>Installed Only</value>
+  </data>
+  <data name="sed416e3fcb42c129b89f4110" xml:space="preserve">
+    <value>Installed Skills</value>
+  </data>
+  <data name="s8c3778f35bf18be866f57bd8" xml:space="preserve">
+    <value>Installed Tools</value>
+  </data>
+  <data name="sd918abdb8991ef3e54548ece" xml:space="preserve">
+    <value>Installed Version</value>
   </data>
   <data name="sc0144ccd37cd71f64685104d" xml:space="preserve">
     <value>Installed application cache discovery is incomplete. Caches without verified ownership were not included.</value>
@@ -2556,8 +2988,17 @@
   <data name="s105e55f334436a6aef2e7033" xml:space="preserve">
     <value>Installed application ownership could not be verified; scan again.</value>
   </data>
+  <data name="se8c7e93c518efb4ddad8a704" xml:space="preserve">
+    <value>Installed software or update metadata changed. Check again before upgrading.</value>
+  </data>
+  <data name="sd03c723534fe466f8ba07ed1" xml:space="preserve">
+    <value>Installed tool discovery finished.</value>
+  </data>
   <data name="sd3ff6dab2b15cf3981af22bd" xml:space="preserve">
     <value>Installed version is newer than the catalog</value>
+  </data>
+  <data name="s089f2c7efe6f2d3dc186309c" xml:space="preserve">
+    <value>Installed version verified after upgrade.</value>
   </data>
   <data name="sab844e01a8382909259d1a08" xml:space="preserve">
     <value>Installer code</value>
@@ -2576,6 +3017,27 @@
   </data>
   <data name="s0b1af118424837caff496e92" xml:space="preserve">
     <value>Installer result: unknown.</value>
+  </data>
+  <data name="s049586c375bf3e3ee60e225d" xml:space="preserve">
+    <value>Installers may request administrator approval, close applications, or change their data. Shou does not restart Windows or restore an upgrade.</value>
+  </data>
+  <data name="sa26cdb062010484a666a8e36" xml:space="preserve">
+    <value>Instance Groups</value>
+  </data>
+  <data name="s85d41dd35ffc946d8d382ee0" xml:space="preserve">
+    <value>Instance Name</value>
+  </data>
+  <data name="sce9abd48aec9e0008d82be93" xml:space="preserve">
+    <value>Instance name updated. Database files were preserved; no server was started.</value>
+  </data>
+  <data name="s65223058a747912cdbfa6ed0" xml:space="preserve">
+    <value>Instance registration updated. Database files were preserved; no server was started.</value>
+  </data>
+  <data name="sead49e95bfc57e5fb1d49b20" xml:space="preserve">
+    <value>Instance registrations could not be read. Refresh before continuing.</value>
+  </data>
+  <data name="scc9bc83a1b1029981130d99e" xml:space="preserve">
+    <value>Instance unregistered. Database files remain on disk; no disk space was freed.</value>
   </data>
   <data name="sd1c76800f0871fca0f06e6eb" xml:space="preserve">
     <value>Interface Language</value>
@@ -2721,11 +3183,23 @@
   <data name="sc02438b6cd8f66744648f626" xml:space="preserve">
     <value>Keep the original rule ID when editing a version.</value>
   </data>
+  <data name="sf081c74414e0d26b62607fd1" xml:space="preserve">
+    <value>Keep your tools up to date.</value>
+  </data>
+  <data name="sf5387f9bb6ed70315a77fdcb" xml:space="preserve">
+    <value>Kind</value>
+  </data>
   <data name="sae9d246f4b6e19d3bcf6299a" xml:space="preserve">
     <value>Klee caches</value>
   </data>
   <data name="s5e9eb820a520e9a19b4ed70b" xml:space="preserve">
     <value>Known Locations</value>
+  </data>
+  <data name="s9811e856464bb0989954303e" xml:space="preserve">
+    <value>Known user locations only. Project settings, custom roots, linked skills, activation and runtime health are not verified. A declaration does not mean an extension is enabled.</value>
+  </data>
+  <data name="s88e8b52efd7430e9b1af1cce" xml:space="preserve">
+    <value>Known user locations; activation not verified.</value>
   </data>
   <data name="sbcd17bdfd7edf7c8b8a85d0b" xml:space="preserve">
     <value>Kugou Music caches</value>
@@ -2739,6 +3213,9 @@
   <data name="sa4fe65264ef7dbb38d104b1e" xml:space="preserve">
     <value>Language</value>
   </data>
+  <data name="sbc65563e0f2de2832b725556" xml:space="preserve">
+    <value>Languages &amp; Runtimes</value>
+  </data>
   <data name="s6090464518861a38341fa86e" xml:space="preserve">
     <value>Large Files</value>
   </data>
@@ -2749,7 +3226,13 @@
     <value>Lark and Feishu rendering caches</value>
   </data>
   <data name="sf849482694bcd8cc2b0721c3" xml:space="preserve">
-    <value>Last 2 minutes · Gaps mean unavailable</value>
+    <value>Last 2 minutes, Gaps mean unavailable</value>
+  </data>
+  <data name="sa21cf2b0826e70263c4aca69" xml:space="preserve">
+    <value>Last 2 minutes, Gaps mean unavailable</value>
+  </data>
+  <data name="s702c5140d8100f759934bbe3" xml:space="preserve">
+    <value>Last 200 lines, up to 64 KiB</value>
   </data>
   <data name="s5c37cf8f018b4ac5c8f0ae78" xml:space="preserve">
     <value>Last 24 hours</value>
@@ -2757,14 +3240,26 @@
   <data name="s0603deca4fcb660f1c06a026" xml:space="preserve">
     <value>Last 7 days</value>
   </data>
+  <data name="s89bc9a84563c93a6db6d3365" xml:space="preserve">
+    <value>Last Checked</value>
+  </data>
   <data name="s9f1b40730a2cbcab8ec7750e" xml:space="preserve">
     <value>Last Used</value>
+  </data>
+  <data name="s0c0c351a971353b542ec8856" xml:space="preserve">
+    <value>Last checked</value>
   </data>
   <data name="sa8dfe9d8018890cfa3c56c56" xml:space="preserve">
     <value>Last hour</value>
   </data>
   <data name="s7a2c86a8bf2242ca5bb83fc0" xml:space="preserve">
     <value>Last seven days</value>
+  </data>
+  <data name="sef7105b62f7474e8f3861e4b" xml:space="preserve">
+    <value>Latest version</value>
+  </data>
+  <data name="s82b76d7e2995954e6b612d5f" xml:space="preserve">
+    <value>Launch Paths</value>
   </data>
   <data name="sf93af325a45a3e02bcab4ea7" xml:space="preserve">
     <value>Leave blank to keep the saved key</value>
@@ -2803,7 +3298,10 @@
     <value>Links, special files and the scan root cannot be removed here.</value>
   </data>
   <data name="s315ed201de6e4f5197ded7f3" xml:space="preserve">
-    <value>Live · Every 2 seconds</value>
+    <value>Live, Every 2 seconds</value>
+  </data>
+  <data name="s055a4957a8a7a4e81251c898" xml:space="preserve">
+    <value>Live, Every 2 seconds</value>
   </data>
   <data name="s3f06cd334f4811b2130b13a8" xml:space="preserve">
     <value>Load More</value>
@@ -2817,6 +3315,9 @@
   <data name="sba3bbbe10d8bef66441c8853" xml:space="preserve">
     <value>Loading…</value>
   </data>
+  <data name="sd20438c426cbbc44218612c3" xml:space="preserve">
+    <value>Local Note</value>
+  </data>
   <data name="sc4709e2ddf8d4997cc63a230" xml:space="preserve">
     <value>Local analysis → main model. Structured decisions are not used by this strategy.</value>
   </data>
@@ -2828,6 +3329,9 @@
   </data>
   <data name="s4a186dd7a70775e1c9f69e9b" xml:space="preserve">
     <value>Local data</value>
+  </data>
+  <data name="s98b266df6d2e92e7218af904" xml:space="preserve">
+    <value>Local instance</value>
   </data>
   <data name="s85e6d983c91a6573265ecc8b" xml:space="preserve">
     <value>Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only.</value>
@@ -2853,6 +3357,9 @@
   <data name="s3143d2621afaec6c9a466356" xml:space="preserve">
     <value>Log Files</value>
   </data>
+  <data name="sb2ae6a6637e04002f925cc49" xml:space="preserve">
+    <value>Log cleared. New entries may be written by the service.</value>
+  </data>
   <data name="s7138b9310e39820e3c6ec290" xml:space="preserve">
     <value>Logical Size</value>
   </data>
@@ -2865,14 +3372,29 @@
   <data name="s24f4ecae5ac9f5d84bd22956" xml:space="preserve">
     <value>Login Items, background-task registrations and helpers embedded in applications require System Settings. Apple system definitions are included only when requested. Permission and read-budget gaps remain visible.</value>
   </data>
+  <data name="s26d332a5ce35d8aa6f826b9b" xml:space="preserve">
+    <value>Login startup: already registered. Restart and stop preserve this setting.</value>
+  </data>
+  <data name="scde56c759afc61049e2ae9c5" xml:space="preserve">
+    <value>Login startup: not registered. Starting this service runs it for the current session.</value>
+  </data>
+  <data name="sea2100dc89ae9fe21fa9b08a" xml:space="preserve">
+    <value>Logs</value>
+  </data>
   <data name="s14fc7cf0b9307160d441a313" xml:space="preserve">
     <value>Logseq caches</value>
   </data>
   <data name="sf76315f1e77b7b5a475a5ed1" xml:space="preserve">
     <value>Low free space can prevent scans and durable operation records.</value>
   </data>
+  <data name="sfb826fb5dddbfaadb403228a" xml:space="preserve">
+    <value>MCP Declarations</value>
+  </data>
   <data name="s03c1f9828cf46830d2f1c003" xml:space="preserve">
     <value>MPV caches</value>
+  </data>
+  <data name="sa7b060e6bf9454838d3dca92" xml:space="preserve">
+    <value>Machine installation</value>
   </data>
   <data name="s8f2bce82b8146d2aea6b708b" xml:space="preserve">
     <value>Machine installation (32-bit registry)</value>
@@ -2880,11 +3402,17 @@
   <data name="s9eb9af9a677dae4ea61a388b" xml:space="preserve">
     <value>Machine installation (64-bit registry)</value>
   </data>
+  <data name="sdf0aea9473f6d4e93489e7b5" xml:space="preserve">
+    <value>Mail Servers</value>
+  </data>
   <data name="s8d6d236ed171b2beafd1cd46" xml:space="preserve">
     <value>Main Model</value>
   </data>
   <data name="s240b90d0ec2bd869789001bb" xml:space="preserve">
-    <value>Main Model · When Needed</value>
+    <value>Main Model, When Needed</value>
+  </data>
+  <data name="s29a4dbe32c1b98fd462a1944" xml:space="preserve">
+    <value>Main Model, When Needed</value>
   </data>
   <data name="s9bb453d7c4438991809fb88d" xml:space="preserve">
     <value>Main model only</value>
@@ -2895,6 +3423,18 @@
   <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
     <value>Make room for more.</value>
   </data>
+  <data name="sa7ce49eacadd57176cfb3652" xml:space="preserve">
+    <value>Manage Databases</value>
+  </data>
+  <data name="s5b733b80c7842b4a1076744a" xml:space="preserve">
+    <value>Manage Instance</value>
+  </data>
+  <data name="s66e461314b9f5c084eaa46f3" xml:space="preserve">
+    <value>Manage Tool</value>
+  </data>
+  <data name="s276932f367e0900611340c0f" xml:space="preserve">
+    <value>Manage databases, accounts and backups in the context of an exact MySQL instance.</value>
+  </data>
   <data name="s3c764f296aa1f9a6d0bac92d" xml:space="preserve">
     <value>Manage these patterns in All Locations. Per-rule exclusions remain in each rule definition.</value>
   </data>
@@ -2904,8 +3444,14 @@
   <data name="sa633bf360d31dfdc1efda8d9" xml:space="preserve">
     <value>Managed by the system; no action is needed.</value>
   </data>
+  <data name="s04bd260062318ef97eb47a8b" xml:space="preserve">
+    <value>Management module not connected</value>
+  </data>
   <data name="sa42ac525ae691f3f3ae2cef7" xml:space="preserve">
     <value>Manage…</value>
+  </data>
+  <data name="s43a3cc6273f647fe28650b30" xml:space="preserve">
+    <value>Managing developer tools…</value>
   </data>
   <data name="sdb591bfb4be12103e5143981" xml:space="preserve">
     <value>Manifest changed</value>
@@ -3096,8 +3642,35 @@
   <data name="s08f16842769314e4b93b78aa" xml:space="preserve">
     <value>Moving to Trash does not free disk space.</value>
   </data>
+  <data name="saf52880cdf0f57bc7557adb9" xml:space="preserve">
+    <value>Multiple Services</value>
+  </data>
   <data name="s96d1a78921efad30bc19df0a" xml:space="preserve">
     <value>Multiple Types</value>
+  </data>
+  <data name="s50b5b2960745c34dbe854289" xml:space="preserve">
+    <value>Multiple installations remain separate. Shou does not silently replace, adopt or reinstall them.</value>
+  </data>
+  <data name="sf73728b686b4ffc699d09535" xml:space="preserve">
+    <value>Multiple processes match this instance configuration. Its switch is unavailable until their identities can be distinguished.</value>
+  </data>
+  <data name="s7df05adeeaada4ca66f436ca" xml:space="preserve">
+    <value>My Workspace</value>
+  </data>
+  <data name="sde86c797e6e73d94d23e7704" xml:space="preserve">
+    <value>MySQL Configuration</value>
+  </data>
+  <data name="s0256c8b25968cd4ab1028d0c" xml:space="preserve">
+    <value>MySQL Error Log</value>
+  </data>
+  <data name="sd25968af4d0b309a1187b170" xml:space="preserve">
+    <value>MySQL Tasks</value>
+  </data>
+  <data name="s623650b889137bd3e08d82fb" xml:space="preserve">
+    <value>MySQL change needs verification. Some steps may have completed; reconnect before continuing.</value>
+  </data>
+  <data name="s8cd2ee39d868667e5633dac3" xml:space="preserve">
+    <value>MySQL change verified. Reconnect to continue.</value>
   </data>
   <data name="sdcd1d5223f73b3a965c07e3f" xml:space="preserve">
     <value>Name</value>
@@ -3113,6 +3686,12 @@
   </data>
   <data name="sd520299a5a868b730eef26e2" xml:space="preserve">
     <value>Native build process checks are unavailable on this platform.</value>
+  </data>
+  <data name="s0542234f05de784f4b3923e2" xml:space="preserve">
+    <value>Native installer acceptance is pending on Windows. Discovery and review are available; installation and uninstallation remain disabled.</value>
+  </data>
+  <data name="s17f278ebc8fc4687eecd27a8" xml:space="preserve">
+    <value>Native source not connected yet</value>
   </data>
   <data name="s6915177d5a3320dabe03b8e2" xml:space="preserve">
     <value>Navicat Premium caches</value>
@@ -3135,14 +3714,29 @@
   <data name="s31f5c065b26be2e70eb8271c" xml:space="preserve">
     <value>Network Activity</value>
   </data>
+  <data name="s126bec11b735b34110856ab9" xml:space="preserve">
+    <value>Network Tunnels</value>
+  </data>
   <data name="s5a6ecfbbddcdf3b7846594ac" xml:space="preserve">
     <value>Network workspaces are outside the supported execution scope.</value>
+  </data>
+  <data name="sf99eb7da609e9f17e95fb0f7" xml:space="preserve">
+    <value>New Instance Name</value>
   </data>
   <data name="s9dbcfd001053c4f344a0ed4f" xml:space="preserve">
     <value>New Investigation</value>
   </data>
+  <data name="s7c451e0f436d04a6f321f8d5" xml:space="preserve">
+    <value>New Password</value>
+  </data>
   <data name="s67be3c294ac30796f980e41f" xml:space="preserve">
     <value>New Rule…</value>
+  </data>
+  <data name="s0de2231e4351d88d66b1b2fc" xml:space="preserve">
+    <value>New Username</value>
+  </data>
+  <data name="s4b0e8e93c0b73118ad8b0645" xml:space="preserve">
+    <value>New private instance, initially stopped.</value>
   </data>
   <data name="s0b2f7835880477b97fc48623" xml:space="preserve">
     <value>Newer version in catalog</value>
@@ -3183,14 +3777,32 @@
   <data name="s790e6572f0666b8890117a9f" xml:space="preserve">
     <value>No cleanup history yet.</value>
   </data>
+  <data name="s30a081a43d42a7efe4d9849b" xml:space="preserve">
+    <value>No compatible installer is available for this installation scope.</value>
+  </data>
+  <data name="sfc98b6b5455ee12de48d3739" xml:space="preserve">
+    <value>No compatible update is available.</value>
+  </data>
+  <data name="s21b149ff8adcf693be5e85b4" xml:space="preserve">
+    <value>No configuration file was found in the detected sources.</value>
+  </data>
   <data name="s3f9f23f395368204620ff53c" xml:space="preserve">
     <value>No conventional project folders found. Include another folder or ask your AI agent.</value>
+  </data>
+  <data name="se5b6f2e2a3f931d170c0a0f2" xml:space="preserve">
+    <value>No current verified recipe. Refresh status, or review the saved configuration before registering it again.</value>
   </data>
   <data name="sf9ce053041146aa34c20f3db" xml:space="preserve">
     <value>No definitions found in the inspected sources</value>
   </data>
   <data name="s8f0d66e5cefdcbc8680a4c2e" xml:space="preserve">
     <value>No described folders in the measured scope</value>
+  </data>
+  <data name="s3df0adf3a0f10d8b117a68fa" xml:space="preserve">
+    <value>No error-log path is configured for this instance.</value>
+  </data>
+  <data name="s400a5b8de2ec89e825db3a07" xml:space="preserve">
+    <value>No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults.</value>
   </data>
   <data name="s8b1a1abe26bd3d6135807356" xml:space="preserve">
     <value>No exclusions in this scope.</value>
@@ -3204,6 +3816,15 @@
   <data name="s580cbecbc580ce1cd286d8ee" xml:space="preserve">
     <value>No known locations were found</value>
   </data>
+  <data name="s985ed9835264ebdfa8f57853" xml:space="preserve">
+    <value>No log entries yet.</value>
+  </data>
+  <data name="sb4843fd022b4f9ed2c959e13" xml:space="preserve">
+    <value>No log path was found for this instance.</value>
+  </data>
+  <data name="sb5d83b11e2a43fb3dbc54b94" xml:space="preserve">
+    <value>No matching application updates. Applications without a verified WinGet match are not included.</value>
+  </data>
   <data name="s2840f771abf6f54c2ee2ad81" xml:space="preserve">
     <value>No matching applications</value>
   </data>
@@ -3216,11 +3837,20 @@
   <data name="sb5252a2b3755b079c83dffc6" xml:space="preserve">
     <value>No matching cleanup items were found.</value>
   </data>
+  <data name="s458a78a994f4b5170dbb1cd4" xml:space="preserve">
+    <value>No matching databases.</value>
+  </data>
+  <data name="sccc99e4bf32eec91e8059b30" xml:space="preserve">
+    <value>No matching developer tools.</value>
+  </data>
   <data name="s7f406b7e22b165bad5414114" xml:space="preserve">
     <value>No matching items.</value>
   </data>
   <data name="s28b940ecbb9c06fc744d898b" xml:space="preserve">
     <value>No matching large files</value>
+  </data>
+  <data name="s87a05e1744c397ff61421c21" xml:space="preserve">
+    <value>No matching packages</value>
   </data>
   <data name="s8ebfb09e43603ceb7b334c6b" xml:space="preserve">
     <value>No matching processes.</value>
@@ -3243,6 +3873,9 @@
   <data name="s2d87853306d54111daae1aab" xml:space="preserve">
     <value>No matching startup items.</value>
   </data>
+  <data name="sbffbcf7bc8e2fc85285fc18d" xml:space="preserve">
+    <value>No newer verified package version</value>
+  </data>
   <data name="sce2ec5bc6e16950e532cae04" xml:space="preserve">
     <value>No path was recorded</value>
   </data>
@@ -3255,6 +3888,9 @@
   <data name="sa0338468a9fd4e7570104c47" xml:space="preserve">
     <value>No recorded location</value>
   </data>
+  <data name="s55967bb317761fc26a6138d7" xml:space="preserve">
+    <value>No release notes were provided.</value>
+  </data>
   <data name="s952d880a316d1110c3b7093f" xml:space="preserve">
     <value>No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.</value>
   </data>
@@ -3266,6 +3902,9 @@
   </data>
   <data name="s4767377fe6f475339eb01607" xml:space="preserve">
     <value>No search results</value>
+  </data>
+  <data name="s38039369ac41d48729518a36" xml:space="preserve">
+    <value>No slow-query log path is configured for this instance.</value>
   </data>
   <data name="sc9294a330f2a59ffe7f9f244" xml:space="preserve">
     <value>No startup items found</value>
@@ -3282,6 +3921,9 @@
   <data name="s00991aac06c453f6e185b0aa" xml:space="preserve">
     <value>No uninstall record was found for this plan. This does not confirm the current installation state.</value>
   </data>
+  <data name="s4c8f830d1e9fb898be04af25" xml:space="preserve">
+    <value>No upgradable packages in this result</value>
+  </data>
   <data name="s7da4c688b7d27f2651f7d9c8" xml:space="preserve">
     <value>No usage record</value>
   </data>
@@ -3291,8 +3933,14 @@
   <data name="s9fbfa154ff01b126f7c043d1" xml:space="preserve">
     <value>No verified components available. Scan again or review access notices.</value>
   </data>
+  <data name="s0ba5a58898af09c9f52c3bb4" xml:space="preserve">
+    <value>No verified service instances in the scanned sources.</value>
+  </data>
   <data name="s12b33b8cab9704ca5c2c22b7" xml:space="preserve">
     <value>No scan location selected</value>
+  </data>
+  <data name="s2a0bb84d87ad42a6266da3b8" xml:space="preserve">
+    <value>Node package</value>
   </data>
   <data name="s4855baa826d6c3d6016d72a9" xml:space="preserve">
     <value>Node.js build and distribution outputs</value>
@@ -3327,17 +3975,29 @@
   <data name="sdd1841d295024256e8884cb8" xml:space="preserve">
     <value>Not configured</value>
   </data>
+  <data name="s4a901ff8d74c5d3b44b2cedc" xml:space="preserve">
+    <value>Not connected. Use the official guide.</value>
+  </data>
   <data name="s676e09a8105bb5eade087c56" xml:space="preserve">
     <value>Not enabled for this location.</value>
   </data>
   <data name="se3ebaa16dd9d9b9fc107c421" xml:space="preserve">
     <value>Not found</value>
   </data>
+  <data name="s244af258a2f6b840897ebd07" xml:space="preserve">
+    <value>Not found in scanned sources</value>
+  </data>
+  <data name="sae75230346f97f14b93efa89" xml:space="preserve">
+    <value>Not found in this location</value>
+  </data>
   <data name="sdb438810d40a3c8589c5146b" xml:space="preserve">
     <value>Not found — skipped</value>
   </data>
   <data name="s4b96e273901f4b38ef2a4bce" xml:space="preserve">
     <value>Not inspected</value>
+  </data>
+  <data name="s152b7cb24f94fe527487c9f4" xml:space="preserve">
+    <value>Not installed by this source</value>
   </data>
   <data name="s9b41ba20b8a3c8705530ec7e" xml:space="preserve">
     <value>Not loaded</value>
@@ -3396,6 +4056,9 @@
   <data name="s565339bc4d33d72817b58302" xml:space="preserve">
     <value>OK</value>
   </data>
+  <data name="sed7497d78ca5c160d718932c" xml:space="preserve">
+    <value>Object Storage</value>
+  </data>
   <data name="s3eaf8ef549672a650eb1a848" xml:space="preserve">
     <value>Object replaced</value>
   </data>
@@ -3411,6 +4074,9 @@
   <data name="s2f4add0f44158e9df8df8240" xml:space="preserve">
     <value>Observed at</value>
   </data>
+  <data name="sf36117b3a499a995d42140aa" xml:space="preserve">
+    <value>Observed installed version</value>
+  </data>
   <data name="se47d52767eae8519cadc8013" xml:space="preserve">
     <value>Observed load normal</value>
   </data>
@@ -3424,7 +4090,13 @@
     <value>Obsidian download caches</value>
   </data>
   <data name="sfc3048eab7630d28c79cf167" xml:space="preserve">
-    <value>Off by default. Disabling stops desktop investigations and tests; saved rules keep working offline. Explicit CLI AI commands have separate authorization.</value>
+    <value>Turning this off stops current investigations.</value>
+  </data>
+  <data name="sc709c12c3b6fa9489cb884c2" xml:space="preserve">
+    <value>Off by default. Installation waits until current operations finish.</value>
+  </data>
+  <data name="s2fec754b783ff290d42773c8" xml:space="preserve">
+    <value>Official Guide</value>
   </data>
   <data name="s6b75c5a5c2d28355926cfc20" xml:space="preserve">
     <value>Offline builds may need the cached archives. Source checkouts and toolchains are retained.</value>
@@ -3465,6 +4137,9 @@
   <data name="s11c4d284d47b22773ea6368e" xml:space="preserve">
     <value>Only finished records are removed. Files stay in place; recoverable and unfinished records are kept.</value>
   </data>
+  <data name="sf2bae09a5f6c57bcc9b5a097" xml:space="preserve">
+    <value>Only global tools configured for latest are eligible. Project versions and lockfiles stay outside this operation.</value>
+  </data>
   <data name="sea4f398630b39bb302855146" xml:space="preserve">
     <value>Only in current analysis</value>
   </data>
@@ -3492,6 +4167,12 @@
   <data name="s0bc3187d75ab7b66f0231584" xml:space="preserve">
     <value>Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained.</value>
   </data>
+  <data name="s145a043ed5b5a3eaa2cad6fb" xml:space="preserve">
+    <value>Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.</value>
+  </data>
+  <data name="s176a7f19f66f16237484acfd" xml:space="preserve">
+    <value>Only the versions shown above are included in this review.</value>
+  </data>
   <data name="sf5aaa93ad751f8946da1a822" xml:space="preserve">
     <value>Only this folder and its children are investigated. This does not select files for cleanup.</value>
   </data>
@@ -3513,6 +4194,9 @@
   <data name="sd042c902de24c43feefa5bab" xml:space="preserve">
     <value>Open AI Settings</value>
   </data>
+  <data name="s33a89a8d22f74532a158b3d1" xml:space="preserve">
+    <value>Open Configuration Folder</value>
+  </data>
   <data name="s2c632839339629f33665ee2a" xml:space="preserve">
     <value>Open Directory</value>
   </data>
@@ -3530,6 +4214,9 @@
   </data>
   <data name="s14d3ac68e8ea5bdef92b80b1" xml:space="preserve">
     <value>Open Official Update Page</value>
+  </data>
+  <data name="s5d45471bf8e384ce869d0046" xml:space="preserve">
+    <value>Open Official Website</value>
   </data>
   <data name="s82708173ccc1a4f46c5f04f0" xml:space="preserve">
     <value>Open Privacy &amp; Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks.</value>
@@ -3603,6 +4290,9 @@
   <data name="saac17c467df4c18ee8cd3042" xml:space="preserve">
     <value>Other entries are available in the directory list.</value>
   </data>
+  <data name="scfcb8629da2e6c09de84af6b" xml:space="preserve">
+    <value>Other installations will be kept. This installs an additional copy from the selected source.</value>
+  </data>
   <data name="sdb706e0f0e74e88037aec5ff" xml:space="preserve">
     <value>Outside this discovery scope</value>
   </data>
@@ -3617,6 +4307,9 @@
   </data>
   <data name="sf53d809749a19290ecee6db6" xml:space="preserve">
     <value>Package Manager Caches</value>
+  </data>
+  <data name="s519e987092d8f35b5ad52ad8" xml:space="preserve">
+    <value>Package manager catalog may be cached.</value>
   </data>
   <data name="sa159d2f30f108315bbcc627c" xml:space="preserve">
     <value>Packaged Startup Tasks</value>
@@ -3669,6 +4362,12 @@
   <data name="s24421344abc368523525b730" xml:space="preserve">
     <value>Partially completed</value>
   </data>
+  <data name="se7cf3ef4f17c3999a94f2c6f" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="s62fa5a5b0d3c318835a213e2" xml:space="preserve">
+    <value>Path</value>
+  </data>
   <data name="s90c41b2cddf92bfd9927fcc7" xml:space="preserve">
     <value>Pause Monitoring</value>
   </data>
@@ -3690,6 +4389,9 @@
   <data name="s33b80a8ab113fffe94a086f9" xml:space="preserve">
     <value>Permanently Clean Selected…</value>
   </data>
+  <data name="s54978cb8d618e1c5f7896a66" xml:space="preserve">
+    <value>Permanently Clear</value>
+  </data>
   <data name="s7057fe699e0f7a9f67f44ed8" xml:space="preserve">
     <value>Permanently Remove…</value>
   </data>
@@ -3698,6 +4400,9 @@
   </data>
   <data name="s6aac03e496e9381cf789893f" xml:space="preserve">
     <value>Permanently clean this tool's storage?</value>
+  </data>
+  <data name="sd2beefb1c85f1f28a053c87b" xml:space="preserve">
+    <value>Permanently clear this log's contents? The file will be kept.</value>
   </data>
   <data name="sfd570f93b60e78d82596ad9b" xml:space="preserve">
     <value>Permanently delete privacy records?</value>
@@ -3747,6 +4452,15 @@
   <data name="sc2e1753d506ef951419bb3e5" xml:space="preserve">
     <value>Physical memory (bytes)</value>
   </data>
+  <data name="s4bd7843f59b136b395a358b4" xml:space="preserve">
+    <value>Pin to Workspace</value>
+  </data>
+  <data name="s0d3a8f5aea7d3fff42734ded" xml:space="preserve">
+    <value>Pinned version</value>
+  </data>
+  <data name="s7220d5057d336aaf43663a8d" xml:space="preserve">
+    <value>Pinning changes your workspace only. It does not install software, change PATH, start services or enable login items.</value>
+  </data>
   <data name="s5f7aa779da5a03c87e71983e" xml:space="preserve">
     <value>Plan digest verification failed.</value>
   </data>
@@ -3758,6 +4472,9 @@
   </data>
   <data name="s42cece8115f1ecb676bde4ec" xml:space="preserve">
     <value>Plex caches</value>
+  </data>
+  <data name="s72e9a59f5a1d6289dbacb35d" xml:space="preserve">
+    <value>Port</value>
   </data>
   <data name="se3732acb83637074f186379e" xml:space="preserve">
     <value>Postman caches</value>
@@ -3932,6 +4649,9 @@
   </data>
   <data name="sc248e79a44b0d244044d91f9" xml:space="preserve">
     <value>Protected locations may be omitted because disk access is limited.</value>
+  </data>
+  <data name="se423aa73a3e7e8e6419678f3" xml:space="preserve">
+    <value>Provider Configuration</value>
   </data>
   <data name="s3cb83c3676530953dc690143" xml:space="preserve">
     <value>Proxyman caches</value>
@@ -4111,7 +4831,10 @@
     <value>Read-only system tool output exceeded its budget.</value>
   </data>
   <data name="s2952abf6399c38d25e32c1ad" xml:space="preserve">
-    <value>Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.</value>
+    <value>Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled.</value>
+  </data>
+  <data name="s06b4ff6666d78a4c71c3fed1" xml:space="preserve">
+    <value>Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled.</value>
   </data>
   <data name="s3ebdd9ba8b813e24e6942218" xml:space="preserve">
     <value>Reading analysis history…</value>
@@ -4121,6 +4844,9 @@
   </data>
   <data name="sd42bad13a1c5d2bd26ceb235" xml:space="preserve">
     <value>Reading installed applications…</value>
+  </data>
+  <data name="s9cca011a946b6dee114ce2b1" xml:space="preserve">
+    <value>Reading service log…</value>
   </data>
   <data name="s4b301531723f2a8c86530e8f" xml:space="preserve">
     <value>Reading startup definitions…</value>
@@ -4188,6 +4914,9 @@
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>Recommended</value>
   </data>
+  <data name="s63e7f43d39e4bca5d9b9783a" xml:space="preserve">
+    <value>Reconnect to the selected MySQL instance before continuing.</value>
+  </data>
   <data name="sbd2887432e00c87eefcf6050" xml:space="preserve">
     <value>Record does not exist.</value>
   </data>
@@ -4227,6 +4956,18 @@
   <data name="s0e91610117029a62a478b7fa" xml:space="preserve">
     <value>Refresh</value>
   </data>
+  <data name="s4fd93f9b5221e12cf35ad212" xml:space="preserve">
+    <value>Refresh Log</value>
+  </data>
+  <data name="s72fe71cb37d209d2a4b418ff" xml:space="preserve">
+    <value>Refresh Status</value>
+  </data>
+  <data name="s600be92308d6700a0ff2fade" xml:space="preserve">
+    <value>Refresh Tools &amp; Services</value>
+  </data>
+  <data name="seea2121667d215548b458846" xml:space="preserve">
+    <value>Refresh Versions</value>
+  </data>
   <data name="s3ba982748cfdb0a88e1c39d3" xml:space="preserve">
     <value>Refresh to update extension totals after cleanup.</value>
   </data>
@@ -4242,6 +4983,9 @@
   <data name="s14a3c701a66af8311bc70c40" xml:space="preserve">
     <value>Registration alone does not prove an item is enabled or running. Shortcut targets are not resolved.</value>
   </data>
+  <data name="s8c34339834f3102bd9efb532" xml:space="preserve">
+    <value>Registration requires one explicit mysqld section, loopback binding, and this instance's original data, PID, log and socket paths. Review the configuration before continuing.</value>
+  </data>
   <data name="sf5c71fc98815b1f059ce78af" xml:space="preserve">
     <value>Reinstall dependencies with the project's package manager.</value>
   </data>
@@ -4256,6 +5000,12 @@
   </data>
   <data name="sbf0e07a16038d9e64ef42311" xml:space="preserve">
     <value>Relative pattern</value>
+  </data>
+  <data name="sbd4702c187a9a655880be010" xml:space="preserve">
+    <value>Release Notes</value>
+  </data>
+  <data name="sbdc090ec61e3fcfc65f46995" xml:space="preserve">
+    <value>Reload</value>
   </data>
   <data name="s06a4d938a824ae12a9fac0d8" xml:space="preserve">
     <value>Removal cancelled. Review History for any items already moved.</value>
@@ -4278,8 +5028,14 @@
   <data name="s60e2af1cda4e782644efd5ae" xml:space="preserve">
     <value>Remove Record…</value>
   </data>
+  <data name="s2ab45d3e28b901016062811c" xml:space="preserve">
+    <value>Remove Registration…</value>
+  </data>
   <data name="s99d63ac88fa426c9402d7c5e" xml:space="preserve">
     <value>Remove Scan Location</value>
+  </data>
+  <data name="s07f41a26f9a847c952f0a56d" xml:space="preserve">
+    <value>Remove from Workspace</value>
   </data>
   <data name="s5394c81f6bfdc29e53df2956" xml:space="preserve">
     <value>Remove startup items?</value>
@@ -4322,6 +5078,15 @@
   </data>
   <data name="s33c25c4f35e1b62d0ee86f63" xml:space="preserve">
     <value>Resource Status</value>
+  </data>
+  <data name="s491901170e4204595aff77c5" xml:space="preserve">
+    <value>Restart Service</value>
+  </data>
+  <data name="s28607675ebe69d5a59f2613c" xml:space="preserve">
+    <value>Restart stops the displayed service first and starts the same source and version only after stopping is verified. If stopping fails, no start is sent.</value>
+  </data>
+  <data name="s75d0f1469d166c8cc906cae0" xml:space="preserve">
+    <value>Restarting…</value>
   </data>
   <data name="sa76e13b9839270eb73ed1141" xml:space="preserve">
     <value>Restore</value>
@@ -4383,6 +5148,12 @@
   <data name="s42d2b52915a4296974bd4a22" xml:space="preserve">
     <value>Reveal Definition in Finder</value>
   </data>
+  <data name="sbdc6a823665e08ef61fab2ab" xml:space="preserve">
+    <value>Reveal Error Log</value>
+  </data>
+  <data name="sb684421b95c589bec4c0fdb4" xml:space="preserve">
+    <value>Reveal Output Log</value>
+  </data>
   <data name="scc849385646ba0d67a8687fb" xml:space="preserve">
     <value>Reveal in Finder</value>
   </data>
@@ -4395,11 +5166,20 @@
   <data name="s1bd739e2e7094e623670b02a" xml:space="preserve">
     <value>Review AI Rules…</value>
   </data>
+  <data name="s6fbbf76a1064f800f01ddc85" xml:space="preserve">
+    <value>Review Account Creation</value>
+  </data>
   <data name="s823d9ee053762f382f3d2ce8" xml:space="preserve">
     <value>Review Again</value>
   </data>
+  <data name="s3e4b1785964db1b25bde3cdd" xml:space="preserve">
+    <value>Review All Updates…</value>
+  </data>
   <data name="sae92a679494057243517d5fc" xml:space="preserve">
     <value>Review Candidates</value>
+  </data>
+  <data name="sd9764d6d64cedf78d88ae3b8" xml:space="preserve">
+    <value>Review Changes</value>
   </data>
   <data name="se091c7d6f72bfd99fccdb084" xml:space="preserve">
     <value>Review Cleanup</value>
@@ -4407,14 +5187,32 @@
   <data name="sc7f8e3c6251d5630ba45ef31" xml:space="preserve">
     <value>Review Cleanup…</value>
   </data>
+  <data name="s2d99f01c14c33baf409e369c" xml:space="preserve">
+    <value>Review Database Creation</value>
+  </data>
   <data name="s130a09c6fa5cf0b5baeb2f81" xml:space="preserve">
     <value>Review Disable</value>
   </data>
   <data name="s601f8a0e1e75dc0b2f184114" xml:space="preserve">
     <value>Review Enable</value>
   </data>
+  <data name="s43aaa926a1bb3d6194e018ef" xml:space="preserve">
+    <value>Review Installation</value>
+  </data>
+  <data name="s8caa64038954f22a6b3c7aae" xml:space="preserve">
+    <value>Review Instance Registration</value>
+  </data>
   <data name="s0547ef9bb6f1a2635fbfd7cc" xml:space="preserve">
     <value>Review Investigation Scope</value>
+  </data>
+  <data name="s76b00ffc4e3d01c275992b31" xml:space="preserve">
+    <value>Review MySQL Change</value>
+  </data>
+  <data name="se30e463786d8a65b5a5f62a0" xml:space="preserve">
+    <value>Review Name Change</value>
+  </data>
+  <data name="s86b892099a44ee3ca64c753d" xml:space="preserve">
+    <value>Review Password Change</value>
   </data>
   <data name="sa1ec601337c6beef78145787" xml:space="preserve">
     <value>Review Permanent Deletion…</value>
@@ -4428,6 +5226,9 @@
   <data name="s46fb9aa307e26a5cb38db99f" xml:space="preserve">
     <value>Review Selected Items</value>
   </data>
+  <data name="s8e26200867ca706e43da13ef" xml:space="preserve">
+    <value>Review Selected Updates…</value>
+  </data>
   <data name="s225a104a4945324fada223e6" xml:space="preserve">
     <value>Review This Item</value>
   </data>
@@ -4436,6 +5237,9 @@
   </data>
   <data name="s82bdf88674445356d19711e0" xml:space="preserve">
     <value>Review Uninstall…</value>
+  </data>
+  <data name="s77acdaf440bd046ee3c38be4" xml:space="preserve">
+    <value>Review Updated Configuration</value>
   </data>
   <data name="sffd511a9b027311b25ae9536" xml:space="preserve">
     <value>Review an app and its associated files before moving them to Trash.</value>
@@ -4479,6 +5283,12 @@
   <data name="sd37bbf8dba37560fe1d76723" xml:space="preserve">
     <value>Review disk permissions in the Setup Guide, then scan again.</value>
   </data>
+  <data name="s04f40e339c574e7a617c50a3" xml:space="preserve">
+    <value>Review globally configured developer tools without changing project versions.</value>
+  </data>
+  <data name="sd4377e73b83e04bb27771e0a" xml:space="preserve">
+    <value>Review installed Formula and Cask packages, compare versions, then choose what to upgrade.</value>
+  </data>
   <data name="s66b31cd3b09a2a4846c9890d" xml:space="preserve">
     <value>Review large files and old scan indexes, then rescan after freeing space.</value>
   </data>
@@ -4490,6 +5300,9 @@
   </data>
   <data name="sf0742e3a82fe8b57c37b57a9" xml:space="preserve">
     <value>Review required</value>
+  </data>
+  <data name="s8b14074fe369c19d991cae1f" xml:space="preserve">
+    <value>Review required agreements in the official package manager before updating here.</value>
   </data>
   <data name="s2a55683c78691759fb748d98" xml:space="preserve">
     <value>Review the categories below, or use the recommended selection.</value>
@@ -4512,11 +5325,17 @@
   <data name="se2517243d7246ec784dc2850" xml:space="preserve">
     <value>Review the installer data changes before preparing an uninstall plan.</value>
   </data>
+  <data name="s5a5342402d7e49b34665d7ce" xml:space="preserve">
+    <value>Review the package manager before retrying.</value>
+  </data>
   <data name="sbce1120ad74fd688c9a2a5df" xml:space="preserve">
     <value>Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.</value>
   </data>
   <data name="sd5b8f769cea97ad65ed440b9" xml:space="preserve">
     <value>Review the tool's current state before trying again. The previous operation may have changed data.</value>
+  </data>
+  <data name="s9bd75018a1dc09225883fb43" xml:space="preserve">
+    <value>Review these software upgrades</value>
   </data>
   <data name="s4714608fb43588c136f0af0a" xml:space="preserve">
     <value>Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt.</value>
@@ -4614,11 +5433,23 @@
   <data name="sf4ccae29e1bb0c20a124570a" xml:space="preserve">
     <value>Running</value>
   </data>
+  <data name="s060fae44a5d9e7ce101ee49b" xml:space="preserve">
+    <value>Running Elsewhere</value>
+  </data>
+  <data name="s780ffdf20cf0899fd9c8aae3" xml:space="preserve">
+    <value>Running programs could not be verified. Refresh before uninstalling.</value>
+  </data>
   <data name="s16fff913f6de814b5cea718a" xml:space="preserve">
     <value>Runtime State</value>
   </data>
   <data name="s12d7e9a9e539d765cc6e9369" xml:space="preserve">
     <value>Rust build outputs</value>
+  </data>
+  <data name="s9007989af13cfccbc26e49cf" xml:space="preserve">
+    <value>SQL backups written. Restore has not been tested.</value>
+  </data>
+  <data name="s94ece6d750f221987384d6e2" xml:space="preserve">
+    <value>SQL exports failed. Incomplete files remain marked .partial.</value>
   </data>
   <data name="sd69715933d1d2cead3199640" xml:space="preserve">
     <value>Safari caches</value>
@@ -4628,6 +5459,9 @@
   </data>
   <data name="s1509f561f2416598629b886a" xml:space="preserve">
     <value>Save</value>
+  </data>
+  <data name="sb227a038322afd9f26684321" xml:space="preserve">
+    <value>Save Configuration</value>
   </data>
   <data name="s60605e45ec0a8b1cd9509cd6" xml:space="preserve">
     <value>Save Draft</value>
@@ -4640,6 +5474,15 @@
   </data>
   <data name="s2ddd4774d41d33c40e48cc96" xml:space="preserve">
     <value>Save Preset</value>
+  </data>
+  <data name="s5ff13cc2df7c11b4c888c50e" xml:space="preserve">
+    <value>Save Selected Configuration</value>
+  </data>
+  <data name="sfefd138cfff8b2735986effe" xml:space="preserve">
+    <value>Save changes to this configuration file?</value>
+  </data>
+  <data name="sf95b2518b8305e4a8dc89891" xml:space="preserve">
+    <value>Save changes to this configuration file? Restart the matching service separately to apply them.</value>
   </data>
   <data name="s5fc0a3943a720cd46f7d1364" xml:space="preserve">
     <value>Save results</value>
@@ -4676,6 +5519,9 @@
   </data>
   <data name="saf4349716e611b41e0c1092d" xml:space="preserve">
     <value>Saving connection…</value>
+  </data>
+  <data name="s48536fb099e8e8438d5fb6d8" xml:space="preserve">
+    <value>Saving does not validate syntax or restart MySQL.</value>
   </data>
   <data name="s67c658e70aaa2f64d9d46997" xml:space="preserve">
     <value>Saving settings…</value>
@@ -4715,6 +5561,9 @@
   </data>
   <data name="sb7148ee27ed2ac1587c718bd" xml:space="preserve">
     <value>Scan Coverage</value>
+  </data>
+  <data name="sc833e197ba38946f453c83ed" xml:space="preserve">
+    <value>Scan Installed Tools</value>
   </data>
   <data name="sf78a9015ad5766213158feb6" xml:space="preserve">
     <value>Scan Location</value>
@@ -4806,6 +5655,9 @@
   <data name="s766b1f5eaafaaec88fb3d73c" xml:space="preserve">
     <value>Scan to see aggregate counts and availability. Browsing records are never displayed.</value>
   </data>
+  <data name="s7a4d9a0c96012365ca40008d" xml:space="preserve">
+    <value>Scanning Installed Tools…</value>
+  </data>
   <data name="sf92e3c904a5f7e16496feb7d" xml:space="preserve">
     <value>Scanning and Privacy</value>
   </data>
@@ -4845,6 +5697,9 @@
   <data name="s4724f344c1c0e4a1c5e40856" xml:space="preserve">
     <value>Scheduled</value>
   </data>
+  <data name="s8a9c2a741bc6b88927f100be" xml:space="preserve">
+    <value>Scheduled Tasks</value>
+  </data>
   <data name="sd2c691285717cefda706e2a4" xml:space="preserve">
     <value>Scheduled Tasks (Boot or Logon)</value>
   </data>
@@ -4860,6 +5715,9 @@
   <data name="s49c266baaaa70981ea188fa7" xml:space="preserve">
     <value>Search</value>
   </data>
+  <data name="sb93c375122f5a75ab9f4f739" xml:space="preserve">
+    <value>Search Engines</value>
+  </data>
   <data name="s2986e4b0a88b8428dcb03db6" xml:space="preserve">
     <value>Search app names, identifiers or paths</value>
   </data>
@@ -4869,8 +5727,14 @@
   <data name="s618b6244a947c3269ef22efc" xml:space="preserve">
     <value>Search applications…</value>
   </data>
+  <data name="sa7f7c212c6425e0093b7a734" xml:space="preserve">
+    <value>Search developer tools</value>
+  </data>
   <data name="s2f4f02ae4ffa36861bd801cf" xml:space="preserve">
     <value>Search name or PID</value>
+  </data>
+  <data name="sd700f7279036ba527372c523" xml:space="preserve">
+    <value>Search packages</value>
   </data>
   <data name="s42e99c17c57fa990505b67e9" xml:space="preserve">
     <value>Search programs or publishers</value>
@@ -4977,6 +5841,9 @@
   <data name="sb0de9ca6d31a0f4a805b4da5" xml:space="preserve">
     <value>Select available items in this cleanup</value>
   </data>
+  <data name="s1a58b9eae374eb8251c13c95" xml:space="preserve">
+    <value>Select available updates</value>
+  </data>
   <data name="s92b9ad257a055cbb99439741" xml:space="preserve">
     <value>Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.</value>
   </data>
@@ -5009,6 +5876,12 @@
   </data>
   <data name="s57fd7a0cf33f2666eede69e4" xml:space="preserve">
     <value>Selected</value>
+  </data>
+  <data name="s5282570a8cecad0e2917de37" xml:space="preserve">
+    <value>Selected File</value>
+  </data>
+  <data name="sad1d0fd8345a047282e5a174" xml:space="preserve">
+    <value>Selected MySQL Instance</value>
   </data>
   <data name="sdd6fb9f054fd5661ae2a3171" xml:space="preserve">
     <value>Selected Scan Location</value>
@@ -5061,11 +5934,56 @@
   <data name="sc173da2c2a4d4ca2930d8c09" xml:space="preserve">
     <value>Serious</value>
   </data>
+  <data name="sd677190e0a9990e7d5fa9e4c" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <data name="s3028f3078d90d8b0451e306f" xml:space="preserve">
+    <value>Service Details</value>
+  </data>
+  <data name="scb74a676be69c178cff02e8a" xml:space="preserve">
+    <value>Service Governance</value>
+  </data>
+  <data name="s4cf75aff526433d12b49cda6" xml:space="preserve">
+    <value>Service Groups</value>
+  </data>
+  <data name="s66a9b14a8a489d4ce66021d1" xml:space="preserve">
+    <value>Service Instances</value>
+  </data>
+  <data name="s50556fbbad86f40be399e33d" xml:space="preserve">
+    <value>Service Log</value>
+  </data>
+  <data name="sd75c3b145ef9360275797a6d" xml:space="preserve">
+    <value>Service Log, Last 200 Lines</value>
+  </data>
+  <data name="s8ddc9f6441ac515598f63e70" xml:space="preserve">
+    <value>Service Log, Last 200 Lines</value>
+  </data>
   <data name="sd507c25df634f470890fdae3" xml:space="preserve">
     <value>Service Usage</value>
   </data>
   <data name="s61f47a3552347f8945cf8976" xml:space="preserve">
     <value>Service activation</value>
+  </data>
+  <data name="s658be1e65154d34e63ed9a9d" xml:space="preserve">
+    <value>Service control is not connected for this installation.</value>
+  </data>
+  <data name="s78d8d74681e2a863c790caed" xml:space="preserve">
+    <value>Service discovery is running in the background. You can keep browsing tools.</value>
+  </data>
+  <data name="sad2d1252f2b588ab921c6b55" xml:space="preserve">
+    <value>Service restarted and verified.</value>
+  </data>
+  <data name="scadb6ee9393f0023cf74d56c" xml:space="preserve">
+    <value>Service state could not be verified. Refresh before using a switch.</value>
+  </data>
+  <data name="s4704b8e835107eee4c5af409" xml:space="preserve">
+    <value>Service state verified.</value>
+  </data>
+  <data name="s7bdf3e5679dd34676109d647" xml:space="preserve">
+    <value>Service states are snapshots. Refresh to check changes made outside Shou.</value>
+  </data>
+  <data name="s9dd6569e4142e15c55b6c2d2" xml:space="preserve">
+    <value>Service stopped. Starting…</value>
   </data>
   <data name="s10886554da510708e6b9477c" xml:space="preserve">
     <value>Set as Default</value>
@@ -5139,6 +6057,9 @@
   <data name="se063c6860f7c137ae9d38a4a" xml:space="preserve">
     <value>Show More ({0} remaining)</value>
   </data>
+  <data name="s13629624b267d57f141d93bb" xml:space="preserve">
+    <value>Show Service Definition</value>
+  </data>
   <data name="sa9f0bf9dee48c79d06989d04" xml:space="preserve">
     <value>Show Shou in Finder</value>
   </data>
@@ -5147,6 +6068,9 @@
   </data>
   <data name="s3879f5155ebda95484a507ab" xml:space="preserve">
     <value>Show components</value>
+  </data>
+  <data name="sc2a9c77acf9b329f25b32c6f" xml:space="preserve">
+    <value>Show in Finder</value>
   </data>
   <data name="s4547a5de9286468661abc0bf" xml:space="preserve">
     <value>Show in Space Analysis</value>
@@ -5178,6 +6102,9 @@
   <data name="s3d0b6747c5199f57596776b9" xml:space="preserve">
     <value>Showing the first 50 scan notes.</value>
   </data>
+  <data name="sa699f1daa6d78b16559ed32d" xml:space="preserve">
+    <value>Showing the last 200 lines, up to 64 KiB. Business logs and Shou startup output are separate.</value>
+  </data>
   <data name="sf7efa7bc1fc535ab733d92a5" xml:space="preserve">
     <value>Sidebar</value>
   </data>
@@ -5186,6 +6113,12 @@
   </data>
   <data name="s826c1a6f5cd1805065654f36" xml:space="preserve">
     <value>Site storage</value>
+  </data>
+  <data name="s9d7690937436d9e3bd5d93ac" xml:space="preserve">
+    <value>Sites</value>
+  </data>
+  <data name="s1f5e91809187e9db1489fc72" xml:space="preserve">
+    <value>Sites &amp; Certificates</value>
   </data>
   <data name="s1af851907331c0ed99e7c63b" xml:space="preserve">
     <value>Size</value>
@@ -5223,6 +6156,9 @@
   <data name="sf7c6faa1ea3edb5bff063d7b" xml:space="preserve">
     <value>Slack download caches</value>
   </data>
+  <data name="sc6b96d90112439f70c64b7c4" xml:space="preserve">
+    <value>Slow Query Log</value>
+  </data>
   <data name="s12ec73b9841470f06e482f7b" xml:space="preserve">
     <value>Smart Cleanup</value>
   </data>
@@ -5232,8 +6168,29 @@
   <data name="s694e47970429afcc5944e49a" xml:space="preserve">
     <value>Socket activation</value>
   </data>
+  <data name="sa948609ba88b3082f95dcdea" xml:space="preserve">
+    <value>Software Update</value>
+  </data>
   <data name="sc15ae6d7c71134a4eaebef94" xml:space="preserve">
     <value>Software Updates</value>
+  </data>
+  <data name="s86e734ec1ac2339e6e632882" xml:space="preserve">
+    <value>Software source</value>
+  </data>
+  <data name="s4f96838d543b2d5b260576b9" xml:space="preserve">
+    <value>Software update check finished.</value>
+  </data>
+  <data name="sb0ec3bb010ab430a8a0e10ff" xml:space="preserve">
+    <value>Software update check incomplete.</value>
+  </data>
+  <data name="saa68cbe160e2e13d460a20fe" xml:space="preserve">
+    <value>Software update check stopped.</value>
+  </data>
+  <data name="s5295150db022ba14cee82530" xml:space="preserve">
+    <value>Software update results</value>
+  </data>
+  <data name="s20bff886113030e192e4dc27" xml:space="preserve">
+    <value>Software update results are ready.</value>
   </data>
   <data name="sa101cbf3b644ab801fde2955" xml:space="preserve">
     <value>Some application registrations could not be read. The list may be incomplete.</value>
@@ -5243,6 +6200,9 @@
   </data>
   <data name="s51f0ce9f1d62011f7eac91fa" xml:space="preserve">
     <value>Some applications could not be fully inspected. Review ownership notices before selecting associated files.</value>
+  </data>
+  <data name="s362b097405e84cadda000d91" xml:space="preserve">
+    <value>Some developer tool locations could not be read.</value>
   </data>
   <data name="s0e8d4a517652d2fe804acd36" xml:space="preserve">
     <value>Some files belong to another user.</value>
@@ -5294,6 +6254,9 @@
   </data>
   <data name="s4411577d476c87daf3eb206d" xml:space="preserve">
     <value>Some selected items could not be processed. Inspect history.</value>
+  </data>
+  <data name="s2e24ef5d1d1dd1597a317350" xml:space="preserve">
+    <value>Some sources could not be read.</value>
   </data>
   <data name="sfb4ea2daa015de5e0ed512ca" xml:space="preserve">
     <value>Some sources were not cleaned</value>
@@ -5367,11 +6330,26 @@
   <data name="s1f54738da77c209d462c1815" xml:space="preserve">
     <value>Start Scan</value>
   </data>
+  <data name="sf427bbcc73e3792545aae70a" xml:space="preserve">
+    <value>Start Service</value>
+  </data>
   <data name="s3b43fd78bddf12e45561108b" xml:space="preserve">
     <value>Start Using Shou</value>
   </data>
+  <data name="sfa75105b35cab454d9d3546b" xml:space="preserve">
+    <value>Start or stop this service now. Existing login-start registration is preserved.</value>
+  </data>
   <data name="s44846d83b3714cb67fe01295" xml:space="preserve">
     <value>Start with a project folder. Shou scans only the workspace you select.</value>
+  </data>
+  <data name="s0755d29194de83baf6d54abb" xml:space="preserve">
+    <value>Starting failed. Check the service log before retrying.</value>
+  </data>
+  <data name="sbbe5fc3b9ef39f994c259eaf" xml:space="preserve">
+    <value>Starting…</value>
+  </data>
+  <data name="sf1f2eafb40d34b97ac39c0aa" xml:space="preserve">
+    <value>Starts at Login</value>
   </data>
   <data name="s30a7db34eb24c423b9eb6f54" xml:space="preserve">
     <value>All</value>
@@ -5393,6 +6371,9 @@
   </data>
   <data name="s98ee066e3bcfc1ec65bca22a" xml:space="preserve">
     <value>Startup Options</value>
+  </data>
+  <data name="s675094cd2c78c8cc150cb1cf" xml:space="preserve">
+    <value>Startup Output</value>
   </data>
   <data name="s2cc12e8bf4562e177ee69833" xml:space="preserve">
     <value>Startup State</value>
@@ -5445,6 +6426,9 @@
   <data name="sbfaf756251dc0544888b91ed" xml:space="preserve">
     <value>Stash caches</value>
   </data>
+  <data name="s4d58877f51d3835ba240083a" xml:space="preserve">
+    <value>State Unknown</value>
+  </data>
   <data name="s9c3c81cf554008a7bdf6c0bb" xml:space="preserve">
     <value>State unavailable</value>
   </data>
@@ -5472,6 +6456,12 @@
   <data name="s8d8d554a4545b18ce0dbb255" xml:space="preserve">
     <value>Stop Investigation</value>
   </data>
+  <data name="s7b991ca99766f0596ca1b525" xml:space="preserve">
+    <value>Stop Service</value>
+  </data>
+  <data name="s6340f505317b2049e9a315fb" xml:space="preserve">
+    <value>Stop Upgrading</value>
+  </data>
   <data name="secf1435824229c2123198316" xml:space="preserve">
     <value>Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.</value>
   </data>
@@ -5496,6 +6486,9 @@
   <data name="sa921e02b49872652f09da837" xml:space="preserve">
     <value>Stop including this folder?</value>
   </data>
+  <data name="s752aecf6f1981bb2968e9a69" xml:space="preserve">
+    <value>Stop requested. Waiting for the current installer result; keep this window open.</value>
+  </data>
   <data name="s2b8378e551999296059b1022" xml:space="preserve">
     <value>Stop requested. Waiting for the system installer result; keep this window open.</value>
   </data>
@@ -5505,11 +6498,29 @@
   <data name="se429a31e72875f0b6a3bf647" xml:space="preserve">
     <value>Stop the affected tools first. Offline workflows may depend on these caches.</value>
   </data>
+  <data name="sedb83326104f582668bf2c4f" xml:space="preserve">
+    <value>Stop the instance before editing its registration. After saving configuration changes, review and refresh the registration to bind the next start to the new file.</value>
+  </data>
+  <data name="s1aa0f5dc04da8a1c3da23a7d" xml:space="preserve">
+    <value>Stop the instance before updating its registration.</value>
+  </data>
+  <data name="sda73384d44f751fcbda4c40e" xml:space="preserve">
+    <value>Stop the instances using this installation before uninstalling it.</value>
+  </data>
   <data name="se85765dde62f5fa0bca33470" xml:space="preserve">
     <value>Stop the operation and close this window?</value>
   </data>
   <data name="s6be11a7cdc612b5ea8810d7d" xml:space="preserve">
     <value>Stop the operation and quit Shou?</value>
+  </data>
+  <data name="sa464bc9b7abe38bb349b4339" xml:space="preserve">
+    <value>Stop this exact instance and refresh its status before changing its registration.</value>
+  </data>
+  <data name="sc82f2c3f515ec9f58da374e2" xml:space="preserve">
+    <value>Stop this instance before editing its configuration.</value>
+  </data>
+  <data name="s1a4f630ac1b69fd00728fa8a" xml:space="preserve">
+    <value>Stopped</value>
   </data>
   <data name="s4c5362d806b48d8d782b5c7b" xml:space="preserve">
     <value>Stopping after the current item…</value>
@@ -5520,11 +6531,20 @@
   <data name="seed076d96441cdfaadaecefc" xml:space="preserve">
     <value>Stopping cleanup; waiting for the current item result…</value>
   </data>
+  <data name="se72bd46b2b4548a03e145715" xml:space="preserve">
+    <value>Stopping failed. No new instance was started.</value>
+  </data>
   <data name="sa70da7270f1607c78a906a7d" xml:space="preserve">
     <value>Stopping investigation…</value>
   </data>
+  <data name="s72f9cecb904940b22aeef802" xml:space="preserve">
+    <value>Stopping may leave the current package changed. Check its installed version before retrying.</value>
+  </data>
   <data name="s46addc4f0dc5a04d670b421a" xml:space="preserve">
     <value>Stopping scan…</value>
+  </data>
+  <data name="sded6bb02f57d59f3e3df0c61" xml:space="preserve">
+    <value>Stopping software upgrades…</value>
   </data>
   <data name="sa1bc790977eebbca173fbfad" xml:space="preserve">
     <value>Stopping; waiting for the task change result…</value>
@@ -5598,6 +6618,9 @@
   <data name="s2ffbc5827bb148aa73e15be5" xml:space="preserve">
     <value>System Caches</value>
   </data>
+  <data name="s7851edba78e80968fcf971cf" xml:space="preserve">
+    <value>System Databases</value>
+  </data>
   <data name="sb288d256878ba98d12593281" xml:space="preserve">
     <value>System Monitor</value>
   </data>
@@ -5653,7 +6676,10 @@
     <value>Target inspection is incomplete</value>
   </data>
   <data name="s1f67835e157c0b0708301f62" xml:space="preserve">
-    <value>Task Scheduler reports: {0} · {1}.</value>
+    <value>Task Scheduler reports: {0}, {1}.</value>
+  </data>
+  <data name="s686354028857cda7afcc00d8" xml:space="preserve">
+    <value>Task Scheduler reports: {0}, {1}.</value>
   </data>
   <data name="s234c0fa8e6bd17171f4a5710" xml:space="preserve">
     <value>Task Scheduler state unknown</value>
@@ -5689,7 +6715,10 @@
     <value>Tencent Video caches</value>
   </data>
   <data name="s3cab61efade83d717cecb68b" xml:space="preserve">
-    <value>Terminal and AI agents · optional</value>
+    <value>Terminal and AI agents, optional</value>
+  </data>
+  <data name="s9afa82eac260ca0ae1211b7e" xml:space="preserve">
+    <value>Terminal and AI agents, optional</value>
   </data>
   <data name="sc02977b07ec93816f236c57b" xml:space="preserve">
     <value>Test Connection</value>
@@ -5708,6 +6737,9 @@
   </data>
   <data name="s9e48df84172fa6438297e99b" xml:space="preserve">
     <value>The IDE rebuilds indexes and generated caches when needed.</value>
+  </data>
+  <data name="s3d34cb6bd97b71b4bfc1a108" xml:space="preserve">
+    <value>The MySQL operation could not be verified. Check the selected instance and its permissions.</value>
   </data>
   <data name="s9658739be4b55982b45e8737" xml:space="preserve">
     <value>The Skill contains an oversized file.</value>
@@ -5739,6 +6771,9 @@
   <data name="s0966f0c4a829a2be433fbb71" xml:space="preserve">
     <value>The application creates new diagnostic logs when needed.</value>
   </data>
+  <data name="s1b5dbc3a2b8e233f6c6e9888" xml:space="preserve">
+    <value>The application identity or target version changed. Check updates again before continuing.</value>
+  </data>
   <data name="s4a372589393c01e155c0d151" xml:space="preserve">
     <value>The application recreates downloaded resources and generated caches when needed.</value>
   </data>
@@ -5763,14 +6798,29 @@
   <data name="sd495dacffc5ea558dbc5290e" xml:space="preserve">
     <value>The catalog identity or availability could not be verified.</value>
   </data>
+  <data name="s3cdbe4497b2a500fa4a9a04c" xml:space="preserve">
+    <value>The configuration changed or could not be saved. Reload the file before trying again.</value>
+  </data>
+  <data name="sed97c2e6dbe1a4205bbd930a" xml:space="preserve">
+    <value>The configuration file could not be read. Select its exact path or check access permissions.</value>
+  </data>
   <data name="s592b72a4479da5ee2aca499f" xml:space="preserve">
     <value>The decision provider receives bounded relative metadata and retention answers. Local processing comes first; only open-ended understanding escalates to the main model. Neither service can authorize deletion.</value>
   </data>
   <data name="s13be5d6605e2a623340b67ff" xml:space="preserve">
     <value>The decision service is off. The main model handles this configuration directly.</value>
   </data>
+  <data name="sf3bd2415f42cf4d88032c99b" xml:space="preserve">
+    <value>The developer tool catalog could not be loaded.</value>
+  </data>
+  <data name="sb88f273cabb786d60e8593ac" xml:space="preserve">
+    <value>The developer tool search reached its directory budget.</value>
+  </data>
   <data name="s740bdf079750ac29c5329c09" xml:space="preserve">
     <value>The disk-access sentinel is readable; individual locations may still be restricted.</value>
+  </data>
+  <data name="sbeef6fea53e03e7133b58471" xml:space="preserve">
+    <value>The download page could not be opened. Try again.</value>
   </data>
   <data name="sc6794b93b5d56ddcbb8a0096" xml:space="preserve">
     <value>The file changed before permanent removal.</value>
@@ -5790,6 +6840,9 @@
   <data name="s54b75aeccd32d756c9d0759c" xml:space="preserve">
     <value>The installation could not be verified or changed after review. Review it again.</value>
   </data>
+  <data name="s211d2fdd97b81d1d7e70fca2" xml:space="preserve">
+    <value>The installation identity or scope could not be verified.</value>
+  </data>
   <data name="s02ab47db97abcfb72b0cd74f" xml:space="preserve">
     <value>The installed Skill cannot be inspected.</value>
   </data>
@@ -5802,8 +6855,17 @@
   <data name="s691dcc0cb41c2d18690cec9d" xml:space="preserve">
     <value>The installed Skill has local changes or is not managed by Shou. Existing files were preserved.</value>
   </data>
+  <data name="sa2305007e708cd00f68e6840" xml:space="preserve">
+    <value>The installed and available versions could not be safely compared.</value>
+  </data>
+  <data name="sa2ad249e204fee10946ce27e" xml:space="preserve">
+    <value>The installed package state matches the requested operation.</value>
+  </data>
   <data name="sff247b7dea9d650d48096add" xml:space="preserve">
     <value>The installer requested a restart. Shou will not restart Windows automatically.</value>
+  </data>
+  <data name="s18d3fe7674bce6313301dc89" xml:space="preserve">
+    <value>The instance registration changed. Refresh and review it again.</value>
   </data>
   <data name="sebbe03e2f0c58aff6d67e417" xml:space="preserve">
     <value>The investigation folder changed. Scan it again before importing a rule.</value>
@@ -5853,14 +6915,35 @@
   <data name="se971303b349b66c56c421794" xml:space="preserve">
     <value>The location scan is incomplete; executable cleanup plans are unavailable.</value>
   </data>
+  <data name="s7574a46bfefb50474dba8f93" xml:space="preserve">
+    <value>The log changed or cannot be cleared. Refresh and review it again.</value>
+  </data>
+  <data name="s6fcab96cfc54e4f991c6526c" xml:space="preserve">
+    <value>The log cleanup result needs verification. Refresh before continuing.</value>
+  </data>
+  <data name="s29c7e290f2d98dcb2b2c6da4" xml:space="preserve">
+    <value>The log file is empty.</value>
+  </data>
+  <data name="sf6cd171a2466e50931c06d2a" xml:space="preserve">
+    <value>The log is empty, read-only or has changed. Refresh before clearing it.</value>
+  </data>
   <data name="s8b727fce2eedd07a9d6bbc0a" xml:space="preserve">
     <value>The main model is required. Enable the decision service to reduce token use; switch it off to let the main model handle the investigation directly.</value>
   </data>
   <data name="see001caa75c7ea56148fc1c4" xml:space="preserve">
     <value>The model request failed. Check the connection and tool-calling support, then try again.</value>
   </data>
+  <data name="s136a14c0f5cfb9410df4bb16" xml:space="preserve">
+    <value>The new MySQL instance could not be initialized. Its files remain for inspection; existing databases were not changed.</value>
+  </data>
   <data name="sebd45db6f7e63c0f7b23fddf" xml:space="preserve">
     <value>The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again.</value>
+  </data>
+  <data name="s607a7cbde94872b1a747e423" xml:space="preserve">
+    <value>The next start will use this exact configuration. Data is not initialized, moved or removed, and no server is started by this action.</value>
+  </data>
+  <data name="sb7cd6323428201e18386bb42" xml:space="preserve">
+    <value>The official WinGet source could not be verified. Custom sources are not used.</value>
   </data>
   <data name="scbf8ae4da2cbabfe29b3a734" xml:space="preserve">
     <value>The operation will stop at a safe boundary. Unstarted items will stay unchanged. Review processed items in History; they are not automatically restored.</value>
@@ -5880,6 +6963,30 @@
   <data name="s64f88c8f85615198359cbb8d" xml:space="preserve">
     <value>The owning application regenerates these caches; future launches or builds may require downloads.</value>
   </data>
+  <data name="s0b3eb53fa891328fe236d7e1" xml:space="preserve">
+    <value>The package inventory is incomplete. Refresh it before selecting updates.</value>
+  </data>
+  <data name="sa4f6011cf457ce2ed547bedd" xml:space="preserve">
+    <value>The package manager could not check available versions. Installed packages are shown without upgrade eligibility.</value>
+  </data>
+  <data name="sc7ee9e80156ae0b057acdd8f" xml:space="preserve">
+    <value>The package manager could not finish. Open the owning tool or check again.</value>
+  </data>
+  <data name="sdef61d895c922a23502e24cb" xml:space="preserve">
+    <value>The package manager is not installed in a supported location.</value>
+  </data>
+  <data name="sce89552bdc1c6550ec2ffc7a" xml:space="preserve">
+    <value>The package manager is working. Shou will wait for its result before closing.</value>
+  </data>
+  <data name="s38198f632e9a2e36886a0d11" xml:space="preserve">
+    <value>The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer.</value>
+  </data>
+  <data name="s6b79e04ff623d1cde8b11a02" xml:space="preserve">
+    <value>The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically.</value>
+  </data>
+  <data name="s0a0770b3a07bf45df9c36e52" xml:space="preserve">
+    <value>The package manager needs permissions that Shou cannot request. Open the owning tool to continue.</value>
+  </data>
   <data name="sa250c2fd54e809f2ccbb5345" xml:space="preserve">
     <value>The packaged CLI is unavailable. Install Shou in Applications first.</value>
   </data>
@@ -5897,6 +7004,12 @@
   </data>
   <data name="s971a28bbde97a973009674b5" xml:space="preserve">
     <value>The registered installation location is unavailable or invalid.</value>
+  </data>
+  <data name="s500b4e4e467ed96f6cc31acc" xml:space="preserve">
+    <value>The registration result needs verification. Refresh its state before continuing; database files were not removed.</value>
+  </data>
+  <data name="s8db6f984c6aff7d0ebb97c85" xml:space="preserve">
+    <value>The requested state could not be verified. Refresh status before retrying.</value>
   </data>
   <data name="s697f15e8f144e467c4530c27" xml:space="preserve">
     <value>The requested task switch was observed after the change.</value>
@@ -5940,6 +7053,9 @@
   <data name="s8ef8b2e966c335d9530510f9" xml:space="preserve">
     <value>The selected API key environment variable is empty.</value>
   </data>
+  <data name="s965e3336b287f7e5007770c2" xml:space="preserve">
+    <value>The selected MySQL file cannot be read or has changed. Reload its exact path before saving.</value>
+  </data>
   <data name="sb44011a7b7bb878739ace3c5" xml:space="preserve">
     <value>The selected application bundle itself.</value>
   </data>
@@ -5949,14 +7065,29 @@
   <data name="sd5fec1665571d12458ff834d" xml:space="preserve">
     <value>The selected folder could not be resolved.</value>
   </data>
+  <data name="s621c44e6920aa875ddda806a" xml:space="preserve">
+    <value>The selected installation initializes a new private directory. The server stays stopped, listens on loopback when started, and has a password from creation. Existing instances and login registration are unchanged.</value>
+  </data>
   <data name="s17d2d2213c5138782da81610" xml:space="preserve">
     <value>The selected items overlap. Choose either a folder or its contents.</value>
   </data>
   <data name="s3f0e30fd43f94fce614e10c1" xml:space="preserve">
     <value>The selected structured decision provider is not installed. Edit the connection to choose an available provider.</value>
   </data>
+  <data name="sd3437f38ab26339a574f83af" xml:space="preserve">
+    <value>The service could not be verified before the action. Refresh status before retrying.</value>
+  </data>
+  <data name="s9c7cc691c135db4c93f0db82" xml:space="preserve">
+    <value>The service log cannot be read. Check its path and access permissions.</value>
+  </data>
   <data name="s12ab9774c069a12b903e0b3b" xml:space="preserve">
     <value>The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.</value>
+  </data>
+  <data name="sf9af0edca944e37d9d4d48eb" xml:space="preserve">
+    <value>The service result needs verification. Refresh its source; Shou will not retry automatically.</value>
+  </data>
+  <data name="sf81e65983d0c6d670824e835" xml:space="preserve">
+    <value>The service stopped, but restart did not finish. Refresh its source before continuing.</value>
   </data>
   <data name="s58b0b32e13932ab618db36b7" xml:space="preserve">
     <value>The space analysis index ran out of storage. Free some disk space or scan a smaller folder.</value>
@@ -5991,11 +7122,17 @@
   <data name="sf8f57409f9ac9ed1a1d7ce50" xml:space="preserve">
     <value>The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space.</value>
   </data>
+  <data name="s9d58040f05a77046ec31dd65" xml:space="preserve">
+    <value>The tool could not be inspected or changed. Use its official guide or inspect again.</value>
+  </data>
   <data name="s7d9b61e3f83aa2f2b1354bda" xml:space="preserve">
     <value>The tool downloads packages again or regenerates build caches when needed.</value>
   </data>
   <data name="sdb9c55fb6b3989b72423e127" xml:space="preserve">
     <value>The tool downloads packages or regenerates cached analysis when needed.</value>
+  </data>
+  <data name="s90eded38a688d594c49b234e" xml:space="preserve">
+    <value>The tool or its source changed. Inspect it and review the operation again.</value>
   </data>
   <data name="s6db39c53eb325aa164b80624" xml:space="preserve">
     <value>The tray summary could not be opened.</value>
@@ -6021,6 +7158,18 @@
   <data name="s6d10cbf37f4ede330b3e6774" xml:space="preserve">
     <value>The uninstall result could not be determined. Read the saved record before taking further action.</value>
   </data>
+  <data name="s8d0b0571ad7da763bcf4bcf2" xml:space="preserve">
+    <value>The update outcome is uncertain. Check installed versions before trying again.</value>
+  </data>
+  <data name="s1df31a81fac360da23dd5883" xml:space="preserve">
+    <value>The update was stopped. Some software may have changed; check again before retrying.</value>
+  </data>
+  <data name="s1bd3393e574274b7a519b7fb" xml:space="preserve">
+    <value>The upgrade could not be verified. Some software may have changed; inspect the package manager before retrying.</value>
+  </data>
+  <data name="s6684006f3add2529d828cb94" xml:space="preserve">
+    <value>The upgrade was blocked before installation. Check again before retrying.</value>
+  </data>
   <data name="s8d8aa41a0657543ad4d3239c" xml:space="preserve">
     <value>The versions use different or unsupported formats. Compare them in the app.</value>
   </data>
@@ -6032,6 +7181,9 @@
   </data>
   <data name="sf370d0f6a9ea130ef5c1dccd" xml:space="preserve">
     <value>These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action.</value>
+  </data>
+  <data name="sd594b604267bf047da687ee8" xml:space="preserve">
+    <value>This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once.</value>
   </data>
   <data name="s2e7abb738415510222e4bf27" xml:space="preserve">
     <value>This analysis cannot be compared. Run two new space analyses of the same folder.</value>
@@ -6060,8 +7212,14 @@
   <data name="se775fda165c44a050de93b4c" xml:space="preserve">
     <value>This cleanup directory is already completely measured.</value>
   </data>
+  <data name="s2d908efb903f3430d601d4f3" xml:space="preserve">
+    <value>This configuration is read-only.</value>
+  </data>
   <data name="sd5dc3fd03a8e2f6a52d8e9b3" xml:space="preserve">
     <value>This directory still exceeds the scan limit.</value>
+  </data>
+  <data name="s24b688976164e0daf9c0247d" xml:space="preserve">
+    <value>This file is read-only. Shou will not change its ownership or permissions.</value>
   </data>
   <data name="se583203737f9ad1af4ec1bcc" xml:space="preserve">
     <value>This folder contains entries on another volume.</value>
@@ -6093,8 +7251,20 @@
   <data name="s70ddbdec825030e4016cb9a4" xml:space="preserve">
     <value>This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified.</value>
   </data>
+  <data name="sdaef0b33170f9c32415dc125" xml:space="preserve">
+    <value>This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.</value>
+  </data>
+  <data name="s2877f2943af637ac0ec29269" xml:space="preserve">
+    <value>This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete.</value>
+  </data>
+  <data name="s134c510005ac170a5d336200" xml:space="preserve">
+    <value>This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions.</value>
+  </data>
   <data name="sf235fb4baa287b6b904de22b" xml:space="preserve">
     <value>This is irreversible. Only the selected items from this cleanup batch will be removed.</value>
+  </data>
+  <data name="scad6e5d342a64ae7c9cdd18c" xml:space="preserve">
+    <value>This is the selected file's source. Include directives may reference additional files. Saving does not validate MySQL syntax or restart any instance.</value>
   </data>
   <data name="sf4858f84ffb1902f7d175210" xml:space="preserve">
     <value>This item is not owned by the current user.</value>
@@ -6141,6 +7311,9 @@
   <data name="s8c890bf7028a9aa4b00a5c96" xml:space="preserve">
     <value>This platform does not use the macOS disk-access sentinel.</value>
   </data>
+  <data name="s3db38acb36ec30b13be91b7f" xml:space="preserve">
+    <value>This portable version updates manually. Download the new version, quit Shou, then replace its folder. Your local data stays in place.</value>
+  </data>
   <data name="sa4a832f99a9f0c96e24192e1" xml:space="preserve">
     <value>This preview cannot delete files or create a cleanup plan.</value>
   </data>
@@ -6152,6 +7325,12 @@
   </data>
   <data name="s6884b19dbb76935457818bf6" xml:space="preserve">
     <value>This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded.</value>
+  </data>
+  <data name="sb93619fdeb98150193221c83" xml:space="preserve">
+    <value>This review expires in two minutes and can be used once.</value>
+  </data>
+  <data name="sff913fa9024760466bf70866" xml:space="preserve">
+    <value>This review is valid for two minutes and can be used once.</value>
   </data>
   <data name="s5e89db31c0abbf4b6257d2fe" xml:space="preserve">
     <value>This root is protected or is not owned by the current user.</value>
@@ -6174,8 +7353,14 @@
   <data name="s7b9a93af21ec7fe0f72db4d2" xml:space="preserve">
     <value>This selection could not be completely read. Review access or scan again.</value>
   </data>
+  <data name="s257831e52e826924a2642427" xml:space="preserve">
+    <value>This service source or definition could not be verified. Its switch is unavailable.</value>
+  </data>
   <data name="s848cd5a4fbe8cda671244498" xml:space="preserve">
     <value>This snapshot changed. Start a new investigation from the current folder.</value>
+  </data>
+  <data name="scbca8abd387799d7c3cc67af" xml:space="preserve">
+    <value>This source cannot currently install the tool. Existing managed versions may still be uninstalled.</value>
   </data>
   <data name="s1b81414ba3ff58320b947071" xml:space="preserve">
     <value>This space analysis was cleared. Scan again.</value>
@@ -6189,11 +7374,17 @@
   <data name="s437d4e2fc4c9653276ba9a9a" xml:space="preserve">
     <value>This task is protected, uses an unsupported context, or is already in the requested state.</value>
   </data>
+  <data name="scc0400cd07a3e57d4659dcea" xml:space="preserve">
+    <value>This tool is listed in the catalog, but its native installation and service adapters are not implemented yet. Follow the official guide for now.</value>
+  </data>
   <data name="se4f6b1ae1b3090dda1645535" xml:space="preserve">
     <value>This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download.</value>
   </data>
   <data name="sc605801f57210dd2b73143b2" xml:space="preserve">
     <value>This uninstall plan expired. Review this installation again.</value>
+  </data>
+  <data name="s91caff634de1031bc62cf955" xml:space="preserve">
+    <value>This uses your authenticated session and may affect applications using that account. It does not bypass authentication or stop the database server.</value>
   </data>
   <data name="s848a2ea67f2bac2177c45b14" xml:space="preserve">
     <value>Thunderbird caches</value>
@@ -6207,8 +7398,23 @@
   <data name="s82d711dcce51f0739c93d653" xml:space="preserve">
     <value>Todoist caches</value>
   </data>
+  <data name="s2e53bdcd0740867b597599e7" xml:space="preserve">
+    <value>Tool</value>
+  </data>
+  <data name="s82939e474e14d367f6f4a73f" xml:space="preserve">
+    <value>Tool Catalog</value>
+  </data>
+  <data name="sb9948f4c18a0255bedb0aa1c" xml:space="preserve">
+    <value>Tool Details</value>
+  </data>
+  <data name="sba4fb5726377b4c740da7765" xml:space="preserve">
+    <value>Tool collection</value>
+  </data>
   <data name="s4877f43390c3e71d943db58b" xml:space="preserve">
     <value>Tool-managed Storage</value>
+  </data>
+  <data name="s95ddf8e9a1b838e10aedf778" xml:space="preserve">
+    <value>Toolbox</value>
   </data>
   <data name="sea93d6a262ecb87a9fa4d09e" xml:space="preserve">
     <value>Tools</value>
@@ -6306,6 +7512,12 @@
   <data name="s9eeb21d39b7fbd9404d90958" xml:space="preserve">
     <value>Unity Hub caches</value>
   </data>
+  <data name="s60426dda7dc62e62f180a0d1" xml:space="preserve">
+    <value>Unix Socket</value>
+  </data>
+  <data name="sb764cdc0eab7137467211272" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
   <data name="s5f52285b667ca70b963fbd8d" xml:space="preserve">
     <value>Unknown built-in scan location.</value>
   </data>
@@ -6324,6 +7536,9 @@
   <data name="s6c28f509808e1bea25c616ff" xml:space="preserve">
     <value>Unknown workspace.</value>
   </data>
+  <data name="s0327e4a2c7a620e2df28655b" xml:space="preserve">
+    <value>Unpin from Workspace</value>
+  </data>
   <data name="sb3b859dbb4edde7f617a551c" xml:space="preserve">
     <value>Unregister Workspace</value>
   </data>
@@ -6339,17 +7554,56 @@
   <data name="s56b9e6d0264d2a56d513074f" xml:space="preserve">
     <value>Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.</value>
   </data>
+  <data name="s33c8e8de41c3a35124251370" xml:space="preserve">
+    <value>Unverified</value>
+  </data>
   <data name="s55490a4bf3a8e8cb5eed6972" xml:space="preserve">
     <value>Up</value>
   </data>
   <data name="s1c9e6e9f7e242d442878137b" xml:space="preserve">
     <value>Up One Level</value>
   </data>
+  <data name="sfb99971b5fe591c6f367b842" xml:space="preserve">
+    <value>Update {0} selected applications</value>
+  </data>
+  <data name="s892132b259ca3e524e958791" xml:space="preserve">
+    <value>Update attempts finished. Review each result and check again before another update.</value>
+  </data>
+  <data name="s05f6faf9a5e619f1533b4547" xml:space="preserve">
+    <value>Update failed. The installer may have made changes.</value>
+  </data>
+  <data name="s3a58065ed4f0503a445b5464" xml:space="preserve">
+    <value>Update not started</value>
+  </data>
+  <data name="s2644beb9bbc6ad84c2f241e5" xml:space="preserve">
+    <value>Update selected applications</value>
+  </data>
   <data name="s13b7baf157e195f0f33da70d" xml:space="preserve">
     <value>Update status unknown</value>
   </data>
+  <data name="s567346a14370dac4b8100a1f" xml:space="preserve">
+    <value>Updated and verified</value>
+  </data>
+  <data name="s471a6e4fb47369cff422094c" xml:space="preserve">
+    <value>Updates Only</value>
+  </data>
   <data name="s55fc4744fc8471a92da2d969" xml:space="preserve">
     <value>Updates are verified before installation.</value>
+  </data>
+  <data name="s277de0545495b2e0b0e7e3a1" xml:space="preserve">
+    <value>Updates only</value>
+  </data>
+  <data name="sa06e876ebf47be3c9d6dd2c9" xml:space="preserve">
+    <value>Updating selected applications. Keep this window open.</value>
+  </data>
+  <data name="s1b7a029d9606a7526f9b9800" xml:space="preserve">
+    <value>Updating software…</value>
+  </data>
+  <data name="s0d912a9d93403654b22f1af8" xml:space="preserve">
+    <value>Upgrade not started.</value>
+  </data>
+  <data name="s6fd419ff51747ec59f58bd5b" xml:space="preserve">
+    <value>Upgrade…</value>
   </data>
   <data name="sd90c4de10e8eea60c6a2e7f0" xml:space="preserve">
     <value>Uptime: {0} hours</value>
@@ -6402,6 +7656,9 @@
   <data name="s1a804770e48e56f45584ce0f" xml:space="preserve">
     <value>Use the arrow keys to browse and expand groups. Press Space to change the focused selection, or Shift-F10 for path actions.</value>
   </data>
+  <data name="sf2105543780afb8ea99d831c" xml:space="preserve">
+    <value>Use this instance's switch on the Service tab. Its data remains separate when stopped.</value>
+  </data>
   <data name="s7d9a9b068139387a70a86282" xml:space="preserve">
     <value>Use your own model service. API keys stay in Keychain; ordinary scans work offline.</value>
   </data>
@@ -6410,6 +7667,12 @@
   </data>
   <data name="s316acf0aa0b52ead5d24aa2d" xml:space="preserve">
     <value>User Cache Files</value>
+  </data>
+  <data name="se3b89e9d33f88e523083d8b4" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="s1101ffbbc872cd31eed0ecba" xml:space="preserve">
+    <value>Uses package manager metadata, which may be cached. Upgrades start only after your confirmation.</value>
   </data>
   <data name="s4c2dae8fcdeb31a862785b45" xml:space="preserve">
     <value>VLC caches</value>
@@ -6438,11 +7701,26 @@
   <data name="sb82181b9d559ebf245c696c1" xml:space="preserve">
     <value>Verify Locations…</value>
   </data>
+  <data name="s4194f34cceca9df036e65b0c" xml:space="preserve">
+    <value>Verifying Service…</value>
+  </data>
   <data name="sbaaa6cec8f7c923af5f89ded" xml:space="preserve">
     <value>Verifying recorded locations…</value>
   </data>
   <data name="sdd167905de0defcaf72de673" xml:space="preserve">
     <value>Version</value>
+  </data>
+  <data name="sa6231edbfe3eb7a4d43ffbde" xml:space="preserve">
+    <value>Version Management</value>
+  </data>
+  <data name="sd9385a42e18fb0846be00135" xml:space="preserve">
+    <value>Version lines stay separate. Installing another line does not migrate data, change the running instance or select a default version.</value>
+  </data>
+  <data name="sebe84130dd26bceb371560aa" xml:space="preserve">
+    <value>Version not verified</value>
+  </data>
+  <data name="s2a46b8d56683d6ff18c0ee96" xml:space="preserve">
+    <value>Version read from installed package metadata. Inspect the owning source before making changes.</value>
   </data>
   <data name="sc9a9639463c21952df7b8b15" xml:space="preserve">
     <value>Videos</value>
@@ -6453,11 +7731,20 @@
   <data name="s708b8c6c43ed63b1add7e939" xml:space="preserve">
     <value>View Coverage…</value>
   </data>
+  <data name="sa518ac74c274ed9e49878a87" xml:space="preserve">
+    <value>View Error Log</value>
+  </data>
   <data name="s2801b92092183cc770ce71c8" xml:space="preserve">
     <value>View History</value>
   </data>
   <data name="s17165cca344e770f4df5ab0c" xml:space="preserve">
     <value>View Results</value>
+  </data>
+  <data name="s49749179d46a9d3a81f0a707" xml:space="preserve">
+    <value>View Service Log</value>
+  </data>
+  <data name="s6119cf7cc2aa757475a40022" xml:space="preserve">
+    <value>View Tool</value>
   </data>
   <data name="se374be0493fe4d08bd7beb67" xml:space="preserve">
     <value>View…</value>
@@ -6489,6 +7776,9 @@
   <data name="sf13707d81cb6f2c7264ab3ec" xml:space="preserve">
     <value>Waiting for confirmation or the system installer result. Keep this window open.</value>
   </data>
+  <data name="s695d98e33137ee74b38ee99b" xml:space="preserve">
+    <value>Waiting for the service to reach its requested state…</value>
+  </data>
   <data name="s8e4b72ca2511e0bcdbb24cfb" xml:space="preserve">
     <value>Waiting for your answer</value>
   </data>
@@ -6519,6 +7809,9 @@
   <data name="s8c46579e458b997f79621814" xml:space="preserve">
     <value>WeType caches</value>
   </data>
+  <data name="sb2cbd4374d111201befe37bd" xml:space="preserve">
+    <value>Web Servers</value>
+  </data>
   <data name="s324f91a2290721c52d658ced" xml:space="preserve">
     <value>WebKit data</value>
   </data>
@@ -6527,6 +7820,12 @@
   </data>
   <data name="s4e17656a62b95a61b72e5d25" xml:space="preserve">
     <value>WhatsApp caches</value>
+  </data>
+  <data name="s4c9a003594d709067bf85f8a" xml:space="preserve">
+    <value>WinGet inventory could not be read.</value>
+  </data>
+  <data name="s2a22b770de50c517e4ab6dea" xml:space="preserve">
+    <value>WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer.</value>
   </data>
   <data name="s2a0f0c32ac4f7d059ce01529" xml:space="preserve">
     <value>Windows does not expose these hardware sensors through the supported read-only APIs.</value>
@@ -6539,6 +7838,9 @@
   </data>
   <data name="s3f6233c4b8b8d6a3505ef51f" xml:space="preserve">
     <value>Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.</value>
+  </data>
+  <data name="s0d10580b34985347fd4abd74" xml:space="preserve">
+    <value>Windows service control requires native acceptance. Current status is read-only.</value>
   </data>
   <data name="sc6f654a29ae4697d3d7241c7" xml:space="preserve">
     <value>WorkBuddy caches</value>
@@ -6603,6 +7905,9 @@
   <data name="sc655ee2c11092dd67863e3d5" xml:space="preserve">
     <value>Your AI Agent</value>
   </data>
+  <data name="s61e0bc757495cdbfb58353eb" xml:space="preserve">
+    <value>Your AI tools, together</value>
+  </data>
   <data name="sc30be0089bce957c673c21da" xml:space="preserve">
     <value>Your Cleanup Rules</value>
   </data>
@@ -6614,6 +7919,9 @@
   </data>
   <data name="scd3302b4b4f33a5d766ee623" xml:space="preserve">
     <value>Your workspace, your rules</value>
+  </data>
+  <data name="s3438aff9180237d944300c42" xml:space="preserve">
+    <value>You’re up to date.</value>
   </data>
   <data name="s6248e2b22d0fbf9de525da09" xml:space="preserve">
     <value>Zed caches</value>
@@ -6741,6 +8049,9 @@
   <data name="se755de7752fd11cefb9ea475" xml:space="preserve">
     <value>The object identity or directory contents changed.</value>
   </data>
+  <data name="sdc3df94548beb717d824f2ae" xml:space="preserve">
+    <value>mise inventory could not be read.</value>
+  </data>
   <data name="sffa63583dfa6706b87d284b8" xml:space="preserve">
     <value>Missing</value>
   </data>
@@ -6761,6 +8072,12 @@
   </data>
   <data name="sf813b9cfcb865b7dc332d542" xml:space="preserve">
     <value>npm downloads packages again when required.</value>
+  </data>
+  <data name="saffb3fe33eb7acbbf58c5a35" xml:space="preserve">
+    <value>npm storage</value>
+  </data>
+  <data name="sc445e1c38fa1832cc694228f" xml:space="preserve">
+    <value>nvm storage</value>
   </data>
   <data name="s1c9440d939f22444ad38a585" xml:space="preserve">
     <value>owner_absent_from_standard_sources_and_native_registration</value>

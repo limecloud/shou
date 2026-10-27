@@ -47,14 +47,14 @@ struct RuleWizard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(model.t("Create a Personal Rule")).font(.title2.bold())
+            Text(model.t("Create a Personal Rule")).font(ShouType.title.bold())
             HStack(spacing: 10) {
                 ForEach(names.indices, id: \.self) { index in
                     HStack(spacing: 6) {
                         Image(systemName: index < step ? "checkmark.circle.fill" : "\(index + 1).circle\(index == step ? ".fill" : "")")
-                        Text(names[index]).font(.callout.weight(index == step ? .semibold : .regular))
-                    }.foregroundStyle(index == step ? Color.accentColor : .secondary)
-                    if index != names.count - 1 { Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary) }
+                        Text(names[index]).font(ShouType.body.weight(index == step ? .semibold : .regular))
+                    }.foregroundStyle(index == step ? ShouPalette.accent : ShouPalette.secondary)
+                    if index != names.count - 1 { Image(systemName: "chevron.right").font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                 }
             }
             .accessibilityElement(children: .combine)
@@ -62,7 +62,7 @@ struct RuleWizard: View {
             .accessibilityValue(names[step])
             .accessibilityIdentifier("rules.wizard.steps")
             if let workspace {
-                Text(workspace.path).font(.caption.monospaced()).foregroundStyle(.secondary).lineLimit(2).textSelection(.enabled)
+                Text(workspace.path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).lineLimit(2).textSelection(.enabled)
             }
             Group {
                 if step == 0 { scopeForm }
@@ -70,11 +70,11 @@ struct RuleWizard: View {
                 else { previewContent }
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             if let issue {
-                ScrollView { Text(issue).font(.caption).foregroundStyle(.red).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
+                ScrollView { Text(issue).font(ShouType.caption).foregroundStyle(ShouPalette.danger).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }
                     .frame(maxHeight: 60).accessibilityIdentifier("rules.wizard.issue")
             }
             Divider()
-            Text(model.t("Saved as a disabled draft. Review and enable it in Rules, then scan again.")).font(.caption).foregroundStyle(.secondary)
+            Text(model.t("Saved as a disabled draft. Review and enable it in Rules, then scan again.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             HStack {
                 Button(model.t("Cancel"), role: .cancel) { dismiss() }.keyboardShortcut(.cancelAction).disabled(working)
                 Spacer()
@@ -112,18 +112,18 @@ struct RuleWizard: View {
                         TextField(model.t("Folder relative to workspace"), text: $fields.patterns).accessibilityIdentifier("rules.wizard.folder")
                         Button(model.t("Choose Folder…")) { chooseFolder() }.accessibilityIdentifier("rules.wizard.chooseFolder")
                     }
-                    Text(model.t("Only this folder is described. The workspace itself and folders outside it cannot be selected.")).font(.caption).foregroundStyle(.secondary)
+                    Text(model.t("Only this folder is described. The workspace itself and folders outside it cannot be selected.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 } else {
                     TextField(model.t("One relative pattern per line"), text: $fields.patterns, axis: .vertical).lineLimit(3...6)
-                        .font(.body.monospaced()).accessibilityIdentifier("rules.wizard.patterns")
-                    Text(model.t("For example, **/.build-cache. Patterns apply inside this workspace; choosing a pattern does not prove its contents can be rebuilt.")).font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.body.monospaced()).accessibilityIdentifier("rules.wizard.patterns")
+                    Text(model.t("For example, **/.build-cache. Patterns apply inside this workspace; choosing a pattern does not prove its contents can be rebuilt.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
             }
             Section {
                 TextField(model.t("Parent project markers, one filename per line (optional)"), text: $fields.markers, axis: .vertical).lineLimit(1...3)
                     .accessibilityIdentifier("rules.wizard.markers")
                 TextField(model.t("Maximum discovery depth (1–32)"), text: $fields.depth).accessibilityIdentifier("rules.wizard.depth")
-                Text(model.t("A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
         }.formStyle(.grouped)
     }
@@ -136,12 +136,12 @@ struct RuleWizard: View {
                 if fields.useAge {
                     TextField(model.t("Days since newest change (0–3650)"), text: $fields.age).accessibilityIdentifier("rules.wizard.age")
                 }
-                Text(model.t("Age uses the newest modification anywhere inside the target. MB means 1,000,000 allocated bytes; sizes remain estimates.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Age uses the newest modification anywhere inside the target. MB means 1,000,000 allocated bytes; sizes remain estimates.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             Section {
                 TextField(model.t("Exclusion patterns relative to workspace, one per line (optional)"), text: $fields.exclusions, axis: .vertical).lineLimit(2...5)
-                    .font(.body.monospaced()).accessibilityIdentifier("rules.wizard.exclusions")
-                Text(model.t("For example, project/.build-cache/keep/**. Preserving a child blocks its whole parent cleanup target; Shou does not delete around it. Global and workspace protections still apply.")).font(.caption).foregroundStyle(.secondary)
+                    .font(ShouType.body.monospaced()).accessibilityIdentifier("rules.wizard.exclusions")
+                Text(model.t("For example, project/.build-cache/keep/**. Preserving a child blocks its whole parent cleanup target; Shou does not delete around it. Global and workspace protections still apply.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             Section {
                 TextField(model.t("How can these files be rebuilt?"), text: $fields.rebuild, axis: .vertical).lineLimit(2...4)
@@ -156,7 +156,7 @@ struct RuleWizard: View {
     private var previewContent: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label(model.t("This preview cannot delete files or create a cleanup plan."), systemImage: "eye").font(.callout)
+                Label(model.t("This preview cannot delete files or create a cleanup plan."), systemImage: "eye").font(ShouType.body)
                 Spacer()
                 if previewing {
                     Button(model.t("Stop")) { model.cancel() }.accessibilityIdentifier("rules.wizard.stop")
@@ -168,37 +168,37 @@ struct RuleWizard: View {
                 HStack {
                     if model.reduceMotion { Image(systemName: "hourglass") }
                     else { ProgressView().controlSize(.small) }
-                    Text(model.status).font(.callout).foregroundStyle(.secondary)
+                    Text(model.status).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("rules.wizard.progress")
                 Spacer()
             } else if let preview {
-                Text(String(format: model.t("%lld matching · %lld protected · %lld outside conditions"),
+                Text(String(format: model.t("%lld matching, %lld protected, %lld outside conditions"),
                             rows.filter { $0.status == "matched" }.count, rows.filter { $0.status == "blocked" }.count, rows.filter { $0.status == "not_matched" }.count))
-                    .font(.headline).accessibilityIdentifier("rules.wizard.summary")
+                    .font(ShouType.body.weight(.semibold)).accessibilityIdentifier("rules.wizard.summary")
                 if preview.status != "complete" {
-                    Text(model.t("Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage.")).font(.caption).foregroundStyle(.orange)
+                    Text(model.t("Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                 }
                 if rows.isEmpty {
                     ContentUnavailableView(model.t("No described folders in the measured scope"), systemImage: "folder.badge.questionmark", description: Text(model.t("Check the relative path, project markers and discovery depth. Conditions and protections still apply.")))
                 } else {
                     Table(Array(rows.prefix(200)), selection: $focusedPath) {
-                        TableColumn(model.t("Location")) { row in Text(row.path).font(.caption.monospaced()).lineLimit(2) }.width(min: 250, ideal: 380)
+                        TableColumn(model.t("Location")) { row in Text(row.path).font(ShouType.caption.monospaced()).lineLimit(2) }.width(min: 250, ideal: 380)
                         TableColumn(model.t("Disk Usage")) { row in Text(model.bytes(row.allocatedBytes)).monospacedDigit() }.width(90)
-                        TableColumn(model.t("Status")) { row in Text(status(row.status)).font(.callout).foregroundStyle(row.status == "matched" ? Color.primary : .secondary) }.width(min: 105, ideal: 135)
+                        TableColumn(model.t("Status")) { row in Text(status(row.status)).font(ShouType.body).foregroundStyle(row.status == "matched" ? ShouPalette.text : ShouPalette.secondary) }.width(min: 105, ideal: 135)
                     }.accessibilityIdentifier("rules.wizard.results")
-                    if rows.count > 200 { Text(model.t("Showing the first 200 measured folders. Counts include all measured rows.")).font(.caption).foregroundStyle(.secondary) }
+                    if rows.count > 200 { Text(model.t("Showing the first 200 measured folders. Counts include all measured rows.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                     if let selected=rows.first(where: { $0.path == focusedPath }) {
-                        Text(selected.path).font(.caption.monospaced()).textSelection(.enabled)
-                        Text(selected.reasons.isEmpty ? model.t("Conditions matched. This remains a disabled draft until you explicitly enable it and scan again.") : selected.reasons.map(explanation).joined(separator: " · "))
-                            .font(.callout).textSelection(.enabled).accessibilityIdentifier("rules.wizard.explanation")
+                        Text(selected.path).font(ShouType.caption.monospaced()).textSelection(.enabled)
+                        Text(selected.reasons.isEmpty ? model.t("Conditions matched. This remains a disabled draft until you explicitly enable it and scan again.") : selected.reasons.map(explanation).joined(separator: ", "))
+                            .font(ShouType.body).textSelection(.enabled).accessibilityIdentifier("rules.wizard.explanation")
                     }
                 }
                 if !preview.issues.isEmpty {
                     DisclosureGroup(model.t("Coverage Issues")) {
-                        ScrollView { Text(preview.issues.map(model.diagnostic).joined(separator: "\n")).font(.caption.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(maxHeight: 100)
+                        ScrollView { Text(preview.issues.map(model.diagnostic).joined(separator: "\n")).font(ShouType.caption.monospaced()).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading) }.frame(maxHeight: 100)
                     }
                 }
-                Text(model.t("Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             } else {
                 ContentUnavailableView(model.t("Preview required before saving"), systemImage: "eye", description: Text(model.t("Review the current rule against files in this workspace. A cancelled or failed preview cannot be saved as reviewed.")))
             }

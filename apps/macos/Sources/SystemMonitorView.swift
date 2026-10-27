@@ -20,11 +20,11 @@ struct SystemMonitorView: View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
                 VStack(alignment: .leading,spacing: 3) {
-                    Text(model.t("System Monitor")).font(.headline)
+                    Text(model.t("System Monitor")).font(ShouType.body.weight(.semibold))
                     HStack(spacing: 6) {
-                        Text(model.t(session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : session.sample == nil ? "Collecting rate baseline…" : "Live · Every 2 seconds"))
+                        Text(model.t(session.paused ? "Monitoring paused" : session.failed ? "Sampling failed; showing the last observation." : session.sample == nil ? "Collecting rate baseline…" : "Live, Every 2 seconds"))
                         if let observation { Text(observation.timestamp.formatted(date:.omitted,time:.standard)).monospacedDigit() }
-                    }.font(.callout).foregroundStyle(.secondary)
+                    }.font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                 }
                 Spacer(minLength: 8)
                 Toggle(model.t("Menu bar summary"),isOn:Binding(get:{ session.backgroundEnabled },set:{ session.setBackgroundEnabled($0) }))
@@ -50,21 +50,21 @@ struct SystemMonitorView: View {
                                 Text(model.t("Compressed")+": "+bytes(observation?.memoryCompressed))
                                 Text(model.t("Swap Used")+": "+bytes(observation?.swapUsed))
                                 Text(model.t("Memory Pressure")+": "+model.t(observation?.memoryPressure ?? "Unavailable"))
-                            }.foregroundStyle(.secondary)
-                        }.font(.callout).padding(.top,12)
+                            }.foregroundStyle(ShouPalette.secondary)
+                        }.font(ShouType.body).padding(.top,12)
                     }
                     VStack(alignment:.leading,spacing:10) {
                         HStack(spacing:14) {
-                            Text(model.t("Processes")).font(.headline)
+                            Text(model.t("Processes")).font(ShouType.body.weight(.semibold))
                             Spacer()
                             TextField(model.t("Search name or PID"),text:$search).textFieldStyle(.roundedBorder).frame(maxWidth:260)
                                 .accessibilityIdentifier("monitor.process.search")
                             Picker(model.t("Sort"),selection:$sort) { Text("CPU").tag("cpu"); Text(model.t("Memory")).tag("memory") }.frame(width:170)
                         }
                         Text(model.t("Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat."))
-                            .font(.callout).foregroundStyle(.secondary)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                         HStack { Text(model.t("Process")); Spacer(); Text("PID").frame(width:70,alignment:.trailing); Text("CPU").frame(width:80,alignment:.trailing); Text(model.t("Memory")).frame(width:110,alignment:.trailing) }
-                            .font(.callout).foregroundStyle(.secondary).padding(.horizontal,14)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.secondary).padding(.horizontal,14)
                         LazyVStack(spacing:0) {
                             ForEach(processes.prefix(100)) { item in
                                 HStack {
@@ -76,15 +76,15 @@ struct SystemMonitorView: View {
                                 }.font(.system(size:ShouDesign.bodyFontSize)).monospacedDigit().padding(.horizontal,14).padding(.vertical,12)
                                 Divider().opacity(0.5)
                             }
-                            if processes.isEmpty { Text(model.t(session.sample == nil ? "Collecting rate baseline…" : "No matching processes.")).foregroundStyle(.secondary).padding(20) }
+                            if processes.isEmpty { Text(model.t(session.sample == nil ? "Collecting rate baseline…" : "No matching processes.")).foregroundStyle(ShouPalette.secondary).padding(20) }
                         }.modifier(WorkspaceSurface()).accessibilityIdentifier("monitor.processes")
                         Text(String(format:model.t("Showing %lld of %lld matching processes."),min(100,processes.count),processes.count)+" "+model.t(observation?.processCoverage ?? "Partial process coverage"))
-                            .font(.callout).foregroundStyle(.secondary)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     }
-                    Text(model.t("Last 2 minutes · Gaps mean unavailable"))
-                        .font(.callout).foregroundStyle(.secondary)
-                    Text(model.t("Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled."))
-                        .font(.callout).foregroundStyle(.secondary)
+                    Text(model.t("Last 2 minutes, Gaps mean unavailable"))
+                        .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+                    Text(model.t("Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled."))
+                        .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                 }.padding(.horizontal,ShouDesign.workspaceInset).padding(.bottom,24)
             }
         }.onAppear { session.setVisible(true) }.onDisappear { session.setVisible(false) }
@@ -94,23 +94,23 @@ struct SystemMonitorView: View {
     private func rate(_ key: String) -> String { session.sample?.values[key].map { bytes(UInt64(min($0,Double(Int64.max))))+"/s" } ?? "—" }
     private func summary(_ key: String) -> String {
         switch key {
-        case "diskRead": model.t("Read")+" "+rate("diskRead")+" · "+model.t("Write")+" "+rate("diskWrite")
-        case "networkReceive": "↓ "+rate("networkReceive")+" · ↑ "+rate("networkSend")
+        case "diskRead": model.t("Read")+" "+rate("diskRead")+", "+model.t("Write")+" "+rate("diskWrite")
+        case "networkReceive": "↓ "+rate("networkReceive")+", ↑ "+rate("networkSend")
         default: percent(session.sample?.values[key])
         }
     }
     @ViewBuilder private func metricSummary(_ key: String,_ title: String) -> some View {
         VStack(alignment:.leading,spacing:9) {
             HStack {
-                Label(model.t(title),systemImage:symbol(key)).font(.callout.weight(.medium)).foregroundStyle(.secondary)
+                Label(model.t(title),systemImage:symbol(key)).font(ShouType.body.weight(.medium)).foregroundStyle(ShouPalette.secondary)
                 Spacer(minLength:0)
                 if key == "cpu" || key == "gpu" {
                     let temperature=key == "cpu" ? observation?.cpuTemperature : observation?.gpuTemperature
-                    Text(temperature.map { String(format:"%.0f°C",$0) } ?? "— °C").font(.callout).foregroundStyle(.secondary)
+                    Text(temperature.map { String(format:"%.0f°C",$0) } ?? "— °C").font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                 }
             }
             Text(key == "overview" ? model.t(loadState) : key == "thermal" ? model.t(observation?.thermalState ?? "Unavailable") : key == "diskRead" ? bytes(observation?.volumeAvailable) : key == "networkReceive" ? "↓ "+rate(key) : summary(key))
-                .font(.system(size:key == "overview" || key == "thermal" ? 20 : ShouDesign.summaryFigureSize,weight:.medium)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.9)
+                .font(.system(size:ShouDesign.summaryFigureSize,weight:.medium)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.9)
             if ["cpu","gpu","memory","networkReceive","battery"].contains(key) {
                 MonitorTrend(history:session.history,keys:key == "networkReceive" ? [key,"networkSend"] : [key]).frame(height:40)
                     .accessibilityLabel(model.t("Recent resource trend")).accessibilityValue(summary(key))
@@ -121,12 +121,12 @@ struct SystemMonitorView: View {
                 }
                     .accessibilityLabel(model.t("System volume usage"))
             } else {
-                Text(key == "overview" ? (observation?.hardware ?? "—")+" · "+(observation?.operatingSystem ?? "") : fanSummary)
-                    .font(.callout).foregroundStyle(.secondary).frame(height:40,alignment:.leading).lineLimit(2)
+                Text(key == "overview" ? (observation?.hardware ?? "—")+", "+(observation?.operatingSystem ?? "") : fanSummary)
+                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary).frame(height:40,alignment:.leading).lineLimit(2)
             }
-            Text(detail(key)).font(.callout).foregroundStyle(.secondary).lineLimit(3).frame(height:50,alignment:.topLeading)
+            Text(detail(key)).font(ShouType.body).foregroundStyle(ShouPalette.secondary).lineLimit(3).frame(height:50,alignment:.topLeading)
         }.frame(maxWidth:.infinity,alignment:.leading).padding(16).accessibilityElement(children:.combine)
-            .modifier(WorkspaceSurface()).overlay(RoundedRectangle(cornerRadius:ShouDesign.cardRadius).stroke(Color.secondary.opacity(0.12),lineWidth:1))
+            .modifier(WorkspaceSurface()).overlay(RoundedRectangle(cornerRadius:ShouDesign.cardRadius).stroke(ShouPalette.border,lineWidth:ShouDesign.hairlineWidth))
     }
     private var volumeFraction: Double? {
         guard let total=observation?.volumeTotal, total > 0, let available=observation?.volumeAvailable else { return nil }
@@ -138,7 +138,7 @@ struct SystemMonitorView: View {
     }
     private var fanSummary: String {
         guard let fans=observation?.fanRPM, !fans.isEmpty else { return model.t("Fan telemetry unavailable") }
-        return fans.enumerated().map { "\(model.t("Fan")) \($0.offset+1): \(Int($0.element)) RPM" }.joined(separator:" · ")
+        return fans.enumerated().map { "\(model.t("Fan")) \($0.offset+1): \(Int($0.element)) RPM" }.joined(separator:", ")
     }
     private func symbol(_ key: String) -> String {
         switch key {
@@ -158,9 +158,9 @@ struct SystemMonitorView: View {
             return model.t("CPU and memory load; not a hardware health score.")+"\n"+String(format:model.t("Uptime: %lld hours"),hours)
         }
         if key == "thermal" { return model.t("Temperature: available sensor average. Fans are controlled by the system.") }
-        if key == "memory" { return bytes(observation?.memoryUsed)+" / "+bytes(observation?.memoryTotal)+" · "+model.t("Swap Used")+" "+bytes(observation?.swapUsed) }
+        if key == "memory" { return bytes(observation?.memoryUsed)+" / "+bytes(observation?.memoryTotal)+", "+model.t("Swap Used")+" "+bytes(observation?.swapUsed) }
         if key == "battery", session.sample?.values[key] != nil {
-            return model.t(observation?.powerSource ?? "Unavailable")+" · "+model.t("Battery Health")+" "+percent(observation?.batteryHealth)+" · "+model.t("Cycles")+" "+(observation?.batteryCycles.map(String.init) ?? "—")
+            return model.t(observation?.powerSource ?? "Unavailable")+", "+model.t("Battery Health")+" "+percent(observation?.batteryHealth)+", "+model.t("Cycles")+" "+(observation?.batteryCycles.map(String.init) ?? "—")
         }
         if key == "diskRead" { return model.t("System volume available")+" / "+bytes(observation?.volumeTotal)+"\n"+summary(key) }
         if key == "networkReceive", session.sample?.values[key] != nil { return "↑ "+rate("networkSend")+"\n"+model.t("Active Ethernet / Wi-Fi interfaces") }
@@ -168,7 +168,7 @@ struct SystemMonitorView: View {
             if let issue=observation?.issues[key] { return model.t(issue) }
             return model.t(session.sample?.baseline != false ? "Collecting rate baseline…" : "Counter unavailable or source changed.")
         }
-        return key == "cpu" ? model.t("Total machine capacity")+" · "+String(observation?.logicalCPUCount ?? 0)+" "+model.t("Logical cores") : model.t("Busiest GPU engine or device")
+        return key == "cpu" ? model.t("Total machine capacity")+", "+String(observation?.logicalCPUCount ?? 0)+" "+model.t("Logical cores") : model.t("Busiest GPU engine or device")
     }
 
 }
@@ -193,7 +193,7 @@ private struct MonitorTrend: View {
                     if let previous, time-previous <= 6 && time > previous { path.addLine(to:point) } else { path.move(to:point) }
                     previous=time
                 }
-                context.stroke(path,with:.color(index == 0 ? .accentColor : .secondary),style:StrokeStyle(lineWidth:2,dash:index == 0 ? [] : [5,3]))
+                context.stroke(path,with:.color(index == 0 ? .accentColor : ShouPalette.secondary),style:StrokeStyle(lineWidth:2,dash:index == 0 ? [] : [5,3]))
             }
         }
     }

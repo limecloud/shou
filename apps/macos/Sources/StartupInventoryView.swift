@@ -99,15 +99,15 @@ struct StartupInventoryView: View {
     private var summary: some View {
         HStack(spacing: 10) {
             Text(String(format: model.t("%lld startup programs"), locale: model.language.locale, groups.count))
-                .font(.callout.weight(.medium))
-            Text(model.t("Startup Enabled")).font(.caption).foregroundStyle(.secondary)
+                .font(ShouType.body.weight(.medium))
+            Text(model.t("Startup Enabled")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             Text(String(groups.filter(StartupFilter.enabled.matches).count))
-                .font(.title3.weight(.semibold)).foregroundStyle(Color.accentColor).monospacedDigit()
+                .font(ShouType.body.weight(.semibold)).foregroundStyle(ShouPalette.accent).monospacedDigit()
             Spacer(minLength: 4)
             if model.startupLoading || model.startupControlLoading { ProgressView().controlSize(.small) }
             if model.startupInventory?.status == "partial" {
                 Button { showCoverage=true } label: { Label(model.t("Partial Coverage"), systemImage: "exclamationmark.triangle") }
-                    .buttonStyle(.link).font(.caption).accessibilityIdentifier("startup.coverage")
+                    .buttonStyle(.link).font(ShouType.caption).accessibilityIdentifier("startup.coverage")
             }
         }.padding(14)
     }
@@ -118,11 +118,11 @@ struct StartupInventoryView: View {
                 Button { filter=item } label: {
                     HStack(spacing: 5) {
                         Text(model.t(filterTitle(item)))
-                        Text(String(groups.filter(item.matches).count)).monospacedDigit().foregroundStyle(.secondary)
+                        Text(String(groups.filter(item.matches).count)).monospacedDigit().foregroundStyle(ShouPalette.secondary)
                     }
-                    .font(.caption).padding(.horizontal, 10).padding(.vertical, 7)
-                    .background(filter == item ? Color.accentColor.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                    .foregroundStyle(filter == item ? Color.accentColor : .primary)
+                    .font(ShouType.caption).padding(.horizontal, 10).padding(.vertical, 7)
+                    .background(filter == item ? ShouPalette.accent.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                    .foregroundStyle(filter == item ? ShouPalette.accent : ShouPalette.text)
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("startup.filter." + item.rawValue)
                 .accessibilityAddTraits(filter == item ? .isSelected : [])
@@ -132,17 +132,17 @@ struct StartupInventoryView: View {
 
     private var searchField: some View {
         HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            Image(systemName: "magnifyingglass").foregroundStyle(ShouPalette.secondary)
             TextField(model.t("Search programs or publishers"), text: $search).textFieldStyle(.plain)
                 .accessibilityIdentifier("startup.search")
             if !search.isEmpty {
-                Button { search="" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                Button { search="" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(ShouPalette.secondary) }
                     .buttonStyle(.plain).accessibilityLabel(model.t("Clear search"))
             }
         }
-        .font(.callout).padding(.horizontal, 9).padding(.vertical, 6)
-        .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 7))
-        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(Color(nsColor: .separatorColor).opacity(0.65)))
+        .font(ShouType.body).padding(.horizontal, 9).padding(.vertical, 6)
+        .background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 7))
+        .overlay(RoundedRectangle(cornerRadius: 7).strokeBorder(ShouPalette.border, lineWidth: ShouDesign.hairlineWidth))
     }
 
     private func requestControl(_ definitions: [StartupDefinition], _ action: StartupControlAction) {
@@ -153,23 +153,23 @@ struct StartupInventoryView: View {
     private func confirmation(_ request: StartupControlRequest) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(model.t(request.action == .remove ? "Remove startup items?" : request.action == .enable ? "Enable startup items?" : "Disable startup items?"))
-                .font(.title2.bold())
+                .font(ShouType.title.bold())
             Text(model.t(request.action == .remove
                 ? "Selected definitions will be moved to Trash. Applications and their data are kept. Running processes are not terminated."
                 : "This changes startup configuration for the selected items. Running processes are not terminated."))
-                .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             if request.definitions.contains(where: { $0.controlCapability == "launchctl_system_daemon" }) {
                 Label(model.t("macOS will request administrator approval for system background items."), systemImage: "lock.shield")
-                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(request.definitions) { item in
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(item.displayName ?? item.label).font(.headline)
-                            Text(model.t(startupSourceTitle(item.sourceId))).font(.caption).foregroundStyle(.secondary)
+                            Text(item.displayName ?? item.label).font(ShouType.body.weight(.semibold))
+                            Text(model.t(startupSourceTitle(item.sourceId))).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                             Text(item.path.hasPrefix("/") ? item.path : item.applicationPath ?? item.label)
-                                .font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                                .font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -189,24 +189,24 @@ struct StartupInventoryView: View {
 
     private var coverage: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Startup Discovery Coverage")).font(.title2.bold())
-            Text(model.t("Checking is read-only. No startup setting or file is changed.")).foregroundStyle(.secondary)
+            Text(model.t("Startup Discovery Coverage")).font(ShouType.title.bold())
+            Text(model.t("Checking is read-only. No startup setting or file is changed.")).foregroundStyle(ShouPalette.secondary)
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     ForEach(model.startupInventory?.sources ?? []) { source in
                         VStack(alignment: .leading, spacing: 5) {
                             HStack { Text(model.t(startupSourceTitle(source.id))).bold(); Spacer(); Text(model.t(coverageTitle(source.status))) }
-                            Text(source.location.path).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                            Text(source.location.path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
                             ForEach(Array((model.startupInventory?.issues.filter { $0.sourceId == source.id } ?? []).enumerated()), id: \.offset) { _, issue in
-                                Text(model.t(issueTitle(issue.code)) + "\n" + issue.path).font(.caption).foregroundStyle(.orange).textSelection(.enabled)
+                                Text(model.t(issueTitle(issue.code)) + "\n" + issue.path).font(ShouType.caption).foregroundStyle(ShouPalette.warning).textSelection(.enabled)
                             }
                         }
                     }
                     if let unavailable=model.startupInventory?.unavailableSources, !unavailable.isEmpty {
                         Divider()
-                        Text(model.t("Outside this discovery scope")).font(.headline)
+                        Text(model.t("Outside this discovery scope")).font(ShouType.body.weight(.semibold))
                         Text(model.t("Some login items and embedded helpers may require System Settings. Permission and read-budget gaps remain visible."))
-                            .font(.callout).foregroundStyle(.secondary)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     }
                 }
             }

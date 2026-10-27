@@ -18,15 +18,15 @@ struct CleanupWelcomeView: View {
                         destination("Your Cleanup Rules", subtitle: "A routine that fits your own folders.", kind: .rules, section: "rules")
                     }
                     HStack(spacing: 10) {
-                        Image(systemName: "sparkles").foregroundStyle(Color.accentColor).accessibilityHidden(true)
+                        Image(systemName: "sparkles").foregroundStyle(ShouPalette.accent).accessibilityHidden(true)
                         Text(model.t("Have a folder that needs a closer look?"))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ShouPalette.secondary)
                         Button(model.t("Investigate with AI…")) { model.ai.requestLaunch(app: model) }
                             .accessibilityIdentifier("smart.ai.investigate")
                         Spacer(minLength: 8)
                         Button(model.t("External AI Tools…"), action: showAgentSetup)
                             .accessibilityIdentifier("smart.agent.setup")
-                    }.font(.callout).buttonStyle(.link).padding(.horizontal, 4).padding(.bottom, 8)
+                    }.font(ShouType.body).buttonStyle(.link).padding(.horizontal, 4).padding(.bottom, 8)
                 }
                 .frame(maxWidth: ShouDesign.homeMaxWidth)
                 .padding(compact ? ShouDesign.homeCompactInset : ShouDesign.workspaceInset)
@@ -53,7 +53,7 @@ struct CleanupWelcomeView: View {
                 .tracking(-0.8).fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
                 Text(model.t("Scan app caches, developer build outputs, and your personal cleanup rules together."))
-                    .font(.system(size: ShouDesign.bodyFontSize + 1)).foregroundStyle(.secondary)
+                    .font(.system(size: ShouDesign.bodyFontSize + 1)).foregroundStyle(ShouPalette.secondary)
                     .lineSpacing(4).fixedSize(horizontal: false, vertical: true).frame(maxWidth: 430, alignment: .leading)
                 HStack(spacing: 12) {
                     Button { model.scanCommonLocations() } label: {
@@ -76,13 +76,13 @@ struct CleanupWelcomeView: View {
                     .help(model.t("Scan Options")).accessibilityLabel(model.t("Scan Options"))
                     .accessibilityIdentifier("smart.scan-options")
                     Button(action: showLocations) { Image(systemName: "slider.horizontal.3").frame(width: 40, height: 40) }
-                        .buttonStyle(.plain).foregroundStyle(.secondary)
+                        .buttonStyle(.plain).foregroundStyle(ShouPalette.secondary)
                         .background(.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 12))
                         .help(model.t("Scan Locations…")).accessibilityLabel(model.t("Scan Locations…"))
                         .accessibilityIdentifier("smart.locations")
                 }.padding(.top, 3)
                 Label(model.t("Scan first. Review before anything is removed."), systemImage: "checkmark.shield")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading).layoutPriority(1)
             WorkspaceIllustration()
@@ -116,8 +116,8 @@ private struct WorkspaceDestinationCard: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(title).font(.system(size: ShouDesign.bodyFontSize, weight: .semibold)).foregroundStyle(.primary)
-                    Text(subtitle).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text(title).font(.system(size: ShouDesign.bodyFontSize, weight: .semibold)).foregroundStyle(ShouPalette.text)
+                    Text(subtitle).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 WorkspacePageArtwork(kind: kind)
                     .frame(width: ShouDesign.homeCardArtworkSize, height: ShouDesign.homeCardArtworkSize)
@@ -125,7 +125,7 @@ private struct WorkspaceDestinationCard: View {
                 .background(scheme == .dark ? ShouDesign.surfaceDark : ShouDesign.surfaceLight, in: RoundedRectangle(cornerRadius: ShouDesign.homeCardRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: ShouDesign.homeCardRadius)
-                        .stroke(hovering ? Color.accentColor.opacity(0.5) : .primary.opacity(contrast == .increased ? 0.35 : 0.07), lineWidth: 1)
+                        .stroke(hovering ? ShouPalette.accent.opacity(0.5) : .primary.opacity(contrast == .increased ? 0.35 : 0.07), lineWidth: ShouDesign.hairlineWidth)
                 }
                 .shadow(color: ShouDesign.artworkInk.opacity(scheme == .dark ? 0 : hovering ? 0.07 : 0.025), radius: hovering ? 16 : 10, y: hovering ? 7 : 3)
                 .offset(y: hovering && !reduceMotion ? -2 : 0)

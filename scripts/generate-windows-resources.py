@@ -53,6 +53,7 @@ def resources():
         'assets/brand/Shou.iconset/icon_256x256.png',
         'assets/brand/shou-mascot.png',
         'assets/brand/shou-icon-1024.png',
+        'assets/design/radix-colors.json',
     ]
     strings = json.loads((ROOT / inputs[0]).read_text(encoding='utf-8'))['strings']
     for source in (ROOT / 'apps/windows/src').rglob('*.cs'):
@@ -96,6 +97,10 @@ def resources():
             raise ValueError('Project hints must be exact relative paths')
     outputs['project-locations.json'] = json_bytes(projects)
     outputs['rule.schema.json'] = (ROOT / inputs[3]).read_bytes()
+
+    developer_catalog = 'packages/shou-core/Sources/Resources/developer-tools.json'
+    inputs.append(developer_catalog)
+    outputs['developer-tools.json'] = (ROOT / developer_catalog).read_bytes()
 
     outputs['Design.xaml'] = design_tokens.xaml(design_tokens.load())
     # ICO embeds the canonical PNG bytes, preserving the macOS brand artwork.

@@ -2,7 +2,9 @@
 
 English | [简体中文](../zh-CN/product/apps-and-projects.md)
 
-Apps & Projects puts applications, developer projects and startup items under one navigation family, organized around recognizable objects. This macOS iteration includes application inventory/component review, project-output grouping, shared rule selection and single-source read-only update discovery. Automatic installation, Git remote-state investigation and whole-project removal are outside this implementation. Windows source includes navigation, marker-based project grouping and a shared scan/selection model; native interaction acceptance for the new project UI remains pending. Core deduplicates candidates and projects canonical built-in project templates plus personal rules with project evidence. Project recommendations, clearing and plans affect only that scope and preserve selected caches outside it. Update discovery has independent Windows source; manual-review differences remain, so this is not complete Mac parity.
+Apps & Projects puts applications, developer projects and startup items under one navigation family, organized around recognizable objects. macOS includes application inventory/component review, project-output grouping, shared rule selection, single-app read-only update discovery and reviewed Homebrew/mise package upgrades. Windows has independent discovery and official WinGet upgrade source alongside navigation, marker-based project grouping and a shared scan/selection model. Unattended installation, Git remote-state investigation and whole-project removal are outside this implementation. Native acceptance and manual-review differences remain separately tracked; source availability does not establish complete platform parity.
+
+Core deduplicates cleanup candidates and projects canonical built-in project templates plus personal rules with project evidence. Project recommendations, clearing and plans affect only that scope and preserve selected caches outside it. Package upgrades use an independent selection and authorization path.
 
 Smart Cleanup, Projects, application components, Space Analysis and Large Files share one scope confirmation: review and select inline, then click the red Delete Permanently footer button to freeze that selection, validate and execute without another dialog. Project cleanup stays within its page scope; application personal-data consent and administrator authentication retain their separate requirements.
 
@@ -12,7 +14,15 @@ Application bundles, verified related caches and user data expand within the sam
 
 Leftovers are reached from Applications; Startup Items uses its existing system adapter as a separate task in the same family. Visual integration does not turn cache rules into uninstall authority or startup registrations into cleanup permission.
 
-Update discovery lives in inline app details. Users explicitly query one app's public catalog version and open an official entry; unknown never means up to date. [Third-party update discovery](application-updates.md) owns source, network, version and identity boundaries, independently from this product's own updater.
+Read-only update discovery lives in inline app details. Users explicitly query one app's public catalog version and open an official entry; unknown never means up to date. [Third-party updates and controlled upgrades](application-updates.md) owns source, network, version and identity boundaries, independently from this product's own updater.
+
+## Packages and upgrades
+
+macOS Applications offers Homebrew and mise source views; Windows Applications offers an official WinGet update task. Users can search the provider's installed records, filter updates and select eligible targets. A package record alone does not establish ownership of an app path or project. Without a verified mapping, Shou does not merge it into app uninstall selection or count its contents again as cleanup capacity.
+
+Upgrades require review and confirmation of a frozen exact selection, followed by source/identity/version rechecks and individual results. This is a separate installation task with its own action labels and short-lived, single-use authority. It cannot reuse the red permanent-delete action, cleanup consent or an earlier update attempt. Managers/installers can change dependencies and data; cancellation is not rollback, and unknown outcomes require checking installed versions before retrying.
+
+mise upgrades are restricted to eligible user-global `latest` requests. Project versions, project configuration and project lockfiles remain outside the operation; the manager may update its global lockfile. Windows preserves the verified installation scope and exact official-catalog target, does not silently accept agreements or restart Windows, and awaits an already dispatched installer after stop. Detailed restrictions and verification boundaries are defined in the [update contract](application-updates.md#managed-package-upgrades).
 
 ## Developer projects
 
@@ -32,4 +42,4 @@ Cleanup defaults to permanent removal with exact paths and irreversible impact c
 
 ## Verification
 
-Domain fixtures cover project grouping, candidate identity, deduplicated capacity and separation from application caches. Existing cleanup checks retain permanent-removal/source-preservation, exclusions, changed-manifest rejection and no mutation before confirmation. Native UI separately checks navigation, expansion, selection, capacity feedback, project-only review scope and cancellation. See [SYNC.md](../../SYNC.md).
+Domain fixtures cover project grouping, candidate identity, deduplicated capacity and separation from application caches. Existing cleanup checks retain permanent-removal/source-preservation, exclusions, changed-manifest rejection and no mutation before confirmation. Upgrade fixtures separately cover frozen targets, rechecks, single-use authorization and uncertain outcomes. Native UI, manager/installer behavior and packaged installation require separate evidence; pure .NET or generated-manager fixtures do not establish native WinGet acceptance. Native UI separately checks navigation, expansion, selection, capacity feedback, project-only review scope and cancellation. See [SYNC.md](../../SYNC.md).

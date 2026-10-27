@@ -29,6 +29,11 @@
     "resource_id": "sf81c8a21cee5f74226753576",
     "text": "%lld applications selected"
   },
+  "%lld available application updates": {
+    "format": "{0} available application updates",
+    "resource_id": "s498a8c95b6128f85a89cb1e0",
+    "text": "%lld available application updates"
+  },
   "%lld cleanup items found": {
     "format": "{0} cleanup items found",
     "resource_id": "s18e99d8099999283b973f64f",
@@ -55,14 +60,29 @@
     "text": "%lld entries removed"
   },
   "%lld examined · %lld changed observations · %lld shown": {
-    "format": "{0} examined · {1} changed observations · {2} shown",
+    "format": "{0} examined, {1} changed observations, {2} shown",
     "resource_id": "sacbdad808015c8fb4b974cc0",
-    "text": "%lld examined · %lld changed observations · %lld shown"
+    "text": "%lld examined, %lld changed observations, %lld shown"
+  },
+  "%lld examined, %lld changed observations, %lld shown": {
+    "format": "{0} examined, {1} changed observations, {2} shown",
+    "resource_id": "s32c5d82610d94fa7c237938f",
+    "text": "%lld examined, %lld changed observations, %lld shown"
   },
   "%lld files": {
     "format": "{0} files",
     "resource_id": "sad2c1c2fc9c38ad5ff5dac83",
     "text": "%lld files"
+  },
+  "%lld installed · %lld updates": {
+    "format": "{0} installed, {1} updates",
+    "resource_id": "s7341164a0136104384cc1746",
+    "text": "%lld installed, %lld updates"
+  },
+  "%lld installed, %lld updates": {
+    "format": "{0} installed, {1} updates",
+    "resource_id": "s8735f566d9ec9216044fcc97",
+    "text": "%lld installed, %lld updates"
   },
   "%lld items": {
     "format": "{0} items",
@@ -125,9 +145,14 @@
     "text": "%lld matching records"
   },
   "%lld matching · %lld protected · %lld outside conditions": {
-    "format": "{0} matching · {1} protected · {2} outside conditions",
+    "format": "{0} matching, {1} protected, {2} outside conditions",
     "resource_id": "s4078dde1648488e2a308e2a6",
-    "text": "%lld matching · %lld protected · %lld outside conditions"
+    "text": "%lld matching, %lld protected, %lld outside conditions"
+  },
+  "%lld matching, %lld protected, %lld outside conditions": {
+    "format": "{0} matching, {1} protected, {2} outside conditions",
+    "resource_id": "s995561eb2d74030a8d16c6ce",
+    "text": "%lld matching, %lld protected, %lld outside conditions"
   },
   "%lld of %lld applications checked": {
     "format": "{0} of {1} applications checked",
@@ -143,6 +168,11 @@
     "format": "{0} of {1} items processed",
     "resource_id": "s454dc3e04a4e7565f0afefb3",
     "text": "%lld of %lld items processed"
+  },
+  "%lld of %lld processed": {
+    "format": "{0} of {1} processed",
+    "resource_id": "scfbec74918baae02ba284f3b",
+    "text": "%lld of %lld processed"
   },
   "%lld of %lld selected": {
     "format": "{0} of {1} selected",
@@ -160,9 +190,14 @@
     "text": "%lld privacy sources inspected"
   },
   "%lld records · %@ of local data": {
-    "format": "{0} records · {1} of local data",
+    "format": "{0} records, {1} of local data",
     "resource_id": "s83f58353b6a36cacffc3c629",
-    "text": "%lld records · %@ of local data"
+    "text": "%lld records, %@ of local data"
+  },
+  "%lld records, %@ of local data": {
+    "format": "{0} records, {1} of local data",
+    "resource_id": "s023956f4cec8a2eade0b1acf",
+    "text": "%lld records, %@ of local data"
   },
   "%lld registered applications": {
     "format": "{0} registered applications",
@@ -170,14 +205,24 @@
     "text": "%lld registered applications"
   },
   "%lld requests · %lld reported tokens": {
-    "format": "{0} requests · {1} reported tokens",
+    "format": "{0} requests, {1} reported tokens",
     "resource_id": "s3cb3a1ae7e99a62e03c2156c",
-    "text": "%lld requests · %lld reported tokens"
+    "text": "%lld requests, %lld reported tokens"
+  },
+  "%lld requests, %lld reported tokens": {
+    "format": "{0} requests, {1} reported tokens",
+    "resource_id": "s619812deebdc43b18b26cdcf",
+    "text": "%lld requests, %lld reported tokens"
   },
   "%lld rules": {
     "format": "{0} rules",
     "resource_id": "s9cbe2bacb675df35838fb53e",
     "text": "%lld rules"
+  },
+  "%lld selected": {
+    "format": "{0} selected",
+    "resource_id": "s7aeb346773d61f7a02ca6818",
+    "text": "%lld selected"
   },
   "%lld startup entries": {
     "format": "{0} startup entries",
@@ -195,9 +240,14 @@
     "text": "%lld startup registrations"
   },
   "%lld steps · %lld evidence rows": {
-    "format": "{0} steps · {1} evidence rows",
+    "format": "{0} steps, {1} evidence rows",
     "resource_id": "sd109a57a4f6e238f9fd99cfe",
-    "text": "%lld steps · %lld evidence rows"
+    "text": "%lld steps, %lld evidence rows"
+  },
+  "%lld steps, %lld evidence rows": {
+    "format": "{0} steps, {1} evidence rows",
+    "resource_id": "s44982d8e86c32fbc71469770",
+    "text": "%lld steps, %lld evidence rows"
   },
   "1. Copy the request to Codex, Claude Code, or WorkBuddy.": {
     "format": "1. Copy the request to Codex, Claude Code, or WorkBuddy.",
@@ -279,10 +329,25 @@
     "resource_id": "s9724eacfc54d05ad979c82e9",
     "text": "A matching catalog version could not be verified for this system."
   },
+  "A new localhost account receives privileges on this database only. Existing usernames are rejected; no global grant or GRANT OPTION is added.": {
+    "format": "A new localhost account receives privileges on this database only. Existing usernames are rejected; no global grant or GRANT OPTION is added.",
+    "resource_id": "s514ae280152796a07b1ccb08",
+    "text": "A new localhost account receives privileges on this database only. Existing usernames are rejected; no global grant or GRANT OPTION is added."
+  },
+  "A new version of Shou is available.": {
+    "format": "A new version of Shou is available.",
+    "resource_id": "s8a8aa52abbb1752e7346190c",
+    "text": "A new version of Shou is available."
+  },
   "A preset requires a name and explicit rules.": {
     "format": "A preset requires a name and explicit rules.",
     "resource_id": "sd0203f50c89ead9fa3480342",
     "text": "A preset requires a name and explicit rules."
+  },
+  "A process from this installation is running outside the selected service source. Manage it in its owning application.": {
+    "format": "A process from this installation is running outside the selected service source. Manage it in its owning application.",
+    "resource_id": "s5b977e0d20caead9bafb51ac",
+    "text": "A process from this installation is running outside the selected service source. Manage it in its owning application."
   },
   "A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count.": {
     "format": "A project marker must be an exact ordinary filename in the target's parent, such as package.json. Links do not count.",
@@ -339,6 +404,16 @@
     "resource_id": "sd5975f41c92a72b5411b1152",
     "text": "AC Power"
   },
+  "AI & Automation": {
+    "format": "AI & Automation",
+    "resource_id": "s5510f99112dc8ca136cc3916",
+    "text": "AI & Automation"
+  },
+  "AI Coding": {
+    "format": "AI Coding",
+    "resource_id": "scde8865d66e3661590bcc613",
+    "text": "AI Coding"
+  },
   "AI Configuration": {
     "format": "AI Configuration",
     "resource_id": "s2ec14428b5e2e2a75454f92c",
@@ -358,6 +433,11 @@
     "format": "AI Models",
     "resource_id": "se0d0824b7191c007ec14817c",
     "text": "AI Models"
+  },
+  "AI Workbench": {
+    "format": "AI Workbench",
+    "resource_id": "se314e0f99514e9aee074dfd5",
+    "text": "AI Workbench"
   },
   "AI configuration not found.": {
     "format": "AI configuration not found.",
@@ -419,6 +499,11 @@
     "resource_id": "se7cbee14fdd1677475f7101a",
     "text": "About Shou"
   },
+  "Access Log": {
+    "format": "Access Log",
+    "resource_id": "sf63cc362a035eeff9a7d99b8",
+    "text": "Access Log"
+  },
   "Access required": {
     "format": "Access required",
     "resource_id": "sd27df137f79b64adebb9526b",
@@ -433,6 +518,26 @@
     "format": "Access to this startup source was denied.",
     "resource_id": "s25c936bed9bec336b77643e8",
     "text": "Access to this startup source was denied."
+  },
+  "Account": {
+    "format": "Account",
+    "resource_id": "s7e1b0d5641f2640ce9a953ec",
+    "text": "Account"
+  },
+  "Accounts & Passwords": {
+    "format": "Accounts & Passwords",
+    "resource_id": "s975260b5b61ba21b645d121d",
+    "text": "Accounts & Passwords"
+  },
+  "Accounts retain their Host. MySQL does not provide plaintext passwords.": {
+    "format": "Accounts retain their Host. MySQL does not provide plaintext passwords.",
+    "resource_id": "s415256733b72931fc64c7233",
+    "text": "Accounts retain their Host. MySQL does not provide plaintext passwords."
+  },
+  "Actions": {
+    "format": "Actions",
+    "resource_id": "sff8059dc6752afdd30d27593",
+    "text": "Actions"
   },
   "Active Ethernet / Wi-Fi interfaces": {
     "format": "Active Ethernet / Wi-Fi interfaces",
@@ -458,6 +563,11 @@
     "format": "Add Exclusion",
     "resource_id": "s2635159e1a961ff9049b29b2",
     "text": "Add Exclusion"
+  },
+  "Add Tools": {
+    "format": "Add Tools",
+    "resource_id": "s377d8e1f7e419af64ec4f37a",
+    "text": "Add Tools"
   },
   "Add Workspace": {
     "format": "Add Workspace",
@@ -493,6 +603,16 @@
     "format": "Add a project folder to inspect build outputs and project caches.",
     "resource_id": "s7eb8bb827a22fe3156299e80",
     "text": "Add a project folder to inspect build outputs and project caches."
+  },
+  "Add to Workspace": {
+    "format": "Add to Workspace",
+    "resource_id": "sde161ac4087726413ce474f5",
+    "text": "Add to Workspace"
+  },
+  "Add tools to your workspace": {
+    "format": "Add tools to your workspace",
+    "resource_id": "sa4fd24b0745f59f0fee2f738",
+    "text": "Add tools to your workspace"
   },
   "Additional Cleanup Estimate": {
     "format": "Additional Cleanup Estimate",
@@ -609,6 +729,16 @@
     "resource_id": "sc6cc0996b16b8ee8e1757e57",
     "text": "All Scanned Folders"
   },
+  "All Sources": {
+    "format": "All Sources",
+    "resource_id": "sb877e9212b41f8c8763b89c6",
+    "text": "All Sources"
+  },
+  "All Tools": {
+    "format": "All Tools",
+    "resource_id": "sfbf893b063f6d4a2e9d2937c",
+    "text": "All Tools"
+  },
   "All Types": {
     "format": "All Types",
     "resource_id": "sbc01325482f36133553683ef",
@@ -679,6 +809,11 @@
     "resource_id": "sb4839d001cbee958aca2adb6",
     "text": "An application or build tool may be using these files. Close it and scan again."
   },
+  "An executable was found. Its version and runtime health have not been tested; discovery does not authorize uninstalling it.": {
+    "format": "An executable was found. Its version and runtime health have not been tested; discovery does not authorize uninstalling it.",
+    "resource_id": "s627a90a6fe86a4acc8291a62",
+    "text": "An executable was found. Its version and runtime health have not been tested; discovery does not authorize uninstalling it."
+  },
   "An existing CLI entry or parent is a symbolic link. It has been preserved.": {
     "format": "An existing CLI entry or parent is a symbolic link. It has been preserved.",
     "resource_id": "s7ba8bd13c8ab6f7413d5d148",
@@ -723,6 +858,11 @@
     "format": "Android generated caches",
     "resource_id": "s152ac585820c7b4c0b2cc4a3",
     "text": "Android generated caches"
+  },
+  "Another Shou operation is using the local records. Try again after it finishes.": {
+    "format": "Another Shou operation is using the local records. Try again after it finishes.",
+    "resource_id": "sd08edd7f50ad0834af7a2b94",
+    "text": "Another Shou operation is using the local records. Try again after it finishes."
   },
   "Another Shou process is changing configuration or executing a plan.": {
     "format": "Another Shou process is changing configuration or executing a plan.",
@@ -994,6 +1134,11 @@
     "resource_id": "s4d2263027bba56273e7d1161",
     "text": "Application uninstall"
   },
+  "Application updates could not be checked. Try again.": {
+    "format": "Application updates could not be checked. Try again.",
+    "resource_id": "sff67105d6cadcb4ee052c3c1",
+    "text": "Application updates could not be checked. Try again."
+  },
   "Application, ownership, configuration or component contents changed; preview again.": {
     "format": "Application, ownership, configuration or component contents changed; preview again.",
     "resource_id": "sb3a195de0cfd913f1b39ff1e",
@@ -1149,10 +1294,30 @@
     "resource_id": "s3d6b341f2ae705b962c2d41a",
     "text": "Automatic updates are not available in this Windows preview."
   },
+  "Automatically download and install updates": {
+    "format": "Automatically download and install updates",
+    "resource_id": "sdd75d691cb513f28cfc216fb",
+    "text": "Automatically download and install updates"
+  },
   "Available": {
     "format": "Available",
     "resource_id": "se674447337e83c1346f6122e",
     "text": "Available"
+  },
+  "Available MySQL Packages": {
+    "format": "Available MySQL Packages",
+    "resource_id": "s331c0999db94a7c405a11aa5",
+    "text": "Available MySQL Packages"
+  },
+  "Available Packages": {
+    "format": "Available Packages",
+    "resource_id": "s85de6a698ab1022ce5d32838",
+    "text": "Available Packages"
+  },
+  "Available Version": {
+    "format": "Available Version",
+    "resource_id": "s12d731498e0517ac28fa4b6a",
+    "text": "Available Version"
   },
   "Available disk space": {
     "format": "Available disk space",
@@ -1173,6 +1338,11 @@
     "format": "Back",
     "resource_id": "s76900f1bfd16c8d4dd3d25e6",
     "text": "Back"
+  },
+  "Back Up Selected Databases": {
+    "format": "Back Up Selected Databases",
+    "resource_id": "sfdc5ec700f27d86d45697891",
+    "text": "Back Up Selected Databases"
   },
   "Back to Applications": {
     "format": "Back to Applications",
@@ -1258,6 +1428,11 @@
     "format": "Brave download caches",
     "resource_id": "sc2d784268f63bb3763bacf0f",
     "text": "Brave download caches"
+  },
+  "Browse All Tools": {
+    "format": "Browse All Tools",
+    "resource_id": "s46f0a270e0634307192b8e5c",
+    "text": "Browse All Tools"
   },
   "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings.": {
     "format": "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings.",
@@ -1354,6 +1529,11 @@
     "resource_id": "s54738fc4410d89648f4b59e9",
     "text": "Build tools recreate outputs when needed"
   },
+  "Build your developer workspace": {
+    "format": "Build your developer workspace",
+    "resource_id": "s107315bb36c93d941f8147fa",
+    "text": "Build your developer workspace"
+  },
   "Building the space map…": {
     "format": "Building the space map…",
     "resource_id": "safe03e65d305a9d8fd6dde07",
@@ -1434,6 +1614,11 @@
     "resource_id": "saa70cf17297a4c4ca5479d90",
     "text": "Built-in scan locations are unavailable."
   },
+  "Bun storage": {
+    "format": "Bun storage",
+    "resource_id": "s90ce3961dd0e3f7606a0dc7e",
+    "text": "Bun storage"
+  },
   "Bundler download caches": {
     "format": "Bundler download caches",
     "resource_id": "sb16b5175a5dffe32a7cf375a",
@@ -1478,6 +1663,11 @@
     "format": "Cache Files",
     "resource_id": "sca12403385f178e38998d8b5",
     "text": "Cache Files"
+  },
+  "Caches & Queues": {
+    "format": "Caches & Queues",
+    "resource_id": "s7fe16052b506a5f49b125866",
+    "text": "Caches & Queues"
   },
   "Calculating…": {
     "format": "Calculating…",
@@ -1619,6 +1809,11 @@
     "resource_id": "sab85221a476c5bbb86708031",
     "text": "Cargo source verification exceeded its time budget."
   },
+  "Cask": {
+    "format": "Cask",
+    "resource_id": "sebb6ec275cba28814e65bf39",
+    "text": "Cask"
+  },
   "Catalog Version": {
     "format": "Catalog Version",
     "resource_id": "s077eccbc37a438dae4323242",
@@ -1634,6 +1829,11 @@
     "resource_id": "s292c06f0045a45d044be282b",
     "text": "Category"
   },
+  "Change Account Password": {
+    "format": "Change Account Password",
+    "resource_id": "s31d2260d39b24f3b8b5057e2",
+    "text": "Change Account Password"
+  },
   "Changed since operation": {
     "format": "Changed since operation",
     "resource_id": "s2adfaac9db7c36a040aa4f99",
@@ -1648,6 +1848,11 @@
     "format": "Changing the scheduled task…",
     "resource_id": "sb0f8ebff66fbded3703f2176",
     "text": "Changing the scheduled task…"
+  },
+  "Character Set": {
+    "format": "Character Set",
+    "resource_id": "s346e389250d576796b50c6cc",
+    "text": "Character Set"
   },
   "Charging": {
     "format": "Charging",
@@ -1689,6 +1894,16 @@
     "resource_id": "s3bde496d5b8adf6e7f2b76e9",
     "text": "Check Release Catalog"
   },
+  "Check Software Updates": {
+    "format": "Check Software Updates",
+    "resource_id": "sc9725578854ce6222a59e6c5",
+    "text": "Check Software Updates"
+  },
+  "Check Updates": {
+    "format": "Check Updates",
+    "resource_id": "sa4738b604a205c2e2304adaa",
+    "text": "Check Updates"
+  },
   "Check disk access, free space, and local records without changing files.": {
     "format": "Check disk access, free space, and local records without changing files.",
     "resource_id": "s117ffb822009d7e36fe67efc",
@@ -1709,6 +1924,11 @@
     "resource_id": "s62ad8a5ecd06834db21d2784",
     "text": "Check installed applications"
   },
+  "Check installed versions again before another upgrade.": {
+    "format": "Check installed versions again before another upgrade.",
+    "resource_id": "se227e142b356193a8781b92a",
+    "text": "Check installed versions again before another upgrade."
+  },
   "Check startup definitions": {
     "format": "Check startup definitions",
     "resource_id": "s4161cfad0e95827925fd3944",
@@ -1718,6 +1938,16 @@
     "format": "Check that the home volume is available, then run diagnostics again.",
     "resource_id": "s75e4d1797214185a4b0a4908",
     "text": "Check that the home volume is available, then run diagnostics again."
+  },
+  "Check the database name, account, character set and selected instance.": {
+    "format": "Check the database name, account, character set and selected instance.",
+    "resource_id": "safdecda74b071d2364b68b5f",
+    "text": "Check the database name, account, character set and selected instance."
+  },
+  "Check the official WinGet catalog, review exact versions, then update the applications you select.": {
+    "format": "Check the official WinGet catalog, review exact versions, then update the applications you select.",
+    "resource_id": "s692d88e61784ed4d29ec5b69",
+    "text": "Check the official WinGet catalog, review exact versions, then update the applications you select."
   },
   "Check the relative path, project markers and discovery depth. Conditions and protections still apply.": {
     "format": "Check the relative path, project markers and discovery depth. Conditions and protections still apply.",
@@ -1729,6 +1959,11 @@
     "resource_id": "sd6d07c512675c55089535ebf",
     "text": "Check the selected location and relative paths. A rule's location reference can be registered only once."
   },
+  "Checking Service…": {
+    "format": "Checking Service…",
+    "resource_id": "s00e84ea9ffa8190764315589",
+    "text": "Checking Service…"
+  },
   "Checking a rule suggestion…": {
     "format": "Checking a rule suggestion…",
     "resource_id": "s214602b235b77871221d99af",
@@ -1738,6 +1973,16 @@
     "format": "Checking disk access…",
     "resource_id": "s7a897eac65196253b887c606",
     "text": "Checking disk access…"
+  },
+  "Checking for updates…": {
+    "format": "Checking for updates…",
+    "resource_id": "s497a19986d82eb1fb4f14a56",
+    "text": "Checking for updates…"
+  },
+  "Checking installed software…": {
+    "format": "Checking installed software…",
+    "resource_id": "sa96ed511e79235efd0e41880",
+    "text": "Checking installed software…"
   },
   "Checking is read-only. No startup setting or file is changed.": {
     "format": "Checking is read-only. No startup setting or file is changed.",
@@ -1779,10 +2024,20 @@
     "resource_id": "sf9ebd9c0124d914422ed8e20",
     "text": "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged."
   },
+  "Checks the official GitHub release. Downloads open only when you choose.": {
+    "format": "Checks the official GitHub release. Downloads open only when you choose.",
+    "resource_id": "s322ebb70320df6d66f7cd67a",
+    "text": "Checks the official GitHub release. Downloads open only when you choose."
+  },
   "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.": {
     "format": "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed.",
     "resource_id": "s74fb103943e71facd255140d",
     "text": "Checks the official stable release catalog for this app. No application list is uploaded and nothing is installed."
+  },
+  "Choose Configuration File": {
+    "format": "Choose Configuration File",
+    "resource_id": "s8670fb940b0e9d1c370ecb2a",
+    "text": "Choose Configuration File"
   },
   "Choose Folder for This Rule…": {
     "format": "Choose Folder for This Rule…",
@@ -1794,6 +2049,11 @@
     "resource_id": "se272a99cb1842ce2358dd3b4",
     "text": "Choose Folder…"
   },
+  "Choose Log File": {
+    "format": "Choose Log File",
+    "resource_id": "s7fc490550d738b3340c4fcdf",
+    "text": "Choose Log File"
+  },
   "Choose Project Folder…": {
     "format": "Choose Project Folder…",
     "resource_id": "sb5a8a9cba3f590b8c9bc044a",
@@ -1803,6 +2063,11 @@
     "format": "Choose a .zip file for the Skill package.",
     "resource_id": "sa3a419d7e44b0d416e3709c7",
     "text": "Choose a .zip file for the Skill package."
+  },
+  "Choose a database": {
+    "format": "Choose a database",
+    "resource_id": "sc7bd40bc64cc1051c5198092",
+    "text": "Choose a database"
   },
   "Choose a development workspace. Scanning does not delete files.": {
     "format": "Choose a development workspace. Scanning does not delete files.",
@@ -1854,6 +2119,11 @@
     "resource_id": "s178e23383a530e74f5427eb9",
     "text": "Choose a scan location to manage built-in rules, or import a personal rule."
   },
+  "Choose a tool to manage its sources and versions.": {
+    "format": "Choose a tool to manage its sources and versions.",
+    "resource_id": "sadeb4e8e06f52fc24edcfd1f",
+    "text": "Choose a tool to manage its sources and versions."
+  },
   "Choose a valid connection name and identifier.": {
     "format": "Choose a valid connection name and identifier.",
     "resource_id": "s3bb5a035d01aefa41019ee2d",
@@ -1873,6 +2143,11 @@
     "format": "Choose an absolute Skill path without traversal components.",
     "resource_id": "sb734e42ebc552ff3582e22b4",
     "text": "Choose an absolute Skill path without traversal components."
+  },
+  "Choose an account": {
+    "format": "Choose an account",
+    "resource_id": "s0e4dbf48c2e075e25b6f9a4d",
+    "text": "Choose an account"
   },
   "Choose an applicable scan location": {
     "format": "Choose an applicable scan location",
@@ -1923,6 +2198,11 @@
     "format": "Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation.",
     "resource_id": "sd08dcbcd3ba5d7b04dfa93a3",
     "text": "Choose the exact folder to investigate. Measurement is local; AI starts only when you choose Start Investigation."
+  },
+  "Choose the exact log file for this instance.": {
+    "format": "Choose the exact log file for this instance.",
+    "resource_id": "sfe5ab1f838cda1d52a94cec6",
+    "text": "Choose the exact log file for this instance."
   },
   "Choose the language used by Shou.": {
     "format": "Choose the language used by Shou.",
@@ -2184,6 +2464,11 @@
     "resource_id": "s290129e7ce1fa658b784ffdd",
     "text": "Clear Finished Records…"
   },
+  "Clear Log…": {
+    "format": "Clear Log…",
+    "resource_id": "s01af7232ba0109965b625279",
+    "text": "Clear Log…"
+  },
   "Clear Records": {
     "format": "Clear Records",
     "resource_id": "sd043e23a91ae5068843ed774",
@@ -2203,6 +2488,11 @@
     "format": "Clear search",
     "resource_id": "s3b7ea51793e9d906afa06afb",
     "text": "Clear search"
+  },
+  "Clearing…": {
+    "format": "Clearing…",
+    "resource_id": "s9a81378b00d70e669413ed91",
+    "text": "Clearing…"
   },
   "Click to inspect. Double-click a folder to open it.": {
     "format": "Click to inspect. Double-click a folder to open it.",
@@ -2424,6 +2714,16 @@
     "resource_id": "s648ae7e1eb17d527cb9d61da",
     "text": "Conditions matched. This remains a disabled draft until you explicitly enable it and scan again."
   },
+  "Configuration & Extensions": {
+    "format": "Configuration & Extensions",
+    "resource_id": "s23f858cbf12ac06b355174db",
+    "text": "Configuration & Extensions"
+  },
+  "Configuration File": {
+    "format": "Configuration File",
+    "resource_id": "scbcd58e17e8d72c9120b1306",
+    "text": "Configuration File"
+  },
   "Configuration Name": {
     "format": "Configuration Name",
     "resource_id": "sc6a91fe878482e381905a6e2",
@@ -2443,6 +2743,26 @@
     "format": "Configuration or directory identity changed during the scan; scan again.",
     "resource_id": "s6ce66e4feb699e663802d5cc",
     "text": "Configuration or directory identity changed during the scan; scan again."
+  },
+  "Configuration saved.": {
+    "format": "Configuration saved.",
+    "resource_id": "s6b5b3c69e02dd47e73c93615",
+    "text": "Configuration saved."
+  },
+  "Configuration saved. Changes apply the next time this service starts.": {
+    "format": "Configuration saved. Changes apply the next time this service starts.",
+    "resource_id": "s062578c64f1250902b3b4f10",
+    "text": "Configuration saved. Changes apply the next time this service starts."
+  },
+  "Configuration saved. For a stopped independent instance, review its updated registration before starting.": {
+    "format": "Configuration saved. For a stopped independent instance, review its updated registration before starting.",
+    "resource_id": "s1064c8b90898e7ccb04ebadf",
+    "text": "Configuration saved. For a stopped independent instance, review its updated registration before starting."
+  },
+  "Configuration saved. Restart the selected instance to apply it.": {
+    "format": "Configuration saved. Restart the selected instance to apply it.",
+    "resource_id": "sdefbecddf67b6bc1d984c455",
+    "text": "Configuration saved. Restart the selected instance to apply it."
   },
   "Configure Jev before disabling the main model.": {
     "format": "Configure Jev before disabling the main model.",
@@ -2479,6 +2799,21 @@
     "resource_id": "seebdd24a77d9ad32222660c0",
     "text": "Confirm"
   },
+  "Confirm Installation": {
+    "format": "Confirm Installation",
+    "resource_id": "s81e717165d8c676df5f684d0",
+    "text": "Confirm Installation"
+  },
+  "Confirm MySQL Change": {
+    "format": "Confirm MySQL Change",
+    "resource_id": "s169c0dc4024ea9cc3ea07ba7",
+    "text": "Confirm MySQL Change"
+  },
+  "Confirm Registration Change": {
+    "format": "Confirm Registration Change",
+    "resource_id": "sb571523cc08114cf03669fd6",
+    "text": "Confirm Registration Change"
+  },
   "Confirm Task Change": {
     "format": "Confirm Task Change",
     "resource_id": "s84b224b7a6366ba71de58b05",
@@ -2489,20 +2824,40 @@
     "resource_id": "se664b7299fe5bb7b19f94169",
     "text": "Confirm Uninstall"
   },
+  "Confirm Upgrade": {
+    "format": "Confirm Upgrade",
+    "resource_id": "s71a4ab02e4c28d259904eb60",
+    "text": "Confirm Upgrade"
+  },
   "Confirmation does not match the current plan.": {
     "format": "Confirmation does not match the current plan.",
     "resource_id": "s2f53113cb55cc15b71b63e66",
     "text": "Confirmation does not match the current plan."
+  },
+  "Connect & Read Databases": {
+    "format": "Connect & Read Databases",
+    "resource_id": "s0ddce6dfc13917f48d596193",
+    "text": "Connect & Read Databases"
   },
   "Connect a Model": {
     "format": "Connect a Model",
     "resource_id": "s9e066c1418cb47ff692f5fb1",
     "text": "Connect a Model"
   },
+  "Connect to MySQL": {
+    "format": "Connect to MySQL",
+    "resource_id": "s6abacc13bbc8daf2f867467c",
+    "text": "Connect to MySQL"
+  },
   "Connected · Tool calling verified": {
-    "format": "Connected · Tool calling verified",
+    "format": "Connected, Tool calling verified",
     "resource_id": "sde3b8953c62f56a5d08967f4",
-    "text": "Connected · Tool calling verified"
+    "text": "Connected, Tool calling verified"
+  },
+  "Connected, Tool calling verified": {
+    "format": "Connected, Tool calling verified",
+    "resource_id": "s645488645c2ea4beb3b3c8e5",
+    "text": "Connected, Tool calling verified"
   },
   "Connection": {
     "format": "Connection",
@@ -2533,6 +2888,11 @@
     "format": "Container ownership could not be verified.",
     "resource_id": "sd1a7f6aa971cb794e4956ee4",
     "text": "Container ownership could not be verified."
+  },
+  "Containers": {
+    "format": "Containers",
+    "resource_id": "sa22daa7f02a26cc2335378ad",
+    "text": "Containers"
   },
   "Contains excluded content; the entire cleanup target is preserved": {
     "format": "Contains excluded content; the entire cleanup target is preserved",
@@ -2570,9 +2930,14 @@
     "text": "Cookies"
   },
   "Cookies · may sign you out": {
-    "format": "Cookies · may sign you out",
+    "format": "Cookies, may sign you out",
     "resource_id": "s830d88bc8378fa714b88b4cb",
-    "text": "Cookies · may sign you out"
+    "text": "Cookies, may sign you out"
+  },
+  "Cookies, may sign you out": {
+    "format": "Cookies, may sign you out",
+    "resource_id": "s91b198382098f29499b55a31",
+    "text": "Cookies, may sign you out"
   },
   "Copied": {
     "format": "Copied",
@@ -2594,6 +2959,11 @@
     "resource_id": "scb12df752fde9566bd478868",
     "text": "Copy Request"
   },
+  "Copy Socket Path": {
+    "format": "Copy Socket Path",
+    "resource_id": "s650b57da627dfff50a5b4038",
+    "text": "Copy Socket Path"
+  },
   "Copy failed. Try again.": {
     "format": "Copy failed. Try again.",
     "resource_id": "s34917f2e48ba792fb6ae2ddd",
@@ -2614,10 +2984,25 @@
     "resource_id": "se2bafe481054865047b4c331",
     "text": "Cost unavailable without your provider's actual rates."
   },
+  "Could not check for updates. Check your connection and try again.": {
+    "format": "Could not check for updates. Check your connection and try again.",
+    "resource_id": "s32b8c4321a02118b6bd72202",
+    "text": "Could not check for updates. Check your connection and try again."
+  },
   "Could not copy analysis.": {
     "format": "Could not copy analysis.",
     "resource_id": "sc1ae3d9cbdb129d9fc30dcd4",
     "text": "Could not copy analysis."
+  },
+  "Could not inspect": {
+    "format": "Could not inspect",
+    "resource_id": "sdb56d9bff47abb86661194c8",
+    "text": "Could not inspect"
+  },
+  "Could not open this location.": {
+    "format": "Could not open this location.",
+    "resource_id": "s066b493971b47db5b2a3bcee",
+    "text": "Could not open this location."
   },
   "Could not save the API key in Keychain.": {
     "format": "Could not save the API key in Keychain.",
@@ -2638,6 +3023,21 @@
     "format": "Coverage Issues",
     "resource_id": "s639d0416e7b06b817b7925cd",
     "text": "Coverage Issues"
+  },
+  "Create Database": {
+    "format": "Create Database",
+    "resource_id": "sa4772bd4c2a746f4bf95ffea",
+    "text": "Create Database"
+  },
+  "Create Independent Instance": {
+    "format": "Create Independent Instance",
+    "resource_id": "s1e4f1b1792b2b17ad03e7856",
+    "text": "Create Independent Instance"
+  },
+  "Create Local Account & Grant Database Access": {
+    "format": "Create Local Account & Grant Database Access",
+    "resource_id": "scc3be6efc0d6fd9b1416c6ab",
+    "text": "Create Local Account & Grant Database Access"
   },
   "Create Rule for This Folder…": {
     "format": "Create Rule for This Folder…",
@@ -2663,6 +3063,21 @@
     "format": "Create reusable rules",
     "resource_id": "sa79cbc9cb32aec36caff70da",
     "text": "Create reusable rules"
+  },
+  "Creating a database does not change any existing user's password. Create a separate local account below if needed.": {
+    "format": "Creating a database does not change any existing user's password. Create a separate local account below if needed.",
+    "resource_id": "s8e75c9032cc14db29ff86de0",
+    "text": "Creating a database does not change any existing user's password. Create a separate local account below if needed."
+  },
+  "Credentials are kept for this session only.": {
+    "format": "Credentials are kept for this session only.",
+    "resource_id": "s6180aff23c233402f41e0a7d",
+    "text": "Credentials are kept for this session only."
+  },
+  "Credentials stay in this session. Passwords are not read from MySQL or saved in operation records.": {
+    "format": "Credentials stay in this session. Passwords are not read from MySQL or saved in operation records.",
+    "resource_id": "s9596c4bafbfdb1b4db2c0e37",
+    "text": "Credentials stay in this session. Passwords are not read from MySQL or saved in operation records."
   },
   "Critical": {
     "format": "Critical",
@@ -2709,6 +3124,11 @@
     "resource_id": "s3e688e7b2bc8788cef2d6b87",
     "text": "Current user agents"
   },
+  "Current version": {
+    "format": "Current version",
+    "resource_id": "sa74487de8969b1f177259bc4",
+    "text": "Current version"
+  },
   "Current-user MSIX package": {
     "format": "Current-user MSIX package",
     "resource_id": "s89449ba4b00add4dd5769aea",
@@ -2744,6 +3164,11 @@
     "resource_id": "s864514a2f754b2ac0efc8092",
     "text": "Cycles"
   },
+  "DNS Servers": {
+    "format": "DNS Servers",
+    "resource_id": "sf00366461f56a972d0c24bee",
+    "text": "DNS Servers"
+  },
   "DaVinci Resolve caches": {
     "format": "DaVinci Resolve caches",
     "resource_id": "s338dab2f7b43bd272b1fed05",
@@ -2758,6 +3183,36 @@
     "format": "Data storage",
     "resource_id": "sc8e913b6756395d9e9e2fbe2",
     "text": "Data storage"
+  },
+  "Database": {
+    "format": "Database",
+    "resource_id": "sfa7fe67124e94375d97e5089",
+    "text": "Database"
+  },
+  "Database Name": {
+    "format": "Database Name",
+    "resource_id": "s15f0fd55dd5c59cd5dabc096",
+    "text": "Database Name"
+  },
+  "Database actions use this instance's local port or socket. Configuration changes do not restart it automatically.": {
+    "format": "Database actions use this instance's local port or socket. Configuration changes do not restart it automatically.",
+    "resource_id": "se06a03be48c5645efd333866",
+    "text": "Database actions use this instance's local port or socket. Configuration changes do not restart it automatically."
+  },
+  "Databases": {
+    "format": "Databases",
+    "resource_id": "s61d2afe2349913ce5b96de25",
+    "text": "Databases"
+  },
+  "Databases & Accounts": {
+    "format": "Databases & Accounts",
+    "resource_id": "s67e3d5f432cbf4f91f921119",
+    "text": "Databases & Accounts"
+  },
+  "Databases were read, but this login cannot read mysql.user. Account actions are unavailable.": {
+    "format": "Databases were read, but this login cannot read mysql.user. Account actions are unavailable.",
+    "resource_id": "sff6ad30f4b2693a383fd64ec",
+    "text": "Databases were read, but this login cannot read mysql.user. Account actions are unavailable."
   },
   "Days since newest change (0–3650)": {
     "format": "Days since newest change (0–3650)",
@@ -2790,9 +3245,14 @@
     "text": "Decision Provider"
   },
   "Decision Service · First": {
-    "format": "Decision Service · First",
+    "format": "Decision Service, First",
     "resource_id": "sad5da6f78307876ddba8e808",
-    "text": "Decision Service · First"
+    "text": "Decision Service, First"
+  },
+  "Decision Service, First": {
+    "format": "Decision Service, First",
+    "resource_id": "sbd59b25b244f14df76ae83a7",
+    "text": "Decision Service, First"
   },
   "Decision Variable Name": {
     "format": "Decision Variable Name",
@@ -2803,6 +3263,11 @@
     "format": "Decision service is off. The main model takes over; saved decision settings and keys are kept.",
     "resource_id": "sd4de725a85cd13ddebeec7b5",
     "text": "Decision service is off. The main model takes over; saved decision settings and keys are kept."
+  },
+  "Declared Dependencies": {
+    "format": "Declared Dependencies",
+    "resource_id": "s3c98f26cc06872181b203394",
+    "text": "Declared Dependencies"
   },
   "Definition": {
     "format": "Definition",
@@ -2879,6 +3344,11 @@
     "resource_id": "s2e41b118eb209c139f2bcbf6",
     "text": "Dependencies"
   },
+  "Dependency": {
+    "format": "Dependency",
+    "resource_id": "s711595f184a741e167aa1950",
+    "text": "Dependency"
+  },
   "Dependency content hypothesis": {
     "format": "Dependency content hypothesis",
     "resource_id": "sbe32f2f4594061ccca06d6fa",
@@ -2914,6 +3384,11 @@
     "resource_id": "s45989de49fb7f66dfe17a8fc",
     "text": "Details"
   },
+  "Detected executable": {
+    "format": "Detected executable",
+    "resource_id": "s59e3784e6b89d94fd05e813b",
+    "text": "Detected executable"
+  },
   "Developer Projects": {
     "format": "Developer Projects",
     "resource_id": "s24beca8cbc25b0e4db95de74",
@@ -2929,6 +3404,11 @@
     "resource_id": "s85c1562cd9ce8d744d652564",
     "text": "Developer Tools"
   },
+  "Developer Utilities": {
+    "format": "Developer Utilities",
+    "resource_id": "s7f14d2891ba54da0ae7aa6f4",
+    "text": "Developer Utilities"
+  },
   "Developer download and analysis caches": {
     "format": "Developer download and analysis caches",
     "resource_id": "s35dac0e5f019fb1bf3dfaead",
@@ -2943,6 +3423,21 @@
     "format": "Developer tool caches",
     "resource_id": "s8b9fce2095cb6a7a05b1802b",
     "text": "Developer tool caches"
+  },
+  "Developer tool change verified": {
+    "format": "Developer tool change verified",
+    "resource_id": "sfac8e508a112dcaf5e9e63a0",
+    "text": "Developer tool change verified"
+  },
+  "Developer tool result needs verification": {
+    "format": "Developer tool result needs verification",
+    "resource_id": "sdaaab9bcc4d66bf4e855c3d4",
+    "text": "Developer tool result needs verification"
+  },
+  "Developer tool results are ready.": {
+    "format": "Developer tool results are ready.",
+    "resource_id": "s176756bcdfcc8bf9238f14c0",
+    "text": "Developer tool results are ready."
   },
   "Developer tools download or rebuild cached data when needed.": {
     "format": "Developer tools download or rebuild cached data when needed.",
@@ -3059,6 +3554,11 @@
     "resource_id": "s6bf797dd4c42d18eabfb1d53",
     "text": "Disabled version: %@"
   },
+  "Disconnect": {
+    "format": "Disconnect",
+    "resource_id": "sacfc5be785a9bb3da11c9f05",
+    "text": "Disconnect"
+  },
   "Discord caches": {
     "format": "Discord caches",
     "resource_id": "scb9792b274d64a040061b65c",
@@ -3068,6 +3568,11 @@
     "format": "Discord download caches",
     "resource_id": "s739977946c596e1291d8d4e6",
     "text": "Discord download caches"
+  },
+  "Discover AI assistants and every installed copy. Keep their sources and versions clear.": {
+    "format": "Discover AI assistants and every installed copy. Keep their sources and versions clear.",
+    "resource_id": "s2f6f264ede98cbf41244ba19",
+    "text": "Discover AI assistants and every installed copy. Keep their sources and versions clear."
   },
   "Discover files": {
     "format": "Discover files",
@@ -3083,6 +3588,11 @@
     "format": "Discovery depth must be a whole number from 1 to 32.",
     "resource_id": "s67e7cc5123c61ae7e875b249",
     "text": "Discovery depth must be a whole number from 1 to 32."
+  },
+  "Discovery is partial. Some managers or locations could not be read; missing results do not prove that a tool is uninstalled.": {
+    "format": "Discovery is partial. Some managers or locations could not be read; missing results do not prove that a tool is uninstalled.",
+    "resource_id": "sc5efad541f9cc4914fa67406",
+    "text": "Discovery is partial. Some managers or locations could not be read; missing results do not prove that a tool is uninstalled."
   },
   "Disk": {
     "format": "Disk",
@@ -3169,6 +3679,11 @@
     "resource_id": "sfd49b3df779c683645aba6d6",
     "text": "Dot path components are not supported."
   },
+  "Download Update": {
+    "format": "Download Update",
+    "resource_id": "s6ea67f029794022bc9d2f49a",
+    "text": "Download Update"
+  },
   "Draft preview only. Enable the rule and rescan before cleanup.": {
     "format": "Draft preview only. Enable the rule and rescan before cleanup.",
     "resource_id": "sdab8e872ae9468f5457c84fd",
@@ -3199,10 +3714,20 @@
     "resource_id": "sba4404031b6c47f5baeb64fd",
     "text": "Each configuration includes a main model. Turn the decision service on to save tokens, or off to use the main model directly. Keys stay in private local storage."
   },
+  "Each instance has its own data directory, configuration, port and socket. Creating one never imports or reinitializes an existing data directory.": {
+    "format": "Each instance has its own data directory, configuration, port and socket. Creating one never imports or reinitializes an existing data directory.",
+    "resource_id": "sa8c3b52a07574e6cc1c72744",
+    "text": "Each instance has its own data directory, configuration, port and socket. Creating one never imports or reinitializes an existing data directory."
+  },
   "Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review.": {
     "format": "Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review.",
     "resource_id": "s5e1c49fcb4fc4fff44ea0afa",
     "text": "Each suggestion is a separate choice. Preview imports a disabled draft; enabling and cleanup require review."
+  },
+  "Each switch controls only its displayed source and version. Other installations and login-start settings are kept.": {
+    "format": "Each switch controls only its displayed source and version. Other installations and login-start settings are kept.",
+    "resource_id": "sc64b4b8dc945b04954c56b01",
+    "text": "Each switch controls only its displayed source and version. Other installations and login-start settings are kept."
   },
   "Earlier Analysis": {
     "format": "Earlier Analysis",
@@ -3223,6 +3748,11 @@
     "format": "Edit Connection…",
     "resource_id": "s767963847c9fd3c742dc945c",
     "text": "Edit Connection…"
+  },
+  "Edit Instance Registration": {
+    "format": "Edit Instance Registration",
+    "resource_id": "s1b02f1c35bef3559611dfb8b",
+    "text": "Edit Instance Registration"
   },
   "Edit Personal Rule": {
     "format": "Edit Personal Rule",
@@ -3354,6 +3884,11 @@
     "resource_id": "s797bf117f5dfa4b300ee48a9",
     "text": "Epic Games caches"
   },
+  "Error Log": {
+    "format": "Error Log",
+    "resource_id": "sa9ef28420874a26868cab7aa",
+    "text": "Error Log"
+  },
   "Estimated Removal": {
     "format": "Estimated Removal",
     "resource_id": "sb9cf00e141c561db5b7cdc43",
@@ -3419,6 +3954,11 @@
     "resource_id": "s72cd8a64e591c9ee6a255b4e",
     "text": "Executable"
   },
+  "Executable path": {
+    "format": "Executable path",
+    "resource_id": "seb7082ef62f7c1e077d2b13f",
+    "text": "Executable path"
+  },
   "Executable path unknown": {
     "format": "Executable path unknown",
     "resource_id": "sb865078824ab82796fb7b679",
@@ -3428,6 +3968,11 @@
     "format": "Execution journal manifests are missing or inconsistent.",
     "resource_id": "s4bc8a835d1c6edbffe3e4ba4",
     "text": "Execution journal manifests are missing or inconsistent."
+  },
+  "Existing Installations": {
+    "format": "Existing Installations",
+    "resource_id": "sebce85fe2009745bf317f82c",
+    "text": "Existing Installations"
   },
   "Expand startup details": {
     "format": "Expand startup details",
@@ -3464,6 +4009,11 @@
     "resource_id": "s93bd8bfaac4c28d346fa65d5",
     "text": "Expo download caches"
   },
+  "Export Failed": {
+    "format": "Export Failed",
+    "resource_id": "s9a5e4d9513126f648a112642",
+    "text": "Export Failed"
+  },
   "Export Rule…": {
     "format": "Export Rule…",
     "resource_id": "s6642394c77d454778ea5169d",
@@ -3474,6 +4024,11 @@
     "resource_id": "sfe5cdf67f12ba5778116cd95",
     "text": "Export Skill ZIP…"
   },
+  "Exported": {
+    "format": "Exported",
+    "resource_id": "s391065e4dc23592acd6913e7",
+    "text": "Exported"
+  },
   "External AI Tools": {
     "format": "External AI Tools",
     "resource_id": "s3c593f6e8c8adf829f543c13",
@@ -3483,6 +4038,16 @@
     "format": "External AI Tools…",
     "resource_id": "s558e136435ee809198fe2516",
     "text": "External AI Tools…"
+  },
+  "External Service": {
+    "format": "External Service",
+    "resource_id": "s0fcb46976554ccf5f9e5f7ba",
+    "text": "External Service"
+  },
+  "FTP Servers": {
+    "format": "FTP Servers",
+    "resource_id": "sba77305056b1f6fa606240d0",
+    "text": "FTP Servers"
   },
   "Failed": {
     "format": "Failed",
@@ -3569,6 +4134,11 @@
     "resource_id": "sfb97368fb3a362f0b0c7ab8a",
     "text": "Filo caches"
   },
+  "Filter Databases": {
+    "format": "Filter Databases",
+    "resource_id": "s532cd08030389d54f20629f0",
+    "text": "Filter Databases"
+  },
   "Filter this folder": {
     "format": "Filter this folder",
     "resource_id": "s789c5511835bbb692f54b873",
@@ -3598,6 +4168,16 @@
     "format": "Find reviewable caches and build artifacts in known locations.",
     "resource_id": "s2cd9a0a13261468ab40fa308",
     "text": "Find reviewable caches and build artifacts in known locations."
+  },
+  "Find runtimes and servers. Discover existing installations before adding anything new.": {
+    "format": "Find runtimes and servers. Discover existing installations before adding anything new.",
+    "resource_id": "s76b94e08fb861f79bf3274c5",
+    "text": "Find runtimes and servers. Discover existing installations before adding anything new."
+  },
+  "Find runtimes, servers and AI tools. Pin your favorites, then manage each installation explicitly.": {
+    "format": "Find runtimes, servers and AI tools. Pin your favorites, then manage each installation explicitly.",
+    "resource_id": "s2b6d808e34d13f6a201b8855",
+    "text": "Find runtimes, servers and AI tools. Pin your favorites, then manage each installation explicitly."
   },
   "Find the files taking up the most room.": {
     "format": "Find the files taking up the most room.",
@@ -3679,6 +4259,11 @@
     "resource_id": "s9e3ebdab648a9cf100238462",
     "text": "Flutter build outputs and Dart tool caches"
   },
+  "FlyEnv storage": {
+    "format": "FlyEnv storage",
+    "resource_id": "s0e432f64effc6c25b993dabc",
+    "text": "FlyEnv storage"
+  },
   "Folder relative to workspace": {
     "format": "Folder relative to workspace",
     "resource_id": "sacbd23e4e0768fb400106840",
@@ -3714,10 +4299,20 @@
     "resource_id": "s013dfb6d9610191fecee88fc",
     "text": "For example, project/.build-cache/keep/**. Preserving a child blocks its whole parent cleanup target; Shou does not delete around it. Global and workspace protections still apply."
   },
+  "Formula": {
+    "format": "Formula",
+    "resource_id": "sd00bd4ec32e4e1cc45ddae0a",
+    "text": "Formula"
+  },
   "Forward": {
     "format": "Forward",
     "resource_id": "sf1c65e14817efef2b77973a4",
     "text": "Forward"
+  },
+  "Found": {
+    "format": "Found",
+    "resource_id": "sb0ee315f4ac6af09d05f9e6f",
+    "text": "Found"
   },
   "Found (estimate)": {
     "format": "Found (estimate)",
@@ -3809,6 +4404,11 @@
     "resource_id": "sa9f66c524b28de745fbabf8e",
     "text": "Global Exclusions"
   },
+  "Global Instructions": {
+    "format": "Global Instructions",
+    "resource_id": "s6d084d656916e87e1126b134",
+    "text": "Global Instructions"
+  },
   "Global patterns apply relative to every current and future workspace. Earlier builds cannot read the upgraded configuration.": {
     "format": "Global patterns apply relative to every current and future scan location. Earlier builds cannot read the upgraded configuration.",
     "resource_id": "s807078427b9ef8381ac6ddac",
@@ -3873,6 +4473,11 @@
     "format": "Grouped by scan location",
     "resource_id": "sfb4f7e1c33b7997f2f50454f",
     "text": "Grouped by scan location"
+  },
+  "Guide available": {
+    "format": "Guide available",
+    "resource_id": "sd87d6fae2b07d108d057f5d1",
+    "text": "Guide available"
   },
   "HTTP storage": {
     "format": "HTTP storage",
@@ -3995,14 +4600,29 @@
     "text": "History verification cancelled."
   },
   "History: visit time · Cookies: last access time": {
-    "format": "History: visit time · Cookies: last access time",
+    "format": "History: visit time, Cookies: last access time",
     "resource_id": "s20174a01c49a9d4caebd6041",
-    "text": "History: visit time · Cookies: last access time"
+    "text": "History: visit time, Cookies: last access time"
+  },
+  "History: visit time, Cookies: last access time": {
+    "format": "History: visit time, Cookies: last access time",
+    "resource_id": "s2f6b1e83bb215355628d2963",
+    "text": "History: visit time, Cookies: last access time"
   },
   "Homebrew download caches": {
     "format": "Homebrew download caches",
     "resource_id": "sa581327f9cd049a5f9c01b43",
     "text": "Homebrew download caches"
+  },
+  "Homebrew inventory could not be read.": {
+    "format": "Homebrew inventory could not be read.",
+    "resource_id": "sa9dc90e9c6619c1f28dc4fe0",
+    "text": "Homebrew inventory could not be read."
+  },
+  "Homebrew is not available in a supported location. Install it from its official website, then inspect again.": {
+    "format": "Homebrew is not available in a supported location. Install it from its official website, then inspect again.",
+    "resource_id": "s7a37a3c29748396352586fab",
+    "text": "Homebrew is not available in a supported location. Install it from its official website, then inspect again."
   },
   "Homebrew old versions and downloads": {
     "format": "Homebrew old versions and downloads",
@@ -4013,6 +4633,21 @@
     "format": "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download.",
     "resource_id": "s4bb22d7264cd65df67a3f0de",
     "text": "Homebrew removes its obsolete versions and downloads with a 30-day prune policy. Reinstalling older versions may require a download."
+  },
+  "Homebrew source": {
+    "format": "Homebrew source",
+    "resource_id": "sc62d69a9b083eb53b9831007",
+    "text": "Homebrew source"
+  },
+  "Homebrew will install this package and may install or upgrade its dependencies. It may run package setup steps. Shou does not automatically install Homebrew, use sudo or accept license agreements.": {
+    "format": "Homebrew will install this package and may install or upgrade its dependencies. It may run package setup steps. Shou does not automatically install Homebrew, use sudo or accept license agreements.",
+    "resource_id": "s24d88937f8c6d0d0923187d4",
+    "text": "Homebrew will install this package and may install or upgrade its dependencies. It may run package setup steps. Shou does not automatically install Homebrew, use sudo or accept license agreements."
+  },
+  "Homebrew will permanently uninstall this package. Shou does not request data removal, zap, force or dependency cleanup. Package uninstall hooks may still change files they own; back up important data first.": {
+    "format": "Homebrew will permanently uninstall this package. Shou does not request data removal, zap, force or dependency cleanup. Package uninstall hooks may still change files they own; back up important data first.",
+    "resource_id": "s8313362c6b05d906b02f64ea",
+    "text": "Homebrew will permanently uninstall this package. Shou does not request data removal, zap, force or dependency cleanup. Package uninstall hooks may still change files they own; back up important data first."
   },
   "How can these files be rebuilt?": {
     "format": "How can these files be rebuilt?",
@@ -4144,6 +4779,11 @@
     "resource_id": "s020abd1568ca4fb2ae0b42e3",
     "text": "Incomplete scan: "
   },
+  "Independent MySQL Instances": {
+    "format": "Independent MySQL Instances",
+    "resource_id": "s5baa0d901d83a20bc82ed991",
+    "text": "Independent MySQL Instances"
+  },
   "Information": {
     "format": "Information",
     "resource_id": "s1cb0ba125f84c982b00ba363",
@@ -4158,6 +4798,16 @@
     "format": "Inherited global protections: {0}",
     "resource_id": "sb1f774deb2bc5a6d8e7c8a46",
     "text": "Inherited global protections: %@"
+  },
+  "Initial Root Password": {
+    "format": "Initial Root Password",
+    "resource_id": "s9c55c8a8d85e503756f6fdd7",
+    "text": "Initial Root Password"
+  },
+  "Initialize New Instance": {
+    "format": "Initialize New Instance",
+    "resource_id": "sbb7ae57f2fd4d89c410c8092",
+    "text": "Initialize New Instance"
   },
   "Input Source Pro caches": {
     "format": "Input Source Pro caches",
@@ -4174,10 +4824,30 @@
     "resource_id": "s896c550ae83578a1ecedaf0b",
     "text": "Insomnia download caches"
   },
+  "Inspect Again": {
+    "format": "Inspect Again",
+    "resource_id": "sac1dc3720410436bce3b08af",
+    "text": "Inspect Again"
+  },
+  "Inspect Tool": {
+    "format": "Inspect Tool",
+    "resource_id": "sed1f7f142aaa11dfd3cd4024",
+    "text": "Inspect Tool"
+  },
   "Inspect before you tidy": {
     "format": "Inspect before you tidy",
     "resource_id": "s4798c4db947934208f0b0f6f",
     "text": "Inspect before you tidy"
+  },
+  "Inspect local configuration, MCP declarations, instructions and skills. Values and credentials stay out of this view. Open the owning folder to manage files with your editor.": {
+    "format": "Inspect local configuration, MCP declarations, instructions and skills. Values and credentials stay out of this view. Open the owning folder to manage files with your editor.",
+    "resource_id": "s1091d1129de8d7b8dcb0bdc4",
+    "text": "Inspect local configuration, MCP declarations, instructions and skills. Values and credentials stay out of this view. Open the owning folder to manage files with your editor."
+  },
+  "Inspect the selected source before installing or uninstalling. Existing installations from other managers are not claimed by this source.": {
+    "format": "Inspect the selected source before installing or uninstalling. Existing installations from other managers are not claimed by this source.",
+    "resource_id": "s82a3b35848ee6a2dd137d26f",
+    "text": "Inspect the selected source before installing or uninstalling. Existing installations from other managers are not claimed by this source."
   },
   "Inspected": {
     "format": "Inspected",
@@ -4188,6 +4858,11 @@
     "format": "Inspecting directory evidence…",
     "resource_id": "s50d0e47a4ecb7b16038748c8",
     "text": "Inspecting directory evidence…"
+  },
+  "Inspecting…": {
+    "format": "Inspecting…",
+    "resource_id": "scbad8ee3f91b3adad476da3f",
+    "text": "Inspecting…"
   },
   "Inspector": {
     "format": "Inspector",
@@ -4209,15 +4884,60 @@
     "resource_id": "s925e5a0a8cbffb7542198e6c",
     "text": "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed."
   },
+  "Installation & Instance": {
+    "format": "Installation & Instance",
+    "resource_id": "s08c4fc9ca5192d838855fa82",
+    "text": "Installation & Instance"
+  },
+  "Installation & Versions": {
+    "format": "Installation & Versions",
+    "resource_id": "s5478ff5175c76923f3ac39d3",
+    "text": "Installation & Versions"
+  },
+  "Installation Scope": {
+    "format": "Installation Scope",
+    "resource_id": "s291b5e758c2826b0c41d660f",
+    "text": "Installation Scope"
+  },
+  "Installation Source": {
+    "format": "Installation Source",
+    "resource_id": "s7c60fc2f80865f5bab5b34c3",
+    "text": "Installation Source"
+  },
   "Installation and CLI": {
     "format": "Installation and CLI",
     "resource_id": "s5981faea80e843103c7b5f9a",
     "text": "Installation and CLI"
   },
+  "Installed": {
+    "format": "Installed",
+    "resource_id": "sf8b32f4e92bd84ce1fcd177b",
+    "text": "Installed"
+  },
   "Installed Dependencies": {
     "format": "Installed Dependencies",
     "resource_id": "s556e91b00d5393f30ac0128d",
     "text": "Installed Dependencies"
+  },
+  "Installed Only": {
+    "format": "Installed Only",
+    "resource_id": "s71bbc8b565074a56805334bc",
+    "text": "Installed Only"
+  },
+  "Installed Skills": {
+    "format": "Installed Skills",
+    "resource_id": "sed416e3fcb42c129b89f4110",
+    "text": "Installed Skills"
+  },
+  "Installed Tools": {
+    "format": "Installed Tools",
+    "resource_id": "s8c3778f35bf18be866f57bd8",
+    "text": "Installed Tools"
+  },
+  "Installed Version": {
+    "format": "Installed Version",
+    "resource_id": "sd918abdb8991ef3e54548ece",
+    "text": "Installed Version"
   },
   "Installed application cache discovery is incomplete. Caches without verified ownership were not included.": {
     "format": "Installed application cache discovery is incomplete. Caches without verified ownership were not included.",
@@ -4259,10 +4979,25 @@
     "resource_id": "s105e55f334436a6aef2e7033",
     "text": "Installed application ownership could not be verified; scan again."
   },
+  "Installed software or update metadata changed. Check again before upgrading.": {
+    "format": "Installed software or update metadata changed. Check again before upgrading.",
+    "resource_id": "se8c7e93c518efb4ddad8a704",
+    "text": "Installed software or update metadata changed. Check again before upgrading."
+  },
+  "Installed tool discovery finished.": {
+    "format": "Installed tool discovery finished.",
+    "resource_id": "sd03c723534fe466f8ba07ed1",
+    "text": "Installed tool discovery finished."
+  },
   "Installed version is newer than the catalog": {
     "format": "Installed version is newer than the catalog",
     "resource_id": "sd3ff6dab2b15cf3981af22bd",
     "text": "Installed version is newer than the catalog"
+  },
+  "Installed version verified after upgrade.": {
+    "format": "Installed version verified after upgrade.",
+    "resource_id": "s089f2c7efe6f2d3dc186309c",
+    "text": "Installed version verified after upgrade."
   },
   "Installer code": {
     "format": "Installer code",
@@ -4293,6 +5028,41 @@
     "format": "Installer result: unknown.",
     "resource_id": "s0b1af118424837caff496e92",
     "text": "Installer result: unknown."
+  },
+  "Installers may request administrator approval, close applications, or change their data. Shou does not restart Windows or restore an upgrade.": {
+    "format": "Installers may request administrator approval, close applications, or change their data. Shou does not restart Windows or restore an upgrade.",
+    "resource_id": "s049586c375bf3e3ee60e225d",
+    "text": "Installers may request administrator approval, close applications, or change their data. Shou does not restart Windows or restore an upgrade."
+  },
+  "Instance Groups": {
+    "format": "Instance Groups",
+    "resource_id": "sa26cdb062010484a666a8e36",
+    "text": "Instance Groups"
+  },
+  "Instance Name": {
+    "format": "Instance Name",
+    "resource_id": "s85d41dd35ffc946d8d382ee0",
+    "text": "Instance Name"
+  },
+  "Instance name updated. Database files were preserved; no server was started.": {
+    "format": "Instance name updated. Database files were preserved; no server was started.",
+    "resource_id": "sce9abd48aec9e0008d82be93",
+    "text": "Instance name updated. Database files were preserved; no server was started."
+  },
+  "Instance registration updated. Database files were preserved; no server was started.": {
+    "format": "Instance registration updated. Database files were preserved; no server was started.",
+    "resource_id": "s65223058a747912cdbfa6ed0",
+    "text": "Instance registration updated. Database files were preserved; no server was started."
+  },
+  "Instance registrations could not be read. Refresh before continuing.": {
+    "format": "Instance registrations could not be read. Refresh before continuing.",
+    "resource_id": "sead49e95bfc57e5fb1d49b20",
+    "text": "Instance registrations could not be read. Refresh before continuing."
+  },
+  "Instance unregistered. Database files remain on disk; no disk space was freed.": {
+    "format": "Instance unregistered. Database files remain on disk; no disk space was freed.",
+    "resource_id": "scc9bc83a1b1029981130d99e",
+    "text": "Instance unregistered. Database files remain on disk; no disk space was freed."
   },
   "Interface Language": {
     "format": "Interface Language",
@@ -4534,6 +5304,16 @@
     "resource_id": "sc02438b6cd8f66744648f626",
     "text": "Keep the original rule ID when editing a version."
   },
+  "Keep your tools up to date.": {
+    "format": "Keep your tools up to date.",
+    "resource_id": "sf081c74414e0d26b62607fd1",
+    "text": "Keep your tools up to date."
+  },
+  "Kind": {
+    "format": "Kind",
+    "resource_id": "sf5387f9bb6ed70315a77fdcb",
+    "text": "Kind"
+  },
   "Klee caches": {
     "format": "Klee caches",
     "resource_id": "sae9d246f4b6e19d3bcf6299a",
@@ -4543,6 +5323,16 @@
     "format": "Known Locations",
     "resource_id": "s5e9eb820a520e9a19b4ed70b",
     "text": "Known Locations"
+  },
+  "Known user locations only. Project settings, custom roots, linked skills, activation and runtime health are not verified. A declaration does not mean an extension is enabled.": {
+    "format": "Known user locations only. Project settings, custom roots, linked skills, activation and runtime health are not verified. A declaration does not mean an extension is enabled.",
+    "resource_id": "s9811e856464bb0989954303e",
+    "text": "Known user locations only. Project settings, custom roots, linked skills, activation and runtime health are not verified. A declaration does not mean an extension is enabled."
+  },
+  "Known user locations; activation not verified.": {
+    "format": "Known user locations; activation not verified.",
+    "resource_id": "s88e8b52efd7430e9b1af1cce",
+    "text": "Known user locations; activation not verified."
   },
   "Kugou Music caches": {
     "format": "Kugou Music caches",
@@ -4564,6 +5354,11 @@
     "resource_id": "sa4fe65264ef7dbb38d104b1e",
     "text": "Language"
   },
+  "Languages & Runtimes": {
+    "format": "Languages & Runtimes",
+    "resource_id": "sbc65563e0f2de2832b725556",
+    "text": "Languages & Runtimes"
+  },
   "Large Files": {
     "format": "Large Files",
     "resource_id": "s6090464518861a38341fa86e",
@@ -4580,9 +5375,19 @@
     "text": "Lark and Feishu rendering caches"
   },
   "Last 2 minutes · Gaps mean unavailable": {
-    "format": "Last 2 minutes · Gaps mean unavailable",
+    "format": "Last 2 minutes, Gaps mean unavailable",
     "resource_id": "sf849482694bcd8cc2b0721c3",
-    "text": "Last 2 minutes · Gaps mean unavailable"
+    "text": "Last 2 minutes, Gaps mean unavailable"
+  },
+  "Last 2 minutes, Gaps mean unavailable": {
+    "format": "Last 2 minutes, Gaps mean unavailable",
+    "resource_id": "sa21cf2b0826e70263c4aca69",
+    "text": "Last 2 minutes, Gaps mean unavailable"
+  },
+  "Last 200 lines, up to 64 KiB": {
+    "format": "Last 200 lines, up to 64 KiB",
+    "resource_id": "s702c5140d8100f759934bbe3",
+    "text": "Last 200 lines, up to 64 KiB"
   },
   "Last 24 hours": {
     "format": "Last 24 hours",
@@ -4594,10 +5399,20 @@
     "resource_id": "s0603deca4fcb660f1c06a026",
     "text": "Last 7 days"
   },
+  "Last Checked": {
+    "format": "Last Checked",
+    "resource_id": "s89bc9a84563c93a6db6d3365",
+    "text": "Last Checked"
+  },
   "Last Used": {
     "format": "Last Used",
     "resource_id": "s9f1b40730a2cbcab8ec7750e",
     "text": "Last Used"
+  },
+  "Last checked": {
+    "format": "Last checked",
+    "resource_id": "s0c0c351a971353b542ec8856",
+    "text": "Last checked"
   },
   "Last hour": {
     "format": "Last hour",
@@ -4608,6 +5423,16 @@
     "format": "Last seven days",
     "resource_id": "s7a2c86a8bf2242ca5bb83fc0",
     "text": "Last seven days"
+  },
+  "Latest version": {
+    "format": "Latest version",
+    "resource_id": "sef7105b62f7474e8f3861e4b",
+    "text": "Latest version"
+  },
+  "Launch Paths": {
+    "format": "Launch Paths",
+    "resource_id": "s82b76d7e2995954e6b612d5f",
+    "text": "Launch Paths"
   },
   "Leave blank to keep the saved key": {
     "format": "Leave blank to keep the saved key",
@@ -4670,9 +5495,14 @@
     "text": "Links, special files and the scan root cannot be removed here."
   },
   "Live · Every 2 seconds": {
-    "format": "Live · Every 2 seconds",
+    "format": "Live, Every 2 seconds",
     "resource_id": "s315ed201de6e4f5197ded7f3",
-    "text": "Live · Every 2 seconds"
+    "text": "Live, Every 2 seconds"
+  },
+  "Live, Every 2 seconds": {
+    "format": "Live, Every 2 seconds",
+    "resource_id": "s055a4957a8a7a4e81251c898",
+    "text": "Live, Every 2 seconds"
   },
   "Load More": {
     "format": "Load More",
@@ -4694,6 +5524,11 @@
     "resource_id": "sba3bbbe10d8bef66441c8853",
     "text": "Loading…"
   },
+  "Local Note": {
+    "format": "Local Note",
+    "resource_id": "sd20438c426cbbc44218612c3",
+    "text": "Local Note"
+  },
   "Local analysis → main model. Structured decisions are not used by this strategy.": {
     "format": "Local analysis → main model. Structured decisions are not used by this strategy.",
     "resource_id": "sc4709e2ddf8d4997cc63a230",
@@ -4713,6 +5548,11 @@
     "format": "Local data",
     "resource_id": "s4a186dd7a70775e1c9f69e9b",
     "text": "Local data"
+  },
+  "Local instance": {
+    "format": "Local instance",
+    "resource_id": "s98b266df6d2e92e7218af904",
+    "text": "Local instance"
   },
   "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only.": {
     "format": "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only.",
@@ -4754,6 +5594,11 @@
     "resource_id": "s3143d2621afaec6c9a466356",
     "text": "Log Files"
   },
+  "Log cleared. New entries may be written by the service.": {
+    "format": "Log cleared. New entries may be written by the service.",
+    "resource_id": "sb2ae6a6637e04002f925cc49",
+    "text": "Log cleared. New entries may be written by the service."
+  },
   "Logical Size": {
     "format": "Logical Size",
     "resource_id": "s7138b9310e39820e3c6ec290",
@@ -4774,6 +5619,21 @@
     "resource_id": "s24f4ecae5ac9f5d84bd22956",
     "text": "Login Items, background-task registrations and helpers embedded in applications require System Settings. Apple system definitions are included only when requested. Permission and read-budget gaps remain visible."
   },
+  "Login startup: already registered. Restart and stop preserve this setting.": {
+    "format": "Login startup: already registered. Restart and stop preserve this setting.",
+    "resource_id": "s26d332a5ce35d8aa6f826b9b",
+    "text": "Login startup: already registered. Restart and stop preserve this setting."
+  },
+  "Login startup: not registered. Starting this service runs it for the current session.": {
+    "format": "Login startup: not registered. Starting this service runs it for the current session.",
+    "resource_id": "scde56c759afc61049e2ae9c5",
+    "text": "Login startup: not registered. Starting this service runs it for the current session."
+  },
+  "Logs": {
+    "format": "Logs",
+    "resource_id": "sea2100dc89ae9fe21fa9b08a",
+    "text": "Logs"
+  },
   "Logseq caches": {
     "format": "Logseq caches",
     "resource_id": "s14fc7cf0b9307160d441a313",
@@ -4784,10 +5644,20 @@
     "resource_id": "sf76315f1e77b7b5a475a5ed1",
     "text": "Low free space can prevent scans and durable operation records."
   },
+  "MCP Declarations": {
+    "format": "MCP Declarations",
+    "resource_id": "sfb826fb5dddbfaadb403228a",
+    "text": "MCP Declarations"
+  },
   "MPV caches": {
     "format": "MPV caches",
     "resource_id": "s03c1f9828cf46830d2f1c003",
     "text": "MPV caches"
+  },
+  "Machine installation": {
+    "format": "Machine installation",
+    "resource_id": "sa7b060e6bf9454838d3dca92",
+    "text": "Machine installation"
   },
   "Machine installation (32-bit registry)": {
     "format": "Machine installation (32-bit registry)",
@@ -4799,15 +5669,25 @@
     "resource_id": "s9eb9af9a677dae4ea61a388b",
     "text": "Machine installation (64-bit registry)"
   },
+  "Mail Servers": {
+    "format": "Mail Servers",
+    "resource_id": "sdf0aea9473f6d4e93489e7b5",
+    "text": "Mail Servers"
+  },
   "Main Model": {
     "format": "Main Model",
     "resource_id": "s8d6d236ed171b2beafd1cd46",
     "text": "Main Model"
   },
   "Main Model · When Needed": {
-    "format": "Main Model · When Needed",
+    "format": "Main Model, When Needed",
     "resource_id": "s240b90d0ec2bd869789001bb",
-    "text": "Main Model · When Needed"
+    "text": "Main Model, When Needed"
+  },
+  "Main Model, When Needed": {
+    "format": "Main Model, When Needed",
+    "resource_id": "s29a4dbe32c1b98fd462a1944",
+    "text": "Main Model, When Needed"
   },
   "Main model only": {
     "format": "Main model only",
@@ -4824,6 +5704,26 @@
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "Make room for more."
   },
+  "Manage Databases": {
+    "format": "Manage Databases",
+    "resource_id": "sa7ce49eacadd57176cfb3652",
+    "text": "Manage Databases"
+  },
+  "Manage Instance": {
+    "format": "Manage Instance",
+    "resource_id": "s5b733b80c7842b4a1076744a",
+    "text": "Manage Instance"
+  },
+  "Manage Tool": {
+    "format": "Manage Tool",
+    "resource_id": "s66e461314b9f5c084eaa46f3",
+    "text": "Manage Tool"
+  },
+  "Manage databases, accounts and backups in the context of an exact MySQL instance.": {
+    "format": "Manage databases, accounts and backups in the context of an exact MySQL instance.",
+    "resource_id": "s276932f367e0900611340c0f",
+    "text": "Manage databases, accounts and backups in the context of an exact MySQL instance."
+  },
   "Manage these patterns in All Workspaces. Per-rule exclusions remain in each rule definition.": {
     "format": "Manage these patterns in All Locations. Per-rule exclusions remain in each rule definition.",
     "resource_id": "s3c764f296aa1f9a6d0bac92d",
@@ -4839,10 +5739,20 @@
     "resource_id": "sa633bf360d31dfdc1efda8d9",
     "text": "Managed by the system; no action is needed."
   },
+  "Management module not connected": {
+    "format": "Management module not connected",
+    "resource_id": "s04bd260062318ef97eb47a8b",
+    "text": "Management module not connected"
+  },
   "Manage…": {
     "format": "Manage…",
     "resource_id": "sa42ac525ae691f3f3ae2cef7",
     "text": "Manage…"
+  },
+  "Managing developer tools…": {
+    "format": "Managing developer tools…",
+    "resource_id": "s43a3cc6273f647fe28650b30",
+    "text": "Managing developer tools…"
   },
   "Manifest changed": {
     "format": "Manifest changed",
@@ -5159,10 +6069,55 @@
     "resource_id": "s08f16842769314e4b93b78aa",
     "text": "Moving to Trash does not free disk space."
   },
+  "Multiple Services": {
+    "format": "Multiple Services",
+    "resource_id": "saf52880cdf0f57bc7557adb9",
+    "text": "Multiple Services"
+  },
   "Multiple Types": {
     "format": "Multiple Types",
     "resource_id": "s96d1a78921efad30bc19df0a",
     "text": "Multiple Types"
+  },
+  "Multiple installations remain separate. Shou does not silently replace, adopt or reinstall them.": {
+    "format": "Multiple installations remain separate. Shou does not silently replace, adopt or reinstall them.",
+    "resource_id": "s50b5b2960745c34dbe854289",
+    "text": "Multiple installations remain separate. Shou does not silently replace, adopt or reinstall them."
+  },
+  "Multiple processes match this instance configuration. Its switch is unavailable until their identities can be distinguished.": {
+    "format": "Multiple processes match this instance configuration. Its switch is unavailable until their identities can be distinguished.",
+    "resource_id": "sf73728b686b4ffc699d09535",
+    "text": "Multiple processes match this instance configuration. Its switch is unavailable until their identities can be distinguished."
+  },
+  "My Workspace": {
+    "format": "My Workspace",
+    "resource_id": "s7df05adeeaada4ca66f436ca",
+    "text": "My Workspace"
+  },
+  "MySQL Configuration": {
+    "format": "MySQL Configuration",
+    "resource_id": "sde86c797e6e73d94d23e7704",
+    "text": "MySQL Configuration"
+  },
+  "MySQL Error Log": {
+    "format": "MySQL Error Log",
+    "resource_id": "s0256c8b25968cd4ab1028d0c",
+    "text": "MySQL Error Log"
+  },
+  "MySQL Tasks": {
+    "format": "MySQL Tasks",
+    "resource_id": "sd25968af4d0b309a1187b170",
+    "text": "MySQL Tasks"
+  },
+  "MySQL change needs verification. Some steps may have completed; reconnect before continuing.": {
+    "format": "MySQL change needs verification. Some steps may have completed; reconnect before continuing.",
+    "resource_id": "s623650b889137bd3e08d82fb",
+    "text": "MySQL change needs verification. Some steps may have completed; reconnect before continuing."
+  },
+  "MySQL change verified. Reconnect to continue.": {
+    "format": "MySQL change verified. Reconnect to continue.",
+    "resource_id": "s8cd2ee39d868667e5633dac3",
+    "text": "MySQL change verified. Reconnect to continue."
   },
   "Name": {
     "format": "Name",
@@ -5188,6 +6143,16 @@
     "format": "Native build process checks are unavailable on this platform.",
     "resource_id": "sd520299a5a868b730eef26e2",
     "text": "Native build process checks are unavailable on this platform."
+  },
+  "Native installer acceptance is pending on Windows. Discovery and review are available; installation and uninstallation remain disabled.": {
+    "format": "Native installer acceptance is pending on Windows. Discovery and review are available; installation and uninstallation remain disabled.",
+    "resource_id": "s0542234f05de784f4b3923e2",
+    "text": "Native installer acceptance is pending on Windows. Discovery and review are available; installation and uninstallation remain disabled."
+  },
+  "Native source not connected yet": {
+    "format": "Native source not connected yet",
+    "resource_id": "s17f278ebc8fc4687eecd27a8",
+    "text": "Native source not connected yet"
   },
   "Navicat Premium caches": {
     "format": "Navicat Premium caches",
@@ -5224,20 +6189,45 @@
     "resource_id": "s31f5c065b26be2e70eb8271c",
     "text": "Network Activity"
   },
+  "Network Tunnels": {
+    "format": "Network Tunnels",
+    "resource_id": "s126bec11b735b34110856ab9",
+    "text": "Network Tunnels"
+  },
   "Network workspaces are outside the supported execution scope.": {
     "format": "Network workspaces are outside the supported execution scope.",
     "resource_id": "s5a6ecfbbddcdf3b7846594ac",
     "text": "Network workspaces are outside the supported execution scope."
+  },
+  "New Instance Name": {
+    "format": "New Instance Name",
+    "resource_id": "sf99eb7da609e9f17e95fb0f7",
+    "text": "New Instance Name"
   },
   "New Investigation": {
     "format": "New Investigation",
     "resource_id": "s9dbcfd001053c4f344a0ed4f",
     "text": "New Investigation"
   },
+  "New Password": {
+    "format": "New Password",
+    "resource_id": "s7c451e0f436d04a6f321f8d5",
+    "text": "New Password"
+  },
   "New Rule…": {
     "format": "New Rule…",
     "resource_id": "s67be3c294ac30796f980e41f",
     "text": "New Rule…"
+  },
+  "New Username": {
+    "format": "New Username",
+    "resource_id": "s0de2231e4351d88d66b1b2fc",
+    "text": "New Username"
+  },
+  "New private instance, initially stopped.": {
+    "format": "New private instance, initially stopped.",
+    "resource_id": "s4b0e8e93c0b73118ad8b0645",
+    "text": "New private instance, initially stopped."
   },
   "Newer version in catalog": {
     "format": "Newer version in catalog",
@@ -5304,10 +6294,30 @@
     "resource_id": "s790e6572f0666b8890117a9f",
     "text": "No cleanup history yet."
   },
+  "No compatible installer is available for this installation scope.": {
+    "format": "No compatible installer is available for this installation scope.",
+    "resource_id": "s30a081a43d42a7efe4d9849b",
+    "text": "No compatible installer is available for this installation scope."
+  },
+  "No compatible update is available.": {
+    "format": "No compatible update is available.",
+    "resource_id": "sfc98b6b5455ee12de48d3739",
+    "text": "No compatible update is available."
+  },
+  "No configuration file was found in the detected sources.": {
+    "format": "No configuration file was found in the detected sources.",
+    "resource_id": "s21b149ff8adcf693be5e85b4",
+    "text": "No configuration file was found in the detected sources."
+  },
   "No conventional project folders found. Include another folder or ask your AI agent.": {
     "format": "No conventional project folders found. Include another folder or ask your AI agent.",
     "resource_id": "s3f9f23f395368204620ff53c",
     "text": "No conventional project folders found. Include another folder or ask your AI agent."
+  },
+  "No current verified recipe. Refresh status, or review the saved configuration before registering it again.": {
+    "format": "No current verified recipe. Refresh status, or review the saved configuration before registering it again.",
+    "resource_id": "se5b6f2e2a3f931d170c0a0f2",
+    "text": "No current verified recipe. Refresh status, or review the saved configuration before registering it again."
   },
   "No definitions found in the inspected sources": {
     "format": "No definitions found in the inspected sources",
@@ -5318,6 +6328,16 @@
     "format": "No described folders in the measured scope",
     "resource_id": "s8f0d66e5cefdcbc8680a4c2e",
     "text": "No described folders in the measured scope"
+  },
+  "No error-log path is configured for this instance.": {
+    "format": "No error-log path is configured for this instance.",
+    "resource_id": "s3df0adf3a0f10d8b117a68fa",
+    "text": "No error-log path is configured for this instance."
+  },
+  "No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults.": {
+    "format": "No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults.",
+    "resource_id": "s400a5b8de2ec89e825db3a07",
+    "text": "No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults."
   },
   "No exclusions in this scope.": {
     "format": "No exclusions in this scope.",
@@ -5339,6 +6359,21 @@
     "resource_id": "s580cbecbc580ce1cd286d8ee",
     "text": "No known locations were found"
   },
+  "No log entries yet.": {
+    "format": "No log entries yet.",
+    "resource_id": "s985ed9835264ebdfa8f57853",
+    "text": "No log entries yet."
+  },
+  "No log path was found for this instance.": {
+    "format": "No log path was found for this instance.",
+    "resource_id": "sb4843fd022b4f9ed2c959e13",
+    "text": "No log path was found for this instance."
+  },
+  "No matching application updates. Applications without a verified WinGet match are not included.": {
+    "format": "No matching application updates. Applications without a verified WinGet match are not included.",
+    "resource_id": "sb5d83b11e2a43fb3dbc54b94",
+    "text": "No matching application updates. Applications without a verified WinGet match are not included."
+  },
   "No matching applications": {
     "format": "No matching applications",
     "resource_id": "s2840f771abf6f54c2ee2ad81",
@@ -5359,6 +6394,16 @@
     "resource_id": "sb5252a2b3755b079c83dffc6",
     "text": "No matching cleanup items were found."
   },
+  "No matching databases.": {
+    "format": "No matching databases.",
+    "resource_id": "s458a78a994f4b5170dbb1cd4",
+    "text": "No matching databases."
+  },
+  "No matching developer tools.": {
+    "format": "No matching developer tools.",
+    "resource_id": "sccc99e4bf32eec91e8059b30",
+    "text": "No matching developer tools."
+  },
   "No matching items.": {
     "format": "No matching items.",
     "resource_id": "s7f406b7e22b165bad5414114",
@@ -5368,6 +6413,11 @@
     "format": "No matching large files",
     "resource_id": "s28b940ecbb9c06fc744d898b",
     "text": "No matching large files"
+  },
+  "No matching packages": {
+    "format": "No matching packages",
+    "resource_id": "s87a05e1744c397ff61421c21",
+    "text": "No matching packages"
   },
   "No matching processes.": {
     "format": "No matching processes.",
@@ -5404,6 +6454,11 @@
     "resource_id": "s2d87853306d54111daae1aab",
     "text": "No matching startup items."
   },
+  "No newer verified package version": {
+    "format": "No newer verified package version",
+    "resource_id": "sbffbcf7bc8e2fc85285fc18d",
+    "text": "No newer verified package version"
+  },
   "No path was recorded": {
     "format": "No path was recorded",
     "resource_id": "sce2ec5bc6e16950e532cae04",
@@ -5424,6 +6479,11 @@
     "resource_id": "sa0338468a9fd4e7570104c47",
     "text": "No recorded location"
   },
+  "No release notes were provided.": {
+    "format": "No release notes were provided.",
+    "resource_id": "s55967bb317761fc26a6138d7",
+    "text": "No release notes were provided."
+  },
   "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.": {
     "format": "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.",
     "resource_id": "s952d880a316d1110c3b7093f",
@@ -5443,6 +6503,11 @@
     "format": "No search results",
     "resource_id": "s4767377fe6f475339eb01607",
     "text": "No search results"
+  },
+  "No slow-query log path is configured for this instance.": {
+    "format": "No slow-query log path is configured for this instance.",
+    "resource_id": "s38039369ac41d48729518a36",
+    "text": "No slow-query log path is configured for this instance."
   },
   "No startup items found": {
     "format": "No startup items found",
@@ -5469,6 +6534,11 @@
     "resource_id": "s00991aac06c453f6e185b0aa",
     "text": "No uninstall record was found for this plan. This does not confirm the current installation state."
   },
+  "No upgradable packages in this result": {
+    "format": "No upgradable packages in this result",
+    "resource_id": "s4c8f830d1e9fb898be04af25",
+    "text": "No upgradable packages in this result"
+  },
   "No usage record": {
     "format": "No usage record",
     "resource_id": "s7da4c688b7d27f2651f7d9c8",
@@ -5484,10 +6554,20 @@
     "resource_id": "s9fbfa154ff01b126f7c043d1",
     "text": "No verified components available. Scan again or review access notices."
   },
+  "No verified service instances in the scanned sources.": {
+    "format": "No verified service instances in the scanned sources.",
+    "resource_id": "s0ba5a58898af09c9f52c3bb4",
+    "text": "No verified service instances in the scanned sources."
+  },
   "No workspace selected": {
     "format": "No scan location selected",
     "resource_id": "s12b33b8cab9704ca5c2c22b7",
     "text": "No scan location selected"
+  },
+  "Node package": {
+    "format": "Node package",
+    "resource_id": "s2a0bb84d87ad42a6266da3b8",
+    "text": "Node package"
   },
   "Node.js build and distribution outputs": {
     "format": "Node.js build and distribution outputs",
@@ -5544,6 +6624,11 @@
     "resource_id": "sdd1841d295024256e8884cb8",
     "text": "Not configured"
   },
+  "Not connected. Use the official guide.": {
+    "format": "Not connected. Use the official guide.",
+    "resource_id": "s4a901ff8d74c5d3b44b2cedc",
+    "text": "Not connected. Use the official guide."
+  },
   "Not enabled for this location.": {
     "format": "Not enabled for this location.",
     "resource_id": "s676e09a8105bb5eade087c56",
@@ -5554,6 +6639,16 @@
     "resource_id": "se3ebaa16dd9d9b9fc107c421",
     "text": "Not found"
   },
+  "Not found in scanned sources": {
+    "format": "Not found in scanned sources",
+    "resource_id": "s244af258a2f6b840897ebd07",
+    "text": "Not found in scanned sources"
+  },
+  "Not found in this location": {
+    "format": "Not found in this location",
+    "resource_id": "sae75230346f97f14b93efa89",
+    "text": "Not found in this location"
+  },
   "Not found — skipped": {
     "format": "Not found — skipped",
     "resource_id": "sdb438810d40a3c8589c5146b",
@@ -5563,6 +6658,11 @@
     "format": "Not inspected",
     "resource_id": "s4b96e273901f4b38ef2a4bce",
     "text": "Not inspected"
+  },
+  "Not installed by this source": {
+    "format": "Not installed by this source",
+    "resource_id": "s152b7cb24f94fe527487c9f4",
+    "text": "Not installed by this source"
   },
   "Not loaded": {
     "format": "Not loaded",
@@ -5659,6 +6759,11 @@
     "resource_id": "s565339bc4d33d72817b58302",
     "text": "OK"
   },
+  "Object Storage": {
+    "format": "Object Storage",
+    "resource_id": "sed7497d78ca5c160d718932c",
+    "text": "Object Storage"
+  },
   "Object replaced": {
     "format": "Object replaced",
     "resource_id": "s3eaf8ef549672a650eb1a848",
@@ -5684,6 +6789,11 @@
     "resource_id": "s2f4add0f44158e9df8df8240",
     "text": "Observed at"
   },
+  "Observed installed version": {
+    "format": "Observed installed version",
+    "resource_id": "sf36117b3a499a995d42140aa",
+    "text": "Observed installed version"
+  },
   "Observed load normal": {
     "format": "Observed load normal",
     "resource_id": "se47d52767eae8519cadc8013",
@@ -5705,9 +6815,19 @@
     "text": "Obsidian download caches"
   },
   "Off by default. Disabling stops desktop investigations and tests; saved rules keep working offline. Explicit CLI AI commands have separate authorization.": {
-    "format": "Off by default. Disabling stops desktop investigations and tests; saved rules keep working offline. Explicit CLI AI commands have separate authorization.",
+    "format": "Turning this off stops current investigations.",
     "resource_id": "sfc3048eab7630d28c79cf167",
-    "text": "Off by default. Disabling stops desktop investigations and tests; saved rules keep working offline. Explicit CLI AI commands have separate authorization."
+    "text": "Turning this off stops current investigations."
+  },
+  "Off by default. Installation waits until current operations finish.": {
+    "format": "Off by default. Installation waits until current operations finish.",
+    "resource_id": "sc709c12c3b6fa9489cb884c2",
+    "text": "Off by default. Installation waits until current operations finish."
+  },
+  "Official Guide": {
+    "format": "Official Guide",
+    "resource_id": "s2fec754b783ff290d42773c8",
+    "text": "Official Guide"
   },
   "Offline builds may need the cached archives. Source checkouts and toolchains are retained.": {
     "format": "Offline builds may need the cached archives. Source checkouts and toolchains are retained.",
@@ -5774,6 +6894,11 @@
     "resource_id": "s11c4d284d47b22773ea6368e",
     "text": "Only finished records are removed. Files stay in place; recoverable and unfinished records are kept."
   },
+  "Only global tools configured for latest are eligible. Project versions and lockfiles stay outside this operation.": {
+    "format": "Only global tools configured for latest are eligible. Project versions and lockfiles stay outside this operation.",
+    "resource_id": "sf2bae09a5f6c57bcc9b5a097",
+    "text": "Only global tools configured for latest are eligible. Project versions and lockfiles stay outside this operation."
+  },
   "Only in current analysis": {
     "format": "Only in current analysis",
     "resource_id": "sea4f398630b39bb302855146",
@@ -5819,6 +6944,16 @@
     "resource_id": "s0bc3187d75ab7b66f0231584",
     "text": "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained."
   },
+  "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.": {
+    "format": "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.",
+    "resource_id": "s145a043ed5b5a3eaa2cad6fb",
+    "text": "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space."
+  },
+  "Only the versions shown above are included in this review.": {
+    "format": "Only the versions shown above are included in this review.",
+    "resource_id": "s176a7f19f66f16237484acfd",
+    "text": "Only the versions shown above are included in this review."
+  },
   "Only this folder and its children are investigated. This does not select files for cleanup.": {
     "format": "Only this folder and its children are investigated. This does not select files for cleanup.",
     "resource_id": "sf5aaa93ad751f8946da1a822",
@@ -5854,6 +6989,11 @@
     "resource_id": "sd042c902de24c43feefa5bab",
     "text": "Open AI Settings"
   },
+  "Open Configuration Folder": {
+    "format": "Open Configuration Folder",
+    "resource_id": "s33a89a8d22f74532a158b3d1",
+    "text": "Open Configuration Folder"
+  },
   "Open Directory": {
     "format": "Open Directory",
     "resource_id": "s2c632839339629f33665ee2a",
@@ -5883,6 +7023,11 @@
     "format": "Open Official Update Page",
     "resource_id": "s14d3ac68e8ea5bdef92b80b1",
     "text": "Open Official Update Page"
+  },
+  "Open Official Website": {
+    "format": "Open Official Website",
+    "resource_id": "s5d45471bf8e384ce869d0046",
+    "text": "Open Official Website"
   },
   "Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks.": {
     "format": "Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks.",
@@ -6004,6 +7149,11 @@
     "resource_id": "saac17c467df4c18ee8cd3042",
     "text": "Other entries are available in the directory list."
   },
+  "Other installations will be kept. This installs an additional copy from the selected source.": {
+    "format": "Other installations will be kept. This installs an additional copy from the selected source.",
+    "resource_id": "scfcb8629da2e6c09de84af6b",
+    "text": "Other installations will be kept. This installs an additional copy from the selected source."
+  },
   "Outside this discovery scope": {
     "format": "Outside this discovery scope",
     "resource_id": "sdb706e0f0e74e88037aec5ff",
@@ -6028,6 +7178,11 @@
     "format": "Package Manager Caches",
     "resource_id": "sf53d809749a19290ecee6db6",
     "text": "Package Manager Caches"
+  },
+  "Package manager catalog may be cached.": {
+    "format": "Package manager catalog may be cached.",
+    "resource_id": "s519e987092d8f35b5ad52ad8",
+    "text": "Package manager catalog may be cached."
   },
   "Packaged Startup Tasks": {
     "format": "Packaged Startup Tasks",
@@ -6114,6 +7269,16 @@
     "resource_id": "s24421344abc368523525b730",
     "text": "Partially completed"
   },
+  "Password": {
+    "format": "Password",
+    "resource_id": "se7cf3ef4f17c3999a94f2c6f",
+    "text": "Password"
+  },
+  "Path": {
+    "format": "Path",
+    "resource_id": "s62fa5a5b0d3c318835a213e2",
+    "text": "Path"
+  },
   "Pause Monitoring": {
     "format": "Pause Monitoring",
     "resource_id": "s90c41b2cddf92bfd9927fcc7",
@@ -6149,6 +7314,11 @@
     "resource_id": "s33b80a8ab113fffe94a086f9",
     "text": "Permanently Clean Selected…"
   },
+  "Permanently Clear": {
+    "format": "Permanently Clear",
+    "resource_id": "s54978cb8d618e1c5f7896a66",
+    "text": "Permanently Clear"
+  },
   "Permanently Remove…": {
     "format": "Permanently Remove…",
     "resource_id": "s7057fe699e0f7a9f67f44ed8",
@@ -6163,6 +7333,11 @@
     "format": "Permanently clean this tool's storage?",
     "resource_id": "s6aac03e496e9381cf789893f",
     "text": "Permanently clean this tool's storage?"
+  },
+  "Permanently clear this log's contents? The file will be kept.": {
+    "format": "Permanently clear this log's contents? The file will be kept.",
+    "resource_id": "sd2beefb1c85f1f28a053c87b",
+    "text": "Permanently clear this log's contents? The file will be kept."
   },
   "Permanently delete privacy records?": {
     "format": "Permanently delete privacy records?",
@@ -6244,6 +7419,21 @@
     "resource_id": "sc2e1753d506ef951419bb3e5",
     "text": "Physical memory (bytes)"
   },
+  "Pin to Workspace": {
+    "format": "Pin to Workspace",
+    "resource_id": "s4bd7843f59b136b395a358b4",
+    "text": "Pin to Workspace"
+  },
+  "Pinned version": {
+    "format": "Pinned version",
+    "resource_id": "s0d3a8f5aea7d3fff42734ded",
+    "text": "Pinned version"
+  },
+  "Pinning changes your workspace only. It does not install software, change PATH, start services or enable login items.": {
+    "format": "Pinning changes your workspace only. It does not install software, change PATH, start services or enable login items.",
+    "resource_id": "s7220d5057d336aaf43663a8d",
+    "text": "Pinning changes your workspace only. It does not install software, change PATH, start services or enable login items."
+  },
   "Plan digest verification failed.": {
     "format": "Plan digest verification failed.",
     "resource_id": "s5f7aa779da5a03c87e71983e",
@@ -6263,6 +7453,11 @@
     "format": "Plex caches",
     "resource_id": "s42cece8115f1ecb676bde4ec",
     "text": "Plex caches"
+  },
+  "Port": {
+    "format": "Port",
+    "resource_id": "s72e9a59f5a1d6289dbacb35d",
+    "text": "Port"
   },
   "Postman caches": {
     "format": "Postman caches",
@@ -6553,6 +7748,11 @@
     "format": "Protected locations may be omitted because disk access is limited.",
     "resource_id": "sc248e79a44b0d244044d91f9",
     "text": "Protected locations may be omitted because disk access is limited."
+  },
+  "Provider Configuration": {
+    "format": "Provider Configuration",
+    "resource_id": "se423aa73a3e7e8e6419678f3",
+    "text": "Provider Configuration"
   },
   "Proxyman caches": {
     "format": "Proxyman caches",
@@ -6850,9 +8050,14 @@
     "text": "Read-only system tool output exceeded its budget."
   },
   "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.": {
-    "format": "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled.",
+    "format": "Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled.",
     "resource_id": "s2952abf6399c38d25e32c1ad",
-    "text": "Read-only · History stays in memory · Leaving this page stops sampling unless the summary is enabled."
+    "text": "Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled."
+  },
+  "Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled.": {
+    "format": "Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled.",
+    "resource_id": "s06b4ff6666d78a4c71c3fed1",
+    "text": "Read-only, History stays in memory, Leaving this page stops sampling unless the summary is enabled."
   },
   "Reading analysis history…": {
     "format": "Reading analysis history…",
@@ -6868,6 +8073,11 @@
     "format": "Reading installed applications…",
     "resource_id": "sd42bad13a1c5d2bd26ceb235",
     "text": "Reading installed applications…"
+  },
+  "Reading service log…": {
+    "format": "Reading service log…",
+    "resource_id": "s9cca011a946b6dee114ce2b1",
+    "text": "Reading service log…"
   },
   "Reading startup definitions…": {
     "format": "Reading startup definitions…",
@@ -6979,6 +8189,11 @@
     "resource_id": "sd70604e8430461372849bbd1",
     "text": "Recommended"
   },
+  "Reconnect to the selected MySQL instance before continuing.": {
+    "format": "Reconnect to the selected MySQL instance before continuing.",
+    "resource_id": "s63e7f43d39e4bca5d9b9783a",
+    "text": "Reconnect to the selected MySQL instance before continuing."
+  },
   "Record does not exist.": {
     "format": "Record does not exist.",
     "resource_id": "sbd2887432e00c87eefcf6050",
@@ -7044,6 +8259,26 @@
     "resource_id": "s0e91610117029a62a478b7fa",
     "text": "Refresh"
   },
+  "Refresh Log": {
+    "format": "Refresh Log",
+    "resource_id": "s4fd93f9b5221e12cf35ad212",
+    "text": "Refresh Log"
+  },
+  "Refresh Status": {
+    "format": "Refresh Status",
+    "resource_id": "s72fe71cb37d209d2a4b418ff",
+    "text": "Refresh Status"
+  },
+  "Refresh Tools & Services": {
+    "format": "Refresh Tools & Services",
+    "resource_id": "s600be92308d6700a0ff2fade",
+    "text": "Refresh Tools & Services"
+  },
+  "Refresh Versions": {
+    "format": "Refresh Versions",
+    "resource_id": "seea2121667d215548b458846",
+    "text": "Refresh Versions"
+  },
   "Refresh to update extension totals after cleanup.": {
     "format": "Refresh to update extension totals after cleanup.",
     "resource_id": "s3ba982748cfdb0a88e1c39d3",
@@ -7069,6 +8304,11 @@
     "resource_id": "s14a3c701a66af8311bc70c40",
     "text": "Registration alone does not prove an item is enabled or running. Shortcut targets are not resolved."
   },
+  "Registration requires one explicit mysqld section, loopback binding, and this instance's original data, PID, log and socket paths. Review the configuration before continuing.": {
+    "format": "Registration requires one explicit mysqld section, loopback binding, and this instance's original data, PID, log and socket paths. Review the configuration before continuing.",
+    "resource_id": "s8c34339834f3102bd9efb532",
+    "text": "Registration requires one explicit mysqld section, loopback binding, and this instance's original data, PID, log and socket paths. Review the configuration before continuing."
+  },
   "Reinstall dependencies with the project's package manager.": {
     "format": "Reinstall dependencies with the project's package manager.",
     "resource_id": "sf5c71fc98815b1f059ce78af",
@@ -7093,6 +8333,16 @@
     "format": "Relative pattern",
     "resource_id": "sbf0e07a16038d9e64ef42311",
     "text": "Relative pattern"
+  },
+  "Release Notes": {
+    "format": "Release Notes",
+    "resource_id": "sbd4702c187a9a655880be010",
+    "text": "Release Notes"
+  },
+  "Reload": {
+    "format": "Reload",
+    "resource_id": "sbdc090ec61e3fcfc65f46995",
+    "text": "Reload"
   },
   "Removal cancelled. Review History for any items already moved.": {
     "format": "Removal cancelled. Review History for any items already moved.",
@@ -7129,10 +8379,20 @@
     "resource_id": "s60e2af1cda4e782644efd5ae",
     "text": "Remove Record…"
   },
+  "Remove Registration…": {
+    "format": "Remove Registration…",
+    "resource_id": "s2ab45d3e28b901016062811c",
+    "text": "Remove Registration…"
+  },
   "Remove Scan Location": {
     "format": "Remove Scan Location",
     "resource_id": "s99d63ac88fa426c9402d7c5e",
     "text": "Remove Scan Location"
+  },
+  "Remove from Workspace": {
+    "format": "Remove from Workspace",
+    "resource_id": "s07f41a26f9a847c952f0a56d",
+    "text": "Remove from Workspace"
   },
   "Remove startup items?": {
     "format": "Remove startup items?",
@@ -7203,6 +8463,21 @@
     "format": "Resource Status",
     "resource_id": "s33c25c4f35e1b62d0ee86f63",
     "text": "Resource Status"
+  },
+  "Restart Service": {
+    "format": "Restart Service",
+    "resource_id": "s491901170e4204595aff77c5",
+    "text": "Restart Service"
+  },
+  "Restart stops the displayed service first and starts the same source and version only after stopping is verified. If stopping fails, no start is sent.": {
+    "format": "Restart stops the displayed service first and starts the same source and version only after stopping is verified. If stopping fails, no start is sent.",
+    "resource_id": "s28607675ebe69d5a59f2613c",
+    "text": "Restart stops the displayed service first and starts the same source and version only after stopping is verified. If stopping fails, no start is sent."
+  },
+  "Restarting…": {
+    "format": "Restarting…",
+    "resource_id": "s75d0f1469d166c8cc906cae0",
+    "text": "Restarting…"
   },
   "Restore": {
     "format": "Restore",
@@ -7304,6 +8579,16 @@
     "resource_id": "s42d2b52915a4296974bd4a22",
     "text": "Reveal Definition in Finder"
   },
+  "Reveal Error Log": {
+    "format": "Reveal Error Log",
+    "resource_id": "sbdc6a823665e08ef61fab2ab",
+    "text": "Reveal Error Log"
+  },
+  "Reveal Output Log": {
+    "format": "Reveal Output Log",
+    "resource_id": "sb684421b95c589bec4c0fdb4",
+    "text": "Reveal Output Log"
+  },
   "Reveal in Finder": {
     "format": "Reveal in Finder",
     "resource_id": "scc849385646ba0d67a8687fb",
@@ -7324,15 +8609,30 @@
     "resource_id": "s1bd739e2e7094e623670b02a",
     "text": "Review AI Rules…"
   },
+  "Review Account Creation": {
+    "format": "Review Account Creation",
+    "resource_id": "s6fbbf76a1064f800f01ddc85",
+    "text": "Review Account Creation"
+  },
   "Review Again": {
     "format": "Review Again",
     "resource_id": "s823d9ee053762f382f3d2ce8",
     "text": "Review Again"
   },
+  "Review All Updates…": {
+    "format": "Review All Updates…",
+    "resource_id": "s3e4b1785964db1b25bde3cdd",
+    "text": "Review All Updates…"
+  },
   "Review Candidates": {
     "format": "Review Candidates",
     "resource_id": "sae92a679494057243517d5fc",
     "text": "Review Candidates"
+  },
+  "Review Changes": {
+    "format": "Review Changes",
+    "resource_id": "sd9764d6d64cedf78d88ae3b8",
+    "text": "Review Changes"
   },
   "Review Cleanup": {
     "format": "Review Cleanup",
@@ -7344,6 +8644,11 @@
     "resource_id": "sc7f8e3c6251d5630ba45ef31",
     "text": "Review Cleanup…"
   },
+  "Review Database Creation": {
+    "format": "Review Database Creation",
+    "resource_id": "s2d99f01c14c33baf409e369c",
+    "text": "Review Database Creation"
+  },
   "Review Disable": {
     "format": "Review Disable",
     "resource_id": "s130a09c6fa5cf0b5baeb2f81",
@@ -7354,10 +8659,35 @@
     "resource_id": "s601f8a0e1e75dc0b2f184114",
     "text": "Review Enable"
   },
+  "Review Installation": {
+    "format": "Review Installation",
+    "resource_id": "s43aaa926a1bb3d6194e018ef",
+    "text": "Review Installation"
+  },
+  "Review Instance Registration": {
+    "format": "Review Instance Registration",
+    "resource_id": "s8caa64038954f22a6b3c7aae",
+    "text": "Review Instance Registration"
+  },
   "Review Investigation Scope": {
     "format": "Review Investigation Scope",
     "resource_id": "s0547ef9bb6f1a2635fbfd7cc",
     "text": "Review Investigation Scope"
+  },
+  "Review MySQL Change": {
+    "format": "Review MySQL Change",
+    "resource_id": "s76b00ffc4e3d01c275992b31",
+    "text": "Review MySQL Change"
+  },
+  "Review Name Change": {
+    "format": "Review Name Change",
+    "resource_id": "se30e463786d8a65b5a5f62a0",
+    "text": "Review Name Change"
+  },
+  "Review Password Change": {
+    "format": "Review Password Change",
+    "resource_id": "s86b892099a44ee3ca64c753d",
+    "text": "Review Password Change"
   },
   "Review Permanent Deletion…": {
     "format": "Review Permanent Deletion…",
@@ -7379,6 +8709,11 @@
     "resource_id": "s46fb9aa307e26a5cb38db99f",
     "text": "Review Selected Items"
   },
+  "Review Selected Updates…": {
+    "format": "Review Selected Updates…",
+    "resource_id": "s8e26200867ca706e43da13ef",
+    "text": "Review Selected Updates…"
+  },
   "Review This Item": {
     "format": "Review This Item",
     "resource_id": "s225a104a4945324fada223e6",
@@ -7393,6 +8728,11 @@
     "format": "Review Uninstall…",
     "resource_id": "s82bdf88674445356d19711e0",
     "text": "Review Uninstall…"
+  },
+  "Review Updated Configuration": {
+    "format": "Review Updated Configuration",
+    "resource_id": "s77acdaf440bd046ee3c38be4",
+    "text": "Review Updated Configuration"
   },
   "Review an app and its associated files before moving them to Trash.": {
     "format": "Review an app and its associated files before moving them to Trash.",
@@ -7464,6 +8804,16 @@
     "resource_id": "sd37bbf8dba37560fe1d76723",
     "text": "Review disk permissions in the Setup Guide, then scan again."
   },
+  "Review globally configured developer tools without changing project versions.": {
+    "format": "Review globally configured developer tools without changing project versions.",
+    "resource_id": "s04f40e339c574e7a617c50a3",
+    "text": "Review globally configured developer tools without changing project versions."
+  },
+  "Review installed Formula and Cask packages, compare versions, then choose what to upgrade.": {
+    "format": "Review installed Formula and Cask packages, compare versions, then choose what to upgrade.",
+    "resource_id": "sd4377e73b83e04bb27771e0a",
+    "text": "Review installed Formula and Cask packages, compare versions, then choose what to upgrade."
+  },
   "Review large files and old scan indexes, then rescan after freeing space.": {
     "format": "Review large files and old scan indexes, then rescan after freeing space.",
     "resource_id": "s66b31cd3b09a2a4846c9890d",
@@ -7483,6 +8833,11 @@
     "format": "Review required",
     "resource_id": "sf0742e3a82fe8b57c37b57a9",
     "text": "Review required"
+  },
+  "Review required agreements in the official package manager before updating here.": {
+    "format": "Review required agreements in the official package manager before updating here.",
+    "resource_id": "s8b14074fe369c19d991cae1f",
+    "text": "Review required agreements in the official package manager before updating here."
   },
   "Review the categories below, or use the recommended selection.": {
     "format": "Review the categories below, or use the recommended selection.",
@@ -7519,6 +8874,11 @@
     "resource_id": "se2517243d7246ec784dc2850",
     "text": "Review the installer data changes before preparing an uninstall plan."
   },
+  "Review the package manager before retrying.": {
+    "format": "Review the package manager before retrying.",
+    "resource_id": "s5a5342402d7e49b34665d7ce",
+    "text": "Review the package manager before retrying."
+  },
   "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.": {
     "format": "Review the project cache contents and stop Python, test and analysis tasks first. Tracked files, credentials and source remain protected.",
     "resource_id": "sbce1120ad74fd688c9a2a5df",
@@ -7528,6 +8888,11 @@
     "format": "Review the tool's current state before trying again. The previous operation may have changed data.",
     "resource_id": "sd5b8f769cea97ad65ed440b9",
     "text": "Review the tool's current state before trying again. The previous operation may have changed data."
+  },
+  "Review these software upgrades": {
+    "format": "Review these software upgrades",
+    "resource_id": "s9bd75018a1dc09225883fb43",
+    "text": "Review these software upgrades"
   },
   "Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt.": {
     "format": "Review this project's .cache contents and stop Node.js tasks first. Tracked files, credentials and source remain protected; preserve locally generated data that cannot be rebuilt.",
@@ -7689,6 +9054,16 @@
     "resource_id": "sf4ccae29e1bb0c20a124570a",
     "text": "Running"
   },
+  "Running Elsewhere": {
+    "format": "Running Elsewhere",
+    "resource_id": "s060fae44a5d9e7ce101ee49b",
+    "text": "Running Elsewhere"
+  },
+  "Running programs could not be verified. Refresh before uninstalling.": {
+    "format": "Running programs could not be verified. Refresh before uninstalling.",
+    "resource_id": "s780ffdf20cf0899fd9c8aae3",
+    "text": "Running programs could not be verified. Refresh before uninstalling."
+  },
   "Runtime State": {
     "format": "Runtime State",
     "resource_id": "s16fff913f6de814b5cea718a",
@@ -7698,6 +9073,16 @@
     "format": "Rust build outputs",
     "resource_id": "s12d7e9a9e539d765cc6e9369",
     "text": "Rust build outputs"
+  },
+  "SQL backups written. Restore has not been tested.": {
+    "format": "SQL backups written. Restore has not been tested.",
+    "resource_id": "s9007989af13cfccbc26e49cf",
+    "text": "SQL backups written. Restore has not been tested."
+  },
+  "SQL exports failed. Incomplete files remain marked .partial.": {
+    "format": "SQL exports failed. Incomplete files remain marked .partial.",
+    "resource_id": "s94ece6d750f221987384d6e2",
+    "text": "SQL exports failed. Incomplete files remain marked .partial."
   },
   "Safari caches": {
     "format": "Safari caches",
@@ -7713,6 +9098,11 @@
     "format": "Save",
     "resource_id": "s1509f561f2416598629b886a",
     "text": "Save"
+  },
+  "Save Configuration": {
+    "format": "Save Configuration",
+    "resource_id": "sb227a038322afd9f26684321",
+    "text": "Save Configuration"
   },
   "Save Draft": {
     "format": "Save Draft",
@@ -7733,6 +9123,21 @@
     "format": "Save Preset",
     "resource_id": "s2ddd4774d41d33c40e48cc96",
     "text": "Save Preset"
+  },
+  "Save Selected Configuration": {
+    "format": "Save Selected Configuration",
+    "resource_id": "s5ff13cc2df7c11b4c888c50e",
+    "text": "Save Selected Configuration"
+  },
+  "Save changes to this configuration file?": {
+    "format": "Save changes to this configuration file?",
+    "resource_id": "sfefd138cfff8b2735986effe",
+    "text": "Save changes to this configuration file?"
+  },
+  "Save changes to this configuration file? Restart the matching service separately to apply them.": {
+    "format": "Save changes to this configuration file? Restart the matching service separately to apply them.",
+    "resource_id": "sf95b2518b8305e4a8dc89891",
+    "text": "Save changes to this configuration file? Restart the matching service separately to apply them."
   },
   "Save results": {
     "format": "Save results",
@@ -7793,6 +9198,11 @@
     "format": "Saving connection…",
     "resource_id": "saf4349716e611b41e0c1092d",
     "text": "Saving connection…"
+  },
+  "Saving does not validate syntax or restart MySQL.": {
+    "format": "Saving does not validate syntax or restart MySQL.",
+    "resource_id": "s48536fb099e8e8438d5fb6d8",
+    "text": "Saving does not validate syntax or restart MySQL."
   },
   "Saving settings…": {
     "format": "Saving settings…",
@@ -7858,6 +9268,11 @@
     "format": "Scan Coverage",
     "resource_id": "sb7148ee27ed2ac1587c718bd",
     "text": "Scan Coverage"
+  },
+  "Scan Installed Tools": {
+    "format": "Scan Installed Tools",
+    "resource_id": "sc833e197ba38946f453c83ed",
+    "text": "Scan Installed Tools"
   },
   "Scan Location": {
     "format": "Scan Location",
@@ -8009,6 +9424,11 @@
     "resource_id": "s766b1f5eaafaaec88fb3d73c",
     "text": "Scan to see aggregate counts and availability. Browsing records are never displayed."
   },
+  "Scanning Installed Tools…": {
+    "format": "Scanning Installed Tools…",
+    "resource_id": "s7a4d9a0c96012365ca40008d",
+    "text": "Scanning Installed Tools…"
+  },
   "Scanning and Privacy": {
     "format": "Scanning and Privacy",
     "resource_id": "sf92e3c904a5f7e16496feb7d",
@@ -8074,6 +9494,11 @@
     "resource_id": "s4724f344c1c0e4a1c5e40856",
     "text": "Scheduled"
   },
+  "Scheduled Tasks": {
+    "format": "Scheduled Tasks",
+    "resource_id": "s8a9c2a741bc6b88927f100be",
+    "text": "Scheduled Tasks"
+  },
   "Scheduled Tasks (Boot or Logon)": {
     "format": "Scheduled Tasks (Boot or Logon)",
     "resource_id": "sd2c691285717cefda706e2a4",
@@ -8099,6 +9524,11 @@
     "resource_id": "s49c266baaaa70981ea188fa7",
     "text": "Search"
   },
+  "Search Engines": {
+    "format": "Search Engines",
+    "resource_id": "sb93c375122f5a75ab9f4f739",
+    "text": "Search Engines"
+  },
   "Search app names, identifiers or paths": {
     "format": "Search app names, identifiers or paths",
     "resource_id": "s2986e4b0a88b8428dcb03db6",
@@ -8114,10 +9544,20 @@
     "resource_id": "s618b6244a947c3269ef22efc",
     "text": "Search applications…"
   },
+  "Search developer tools": {
+    "format": "Search developer tools",
+    "resource_id": "sa7f7c212c6425e0093b7a734",
+    "text": "Search developer tools"
+  },
   "Search name or PID": {
     "format": "Search name or PID",
     "resource_id": "s2f4f02ae4ffa36861bd801cf",
     "text": "Search name or PID"
+  },
+  "Search packages": {
+    "format": "Search packages",
+    "resource_id": "sd700f7279036ba527372c523",
+    "text": "Search packages"
   },
   "Search programs or publishers": {
     "format": "Search programs or publishers",
@@ -8294,6 +9734,11 @@
     "resource_id": "sb0de9ca6d31a0f4a805b4da5",
     "text": "Select available items in this cleanup"
   },
+  "Select available updates": {
+    "format": "Select available updates",
+    "resource_id": "s1a58b9eae374eb8251c13c95",
+    "text": "Select available updates"
+  },
   "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.": {
     "format": "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.",
     "resource_id": "s92b9ad257a055cbb99439741",
@@ -8348,6 +9793,16 @@
     "format": "Selected",
     "resource_id": "s57fd7a0cf33f2666eede69e4",
     "text": "Selected"
+  },
+  "Selected File": {
+    "format": "Selected File",
+    "resource_id": "s5282570a8cecad0e2917de37",
+    "text": "Selected File"
+  },
+  "Selected MySQL Instance": {
+    "format": "Selected MySQL Instance",
+    "resource_id": "sad1d0fd8345a047282e5a174",
+    "text": "Selected MySQL Instance"
   },
   "Selected Scan Location": {
     "format": "Selected Scan Location",
@@ -8434,6 +9889,46 @@
     "resource_id": "sc173da2c2a4d4ca2930d8c09",
     "text": "Serious"
   },
+  "Service": {
+    "format": "Service",
+    "resource_id": "sd677190e0a9990e7d5fa9e4c",
+    "text": "Service"
+  },
+  "Service Details": {
+    "format": "Service Details",
+    "resource_id": "s3028f3078d90d8b0451e306f",
+    "text": "Service Details"
+  },
+  "Service Governance": {
+    "format": "Service Governance",
+    "resource_id": "scb74a676be69c178cff02e8a",
+    "text": "Service Governance"
+  },
+  "Service Groups": {
+    "format": "Service Groups",
+    "resource_id": "s4cf75aff526433d12b49cda6",
+    "text": "Service Groups"
+  },
+  "Service Instances": {
+    "format": "Service Instances",
+    "resource_id": "s66a9b14a8a489d4ce66021d1",
+    "text": "Service Instances"
+  },
+  "Service Log": {
+    "format": "Service Log",
+    "resource_id": "s50556fbbad86f40be399e33d",
+    "text": "Service Log"
+  },
+  "Service Log · Last 200 Lines": {
+    "format": "Service Log, Last 200 Lines",
+    "resource_id": "sd75c3b145ef9360275797a6d",
+    "text": "Service Log, Last 200 Lines"
+  },
+  "Service Log, Last 200 Lines": {
+    "format": "Service Log, Last 200 Lines",
+    "resource_id": "s8ddc9f6441ac515598f63e70",
+    "text": "Service Log, Last 200 Lines"
+  },
   "Service Usage": {
     "format": "Service Usage",
     "resource_id": "sd507c25df634f470890fdae3",
@@ -8443,6 +9938,41 @@
     "format": "Service activation",
     "resource_id": "s61f47a3552347f8945cf8976",
     "text": "Service activation"
+  },
+  "Service control is not connected for this installation.": {
+    "format": "Service control is not connected for this installation.",
+    "resource_id": "s658be1e65154d34e63ed9a9d",
+    "text": "Service control is not connected for this installation."
+  },
+  "Service discovery is running in the background. You can keep browsing tools.": {
+    "format": "Service discovery is running in the background. You can keep browsing tools.",
+    "resource_id": "s78d8d74681e2a863c790caed",
+    "text": "Service discovery is running in the background. You can keep browsing tools."
+  },
+  "Service restarted and verified.": {
+    "format": "Service restarted and verified.",
+    "resource_id": "sad2d1252f2b588ab921c6b55",
+    "text": "Service restarted and verified."
+  },
+  "Service state could not be verified. Refresh before using a switch.": {
+    "format": "Service state could not be verified. Refresh before using a switch.",
+    "resource_id": "scadb6ee9393f0023cf74d56c",
+    "text": "Service state could not be verified. Refresh before using a switch."
+  },
+  "Service state verified.": {
+    "format": "Service state verified.",
+    "resource_id": "s4704b8e835107eee4c5af409",
+    "text": "Service state verified."
+  },
+  "Service states are snapshots. Refresh to check changes made outside Shou.": {
+    "format": "Service states are snapshots. Refresh to check changes made outside Shou.",
+    "resource_id": "s7bdf3e5679dd34676109d647",
+    "text": "Service states are snapshots. Refresh to check changes made outside Shou."
+  },
+  "Service stopped. Starting…": {
+    "format": "Service stopped. Starting…",
+    "resource_id": "s9dd6569e4142e15c55b6c2d2",
+    "text": "Service stopped. Starting…"
   },
   "Set as Default": {
     "format": "Set as Default",
@@ -8564,6 +10094,11 @@
     "resource_id": "se063c6860f7c137ae9d38a4a",
     "text": "Show More (%lld remaining)"
   },
+  "Show Service Definition": {
+    "format": "Show Service Definition",
+    "resource_id": "s13629624b267d57f141d93bb",
+    "text": "Show Service Definition"
+  },
   "Show Shou in Finder": {
     "format": "Show Shou in Finder",
     "resource_id": "sa9f0bf9dee48c79d06989d04",
@@ -8578,6 +10113,11 @@
     "format": "Show components",
     "resource_id": "s3879f5155ebda95484a507ab",
     "text": "Show components"
+  },
+  "Show in Finder": {
+    "format": "Show in Finder",
+    "resource_id": "sc2a9c77acf9b329f25b32c6f",
+    "text": "Show in Finder"
   },
   "Show in Space Analysis": {
     "format": "Show in Space Analysis",
@@ -8629,6 +10169,11 @@
     "resource_id": "s3d0b6747c5199f57596776b9",
     "text": "Showing the first 50 scan notes."
   },
+  "Showing the last 200 lines, up to 64 KiB. Business logs and Shou startup output are separate.": {
+    "format": "Showing the last 200 lines, up to 64 KiB. Business logs and Shou startup output are separate.",
+    "resource_id": "sa699f1daa6d78b16559ed32d",
+    "text": "Showing the last 200 lines, up to 64 KiB. Business logs and Shou startup output are separate."
+  },
   "Sidebar": {
     "format": "Sidebar",
     "resource_id": "sf7efa7bc1fc535ab733d92a5",
@@ -8643,6 +10188,16 @@
     "format": "Site storage",
     "resource_id": "s826c1a6f5cd1805065654f36",
     "text": "Site storage"
+  },
+  "Sites": {
+    "format": "Sites",
+    "resource_id": "s9d7690937436d9e3bd5d93ac",
+    "text": "Sites"
+  },
+  "Sites & Certificates": {
+    "format": "Sites & Certificates",
+    "resource_id": "s1f5e91809187e9db1489fc72",
+    "text": "Sites & Certificates"
   },
   "Size": {
     "format": "Size",
@@ -8704,6 +10259,11 @@
     "resource_id": "sf7c6faa1ea3edb5bff063d7b",
     "text": "Slack download caches"
   },
+  "Slow Query Log": {
+    "format": "Slow Query Log",
+    "resource_id": "sc6b96d90112439f70c64b7c4",
+    "text": "Slow Query Log"
+  },
   "Smart Cleanup": {
     "format": "Smart Cleanup",
     "resource_id": "s12ec73b9841470f06e482f7b",
@@ -8719,10 +10279,45 @@
     "resource_id": "s694e47970429afcc5944e49a",
     "text": "Socket activation"
   },
+  "Software Update": {
+    "format": "Software Update",
+    "resource_id": "sa948609ba88b3082f95dcdea",
+    "text": "Software Update"
+  },
   "Software Updates": {
     "format": "Software Updates",
     "resource_id": "sc15ae6d7c71134a4eaebef94",
     "text": "Software Updates"
+  },
+  "Software source": {
+    "format": "Software source",
+    "resource_id": "s86e734ec1ac2339e6e632882",
+    "text": "Software source"
+  },
+  "Software update check finished.": {
+    "format": "Software update check finished.",
+    "resource_id": "s4f96838d543b2d5b260576b9",
+    "text": "Software update check finished."
+  },
+  "Software update check incomplete.": {
+    "format": "Software update check incomplete.",
+    "resource_id": "sb0ec3bb010ab430a8a0e10ff",
+    "text": "Software update check incomplete."
+  },
+  "Software update check stopped.": {
+    "format": "Software update check stopped.",
+    "resource_id": "saa68cbe160e2e13d460a20fe",
+    "text": "Software update check stopped."
+  },
+  "Software update results": {
+    "format": "Software update results",
+    "resource_id": "s5295150db022ba14cee82530",
+    "text": "Software update results"
+  },
+  "Software update results are ready.": {
+    "format": "Software update results are ready.",
+    "resource_id": "s20bff886113030e192e4dc27",
+    "text": "Software update results are ready."
   },
   "Some application registrations could not be read. The list may be incomplete.": {
     "format": "Some application registrations could not be read. The list may be incomplete.",
@@ -8738,6 +10333,11 @@
     "format": "Some applications could not be fully inspected. Review ownership notices before selecting associated files.",
     "resource_id": "s51f0ce9f1d62011f7eac91fa",
     "text": "Some applications could not be fully inspected. Review ownership notices before selecting associated files."
+  },
+  "Some developer tool locations could not be read.": {
+    "format": "Some developer tool locations could not be read.",
+    "resource_id": "s362b097405e84cadda000d91",
+    "text": "Some developer tool locations could not be read."
   },
   "Some files belong to another user.": {
     "format": "Some files belong to another user.",
@@ -8823,6 +10423,11 @@
     "format": "Some selected items could not be processed. Inspect history.",
     "resource_id": "s4411577d476c87daf3eb206d",
     "text": "Some selected items could not be processed. Inspect history."
+  },
+  "Some sources could not be read.": {
+    "format": "Some sources could not be read.",
+    "resource_id": "s2e24ef5d1d1dd1597a317350",
+    "text": "Some sources could not be read."
   },
   "Some sources were not cleaned": {
     "format": "Some sources were not cleaned",
@@ -8944,15 +10549,40 @@
     "resource_id": "s1f54738da77c209d462c1815",
     "text": "Start Scan"
   },
+  "Start Service": {
+    "format": "Start Service",
+    "resource_id": "sf427bbcc73e3792545aae70a",
+    "text": "Start Service"
+  },
   "Start Using Shou": {
     "format": "Start Using Shou",
     "resource_id": "s3b43fd78bddf12e45561108b",
     "text": "Start Using Shou"
   },
+  "Start or stop this service now. Existing login-start registration is preserved.": {
+    "format": "Start or stop this service now. Existing login-start registration is preserved.",
+    "resource_id": "sfa75105b35cab454d9d3546b",
+    "text": "Start or stop this service now. Existing login-start registration is preserved."
+  },
   "Start with a project folder. Shou scans only the workspace you select.": {
     "format": "Start with a project folder. Shou scans only the workspace you select.",
     "resource_id": "s44846d83b3714cb67fe01295",
     "text": "Start with a project folder. Shou scans only the workspace you select."
+  },
+  "Starting failed. Check the service log before retrying.": {
+    "format": "Starting failed. Check the service log before retrying.",
+    "resource_id": "s0755d29194de83baf6d54abb",
+    "text": "Starting failed. Check the service log before retrying."
+  },
+  "Starting…": {
+    "format": "Starting…",
+    "resource_id": "sbbe5fc3b9ef39f994c259eaf",
+    "text": "Starting…"
+  },
+  "Starts at Login": {
+    "format": "Starts at Login",
+    "resource_id": "sf1f2eafb40d34b97ac39c0aa",
+    "text": "Starts at Login"
   },
   "Startup All": {
     "format": "All",
@@ -8988,6 +10618,11 @@
     "format": "Startup Options",
     "resource_id": "s98ee066e3bcfc1ec65bca22a",
     "text": "Startup Options"
+  },
+  "Startup Output": {
+    "format": "Startup Output",
+    "resource_id": "s675094cd2c78c8cc150cb1cf",
+    "text": "Startup Output"
   },
   "Startup State": {
     "format": "Startup State",
@@ -9074,6 +10709,11 @@
     "resource_id": "sbfaf756251dc0544888b91ed",
     "text": "Stash caches"
   },
+  "State Unknown": {
+    "format": "State Unknown",
+    "resource_id": "s4d58877f51d3835ba240083a",
+    "text": "State Unknown"
+  },
   "State unavailable": {
     "format": "State unavailable",
     "resource_id": "s9c3c81cf554008a7bdf6c0bb",
@@ -9119,6 +10759,16 @@
     "resource_id": "s8d8d554a4545b18ce0dbb255",
     "text": "Stop Investigation"
   },
+  "Stop Service": {
+    "format": "Stop Service",
+    "resource_id": "s7b991ca99766f0596ca1b525",
+    "text": "Stop Service"
+  },
+  "Stop Upgrading": {
+    "format": "Stop Upgrading",
+    "resource_id": "s6340f505317b2049e9a315fb",
+    "text": "Stop Upgrading"
+  },
   "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.": {
     "format": "Stop affected tool and build tasks first. Offline workflows may require downloading cached packages again. Installed tools, project sources and configuration are not targeted.",
     "resource_id": "secf1435824229c2123198316",
@@ -9159,6 +10809,11 @@
     "resource_id": "sa921e02b49872652f09da837",
     "text": "Stop including this folder?"
   },
+  "Stop requested. Waiting for the current installer result; keep this window open.": {
+    "format": "Stop requested. Waiting for the current installer result; keep this window open.",
+    "resource_id": "s752aecf6f1981bb2968e9a69",
+    "text": "Stop requested. Waiting for the current installer result; keep this window open."
+  },
   "Stop requested. Waiting for the system installer result; keep this window open.": {
     "format": "Stop requested. Waiting for the system installer result; keep this window open.",
     "resource_id": "s2b8378e551999296059b1022",
@@ -9174,6 +10829,21 @@
     "resource_id": "se429a31e72875f0b6a3bf647",
     "text": "Stop the affected tools first. Offline workflows may depend on these caches."
   },
+  "Stop the instance before editing its registration. After saving configuration changes, review and refresh the registration to bind the next start to the new file.": {
+    "format": "Stop the instance before editing its registration. After saving configuration changes, review and refresh the registration to bind the next start to the new file.",
+    "resource_id": "sedb83326104f582668bf2c4f",
+    "text": "Stop the instance before editing its registration. After saving configuration changes, review and refresh the registration to bind the next start to the new file."
+  },
+  "Stop the instance before updating its registration.": {
+    "format": "Stop the instance before updating its registration.",
+    "resource_id": "s1aa0f5dc04da8a1c3da23a7d",
+    "text": "Stop the instance before updating its registration."
+  },
+  "Stop the instances using this installation before uninstalling it.": {
+    "format": "Stop the instances using this installation before uninstalling it.",
+    "resource_id": "sda73384d44f751fcbda4c40e",
+    "text": "Stop the instances using this installation before uninstalling it."
+  },
   "Stop the operation and close this window?": {
     "format": "Stop the operation and close this window?",
     "resource_id": "se85765dde62f5fa0bca33470",
@@ -9183,6 +10853,21 @@
     "format": "Stop the operation and quit Shou?",
     "resource_id": "s6be11a7cdc612b5ea8810d7d",
     "text": "Stop the operation and quit Shou?"
+  },
+  "Stop this exact instance and refresh its status before changing its registration.": {
+    "format": "Stop this exact instance and refresh its status before changing its registration.",
+    "resource_id": "sa464bc9b7abe38bb349b4339",
+    "text": "Stop this exact instance and refresh its status before changing its registration."
+  },
+  "Stop this instance before editing its configuration.": {
+    "format": "Stop this instance before editing its configuration.",
+    "resource_id": "sc82f2c3f515ec9f58da374e2",
+    "text": "Stop this instance before editing its configuration."
+  },
+  "Stopped": {
+    "format": "Stopped",
+    "resource_id": "s1a4f630ac1b69fd00728fa8a",
+    "text": "Stopped"
   },
   "Stopping after the current item…": {
     "format": "Stopping after the current item…",
@@ -9199,15 +10884,30 @@
     "resource_id": "seed076d96441cdfaadaecefc",
     "text": "Stopping cleanup; waiting for the current item result…"
   },
+  "Stopping failed. No new instance was started.": {
+    "format": "Stopping failed. No new instance was started.",
+    "resource_id": "se72bd46b2b4548a03e145715",
+    "text": "Stopping failed. No new instance was started."
+  },
   "Stopping investigation…": {
     "format": "Stopping investigation…",
     "resource_id": "sa70da7270f1607c78a906a7d",
     "text": "Stopping investigation…"
   },
+  "Stopping may leave the current package changed. Check its installed version before retrying.": {
+    "format": "Stopping may leave the current package changed. Check its installed version before retrying.",
+    "resource_id": "s72f9cecb904940b22aeef802",
+    "text": "Stopping may leave the current package changed. Check its installed version before retrying."
+  },
   "Stopping scan…": {
     "format": "Stopping scan…",
     "resource_id": "s46addc4f0dc5a04d670b421a",
     "text": "Stopping scan…"
+  },
+  "Stopping software upgrades…": {
+    "format": "Stopping software upgrades…",
+    "resource_id": "sded6bb02f57d59f3e3df0c61",
+    "text": "Stopping software upgrades…"
   },
   "Stopping; waiting for the task change result…": {
     "format": "Stopping; waiting for the task change result…",
@@ -9329,6 +11029,11 @@
     "resource_id": "s2ffbc5827bb148aa73e15be5",
     "text": "System Caches"
   },
+  "System Databases": {
+    "format": "System Databases",
+    "resource_id": "s7851edba78e80968fcf971cf",
+    "text": "System Databases"
+  },
   "System Monitor": {
     "format": "System Monitor",
     "resource_id": "sb288d256878ba98d12593281",
@@ -9420,9 +11125,14 @@
     "text": "Target inspection is incomplete"
   },
   "Task Scheduler reports: %@ · %@.": {
-    "format": "Task Scheduler reports: {0} · {1}.",
+    "format": "Task Scheduler reports: {0}, {1}.",
     "resource_id": "s1f67835e157c0b0708301f62",
-    "text": "Task Scheduler reports: %@ · %@."
+    "text": "Task Scheduler reports: %@, %@."
+  },
+  "Task Scheduler reports: %@, %@.": {
+    "format": "Task Scheduler reports: {0}, {1}.",
+    "resource_id": "s686354028857cda7afcc00d8",
+    "text": "Task Scheduler reports: %@, %@."
   },
   "Task Scheduler state unknown": {
     "format": "Task Scheduler state unknown",
@@ -9480,9 +11190,14 @@
     "text": "Tencent Video caches"
   },
   "Terminal and AI agents · optional": {
-    "format": "Terminal and AI agents · optional",
+    "format": "Terminal and AI agents, optional",
     "resource_id": "s3cab61efade83d717cecb68b",
-    "text": "Terminal and AI agents · optional"
+    "text": "Terminal and AI agents, optional"
+  },
+  "Terminal and AI agents, optional": {
+    "format": "Terminal and AI agents, optional",
+    "resource_id": "s9afa82eac260ca0ae1211b7e",
+    "text": "Terminal and AI agents, optional"
   },
   "Test Connection": {
     "format": "Test Connection",
@@ -9513,6 +11228,11 @@
     "format": "The IDE rebuilds indexes and generated caches when needed.",
     "resource_id": "s9e48df84172fa6438297e99b",
     "text": "The IDE rebuilds indexes and generated caches when needed."
+  },
+  "The MySQL operation could not be verified. Check the selected instance and its permissions.": {
+    "format": "The MySQL operation could not be verified. Check the selected instance and its permissions.",
+    "resource_id": "s3d34cb6bd97b71b4bfc1a108",
+    "text": "The MySQL operation could not be verified. Check the selected instance and its permissions."
   },
   "The Skill contains an oversized file.": {
     "format": "The Skill contains an oversized file.",
@@ -9564,6 +11284,11 @@
     "resource_id": "s0966f0c4a829a2be433fbb71",
     "text": "The application creates new diagnostic logs when needed."
   },
+  "The application identity or target version changed. Check updates again before continuing.": {
+    "format": "The application identity or target version changed. Check updates again before continuing.",
+    "resource_id": "s1b5dbc3a2b8e233f6c6e9888",
+    "text": "The application identity or target version changed. Check updates again before continuing."
+  },
   "The application recreates downloaded resources and generated caches when needed.": {
     "format": "The application recreates downloaded resources and generated caches when needed.",
     "resource_id": "s4a372589393c01e155c0d151",
@@ -9604,6 +11329,16 @@
     "resource_id": "sd495dacffc5ea558dbc5290e",
     "text": "The catalog identity or availability could not be verified."
   },
+  "The configuration changed or could not be saved. Reload the file before trying again.": {
+    "format": "The configuration changed or could not be saved. Reload the file before trying again.",
+    "resource_id": "s3cdbe4497b2a500fa4a9a04c",
+    "text": "The configuration changed or could not be saved. Reload the file before trying again."
+  },
+  "The configuration file could not be read. Select its exact path or check access permissions.": {
+    "format": "The configuration file could not be read. Select its exact path or check access permissions.",
+    "resource_id": "sed97c2e6dbe1a4205bbd930a",
+    "text": "The configuration file could not be read. Select its exact path or check access permissions."
+  },
   "The decision provider receives bounded relative metadata and retention answers. Local processing comes first; only open-ended understanding escalates to the main model. Neither service can authorize deletion.": {
     "format": "The decision provider receives bounded relative metadata and retention answers. Local processing comes first; only open-ended understanding escalates to the main model. Neither service can authorize deletion.",
     "resource_id": "s592b72a4479da5ee2aca499f",
@@ -9614,10 +11349,25 @@
     "resource_id": "s13be5d6605e2a623340b67ff",
     "text": "The decision service is off. The main model handles this configuration directly."
   },
+  "The developer tool catalog could not be loaded.": {
+    "format": "The developer tool catalog could not be loaded.",
+    "resource_id": "sf3bd2415f42cf4d88032c99b",
+    "text": "The developer tool catalog could not be loaded."
+  },
+  "The developer tool search reached its directory budget.": {
+    "format": "The developer tool search reached its directory budget.",
+    "resource_id": "sb88f273cabb786d60e8593ac",
+    "text": "The developer tool search reached its directory budget."
+  },
   "The disk-access sentinel is readable; individual locations may still be restricted.": {
     "format": "The disk-access sentinel is readable; individual locations may still be restricted.",
     "resource_id": "s740bdf079750ac29c5329c09",
     "text": "The disk-access sentinel is readable; individual locations may still be restricted."
+  },
+  "The download page could not be opened. Try again.": {
+    "format": "The download page could not be opened. Try again.",
+    "resource_id": "sbeef6fea53e03e7133b58471",
+    "text": "The download page could not be opened. Try again."
   },
   "The file changed before permanent removal.": {
     "format": "The file changed before permanent removal.",
@@ -9649,6 +11399,11 @@
     "resource_id": "s54b75aeccd32d756c9d0759c",
     "text": "The installation could not be verified or changed after review. Review it again."
   },
+  "The installation identity or scope could not be verified.": {
+    "format": "The installation identity or scope could not be verified.",
+    "resource_id": "s211d2fdd97b81d1d7e70fca2",
+    "text": "The installation identity or scope could not be verified."
+  },
   "The installed Skill cannot be inspected.": {
     "format": "The installed Skill cannot be inspected.",
     "resource_id": "s02ab47db97abcfb72b0cd74f",
@@ -9669,10 +11424,25 @@
     "resource_id": "s691dcc0cb41c2d18690cec9d",
     "text": "The installed Skill has local changes or is not managed by Shou. Existing files were preserved."
   },
+  "The installed and available versions could not be safely compared.": {
+    "format": "The installed and available versions could not be safely compared.",
+    "resource_id": "sa2305007e708cd00f68e6840",
+    "text": "The installed and available versions could not be safely compared."
+  },
+  "The installed package state matches the requested operation.": {
+    "format": "The installed package state matches the requested operation.",
+    "resource_id": "sa2ad249e204fee10946ce27e",
+    "text": "The installed package state matches the requested operation."
+  },
   "The installer requested a restart. Shou will not restart Windows automatically.": {
     "format": "The installer requested a restart. Shou will not restart Windows automatically.",
     "resource_id": "sff247b7dea9d650d48096add",
     "text": "The installer requested a restart. Shou will not restart Windows automatically."
+  },
+  "The instance registration changed. Refresh and review it again.": {
+    "format": "The instance registration changed. Refresh and review it again.",
+    "resource_id": "s18d3fe7674bce6313301dc89",
+    "text": "The instance registration changed. Refresh and review it again."
   },
   "The investigation folder changed. Scan it again before importing a rule.": {
     "format": "The investigation folder changed. Scan it again before importing a rule.",
@@ -9754,6 +11524,26 @@
     "resource_id": "se971303b349b66c56c421794",
     "text": "The location scan is incomplete; executable cleanup plans are unavailable."
   },
+  "The log changed or cannot be cleared. Refresh and review it again.": {
+    "format": "The log changed or cannot be cleared. Refresh and review it again.",
+    "resource_id": "s7574a46bfefb50474dba8f93",
+    "text": "The log changed or cannot be cleared. Refresh and review it again."
+  },
+  "The log cleanup result needs verification. Refresh before continuing.": {
+    "format": "The log cleanup result needs verification. Refresh before continuing.",
+    "resource_id": "s6fcab96cfc54e4f991c6526c",
+    "text": "The log cleanup result needs verification. Refresh before continuing."
+  },
+  "The log file is empty.": {
+    "format": "The log file is empty.",
+    "resource_id": "s29c7e290f2d98dcb2b2c6da4",
+    "text": "The log file is empty."
+  },
+  "The log is empty, read-only or has changed. Refresh before clearing it.": {
+    "format": "The log is empty, read-only or has changed. Refresh before clearing it.",
+    "resource_id": "sf6cd171a2466e50931c06d2a",
+    "text": "The log is empty, read-only or has changed. Refresh before clearing it."
+  },
   "The main model is required. Enable the decision service to reduce token use; switch it off to let the main model handle the investigation directly.": {
     "format": "The main model is required. Enable the decision service to reduce token use; switch it off to let the main model handle the investigation directly.",
     "resource_id": "s8b727fce2eedd07a9d6bbc0a",
@@ -9764,10 +11554,25 @@
     "resource_id": "see001caa75c7ea56148fc1c4",
     "text": "The model request failed. Check the connection and tool-calling support, then try again."
   },
+  "The new MySQL instance could not be initialized. Its files remain for inspection; existing databases were not changed.": {
+    "format": "The new MySQL instance could not be initialized. Its files remain for inspection; existing databases were not changed.",
+    "resource_id": "s136a14c0f5cfb9410df4bb16",
+    "text": "The new MySQL instance could not be initialized. Its files remain for inspection; existing databases were not changed."
+  },
   "The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again.": {
     "format": "The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again.",
     "resource_id": "sebd45db6f7e63c0f7b23fddf",
     "text": "The new version stays disabled. Existing bindings keep their version. Preview the new draft, then enable it and scan again."
+  },
+  "The next start will use this exact configuration. Data is not initialized, moved or removed, and no server is started by this action.": {
+    "format": "The next start will use this exact configuration. Data is not initialized, moved or removed, and no server is started by this action.",
+    "resource_id": "s607a7cbde94872b1a747e423",
+    "text": "The next start will use this exact configuration. Data is not initialized, moved or removed, and no server is started by this action."
+  },
+  "The official WinGet source could not be verified. Custom sources are not used.": {
+    "format": "The official WinGet source could not be verified. Custom sources are not used.",
+    "resource_id": "sb7cd6323428201e18386bb42",
+    "text": "The official WinGet source could not be verified. Custom sources are not used."
   },
   "The operation will stop at a safe boundary. Unstarted items will stay unchanged. Review processed items in History; they are not automatically restored.": {
     "format": "The operation will stop at a safe boundary. Unstarted items will stay unchanged. Review processed items in History; they are not automatically restored.",
@@ -9799,6 +11604,46 @@
     "resource_id": "s64f88c8f85615198359cbb8d",
     "text": "The owning application regenerates these caches; future launches or builds may require downloads."
   },
+  "The package inventory is incomplete. Refresh it before selecting updates.": {
+    "format": "The package inventory is incomplete. Refresh it before selecting updates.",
+    "resource_id": "s0b3eb53fa891328fe236d7e1",
+    "text": "The package inventory is incomplete. Refresh it before selecting updates."
+  },
+  "The package manager could not check available versions. Installed packages are shown without upgrade eligibility.": {
+    "format": "The package manager could not check available versions. Installed packages are shown without upgrade eligibility.",
+    "resource_id": "sa4f6011cf457ce2ed547bedd",
+    "text": "The package manager could not check available versions. Installed packages are shown without upgrade eligibility."
+  },
+  "The package manager could not finish. Open the owning tool or check again.": {
+    "format": "The package manager could not finish. Open the owning tool or check again.",
+    "resource_id": "sc7ee9e80156ae0b057acdd8f",
+    "text": "The package manager could not finish. Open the owning tool or check again."
+  },
+  "The package manager is not installed in a supported location.": {
+    "format": "The package manager is not installed in a supported location.",
+    "resource_id": "sdef61d895c922a23502e24cb",
+    "text": "The package manager is not installed in a supported location."
+  },
+  "The package manager is working. Shou will wait for its result before closing.": {
+    "format": "The package manager is working. Shou will wait for its result before closing.",
+    "resource_id": "sce89552bdc1c6550ec2ffc7a",
+    "text": "The package manager is working. Shou will wait for its result before closing."
+  },
+  "The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer.": {
+    "format": "The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer.",
+    "resource_id": "s38198f632e9a2e36886a0d11",
+    "text": "The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer."
+  },
+  "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically.": {
+    "format": "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically.",
+    "resource_id": "s6b79e04ff623d1cde8b11a02",
+    "text": "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically."
+  },
+  "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.": {
+    "format": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.",
+    "resource_id": "s0a0770b3a07bf45df9c36e52",
+    "text": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue."
+  },
   "The packaged CLI is unavailable. Install Shou in Applications first.": {
     "format": "The packaged CLI is unavailable. Install Shou in Applications first.",
     "resource_id": "sa250c2fd54e809f2ccbb5345",
@@ -9828,6 +11673,16 @@
     "format": "The registered installation location is unavailable or invalid.",
     "resource_id": "s971a28bbde97a973009674b5",
     "text": "The registered installation location is unavailable or invalid."
+  },
+  "The registration result needs verification. Refresh its state before continuing; database files were not removed.": {
+    "format": "The registration result needs verification. Refresh its state before continuing; database files were not removed.",
+    "resource_id": "s500b4e4e467ed96f6cc31acc",
+    "text": "The registration result needs verification. Refresh its state before continuing; database files were not removed."
+  },
+  "The requested state could not be verified. Refresh status before retrying.": {
+    "format": "The requested state could not be verified. Refresh status before retrying.",
+    "resource_id": "s8db6f984c6aff7d0ebb97c85",
+    "text": "The requested state could not be verified. Refresh status before retrying."
   },
   "The requested task switch was observed after the change.": {
     "format": "The requested task switch was observed after the change.",
@@ -9899,6 +11754,11 @@
     "resource_id": "s8ef8b2e966c335d9530510f9",
     "text": "The selected API key environment variable is empty."
   },
+  "The selected MySQL file cannot be read or has changed. Reload its exact path before saving.": {
+    "format": "The selected MySQL file cannot be read or has changed. Reload its exact path before saving.",
+    "resource_id": "s965e3336b287f7e5007770c2",
+    "text": "The selected MySQL file cannot be read or has changed. Reload its exact path before saving."
+  },
   "The selected application bundle itself.": {
     "format": "The selected application bundle itself.",
     "resource_id": "sb44011a7b7bb878739ace3c5",
@@ -9914,6 +11774,11 @@
     "resource_id": "sd5fec1665571d12458ff834d",
     "text": "The selected folder could not be resolved."
   },
+  "The selected installation initializes a new private directory. The server stays stopped, listens on loopback when started, and has a password from creation. Existing instances and login registration are unchanged.": {
+    "format": "The selected installation initializes a new private directory. The server stays stopped, listens on loopback when started, and has a password from creation. Existing instances and login registration are unchanged.",
+    "resource_id": "s621c44e6920aa875ddda806a",
+    "text": "The selected installation initializes a new private directory. The server stays stopped, listens on loopback when started, and has a password from creation. Existing instances and login registration are unchanged."
+  },
   "The selected items overlap. Choose either a folder or its contents.": {
     "format": "The selected items overlap. Choose either a folder or its contents.",
     "resource_id": "s17d2d2213c5138782da81610",
@@ -9924,10 +11789,30 @@
     "resource_id": "s3f0e30fd43f94fce614e10c1",
     "text": "The selected structured decision provider is not installed. Edit the connection to choose an available provider."
   },
+  "The service could not be verified before the action. Refresh status before retrying.": {
+    "format": "The service could not be verified before the action. Refresh status before retrying.",
+    "resource_id": "sd3437f38ab26339a574f83af",
+    "text": "The service could not be verified before the action. Refresh status before retrying."
+  },
+  "The service log cannot be read. Check its path and access permissions.": {
+    "format": "The service log cannot be read. Check its path and access permissions.",
+    "resource_id": "s9c7cc691c135db4c93f0db82",
+    "text": "The service log cannot be read. Check its path and access permissions."
+  },
   "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.": {
     "format": "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.",
     "resource_id": "s12ab9774c069a12b903e0b3b",
     "text": "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder."
+  },
+  "The service result needs verification. Refresh its source; Shou will not retry automatically.": {
+    "format": "The service result needs verification. Refresh its source; Shou will not retry automatically.",
+    "resource_id": "sf9af0edca944e37d9d4d48eb",
+    "text": "The service result needs verification. Refresh its source; Shou will not retry automatically."
+  },
+  "The service stopped, but restart did not finish. Refresh its source before continuing.": {
+    "format": "The service stopped, but restart did not finish. Refresh its source before continuing.",
+    "resource_id": "sf81e65983d0c6d670824e835",
+    "text": "The service stopped, but restart did not finish. Refresh its source before continuing."
   },
   "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.": {
     "format": "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.",
@@ -9984,6 +11869,11 @@
     "resource_id": "sf8f57409f9ac9ed1a1d7ce50",
     "text": "The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space."
   },
+  "The tool could not be inspected or changed. Use its official guide or inspect again.": {
+    "format": "The tool could not be inspected or changed. Use its official guide or inspect again.",
+    "resource_id": "s9d58040f05a77046ec31dd65",
+    "text": "The tool could not be inspected or changed. Use its official guide or inspect again."
+  },
   "The tool downloads packages again or regenerates build caches when needed.": {
     "format": "The tool downloads packages again or regenerates build caches when needed.",
     "resource_id": "s7d9b61e3f83aa2f2b1354bda",
@@ -9993,6 +11883,11 @@
     "format": "The tool downloads packages or regenerates cached analysis when needed.",
     "resource_id": "sdb9c55fb6b3989b72423e127",
     "text": "The tool downloads packages or regenerates cached analysis when needed."
+  },
+  "The tool or its source changed. Inspect it and review the operation again.": {
+    "format": "The tool or its source changed. Inspect it and review the operation again.",
+    "resource_id": "s90eded38a688d594c49b234e",
+    "text": "The tool or its source changed. Inspect it and review the operation again."
   },
   "The tray summary could not be opened.": {
     "format": "The tray summary could not be opened.",
@@ -10034,6 +11929,26 @@
     "resource_id": "s6d10cbf37f4ede330b3e6774",
     "text": "The uninstall result could not be determined. Read the saved record before taking further action."
   },
+  "The update outcome is uncertain. Check installed versions before trying again.": {
+    "format": "The update outcome is uncertain. Check installed versions before trying again.",
+    "resource_id": "s8d0b0571ad7da763bcf4bcf2",
+    "text": "The update outcome is uncertain. Check installed versions before trying again."
+  },
+  "The update was stopped. Some software may have changed; check again before retrying.": {
+    "format": "The update was stopped. Some software may have changed; check again before retrying.",
+    "resource_id": "s1df31a81fac360da23dd5883",
+    "text": "The update was stopped. Some software may have changed; check again before retrying."
+  },
+  "The upgrade could not be verified. Some software may have changed; inspect the package manager before retrying.": {
+    "format": "The upgrade could not be verified. Some software may have changed; inspect the package manager before retrying.",
+    "resource_id": "s1bd3393e574274b7a519b7fb",
+    "text": "The upgrade could not be verified. Some software may have changed; inspect the package manager before retrying."
+  },
+  "The upgrade was blocked before installation. Check again before retrying.": {
+    "format": "The upgrade was blocked before installation. Check again before retrying.",
+    "resource_id": "s6684006f3add2529d828cb94",
+    "text": "The upgrade was blocked before installation. Check again before retrying."
+  },
   "The versions use different or unsupported formats. Compare them in the app.": {
     "format": "The versions use different or unsupported formats. Compare them in the app.",
     "resource_id": "s8d8aa41a0657543ad4d3239c",
@@ -10053,6 +11968,11 @@
     "format": "These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action.",
     "resource_id": "sf370d0f6a9ea130ef5c1dccd",
     "text": "These observations describe this check only. Unknown outcomes stay blocked; review History before any confirmed action."
+  },
+  "This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once.": {
+    "format": "This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once.",
+    "resource_id": "sd594b604267bf047da687ee8",
+    "text": "This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once."
   },
   "This analysis cannot be compared. Run two new space analyses of the same folder.": {
     "format": "This analysis cannot be compared. Run two new space analyses of the same folder.",
@@ -10099,10 +12019,20 @@
     "resource_id": "se775fda165c44a050de93b4c",
     "text": "This cleanup directory is already completely measured."
   },
+  "This configuration is read-only.": {
+    "format": "This configuration is read-only.",
+    "resource_id": "s2d908efb903f3430d601d4f3",
+    "text": "This configuration is read-only."
+  },
   "This directory still exceeds the scan limit.": {
     "format": "This directory still exceeds the scan limit.",
     "resource_id": "sd5dc3fd03a8e2f6a52d8e9b3",
     "text": "This directory still exceeds the scan limit."
+  },
+  "This file is read-only. Shou will not change its ownership or permissions.": {
+    "format": "This file is read-only. Shou will not change its ownership or permissions.",
+    "resource_id": "s24b688976164e0daf9c0247d",
+    "text": "This file is read-only. Shou will not change its ownership or permissions."
   },
   "This folder contains entries on another volume.": {
     "format": "This folder contains entries on another volume.",
@@ -10154,10 +12084,30 @@
     "resource_id": "s70ddbdec825030e4016cb9a4",
     "text": "This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified."
   },
+  "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.": {
+    "format": "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.",
+    "resource_id": "sdaef0b33170f9c32415dc125",
+    "text": "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn."
+  },
+  "This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete.": {
+    "format": "This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete.",
+    "resource_id": "s2877f2943af637ac0ec29269",
+    "text": "This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete."
+  },
+  "This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions.": {
+    "format": "This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions.",
+    "resource_id": "s134c510005ac170a5d336200",
+    "text": "This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions."
+  },
   "This is irreversible. Only the selected items from this cleanup batch will be removed.": {
     "format": "This is irreversible. Only the selected items from this cleanup batch will be removed.",
     "resource_id": "sf235fb4baa287b6b904de22b",
     "text": "This is irreversible. Only the selected items from this cleanup batch will be removed."
+  },
+  "This is the selected file's source. Include directives may reference additional files. Saving does not validate MySQL syntax or restart any instance.": {
+    "format": "This is the selected file's source. Include directives may reference additional files. Saving does not validate MySQL syntax or restart any instance.",
+    "resource_id": "scad6e5d342a64ae7c9cdd18c",
+    "text": "This is the selected file's source. Include directives may reference additional files. Saving does not validate MySQL syntax or restart any instance."
   },
   "This item is not owned by the current user.": {
     "format": "This item is not owned by the current user.",
@@ -10234,6 +12184,11 @@
     "resource_id": "s8c890bf7028a9aa4b00a5c96",
     "text": "This platform does not use the macOS disk-access sentinel."
   },
+  "This portable version updates manually. Download the new version, quit Shou, then replace its folder. Your local data stays in place.": {
+    "format": "This portable version updates manually. Download the new version, quit Shou, then replace its folder. Your local data stays in place.",
+    "resource_id": "s3db38acb36ec30b13be91b7f",
+    "text": "This portable version updates manually. Download the new version, quit Shou, then replace its folder. Your local data stays in place."
+  },
   "This preview cannot delete files or create a cleanup plan.": {
     "format": "This preview cannot delete files or create a cleanup plan.",
     "resource_id": "sa4a832f99a9f0c96e24192e1",
@@ -10253,6 +12208,16 @@
     "format": "This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded.",
     "resource_id": "s6884b19dbb76935457818bf6",
     "text": "This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded."
+  },
+  "This review expires in two minutes and can be used once.": {
+    "format": "This review expires in two minutes and can be used once.",
+    "resource_id": "sb93619fdeb98150193221c83",
+    "text": "This review expires in two minutes and can be used once."
+  },
+  "This review is valid for two minutes and can be used once.": {
+    "format": "This review is valid for two minutes and can be used once.",
+    "resource_id": "sff913fa9024760466bf70866",
+    "text": "This review is valid for two minutes and can be used once."
   },
   "This root is protected or is not owned by the current user.": {
     "format": "This root is protected or is not owned by the current user.",
@@ -10289,10 +12254,20 @@
     "resource_id": "s7b9a93af21ec7fe0f72db4d2",
     "text": "This selection could not be completely read. Review access or scan again."
   },
+  "This service source or definition could not be verified. Its switch is unavailable.": {
+    "format": "This service source or definition could not be verified. Its switch is unavailable.",
+    "resource_id": "s257831e52e826924a2642427",
+    "text": "This service source or definition could not be verified. Its switch is unavailable."
+  },
   "This snapshot changed. Start a new investigation from the current folder.": {
     "format": "This snapshot changed. Start a new investigation from the current folder.",
     "resource_id": "s848cd5a4fbe8cda671244498",
     "text": "This snapshot changed. Start a new investigation from the current folder."
+  },
+  "This source cannot currently install the tool. Existing managed versions may still be uninstalled.": {
+    "format": "This source cannot currently install the tool. Existing managed versions may still be uninstalled.",
+    "resource_id": "scbca8abd387799d7c3cc67af",
+    "text": "This source cannot currently install the tool. Existing managed versions may still be uninstalled."
   },
   "This space analysis was cleared. Scan again.": {
     "format": "This space analysis was cleared. Scan again.",
@@ -10314,6 +12289,11 @@
     "resource_id": "s437d4e2fc4c9653276ba9a9a",
     "text": "This task is protected, uses an unsupported context, or is already in the requested state."
   },
+  "This tool is listed in the catalog, but its native installation and service adapters are not implemented yet. Follow the official guide for now.": {
+    "format": "This tool is listed in the catalog, but its native installation and service adapters are not implemented yet. Follow the official guide for now.",
+    "resource_id": "scc0400cd07a3e57d4659dcea",
+    "text": "This tool is listed in the catalog, but its native installation and service adapters are not implemented yet. Follow the official guide for now."
+  },
   "This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download.": {
     "format": "This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download.",
     "resource_id": "se4f6b1ae1b3090dda1645535",
@@ -10323,6 +12303,11 @@
     "format": "This uninstall plan expired. Review this installation again.",
     "resource_id": "sc605801f57210dd2b73143b2",
     "text": "This uninstall plan expired. Review this installation again."
+  },
+  "This uses your authenticated session and may affect applications using that account. It does not bypass authentication or stop the database server.": {
+    "format": "This uses your authenticated session and may affect applications using that account. It does not bypass authentication or stop the database server.",
+    "resource_id": "s91caff634de1031bc62cf955",
+    "text": "This uses your authenticated session and may affect applications using that account. It does not bypass authentication or stop the database server."
   },
   "Thunderbird caches": {
     "format": "Thunderbird caches",
@@ -10344,10 +12329,35 @@
     "resource_id": "s82d711dcce51f0739c93d653",
     "text": "Todoist caches"
   },
+  "Tool": {
+    "format": "Tool",
+    "resource_id": "s2e53bdcd0740867b597599e7",
+    "text": "Tool"
+  },
+  "Tool Catalog": {
+    "format": "Tool Catalog",
+    "resource_id": "s82939e474e14d367f6f4a73f",
+    "text": "Tool Catalog"
+  },
+  "Tool Details": {
+    "format": "Tool Details",
+    "resource_id": "sb9948f4c18a0255bedb0aa1c",
+    "text": "Tool Details"
+  },
+  "Tool collection": {
+    "format": "Tool collection",
+    "resource_id": "sba4fb5726377b4c740da7765",
+    "text": "Tool collection"
+  },
   "Tool-managed Storage": {
     "format": "Tool-managed Storage",
     "resource_id": "s4877f43390c3e71d943db58b",
     "text": "Tool-managed Storage"
+  },
+  "Toolbox": {
+    "format": "Toolbox",
+    "resource_id": "s95ddf8e9a1b838e10aedf778",
+    "text": "Toolbox"
   },
   "Tools": {
     "format": "Tools",
@@ -10509,6 +12519,16 @@
     "resource_id": "s9eeb21d39b7fbd9404d90958",
     "text": "Unity Hub caches"
   },
+  "Unix Socket": {
+    "format": "Unix Socket",
+    "resource_id": "s60426dda7dc62e62f180a0d1",
+    "text": "Unix Socket"
+  },
+  "Unknown": {
+    "format": "Unknown",
+    "resource_id": "sb764cdc0eab7137467211272",
+    "text": "Unknown"
+  },
   "Unknown built-in scan location.": {
     "format": "Unknown built-in scan location.",
     "resource_id": "s5f52285b667ca70b963fbd8d",
@@ -10539,6 +12559,11 @@
     "resource_id": "s6c28f509808e1bea25c616ff",
     "text": "Unknown workspace."
   },
+  "Unpin from Workspace": {
+    "format": "Unpin from Workspace",
+    "resource_id": "s0327e4a2c7a620e2df28655b",
+    "text": "Unpin from Workspace"
+  },
   "Unregister Workspace": {
     "format": "Unregister Workspace",
     "resource_id": "sb3b859dbb4edde7f617a551c",
@@ -10564,6 +12589,11 @@
     "resource_id": "s56b9e6d0264d2a56d513074f",
     "text": "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers."
   },
+  "Unverified": {
+    "format": "Unverified",
+    "resource_id": "s33c8e8de41c3a35124251370",
+    "text": "Unverified"
+  },
   "Up": {
     "format": "Up",
     "resource_id": "s55490a4bf3a8e8cb5eed6972",
@@ -10574,15 +12604,75 @@
     "resource_id": "s1c9e6e9f7e242d442878137b",
     "text": "Up One Level"
   },
+  "Update %lld selected applications": {
+    "format": "Update {0} selected applications",
+    "resource_id": "sfb99971b5fe591c6f367b842",
+    "text": "Update %lld selected applications"
+  },
+  "Update attempts finished. Review each result and check again before another update.": {
+    "format": "Update attempts finished. Review each result and check again before another update.",
+    "resource_id": "s892132b259ca3e524e958791",
+    "text": "Update attempts finished. Review each result and check again before another update."
+  },
+  "Update failed. The installer may have made changes.": {
+    "format": "Update failed. The installer may have made changes.",
+    "resource_id": "s05f6faf9a5e619f1533b4547",
+    "text": "Update failed. The installer may have made changes."
+  },
+  "Update not started": {
+    "format": "Update not started",
+    "resource_id": "s3a58065ed4f0503a445b5464",
+    "text": "Update not started"
+  },
+  "Update selected applications": {
+    "format": "Update selected applications",
+    "resource_id": "s2644beb9bbc6ad84c2f241e5",
+    "text": "Update selected applications"
+  },
   "Update status unknown": {
     "format": "Update status unknown",
     "resource_id": "s13b7baf157e195f0f33da70d",
     "text": "Update status unknown"
   },
+  "Updated and verified": {
+    "format": "Updated and verified",
+    "resource_id": "s567346a14370dac4b8100a1f",
+    "text": "Updated and verified"
+  },
+  "Updates Only": {
+    "format": "Updates Only",
+    "resource_id": "s471a6e4fb47369cff422094c",
+    "text": "Updates Only"
+  },
   "Updates are verified before installation.": {
     "format": "Updates are verified before installation.",
     "resource_id": "s55fc4744fc8471a92da2d969",
     "text": "Updates are verified before installation."
+  },
+  "Updates only": {
+    "format": "Updates only",
+    "resource_id": "s277de0545495b2e0b0e7e3a1",
+    "text": "Updates only"
+  },
+  "Updating selected applications. Keep this window open.": {
+    "format": "Updating selected applications. Keep this window open.",
+    "resource_id": "sa06e876ebf47be3c9d6dd2c9",
+    "text": "Updating selected applications. Keep this window open."
+  },
+  "Updating software…": {
+    "format": "Updating software…",
+    "resource_id": "s1b7a029d9606a7526f9b9800",
+    "text": "Updating software…"
+  },
+  "Upgrade not started.": {
+    "format": "Upgrade not started.",
+    "resource_id": "s0d912a9d93403654b22f1af8",
+    "text": "Upgrade not started."
+  },
+  "Upgrade…": {
+    "format": "Upgrade…",
+    "resource_id": "s6fd419ff51747ec59f58bd5b",
+    "text": "Upgrade…"
   },
   "Uptime: %lld hours": {
     "format": "Uptime: {0} hours",
@@ -10669,6 +12759,11 @@
     "resource_id": "s1a804770e48e56f45584ce0f",
     "text": "Use the arrow keys to browse and expand groups. Press Space to change the focused selection, or Shift-F10 for path actions."
   },
+  "Use this instance's switch on the Service tab. Its data remains separate when stopped.": {
+    "format": "Use this instance's switch on the Service tab. Its data remains separate when stopped.",
+    "resource_id": "sf2105543780afb8ea99d831c",
+    "text": "Use this instance's switch on the Service tab. Its data remains separate when stopped."
+  },
   "Use your own model service. API keys stay in Keychain; ordinary scans work offline.": {
     "format": "Use your own model service. API keys stay in Keychain; ordinary scans work offline.",
     "resource_id": "s7d9a9b068139387a70a86282",
@@ -10683,6 +12778,16 @@
     "format": "User Cache Files",
     "resource_id": "s316acf0aa0b52ead5d24aa2d",
     "text": "User Cache Files"
+  },
+  "Username": {
+    "format": "Username",
+    "resource_id": "se3b89e9d33f88e523083d8b4",
+    "text": "Username"
+  },
+  "Uses package manager metadata, which may be cached. Upgrades start only after your confirmation.": {
+    "format": "Uses package manager metadata, which may be cached. Upgrades start only after your confirmation.",
+    "resource_id": "s1101ffbbc872cd31eed0ecba",
+    "text": "Uses package manager metadata, which may be cached. Upgrades start only after your confirmation."
   },
   "VLC caches": {
     "format": "VLC caches",
@@ -10729,6 +12834,11 @@
     "resource_id": "sb82181b9d559ebf245c696c1",
     "text": "Verify Locations…"
   },
+  "Verifying Service…": {
+    "format": "Verifying Service…",
+    "resource_id": "s4194f34cceca9df036e65b0c",
+    "text": "Verifying Service…"
+  },
   "Verifying recorded locations…": {
     "format": "Verifying recorded locations…",
     "resource_id": "sbaaa6cec8f7c923af5f89ded",
@@ -10738,6 +12848,26 @@
     "format": "Version",
     "resource_id": "sdd167905de0defcaf72de673",
     "text": "Version"
+  },
+  "Version Management": {
+    "format": "Version Management",
+    "resource_id": "sa6231edbfe3eb7a4d43ffbde",
+    "text": "Version Management"
+  },
+  "Version lines stay separate. Installing another line does not migrate data, change the running instance or select a default version.": {
+    "format": "Version lines stay separate. Installing another line does not migrate data, change the running instance or select a default version.",
+    "resource_id": "sd9385a42e18fb0846be00135",
+    "text": "Version lines stay separate. Installing another line does not migrate data, change the running instance or select a default version."
+  },
+  "Version not verified": {
+    "format": "Version not verified",
+    "resource_id": "sebe84130dd26bceb371560aa",
+    "text": "Version not verified"
+  },
+  "Version read from installed package metadata. Inspect the owning source before making changes.": {
+    "format": "Version read from installed package metadata. Inspect the owning source before making changes.",
+    "resource_id": "s2a46b8d56683d6ff18c0ee96",
+    "text": "Version read from installed package metadata. Inspect the owning source before making changes."
   },
   "Videos": {
     "format": "Videos",
@@ -10754,6 +12884,11 @@
     "resource_id": "s708b8c6c43ed63b1add7e939",
     "text": "View Coverage…"
   },
+  "View Error Log": {
+    "format": "View Error Log",
+    "resource_id": "sa518ac74c274ed9e49878a87",
+    "text": "View Error Log"
+  },
   "View History": {
     "format": "View History",
     "resource_id": "s2801b92092183cc770ce71c8",
@@ -10763,6 +12898,16 @@
     "format": "View Results",
     "resource_id": "s17165cca344e770f4df5ab0c",
     "text": "View Results"
+  },
+  "View Service Log": {
+    "format": "View Service Log",
+    "resource_id": "s49749179d46a9d3a81f0a707",
+    "text": "View Service Log"
+  },
+  "View Tool": {
+    "format": "View Tool",
+    "resource_id": "s6119cf7cc2aa757475a40022",
+    "text": "View Tool"
   },
   "View…": {
     "format": "View…",
@@ -10814,6 +12959,11 @@
     "resource_id": "sf13707d81cb6f2c7264ab3ec",
     "text": "Waiting for confirmation or the system installer result. Keep this window open."
   },
+  "Waiting for the service to reach its requested state…": {
+    "format": "Waiting for the service to reach its requested state…",
+    "resource_id": "s695d98e33137ee74b38ee99b",
+    "text": "Waiting for the service to reach its requested state…"
+  },
   "Waiting for your answer": {
     "format": "Waiting for your answer",
     "resource_id": "s8e4b72ca2511e0bcdbb24cfb",
@@ -10864,6 +13014,11 @@
     "resource_id": "s8c46579e458b997f79621814",
     "text": "WeType caches"
   },
+  "Web Servers": {
+    "format": "Web Servers",
+    "resource_id": "sb2cbd4374d111201befe37bd",
+    "text": "Web Servers"
+  },
   "WebKit data": {
     "format": "WebKit data",
     "resource_id": "s324f91a2290721c52d658ced",
@@ -10878,6 +13033,16 @@
     "format": "WhatsApp caches",
     "resource_id": "s4e17656a62b95a61b72e5d25",
     "text": "WhatsApp caches"
+  },
+  "WinGet inventory could not be read.": {
+    "format": "WinGet inventory could not be read.",
+    "resource_id": "s4c9a003594d709067bf85f8a",
+    "text": "WinGet inventory could not be read."
+  },
+  "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer.": {
+    "format": "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer.",
+    "resource_id": "s2a22b770de50c517e4ab6dea",
+    "text": "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer."
   },
   "Windows does not expose these hardware sensors through the supported read-only APIs.": {
     "format": "Windows does not expose these hardware sensors through the supported read-only APIs.",
@@ -10898,6 +13063,11 @@
     "format": "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.",
     "resource_id": "s3f6233c4b8b8d6a3505ef51f",
     "text": "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete."
+  },
+  "Windows service control requires native acceptance. Current status is read-only.": {
+    "format": "Windows service control requires native acceptance. Current status is read-only.",
+    "resource_id": "s0d10580b34985347fd4abd74",
+    "text": "Windows service control requires native acceptance. Current status is read-only."
   },
   "WorkBuddy caches": {
     "format": "WorkBuddy caches",
@@ -11004,6 +13174,11 @@
     "resource_id": "sc655ee2c11092dd67863e3d5",
     "text": "Your AI Agent"
   },
+  "Your AI tools, together": {
+    "format": "Your AI tools, together",
+    "resource_id": "s61e0bc757495cdbfb58353eb",
+    "text": "Your AI tools, together"
+  },
   "Your Cleanup Rules": {
     "format": "Your Cleanup Rules",
     "resource_id": "sc30be0089bce957c673c21da",
@@ -11023,6 +13198,11 @@
     "format": "Your workspace, your rules",
     "resource_id": "scd3302b4b4f33a5d766ee623",
     "text": "Your workspace, your rules"
+  },
+  "You’re up to date.": {
+    "format": "You’re up to date.",
+    "resource_id": "s3438aff9180237d944300c42",
+    "text": "You’re up to date."
   },
   "Zed caches": {
     "format": "Zed caches",
@@ -11234,6 +13414,11 @@
     "resource_id": "se755de7752fd11cefb9ea475",
     "text": "The object identity or directory contents changed."
   },
+  "mise inventory could not be read.": {
+    "format": "mise inventory could not be read.",
+    "resource_id": "sdc3df94548beb717d824f2ae",
+    "text": "mise inventory could not be read."
+  },
   "missing": {
     "format": "Missing",
     "resource_id": "sffa63583dfa6706b87d284b8",
@@ -11268,6 +13453,16 @@
     "format": "npm downloads packages again when required.",
     "resource_id": "sf813b9cfcb865b7dc332d542",
     "text": "npm downloads packages again when required."
+  },
+  "npm storage": {
+    "format": "npm storage",
+    "resource_id": "saffb3fe33eb7acbbf58c5a35",
+    "text": "npm storage"
+  },
+  "nvm storage": {
+    "format": "nvm storage",
+    "resource_id": "sc445e1c38fa1832cc694228f",
+    "text": "nvm storage"
   },
   "owner_absent_from_standard_sources_and_native_registration": {
     "format": "owner_absent_from_standard_sources_and_native_registration",

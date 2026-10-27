@@ -201,7 +201,7 @@ public sealed partial class StoragePageView
         if (DirectoryTree.Items.Count >= 2000) return;
         var view = detailed ? DetailedRow(row, depth, parentBytes) : SimpleRow(row, parentBytes);
         view.Tag = row; visibleRows[row.Path] = view; DirectoryTree.Items.Add(view);
-        AutomationProperties.SetName(view, row.Name + " · " + row.DisplaySize);
+        AutomationProperties.SetName(view, row.Name + ", " + row.DisplaySize);
         AutomationProperties.SetAutomationId(view, "storage.row." + row.Path.Value);
         ToolTipService.SetToolTip(view, row.Path.Value);
         view.DoubleTapped += (_, _) => { if (row.IsDirectory) OpenDirectory(row.Path); };
@@ -330,7 +330,7 @@ public sealed partial class StoragePageView
     private void UpdateSelection()
     {
         RemoveButton.IsEnabled = Shou.Windows.Platform.WindowsCleanupMutation.PublicExecutionAvailable && !model.IsBusy && !HasActiveRemoval && selection is { Count: > 0 };
-        SelectionDetails.Text = selection is { Count: > 0 } chosen ? text.Format("%lld items selected", chosen.Count) + " · " + StorageRow.FormatBytes(chosen.AllocatedBytes) : text.Get("Select files or folders to remove");
+        SelectionDetails.Text = selection is { Count: > 0 } chosen ? text.Format("%lld items selected", chosen.Count) + ", " + StorageRow.FormatBytes(chosen.AllocatedBytes) : text.Get("Select files or folders to remove");
         ClearSelectionButton.Visibility = selection is { Count: > 0 } ? Visibility.Visible : Visibility.Collapsed;
     }
     private void UpdateMapHeading()

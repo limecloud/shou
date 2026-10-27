@@ -21,7 +21,7 @@
         <local:OperationProgressView x:Name="ScanActivity" StopAutomationId="storage.stop" StopClicked="StopScan" />
         <Grid x:Name="ResultContent" Visibility="Collapsed">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-            <Grid MinHeight="{StaticResource ShouStorageNavigationHeight}" Padding="12,6" ColumnSpacing="8" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,1">
+            <Grid MinHeight="{StaticResource ShouStorageNavigationHeight}" Padding="12,6" ColumnSpacing="8" BorderBrush="{ThemeResource ShouDividerBrush}" BorderThickness="0,0,0,0.5">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel Orientation="Horizontal" Spacing="2"><Button x:Name="BackButton" Click="GoBack" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE76B;" FontSize="12" /></Button><Button x:Name="ForwardButton" Click="GoForward" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE76C;" FontSize="12" /></Button><Button x:Name="UpButton" Click="GoUp" Style="{StaticResource ShouToolbarButton}"><FontIcon Glyph="&#xE74A;" /></Button></StackPanel>
                 <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled"><StackPanel x:Name="Breadcrumb" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" /></ScrollViewer>

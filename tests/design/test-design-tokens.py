@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Verify shared native design encoding and reject malformed nonuniform insets."""
 import copy
+import json
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
+import tempfile
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts'))
@@ -44,6 +47,20 @@ class DesignTokenTests(unittest.TestCase):
                 tokens[group]['ShouWrongType'] = [1, 2, 3, 4]
                 with self.assertRaises(ValueError):
                     design_tokens.validate(tokens)
+
+    def test_repository_palette_has_provenance_for_every_color(self):
+        tokens = design_tokens.load()
+        self.assertGreater(len(tokens['colors']), 0)
+
+    def test_resource_loading_rejects_a_color_outside_its_declared_scale(self):
+        tokens = design_tokens.load()
+        tokens['colors']['ShouAccent'] = '#FF010203'
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'tokens.json'
+            source.write_text(json.dumps(tokens))
+            with patch.object(design_tokens, 'SOURCE', source):
+                with self.assertRaisesRegex(ValueError, 'ShouAccent.*Radix'):
+                    design_tokens.load()
 
 
 if __name__ == '__main__':

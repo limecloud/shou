@@ -12,5 +12,6 @@
     <Content Include="../../../../packages/shou-contracts/rule.schema.json" Link="Contracts/rule.schema.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../../../examples/rules/*.rule.json" Link="Examples/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../Generated/builtin-rules.json;../../Generated/known-locations.json;../../Generated/project-locations.json" Link="Catalog/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../Generated/developer-tools.json" Link="Catalog/developer-tools.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

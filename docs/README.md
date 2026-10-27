@@ -21,8 +21,9 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 | Understand product scope | [PRD](product/prd.md) → [Daily cleanup](product/unified-cleanup.md) → [User stories](product/user-stories-and-use-cases.md) |
 | Explore storage | [Space Analysis](product/space-analysis.md) → [Developer scenarios](product/developer-space-scenarios.md) |
 | Manage applications and developer projects | [Apps & Projects](product/apps-and-projects.md) |
+| Manage developer environments and AI software | [Developer Tools](product/developer-tools.md), [AI Workbench](product/ai-workbench.md), [Full capability map](engineering/developer-tool-capability-map.md), [Per-software adapters](engineering/developer-tool-adapters.md) |
 | Inspect live resources and processes | [System monitor and desktop summaries](product/system-monitor.md) |
-| Manage applications or startup | [Application cleanup](product/application-uninstall.md), [Update discovery](product/application-updates.md), [Startup](product/startup-items.md) |
+| Manage applications or startup | [Application cleanup](product/application-uninstall.md), [Update discovery and software upgrades](product/application-updates.md), [Startup](product/startup-items.md) |
 | Understand AI and rules | [AI journeys](product/embedded-ai.md), [Rule specification](rules/rule-specification.md) |
 | Understand safety and results | [Cleanup safety](security/cleanup-safety.md), [Progress](product/operation-progress.md) |
 
@@ -50,3 +51,5 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 The PRD owns scope; rules own matching semantics; safety constrains all entry points; data contracts own identities/states; CLI documentation owns public machine operations. Native implementation plans own module and toolchain decisions. Keep each fact in its owning document and link to it.
 
 Read the relevant contracts before code changes. Implement the smallest complete slice, update shared resources through their source, and record actual tests with revision, OS, architecture and limitations. Update both technical editions and the platform ledger together. Source, build success, runtime behavior and release acceptance are separate statuses.
+
+MySQL administration: [instance, schema, account, configuration and backup contract](product/mysql-administration.md).

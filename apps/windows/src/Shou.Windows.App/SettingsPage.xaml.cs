@@ -22,13 +22,13 @@ public sealed partial class SettingsPage : UserControl
         PageDiagnostics.Update(this, "settings", "ready");
         GeneralHeading.Text = text.Get("General");
         LanguageTitle.Text = text.Get("Interface Language");
-        LanguageDescription.Text = text.Get("Choose the language used by Shou.");
+        LanguageDescription.Visibility = Visibility.Collapsed;
         ThemeTitle.Text = text.Get("Appearance");
-        ThemeDescription.Text = text.Get("Choose light, dark, or follow your system settings.");
+        ThemeDescription.Visibility = Visibility.Collapsed;
         MotionTitle.Text = text.Get("Reduce Motion");
         MotionDescription.Text = text.Get("Use static indicators and immediate transitions. Otherwise, follow Windows animation settings.");
         AboutHeading.Text = text.Get("About Shou"); UpdateButton.Content = text.Get("Check for Updates…");
-        ToolTipService.SetToolTip(UpdateButton, text.Get("Automatic updates are not available in this Windows preview."));
+        ToolTipService.SetToolTip(UpdateButton, text.Get("Checks the official GitHub release. Downloads open only when you choose."));
         ScanningHeading.Text = text.Get("Scanning and Privacy");
         LocationsTitle.Text = text.Get("Scan Locations");
         LocationsDescription.Text = text.Get("App caches and developer projects are discovered automatically. Extra folders are remembered.");
@@ -43,12 +43,12 @@ public sealed partial class SettingsPage : UserControl
         DiagnosticsButton.Content = text.Get("Run Diagnostics…");
         DiagnosticsIcon.Content = ProductIcon.Create("configuration", (double)Application.Current.Resources["ShouSettingsIconSize"]);
         FeedbackTitle.Text = text.Get("Report an Issue");
-        FeedbackDescription.Text = text.Get("Share a problem or suggest an improvement.");
+        FeedbackDescription.Visibility = Visibility.Collapsed;
         FeedbackLink.Content = text.Get("Send Feedback…");
         SourceTitle.Text = text.Get("Open Source");
         SourceDescription.Text = text.Get("Shou is available under the Apache License 2.0.");
         SourceLink.Content = text.Get("GitHub");
-        ConfirmationCaption.Text = text.Get("Choose items to review. High-risk items require your selection.") + " " + text.Get("Permanent deletion cannot be undone.");
+        ConfirmationCaption.Visibility = Visibility.Collapsed;
         try { LocalDataDescription.Text = WindowsRecordStore.ForCurrentUser().Directory.Value; }
         catch (Exception error) { NativeDiagnostics.Write(error); LocalDataDescription.Text = text.Get("Local data"); OpenDataButton.IsEnabled = false; }
         AiHeading.Text = text.Get("AI Investigation"); AiTitle.Text = text.Get("Enable AI Investigation");
@@ -72,6 +72,12 @@ public sealed partial class SettingsPage : UserControl
         initialized = true;
     }
     private void ViewScanLocations(object sender, RoutedEventArgs args) => ScanLocationsRequested?.Invoke(this, EventArgs.Empty);
+    private async void CheckDesktopUpdate(object sender, RoutedEventArgs args)
+    {
+        UpdateButton.IsEnabled = false;
+        try { await new DesktopUpdateDialog(XamlRoot).ShowAsync(); }
+        finally { UpdateButton.IsEnabled = true; }
+    }
     private async void RunDiagnostics(object sender, RoutedEventArgs args)
     {
         DiagnosticsButton.IsEnabled = false;

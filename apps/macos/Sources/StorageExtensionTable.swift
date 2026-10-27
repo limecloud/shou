@@ -7,7 +7,7 @@ import ShouCore
     var fraction=0.0 { didSet { needsDisplay=true; label.stringValue=fraction.formatted(.percent.precision(.fractionLength(1))) } }
     override init(frame: NSRect) {
         super.init(frame: frame)
-        label.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular); label.alignment = .right
+        label.font = .monospacedDigitSystemFont(ofSize: ShouDesign.captionFontSize, weight: .regular); label.alignment = .right
         label.translatesAutoresizingMaskIntoConstraints=false; addSubview(label)
         NSLayoutConstraint.activate([label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 2), label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -2), label.centerYAnchor.constraint(equalTo: centerYAnchor)])
     }
@@ -69,7 +69,7 @@ struct StorageExtensionTable: NSViewRepresentable {
             guard rows.indices.contains(row), let column=tableColumn else { return nil }
             let item=rows[row], id=column.identifier
             let field=(tableView.makeView(withIdentifier: id, owner: self) as? NSTextField) ?? NSTextField(labelWithString: "")
-            field.identifier=id; field.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+            field.identifier=id; field.font = .monospacedDigitSystemFont(ofSize: ShouDesign.captionFontSize, weight: .regular)
             field.lineBreakMode = .byTruncatingMiddle; field.alignment = .right
             switch id.rawValue {
             case "type":
@@ -79,7 +79,7 @@ struct StorageExtensionTable: NSViewRepresentable {
                     let swatch=NSView(); swatch.wantsLayer=true
                     swatch.widthAnchor.constraint(equalToConstant: 8).isActive=true; swatch.heightAnchor.constraint(equalToConstant: 8).isActive=true
                     stack.addArrangedSubview(swatch)
-                    let text=NSTextField(labelWithString: ""); text.font = .systemFont(ofSize: 11); text.lineBreakMode = .byTruncatingMiddle
+                    let text=NSTextField(labelWithString: ""); text.font = .systemFont(ofSize: ShouDesign.captionFontSize); text.lineBreakMode = .byTruncatingMiddle
                     text.setContentCompressionResistancePriority(.defaultLow, for: .horizontal); stack.addArrangedSubview(text)
                 }
                 stack.arrangedSubviews[0].layer?.backgroundColor=NSColor(storageExtensionColor(item.suffix)).cgColor

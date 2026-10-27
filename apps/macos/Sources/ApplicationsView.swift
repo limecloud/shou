@@ -93,7 +93,7 @@ struct ApplicationsView: View {
                         VStack(spacing: 14) {
                             OperationActivityArtwork(symbol: "app.dashed", stopped: session.stopRequested)
                                 .scaleEffect(0.7).frame(width: ShouDesign.cleanupArtworkWidth, height: 138)
-                            Text(model.t("Measuring application sizes…")).foregroundStyle(.secondary)
+                            Text(model.t("Measuring application sizes…")).foregroundStyle(ShouPalette.secondary)
                         }.frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         ScrollView {
@@ -157,22 +157,22 @@ struct ApplicationsView: View {
     }
     private var summary: some View {
         HStack(spacing: 10) {
-            Text(String(format: model.t("%lld applications found"), locale: model.language.locale, session.items.count)).font(.callout.weight(.medium))
-            Text(model.t("Estimated Size")).font(.caption).foregroundStyle(.secondary)
-            Text(model.bytes(session.items.reduce(0) { $0 + ($1.allocatedBytesEstimate ?? 0) })).font(.title3.weight(.semibold)).foregroundStyle(Color.accentColor).monospacedDigit()
+            Text(String(format: model.t("%lld applications found"), locale: model.language.locale, session.items.count)).font(ShouType.body.weight(.medium))
+            Text(model.t("Estimated Size")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            Text(model.bytes(session.items.reduce(0) { $0 + ($1.allocatedBytesEstimate ?? 0) })).font(ShouType.body.weight(.semibold)).foregroundStyle(ShouPalette.accent).monospacedDigit()
             Spacer()
             if session.scanning || session.preparing {
                 VStack(alignment: .leading, spacing: 5) {
                     OperationProgressMeter(fraction: session.applicationCount > 0 ? Double(session.processedCount) / Double(session.applicationCount) : nil,
                         label: session.stopRequested ? model.t("Stopping…") : session.applicationCount > 0 ? String(format: model.t("%lld of %lld applications checked"), locale: model.language.locale, session.processedCount, session.applicationCount) : model.t("Reviewing application components…"), compact: true)
-                    Text(session.currentPath).font(.caption2.monospaced()).foregroundStyle(.secondary)
+                    Text(session.currentPath).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary)
                         .lineLimit(1).truncationMode(.middle).help(session.currentPath)
                         .transaction { $0.animation=nil }
                 }.frame(width: 270)
             } else if session.hasChanges {
-                Button(model.t("Scan again to update sizes and status")) { session.scan(app: model) }.buttonStyle(.link).font(.caption)
+                Button(model.t("Scan again to update sizes and status")) { session.scan(app: model) }.buttonStyle(.link).font(ShouType.caption)
             } else if session.catalog?.status == "partial" {
-                Button { showCoverage=true } label: { Label(model.t("Partial Coverage"), systemImage: "exclamationmark.triangle") }.buttonStyle(.link).font(.caption)
+                Button { showCoverage=true } label: { Label(model.t("Partial Coverage"), systemImage: "exclamationmark.triangle") }.buttonStyle(.link).font(ShouType.caption)
             }
         }.padding(20)
     }
@@ -182,10 +182,10 @@ struct ApplicationsView: View {
                 Button { filter=item } label: {
                     HStack(spacing: 5) {
                         Text(model.t(item.title))
-                        Text(String(session.items.filter(item.matches).count)).monospacedDigit().foregroundStyle(.secondary)
-                    }.font(.caption).padding(.horizontal, 10).padding(.vertical, 7)
-                        .background(filter == item ? Color.accentColor.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 6))
-                        .foregroundStyle(filter == item ? Color.accentColor : .primary)
+                        Text(String(session.items.filter(item.matches).count)).monospacedDigit().foregroundStyle(ShouPalette.secondary)
+                    }.font(ShouType.caption).padding(.horizontal, 10).padding(.vertical, 7)
+                        .background(filter == item ? ShouPalette.accent.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 6))
+                        .foregroundStyle(filter == item ? ShouPalette.accent : ShouPalette.text)
                 }.buttonStyle(.plain).accessibilityIdentifier("applications.filter." + item.rawValue)
                     .accessibilityAddTraits(filter == item ? .isSelected : [])
             }
@@ -206,7 +206,7 @@ struct ApplicationsView: View {
             sortButton("Estimated Size", .size).frame(width: 88, alignment: .trailing)
             if !compact { sortButton("Last Used", .lastUsed).frame(width: 135, alignment: .trailing) }
             Color.clear.frame(width: 22, height: 1)
-        }.font(.caption).foregroundStyle(.secondary).padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 7)
+        }.font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 7)
     }
     private func sortButton(_ label: String, _ value: ApplicationSort) -> some View {
         Button {
@@ -214,16 +214,16 @@ struct ApplicationsView: View {
         } label: {
             HStack(spacing: 4) {
                 Text(model.t(label))
-                if sort == value { Image(systemName: ascending ? "arrow.up" : "arrow.down").font(.caption2) }
+                if sort == value { Image(systemName: ascending ? "arrow.up" : "arrow.down").font(ShouType.caption) }
             }
         }.buttonStyle(.plain).accessibilityIdentifier("applications.sort." + label)
     }
     private var footer: some View {
         HStack(spacing: 12) {
-            Text(String(format: model.t("%lld applications selected"), session.selectedAppIDs.count)).font(.callout)
+            Text(String(format: model.t("%lld applications selected"), session.selectedAppIDs.count)).font(ShouType.body)
             Divider().frame(height: 18)
-            Text(model.t("Estimated Removal")).font(.caption).foregroundStyle(.secondary)
-            Text(model.bytes(session.selectedBytes)).font(.title3.weight(.semibold)).monospacedDigit()
+            Text(model.t("Estimated Removal")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            Text(model.bytes(session.selectedBytes)).font(ShouType.body.weight(.semibold)).monospacedDigit()
             Spacer()
             if !session.selectedAppIDs.isEmpty {
                 Button(model.t("Clear Selection")) { session.clear(app: model) }.disabled(model.busy).accessibilityIdentifier("applications.clear")
@@ -236,23 +236,23 @@ struct ApplicationsView: View {
     }
     private var coverage: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.t("Application Discovery Coverage")).font(.title2.bold())
+            Text(model.t("Application Discovery Coverage")).font(ShouType.title.bold())
             Text(model.t("Application sizes describe the app bundle. Associated files are measured when you expand or select an application. System usage records can be unavailable."))
-                .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             Text(model.t("For applications requiring administrator access, macOS handles authentication when you move the app to Trash. Associated app data is kept."))
-                .font(.callout).foregroundStyle(.secondary)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     ForEach(session.catalog?.sources ?? []) { source in
-                        HStack { Text(source.source.path).textSelection(.enabled); Spacer(); Text(model.t(source.status)).foregroundStyle(.secondary) }.font(.callout)
+                        HStack { Text(source.source.path).textSelection(.enabled); Spacer(); Text(model.t(source.status)).foregroundStyle(ShouPalette.secondary) }.font(ShouType.body)
                     }
                     ForEach(Array((session.catalog?.issues ?? []).enumerated()), id: \.offset) { _, issue in
-                        VStack(alignment: .leading) { Text(issue.path).textSelection(.enabled); Text(model.t(issue.code)).foregroundStyle(.secondary) }.font(.caption)
+                        VStack(alignment: .leading) { Text(issue.path).textSelection(.enabled); Text(model.t(issue.code)).foregroundStyle(ShouPalette.secondary) }.font(ShouType.caption)
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
             Text(model.t("Verified group containers may be included; unverified shared data, package receipts and external helpers remain protected. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan."))
-                .font(.caption).foregroundStyle(.secondary)
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             HStack { Spacer(); Button(model.t("Done")) { showCoverage=false }.keyboardShortcut(.defaultAction) }
         }.padding(24).frame(width: 660, height: 480)
     }
@@ -275,7 +275,7 @@ private struct ApplicationUninstallRow: View {
     }
     private var identitySubtitle: String {
         let identifier=app.bundleIdentifier ?? model.t("Identifier unavailable")
-        let version=app.version.map { " · " + model.t("Version") + " " + $0 } ?? ""
+        let version=app.version.map { ", " + model.t("Version") + " " + $0 } ?? ""
         return identifier + version
     }
     private var sizeLabel: String {
@@ -283,8 +283,8 @@ private struct ApplicationUninstallRow: View {
         return (summary.issues.isEmpty ? "" : "≥ ") + model.bytes(bytes)
     }
     private var rowColor: Color {
-        if session.isSelected(app.id) { return Color.accentColor.opacity(0.08) }
-        return hovering ? Color.primary.opacity(0.035) : .clear
+        if session.isSelected(app.id) { return ShouPalette.accent.opacity(0.08) }
+        return hovering ? ShouPalette.text.opacity(0.035) : .clear
     }
 
     var body: some View {
@@ -303,12 +303,12 @@ private struct ApplicationUninstallRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(app.name).font(.system(size: ShouDesign.bodyFontSize, weight: .medium)).lineLimit(1)
                 Text(identitySubtitle)
-                    .font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle)
             }.frame(maxWidth: .infinity, alignment: .leading).help(app.path)
             status.frame(width: 112, alignment: .leading)
-            Text(sizeLabel).monospacedDigit().font(.callout).frame(width: 88, alignment: .trailing)
+            Text(sizeLabel).monospacedDigit().font(ShouType.body).frame(width: 88, alignment: .trailing)
             if !compact {
-                Text(summary.lastUsed.map(model.date) ?? model.t("No usage record")).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 135, alignment: .trailing)
+                Text(summary.lastUsed.map(model.date) ?? model.t("No usage record")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1).frame(width: 135, alignment: .trailing)
             }
             Button { session.expand(summary, app: model) } label: { Image(systemName: expanded ? "chevron.up" : "chevron.down") }
                 .buttonStyle(.plain).frame(width: 22, height: 28).disabled(model.busy)
@@ -325,7 +325,7 @@ private struct ApplicationUninstallRow: View {
     @ViewBuilder private var status: some View {
         if summary.status == "admin-required" {
             Button { session.toggle(summary, app: model) } label: {
-                Label(model.t("Authentication Required"), systemImage: "lock.fill").font(.caption).foregroundStyle(.secondary)
+                Label(model.t("Authentication Required"), systemImage: "lock.fill").font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }.buttonStyle(.plain).disabled(model.busy || session.hasChanges)
                 .help(model.t("Select this application to review removal. macOS may ask you to authenticate after confirmation."))
                 .accessibilityIdentifier("applications.authentication." + app.id)
@@ -340,14 +340,14 @@ private struct ApplicationUninstallRow: View {
         case "protected": "Protected"
         default: "Unavailable"
         }
-        return Text(model.t(title)).font(.caption).foregroundStyle(summary.status == "ready" ? Color.secondary : Color.orange)
+        return Text(model.t(title)).font(ShouType.caption).foregroundStyle(summary.status == "ready" ? ShouPalette.secondary : ShouPalette.warning)
             .padding(.horizontal, 7).padding(.vertical, 4)
-            .background(summary.status == "ready" ? .clear : Color.orange.opacity(0.09), in: Capsule())
+            .background(summary.status == "ready" ? .clear : ShouPalette.warning.opacity(0.09), in: Capsule())
     }
     private var details: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(app.path).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                Text(app.path).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
                 Spacer()
                 Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: app.path)]) } label: { Image(systemName: "folder") }
                     .buttonStyle(.plain).accessibilityLabel(model.t("Reveal in Finder"))
@@ -356,18 +356,18 @@ private struct ApplicationUninstallRow: View {
             Divider()
             if summary.status == "running" {
                 HStack {
-                    Text(model.t("Quit the application and its helpers before uninstalling.")).font(.caption).foregroundStyle(.orange)
+                    Text(model.t("Quit the application and its helpers before uninstalling.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                     Spacer()
                     Button(model.t("Request Quit")) { session.quit(summary, app: model) }.disabled(model.busy)
                 }
             }
             if summary.status == "admin-required" {
                 HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "lock.fill").foregroundStyle(.secondary)
+                    Image(systemName: "lock.fill").foregroundStyle(ShouPalette.secondary)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(model.t("macOS handles authentication")).font(.callout.weight(.medium))
+                        Text(model.t("macOS handles authentication")).font(ShouType.body.weight(.medium))
                         Text(model.t("After you confirm Move to Trash, macOS may ask for Touch ID or an administrator password. Associated app data is kept. Cancelling authentication leaves this application in place."))
-                            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 12)
                     Button(model.t(session.isSelected(app.id) ? "Deselect" : "Select for Removal")) { session.toggle(summary, app: model) }
@@ -375,20 +375,20 @@ private struct ApplicationUninstallRow: View {
                 }.padding(12).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
             }
             if session.reviewingID == app.id {
-                HStack { ProgressView().controlSize(.small); Text(model.t("Reviewing application components…")).font(.caption) }.padding(.vertical, 12)
+                HStack { ProgressView().controlSize(.small); Text(model.t("Reviewing application components…")).font(ShouType.caption) }.padding(.vertical, 12)
             } else {
                 if session.reviews[app.id]?.requiresAdministrator != true && components.contains(where: \.requiresUserDataConsent) {
-                    Text(model.t("Personal app data selected; work and sign-in information may be lost.")).font(.caption).foregroundStyle(.orange)
+                    Text(model.t("Personal app data selected; work and sign-in information may be lost.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                     Toggle(model.t("Allow selecting personal app data"), isOn: Binding(get: { session.personalDataConsent.contains(app.id) }, set: { session.allowPersonalData(app.id, allowed: $0, app: model) }))
-                        .toggleStyle(.checkbox).font(.caption).disabled(model.busy).accessibilityIdentifier("applications.personalData." + app.id)
+                        .toggleStyle(.checkbox).font(ShouType.caption).disabled(model.busy).accessibilityIdentifier("applications.personalData." + app.id)
                 }
                 ForEach(components.filter { session.reviews[app.id]?.requiresAdministrator != true || $0.kind == .application }) { component in componentRow(component) }
                 if components.isEmpty {
-                    Text(model.t("No verified components available. Scan again or review access notices.")).font(.caption).foregroundStyle(.secondary)
+                    Text(model.t("No verified components available. Scan again or review access notices.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
             }
         }.padding(.leading, 54).padding(.trailing, 12).padding(.vertical, 12)
-            .overlay(alignment: .leading) { Rectangle().fill(Color(nsColor: .separatorColor)).frame(width: 1).padding(.leading, 32).padding(.vertical, 10) }
+            .overlay(alignment: .leading) { Rectangle().fill(ShouPalette.border).frame(width: 1).padding(.leading, 32).padding(.vertical, 10) }
     }
     private func componentRow(_ component: UninstallComponent) -> some View {
         HStack(alignment: .top, spacing: 12) {
@@ -397,15 +397,15 @@ private struct ApplicationUninstallRow: View {
                 session.toggleComponent(component, appID: app.id, app: model)
             }.frame(width: 20, height: 22)
             Image(systemName: component.kind == .application ? "app" : component.kind == .preferences ? "slider.horizontal.3" : "folder")
-                .font(.callout).foregroundStyle(.secondary).frame(width: 20).padding(.top, 3)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary).frame(width: 20).padding(.top, 3)
             VStack(alignment: .leading, spacing: 4) {
-                Text(model.t(componentTitle(component.kind))).font(.callout)
-                Text(component.path).font(.caption).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
-                ForEach(component.reasons + component.warnings, id: \.self) { Text(model.t($0)).font(.caption2).foregroundStyle(.orange) }
+                Text(model.t(componentTitle(component.kind))).font(ShouType.body)
+                Text(component.path).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
+                ForEach(component.reasons + component.warnings, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
             }.frame(maxWidth: .infinity, alignment: .leading)
             Text(model.t(component.kind == .application ? "Required for uninstall" : component.requiresUserDataConsent ? "Personal data" : component.eligible ? "Optional" : "Unavailable"))
-                .font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 7).padding(.vertical, 4).background(.quaternary, in: Capsule())
-            Text((component.status == "partial" ? "≥ " : "") + model.bytes(component.allocatedBytesEstimate)).font(.caption).monospacedDigit().frame(width: 88, alignment: .trailing)
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.horizontal, 7).padding(.vertical, 4).background(.quaternary, in: Capsule())
+            Text((component.status == "partial" ? "≥ " : "") + model.bytes(component.allocatedBytesEstimate)).font(ShouType.caption).monospacedDigit().frame(width: 88, alignment: .trailing)
         }.padding(.vertical, 7)
     }
     private func componentTitle(_ kind: UninstallComponentKind) -> String {

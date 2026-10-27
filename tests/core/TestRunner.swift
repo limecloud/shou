@@ -123,6 +123,64 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL tool cleanup: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--mysql-administration-only"] {
+            do {
+                try await mysqlAdminUsesExactHostAndSingleUseSecretFreeReviews()
+                try await mysqlAdminRejectsStaleServersExistingAccountsAndUnjournaledChanges()
+                try await mysqlAdminKeepsPartialOutcomesAndRejectsSystemBackups()
+                try mysqlConfigurationRejectsChangesLinksAndKeepsSourceScope()
+                try await mysqlInstanceRegistrationBindsReviewsAndRequiresDurableIntent()
+                let native=try await mysqlNativeAdministrationUsesGeneratedActualEngine()
+                print("5/5 MySQL administration contract/file/registration checks passed. Actual generated MySQL engine: \(native ? "passed" : "SKIPPED (SHOU_TEST_MYSQL_BIN not set)").")
+            } catch { print("FAIL MySQL administration: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--developer-configuration-only"] {
+            do {
+                try developerConfigurationFilesPreserveIdentityAndSoftwarePaths()
+                try developerConfigurationAdaptersDiscoverSoftwareScopesWithoutExecutingPrograms()
+                try developerConfigurationFormatsPreserveExactFilesAndRejectUnknownWrites()
+                try await developerLogsRequireExactSingleUseReviewsAndPreserveOpenFileIdentity()
+                print("4/4 developer configuration and permanent log-cleanup scope, identity and secret-free journal checks passed; generated fixtures only.")
+            } catch { print("FAIL developer configuration: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--developer-tools-only"] {
+            do {
+                try developerCatalogCoversCategoriesWithoutInventingSources()
+                try await developerToolsRequireFrozenSingleUsePlansAndJournalResults()
+                try await developerToolsRejectIdentityDriftExpiryAndUnrecordedMutation()
+                try await developerToolsDoNotTreatManagerCompletionAsSuccess()
+                try await nativeDeveloperToolsUseGeneratedExactInstallAndUninstall()
+                try developerDiscoveryPreservesMultipleCopiesWithoutExecutingThem()
+                try aiWorkspaceSummarizesNamesWithoutExposingPrivateValues()
+                try await developerServiceSwitchesBindSourcesAndVerifyJournaledOutcomes()
+                try await nativeDeveloperServicesPreserveLoginRegistrationUsingGeneratedManager()
+                try await developerServiceRestartRequiresVerifiedStopBeforeStart()
+                try await developerServicesLoadOnlySelectedToolsWithoutDiscardingOtherObservations()
+                try await nativeDeveloperInstancesSeparateAndRestartGeneratedDatabases()
+                try await nativeDeveloperLaunchdRestartsGeneratedKeepAliveWithoutRegistrationChanges()
+                try developerConfigurationFilesPreserveIdentityAndSoftwarePaths()
+                try developerConfigurationAdaptersDiscoverSoftwareScopesWithoutExecutingPrograms()
+                try developerConfigurationFormatsPreserveExactFilesAndRejectUnknownWrites()
+                try await developerLogsRequireExactSingleUseReviewsAndPreserveOpenFileIdentity()
+                try await developerPackageUninstallRejectsRunningGeneratedImagesAndAmbiguousPaths()
+                print("18/18 developer catalog, scoped loading, authorization, multi-instance isolation, generated KeepAlive restart, configuration, permanent log cleanup, uninstall activity and private AI checks passed; generated fixtures only.")
+            } catch { print("FAIL developer tools: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--package-updates-only"] {
+            do {
+                try await packageUpdatesFreezeExactSelectionsAndVerifyInstalledVersions()
+                try await packageUpdatesRecognizeFrozenTargetsReachedByDependencies()
+                try await packageUpdatesRejectStaleChangedPinnedAndUnknownSelections()
+                try await packageUpdatesRejectMalformedIdentitiesAndPreserveGlobalMiseRanges()
+                try await packageUpdatesInterruptedOrUnverifiedInstallsRemainUnknown()
+                try nativePackageUpdatesUseOnlyGlobalExactGeneratedCommands()
+                print("6/6 package update scope, frozen identity, interruption and generated native-command checks passed.")
+            } catch { print("FAIL package updates: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--application-closing-only"] {
             do {
                 try await applicationClosingVerifiesIdentityAndReportsRemainingOwners()
@@ -715,6 +773,35 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Tool cleanup rejects remote, stale and unknown outcomes", { try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes() }),
             ("Tool cleanup review expires during owner preview", { try await toolCleanupExpiresDuringOwnerPreview() }),
             ("Native tool adapter bounds generated process groups and output", { try nativeToolAdapterBoundsRealFixtureProcesses() }),
+            ("Package updates freeze exact selections and verify installed versions", { try await packageUpdatesFreezeExactSelectionsAndVerifyInstalledVersions() }),
+            ("MySQL reviews bind account hosts and exclude credentials", { try await mysqlAdminUsesExactHostAndSingleUseSecretFreeReviews() }),
+            ("MySQL rejects changed servers and existing users", { try await mysqlAdminRejectsStaleServersExistingAccountsAndUnjournaledChanges() }),
+            ("MySQL records partial changes and limits backup scope", { try await mysqlAdminKeepsPartialOutcomesAndRejectsSystemBackups() }),
+            ("MySQL registration binds exact reviews and durable intent", { try await mysqlInstanceRegistrationBindsReviewsAndRequiresDurableIntent() }),
+            ("MySQL configuration rejects stale files and links", { try mysqlConfigurationRejectsChangesLinksAndKeepsSourceScope() }),
+            ("Developer catalog validates categories and package sources", { try developerCatalogCoversCategoriesWithoutInventingSources() }),
+            ("Restart requires verified stopping and reports partial outcomes", { try await developerServiceRestartRequiresVerifiedStopBeforeStart() }),
+            ("Service switches bind source identities and preserve journal outcomes", { try await developerServiceSwitchesBindSourcesAndVerifyJournaledOutcomes() }),
+            ("Scoped service loading preserves other tool observations", { try await developerServicesLoadOnlySelectedToolsWithoutDiscardingOtherObservations() }),
+            ("Native service switches preserve generated login registration", { try await nativeDeveloperServicesPreserveLoginRegistrationUsingGeneratedManager() }),
+            ("Native service instances preserve independent generated databases", { try await nativeDeveloperInstancesSeparateAndRestartGeneratedDatabases() }),
+            ("Developer configuration edits preserve identity and software paths", { try developerConfigurationFilesPreserveIdentityAndSoftwarePaths() }),
+            ("Developer configuration adapters discover independent software scopes", { try developerConfigurationAdaptersDiscoverSoftwareScopesWithoutExecutingPrograms() }),
+            ("Developer configuration formats preserve exact files and reject unknown writes", { try developerConfigurationFormatsPreserveExactFilesAndRejectUnknownWrites() }),
+            ("Developer log cleanup preserves open-file identity and exact single-use reviews", { try await developerLogsRequireExactSingleUseReviewsAndPreserveOpenFileIdentity() }),
+            ("Developer package uninstall rejects running generated images and ambiguous paths", { try await developerPackageUninstallRejectsRunningGeneratedImagesAndAmbiguousPaths() }),
+            ("Native launchd restart preserves generated KeepAlive registration", { try await nativeDeveloperLaunchdRestartsGeneratedKeepAliveWithoutRegistrationChanges() }),
+            ("Developer tool plans are single-use and journal outcomes", { try await developerToolsRequireFrozenSingleUsePlansAndJournalResults() }),
+            ("Developer tools reject stale authority and missing intent records", { try await developerToolsRejectIdentityDriftExpiryAndUnrecordedMutation() }),
+            ("Developer tools verify actual installed state", { try await developerToolsDoNotTreatManagerCompletionAsSuccess() }),
+            ("Native developer tools install and uninstall only generated exact fixtures", { try await nativeDeveloperToolsUseGeneratedExactInstallAndUninstall() }),
+            ("Developer discovery preserves copies without executing binaries", { try developerDiscoveryPreservesMultipleCopiesWithoutExecutingThem() }),
+            ("AI workspace summaries exclude credentials and private values", { try aiWorkspaceSummarizesNamesWithoutExposingPrivateValues() }),
+            ("Package dependencies reaching frozen versions avoid repeat upgrades", { try await packageUpdatesRecognizeFrozenTargetsReachedByDependencies() }),
+            ("Package updates reject stale changed pinned and unknown selections", { try await packageUpdatesRejectStaleChangedPinnedAndUnknownSelections() }),
+            ("Package updates reject malformed identities and preserve global mise ranges", { try await packageUpdatesRejectMalformedIdentitiesAndPreserveGlobalMiseRanges() }),
+            ("Interrupted or unverified package installs remain unknown", { try await packageUpdatesInterruptedOrUnverifiedInstallsRemainUnknown() }),
+            ("Native package upgrades use only exact generated commands", { try nativePackageUpdatesUseOnlyGlobalExactGeneratedCommands() }),
             ("Record retention groups publications and rejects changed evidence", { try await recordRetentionPreservesDependenciesAndRejectsChangedRecords() }),
             ("History summaries page and reject stale caches", { try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence() }),
             ("Full descendant manifest invalidation", { try await fullManifestDetectsDescendantChange() }),

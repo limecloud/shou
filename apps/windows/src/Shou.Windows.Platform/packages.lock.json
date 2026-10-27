@@ -2,6 +2,18 @@
   "version": 1,
   "dependencies": {
     "net10.0-windows10.0.22000": {
+      "Microsoft.Windows.CsWinRT": {
+        "type": "Direct",
+        "requested": "[2.2.0, )",
+        "resolved": "2.2.0",
+        "contentHash": "R8MDVawukHrKgYCFgYaoLfbAna/FrImEFRxDK9k8ITbrXv3KLE5uN6tRqrNV83H4MFdqJ/uiA/hg1cSsXkl0vw=="
+      },
+      "Microsoft.WindowsPackageManager.ComInterop": {
+        "type": "Direct",
+        "requested": "[1.10.340, )",
+        "resolved": "1.10.340",
+        "contentHash": "iNWZhSuGh33/BHK0v0g19LShBMuWYqeLnjjTCLd76txXcXa8vHOZRZ70FVo+2icl1k8dw3rSW7vB4lt5lbu94g=="
+      },
       "shou.windows.core": {
         "type": "Project"
       }

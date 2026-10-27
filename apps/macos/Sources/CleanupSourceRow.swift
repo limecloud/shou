@@ -12,22 +12,22 @@ struct CleanupSourceRow: View {
                             .accessibilityLabel(model.t("Select") + " " + source.path)
                             .accessibilityIdentifier("smart.source." + source.path)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(source.path).font(.callout.monospaced()).lineLimit(2).truncationMode(.middle).textSelection(.enabled).help(source.path)
-                            Text(String(format: model.t("%lld files"), locale: model.language.locale, source.fileCount) + " · " + model.date(source.candidate.newestModifiedAt))
-                                .font(.caption).foregroundStyle(.secondary)
-                            ForEach(source.candidate.reasons, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.orange) }
+                            Text(source.path).font(ShouType.body.monospaced()).lineLimit(2).truncationMode(.middle).textSelection(.enabled).help(source.path)
+                            Text(String(format: model.t("%lld files"), locale: model.language.locale, source.fileCount) + ", " + model.date(source.candidate.newestModifiedAt))
+                                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                            ForEach(source.candidate.reasons, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
                             if source.requiresManualReview && source.selectable {
                                 Text(model.t("Select this entire directory for removal. Stop related tasks first. All contents will be checked before deletion."))
-                                    .font(.caption).foregroundStyle(.orange)
+                                    .font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                             }
                             if source.candidate.reasons.contains("incomplete_scan") {
                                 Button(model.t("Continue Scanning This Directory")) { model.continueCleanupScan(source) }
-                                    .buttonStyle(.link).font(.caption).disabled(model.busy)
+                                    .buttonStyle(.link).font(ShouType.caption).disabled(model.busy)
                                     .accessibilityIdentifier("smart.continue." + source.path)
                             }
                         }
                         Spacer(minLength: 6)
-                        Text(model.bytes(source.candidate.allocatedBytesEstimate)).font(.callout).monospacedDigit()
+                        Text(model.bytes(source.candidate.allocatedBytesEstimate)).font(ShouType.body).monospacedDigit()
                         Button { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: source.path)]) } label: {
                             Image(systemName: "folder")
                         }.buttonStyle(.borderless).help(model.t("Reveal in Finder"))

@@ -2,13 +2,13 @@
 
 English | [简体中文](../zh-CN/engineering/next-release-plan.md)
 
-Updated: 2026-10-26. Status: v0.16.0 published; the complete v0.17.0 workspace update is entering release verification, with remaining roadmap work in progress. Read-only diagnostics, shell completion, analysis comparison and update discovery have independent macOS and Windows source implementations; owning contracts and SYNC record verification and platform differences. This document prioritizes the next release without changing product, safety, rule or release contracts. v0.15.0 includes the current workspace, diagnostics, completion, comparison and read-only catalog checks; other work packages remain in the roadmap.
+Updated: 2026-10-27. Status: v0.17.0 published; v0.18.0 developer-tool, MySQL, package-upgrade and desktop-update changes are entering release verification, with remaining roadmap work in progress. Read-only diagnostics, shell completion, analysis comparison and update discovery have independent macOS and Windows source implementations; owning contracts and SYNC record verification and platform differences. This document prioritizes the next release without changing product, safety, rule or release contracts. v0.15.0 includes the current workspace, diagnostics, completion, comparison and read-only catalog checks; other work packages remain in the roadmap.
 
-`v0.16.0` delivered independent read-only monitoring, menu-bar/tray summaries and Dock/taskbar entry points under the [system monitor contract](../product/system-monitor.md). This `v0.17.0` release includes the previously unpublished brand, shared task illustrations, latest native workspace on both platforms and inline scope confirmation, together with the complete working-tree source, assets, documentation and acceptance records. Version declarations, builds and release verification advance together; SYNC records the publication result.
+`v0.17.0` delivered the shared brand, task illustrations, native workspace and inline scope confirmation. This `v0.18.0` release adds dedicated Developer Tools and AI Workbench pages, supported macOS instance/configuration/log and MySQL tasks, reviewed package upgrades, desktop self-update improvements and shared native styling. Catalog scope and source availability do not establish complete per-tool support; platform and native acceptance gaps remain in their owning contracts. Version declarations, builds and release verification advance together; SYNC records the publication result.
 
 ## 1. Planning baseline and sources of truth
 
-The published `v0.15.0` baseline is commit `ec91a357b6cadd8c286fe6ae38bed6adf8ff5350`. Remaining roadmap items and later working-tree edits are outside that tag. [SYNC.md](../../SYNC.md) owns actual checks, failures and native limitations; this plan is not an acceptance record.
+The published `v0.17.0` baseline is commit `a2e5777176a668bccba02bb3960c770307684500`. Remaining roadmap items and later working-tree edits are outside that tag. [SYNC.md](../../SYNC.md) owns actual checks, failures and native limitations; this plan is not an acceptance record.
 
 | Source of truth | Responsibility |
 | --- | --- |

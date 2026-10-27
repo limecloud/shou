@@ -6,6 +6,8 @@ Status: implementation in progress. Source includes Core/Platform/Presentation s
 
 ## Product goal
 
+The current working tree also adds a separate official WinGet package-upgrade task with exact selection review and single-use authorization. Windows 11 x64 native inventory and Computer Use selection/review/cancel have been verified; real installer/elevation/restart and ARM64 upgrade behavior remain unaccepted. This does not open the existing cleanup/uninstall/startup/privacy gates. The [upgrade contract](../product/application-updates.md#managed-package-upgrades) and [current evidence](../../SYNC.md) own that scope.
+
 Deliver native Windows storage analysis, reviewable cleanup and reusable rules with consistent Shou interaction, language and safety behavior. Target Windows 11, x64 and ARM64. Select the exact minimum Windows build against the pinned Windows App SDK during the first prototype.
 
 ## Technical decisions

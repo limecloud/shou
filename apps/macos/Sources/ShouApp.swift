@@ -98,6 +98,8 @@ struct CleanupCompletion: Identifiable {
     var ai=AIWorkspaceSession()
     var largeFiles=LargeFilesSession()
     var applicationsSession=ApplicationsSession()
+    var packageUpdates=PackageUpdatesSession()
+    var developerTools=DeveloperToolsSession()
     var showApplicationOrphans=false
     var orphanRetryPaths=Set<String>()
     var privacySession=PrivacySession()
@@ -179,7 +181,7 @@ struct CleanupCompletion: Identifiable {
     }
     func t(_ key: String) -> String { L10n.string(key, locale: language.rawValue) }
     func diagnostic(_ message: String) -> String { message.components(separatedBy: "\n").map(t).joined(separator: "\n") }
-    var displayTitle: String { language == .simplifiedChinese ? "Shou · 收拾一下" : "Shou" }
+    var displayTitle: String { language == .simplifiedChinese ? "Shou 收拾一下" : "Shou" }
     var status: String {
         if isExecuting { return stopRequested ? t("Stopping at a safe boundary…") : executionTitle }
         if space.scanning { return t(space.progressTitle) }
@@ -191,6 +193,8 @@ struct CleanupCompletion: Identifiable {
         return t(statusKey)
     }
     var executionTitle: String {
+        if developerTools.executing || developerTools.configuration.mutating { return t("Managing developer tools…") }
+        if packageUpdates.executing { return t("Updating software…") }
         if ["preparing", "checking"].contains(executionProgress?.stage ?? "") { return t("Checking selected files…") }
         return switch executionAction {
         case "trash": t("Moving items to Trash…")
@@ -541,7 +545,7 @@ struct CleanupCompletion: Identifiable {
             impacts: Array(Set(sources.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations + $0.candidate.reasons })).sorted(),
             manualReview: sources.contains(where: \.requiresManualReview))
     }
-    func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); ai.stop(); largeFiles.stop(); applicationsSession.stop(); privacySession.cancel() }
+    func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); ai.stop(); largeFiles.stop(); applicationsSession.stop(); packageUpdates.stop(); developerTools.stop(); privacySession.cancel() }
     func stopAndWaitForExecution() async -> Bool {
         guard isExecuting else { return !operationHadError && error == nil }
         let running=task
@@ -550,6 +554,8 @@ struct CleanupCompletion: Identifiable {
         await space.waitForOperation()
         await largeFiles.waitForOperation()
         await applicationsSession.waitForOperation()
+        await packageUpdates.waitForOperation()
+        await developerTools.waitForOperation()
         await privacySession.waitForOperation()
         return !operationHadError && error == nil
     }
@@ -947,6 +953,8 @@ struct ContentView: View {
         case "rules": "Rules"
         case "startup": "Startup Items"
         case "applications": "Applications"
+        case "developer-tools": "Developer Tools"
+        case "ai-tools": "AI Workbench"
         case "projects": "Developer Projects"
         case "privacy": "Privacy"
         case "monitor": "System Monitor"
@@ -957,7 +965,7 @@ struct ContentView: View {
     }
     private var showsPageHeading: Bool {
         switch model.section {
-        case "smart", "projects", "storage", "large-files", "applications", "startup", "privacy", "monitor": false
+        case "smart", "projects", "storage", "large-files", "applications", "startup", "privacy", "monitor", "developer-tools", "ai-tools": false
         case "history": !model.history.isEmpty
         default: true
         }
@@ -976,7 +984,9 @@ struct ContentView: View {
         }
     }
     @ViewBuilder private var presentedContent: some View {
-        if model.isExecuting { ExecutionProgressView(model: model) }
+        if ["developer-tools","ai-tools"].contains(model.section) || model.developerTools.executing || model.developerTools.configuration.mutating { DeveloperToolsView(model: model, session: model.developerTools).id(model.section) }
+        else if model.packageUpdates.executing { PackageUpgradeProgressView(model: model, session: model.packageUpdates) }
+        else if model.isExecuting { ExecutionProgressView(model: model) }
         else if let result=model.toolCompletion { ToolCleanupResultView(model: model, result: result) }
         else if let result=model.completion { CleanupResultView(model: model, result: result).id(result.id) }
         else { sectionContent }
@@ -986,7 +996,8 @@ struct ContentView: View {
         case "smart": SmartScanView(model: model)
         case "rules": RulesView(model: model, editor: $ruleEditor)
         case "startup": StartupInventoryView(model: model)
-        case "applications": ApplicationsView(model: model, session: model.applicationsSession)
+        case "applications": ApplicationsWorkspaceView(model: model, updates: model.packageUpdates)
+        case "developer-tools", "ai-tools": DeveloperToolsView(model: model, session: model.developerTools).id(model.section)
         case "projects": ProjectCleanupView(model: model)
         case "privacy": PrivacyView(app: model, session: model.privacySession)
         case "monitor": SystemMonitorView(model:model,session:model.monitor)
@@ -1010,18 +1021,18 @@ struct ContentView: View {
                 if model.externalRulesChanged && !model.busy && model.completion == nil {
                     HStack {
                         Label(model.t("Personal rules changed outside Shou. Review each rule before cleanup."), systemImage: "sparkles")
-                            .font(.callout).lineLimit(2)
+                            .font(ShouType.body).lineLimit(2)
                         Spacer()
                         Button(model.t("Review Rules")) { model.reviewPersonalRules=true; model.section="rules"; model.externalRulesChanged=false }
                             .accessibilityIdentifier("rules.external.review")
                         Button { model.externalRulesChanged=false } label: { Image(systemName: "xmark") }
                             .buttonStyle(.borderless).accessibilityLabel(model.t("Dismiss"))
-                    }.padding(.horizontal, 14).padding(.vertical, 8).background(Color.accentColor.opacity(0.08))
+                    }.padding(.horizontal, 14).padding(.vertical, 8).background(ShouPalette.accent.opacity(0.08))
                     Divider()
                 }
                 presentedContent
                     .sheet(item: $model.ai.launch) { target in AILaunchView(model: model, session: model.ai, target: target) }
-                Text(model.status).font(.caption).frame(height: 0).clipped()
+                Text(model.status).font(ShouType.caption).frame(height: 0).clipped()
                     .accessibilityIdentifier("operation.status")
             }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background { WorkspaceBackdrop().ignoresSafeArea() }
@@ -1092,18 +1103,18 @@ struct CandidateInspector: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if let candidate=model.snapshot?.candidates.first(where: { $0.relativePath == model.focusedPath }) ?? model.selected.first {
-                    Label(model.t("Evidence"), systemImage: "info.circle").font(.headline)
-                    Text(candidate.relativePath).font(.callout.monospaced()).textSelection(.enabled)
+                    Label(model.t("Evidence"), systemImage: "info.circle").font(ShouType.body.weight(.semibold))
+                    Text(candidate.relativePath).font(ShouType.body.monospaced()).textSelection(.enabled)
                     LabeledContent(model.t("Risk"), value: model.t(candidate.risk))
                     LabeledContent(model.t("Logical size"), value: model.bytes(candidate.logicalBytes))
                     LabeledContent(model.t("Newest modification"), value: model.date(candidate.newestModifiedAt))
                     Divider()
-                    ForEach(candidate.ruleIds, id: \.self) { Text($0).font(.caption.monospaced()) }
-                    ForEach(candidate.reasons, id: \.self) { Label(model.t($0), systemImage: "exclamationmark.circle").font(.caption) }
-                    ForEach(candidate.rebuildNotes, id: \.self) { Text(model.t($0)).font(.callout) }
-                    ForEach(candidate.limitations, id: \.self) { Text("• " + model.t($0)).font(.caption).foregroundStyle(.secondary) }
-                    Text(model.t("Directory names, sizes, and lockfiles do not prove data can be rebuilt.")).font(.caption).foregroundStyle(.secondary)
-                } else { Text(model.t("Select a directory to inspect matching evidence and rebuild requirements.")).foregroundStyle(.secondary) }
+                    ForEach(candidate.ruleIds, id: \.self) { Text($0).font(ShouType.caption.monospaced()) }
+                    ForEach(candidate.reasons, id: \.self) { Label(model.t($0), systemImage: "exclamationmark.circle").font(ShouType.caption) }
+                    ForEach(candidate.rebuildNotes, id: \.self) { Text(model.t($0)).font(ShouType.body) }
+                    ForEach(candidate.limitations, id: \.self) { Text("• " + model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
+                    Text(model.t("Directory names, sizes, and lockfiles do not prove data can be rebuilt.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                } else { Text(model.t("Select a directory to inspect matching evidence and rebuild requirements.")).foregroundStyle(ShouPalette.secondary) }
             }.padding(18).frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -1121,7 +1132,7 @@ struct RulesView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                Label(model.t("Cleanup rules made for your Mac"), systemImage: "sparkles").font(.callout.weight(.medium))
+                Label(model.t("Cleanup rules made for your Mac"), systemImage: "sparkles").font(ShouType.body.weight(.medium))
                     .help(model.t("Investigate a folder with built-in AI, or use your external AI tool to create personal rules."))
                 Spacer(minLength: 8)
                 Button(model.t("Create Rules with AI…")) { model.ai.goal = .rules; model.ai.requestLaunch(app: model) }
@@ -1129,7 +1140,7 @@ struct RulesView: View {
                 Button(model.t("External AI Tools…")) { agentSetup=true }.accessibilityIdentifier("rules.agent.setup")
             }
             .padding(.horizontal, 12).frame(height: 44)
-            .background(Color.accentColor.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
+            .background(ShouPalette.accent.opacity(0.07), in: RoundedRectangle(cornerRadius: 8))
             .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 10)
             HStack {
                 if !model.configuration.workspaces.isEmpty {
@@ -1160,23 +1171,23 @@ struct RulesView: View {
                     }
                     if ruleSource != "builtin" {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(model.t("Personal Rules")).font(.headline)
+                            Text(model.t("Personal Rules")).font(ShouType.body.weight(.semibold))
                             if model.configuration.rules.isEmpty {
                                 Text(model.t("Ask your agent to create a rule for your build outputs and caches. Imported drafts appear here."))
-                                    .font(.callout).foregroundStyle(.secondary).padding(.vertical, 12)
+                                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary).padding(.vertical, 12)
                             }
                             VStack(alignment: .leading, spacing: 0) {
                                 ForEach(model.configuration.rules) { record in
                                     VStack(alignment: .leading, spacing: 8) {
                                         HStack {
-                                            Label(record.rule.name, systemImage: "doc.text").font(.headline); Spacer()
+                                            Label(record.rule.name, systemImage: "doc.text").font(ShouType.body.weight(.semibold)); Spacer()
                                             let root=model.configuration.workspaces.first { $0.rootRef == record.rule.scope.rootRef }
                                             let enabled=model.configuration.bindings.contains { $0.workspaceId == root?.id && $0.ruleId == record.rule.id && $0.version == record.rule.version && $0.enabled }
                                             Toggle(model.t("Enabled"), isOn: Binding(get: { enabled }, set: { model.setEnabled(record, enabled: $0) })).toggleStyle(.switch).disabled(root == nil || model.busy)
                                         }
-                                        Text(record.rule.description).font(.callout).foregroundStyle(.secondary)
-                                        Text(record.rule.id + " · " + record.rule.version + " · " + record.rule.scope.rootRef).font(.caption.monospaced()).foregroundStyle(.tertiary)
-                                        Text(record.rule.risk.rebuildNote).font(.caption)
+                                        Text(record.rule.description).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+                                        Text(record.rule.id + ", " + record.rule.version + ", " + record.rule.scope.rootRef).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary)
+                                        Text(record.rule.risk.rebuildNote).font(ShouType.caption)
                                         HStack {
                                             Button(model.t("Edit Rule…")) { editingRule=record }.disabled(model.busy)
                                                 .buttonStyle(.bordered)
@@ -1191,7 +1202,7 @@ struct RulesView: View {
                                     }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
                                     if record.id != model.configuration.rules.last?.id { Divider() }
                                 }
-                            }.background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+                            }.background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 12))
                         }
                     }
                 }.padding(.horizontal, 16).padding(.bottom, 16)
@@ -1235,22 +1246,22 @@ struct ConfirmationView: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Label(title, systemImage: ["purge", "permanent"].contains(review.action) ? "exclamationmark.triangle" : "trash").font(.title2.bold())
-            Text(["purge", "permanent"].contains(review.action) ? model.t("This is irreversible. Only the selected items from this cleanup batch will be removed.") : model.t("Check every path. Files and configuration will be verified again immediately before processing.")).foregroundStyle(.secondary)
+            Label(title, systemImage: ["purge", "permanent"].contains(review.action) ? "exclamationmark.triangle" : "trash").font(ShouType.title.bold())
+            Text(["purge", "permanent"].contains(review.action) ? model.t("This is irreversible. Only the selected items from this cleanup batch will be removed.") : model.t("Check every path. Files and configuration will be verified again immediately before processing.")).foregroundStyle(ShouPalette.secondary)
             if review.manualReview {
                 Label(model.t("Manual selection includes items outside automatic cleanup. Review their contents and stop related tasks. The complete listed directories will be removed."), systemImage: "exclamationmark.triangle")
-                    .font(.callout).foregroundStyle(.orange)
+                    .font(ShouType.body).foregroundStyle(ShouPalette.warning)
             }
-            List(review.paths, id: \.self) { Text($0).font(.callout.monospaced()).textSelection(.enabled) }.frame(minHeight: 160, maxHeight: 300)
+            List(review.paths, id: \.self) { Text($0).font(ShouType.body.monospaced()).textSelection(.enabled) }.frame(minHeight: 160, maxHeight: 300)
             if !review.impacts.isEmpty {
                 DisclosureGroup(model.t("Cleanup Impact")) {
-                    ScrollView { VStack(alignment: .leading, spacing: 8) { ForEach(review.impacts, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.secondary) } } }.frame(maxHeight: 140)
+                    ScrollView { VStack(alignment: .leading, spacing: 8) { ForEach(review.impacts, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) } } }.frame(maxHeight: 140)
                 }
             }
-            Text(model.bytes(review.byteEstimate) + " · " + String(review.paths.count) + model.t(" items")).monospacedDigit()
+            Text(model.bytes(review.byteEstimate) + ", " + String(review.paths.count) + model.t(" items")).monospacedDigit()
             DisclosureGroup(model.t("Verification Details")) {
                 ForEach(review.plans.isEmpty ? [ReviewedPlan(id: review.id, digest: review.digest, workspacePath: "")] : review.plans, id: \.id) { plan in
-                    Text(plan.id + "\n" + plan.digest).font(.caption2.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
+                    Text(plan.id + "\n" + plan.digest).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
                 }
             }
             HStack { Spacer(); Button(model.t("Cancel"), role: .cancel) { dismiss() }.keyboardShortcut(.cancelAction); Button(model.t("Confirm"), role: ["restore", "trash"].contains(review.action) ? nil : .destructive) { model.confirm(review) }.keyboardShortcut(.defaultAction) }

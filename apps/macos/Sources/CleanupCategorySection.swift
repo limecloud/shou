@@ -29,11 +29,11 @@ struct CleanupCategorySection: View {
                     model.selectCommon(selectable, selected: selected.count != selectable.count)
                 }.frame(width: 22, height: 24)
                 Image(systemName: symbol).font(.system(size: 22, weight: .regular))
-                    .foregroundStyle(.secondary).frame(width: 34)
+                    .foregroundStyle(ShouPalette.secondary).frame(width: 34)
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title).font(.system(size: ShouDesign.bodyFontSize, weight: .medium))
                     Text(String(format: model.t("%lld locations"), locale: model.language.locale, sources.count))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 5) {
@@ -41,7 +41,7 @@ struct CleanupCategorySection: View {
                         .font(.system(size: 16, weight: .medium)).monospacedDigit()
                     if !selected.isEmpty {
                         Text(model.t("Selected") + " " + model.bytes(selected.reduce(0) { $0 + $1.candidate.allocatedBytesEstimate }))
-                            .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).monospacedDigit()
                     }
                 }
             }.padding(.vertical, 5)

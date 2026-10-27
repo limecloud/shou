@@ -20,7 +20,11 @@ private func confirmStopping(_ model: AppModel, closingWindow: Bool) -> Bool {
     let alert=NSAlert()
     alert.alertStyle = .warning
     alert.messageText=model.t(closingWindow ? "Stop the operation and close this window?" : "Stop the operation and quit Shou?")
-    alert.informativeText=model.t("The operation will stop at a safe boundary. Unstarted items will stay unchanged. Review processed items in History; they are not automatically restored.")
+    alert.informativeText=model.t(model.developerTools.executing || model.developerTools.configuration.mutating
+        ? "The package manager is working. Shou will wait for its result before closing."
+        : model.packageUpdates.executing
+        ? "Stopping may leave the current package changed. Check its installed version before retrying."
+        : "The operation will stop at a safe boundary. Unstarted items will stay unchanged. Review processed items in History; they are not automatically restored.")
     alert.addButton(withTitle: model.t("Keep Open"))
     alert.addButton(withTitle: model.t(closingWindow ? "Stop and Close" : "Stop and Quit"))
     return alert.runModal() == .alertSecondButtonReturn
@@ -138,6 +142,8 @@ struct OperationWindowGuard: NSViewRepresentable {
         }
         func windowWillClose(_ notification: Notification) {
             model?.ai.stop()
+            model?.packageUpdates.stop()
+            model?.developerTools.stop()
             model?.monitor.setVisible(false)
             lifecycleLog.notice("Window will close; number=\(self.window?.windowNumber ?? -1)")
             originalDelegate?.windowWillClose?(notification)

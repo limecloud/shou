@@ -11,7 +11,7 @@ struct StorageScanProgressView: View {
                 stopRequested: session.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: session.stop)
             if session.progress?.limitReached == true {
                 Text(model.t("Scan limit reached. Preparing the measured results; coverage is incomplete."))
-                    .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center)
             }
         }.padding(.bottom, 24)
     }

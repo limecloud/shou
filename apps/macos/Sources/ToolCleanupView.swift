@@ -16,18 +16,18 @@ struct ToolCleanupPanel: View {
             if let scan {
                 ForEach(scan.targets) { target in
                     HStack {
-                        Image(systemName: "shippingbox").foregroundStyle(.secondary)
+                        Image(systemName: "shippingbox").foregroundStyle(ShouPalette.secondary)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(model.t(target.title)).font(.callout)
-                            Text(target.estimatedBytes.map(model.bytes) ?? model.t("Review tool preview")).font(.caption).foregroundStyle(.secondary)
+                            Text(model.t(target.title)).font(ShouType.body)
+                            Text(target.estimatedBytes.map(model.bytes) ?? model.t("Review tool preview")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                         }
                         Spacer()
                         Button(model.t("Clean…")) { prepare(target, scan: scan) }.disabled(model.busy || loading)
                     }.padding(.vertical, 4)
                 }
-                if scan.targets.isEmpty && !loading { Text(model.t(scan.issues.contains { $0.code != "tool_not_installed" } ? "Some tools could not be checked. Open the owning tool, then check again." : "No reclaimable tool-managed storage found.")).font(.caption).foregroundStyle(.secondary) }
+                if scan.targets.isEmpty && !loading { Text(model.t(scan.issues.contains { $0.code != "tool_not_installed" } ? "Some tools could not be checked. Open the owning tool, then check again." : "No reclaimable tool-managed storage found.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                 ForEach(Array(scan.issues.filter { $0.code != "tool_not_installed" }.enumerated()), id: \.offset) { _, issue in
-                    Text(issue.tool + " · " + model.t(issue.code)).font(.caption).foregroundStyle(.secondary)
+                    Text(issue.tool + ", " + model.t(issue.code)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
             }
             HStack {
@@ -36,7 +36,7 @@ struct ToolCleanupPanel: View {
                 if !history.isEmpty {
                     Menu(model.t("Recent Tool Cleanups")) {
                         ForEach(history.prefix(10)) { receipt in
-                            Button(model.t(receipt.target.title) + " · " + model.t(receipt.state)) { model.toolCompletion=receipt }
+                            Button(model.t(receipt.target.title) + ", " + model.t(receipt.state)) { model.toolCompletion=receipt }
                         }
                     }
                 }
@@ -85,13 +85,13 @@ struct ToolCleanupResultView: View {
     var body: some View {
         VStack(spacing: 18) {
             Spacer()
-            Image(systemName: result.state == "completed" ? "checkmark.circle" : "exclamationmark.triangle").font(.system(size: 72, weight: .light)).foregroundStyle(result.state == "completed" ? Color.green : .orange)
-            Text(model.t(result.state == "completed" ? "Cleanup complete" : "Some items need attention")).font(.title.bold())
-            Text(model.t(result.target.title)).font(.headline)
-            Text(model.t("The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space.")).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            Image(systemName: result.state == "completed" ? "checkmark.circle" : "exclamationmark.triangle").font(.system(size: 72, weight: .light)).foregroundStyle(result.state == "completed" ? ShouPalette.success : ShouPalette.warning)
+            Text(model.t(result.state == "completed" ? "Cleanup complete" : "Some items need attention")).font(ShouType.title.bold())
+            Text(model.t(result.target.title)).font(ShouType.body.weight(.semibold))
+            Text(model.t("The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space.")).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center)
                 .opacity(result.state == "completed" ? 1 : 0)
-            if let error=result.error { Text(model.diagnostic(error)).font(.callout).textSelection(.enabled) }
-            if result.state != "completed" { Text(model.t("Review the tool's current state before trying again. The previous operation may have changed data.")).font(.callout).foregroundStyle(.secondary) }
+            if let error=result.error { Text(model.diagnostic(error)).font(ShouType.body).textSelection(.enabled) }
+            if result.state != "completed" { Text(model.t("Review the tool's current state before trying again. The previous operation may have changed data.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary) }
             Spacer()
             Button(model.t("Back")) { model.toolCompletion=nil; model.section="smart" }.buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
         }.padding(30).frame(maxWidth: 600).frame(maxWidth: .infinity, maxHeight: .infinity)

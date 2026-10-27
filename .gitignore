@@ -9,3 +9,4 @@ __pycache__/
 *.pyc
 apps/windows/**/bin/
 apps/windows/**/obj/
+output/

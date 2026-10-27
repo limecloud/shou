@@ -21,8 +21,9 @@ Shou 提供空间分析、可审查清理与可复用规则。AI 调查是可选
 | 理解产品范围 | [PRD](product/prd.md) → [日常清理](product/unified-cleanup.md) → [用户故事](product/user-stories-and-use-cases.md) |
 | 探索空间占用 | [空间分析](product/space-analysis.md) → [开发者场景](product/developer-space-scenarios.md) |
 | 管理应用与开发项目 | [应用与项目](product/apps-and-projects.md) |
+| 管理开发环境与 AI 软件 | [开发者工具](product/developer-tools.md)、[AI 工作台](product/ai-workbench.md)、[全量能力图](engineering/developer-tool-capability-map.md)、[MySQL 管理](product/mysql-administration.md)、[逐软件适配设计](engineering/developer-tool-adapters.md) |
 | 查看实时资源与进程 | [系统监控与桌面摘要](product/system-monitor.md) |
-| 管理应用与启动项 | [应用清理](product/application-uninstall.md)、[更新发现](product/application-updates.md)、[启动项](product/startup-items.md) |
+| 管理应用与启动项 | [应用清理](product/application-uninstall.md)、[更新发现与软件升级](product/application-updates.md)、[启动项](product/startup-items.md) |
 | 理解 AI 与规则 | [AI 用户旅程](product/embedded-ai.md)、[规则规范](rules/rule-specification.md) |
 | 理解安全与结果 | [清理安全](security/cleanup-safety.md)、[进度与结果](product/operation-progress.md) |
 

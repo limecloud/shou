@@ -10,27 +10,24 @@ struct AIConnectionSummary: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if connection.strategy == .decisionFirst, let decision=connection.decision {
-                service(title: model.t("Decision Service · First"), name: decision.providerName + " · " + decision.model,
+                service(title: model.t("Decision Service, First"), name: decision.providerName + ", " + decision.model,
                         url: decision.baseURL, icon: "checkmark.shield")
             }
             if connection.usesMainModel {
-                service(title: model.t(connection.strategy == .decisionFirst && connection.decision != nil ? "Main Model · When Needed" : "Main Model"),
+                service(title: model.t(connection.strategy == .decisionFirst && connection.decision != nil ? "Main Model, When Needed" : "Main Model"),
                         name: connection.model, url: connection.baseURL, icon: "sparkles")
             }
-            Text(model.t(connection.strategy == .decisionFirst && connection.decision != nil
-                         ? (connection.usesMainModel ? "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs." : "Add a main model before using this legacy configuration.")
-                         : "Local analysis → main model. Structured decisions are not used by this strategy."))
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+
         }.accessibilityElement(children: .contain).accessibilityIdentifier("ai.configuration.summary")
     }
     private func service(title: String, name: String, url: String, icon: String) -> some View {
         Label {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.caption).foregroundStyle(.secondary)
-                Text(name).font(.callout.weight(.medium))
-                Text(URL(string: url)?.host ?? url).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+                Text(title).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                Text(name).font(ShouType.body.weight(.medium))
+                Text(URL(string: url)?.host ?? url).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
             }
-        } icon: { Image(systemName: icon).foregroundStyle(Color.accentColor).frame(width: 20) }
+        } icon: { Image(systemName: icon).foregroundStyle(ShouPalette.accent).frame(width: 20) }
     }
 }
 
@@ -41,22 +38,20 @@ struct AIConnectionsSettings: View {
     @State private var deleting: AIConnection?
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(model.t("AI Investigation")).font(.caption).foregroundStyle(.secondary)
+            Text(model.t("AI Investigation")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             VStack(alignment: .leading, spacing: 12) {
                 Toggle(isOn: $session.enabled) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(model.t("Enable AI Investigation")).font(.headline)
+                        Text(model.t("Enable AI Investigation")).font(ShouType.body.weight(.semibold))
                         Text(model.t("Off by default. Disabling stops desktop investigations and tests; saved rules keep working offline. Explicit CLI AI commands have separate authorization."))
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     }
                 }.toggleStyle(.switch).accessibilityLabel(model.t("Enable AI Investigation")).accessibilityIdentifier("ai.settings.enabled")
-                Divider()
+                ShouDivider()
                 HStack {
-                    Image(systemName: "sparkles").font(.title3).foregroundStyle(.secondary).frame(width: 26)
+                    Image(systemName: "sparkles").font(ShouType.body).foregroundStyle(ShouPalette.secondary).frame(width: 26)
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(model.t("AI Configurations")).font(.headline)
-                        Text(model.t("Each configuration includes a main model. Turn the decision service on to save tokens, or off to use the main model directly. Keys stay in private local storage."))
-                            .font(.caption).foregroundStyle(.secondary)
+                        Text(model.t("AI Configurations")).font(ShouType.body.weight(.semibold))
                     }
                     Spacer()
                     Button(model.t("Saved Investigations")) {
@@ -66,10 +61,10 @@ struct AIConnectionsSettings: View {
                         .accessibilityIdentifier("ai.connection.add")
                 }
                 ForEach(session.connections) { connection in
-                    Divider()
+                    ShouDivider()
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(connection.name).font(.body.weight(.medium))
+                            Text(connection.name).font(ShouType.body.weight(.medium))
                             AIConnectionSummary(model: model, connection: connection)
                             if connection.usesMainModel {
                                 Toggle(model.t("Enable Decision Service"), isOn: Binding(get: { connection.decisionEnabled }, set: { enabled in
@@ -79,10 +74,10 @@ struct AIConnectionsSettings: View {
                                 }))
                                     .toggleStyle(.switch).controlSize(.small).disabled(!session.canManageConnections)
                                     .accessibilityIdentifier("ai.connection.decision-toggle." + connection.id)
-                            } else { Text(model.t("Add a main model before using this legacy configuration.")).font(.caption).foregroundStyle(.orange) }
+                            } else { Text(model.t("Add a main model before using this legacy configuration.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
                         }
                         Spacer()
-                        if session.connectionId == connection.id { Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.accentColor).accessibilityLabel(model.t("Selected")) }
+                        if session.connectionId == connection.id { Image(systemName: "checkmark.circle.fill").foregroundStyle(ShouPalette.accent).accessibilityLabel(model.t("Selected")) }
                         else { Button(model.t("Set as Default")) { session.connectionId=connection.id }.disabled(!connection.usesMainModel || !session.canManageConnections) }
                         Button(model.t("Edit…")) { editing=connection }.disabled(!session.canManageConnections)
                         Button(role: .destructive) { deleting=connection } label: { Image(systemName: "trash") }
@@ -91,7 +86,7 @@ struct AIConnectionsSettings: View {
                     }
                 }
                 if !session.deletedConnections.isEmpty {
-                    Divider()
+                    ShouDivider()
                     DisclosureGroup(model.t("Deleted Configurations")) {
                         ForEach(session.deletedConnections) { connection in
                             HStack {
@@ -101,9 +96,9 @@ struct AIConnectionsSettings: View {
                         }
                     }
                 }
-                if let issue=session.issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
-            }.padding(18).background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.primary.opacity(0.08)))
+                if let issue=session.issue { Text(model.diagnostic(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.danger).textSelection(.enabled) }
+            }.padding(18).background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(ShouPalette.border, lineWidth: ShouDesign.hairlineWidth))
         }
         .task { session.loadConnections() }
         .sheet(item: $editing) { connection in AIConnectionEditor(model: model, connection: connection, didSave: { session.loadConnections() }) }
@@ -145,15 +140,15 @@ struct AIConnectionEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Image(systemName: "network").font(.title2).foregroundStyle(.secondary)
-                Text(model.t("AI Configuration")).font(.title2.weight(.semibold))
+                Image(systemName: "network").font(ShouType.title).foregroundStyle(ShouPalette.secondary)
+                Text(model.t("AI Configuration")).font(ShouType.title.weight(.semibold))
             }.padding(24)
             Divider()
             Form {
                 Section {
                     TextField(model.t("Configuration Name"), text: $connection.name).accessibilityIdentifier("ai.connection.name")
                     Text(model.t("The main model is required. Enable the decision service to reduce token use; switch it off to let the main model handle the investigation directly."))
-                        .font(.caption).foregroundStyle(.secondary)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     if connection.usesMainModel {
                     Picker(model.t("API Protocol"), selection: $connection.apiProtocol) {
                         ForEach(AIProtocol.allCases, id: \.self) { Text($0.title).tag($0) }
@@ -195,7 +190,7 @@ struct AIConnectionEditor: View {
                         })) {
                             ForEach(StructuredDecisionService().availableProviders, id: \.id) { Text($0.name).tag($0.id) }
                             if let value=connection.decision, !StructuredDecisionService().availableProviders.contains(where: { $0.id == value.providerID }) {
-                                Text(value.providerName + " · " + model.t("Unavailable")).tag(value.providerID)
+                                Text(value.providerName + ", " + model.t("Unavailable")).tag(value.providerID)
                             }
                         }
                         TextField(model.t("Decision API Base URL"), text: Binding(get: { connection.decision?.baseURL ?? "" }, set: { connection.decision?.baseURL=$0 }))
@@ -213,7 +208,7 @@ struct AIConnectionEditor: View {
                             TextField(model.t("Decision Variable Name"), text: Binding(get: { connection.decision?.environmentVariable ?? "" }, set: { connection.decision?.environmentVariable=$0 }))
                         }
                     }
-                    if !connection.decisionEnabled { Text(model.t("Decision service is off. The main model takes over; saved decision settings and keys are kept.")).font(.caption).foregroundStyle(.secondary) }
+                    if !connection.decisionEnabled { Text(model.t("Decision service is off. The main model takes over; saved decision settings and keys are kept.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                 } footer: {
                     Text(model.t("The decision provider receives bounded relative metadata and retention answers. Local processing comes first; only open-ended understanding escalates to the main model. Neither service can authorize deletion."))
                 }
@@ -228,19 +223,19 @@ struct AIConnectionEditor: View {
                     }
                 }
             }.formStyle(.grouped).disabled(testing || saving)
-            if let issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.red).textSelection(.enabled).padding(.horizontal, 24).padding(.bottom, 12) }
+            if let issue { Text(model.diagnostic(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.danger).textSelection(.enabled).padding(.horizontal, 24).padding(.bottom, 12) }
             if tested {
-                Label(model.t(connection.usesMainModel ? "Connected · Tool calling verified" : "Structured decision connection verified"), systemImage: "checkmark.circle.fill").font(.callout).foregroundStyle(.green).padding(.horizontal, 24).padding(.bottom, 12)
-                if connection.decisionEnabled, let decision=connection.decision { Text(decision.providerName + " · " + model.t("Structured decision connection verified")).font(.caption).foregroundStyle(.green).padding(.horizontal, 24).padding(.bottom, 12) }
+                Label(model.t(connection.usesMainModel ? "Connected, Tool calling verified" : "Structured decision connection verified"), systemImage: "checkmark.circle.fill").font(ShouType.body).foregroundStyle(ShouPalette.success).padding(.horizontal, 24).padding(.bottom, 12)
+                if connection.decisionEnabled, let decision=connection.decision { Text(decision.providerName + ", " + model.t("Structured decision connection verified")).font(ShouType.caption).foregroundStyle(ShouPalette.success).padding(.horizontal, 24).padding(.bottom, 12) }
             }
             Divider()
             HStack {
                 if saving {
                     ProgressView().controlSize(.small)
-                    Text(model.t("Saving connection…")).font(.callout).foregroundStyle(.secondary)
+                    Text(model.t("Saving connection…")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                 } else if testing {
                     ProgressView().controlSize(.small)
-                    Text(model.t("Testing connection…")).font(.callout).foregroundStyle(.secondary)
+                    Text(model.t("Testing connection…")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     Button(model.t("Stop")) { testTask?.cancel() }
                 } else {
                     Button(model.t("Test Connection")) { test() }.disabled(!model.ai.enabled)

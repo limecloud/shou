@@ -76,7 +76,7 @@ public sealed partial class HistoryPage : UserControl, IPageChrome, IDisposable
             row.StartedAt.ToLocalTime().ToString("g", CultureInfo.GetCultureInfo(text.Locale)),
             text.Get(row.Action == CleanupAction.Permanent ? "Permanent cleanup" : "Move to Recycle Bin"),
             text.Get("Recorded result") + ": " + ReviewText.ExecutionState(text, row.RecordedState) +
-                (row.Unfinished || row.NeedsVerification ? " · " + text.Get("Needs Verification") : ""),
+                (row.Unfinished || row.NeedsVerification ? ", " + text.Get("Needs Verification") : ""),
             text.Format("%lld of %lld items completed", row.CompletedItems, row.ItemCount),
             text.Get("Details"))).ToArray();
         if (HistoryList.ItemsSource is not CleanupHistoryDisplay[] previous || displays is null ||
@@ -174,6 +174,6 @@ public sealed class CleanupHistoryDisplay(string executionId, string started, st
     public string State { get; } = state;
     public string Count { get; } = count;
     public string Details { get; } = details;
-    public string Meta => Started + " · " + State;
-    public string AccessibleName => Started + " · " + Action + " · " + State + " · " + Count;
+    public string Meta => Started + ", " + State;
+    public string AccessibleName => Started + ", " + Action + ", " + State + ", " + Count;
 }

@@ -14,14 +14,14 @@ struct WorkspaceStartPage<Controls: View>: View {
             ScrollView {
                 HStack(spacing: 28) {
                     VStack(alignment: .leading, spacing: 20) {
-                        Text(eyebrow).font(.system(size: ShouDesign.captionFontSize, weight: .medium)).tracking(1.5).foregroundStyle(Color.accentColor)
-                        Text(title).font(.system(size: geometry.size.width < 1100 ? ShouDesign.heroCompactTitleSize : ShouDesign.heroTitleSize, weight: .semibold))
+                        if !eyebrow.isEmpty && !title.localizedCaseInsensitiveContains(eyebrow) { Text(eyebrow).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
+                        Text(title).font(ShouType.title)
                             .fixedSize(horizontal: false, vertical: true)
-                        Text(subtitle).font(.system(size: ShouDesign.bodyFontSize + 1)).foregroundStyle(.secondary)
+                        Text(subtitle).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                             .lineSpacing(4).fixedSize(horizontal: false, vertical: true)
                         controls().padding(.top, 5)
                         if !footnote.isEmpty {
-                            Text(footnote).font(.caption).foregroundStyle(.secondary).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                            Text(footnote).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                         }
                     }.frame(maxWidth: 470, alignment: .leading).layoutPriority(1)
                     WorkspacePageArtwork(kind: kind).frame(width: geometry.size.width < 1100 ? 310 : 400, height: 330)
@@ -41,8 +41,8 @@ struct WorkspaceEmptyState: View {
     var body: some View {
         VStack(spacing: 12) {
             WorkspacePageArtwork(kind: kind).frame(width: 190, height: 145)
-            Text(title).font(.title3.weight(.medium))
-            if !description.isEmpty { Text(description).font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 440) }
+            Text(title).font(ShouType.body.weight(.medium))
+            if !description.isEmpty { Text(description).font(ShouType.body).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center).frame(maxWidth: 440) }
         }.padding(24).frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

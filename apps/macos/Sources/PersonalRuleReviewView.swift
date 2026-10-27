@@ -14,33 +14,33 @@ struct PersonalRuleReviewView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Label(record.rule.name, systemImage: "doc.text.magnifyingglass").font(.title2.bold())
-            Text(record.id).font(.caption.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
-            Text(record.rule.description).font(.callout)
-            Text(record.rule.risk.rebuildNote).font(.callout).foregroundStyle(.secondary)
-            ForEach(record.rule.risk.limitations, id: \.self) { Text(model.t($0)).font(.caption).foregroundStyle(.secondary) }
+            Label(record.rule.name, systemImage: "doc.text.magnifyingglass").font(ShouType.title.bold())
+            Text(record.id).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
+            Text(record.rule.description).font(ShouType.body)
+            Text(record.rule.risk.rebuildNote).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+            ForEach(record.rule.risk.limitations, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
             DisclosureGroup(model.t("Scope & Retention")) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(record.rule.match.relativePatterns.joined(separator: "\n"))
                     if !record.rule.exclude.relativePatterns.isEmpty {
                         Text(model.t("Exclusions") + ": " + record.rule.exclude.relativePatterns.joined(separator: ", "))
                     }
-                }.font(.caption.monospaced()).textSelection(.enabled)
+                }.font(ShouType.caption.monospaced()).textSelection(.enabled)
             }
             if loading {
                 ProgressView(model.status).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let preview {
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(model.t("Additional Cleanup Estimate")).font(.caption).foregroundStyle(.secondary)
-                        Text(benefits.map { model.bytes($0.additionalAllocatedBytesEstimate) } ?? model.t("Calculating…")).font(.title.weight(.semibold)).monospacedDigit()
+                        Text(model.t("Additional Cleanup Estimate")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                        Text(benefits.map { model.bytes($0.additionalAllocatedBytesEstimate) } ?? model.t("Calculating…")).font(ShouType.title.weight(.semibold)).monospacedDigit()
                     }
                     Spacer()
-                    Text(String(format: model.t("%lld matching · %lld protected · %lld outside conditions"), rows.filter { $0.status == "matched" }.count,
-                                rows.filter { $0.status == "blocked" }.count, rows.filter { $0.status == "not_matched" }.count)).font(.callout)
+                    Text(String(format: model.t("%lld matching, %lld protected, %lld outside conditions"), rows.filter { $0.status == "matched" }.count,
+                                rows.filter { $0.status == "blocked" }.count, rows.filter { $0.status == "not_matched" }.count)).font(ShouType.body)
                 }
                 if preview.status != "complete" {
-                    Text(model.t("Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage.")).font(.caption).foregroundStyle(.orange)
+                    Text(model.t("Partial preview. Unreadable or time-limited locations are listed below; this is not full coverage.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                 }
                 List(rows.prefix(200)) { row in
                     VStack(alignment: .leading, spacing: 4) {
@@ -49,19 +49,19 @@ struct PersonalRuleReviewView: View {
                             Spacer()
                             Text(model.bytes(row.allocatedBytes)).monospacedDigit()
                         }
-                        Text(row.status == "matched" ? model.t("Ready to review") : row.reasons.map(model.diagnostic).joined(separator: " · "))
-                            .font(.caption).foregroundStyle(row.status == "matched" ? Color.secondary : .orange)
+                        Text(row.status == "matched" ? model.t("Ready to review") : row.reasons.map(model.diagnostic).joined(separator: ", "))
+                            .font(ShouType.caption).foregroundStyle(row.status == "matched" ? ShouPalette.secondary : ShouPalette.warning)
                     }.padding(.vertical, 3)
                 }.accessibilityIdentifier("rules.review.results")
                 if !preview.issues.isEmpty {
                     DisclosureGroup(model.t("Coverage Issues")) {
-                        ScrollView { Text(preview.issues.map(model.diagnostic).joined(separator: "\n")).font(.caption).textSelection(.enabled) }.frame(maxHeight: 70)
+                        ScrollView { Text(preview.issues.map(model.diagnostic).joined(separator: "\n")).font(ShouType.caption).textSelection(.enabled) }.frame(maxHeight: 70)
                     }
                 }
             } else { Spacer() }
-            if let issue { Text(model.diagnostic(issue)).font(.caption).foregroundStyle(.red) }
+            if let issue { Text(model.diagnostic(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.danger) }
             Text(model.t("Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices."))
-                .font(.caption).foregroundStyle(.secondary)
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             HStack {
                 Button(model.t("Preview Again")) { load() }.disabled(model.busy || loading)
                 Spacer()

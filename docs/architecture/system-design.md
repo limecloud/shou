@@ -1,5 +1,7 @@
 # System architecture
 
+Developer tools use an independent [catalog, read-only installation observation and package-plan contract](../product/developer-tools.md). Swift/C# Core validates current single-use authority, Platform owns native manager/file facts and fixed package operations, and UI separates Developer Tools from AI Workbench. Discovery and cleanup candidates grant no uninstall permission. AI software management is independent of optional rule investigation; unconnected sources, services and configuration capabilities remain explicit.
+
 English | [简体中文](../zh-CN/architecture/system-design.md)
 
 Status: macOS has source implementations. Windows is in progress under the [native implementation plan](../engineering/windows-native-plan.md), with location discovery, application registration and startup browsing, built-in/personal-rule configuration, storage browsing, cleanup review and read-only history source; native runtime and distribution acceptance are pending.

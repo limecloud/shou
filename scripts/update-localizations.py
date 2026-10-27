@@ -12,7 +12,7 @@ root = Path(__file__).resolve().parents[1]
 catalog = json.loads((root / 'packages/shou-core/Localizable.xcstrings').read_text(encoding='utf-8'))
 errors = []
 used = set()
-for source in (root / 'apps/macos/Sources').glob('*.swift'):
+for source in (root / 'apps/macos/Sources').rglob('*.swift'):
     used.update(re.findall(r'\bt\("((?:[^"\\]|\\.)*)"\)', source.read_text(encoding='utf-8')))
 for template in json.loads((root / 'packages/shou-core/Sources/Resources/builtin-rules.json').read_text(encoding='utf-8')):
     used.update((template['name'], template['rebuildNote'], template['limitation']))

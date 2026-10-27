@@ -1,7 +1,7 @@
 <UserControl x:Class="Shou.Windows.App.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer HorizontalContentAlignment="Stretch">
-        <StackPanel Padding="{StaticResource ShouSettingsPagePadding}" Spacing="{StaticResource ShouPageSpacing}" MaxWidth="{StaticResource ShouSettingsMaxWidth}" HorizontalAlignment="Stretch">
+    <ScrollViewer x:Name="SettingsScroll" HorizontalContentAlignment="Stretch" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Width="{Binding ViewportWidth, ElementName=SettingsScroll}" Padding="{StaticResource ShouSettingsPagePadding}" Spacing="{StaticResource ShouPageSpacing}" MaxWidth="{StaticResource ShouSettingsMaxWidth}" HorizontalAlignment="Center">
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="GeneralHeading" Style="{StaticResource ShouCaption}" />
             <Border Style="{StaticResource ShouCard}">
@@ -28,7 +28,7 @@
             </StackPanel>
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="AboutHeading" Style="{StaticResource ShouCaption}" />
-            <Border Style="{StaticResource ShouCard}"><Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="PackageIcon" Width="{StaticResource ShouBrandIconSize}" Height="{StaticResource ShouBrandIconSize}" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="VersionText" FontWeight="SemiBold" /><TextBlock x:Name="PreviewNotice" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="UpdateButton" IsEnabled="False" VerticalAlignment="Center" /></Grid></Border>
+            <Border Style="{StaticResource ShouCard}"><Grid Style="{StaticResource ShouSettingsRow}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><ContentControl x:Name="PackageIcon" Width="{StaticResource ShouBrandIconSize}" Height="{StaticResource ShouBrandIconSize}" VerticalAlignment="Center" /><StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center"><TextBlock x:Name="VersionText" FontWeight="SemiBold" /><TextBlock x:Name="PreviewNotice" Style="{StaticResource ShouSettingsSubtitle}" /></StackPanel><Button Grid.Column="2" x:Name="UpdateButton" Click="CheckDesktopUpdate" AutomationProperties.AutomationId="updates.check" VerticalAlignment="Center" /></Grid></Border>
             </StackPanel>
             <StackPanel Spacing="{StaticResource ShouItemSpacing}">
             <TextBlock x:Name="AiHeading" Style="{StaticResource ShouCaption}" />

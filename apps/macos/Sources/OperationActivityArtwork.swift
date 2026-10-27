@@ -15,9 +15,9 @@ struct OperationActivityArtwork: View {
             let phase=paused ? 0.35 : timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: duration) / duration
             let width=ShouDesign.cleanupArtworkWidth
             ZStack {
-                Circle().fill(Color.accentColor.opacity(0.035)).frame(width: width * 0.61)
-                Circle().stroke(Color.accentColor.opacity(0.06), lineWidth: 1).frame(width: width * 0.48)
-                Ellipse().fill(Color.accentColor.opacity(0.06))
+                Circle().fill(ShouPalette.accent.opacity(0.035)).frame(width: width * 0.61)
+                Circle().stroke(ShouPalette.accent.opacity(0.06), lineWidth: ShouDesign.hairlineWidth).frame(width: width * 0.48)
+                Ellipse().fill(ShouPalette.accent.opacity(0.06))
                     .frame(width: width * 0.58, height: width * 0.14).offset(y: width * 0.17)
                     .blur(radius: width * 0.035)
                 ForEach(0..<7) { index in
@@ -29,20 +29,20 @@ struct OperationActivityArtwork: View {
                     let opacity=min(1, progress / 0.12) * max(0, 1 - max(0, progress - 0.7) / 0.3)
                     Image(systemName: index.isMultiple(of: 3) ? "doc.fill" : "doc.text.fill")
                         .font(.system(size: width * 0.095, weight: .light))
-                        .foregroundStyle(Color.accentColor.opacity(index.isMultiple(of: 2) ? 0.5 : 0.28))
+                        .foregroundStyle(ShouPalette.accent.opacity(index.isMultiple(of: 2) ? 0.5 : 0.28))
                         .rotationEffect(.degrees(side * (18 - travel * 40)))
                         .scaleEffect(1 - travel * 0.82)
                         .offset(x: width * (originX * (1 - travel) + side * sin(progress * .pi) * 0.035),
                                 y: width * (originY * (1 - travel) + 0.11 * travel))
                         .opacity(paused ? 0 : opacity)
                 }
-                Ellipse().fill(Color.accentColor.opacity(0.1))
+                Ellipse().fill(ShouPalette.accent.opacity(0.1))
                     .frame(width: width * 0.37, height: width * 0.075).offset(y: width * 0.115)
                 Image(systemName: symbol == "trash" ? "tray.fill" : symbol)
                     .font(.system(size: width * 0.23, weight: .light))
-                    .foregroundStyle(Color.accentColor.gradient)
+                    .foregroundStyle(ShouPalette.accent.gradient)
                     .offset(y: width * 0.13)
-                Ellipse().stroke(Color.accentColor.opacity(paused ? 0.12 : 0.12 + 0.1 * sin(phase * 2 * .pi)), lineWidth: 1)
+                Ellipse().stroke(ShouPalette.accent.opacity(paused ? 0.12 : 0.12 + 0.1 * sin(phase * 2 * .pi)), lineWidth: ShouDesign.hairlineWidth)
                     .frame(width: width * 0.56, height: width * 0.15).offset(y: width * 0.165)
             }.frame(width: width, height: ShouDesign.cleanupArtworkHeight)
         }.accessibilityHidden(true).allowsHitTesting(false)

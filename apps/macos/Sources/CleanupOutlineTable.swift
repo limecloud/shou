@@ -27,7 +27,7 @@ struct CleanupOutlineTable: NSViewRepresentable {
         for (id,width) in [("name",560.0),("size",100.0),("files",75.0),("modified",100.0)] {
             let column=NSTableColumn(identifier: NSUserInterfaceItemIdentifier(id))
             column.width=width; column.minWidth=id == "name" ? 260 : 65
-            column.headerCell.font = .systemFont(ofSize: 11,weight:.medium)
+            column.headerCell.font = .systemFont(ofSize: ShouDesign.captionFontSize,weight:.medium)
             column.headerCell.alignment=id == "name" ? .left : .right
             column.sortDescriptorPrototype=NSSortDescriptor(key:id,ascending:id == "name")
             table.addTableColumn(column)
@@ -184,7 +184,7 @@ struct CleanupOutlineTable: NSViewRepresentable {
             } else { explanation=model.t(categoryExplanation(item.group.id)) }
             box.setAccessibilityHelp((item.candidate?.risk == "high" ? model.t("High risk") + ". " : "") + explanation)
             let subtitle=NSTextField(labelWithString:explanation)
-            subtitle.font = .systemFont(ofSize:11); subtitle.textColor=item.candidate?.risk == "high" ? .systemOrange : .tertiaryLabelColor
+            subtitle.font = .systemFont(ofSize: ShouDesign.captionFontSize); subtitle.textColor=item.candidate?.risk == "high" ? .systemOrange : .tertiaryLabelColor
             subtitle.lineBreakMode = .byTruncatingTail
             subtitle.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
             title.setContentCompressionResistancePriority(.defaultHigh,for:.horizontal)

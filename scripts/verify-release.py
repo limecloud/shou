@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 import os
 import plistlib
+import runpy
 import shutil
 import subprocess
 import sys
@@ -26,6 +27,10 @@ assert int(enclosure.attrib['length']) == archive.stat().st_size
 assert enclosure.attrib.get(f'{{{namespace["sparkle"]}}}edSignature')
 feed_version = item.find('sparkle:version', namespace)
 assert feed_version is not None and feed_version.text == version
+notes = item.findtext('description')
+render_notes = runpy.run_path(str(Path(__file__).with_name('render-update-notes.py')))['render']
+expected_notes = render_notes(Path('.github/release-notes.md').read_text(encoding='utf-8'))
+assert notes and notes.strip() == expected_notes.strip(), 'The signed update feed must embed the repository release notes'
 
 
 def verify_app(app):

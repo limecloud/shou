@@ -45,13 +45,13 @@ struct CleanupResultView: View {
             Spacer(minLength: 12)
             Image(systemName: complete ? "checkmark.circle" : cancelled ? "pause.circle" : "exclamationmark.triangle")
                 .font(.system(size: ShouDesign.completionIconSize, weight: .light))
-                .foregroundStyle(complete ? Color.green : cancelled ? Color.secondary : Color.orange)
+                .foregroundStyle(complete ? ShouPalette.success : cancelled ? ShouPalette.secondary : ShouPalette.warning)
                 .scaleEffect(reduceMotion || appeared ? 1 : 0.84)
                 .opacity(reduceMotion || appeared ? 1 : 0)
                 .accessibilityHidden(true)
-            Text(title).font(.title.bold()).padding(.top, 18).accessibilityAddTraits(.isHeader)
+            Text(title).font(ShouType.title.bold()).padding(.top, 18).accessibilityAddTraits(.isHeader)
             if let date=result.receipts.first?.createdAt {
-                Text(model.date(date)).font(.caption).foregroundStyle(.secondary).padding(.top, 5)
+                Text(model.date(date)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.top, 5)
             }
 
             if !result.receipts.isEmpty {
@@ -60,7 +60,7 @@ struct CleanupResultView: View {
                     .monospacedDigit().padding(.top, 28)
             }
             Text(model.t(cancelled ? "Removal stopped. Items not moved are kept in their original locations." : complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
-                .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
 
             if hasIssues {
@@ -68,7 +68,7 @@ struct CleanupResultView: View {
                 if showDetails || items.isEmpty {
                     details.padding(.top, 12)
                 } else {
-                    Button(model.t("Details")) { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { showDetails=true } }
+                    Button(model.t("Details")) { withAnimation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration))) { showDetails=true } }
                         .buttonStyle(.link).padding(.top, 8)
                 }
             }
@@ -98,7 +98,7 @@ struct CleanupResultView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onExitCommand { model.completion=nil; model.section=result.sourceSection }
         .onAppear {
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22)) { appeared=true }
+            withAnimation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration))) { appeared=true }
             AccessibilityNotification.Announcement(title).post()
         }
     }
@@ -107,8 +107,8 @@ struct CleanupResultView: View {
         HStack(spacing: 10) {
             resultMetric(model.t(permanent ? "Permanently removed" : "Moved"), value: permanent ? purged : moved, color: .green)
             resultMetric(model.t("Skipped"), value: skipped, color: .secondary)
-            resultMetric(model.t("Failed items"), value: failed, color: failed > 0 ? .red : .secondary)
-            resultMetric(model.t("Needs verification"), value: unverified, color: unverified > 0 ? .orange : .secondary)
+            resultMetric(model.t("Failed items"), value: failed, color: failed > 0 ? .red : ShouPalette.secondary)
+            resultMetric(model.t("Needs verification"), value: unverified, color: unverified > 0 ? .orange : ShouPalette.secondary)
         }.frame(maxWidth: ShouDesign.completionMetricsWidth)
     }
 
@@ -117,7 +117,7 @@ struct CleanupResultView: View {
             LazyVStack(spacing: 0) {
                 ForEach(Array(result.failures.enumerated()), id: \.offset) { _, failure in
                     Label(model.diagnostic(failure), systemImage: "exclamationmark.triangle")
-                        .font(.caption).foregroundStyle(.orange).textSelection(.enabled)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.warning).textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(10)
                 }
                 ForEach(outcomes.filter { $0.state != .moved && $0.state != .purged }) { outcome in
@@ -128,14 +128,14 @@ struct CleanupResultView: View {
         }
         .frame(maxHeight: ShouDesign.completionDetailsHeight)
         .background(.quaternary.opacity(0.26), in: RoundedRectangle(cornerRadius: 10))
-        .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(.quaternary, lineWidth: 1) }
+        .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(ShouPalette.border, lineWidth: ShouDesign.hairlineWidth) }
     }
 
     private func resultMetric(_ label: String, value: Int, color: Color) -> some View {
         VStack(spacing: 4) {
             Text(value.formatted(.number.locale(model.language.locale)))
-                .font(.title3.weight(.semibold)).monospacedDigit().foregroundStyle(color)
-            Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                .font(ShouType.body.weight(.semibold)).monospacedDigit().foregroundStyle(color)
+            Text(label).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1)
         }
         .frame(maxWidth: .infinity, minHeight: 52).padding(.vertical, 6)
         .background(.quaternary.opacity(0.32), in: RoundedRectangle(cornerRadius: 9))
@@ -147,13 +147,13 @@ struct CleanupResultView: View {
             Image(systemName: state.symbol).foregroundStyle(state.color).frame(width: 18).padding(.top, 2)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(URL(fileURLWithPath: item.originalPath).lastPathComponent).font(.callout.weight(.medium)).lineLimit(1)
+                    Text(URL(fileURLWithPath: item.originalPath).lastPathComponent).font(ShouType.body.weight(.medium)).lineLimit(1)
                     Spacer(minLength: 6)
-                    if ["trashed", "purged"].contains(item.state) { Text(model.bytes(item.allocatedBytesEstimate)).font(.caption.monospacedDigit()).foregroundStyle(.secondary) }
+                    if ["trashed", "purged"].contains(item.state) { Text(model.bytes(item.allocatedBytesEstimate)).font(ShouType.caption.monospacedDigit()).foregroundStyle(ShouPalette.secondary) }
                 }
-                Text(model.t(state.label)).font(.caption).foregroundStyle(state.color)
-                Text(item.originalPath).font(.system(size: 10, design: .monospaced)).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
-                if let error=item.error, !error.isEmpty { Text(model.diagnostic(error)).font(.caption2).foregroundStyle(.secondary).lineLimit(2) }
+                Text(model.t(state.label)).font(ShouType.caption).foregroundStyle(state.color)
+                Text(item.originalPath).font(.system(size: ShouDesign.captionFontSize, design: .monospaced)).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle)
+                if let error=item.error, !error.isEmpty { Text(model.diagnostic(error)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(2) }
             }
         }.padding(10)
     }

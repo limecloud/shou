@@ -1,0 +1,507 @@
+{
+  "upstream": "https://github.com/radix-ui/colors",
+  "revision": "dbdb85470547c7d34b9001f48fddb08ded335979",
+  "format": "Radix sRGB RGB/RGBA; tokens use ARGB",
+  "palettes": {
+    "light": {
+      "amber11": "#AB6400",
+      "amber3": "#FFF7C2",
+      "amber9": "#FFC53D",
+      "blue2": "#F4FAFF",
+      "blue6": "#ACD8FC",
+      "blue9": "#0090FF",
+      "brown9": "#AD7F58",
+      "cyan9": "#00A2C7",
+      "grass9": "#46A758",
+      "gray1": "#FCFCFC",
+      "green11": "#218358",
+      "green9": "#30A46C",
+      "indigo9": "#3E63DD",
+      "iris9": "#5B5BD6",
+      "lime9": "#BDEE63",
+      "mint6": "#9CE0D0",
+      "orange9": "#F76B15",
+      "pink9": "#D6409F",
+      "purple9": "#8E4EC6",
+      "red11": "#CE2C31",
+      "red9": "#E5484D",
+      "ruby9": "#E54666",
+      "sage9": "#868E8B",
+      "slate1": "#FCFCFD",
+      "slate11": "#60646C",
+      "slate12": "#1C2024",
+      "slate2": "#F9F9FB",
+      "slate3": "#F0F0F3",
+      "slate4": "#E8E8EC",
+      "slate5": "#E0E1E6",
+      "slate6": "#D9D9E0",
+      "slate9": "#8B8D98",
+      "teal10": "#0D9B8A",
+      "teal11": "#008573",
+      "teal2": "#F3FBF9",
+      "teal4": "#CCF3EA",
+      "teal5": "#B8EAE0",
+      "teal9": "#12A594",
+      "violet6": "#D4CAFE",
+      "violet9": "#6E56CF",
+      "yellow9": "#FFE629"
+    },
+    "dark": {
+      "amber11": "#FFCA16",
+      "amber3": "#302008",
+      "blue2": "#111927",
+      "green11": "#3DD68C",
+      "red11": "#FF9592",
+      "red9": "#E5484D",
+      "slate1": "#111113",
+      "slate11": "#B0B4BA",
+      "slate12": "#EDEEF0",
+      "slate2": "#18191B",
+      "slate3": "#212225",
+      "slate4": "#272A2D",
+      "slate5": "#2E3135",
+      "slate6": "#363A3F",
+      "teal11": "#0BD8B6",
+      "teal2": "#111C1B",
+      "teal4": "#023B37",
+      "teal9": "#12A594"
+    }
+  },
+  "tokens": {
+    "ShouAccent": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 11
+    },
+    "ShouAccentDark": {
+      "appearance": "dark",
+      "scale": "teal",
+      "step": 11
+    },
+    "ShouMapSurface": {
+      "appearance": "light",
+      "scale": "blue",
+      "step": 9
+    },
+    "ShouMapText": {
+      "appearance": "light",
+      "scale": "gray",
+      "step": 1
+    },
+    "ShouMapDirectory": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 12
+    },
+    "ShouMapUnknown": {
+      "appearance": "light",
+      "scale": "amber",
+      "step": 9
+    },
+    "ShouMapScript": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 9
+    },
+    "ShouMapLibrary": {
+      "appearance": "light",
+      "scale": "grass",
+      "step": 9
+    },
+    "ShouMapSqlite": {
+      "appearance": "light",
+      "scale": "violet",
+      "step": 9
+    },
+    "ShouMapBinary": {
+      "appearance": "light",
+      "scale": "pink",
+      "step": 9
+    },
+    "ShouMapDatabase": {
+      "appearance": "light",
+      "scale": "cyan",
+      "step": 9
+    },
+    "ShouMapJson": {
+      "appearance": "light",
+      "scale": "iris",
+      "step": 9
+    },
+    "ShouMapArchive": {
+      "appearance": "light",
+      "scale": "purple",
+      "step": 9
+    },
+    "ShouMapImage": {
+      "appearance": "light",
+      "scale": "lime",
+      "step": 9
+    },
+    "ShouMapDisk": {
+      "appearance": "light",
+      "scale": "red",
+      "step": 9
+    },
+    "ShouMapPackage": {
+      "appearance": "light",
+      "scale": "yellow",
+      "step": 9
+    },
+    "ShouMapSourceMap": {
+      "appearance": "light",
+      "scale": "brown",
+      "step": 9
+    },
+    "ShouMapTypeScript": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 9
+    },
+    "ShouMapGo": {
+      "appearance": "light",
+      "scale": "cyan",
+      "step": 9
+    },
+    "ShouMapPython": {
+      "appearance": "light",
+      "scale": "indigo",
+      "step": 9
+    },
+    "ShouMapNode": {
+      "appearance": "light",
+      "scale": "green",
+      "step": 9
+    },
+    "ShouMapWeb": {
+      "appearance": "light",
+      "scale": "orange",
+      "step": 9
+    },
+    "ShouMapData": {
+      "appearance": "light",
+      "scale": "sage",
+      "step": 9
+    },
+    "ShouSidebarSelection": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 4
+    },
+    "ShouSimpleMapBlue": {
+      "appearance": "light",
+      "scale": "blue",
+      "step": 9
+    },
+    "ShouSimpleMapGreen": {
+      "appearance": "light",
+      "scale": "grass",
+      "step": 9
+    },
+    "ShouSimpleMapPurple": {
+      "appearance": "light",
+      "scale": "purple",
+      "step": 9
+    },
+    "ShouSimpleMapOrange": {
+      "appearance": "light",
+      "scale": "orange",
+      "step": 9
+    },
+    "ShouSimpleMapTeal": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 9
+    },
+    "ShouSimpleMapRose": {
+      "appearance": "light",
+      "scale": "ruby",
+      "step": 9
+    },
+    "ShouDetailedMapBackground": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 1
+    },
+    "ShouShareBar": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 5
+    },
+    "ShouFolderIcon": {
+      "appearance": "light",
+      "scale": "blue",
+      "step": 9
+    },
+    "ShouArtworkMint": {
+      "appearance": "light",
+      "scale": "mint",
+      "step": 6
+    },
+    "ShouArtworkTeal": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 9
+    },
+    "ShouArtworkDeep": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 11
+    },
+    "ShouArtworkBlue": {
+      "appearance": "light",
+      "scale": "blue",
+      "step": 6
+    },
+    "ShouArtworkLilac": {
+      "appearance": "light",
+      "scale": "violet",
+      "step": 6
+    },
+    "ShouArtworkPaper": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 1
+    },
+    "ShouArtworkInk": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 12
+    },
+    "ShouActionStart": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 11
+    },
+    "ShouActionEnd": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 10
+    },
+    "ShouActionText": {
+      "appearance": "light",
+      "scale": "gray",
+      "step": 1
+    },
+    "ShouCanvasLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouCanvasDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouSidebarLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 3
+    },
+    "ShouSidebarDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 3
+    },
+    "ShouTitlebarLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouTitlebarDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouSurfaceLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 1
+    },
+    "ShouSurfaceDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 1
+    },
+    "ShouSettingsLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouSettingsDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouDividerLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 6
+    },
+    "ShouDividerDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 6
+    },
+    "ShouSwitchOffLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 5
+    },
+    "ShouSwitchOffDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 5
+    },
+    "ShouRuleBannerLight": {
+      "appearance": "light",
+      "scale": "amber",
+      "step": 3
+    },
+    "ShouRuleBannerDark": {
+      "appearance": "dark",
+      "scale": "amber",
+      "step": 3
+    },
+    "ShouTextLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 12
+    },
+    "ShouTextDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 12
+    },
+    "ShouTextSecondaryLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 11
+    },
+    "ShouTextSecondaryDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 11
+    },
+    "ShouNavHoverLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 3
+    },
+    "ShouNavHoverDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 3
+    },
+    "ShouNavSelectionLight": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 4
+    },
+    "ShouNavSelectionDark": {
+      "appearance": "dark",
+      "scale": "teal",
+      "step": 4
+    },
+    "ShouNavPillLight": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 9
+    },
+    "ShouNavPillDark": {
+      "appearance": "dark",
+      "scale": "teal",
+      "step": 9
+    },
+    "ShouLinkLight": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 11
+    },
+    "ShouLinkDark": {
+      "appearance": "dark",
+      "scale": "teal",
+      "step": 11
+    },
+    "ShouTableStripeLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouTableStripeDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 2
+    },
+    "ShouCleanupCategorySelectionLight": {
+      "appearance": "light",
+      "scale": "slate",
+      "step": 4
+    },
+    "ShouCleanupCategorySelectionDark": {
+      "appearance": "dark",
+      "scale": "slate",
+      "step": 4
+    },
+    "ShouHeroStartLight": {
+      "appearance": "light",
+      "scale": "teal",
+      "step": 2
+    },
+    "ShouHeroStartDark": {
+      "appearance": "dark",
+      "scale": "teal",
+      "step": 2
+    },
+    "ShouHeroEndLight": {
+      "appearance": "light",
+      "scale": "blue",
+      "step": 2
+    },
+    "ShouHeroEndDark": {
+      "appearance": "dark",
+      "scale": "blue",
+      "step": 2
+    },
+    "ShouSuccessLight": {
+      "appearance": "light",
+      "scale": "green",
+      "step": 11
+    },
+    "ShouSuccessDark": {
+      "appearance": "dark",
+      "scale": "green",
+      "step": 11
+    },
+    "ShouWarningLight": {
+      "appearance": "light",
+      "scale": "amber",
+      "step": 11
+    },
+    "ShouWarningDark": {
+      "appearance": "dark",
+      "scale": "amber",
+      "step": 11
+    },
+    "ShouDangerLight": {
+      "appearance": "light",
+      "scale": "red",
+      "step": 11
+    },
+    "ShouDangerDark": {
+      "appearance": "dark",
+      "scale": "red",
+      "step": 11
+    },
+    "ShouDangerFillLight": {
+      "appearance": "light",
+      "scale": "red",
+      "step": 9
+    },
+    "ShouDangerFillDark": {
+      "appearance": "dark",
+      "scale": "red",
+      "step": 9
+    }
+  }
+}

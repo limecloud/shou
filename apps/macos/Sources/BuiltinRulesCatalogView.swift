@@ -26,15 +26,15 @@ struct BuiltinRulesCatalogView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
-                Text(model.t("Built-in Rules")).font(.headline)
-                Text(String(templates.count + additionalRules.count)).font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                Text(model.t("Built-in Rules")).font(ShouType.body.weight(.semibold))
+                Text(String(templates.count + additionalRules.count)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).monospacedDigit()
                 Spacer(minLength: 12)
                 TextField(model.t("Search rules or paths"), text: $query)
                     .textFieldStyle(.roundedBorder).frame(maxWidth: 260)
                     .accessibilityIdentifier("rules.builtin.search")
             }
             Text(model.t("Built-in rules are included with Shou and automatically match supported scan locations. Select a location to manage the rules that apply there."))
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(templates) { template in
                     catalogRow(id: template.id, name: template.name, note: template.rebuildNote, limitation: template.limitation,
@@ -50,7 +50,7 @@ struct BuiltinRulesCatalogView: View {
                     ContentUnavailableView(model.t("No matching rules"), systemImage: "magnifyingglass")
                 }
             }
-            .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+            .background(ShouPalette.surface, in: RoundedRectangle(cornerRadius: 12))
         }
         .accessibilityIdentifier("rules.builtin.catalog")
     }
@@ -58,9 +58,9 @@ struct BuiltinRulesCatalogView: View {
     private func catalogRow(id: String, name: String, note: String, limitation: String, location: String, rule: CleanupRule?) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 12) {
-                Text(model.t(name)).font(.callout.weight(.medium))
+                Text(model.t(name)).font(ShouType.body.weight(.medium))
                 Spacer(minLength: 8)
-                Text(location).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                Text(location).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle)
                 if let rule, model.workspace != nil {
                     Toggle(model.t(name), isOn: Binding(
                         get: { !model.configuration.bindings.contains { $0.workspaceId == model.workspaceId && $0.ruleId == id && !$0.enabled } },
@@ -69,8 +69,8 @@ struct BuiltinRulesCatalogView: View {
                         .accessibilityIdentifier("rules.builtin.toggle." + id)
                 }
             }
-            Text(model.t(note)).font(.callout).foregroundStyle(.secondary)
-            Text(model.t(limitation)).font(.caption).foregroundStyle(.secondary)
+            Text(model.t(note)).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+            Text(model.t(limitation)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain).accessibilityIdentifier("rules.builtin." + id)
     }

@@ -2,13 +2,25 @@
   "version": 1,
   "dependencies": {
     "net10.0-windows10.0.22000": {
+      "Microsoft.Windows.CsWinRT": {
+        "type": "Transitive",
+        "resolved": "2.2.0",
+        "contentHash": "R8MDVawukHrKgYCFgYaoLfbAna/FrImEFRxDK9k8ITbrXv3KLE5uN6tRqrNV83H4MFdqJ/uiA/hg1cSsXkl0vw=="
+      },
+      "Microsoft.WindowsPackageManager.ComInterop": {
+        "type": "Transitive",
+        "resolved": "1.10.340",
+        "contentHash": "iNWZhSuGh33/BHK0v0g19LShBMuWYqeLnjjTCLd76txXcXa8vHOZRZ70FVo+2icl1k8dw3rSW7vB4lt5lbu94g=="
+      },
       "shou.windows.core": {
         "type": "Project"
       },
       "shou.windows.platform": {
         "type": "Project",
         "dependencies": {
-          "Shou.Windows.Core": "[1.0.0, )"
+          "Microsoft.Windows.CsWinRT": "[2.2.0, )",
+          "Microsoft.WindowsPackageManager.ComInterop": "[1.10.340, )",
+          "Shou.Windows.Core": "[0.17.0, )"
         }
       }
     },

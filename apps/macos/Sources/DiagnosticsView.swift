@@ -26,16 +26,16 @@ struct DiagnosticsView: View {
                         ForEach(report.checks) { check in
                             HStack(alignment: .top, spacing: ShouDesign.sectionSpacing) {
                                 Image(systemName: check.state == .normal ? "checkmark.circle" : check.state == .unknown ? "questionmark.circle" : "info.circle")
-                                    .font(.title2).foregroundStyle(check.state == .attention ? Color.orange : Color.accentColor)
+                                    .font(ShouType.title).foregroundStyle(check.state == .attention ? ShouPalette.warning : ShouPalette.accent)
                                     .accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: ShouDesign.itemSpacing) {
                                     HStack {
                                         Text(model.t(check.title)).font(.system(size: ShouDesign.bodyFontSize, weight: .semibold))
                                         Spacer()
-                                        Text(model.t(check.state.title)).font(.callout).foregroundStyle(.secondary)
+                                        Text(model.t(check.state.title)).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                                     }
-                                    Text(model.t(check.explanation)).font(.callout)
-                                    if let step=check.nextStep { Text(model.t(step)).font(.callout).foregroundStyle(.secondary) }
+                                    Text(model.t(check.explanation)).font(ShouType.body)
+                                    if let step=check.nextStep { Text(model.t(step)).font(ShouType.body).foregroundStyle(ShouPalette.secondary) }
                                     if check.id == "disk_access" && check.state != .normal && check.state != .notApplicable {
                                         Button(model.t("Setup Guide…")) { showingSetup=true }
                                     }
@@ -44,11 +44,11 @@ struct DiagnosticsView: View {
                             Divider()
                         }
                         DisclosureGroup(model.t("Preview Report"), isExpanded: $showingReport) {
-                            Text(report.text(locale: model.language.rawValue)).font(.system(.callout, design: .monospaced))
+                            Text(report.text(locale: model.language.rawValue)).font(ShouType.body.monospaced())
                                 .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                         }
                         Text(model.t("This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded."))
-                            .font(.callout).foregroundStyle(.secondary)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     }.padding(.horizontal, ShouDesign.workspaceInset)
                 }
             } else if let issue {

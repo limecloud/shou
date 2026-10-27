@@ -15,7 +15,7 @@ struct ApplicationUpdateRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Label(model.t("Application Updates"), systemImage: "arrow.down.app").font(.callout.weight(.medium))
+                Label(model.t("Application Updates"), systemImage: "arrow.down.app").font(ShouType.body.weight(.medium))
                 Spacer()
                 if source != nil {
                     if loading {
@@ -29,18 +29,18 @@ struct ApplicationUpdateRow: View {
             }
             if let source {
                 Text(model.t("Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded."))
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                 if let result {
                     HStack(alignment: .top, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(model.t(title(result.state))).font(.callout)
-                                .foregroundStyle(result.state == .unknown ? Color.orange : .primary)
+                            Text(model.t(title(result.state))).font(ShouType.body)
+                                .foregroundStyle(result.state == .unknown ? ShouPalette.warning : ShouPalette.text)
                             if let version=result.catalogVersion {
-                                Text(model.t("Catalog Version") + ": " + version).font(.caption).monospacedDigit()
+                                Text(model.t("Catalog Version") + ": " + version).font(ShouType.caption).monospacedDigit()
                             }
-                            Text(model.date(result.observedAt)).font(.caption).foregroundStyle(.secondary)
+                            Text(model.date(result.observedAt)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                             if let reason=result.issues.first {
-                                Text(model.t(reasonTitle(reason))).font(.caption).foregroundStyle(.secondary)
+                                Text(model.t(reasonTitle(reason))).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -52,12 +52,12 @@ struct ApplicationUpdateRow: View {
                         }
                     }.accessibilityIdentifier("applications.update.result")
                     Text(model.t("Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates."))
-                        .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                 }
-                if let failure { Text(model.t(failure)).font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true) }
+                if let failure { Text(model.t(failure)).font(ShouType.caption).foregroundStyle(ShouPalette.warning).fixedSize(horizontal: false, vertical: true) }
             } else {
                 Text(model.t("No supported catalog source for this application. Check for updates in the app."))
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 8)

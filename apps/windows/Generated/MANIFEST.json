@@ -6,7 +6,7 @@
   ],
   "location_count": 23,
   "outputs": {
-    "Design.xaml": "7902dc989612f1eda64927e663ea678201e2ba57bdeee22bf108f9b319e6ba57",
+    "Design.xaml": "24e0e7aa785e64e310ef8d69bf00683b3f859257df9f729c65e9bf3f64909efe",
     "Illustrations/applications.png": "4786dab7178003b2d452262737ebce740198d93d53c2d8161bfbf162937177cb",
     "Illustrations/brand-icon.png": "55e9ce599fe9ab2e31713c311bf5e50c0a52a9d5614d3eabcb60a9c6b9bcfbc2",
     "Illustrations/brand-mascot.png": "e64334f676d8d32a19352370985e2690a7be04381078ca94a3565d1ebddb0da3",
@@ -20,11 +20,12 @@
     "Illustrations/space.png": "77283c2fec7883d4c0bb0897877927f6932af4d5592152634db620930f892418",
     "Illustrations/startup.png": "037e1ec9b918d877870b60a6632447aedc19b7af8acdd8a35259f0c0a9001542",
     "Shou.ico": "8f9f53edbf8f5d4fb16ae4563455f3f8e567242740a09c1fa9840762e2bb5cbf",
-    "Strings/en-US/Resources.resw": "f02586c4b984ef89eb501935d98ef9028cd67c001ccb6b75d582f15a2df7c483",
-    "Strings/zh-CN/Resources.resw": "d93fe6c4430a74a301c6acbd4c190a42ac9f95913930eeb54402ab6ea0619adf",
-    "Text.en-US.json": "609c2f3f50990df0da382d00f7d3695978ae9276097cc87cb8ab7a48c2424a84",
-    "Text.zh-CN.json": "f4fbcd1a0e49e718cf2a2779cef2c9737a0f27905b1e6790a8326d2982e5dc54",
+    "Strings/en-US/Resources.resw": "b088601c5e2330874be7d134b3b5b458be2d81df7dc485c584b9c8f2c0beebac",
+    "Strings/zh-CN/Resources.resw": "6fd97af2a0d18d226849205774192670a4018515ab2924f91179fa5fc8bf1d8d",
+    "Text.en-US.json": "91758d4d217599bb2453576485ab8d57e62ce55be425796fde9ae5955f5c99a1",
+    "Text.zh-CN.json": "fb99e5615e8c13d8808c38566d97c03343d5b583318de3e1716358c64ecafd68",
     "builtin-rules.json": "4ede840982abb5584ff77eb51d6792450ed4b7380c9a30ba549c8cb03a894982",
+    "developer-tools.json": "7a7f2bcaaf81292fb988f7f3caacfbc31d297237e92fdfdb24a31a4588f36126",
     "known-locations.json": "e2ff07ea8055b22a884b4563ee15d87efd4fb06231ffcf3f4c26039d982e260b",
     "project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
     "rule.schema.json": "be7cc8bd28e1f18fa0be08c5afeb04a3b7b344407bd013efd91ac0cfe05ff2c3"
@@ -48,13 +49,15 @@
     "assets/design/illustrations/settings.png": "cbdef3510bf3c57c4986abfeaeba77d86e5e39405528cc2e0c6276ef5287d970",
     "assets/design/illustrations/space.png": "77283c2fec7883d4c0bb0897877927f6932af4d5592152634db620930f892418",
     "assets/design/illustrations/startup.png": "037e1ec9b918d877870b60a6632447aedc19b7af8acdd8a35259f0c0a9001542",
-    "assets/design/tokens.json": "64aabd8173ae04c70cc291d3411df7fb1b64e51b00ac761095c55ecb203fdbbd",
+    "assets/design/radix-colors.json": "ed838d7117d619e55246ff6a01c5823b371f36d30da14bee62c068176269493f",
+    "assets/design/tokens.json": "4571ac66463d78a0e1db9c0b3027405a1e04b91ae0b850e0c94c457e04e23190",
     "packages/shou-contracts/rule.schema.json": "be7cc8bd28e1f18fa0be08c5afeb04a3b7b344407bd013efd91ac0cfe05ff2c3",
-    "packages/shou-core/Localizable.xcstrings": "904e52325345fc6b3c40fd84781edb3e8ccacacc621c286e47d2680b5efa1a80",
+    "packages/shou-core/Localizable.xcstrings": "00f1845073535216bba48b0cc9f05d8ad855125da8e7997e25b2c6749bc0e4f0",
     "packages/shou-core/Sources/Resources/builtin-rules.json": "86eda3953e5d3eea976d2f99a5cd73a4b2f5fc9f2743e924d8baf6f1ef0a86e3",
+    "packages/shou-core/Sources/Resources/developer-tools.json": "7a7f2bcaaf81292fb988f7f3caacfbc31d297237e92fdfdb24a31a4588f36126",
     "packages/shou-core/Sources/Resources/known-locations.json": "c338241a1e5d6844436df579336da76f5dd8575d77b9f2e3d2b9de3d722d8d16",
     "packages/shou-core/Sources/Resources/project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
-    "scripts/design_tokens.py": "f8f6b25c80ba7d46801d9a26788db1d0181325126d54744af4f493f4e3042363",
-    "scripts/generate-windows-resources.py": "7dfcc233c29daca200913d28c7a0a5106394f353c78bf8f073e2fb89bd23e458"
+    "scripts/design_tokens.py": "11d241040b7de842105cda2e13a09607fc2fd9ea5b76b2b56be29c1b66e71365",
+    "scripts/generate-windows-resources.py": "67103169297603a5cc05c155f865e2d8a5ddf99883963ea12c2f24cdda14b450"
   }
 }

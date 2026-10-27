@@ -43,8 +43,8 @@ public sealed partial class StoragePageView
             }
             if (row is not null)
             {
-                AutomationProperties.SetName(body, label + " · " + row.DisplaySize);
-                ToolTipService.SetToolTip(body, row.Path.Value + " · " + row.DisplaySize);
+                AutomationProperties.SetName(body, label + ", " + row.DisplaySize);
+                ToolTipService.SetToolTip(body, row.Path.Value + ", " + row.DisplaySize);
                 body.Tapped += (_, args) => { Inspect(row); args.Handled = true; };
                 body.DoubleTapped += (_, args) => { if (row.IsDirectory) OpenDirectory(row.Path); args.Handled = true; };
                 if (!detailed && tile.Width > 65 && tile.Height > 42 && selection?.CanSelect(row) == true)

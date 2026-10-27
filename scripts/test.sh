@@ -15,6 +15,7 @@ cd "$TASK_ROOT"
 python3 "scripts/update-localizations.py" --check
 python3 "scripts/generate-windows-resources.py" --check
 python3 "tests/design/test-design-tokens.py"
+python3 "tests/test-update-notes.py"
 python3 "scripts/verify-rule-catalog.py" --self-test
 python3 "scripts/verify-docs.py"
 swift build --jobs 4

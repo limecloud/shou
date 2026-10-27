@@ -9,6 +9,7 @@
 - [平台边界](docs/zh-CN/architecture/monorepo-and-platforms.md)
 - [清理安全](docs/zh-CN/security/cleanup-safety.md)
 - 界面设计与重构使用本仓库技能 [shou-native-design](.agents/skills/shou-native-design/SKILL.md)，以[原生界面设计](docs/zh-CN/engineering/interface-design.md)为当前布局事实源。旧截图和历史对齐记录不能约束用户已要求替换的新设计。
+- 开发者工具与 AI 工作台另读[全量能力与领域边界](docs/zh-CN/engineering/developer-tool-capability-map.md)和[逐软件适配](docs/zh-CN/engineering/developer-tool-adapters.md)。已有软件适配不代表完整范围；专属功能必须按当前源码及实际能力逐项核实。
 - Windows 工作另读[原生实施方案](docs/zh-CN/engineering/windows-native-plan.md)与 [SYNC.md](SYNC.md)。
 - 远程 Windows 验收与云电脑费用管理使用仓库技能 [shou-windows-cloud-test](.agents/skills/shou-windows-cloud-test/SKILL.md)；本地开发期间保持云电脑关机，准备好后集中开机验收。
 
@@ -20,6 +21,7 @@
 - Core 声明小型能力接口，Platform 实现；UI 不承载匹配、权限或删除策略。
 - 文案、规则和设计资源使用唯一来源和确定性生成器，不手工修改生成副本。
 - 设计值仅修改 `assets/design/tokens.json`；资源生成器同时维护 Windows XAML 与 `apps/macos/Sources/ShouDesign.generated.swift`，均由 `--check` 校验。
+- 界面变更同时修复受影响的既有页面，遵循[界面风格基线](docs/zh-CN/engineering/interface-design.md#界面风格基线)：Radix 语义颜色、最小 12 的三档文字、0.5 边线、简洁文案及单次审阅。不得恢复中点分隔、冗余眉题和重复说明。
 - 不增加未被当前功能需要的抽象、兼容层或迁移工程。
 - `.agents/skills/` 中的技能仅服务本仓库，不安装到用户全局目录，不修改其他项目的技能或规范。
 

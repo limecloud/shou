@@ -189,7 +189,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             CoverageNotice.IsOpen = model.State == CleanupReviewState.Partial || !issues.IsEmpty;
             CoverageDetailsButton.Visibility = CoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
             CoverageNotice.Message = text.Get("Some locations could not be read. Sizes show only measured data.") + (issues.IsEmpty ? "" : "\n" +
-                string.Join("\n", issues.Take(20).Select(issue => issue.Path.Value + " · " + ReviewText.Error(text, issue.Code))));
+                string.Join("\n", issues.Take(20).Select(issue => issue.Path.Value + ", " + ReviewText.Error(text, issue.Code))));
             StartCoverageNotice.IsOpen = !activity && !results && !issues.IsEmpty;
             StartCoverageNotice.Message = CoverageNotice.Message;
             ScanState.Text = text.Get(model.Batch?.State == "complete" || model.Batch is null && model.Snapshot?.Scan.IsComplete == true ? "Scan Complete" : "Partial Scan");
@@ -216,7 +216,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             CategoryCount.Text = text.Format("%lld items", model.FilteredGroupCount);
             CategoryMetrics.Text = StorageRow.FormatBytes(model.FilteredSelectedBytes) + " / " + StorageRow.FormatBytes(model.FilteredAllocatedBytes);
             var groups = new[] { new CleanupFilterDisplay(null, text.Get("All Rules")) }.Concat(model.Groups.Select(group =>
-                new CleanupFilterDisplay(group.RuleId, text.Get(group.Name) + " · " + text.Format("%lld of %lld selected", group.SelectedCount, group.SelectableCount)))).ToArray();
+                new CleanupFilterDisplay(group.RuleId, text.Get(group.Name) + ", " + text.Format("%lld of %lld selected", group.SelectedCount, group.SelectableCount)))).ToArray();
             RuleFilter.ItemsSource = groups;
             RuleFilter.SelectedItem = groups.FirstOrDefault(value => value.Id == model.RuleId) ?? groups[0];
             if (SearchFilter.Text != model.Search) SearchFilter.Text = model.Search;
@@ -251,8 +251,8 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
                 StartStatus.Text = stage + " " + Status.Text + "\n" + text.Format("Diagnostic reference: %@", model.DiagnosticReference ?? "");
             }
             var displays = model.Rows.Select(row => new CleanupCandidateDisplay(row,
-                CategoryTitle(row.Category) + " · " + text.Get(row.RuleName),
-                !row.Candidate.BlockedReasons.IsEmpty ? string.Join(" · ", row.Candidate.BlockedReasons.Select(reason => ReviewText.BlockedReason(text, reason))) :
+                CategoryTitle(row.Category) + ", " + text.Get(row.RuleName),
+                !row.Candidate.BlockedReasons.IsEmpty ? string.Join(", ", row.Candidate.BlockedReasons.Select(reason => ReviewText.BlockedReason(text, reason))) :
                 row.Selectable ? text.Get(row.Candidate.Risk == "high" ? "High Risk" : row.Recommended ? "Recommended" : "Review") :
                     text.Get("The scan or settings changed. Scan again before reviewing."))).ToArray();
             var displaysById = displays.ToDictionary(row => row.Id, StringComparer.Ordinal);
@@ -340,7 +340,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     private CleanupCategoryDisplay CategoryRow(string id, string title, int count, int selectable, int selected, long bytes, long selectedBytes, bool canToggle)
     {
         var state = selectable == 0 || selected == 0 ? false : selected == selectable ? (bool?)true : null;
-        return new(id, title, StorageRow.FormatBytes(bytes) + " · " + text.Format("%lld items", count),
+        return new(id, title, StorageRow.FormatBytes(bytes) + ", " + text.Format("%lld items", count),
             selected == 0 ? "" : text.Get("Selected") + " " + StorageRow.FormatBytes(selectedBytes),
             selected == 0 ? Visibility.Collapsed : Visibility.Visible, state, canToggle && selectable > 0, CategoryIcon(id));
     }
@@ -482,7 +482,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             foreach (var item in result.Items)
             {
                 var path = execution.AttemptedPlan!.Items.Single(target => target.Id == item.ItemId).Path.Value;
-                lines.Add(path + " · " + ReviewText.ItemState(text, item.State) + (item.Reason is null ? "" : " · " + ReviewText.Error(text, item.Reason)));
+                lines.Add(path + ", " + ReviewText.ItemState(text, item.State) + (item.Reason is null ? "" : ", " + ReviewText.Error(text, item.Reason)));
             }
         }
         else if (execution.AttemptedPlan is not null)
@@ -552,7 +552,7 @@ public sealed class CleanupRuleDisplay(string id, string title, bool? selection,
     string selectedSize, Visibility selectedVisibility, string notice, string path = "")
 {
     public string Id { get; } = id; public string Title { get; } = title;
-    public string SelectionLabel => (string.IsNullOrEmpty(Path) ? Title : Path) + " · " + Count;
+    public string SelectionLabel => (string.IsNullOrEmpty(Path) ? Title : Path) + ", " + Count;
     public bool? Selection { get; } = selection; public bool CanToggle { get; } = canToggle;
     public CleanupCandidateDisplay[] Items { get; } = items;
     public string Count { get; } = count; public string Size { get; } = size;

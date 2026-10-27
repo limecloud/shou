@@ -85,8 +85,8 @@ struct SetupView: View {
             HStack(spacing: 16) {
                 Image(nsImage: AppIdentity.icon).resizable().frame(width: 64, height: 64)
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(model.t("A little setup. More room to breathe.")).font(.title2.bold())
-                    Text(model.t("Set up Shou once, then get straight to cleaning.")).foregroundStyle(.secondary)
+                    Text(model.t("A little setup. More room to breathe.")).font(ShouType.title.bold())
+                    Text(model.t("Set up Shou once, then get straight to cleaning.")).foregroundStyle(ShouPalette.secondary)
                 }
             }
             GroupBox {
@@ -101,7 +101,7 @@ struct SetupView: View {
                     step(2, title: "Enable complete scanning", symbol: access.needsAccess ? "internaldrive" : "checkmark.circle.fill") {
                         Text(model.t("Full Disk Access lets Shou measure protected app data and caches, and avoids repeated macOS app-data prompts. It does not start cleanup."))
                         Label(model.t(access.statusTitle), systemImage: access.needsAccess ? "info.circle" : "checkmark.circle.fill")
-                            .foregroundStyle(access.needsAccess ? Color.secondary : Color.green)
+                            .foregroundStyle(access.needsAccess ? ShouPalette.secondary : ShouPalette.success)
                             .accessibilityIdentifier("setup.disk-access-status")
                         if access.needsAccess {
                             Text(model.t("Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks."))
@@ -116,30 +116,30 @@ struct SetupView: View {
                         }
                     }
                     Divider()
-                    step(3, title: "Terminal and AI agents · optional", symbol: "terminal") {
+                    step(3, title: "Terminal and AI agents, optional", symbol: "terminal") {
                         Text(model.t("Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed."))
                         HStack {
                             Button(model.t("Install CLI Command")) { access.installCLI(model: model) }
                                 .disabled(!access.isInstalled).accessibilityIdentifier("setup.install-cli")
-                            Text("~/.local/bin/shou").font(.caption.monospaced()).foregroundStyle(.secondary)
+                            Text("~/.local/bin/shou").font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary)
                         }
                         if let message=access.cliMessage {
-                            Text(model.t("CLI installed. If shou is not on PATH, use the full path shown below.")).foregroundStyle(.green)
-                            Text(message + " --help").font(.caption.monospaced()).textSelection(.enabled)
+                            Text(model.t("CLI installed. If shou is not on PATH, use the full path shown below.")).foregroundStyle(ShouPalette.success)
+                            Text(message + " --help").font(ShouType.caption.monospaced()).textSelection(.enabled)
                         }
                     }
                 }.padding(14)
             }
             DisclosureGroup(model.t("After an update")) {
                 Text(model.t("macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou."))
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).padding(.top, 6)
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true).padding(.top, 6)
             }
             if let error=access.setupError {
-                Text(model.diagnostic(error)).font(.callout).foregroundStyle(.red)
+                Text(model.diagnostic(error)).font(ShouType.body).foregroundStyle(ShouPalette.danger)
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack {
-                Text(model.t("You can revisit this guide in Settings.")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("You can revisit this guide in Settings.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 Spacer()
                 Button(model.t(access.needsAccess ? "Continue with Accessible Folders" : "Start Using Shou")) { access.finish(); dismiss() }
                     .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
@@ -153,11 +153,11 @@ struct SetupView: View {
     }
     private func step<Content: View>(_ number: Int, title: String, symbol: String, @ViewBuilder content: () -> Content) -> some View {
         HStack(alignment: .top, spacing: 14) {
-            Text(String(number)).font(.callout.bold()).frame(width: 25, height: 25)
-                .background(Color.accentColor.opacity(0.1), in: Circle()).foregroundStyle(Color.accentColor)
+            Text(String(number)).font(ShouType.body.bold()).frame(width: 25, height: 25)
+                .background(ShouPalette.accent.opacity(0.1), in: Circle()).foregroundStyle(ShouPalette.accent)
             VStack(alignment: .leading, spacing: 9) {
-                Label(model.t(title), systemImage: symbol).font(.headline)
-                content().font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Label(model.t(title), systemImage: symbol).font(ShouType.body.weight(.semibold))
+                content().font(ShouType.body).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, alignment: .leading)
         }
     }
@@ -168,8 +168,8 @@ struct ScanAccessBanner: View {
     var body: some View {
         if model.scanAccess.needsAccess {
             HStack(spacing: 10) {
-                Image(systemName: "internaldrive.badge.exclamationmark").foregroundStyle(.orange)
-                Text(model.t("Protected app data needs Full Disk Access for complete scanning.")).font(.caption)
+                Image(systemName: "internaldrive.badge.exclamationmark").foregroundStyle(ShouPalette.warning)
+                Text(model.t("Protected app data needs Full Disk Access for complete scanning.")).font(ShouType.caption)
                 Spacer()
                 Button(model.t("Finish Setup…")) { model.scanAccess.showingSetup=true }
                     .controlSize(.small).disabled(model.busy).accessibilityIdentifier("scan.finish-setup")

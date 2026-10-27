@@ -4,8 +4,14 @@
     <SupportedOSPlatformVersion>10.0.22000.0</SupportedOSPlatformVersion>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- The pinned WinGet package already contains its C#/WinRT projection. -->
+    <CsWinRTGenerateProjection>false</CsWinRTGenerateProjection>
+    <CsWinRTIIDOptimizerOptOut Condition="'$(OS)' != 'Windows_NT'">true</CsWinRTIIDOptimizerOptOut>
+    <MicrosoftManagementDeployment-FactoryLinkage Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' != 'x64' and '$(Platform)' != 'ARM64'">none</MicrosoftManagementDeployment-FactoryLinkage>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsPackageManager.ComInterop" Version="1.10.340" />
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
     <InternalsVisibleTo Include="Shou.Windows.Platform.Tests" />
     <ProjectReference Include="../Shou.Windows.Core/Shou.Windows.Core.csproj" />
     <EmbeddedResource Include="../../Generated/*.json" LogicalName="Shou.Windows.Resources.%(Filename)%(Extension)" WithCulture="false" />

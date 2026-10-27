@@ -8,7 +8,9 @@ struct WorkspaceNavigation: View {
     private var compact: Bool {
         switch model.section {
         case "smart", "projects": model.systemResult != nil || model.scanning
-        case "applications": model.applicationsSession.catalog != nil || !model.applicationsSession.items.isEmpty || model.applicationsSession.scanning
+        case "applications": model.packageUpdates.source == "applications"
+            ? model.applicationsSession.catalog != nil || !model.applicationsSession.items.isEmpty || model.applicationsSession.scanning
+            : model.packageUpdates.loading || model.packageUpdates.inventory != nil || !model.packageUpdates.results.isEmpty
         case "startup": model.startupInventory != nil || model.startupLoading
         case "storage": model.space.scan != nil || model.space.scanning
         case "large-files": model.largeFiles.storage.scan != nil || model.largeFiles.storage.scanning
@@ -20,6 +22,7 @@ struct WorkspaceNavigation: View {
     private var family: String {
         switch model.section {
         case "applications", "projects", "startup": "applications"
+        case "developer-tools", "ai-tools": "tools"
         case "storage", "large-files": "storage"
         case "rules": "rules"
         case "privacy", "smart", "overview": "smart"
@@ -33,6 +36,7 @@ struct WorkspaceNavigation: View {
                 HStack(spacing: 6) {
                     navigation("smart", "Cleanup", "sparkle.magnifyingglass")
                     navigation("applications", "Apps & Projects", "square.stack.3d.up")
+                    navigation("tools", "Tools", "hammer")
                     navigation("storage", "Space Analysis", "square.grid.2x2")
                     navigation("monitor", "Monitor", "waveform.path.ecg")
                     navigation("rules", "Rules", "slider.horizontal.3")
@@ -49,7 +53,7 @@ struct WorkspaceNavigation: View {
             .frame(height: compact ? ShouDesign.workspaceCompactHeaderHeight : ShouDesign.workspaceHeaderHeight)
             .disabled(model.busy)
 
-            if ["smart", "applications", "storage"].contains(family) {
+            if ["smart", "applications", "storage", "tools"].contains(family) {
                 HStack(spacing: 22) {
                     switch family {
                     case "applications":
@@ -59,6 +63,9 @@ struct WorkspaceNavigation: View {
                     case "storage":
                         subsection("storage", "Space Analysis")
                         subsection("large-files", "Large Files")
+                    case "tools":
+                        subsection("developer-tools", "Developer Tools")
+                        subsection("ai-tools", "AI Workbench")
                     default:
                         subsection("smart", "Smart Cleanup")
                         subsection("privacy", "Privacy")
@@ -69,7 +76,7 @@ struct WorkspaceNavigation: View {
                 .padding(.bottom, compact ? 6 : 14)
                 .disabled(model.busy)
             }
-            Divider().opacity(0.5)
+            ShouDivider()
         }
     }
 
@@ -78,8 +85,8 @@ struct WorkspaceNavigation: View {
             Label(model.t(title), systemImage: symbol)
                 .font(.system(size: ShouDesign.bodyFontSize, weight: .medium))
                 .padding(.horizontal, 14).padding(.vertical, compact ? 6 : 10)
-                .foregroundStyle(family == id ? Color.accentColor : Color.secondary)
-                .background(family == id ? Color.accentColor.opacity(0.10) : .clear, in: Capsule())
+                .foregroundStyle(family == id ? ShouPalette.accent : ShouPalette.secondary)
+                .background(family == id ? ShouPalette.selection : .clear, in: Capsule())
         }
         .buttonStyle(.plain).accessibilityAddTraits(family == id ? .isSelected : [])
         .accessibilityIdentifier("navigation." + id)
@@ -87,11 +94,11 @@ struct WorkspaceNavigation: View {
 
     private func subsection(_ id: String, _ title: String) -> some View {
         Button { open(id) } label: {
-            Text(model.t(title)).font(.callout.weight(model.section == id ? .medium : .regular))
-                .foregroundStyle(model.section == id ? Color.primary : Color.secondary)
+            Text(model.t(title)).font(ShouType.body.weight(model.section == id ? .medium : .regular))
+                .foregroundStyle(model.section == id ? ShouPalette.text : ShouPalette.secondary)
                 .padding(.vertical, 5)
                 .overlay(alignment: .bottom) {
-                    if model.section == id { Capsule().fill(Color.accentColor).frame(height: 2).offset(y: 7) }
+                    if model.section == id { Capsule().fill(ShouPalette.accent).frame(height: 2).offset(y: 7) }
                 }
         }
         .buttonStyle(.plain).accessibilityAddTraits(model.section == id ? .isSelected : [])
@@ -101,7 +108,7 @@ struct WorkspaceNavigation: View {
     private func open(_ section: String) {
         guard !model.busy else { return }
         model.completion=nil; model.toolCompletion=nil
-        model.section=section
+        model.section=section == "tools" ? "developer-tools" : section
     }
 }
 
@@ -113,7 +120,7 @@ struct WorkspaceHeading: View {
         HStack(spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title).font(.system(size: ShouDesign.summaryFigureSize, weight: .medium))
-                if !subtitle.isEmpty { Text(subtitle).font(.callout).foregroundStyle(.secondary) }
+                if !subtitle.isEmpty { Text(subtitle).font(ShouType.body).foregroundStyle(ShouPalette.secondary) }
             }
             Spacer(minLength: 0)
             if let artwork { WorkspacePageArtwork(kind: artwork).frame(width: 84, height: 56) }
@@ -127,6 +134,6 @@ struct WorkspaceSurface: ViewModifier {
     @Environment(\.colorScheme) private var scheme
     @Environment(\.colorSchemeContrast) private var contrast
     func body(content: Content) -> some View {
-        content.background((scheme == .dark ? ShouDesign.surfaceDark : ShouDesign.surfaceLight).opacity(contrast == .increased ? 1 : 0.88), in: RoundedRectangle(cornerRadius: ShouDesign.cardRadius))
+        content.background(scheme == .dark ? ShouDesign.surfaceDark : ShouDesign.surfaceLight, in: RoundedRectangle(cornerRadius: ShouDesign.cardRadius))
     }
 }

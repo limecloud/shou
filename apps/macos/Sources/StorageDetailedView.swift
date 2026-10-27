@@ -10,7 +10,7 @@ struct StorageDetailedView: View {
                 HSplitView {
                     VStack(spacing: 0) {
                         HStack(spacing: 6) {
-                            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                            Image(systemName: "magnifyingglass").foregroundStyle(ShouPalette.secondary)
                             TextField(model.t("Filter this folder"), text: $session.query).textFieldStyle(.plain)
                             Picker(model.t("Sort"), selection: $session.sort) {
                                 Text(model.t("Size")).tag("size")
@@ -18,18 +18,18 @@ struct StorageDetailedView: View {
                                 Text(model.t("Files")).tag("count")
                             }.labelsHidden().frame(width: 70)
                             Button(model.t("Select All in This Folder")) { session.selectVisible(app: model) }.disabled(model.busy)
-                        }.font(.system(size: 11)).controlSize(.small).padding(.horizontal, 8).frame(height: 29).background(.bar)
+                        }.font(.system(size: ShouDesign.captionFontSize)).controlSize(.small).padding(.horizontal, 8).frame(height: 29).background(.bar)
                         StorageDirectoryOutline(session: session, model: model)
                     }.frame(minWidth: 340, maxWidth: .infinity)
                     VStack(alignment: .leading, spacing: 0) {
                         HStack {
-                            Text(model.t("File Extensions")).font(.system(size: 11, weight: .semibold))
+                            Text(model.t("File Extensions")).font(.system(size: ShouDesign.captionFontSize, weight: .semibold))
                             Spacer()
                             if session.extensionFilter != nil { Button(model.t("Clear")) { session.extensionFilter=nil }.buttonStyle(.borderless) }
                         }.padding(.horizontal, 8).frame(height: 29).background(.bar)
                         StorageExtensionTable(session: session, model: model)
                         if session.hasChanges {
-                            Text(model.t("Refresh to update extension totals after cleanup.")).font(.caption2).foregroundStyle(.secondary).padding(4)
+                            Text(model.t("Refresh to update extension totals after cleanup.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(4)
                         }
                     }.frame(minWidth: 285, idealWidth: 360, maxWidth: 520)
                 }.frame(minHeight: 160)
@@ -39,24 +39,41 @@ struct StorageDetailedView: View {
                         Text(session.focus.flatMap { session.index.nodes[$0]?.name } ?? model.t("Measured Space")).lineLimit(1).truncationMode(.middle)
                         Spacer()
                         Text(model.bytes(session.index.nodes[session.focus ?? session.path]?.allocatedBytes ?? 0)).monospacedDigit()
-                    }.font(.system(size: 10)).foregroundStyle(.secondary).padding(.horizontal, 8).frame(height: 22).background(.bar)
+                    }.font(.system(size: ShouDesign.captionFontSize)).foregroundStyle(ShouPalette.secondary).padding(.horizontal, 8).frame(height: 22).background(.bar)
                     StorageNestedMap(session: session, model: model)
                     HStack {
                         Text(model.t("Click to inspect. Double-click a folder to open it."))
                         Spacer()
                         Text(model.t("Colors indicate extensions, not cleanup eligibility."))
-                    }.font(.system(size: 9)).foregroundStyle(.secondary).padding(.horizontal, 8).frame(height: 20)
+                    }.font(.system(size: ShouDesign.captionFontSize)).foregroundStyle(ShouPalette.secondary).padding(.horizontal, 8).frame(height: 20)
                 }.frame(minHeight: 160, maxHeight: .infinity)
         }.overlay { if session.loadingPresentation { ProgressView().controlSize(.large).allowsHitTesting(false) } }
     }
 }
 
-func storageExtensionColor(_ suffix: String, brightness: Double = 1) -> Color {
-    let hex=StorageMapPalette.hex(forExtension: suffix)
-    let rgb=UInt32(hex.dropFirst(), radix: 16) ?? 0
-    return Color(red: min(1, Double((rgb >> 16) & 255)/255 * brightness),
-                 green: min(1, Double((rgb >> 8) & 255)/255 * brightness),
-                 blue: min(1, Double(rgb & 255)/255 * brightness))
+func storageExtensionColor(_ suffix: String) -> Color {
+    switch suffix.lowercased() {
+    case "": ShouDesign.mapUnknown
+    case "js", "mjs", "cjs": ShouDesign.mapScript
+    case "dylib", "so", "dll": ShouDesign.mapLibrary
+    case "sqlite", "sqlite3": ShouDesign.mapSqlite
+    case "bin": ShouDesign.mapBinary
+    case "db": ShouDesign.mapDatabase
+    case "json": ShouDesign.mapJson
+    case "zip", "gz", "xz", "zst", "7z", "rar": ShouDesign.mapArchive
+    case "dmg", "iso": ShouDesign.mapDisk
+    case "png", "jpg", "jpeg", "webp", "heic": ShouDesign.mapImage
+    case "pack", "pak": ShouDesign.mapPackage
+    case "map": ShouDesign.mapSourceMap
+    case "o", "rlib", "a": ShouDesign.mapSurface
+    case "ts", "tsx": ShouDesign.mapTypeScript
+    case "go": ShouDesign.mapGo
+    case "py", "pyc": ShouDesign.mapPython
+    case "node": ShouDesign.mapNode
+    case "html", "css": ShouDesign.mapWeb
+    case "log", "dat", "asar": ShouDesign.mapData
+    default: ShouDesign.mapSurface
+    }
 }
 
 private struct StorageNestedMap: View {
@@ -91,7 +108,7 @@ private struct StorageNestedMap: View {
             }
             .accessibilityLabel(model.t("Space Map"))
             .accessibilityHint(model.t("Browse the directory tree for keyboard access to map items."))
-        }.background(Color(white: 0.10))
+        }.background(ShouDesign.detailedMapBackground)
     }
     // Keep drawing outside the view builder so its types can be checked independently.
     private func renderMap(_ context: inout GraphicsContext, tiles: [NestedSpaceTile], lookup: [String: StorageNode]) {
@@ -103,28 +120,20 @@ private struct StorageNestedMap: View {
             let matching=(node?.kind == "file" || item.aggregate != nil) && suffix == session.extensionFilter
             let shape=Path(rect)
             if directory || item.remainder {
-                let level=0.19 + Double(item.depth % 4) * 0.025
-                context.fill(shape, with: .color(Color(white: level)))
+                context.fill(shape, with: .color(ShouDesign.mapDirectory))
             } else {
                 var surface=context
                 surface.opacity=session.extensionFilter == nil || matching ? 1 : 0.25
-                surface.fill(shape, with: .linearGradient(Gradient(stops: [
-                    .init(color: storageExtensionColor(suffix, brightness: 0.45), location: 0),
-                    .init(color: storageExtensionColor(suffix, brightness: 1.15), location: 0.48),
-                    .init(color: storageExtensionColor(suffix, brightness: 0.42), location: 1)
-                ]), startPoint: CGPoint(x: rect.midX, y: rect.minY), endPoint: CGPoint(x: rect.midX, y: rect.maxY)))
-                surface.fill(shape, with: .linearGradient(Gradient(stops: [
-                    .init(color: .black.opacity(0.45), location: 0), .init(color: .clear, location: 0.5), .init(color: .black.opacity(0.45), location: 1)
-                ]), startPoint: CGPoint(x: rect.minX, y: rect.midY), endPoint: CGPoint(x: rect.maxX, y: rect.midY)))
+                surface.fill(shape, with: .color(storageExtensionColor(suffix)))
             }
-            if rect.width > 64, rect.height > 15 {
+            if rect.width > 90, rect.height > 22 {
                 var labelContext=context; labelContext.clip(to: shape)
                 let title=item.remainder ? model.t("Other Entries") : item.aggregate.map { ($0.suffix.isEmpty ? model.t("No Extension") : "." + $0.suffix) + " × " + $0.fileCount.formatted() } ?? node?.name ?? ""
                 let size=model.bytes(item.aggregate?.allocatedBytes ?? node?.allocatedBytes ?? 0)
-                let label=Text(directory ? title + " (" + size + ")" : title).font(.system(size: 9, weight: .medium)).foregroundColor(.white.opacity(directory ? 0.9 : 1))
-                labelContext.draw(labelContext.resolve(label), in: CGRect(x: rect.minX + 3, y: rect.minY, width: rect.width - 6, height: 12))
-                if !directory && rect.height > 34 {
-                    labelContext.draw(labelContext.resolve(Text(size).font(.system(size: 9)).foregroundColor(.white.opacity(0.8))), at: CGPoint(x: rect.minX+3,y:rect.minY+13), anchor: .topLeading)
+                let label=Text(directory ? title + " (" + size + ")" : title).font(.system(size: ShouDesign.captionFontSize, weight: .medium)).foregroundColor(ShouDesign.mapText)
+                labelContext.draw(labelContext.resolve(label), in: CGRect(x: rect.minX + 3, y: rect.minY, width: rect.width - 6, height: 18))
+                if !directory && rect.height > 42 {
+                    labelContext.draw(labelContext.resolve(Text(size).font(.system(size: ShouDesign.captionFontSize)).foregroundColor(ShouDesign.mapText)), at: CGPoint(x: rect.minX+3,y:rect.minY+20), anchor: .topLeading)
                 }
             }
         }
@@ -135,7 +144,7 @@ private struct StorageNestedMap: View {
             if session.focus == path || session.isSelected(path) || matching || session.hovered == path {
                 let tile=item.tile
                 let rect=CGRect(x:tile.x+1,y:tile.y+1,width:max(0,tile.width-2),height:max(0,tile.height-2))
-                let color: Color=session.isSelected(path) ? .cyan : session.focus == path ? .white : matching ? Color(red:1,green:0.24,blue:0.22) : .white.opacity(0.7)
+                let color: Color=session.isSelected(path) ? ShouDesign.mapDatabase : session.focus == path ? ShouDesign.mapText : matching ? ShouDesign.mapDisk : ShouDesign.mapText
                 context.stroke(Path(rect),with:.color(color),lineWidth:session.isSelected(path) || session.focus == path ? 2 : 1)
             }
         }
@@ -268,7 +277,7 @@ private struct StorageDirectoryOutline: NSViewRepresentable {
                 check.state=parent.session.isSelected(node.path) ? .on : parent.session.selected.contains(where: { $0.hasPrefix(node.path + "/") }) ? .mixed : .off
                 check.isEnabled = !parent.model.busy && parent.session.reason(node) == nil
                 check.setAccessibilityLabel(parent.model.t("Select Item") + " " + node.name)
-                let text=NSTextField(labelWithString: node.name); text.font = .systemFont(ofSize: 11); text.lineBreakMode = .byTruncatingMiddle; text.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+                let text=NSTextField(labelWithString: node.name); text.font = .systemFont(ofSize: ShouDesign.captionFontSize); text.lineBreakMode = .byTruncatingMiddle; text.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
                 let icon=NSImageView(image: NSImage(systemSymbolName: node.kind == "directory" ? "folder.fill" : "doc", accessibilityDescription: nil) ?? NSImage())
                 icon.contentTintColor=node.kind == "directory" ? .systemBlue : .secondaryLabelColor
                 icon.widthAnchor.constraint(equalToConstant: 13).isActive=true; icon.heightAnchor.constraint(equalToConstant: 13).isActive=true
@@ -276,7 +285,7 @@ private struct StorageDirectoryOutline: NSViewRepresentable {
             default:
                 let id=tableColumn?.identifier ?? .init("size")
                 let field=(outlineView.makeView(withIdentifier: id, owner: self) as? NSTextField) ?? NSTextField(labelWithString: "")
-                field.identifier=id; field.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular); field.alignment = .right
+                field.identifier=id; field.font = .monospacedDigitSystemFont(ofSize: ShouDesign.captionFontSize, weight: .regular); field.alignment = .right
                 switch id.rawValue {
                 case "size": field.stringValue=(node.isComplete == false ? "≥ " : "") + parent.model.bytes(node.allocatedBytes)
                 case "logical": field.stringValue=parent.model.bytes(node.logicalBytes)

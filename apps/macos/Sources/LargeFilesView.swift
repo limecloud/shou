@@ -54,7 +54,7 @@ struct LargeFilesView: View {
                 if session.loading {
                     HStack(spacing: 12) {
                         ProgressView().controlSize(.small)
-                        Text(model.t("Loading measured results…")).foregroundStyle(.secondary)
+                        Text(model.t("Loading measured results…")).foregroundStyle(ShouPalette.secondary)
                         Button(model.t("Stop")) { session.stop() }
                     }
                 }
@@ -66,8 +66,8 @@ struct LargeFilesView: View {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(storage.hasChanges ? model.t("Files changed. Scan again to update totals.") : session.hasLoaded ? String(format: model.t("%lld large files found"), session.totalCount) : model.t(session.loading ? "Loading measured results…" : "Results are not ready"))
-                        .font(.headline)
-                    Text(storage.scan?.rootPath ?? "").font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                        .font(ShouType.body.weight(.semibold))
+                    Text(storage.scan?.rootPath ?? "").font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle)
                 }
                 Spacer()
                 if storage.scan?.tree.complete == false {
@@ -76,7 +76,7 @@ struct LargeFilesView: View {
                         .help(model.t("Partial analysis: some locations could not be fully measured."))
                         .popover(isPresented: $coverage) { StorageCoverageView(model: model, session: storage, dismiss: { coverage=false }) }
                 }
-                if !storage.hasChanges && session.hasLoaded { Text(model.bytes(session.totalBytes)).font(.title2.weight(.semibold)).monospacedDigit() }
+                if !storage.hasChanges && session.hasLoaded { Text(model.bytes(session.totalBytes)).font(ShouType.title.weight(.semibold)).monospacedDigit() }
             }.padding(.horizontal, 16).padding(.vertical, 10)
             HStack(spacing: 14) {
                 Picker(model.t("Minimum Size"), selection: $session.minimumBytes) {
@@ -99,9 +99,9 @@ struct LargeFilesView: View {
                     enabled: !eligible.isEmpty && !model.busy && !session.loading,
                     label: model.t("Select Loaded Files"), identifier: "large-files.select-loaded") { session.selectLoaded(app: model) }
                     .frame(width: 18, height: 18)
-                Text(model.t("Name")).font(.caption.weight(.medium))
+                Text(model.t("Name")).font(ShouType.caption.weight(.medium))
                 Spacer()
-                Text(model.t("Size on Disk")).font(.caption).foregroundStyle(.secondary)
+                Text(model.t("Size on Disk")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }.padding(.horizontal, 20).padding(.vertical, 10)
             Divider()
             ScrollView {
@@ -126,7 +126,7 @@ struct LargeFilesView: View {
                                 description: Text(model.t("Try a smaller size or another file type.")))
                         } else {
                             VStack(spacing: 14) {
-                                Label(model.t("Results are not ready"), systemImage: "pause.circle").foregroundStyle(.secondary)
+                                Label(model.t("Results are not ready"), systemImage: "pause.circle").foregroundStyle(ShouPalette.secondary)
                                 Button(model.t("Continue")) { session.load(app: model) }
                                     .disabled(model.busy)
                             }
@@ -145,15 +145,15 @@ struct LargeFilesView: View {
                 .frame(width: 18, height: 18).help(reason.map(model.t) ?? model.t("Select Item"))
             Image(nsImage: NSWorkspace.shared.icon(forFile: absolute(node.path))).resizable().frame(width: 30, height: 30)
             VStack(alignment: .leading, spacing: 5) {
-                Text(node.name).font(.callout.weight(.medium)).lineLimit(1).truncationMode(.middle)
-                Text(node.path).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                Text(node.name).font(ShouType.body.weight(.medium)).lineLimit(1).truncationMode(.middle)
+                Text(node.path).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(1).truncationMode(.middle)
             }
             Spacer(minLength: 12)
-            Text(model.bytes(node.allocatedBytes)).font(.callout.monospacedDigit())
+            Text(model.bytes(node.allocatedBytes)).font(ShouType.body.monospacedDigit())
             Button { previewURL=URL(fileURLWithPath: absolute(node.path)) } label: { Image(systemName: "eye") }
                 .buttonStyle(.borderless).help(model.t("Quick Look")).accessibilityLabel(model.t("Quick Look") + " " + node.name)
         }.padding(.horizontal, 20).padding(.vertical, 12)
-            .background(storage.isSelected(node.path) ? Color.accentColor.opacity(0.06) : .clear)
+            .background(storage.isSelected(node.path) ? ShouPalette.accent.opacity(0.06) : .clear)
             .contentShape(Rectangle()).onTapGesture(count: 2) { previewURL=URL(fileURLWithPath: absolute(node.path)) }
             .contextMenu {
                 Button(model.t("Investigate Containing Folder")) { model.ai.requestLaunch(app: model, path: (absolute(node.path) as NSString).deletingLastPathComponent) }.disabled(model.busy)
@@ -167,8 +167,8 @@ struct LargeFilesView: View {
             Divider()
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(String(format: model.t("%lld items selected"), storage.selected.count)).font(.caption).foregroundStyle(.secondary)
-                    Text(model.bytes(storage.selectedBytes)).font(.title3.weight(.semibold)).monospacedDigit()
+                    Text(String(format: model.t("%lld items selected"), storage.selected.count)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    Text(model.bytes(storage.selectedBytes)).font(ShouType.body.weight(.semibold)).monospacedDigit()
                 }
                 Spacer()
                 Menu(model.t("Select Items")) {

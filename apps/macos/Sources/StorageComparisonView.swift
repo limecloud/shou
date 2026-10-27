@@ -26,7 +26,7 @@ struct StorageComparisonView: View {
                 subtitle: model.t("Explain observed space changes between two analyses of the same folder."), artwork: .space)
             VStack(alignment: .leading, spacing: ShouDesign.sectionSpacing) {
                 if let history {
-                    Text(history.current.rootPath).font(.callout).textSelection(.enabled).lineLimit(2).truncationMode(.middle)
+                    Text(history.current.rootPath).font(ShouType.body).textSelection(.enabled).lineLimit(2).truncationMode(.middle)
                     HStack {
                         Picker(model.t("Earlier Analysis"), selection: $baselineId) {
                             Text(model.t("Choose an earlier analysis")).tag("")
@@ -36,18 +36,18 @@ struct StorageComparisonView: View {
                         }.accessibilityIdentifier("comparison.baseline")
                         Spacer()
                         VStack(alignment: .trailing) {
-                            Text(model.t("Current Analysis")).font(.caption).foregroundStyle(.secondary)
-                            Text(analysisDate(history.current.createdAt)).font(.callout)
+                            Text(model.t("Current Analysis")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                            Text(analysisDate(history.current.createdAt)).font(ShouType.body)
                         }
                     }
                     if history.status == "partial" {
                         Text(model.t("History is limited to readable recent analyses. Some records were skipped."))
-                            .font(.callout).foregroundStyle(.secondary)
+                            .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     }
                     HStack {
                         Button(model.t("Root Folder")) { path="." }.disabled(path == "." || comparing)
                         if path != "." { Button(model.t("Up One Level")) { path=StorageIndex.parent(path) }.disabled(comparing) }
-                        Text(path).font(.callout).textSelection(.enabled).lineLimit(1).truncationMode(.middle)
+                        Text(path).font(ShouType.body).textSelection(.enabled).lineLimit(1).truncationMode(.middle)
                     }
                 }
                 if loading || comparing {
@@ -55,20 +55,20 @@ struct StorageComparisonView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let issue {
                     VStack(alignment: .leading, spacing: ShouDesign.itemSpacing) {
-                        Label(model.t("Comparison unavailable"), systemImage: "info.circle").font(.headline)
-                        Text(model.t(issue)).font(.callout).textSelection(.enabled)
+                        Label(model.t("Comparison unavailable"), systemImage: "info.circle").font(ShouType.body.weight(.semibold))
+                        Text(model.t(issue)).font(ShouType.body).textSelection(.enabled)
                     }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 } else if let comparison {
                     results(comparison)
                 } else {
                     Text(model.t("Run two space analyses of the same folder to compare them. Cleared and legacy analyses may be unavailable."))
-                        .font(.callout).foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .font(ShouType.body).foregroundStyle(ShouPalette.secondary).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
             }.padding(.horizontal, ShouDesign.workspaceInset)
             Divider()
             HStack {
                 Text(model.t("Read-only observations. Historical analyses do not authorize cleanup."))
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                 Spacer()
                 Button(model.t("Close")) { dismiss() }.keyboardShortcut(.cancelAction)
             }.padding(ShouDesign.workspaceInset)
@@ -108,7 +108,7 @@ struct StorageComparisonView: View {
                 metric("Earlier Size", bytes: value.beforeBytes, incomplete: value.baseline.status == "partial")
                 metric("Current Size", bytes: value.afterBytes, incomplete: value.current.status == "partial")
                 VStack(alignment: .leading, spacing: ShouDesign.itemSpacing) {
-                    Text(model.t("Observed Change")).font(.callout).foregroundStyle(.secondary)
+                    Text(model.t("Observed Change")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     Text(value.deltaBytes.map(signedSize) ?? model.t("Not comparable"))
                         .font(.system(size: ShouDesign.summaryFigureSize, weight: .medium)).monospacedDigit()
                 }
@@ -116,10 +116,10 @@ struct StorageComparisonView: View {
             }
             if value.status == "partial" {
                 Label(model.t("Partial comparison. Ranking covers only examined entries; incomplete coverage has no numeric growth conclusion."), systemImage: "exclamationmark.triangle")
-                    .font(.callout).foregroundStyle(.secondary)
+                    .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             }
-            Text(String(format: model.t("%lld examined · %lld changed observations · %lld shown"), value.examinedEntryCount, value.changedEntryCount, value.changes.count))
-                .font(.callout).foregroundStyle(.secondary)
+            Text(String(format: model.t("%lld examined, %lld changed observations, %lld shown"), value.examinedEntryCount, value.changedEntryCount, value.changes.count))
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(value.changes) { change in
@@ -129,7 +129,7 @@ struct StorageComparisonView: View {
                                 Text(change.path).font(.system(size: ShouDesign.bodyFontSize, weight: .medium))
                                     .lineLimit(2).truncationMode(.middle).textSelection(.enabled)
                                 Spacer()
-                                Text(change.deltaBytes.map(signedSize) ?? model.t(stateTitle(change.state))).monospacedDigit().font(.callout)
+                                Text(change.deltaBytes.map(signedSize) ?? model.t(stateTitle(change.state))).monospacedDigit().font(ShouType.body)
                                 if change.kind == "directory" && change.beforeBytes != nil && change.afterBytes != nil && change.state != "replaced" {
                                     Button { path=change.path } label: { Image(systemName: "chevron.right") }
                                         .buttonStyle(.plain).accessibilityLabel(model.t("Open Directory") + " " + change.path)
@@ -139,20 +139,20 @@ struct StorageComparisonView: View {
                                 Text(model.t("Earlier Size") + ": " + observedSize(change.beforeBytes, complete: change.beforeComplete))
                                 Text("→").accessibilityHidden(true)
                                 Text(model.t("Current Size") + ": " + observedSize(change.afterBytes, complete: change.afterComplete))
-                            }.font(.callout).foregroundStyle(.secondary)
+                            }.font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                         }.padding(ShouDesign.sectionSpacing)
                         Divider()
                     }
-                    if value.changes.isEmpty { Text(model.t("No changed observations in this directory.")).font(.callout).padding() }
+                    if value.changes.isEmpty { Text(model.t("No changed observations in this directory.")).font(ShouType.body).padding() }
                 }
             }.modifier(WorkspaceSurface())
             Text(model.t("Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion."))
-                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(ShouType.body).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
     private func metric(_ key: String, bytes: Int64, incomplete: Bool) -> some View {
         VStack(alignment: .leading, spacing: ShouDesign.itemSpacing) {
-            Text(model.t(key)).font(.callout).foregroundStyle(.secondary)
+            Text(model.t(key)).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             Text((incomplete ? "≥ " : "") + model.bytes(bytes)).font(.system(size: ShouDesign.summaryFigureSize, weight: .medium)).monospacedDigit()
         }
     }

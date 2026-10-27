@@ -16,10 +16,12 @@
     <PublishTrimmed>false</PublishTrimmed>
     <PublishAot>false</PublishAot>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <MicrosoftManagementDeployment-FactoryLinkage Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' != 'x64' and '$(Platform)' != 'ARM64'">none</MicrosoftManagementDeployment-FactoryLinkage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.9169" />
+    <PackageReference Include="Microsoft.WindowsPackageManager.ComInterop" Version="1.10.340" />
     <ProjectReference Include="../Shou.Windows.Core/Shou.Windows.Core.csproj" />
     <ProjectReference Include="../Shou.Windows.Platform/Shou.Windows.Platform.csproj" />
     <ProjectReference Include="../Shou.Windows.Presentation/Shou.Windows.Presentation.csproj" />
