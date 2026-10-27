@@ -17,6 +17,12 @@ Privacy cleaning is a separate, manual domain. It queries aggregate counts and t
 
 Custom profile locations, Firefox external profiles, beta/channel variants with different identifiers, site storage, permissions, browser extensions, session restore, password managers, application activity, clipboard, recent items and cloud copies are outside this implementation. A closed browser can later restore synced history; Shou does not alter the browser's cloud service. Running browsers remain unavailable; Shou never terminates them automatically.
 
+### macOS access and partial coverage
+
+Discovery isolates an unreadable fixed browser root. Permission denials (`EPERM`/`EACCES`), filesystem errors and unrepresentable filenames record `privacy_discovery_incomplete` plus a sanitized reason in the saved scan's `issues`; other browser roots continue. An absent root adds no issue. Denied roots are not reported as empty sources. Cancellation and profile/source limits still abort the scan. No-follow traversal and database identity checks remain required.
+
+The privacy page shows incomplete coverage above the accessible sources. Permission failures, including per-database failures, also show an action to open System Settings → Privacy & Security → Full Disk Access. Users can review access and exclusions, then explicitly rescan. Opening Settings does not grant access or authorize deletion.
+
 ### Windows platform boundary
 
 Windows has independent C# read-only scan, CLI and WinUI page source. Fixed Chrome, Chromium, Edge and Brave history/cookies and supported basic Firefox history/cookie structures are covered; Safari is outside this scope. Navigation does not scan automatically: the user chooses a range and starts scanning. Core implements separate privacy plans, current confirmation, execution orchestration and sanitized receipts. v0.15.0 includes `WindowsPrivacyMutation` and wires plans/current confirmation/receipts into WinUI, with the public removal gate closed. CLI scanning remains read-only. Counts grant no deletion authority. Native runtime, ACL, SQLite sidecar and UI acceptance remain pending. See the [native plan](windows-native-plan.md).
@@ -209,7 +215,7 @@ shou privacy execute --plan-id <plan-id>
 shou privacy history --json
 ```
 
-`tests/core/PrivacyTests.swift` builds disposable databases under the generated fixture home. It covers timestamp epochs and finite ranges, selected associations versus unrelated orphan rows, cookie consent, bookmark/download preservation, running browsers, stale evidence, exclusions, transaction rollback, unsupported triggers and sanitized receipts. These generated tests establish the supported schema contract; they do not prove compatibility with every installed browser build or private-profile access. See [acceptance and testing](acceptance-and-testing.md) for executed results.
+`tests/core/PrivacyTests.swift` builds disposable databases under the generated fixture home. It covers denied browser roots before and after an accessible root, persisted coverage gaps, no-follow rejection, discovery limits and cancellation, timestamp epochs and finite ranges, selected associations versus unrelated orphan rows, cookie consent, bookmark/download preservation, running browsers, stale evidence, exclusions, transaction rollback, unsupported triggers and sanitized receipts. `shou-tests --privacy-discovery-only` isolates the generated discovery fixtures for access-denial checks. These generated tests establish the supported schema contract; they do not prove compatibility with every installed browser build or private-profile access. See [acceptance and testing](acceptance-and-testing.md) for executed results.
 
 
 The source-specific model and policy were informed by [MangoDisk](https://github.com/harry0703/MangoDisk), especially its `src-tauri/crates/mangodisk-core/src/privacy/browser_database.rs`, `privacy/browser_database/schema.rs`, `privacy/service/policy.rs` and macOS privacy adapter. Shou implements a narrower capability set and retains explicit unsupported states.
