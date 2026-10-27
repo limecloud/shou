@@ -75,17 +75,12 @@ struct DeveloperConfigurationView: View {
                     Button(model.t("Refresh")) { session.readLog() }.disabled(model.busy || session.logLoading || session.logCleanup.plan != nil)
                 }
                 if session.logLoading { ProgressView().controlSize(.small) }
-                DeveloperLogCleanupControls(model:model,session:session.logCleanup,toolID:session.toolID,path:session.logID,
-                    canReview:!session.logLoading && session.logText?.isEmpty == false,completed:{ session.logText="" })
                 if let log=session.logText {
-                    GeometryReader { geometry in
-                        ScrollView([.horizontal,.vertical]) {
-                            Text(log.isEmpty ? model.t("No log entries yet.") : log).font(ShouType.code).textSelection(.enabled)
-                                .frame(minWidth:max(0,geometry.size.width-24),minHeight:max(0,geometry.size.height-24),alignment:.topLeading).padding(12)
-                        }.accessibilityIdentifier("developer.logs.content")
-                    }.frame(height:320).background(ShouPalette.inset)
+                    DeveloperLogContentView(text:log,emptyText:model.t("No log entries yet."),identifier:"developer.logs.content")
                 }
                 if let failure=session.logFailure { Text(model.t(failure)).foregroundStyle(ShouPalette.secondary) }
+                DeveloperLogCleanupControls(model:model,session:session.logCleanup,toolID:session.toolID,path:session.logID,
+                    canReview:!session.logLoading && session.logText?.isEmpty == false,completed:{ session.logText="" })
             }
         }.onAppear { session.readLog() }.onChange(of:session.logID) { session.readLog() }
     }

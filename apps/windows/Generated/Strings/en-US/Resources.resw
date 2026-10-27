@@ -135,6 +135,9 @@
   <data name="s7aeb346773d61f7a02ca6818" xml:space="preserve">
     <value>{0} selected</value>
   </data>
+  <data name="sfc5bf7a088c158917ad707fd" xml:space="preserve">
+    <value>{0} services use this installation</value>
+  </data>
   <data name="s331107e811b4edef4e078554" xml:space="preserve">
     <value>{0} startup entries</value>
   </data>
@@ -1256,6 +1259,9 @@
   </data>
   <data name="sa606f2b38bcac5d1db875cd3" xml:space="preserve">
     <value>Choose a folder or enter a relative pattern.</value>
+  </data>
+  <data name="s2f717d142d2bc7c9b827bd71" xml:space="preserve">
+    <value>Choose a local folder without links.</value>
   </data>
   <data name="s839ff2a11acaa9cc15ba295f" xml:space="preserve">
     <value>Choose a project folder to inspect build outputs and caches.</value>
@@ -2922,6 +2928,9 @@
   <data name="sda188e3b1cefc8a70813b78e" xml:space="preserve">
     <value>Inspector</value>
   </data>
+  <data name="s569ca49f4aaf7846e952c1d4" xml:space="preserve">
+    <value>Install</value>
+  </data>
   <data name="scc5098bde78248090a63dcd7" xml:space="preserve">
     <value>Install CLI Command</value>
   </data>
@@ -3893,6 +3902,9 @@
   </data>
   <data name="s952d880a316d1110c3b7093f" xml:space="preserve">
     <value>No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.</value>
+  </data>
+  <data name="sec8c3ecf416141938ffbcbd3" xml:space="preserve">
+    <value>No scan locations are available. Review Scan Locations or add a folder.</value>
   </data>
   <data name="s86b215760a2e89f359b83617" xml:space="preserve">
     <value>No scan locations are configured yet.</value>
@@ -5193,6 +5205,9 @@
   <data name="s130a09c6fa5cf0b5baeb2f81" xml:space="preserve">
     <value>Review Disable</value>
   </data>
+  <data name="s1cfdc3b1c20b8f3d0523fed9" xml:space="preserve">
+    <value>Review Disk Access…</value>
+  </data>
   <data name="s601f8a0e1e75dc0b2f184114" xml:space="preserve">
     <value>Review Enable</value>
   </data>
@@ -5985,6 +6000,9 @@
   <data name="s9dd6569e4142e15c55b6c2d2" xml:space="preserve">
     <value>Service stopped. Starting…</value>
   </data>
+  <data name="s26cbec70c895fcca7c9ae2d7" xml:space="preserve">
+    <value>Services Using This Installation</value>
+  </data>
   <data name="s10886554da510708e6b9477c" xml:space="preserve">
     <value>Set as Default</value>
   </data>
@@ -6434,6 +6452,9 @@
   </data>
   <data name="s920e413c7d411b61ef3e8c63" xml:space="preserve">
     <value>Status</value>
+  </data>
+  <data name="s78361fbe1fb15a95ca271975" xml:space="preserve">
+    <value>Status Unverified</value>
   </data>
   <data name="scb94cfa4cd3385637c6176c1" xml:space="preserve">
     <value>Steam caches</value>
@@ -7293,8 +7314,14 @@
   <data name="sd315936cb4cdecaec37deb46" xml:space="preserve">
     <value>This location exceeded a scan resource boundary.</value>
   </data>
+  <data name="sad91a9f838c93ecd69b7c337" xml:space="preserve">
+    <value>This location is not owned by the current account.</value>
+  </data>
   <data name="s433af3446f2af67e282b940d" xml:space="preserve">
     <value>This location is protected.</value>
+  </data>
+  <data name="s3b8569c191634f9f250056e0" xml:space="preserve">
+    <value>This location's permissions could not be verified.</value>
   </data>
   <data name="s5fcc27e451ec405f35da6ab1" xml:space="preserve">
     <value>This operation could not be completed. Try again.</value>
@@ -7833,6 +7860,9 @@
   <data name="s864fba32c0ce2d3db93b0090" xml:space="preserve">
     <value>Windows identifies this as a system package.</value>
   </data>
+  <data name="sc4fcf491f9e233d1009d3103" xml:space="preserve">
+    <value>Windows manages this scan location. Results are read-only.</value>
+  </data>
   <data name="s34f7d2311c068a107c952b1b" xml:space="preserve">
     <value>Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.</value>
   </data>
@@ -8011,7 +8041,7 @@
     <value>invalid_application_metadata</value>
   </data>
   <data name="s7cfe0449bac3c1210b374b60" xml:space="preserve">
-    <value>invalid_bundle_identifier</value>
+    <value>The application identifier is invalid.</value>
   </data>
   <data name="s7acd9275682fbf33c4b58744" xml:space="preserve">
     <value>invalid_filename</value>
@@ -8057,6 +8087,9 @@
   </data>
   <data name="s6e862940d0bf2eea9e01e33f" xml:space="preserve">
     <value>Needs verification</value>
+  </data>
+  <data name="se2eaa1e6574f5ab891830888" xml:space="preserve">
+    <value>The application contains shared hard links.</value>
   </data>
   <data name="sf923eac087499adee3fda8b8" xml:space="preserve">
     <value>Not inspected</value>

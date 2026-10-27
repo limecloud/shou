@@ -47,8 +47,8 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
                     var entry = await files.InspectAsync(location.Path, token).AsTask().WaitAsync(token);
                     diagnostic.Step("location_identity", location.Path, entry.Identity.OwnerSid == ownerSid ? "current_user" :
                         entry.Identity.OwnerSid == "S-1-5-18" ? "system" : entry.Identity.OwnerSid == "S-1-5-32-544" ? "administrators" : "other");
-                    if (entry.Path != location.Path || entry.Kind != EntryKind.Directory || entry.Identity.OwnerSid != ownerSid)
-                        throw new ShouException("permission_denied", "The location is not a verified current-user-owned directory.");
+                    if (entry.Path != location.Path) throw new ShouException("source_changed", "The scan location changed path.");
+                    await ScanLocationAccess.VerifyAsync(files, catalog, entry, ownerSid, token);
                     if (workspace is not null && (entry.Identity != workspace.Identity || entry.IsCaseSensitive != workspace.CaseSensitive))
                         throw new ShouException("source_changed", "The registered location changed identity.");
                     if (!identities.Add(entry.Identity)) continue;
@@ -145,6 +145,8 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
             }
             try
             {
+                if (!await configuration.IsAccessibleAsync(workspace, cancellationToken))
+                { issues.Add(new(workspace.Path, "source_changed")); continue; }
                 var result = await scans.ScanAsync(workspace.Id, budget with { MaxEntries = remaining, MaxDuration = duration }, cancellationToken);
                 if (result.ConfigurationRevision != revision || !result.Workspace.SameRegistration(workspace))
                 { stale = true; issues.Add(new(workspace.Path, "plan_stale")); continue; }

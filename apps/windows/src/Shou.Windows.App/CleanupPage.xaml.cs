@@ -90,6 +90,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         AutomationProperties.SetName(RuleFilter, text.Get("Cleanup Rule"));
         CategoryFilter.SelectionChanged += (_, _) => ChangeFilter(categoryChanged: true);
         CoverageDetailsButton.Content = text.Get("Some locations need attention");
+        StartCoverageDetailsButton.Content = text.Get("Some locations need attention");
         RuleFilter.SelectionChanged += (_, _) => ChangeFilter(categoryChanged: false);
         PreviousButton.Content = text.Get("Previous");
         NextButton.Content = text.Get("Next");
@@ -188,9 +189,10 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             var issues = model.DiscoveryIssues.AddRange(model.Batch?.Issues ?? []);
             CoverageNotice.IsOpen = model.State == CleanupReviewState.Partial || !issues.IsEmpty;
             CoverageDetailsButton.Visibility = CoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
-            CoverageNotice.Message = text.Get("Some locations could not be read. Sizes show only measured data.") + (issues.IsEmpty ? "" : "\n" +
-                string.Join("\n", issues.Take(20).Select(issue => issue.Path.Value + ", " + ReviewText.Error(text, issue.Code))));
+            CoverageNotice.Message = issues.IsEmpty ? text.Get("Some locations could not be read. Sizes show only measured data.") :
+                string.Join("\n\n", issues.Distinct().Take(20).Select(issue => issue.Path.Value + "\n" + ReviewText.Error(text, issue.Code)));
             StartCoverageNotice.IsOpen = !activity && !results && !issues.IsEmpty;
+            StartCoverageDetailsButton.Visibility = StartCoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
             StartCoverageNotice.Message = CoverageNotice.Message;
             ScanState.Text = text.Get(model.Batch?.State == "complete" || model.Batch is null && model.Snapshot?.Scan.IsComplete == true ? "Scan Complete" : "Partial Scan");
             PreviousButton.IsEnabled = !IsBusy && model.HasPrevious;
@@ -242,8 +244,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
                 };
             ReviewStatus.Visibility = model.SelectionErrorCode is not null || model.ErrorCode is not null ? Visibility.Visible : Visibility.Collapsed;
             StartStatus.Text = model.ErrorCode is not null || model.State == CleanupReviewState.Cancelled ? Status.Text :
-                model.NoUsableLocations ? text.Get(model.DiscoveryIssues.IsEmpty ? "No scan locations were found. Add a folder in Scan Locations to continue." :
-                    "Scan could not start because no locations passed the access and ownership checks. Choose a current-user-owned folder in Scan Locations.") :
+                model.NoUsableLocations ? text.Get("No scan locations are available. Review Scan Locations or add a folder.") :
                 text.Get("Common locations are found automatically. No project setup needed.");
             if (model.ErrorCode is not null)
             {
@@ -359,7 +360,11 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         if (model.ErrorCode is null && !model.Workspaces.IsEmpty) await model.ScanAllAsync();
     });
 
-    private void ShowLocations(object sender, RoutedEventArgs args) => LocationMenuButton.Flyout.ShowAt(LocationsLink);
+    private void ShowLocations(object sender, RoutedEventArgs args)
+    {
+        if (model.NoUsableLocations && DestinationRequested is { } navigate) navigate("configuration");
+        else LocationMenuButton.Flyout.ShowAt(LocationsLink);
+    }
 
     private async void RefreshLocations(object sender, RoutedEventArgs args) => await GuardAsync(model.LoadAsync);
     private async void DiscoverLocations(object sender, RoutedEventArgs args) => await GuardAsync(async () =>

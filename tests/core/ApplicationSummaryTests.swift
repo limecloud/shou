@@ -29,9 +29,11 @@ private struct SummaryCatalogFixture: ApplicationCatalogReading {
 private struct SummaryEvidenceFixture: ApplicationUninstallChecking {
     let currentUser: UInt32
     let probe: SummaryProbe
+    var unavailable=false
     func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts { throw CheckFailure(description: "Summary must use one activity snapshot.") }
     func facts(for applications: [ApplicationDefinition]) throws -> [String: ApplicationUninstallFacts] {
         probe.record("activity")
+        if unavailable { throw ShouError("application_activity_unavailable", "Generated activity inspection failure.") }
         return Dictionary(uniqueKeysWithValues: applications.map {
             ($0.id, ApplicationUninstallFacts(currentUser: currentUser, running: $0.name == "running", currentApplication: $0.name == "self"))
         })
@@ -66,6 +68,14 @@ func applicationSummariesStreamOneInventoryAndKeepOwnershipConservative() async 
     do { _ = try await task.value; throw CheckFailure(description: "Summary cancellation must stop before inventory.") }
     catch let error as ShouError { try expect(error.code == "cancelled") }
     try expect(probe.count("inventory") == 1)
+    let unavailableEngine=ShouEngine(store: fixture.store, filesystem: fixture.fs,
+        applicationCatalog: SummaryCatalogFixture(items: apps, probe: probe),
+        uninstallEvidence: SummaryEvidenceFixture(currentUser: root.owner, probe: probe, unavailable: true))
+    let unavailable=try await unavailableEngine.applicationSummaries()
+    try expect(unavailable.status == "partial" && unavailable.items[0].status == "unavailable")
+    try expect(unavailable.items[0].issues == ["application_activity_unavailable"])
+    try expect(unavailable.items[0].allocatedBytesEstimate == 8192 && !unavailable.items[0].sizeIsLowerBound)
+    try expect(unavailable.items.last?.allocatedBytesEstimate == nil && unavailable.items.last?.sizeIsLowerBound == true)
 }
 
 func nativeApplicationSummaryMeasuresWithoutManifestsOrLinkTraversal() throws {

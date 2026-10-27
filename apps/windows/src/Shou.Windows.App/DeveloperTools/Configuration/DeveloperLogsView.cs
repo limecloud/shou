@@ -14,9 +14,9 @@ internal sealed class DeveloperLogsView : UserControl, IDisposable
     private readonly string toolId;
     private readonly nint windowHandle;
     private readonly Action<bool> mutationChanged;
-    private readonly StackPanel body = new() { Spacing = 12 };
+    private readonly Grid body = new() { RowSpacing = 12 };
     private readonly ComboBox paths = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
-    private readonly TextBox log = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, Height = 320 };
+    private readonly TextBox log = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, VerticalAlignment = VerticalAlignment.Stretch };
     private readonly TextBlock feedback = new() { TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock review = new() { TextWrapping = TextWrapping.Wrap };
     private readonly Button choose = new(), refresh = new(), clear = new(), cancel = new();
@@ -33,6 +33,9 @@ internal sealed class DeveloperLogsView : UserControl, IDisposable
         FontSize = (double)Application.Current.Resources["ShouBodyFontSize"];
         log.FontSize = (double)Application.Current.Resources["ShouCaptionFontSize"];
         log.FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Cascadia Mono, Consolas");
+        ScrollViewer.SetVerticalScrollBarVisibility(log, ScrollBarVisibility.Auto);
+        ScrollViewer.SetHorizontalScrollBarVisibility(log, ScrollBarVisibility.Auto);
+        body.RowDefinitions.Add(new() { Height = GridLength.Auto }); body.RowDefinitions.Add(new()); body.RowDefinitions.Add(new() { Height = GridLength.Auto });
         var toolbar = new Grid { ColumnSpacing = 12 };
         toolbar.ColumnDefinitions.Add(new()); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         toolbar.Children.Add(paths); choose.Content = text.Get("Choose Log File"); Grid.SetColumn(choose, 1); toolbar.Children.Add(choose);
@@ -47,7 +50,9 @@ internal sealed class DeveloperLogsView : UserControl, IDisposable
         clear.Click += async (_, _) => { if (plan is null) await ReviewAsync(); else await ExecuteAsync(); };
         clear.Style = (Style)Application.Current.Resources["ShouDestructiveButton"];
         actions.Children.Add(cancel); actions.Children.Add(clear);
-        body.Children.Add(toolbar); body.Children.Add(log); body.Children.Add(review); body.Children.Add(actions); body.Children.Add(feedback); Content = body; Update();
+        var footer = new StackPanel { Spacing = 12 };
+        footer.Children.Add(review); footer.Children.Add(feedback); footer.Children.Add(actions);
+        body.Children.Add(toolbar); Grid.SetRow(log, 1); body.Children.Add(log); Grid.SetRow(footer, 2); body.Children.Add(footer); Content = body; Update();
     }
     internal async Task DiscoverAsync(ImmutableArray<DeveloperToolInstallation> installations, ImmutableArray<DeveloperService> services)
     {
@@ -77,7 +82,7 @@ internal sealed class DeveloperLogsView : UserControl, IDisposable
             var file = await picker.PickSingleFileAsync(); if (file is null || disposed) return;
             Add(new(file.Path, "Service Log")); paths.SelectedIndex = targets.FindIndex(row => row.Path.Equals(file.Path, StringComparison.OrdinalIgnoreCase));
         }
-        catch (Exception error) when (error is not OutOfMemoryException) { NativeDiagnostics.Write(error); feedback.Text = text.Get("Could not open this location."); }
+        catch (Exception error) when (error is not OutOfMemoryException) { NativeDiagnostics.Write(error); feedback.Text = text.Get("Could not open this location."); Update(); }
     }
     private async Task ReadAsync()
     {
@@ -127,6 +132,8 @@ internal sealed class DeveloperLogsView : UserControl, IDisposable
         review.Text = plan is null ? "" : plan.Inspection.File.Path.Value + "\n" +
             text.Get("Permanently clear this log's contents? The file will be kept.") + "\n" +
             plan.Inspection.File.AllocatedBytes.ToString("N0", System.Globalization.CultureInfo.CurrentCulture) + " B";
+        review.Visibility = plan is null ? Visibility.Collapsed : Visibility.Visible;
+        feedback.Visibility = feedback.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
     public void Dispose() { disposed = true; revision++; lifetime.Cancel(); lifetime.Dispose(); }
 }

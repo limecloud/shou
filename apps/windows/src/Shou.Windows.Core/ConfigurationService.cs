@@ -23,7 +23,8 @@ public sealed class ConfigurationService(IRecordStore store, RuleSchemaValidator
         try
         {
             var current = await fileSystem.InspectAsync(workspace.Path, cancellationToken);
-            return current.Kind == EntryKind.Directory && current.Identity == workspace.Identity && current.IsCaseSensitive == workspace.CaseSensitive;
+            await ScanLocationAccess.VerifyAsync(fileSystem, catalog, current, ownerSid, cancellationToken);
+            return current.Path == workspace.Path && current.Identity == workspace.Identity && current.IsCaseSensitive == workspace.CaseSensitive;
         }
         catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException) { return false; }
     }
@@ -60,10 +61,11 @@ public sealed class ConfigurationService(IRecordStore store, RuleSchemaValidator
         foreach (var workspace in proposed)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (workspace.Path.IsVolumeRoot || workspace.Identity.OwnerSid != ownerSid || !ConfigurationCodec.ValidRootRef(workspace.RootRef)) throw Input("Choose a verified local scan location.");
+            if (workspace.Path.IsVolumeRoot || !ConfigurationCodec.ValidRootRef(workspace.RootRef)) throw Input("Choose a verified local scan location.");
             var current = await fileSystem.InspectAsync(workspace.Path, cancellationToken);
             if (current.Path != workspace.Path || current.Kind != EntryKind.Directory || current.Identity != workspace.Identity || current.IsCaseSensitive != workspace.CaseSensitive)
                 throw new ShouException("source_changed", "A discovered directory changed before registration.");
+            await ScanLocationAccess.VerifyAsync(fileSystem, catalog, current, ownerSid, cancellationToken);
         }
         return await UpdateAsync(configuration =>
         {

@@ -4,6 +4,14 @@ English | [简体中文](../zh-CN/engineering/windows-testing.md)
 
 This defines diagnostic and acceptance entry points, not complete Windows feature support. Executed evidence belongs in [SYNC.md](../../SYNC.md). Keep the cloud desktop in `StopCharging` during local work and prepare checks and synchronization before starting native validation.
 
+## 2026-10-27 tool-log acceptance and scan fix
+
+The Windows 11 x64 0.18.0 candidate passed the v5 native build and publish/startup/normal-close checks. After supplying two examples omitted from the source archive and fixing the test-process Git PATH, the final suite passed 1,404 tests with zero failures, twelve opt-in MSI/startup skips and 213 CLI contracts. Earlier failures remain exported. Computer Use rechecked fixed tool headers, available-height logs, persistent review actions, internal log scrolling, empty states, catalog switches, service headers and a single application-loading state; the application scan returned 107 registrations. Remaining system-blue controls, Windows dark mode, exact minimum logical dimensions, dedicated software tasks and complete desktop journeys remain unverified.
+
+Local evidence in `output/reviews/tool-cleanup-2026-10-27/` contains 42 original screenshots (37 Windows and five Mac), the original 38 exports and 105 v5 files verified individually by length/SHA256. The latest user instruction requested release: exact desktop `ecd-7ig09ng1m03caqtoo` was deleted and final API queries returned no desktops, snapshots or paid network packages. Receipts and the gallery are retained; its billed disks are no longer retained.
+
+The subsequently reported failure to start scanning was traced to readable built-in roots owned by Administrators, previously misclassified as access failures. Source now supports [read-only provisioned roots](../product/unified-cleanup.md#windows-scanning-and-review), distinguishes ownership errors and discloses landing diagnostics on demand. Such roots remain ineligible for cleanup plans. This fix has only Mac-host logic/platform-source and C# reference checks; new native ACL/handle and WinUI regression remains pending. The earlier v5 native pass does not cover this change. Source identity and scope are recorded in [SYNC.md](../../SYNC.md#工具日志永久清空跨端增量2026-10-27--permanent-tool-log-clearing).
+
 ## 2026-10-26 Windows 11 cloud acceptance
 
 The environment was Windows 11 Pro x64 (10.0.26200), .NET SDK 10.0.402 and Python 3.13.9, running Shou 0.15.0. Cloud base `2d5b55a1d5049118cbb24a37a9c3bf76382ec8ba` received a local working-tree overlay and seven SHA256-verified deltas; this is not a clean build of the latest local HEAD. The main suite preceded the last UI fixes. Final v7 separately passed self-contained x64 build, CLI version/capabilities and WinUI startup/normal-close checks, followed by actual UI rechecks.
@@ -27,7 +35,7 @@ Raw paths, SIDs, general exception messages, command arguments, file/browser con
 
 Directories/files require private current-user ACLs, verified handles and single-link files without reparse traversal. Operational logging is best effort and reports dropped-event counts; E2E fails on missing or dropped evidence. Durable mutation intent journals retain their independent fail-closed safety semantics.
 
-Provisioned LocalAppData and an existing Shou container may be SYSTEM/Administrators owned. Default paths accept only pinned ancestors without foreign write principals; ownership and ACLs are never repaired. Data/Diagnostics leaves and files still require private current-user ownership. Explicit `SHOU_DATA_DIR`/`SHOU_DIAGNOSTICS_DIR` overrides retain strict current-user parent checks. Scan/cache-root ownership checks remain unchanged and unavailable locations remain coverage issues.
+Provisioned LocalAppData and an existing Shou container may be SYSTEM/Administrators owned. Default paths accept only pinned ancestors without foreign write principals; ownership and ACLs are never repaired. Data/Diagnostics leaves and files still require private current-user ownership. Explicit `SHOU_DATA_DIR`/`SHOU_DIAGNOSTICS_DIR` overrides retain strict current-user parent checks. This storage compatibility grants no scan or cleanup rights. Read-only provisioned cache roots and mutation restrictions are separately defined by [unified cleanup](../product/unified-cleanup.md#windows-scanning-and-review); unverifiable locations remain coverage issues.
 
 ## Test layers
 

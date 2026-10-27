@@ -6,6 +6,10 @@ Shou saves the user time by discovering cleanup targets together. Top navigation
 
 ## Windows scanning and review
 
+Automatic discovery may read SYSTEM/Administrators-provisioned roots at exact bundled cache locations for the current account. The native adapter verifies the resolved current-user Home/AppData anchor, pins the path, rejects reparse points, and checks each directory's identity, owner and ACL, including foreign inheritable write grants. Discovery, registration and batch rescans revalidate access without changing ownership or ACLs. These roots publish read-only results: candidates carry `scan_root_read_only` and cannot enter cleanup plans. Manual registrations, project collections and mutation targets retain current-user ownership requirements. Owner mismatches and access failures use separate messages.
+
+When scanning cannot start, the landing page shows a short status and an attention link. Paths are disclosed in a bounded flyout; Scan Locations opens the existing configuration page for adding folders. Diagnostics do not occupy the landing task area. Native handle and WinUI regression for this compatibility change remains pending; host logic checks are not native acceptance.
+
 Windows source includes Scan All Locations and Scan Selected Location. All-location scanning uses only the configured locations currently listed on the page; Find Scan Locations remains a separate discovery and registration action. New registrations cannot silently expand an in-flight scan, and removed or changed registrations invalidate the old scope. Only source and Mac-hosted logic/reference checks have passed; native WinUI/system acceptance is pending and cleanup execution remains unavailable.
 
 Locations run sequentially under one entry allowance and monotonic time budget. Each retains its own snapshot and coverage. Exhausted or failed locations report gaps; absent results do not mean empty directories. When a failure leaves entry consumption unknown, the remaining allowance is not reused for later locations. Stopping preserves previously published snapshots without presenting unfinished locations as successful.

@@ -7,8 +7,11 @@ using Shou.Windows.Core;
 
 namespace Shou.Windows.Platform;
 
-public sealed class WindowsFileSystem : IWindowsFileSystem
+public sealed class WindowsFileSystem : IWindowsFileSystem, IProvisionedScanAccess
 {
+    public ValueTask VerifyReadOnlyRootAsync(FileEntry root, WindowsPath anchor, string ownerSid, CancellationToken cancellationToken) =>
+        WindowsProvisionedScanAccess.VerifyAsync(root, anchor, ownerSid, cancellationToken);
+
     public bool VerifiesDirectoryEntries => true;
     public ValueTask<byte[]> ReadRuleFileAsync(WindowsPath path, CancellationToken cancellationToken) =>
         NativeOperationScheduler.RunAsync(() => ReadMetadataFile(path, RuleSchemaValidator.MaximumRuleBytes, requireSingleLink: true, cancellationToken), cancellationToken);

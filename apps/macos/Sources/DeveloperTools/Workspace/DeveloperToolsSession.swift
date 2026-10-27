@@ -158,10 +158,21 @@ import ShouPlatform
     func managedPackage(_ row: DeveloperToolInstallation) -> DeveloperToolPackage? {
         catalog.flatMap { NativeDeveloperTools.package(for:row,catalog:$0) }
     }
+    func installationForService(_ row: DeveloperService) -> DeveloperToolInstallation? {
+        installations(row.toolID).first { $0.path == row.installationPath && $0.version == row.version }
+    }
+    var uninstallServices: [DeveloperService] {
+        guard let plan, plan.action == .uninstall else { return [] }
+        let paths=Set(installations(plan.toolID).filter { managedPackage($0) == plan.inspection.package }.map(\.path))
+        return toolServices(plan.toolID).filter { paths.contains($0.installationPath) }
+    }
+    var canExecutePlan: Bool {
+        guard let plan, !inventoryLoading, !servicesLoading else { return false }
+        return plan.action != .uninstall || uninstallServices.allSatisfy { $0.state == "stopped" && $0.issue == nil && !staleServiceIDs.contains($0.id) }
+    }
     func reviewUninstall(_ row: DeveloperToolInstallation, app: AppModel) {
         guard let service, let source=managedPackage(row), focusedID == row.toolID,
-              !app.busy, !inventoryLoading, !servicesLoading,
-              !servicesForInstallation(row).contains(where:{ $0.state != "stopped" }) else { return }
+              !app.busy, !inventoryLoading, !servicesLoading else { return }
         detailTab="installation"; sourceFilter="Homebrew"; package=source; inspection=nil; plan=nil; result=nil; failure=nil
         loading=true; app.busy=true
         task=Task {
@@ -276,7 +287,7 @@ import ShouPlatform
         }
     }
     func execute(app: AppModel) {
-        guard let service, let plan, !app.busy, !inventoryLoading, !servicesLoading else { return }
+        guard let service, let plan, !app.busy, canExecutePlan else { return }
         self.plan=nil; failure=nil; executing=true; app.busy=true; app.isExecuting=true; app.operationHadError=false
         app.statusKey="Managing developer tools…"
         task=Task {

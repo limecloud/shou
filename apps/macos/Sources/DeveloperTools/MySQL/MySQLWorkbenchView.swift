@@ -221,12 +221,11 @@ struct MySQLWorkbenchView: View {
             Text(model.t("Last 200 lines, up to 64 KiB")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             if session.logLoading { ProgressView().controlSize(.small) }
             if let error=session.logFailure { Text(model.t(error)).foregroundStyle(ShouPalette.secondary) }
+            if let text=session.logText {
+                DeveloperLogContentView(text:text,emptyText:model.t("The log file is empty."),identifier:"mysql.log.viewer")
+            }
             DeveloperLogCleanupControls(model:model,session:tools.configuration.logCleanup,toolID:"mysql",path:session.logPath,
                 canReview:!session.logLoading && session.logText?.isEmpty == false,completed:{ session.logText="" })
-            if let text=session.logText {
-                ScrollView([.horizontal,.vertical]) { Text(text.isEmpty ? model.t("The log file is empty.") : text).font(ShouType.body.monospaced()).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.topLeading).padding(14) }
-                    .frame(minHeight:320).background(ShouPalette.inset,in:RoundedRectangle(cornerRadius:ShouDesign.controlRadius)).accessibilityIdentifier("mysql.log.viewer")
-            }
         }
     }
     private var groups: some View {

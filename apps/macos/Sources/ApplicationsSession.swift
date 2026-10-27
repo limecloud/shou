@@ -31,8 +31,15 @@ import ShouPlatform
     var selectedBytes: Int64 { selectedComponents.reduce(0) { $0 + $1.allocatedBytesEstimate } }
     var selectionRequiresAdministrator: Bool { selectedComponents.contains(where: \.requiresAdministrator) }
 
-    func scan(app: AppModel) {
+    func scan(app: AppModel, accessChecked: Bool = false) {
         guard let engine=app.engine, !app.busy else { return }
+        if !accessChecked {
+            app.scanAccess.prepareScan { [weak self, weak app] in
+                guard let self, let app else { return }
+                self.scan(app: app, accessChecked: true)
+            }
+            return
+        }
         task?.cancel()
         let token=UUID(); operation=token
         scanning=true; stopRequested=false; app.busy=true; processedCount=0; applicationCount=0; currentPath=""

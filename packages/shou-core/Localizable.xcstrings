@@ -721,6 +721,22 @@
         }
       }
     },
+    "%lld services use this installation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld services use this installation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个服务使用此安装"
+          }
+        }
+      }
+    },
     "%lld startup entries": {
       "localizations": {
         "en": {
@@ -6714,6 +6730,22 @@
         }
       }
     },
+    "Choose a local folder without links.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a local folder without links."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择不含链接的本地文件夹。"
+          }
+        }
+      }
+    },
     "Choose a project folder to inspect build outputs and caches.": {
       "localizations": {
         "en": {
@@ -7974,6 +8006,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "清除搜索"
+          }
+        }
+      }
+    },
+    "Clearing…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clearing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在清空…"
           }
         }
       }
@@ -15606,6 +15654,22 @@
         }
       }
     },
+    "Install": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装"
+          }
+        }
+      }
+    },
     "Install CLI Command": {
       "localizations": {
         "en": {
@@ -20800,6 +20864,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "暂无规则建议。保留内容或证据不足均为有效结果，可查看调查发现或缩小范围重新调查。"
+          }
+        }
+      }
+    },
+    "No scan locations are available. Review Scan Locations or add a folder.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No scan locations are available. Review Scan Locations or add a folder."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可扫描位置，请检查扫描位置或添加文件夹。"
           }
         }
       }
@@ -27738,6 +27818,22 @@
         }
       }
     },
+    "Review Disk Access…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Disk Access…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘访问权限…"
+          }
+        }
+      }
+    },
     "Review Enable": {
       "localizations": {
         "en": {
@@ -31969,6 +32065,22 @@
         }
       }
     },
+    "Services Using This Installation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Services Using This Installation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用此安装的服务"
+          }
+        }
+      }
+    },
     "Set as Default": {
       "localizations": {
         "en": {
@@ -34368,6 +34480,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "状态"
+          }
+        }
+      }
+    },
+    "Status Unverified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status Unverified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态未核实"
           }
         }
       }
@@ -38955,6 +39083,22 @@
         }
       }
     },
+    "This location is not owned by the current account.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location is not owned by the current account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此位置的所有者与当前账户不同。"
+          }
+        }
+      }
+    },
     "This location is protected.": {
       "localizations": {
         "en": {
@@ -38967,6 +39111,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "此位置受保护。"
+          }
+        }
+      }
+    },
+    "This location's permissions could not be verified.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This location's permissions could not be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实此位置的权限。"
           }
         }
       }
@@ -41847,6 +42007,22 @@
         }
       }
     },
+    "Windows manages this scan location. Results are read-only.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows manages this scan location. Results are read-only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此扫描位置归 Windows 管理，仅提供只读结果。"
+          }
+        }
+      }
+    },
     "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.": {
       "localizations": {
         "en": {
@@ -42797,13 +42973,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "invalid_bundle_identifier"
+            "value": "The application identifier is invalid."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用标识缺失或不符合支持的格式。"
+            "value": "应用标识无效。"
           }
         }
       }
@@ -43045,6 +43221,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要核实"
+          }
+        }
+      }
+    },
+    "multiply_linked_content": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The application contains shared hard links."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用包含共享硬链接。"
           }
         }
       }
@@ -43829,22 +44021,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "装下更多可能。"
-          }
-        }
-      }
-    },
-    "Clearing…": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Clearing…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在清空…"
           }
         }
       }

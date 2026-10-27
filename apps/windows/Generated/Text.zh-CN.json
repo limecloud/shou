@@ -224,6 +224,11 @@
     "resource_id": "s7aeb346773d61f7a02ca6818",
     "text": "已选择 %lld 项"
   },
+  "%lld services use this installation": {
+    "format": "{0} 个服务使用此安装",
+    "resource_id": "sfc5bf7a088c158917ad707fd",
+    "text": "%lld 个服务使用此安装"
+  },
   "%lld startup entries": {
     "format": "{0} 项",
     "resource_id": "s331107e811b4edef4e078554",
@@ -2093,6 +2098,11 @@
     "format": "请选择目录或输入相对路径模式。",
     "resource_id": "sa606f2b38bcac5d1db875cd3",
     "text": "请选择目录或输入相对路径模式。"
+  },
+  "Choose a local folder without links.": {
+    "format": "请选择不含链接的本地文件夹。",
+    "resource_id": "s2f717d142d2bc7c9b827bd71",
+    "text": "请选择不含链接的本地文件夹。"
   },
   "Choose a project folder to inspect build outputs and caches.": {
     "format": "选择项目目录，检查构建产物与缓存。",
@@ -4869,6 +4879,11 @@
     "resource_id": "sda188e3b1cefc8a70813b78e",
     "text": "检查器"
   },
+  "Install": {
+    "format": "安装",
+    "resource_id": "s569ca49f4aaf7846e952c1d4",
+    "text": "安装"
+  },
   "Install CLI Command": {
     "format": "安装 CLI 命令",
     "resource_id": "scc5098bde78248090a63dcd7",
@@ -6488,6 +6503,11 @@
     "format": "暂无规则建议。保留内容或证据不足均为有效结果，可查看调查发现或缩小范围重新调查。",
     "resource_id": "s952d880a316d1110c3b7093f",
     "text": "暂无规则建议。保留内容或证据不足均为有效结果，可查看调查发现或缩小范围重新调查。"
+  },
+  "No scan locations are available. Review Scan Locations or add a folder.": {
+    "format": "暂无可扫描位置，请检查扫描位置或添加文件夹。",
+    "resource_id": "sec8c3ecf416141938ffbcbd3",
+    "text": "暂无可扫描位置，请检查扫描位置或添加文件夹。"
   },
   "No scan locations are configured yet.": {
     "format": "尚未配置扫描位置。",
@@ -8654,6 +8674,11 @@
     "resource_id": "s130a09c6fa5cf0b5baeb2f81",
     "text": "审阅禁用"
   },
+  "Review Disk Access…": {
+    "format": "磁盘访问权限…",
+    "resource_id": "s1cfdc3b1c20b8f3d0523fed9",
+    "text": "磁盘访问权限…"
+  },
   "Review Enable": {
     "format": "审阅启用",
     "resource_id": "s601f8a0e1e75dc0b2f184114",
@@ -9974,6 +9999,11 @@
     "resource_id": "s9dd6569e4142e15c55b6c2d2",
     "text": "服务已停止，正在启动…"
   },
+  "Services Using This Installation": {
+    "format": "使用此安装的服务",
+    "resource_id": "s26cbec70c895fcca7c9ae2d7",
+    "text": "使用此安装的服务"
+  },
   "Set as Default": {
     "format": "设为默认",
     "resource_id": "s10886554da510708e6b9477c",
@@ -10723,6 +10753,11 @@
     "format": "状态",
     "resource_id": "s920e413c7d411b61ef3e8c63",
     "text": "状态"
+  },
+  "Status Unverified": {
+    "format": "状态未核实",
+    "resource_id": "s78361fbe1fb15a95ca271975",
+    "text": "状态未核实"
   },
   "Steam caches": {
     "format": "Steam 缓存",
@@ -12154,10 +12189,20 @@
     "resource_id": "sd315936cb4cdecaec37deb46",
     "text": "此位置达到扫描资源边界，未完整统计。"
   },
+  "This location is not owned by the current account.": {
+    "format": "此位置的所有者与当前账户不同。",
+    "resource_id": "sad91a9f838c93ecd69b7c337",
+    "text": "此位置的所有者与当前账户不同。"
+  },
   "This location is protected.": {
     "format": "此位置受保护。",
     "resource_id": "s433af3446f2af67e282b940d",
     "text": "此位置受保护。"
+  },
+  "This location's permissions could not be verified.": {
+    "format": "无法核实此位置的权限。",
+    "resource_id": "s3b8569c191634f9f250056e0",
+    "text": "无法核实此位置的权限。"
   },
   "This operation could not be completed. Try again.": {
     "format": "未能完成此操作，请重试。",
@@ -13054,6 +13099,11 @@
     "resource_id": "s864fba32c0ce2d3db93b0090",
     "text": "Windows 将此应用识别为系统软件包。"
   },
+  "Windows manages this scan location. Results are read-only.": {
+    "format": "此扫描位置归 Windows 管理，仅提供只读结果。",
+    "resource_id": "sc4fcf491f9e233d1009d3103",
+    "text": "此扫描位置归 Windows 管理，仅提供只读结果。"
+  },
   "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.": {
     "format": "Windows 便携预览版。清理、系统卸载与启动项变更将在原生验收完成后开放。",
     "resource_id": "s34f7d2311c068a107c952b1b",
@@ -13350,9 +13400,9 @@
     "text": "应用元数据无法解析。"
   },
   "invalid_bundle_identifier": {
-    "format": "应用标识缺失或不符合支持的格式。",
+    "format": "应用标识无效。",
     "resource_id": "s7cfe0449bac3c1210b374b60",
-    "text": "应用标识缺失或不符合支持的格式。"
+    "text": "应用标识无效。"
   },
   "invalid_filename": {
     "format": "文件名包含不支持的字符。",
@@ -13428,6 +13478,11 @@
     "format": "需要核实",
     "resource_id": "s6e862940d0bf2eea9e01e33f",
     "text": "需要核实"
+  },
+  "multiply_linked_content": {
+    "format": "应用包含共享硬链接。",
+    "resource_id": "se2eaa1e6574f5ab891830888",
+    "text": "应用包含共享硬链接。"
   },
   "not_scanned": {
     "format": "未检查",

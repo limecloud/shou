@@ -76,9 +76,10 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
             if size == 0 { return nil }
             guard size == MemoryLayout<kinfo_proc>.stride, info.kp_proc.p_pid == pid else { throw unavailable() }
             if Int(info.kp_proc.p_stat) == Int(SZOMB) { return nil }
-            // An exiting process may remain runnable briefly. Retry once;
-            // unresolved live processes and permission failures stay blocked.
-            guard attempt == 0 else { throw unavailable() }
+            // proc_pidpath can also return ESRCH for a live process. After one
+            // retry, use the same identity-checked kernel cache as for ENOENT;
+            // this never treats an unreadable live process as exited.
+            if attempt == 1 { return try cachedExecutablePath(for: pid) }
             usleep(1_000)
         }
         throw unavailable()

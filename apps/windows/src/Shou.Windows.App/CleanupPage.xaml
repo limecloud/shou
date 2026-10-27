@@ -20,7 +20,7 @@
                 </StackPanel>
             </Border>
             <TextBlock x:Name="StartStatus" AutomationProperties.AutomationId="cleanup.start_status" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource ShouCaption}" AutomationProperties.LiveSetting="Polite" />
-            <InfoBar x:Name="StartCoverageNotice" AutomationProperties.AutomationId="cleanup.start_coverage" IsClosable="False" Severity="Warning" MaxWidth="520" />
+            <Button x:Name="StartCoverageDetailsButton" AutomationProperties.AutomationId="cleanup.start_coverage" Style="{StaticResource ShouLinkActionButton}" HorizontalAlignment="Left" Visibility="Collapsed"><Button.Flyout><Flyout><ScrollViewer MaxHeight="320" MaxWidth="380"><InfoBar x:Name="StartCoverageNotice" IsClosable="False" Severity="Warning" /></ScrollViewer></Flyout></Button.Flyout></Button>
             <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center"><HyperlinkButton x:Name="InvestigateLink" Style="{StaticResource ShouLinkButton}" IsEnabled="False" /><HyperlinkButton x:Name="ExternalToolsLink" Style="{StaticResource ShouLinkButton}" IsEnabled="False" /><HyperlinkButton x:Name="LocationsLink" Style="{StaticResource ShouLinkButton}" Click="ShowLocations" /></StackPanel>
         </StackPanel></ScrollViewer>
         <Grid x:Name="ResultsContent" AutomationProperties.AutomationId="cleanup.results" Visibility="Collapsed">

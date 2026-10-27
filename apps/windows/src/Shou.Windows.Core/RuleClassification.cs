@@ -114,6 +114,7 @@ public sealed class RuleClassifier(CleanupProtectionContext protection, BuiltinR
                 var relative = target.Path.RelativeTo(scan.Root, caseSensitive: true);
                 if (relative.Split('/').Length > rule.MaxDiscoveryDepth || !rule.Patterns.Any(pattern => Match(pattern, target))) continue;
                 var reasons = new HashSet<string>(StringComparer.Ordinal);
+                if (workspace.Identity.OwnerSid != protection.OwnerSid) reasons.Add("scan_root_read_only");
                 var complete = index.CompletedDirectories.Contains(target.Path);
                 if (!complete) reasons.Add("coverage_incomplete");
                 for (var ancestor = target.Path.Parent; ancestor is not null; ancestor = ancestor.Parent)

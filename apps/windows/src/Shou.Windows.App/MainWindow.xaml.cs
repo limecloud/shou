@@ -186,6 +186,7 @@ public sealed partial class MainWindow : Window
                         projects = new(SharedCleanupReview(), operations, projectsOnly: true);
                         projects.BusyChanged += (_, _) => UpdateNavigation();
                         projects.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
+                        projects.DestinationRequested += async nextDestination => await ShowPageAsync(nextDestination);
                         projects.HistoryRequested += async (_, _) => { history?.InvalidateHistory(); await ShowPageAsync("history"); };
                     }
                     page = projects; load = projects.EnsureLoadedAsync(); break;

@@ -44,6 +44,7 @@
 "%lld requests, %lld reported tokens" = "%lld requests, %lld reported tokens";
 "%lld rules" = "%lld rules";
 "%lld selected" = "%lld selected";
+"%lld services use this installation" = "%lld services use this installation";
 "%lld startup entries" = "%lld startup entries";
 "%lld startup programs" = "%lld startup programs";
 "%lld startup registrations" = "%lld startup registrations";
@@ -418,6 +419,7 @@
 "Choose a disk or folder to explore its storage usage." = "Choose a disk or folder to explore its storage usage.";
 "Choose a folder inside the selected workspace, not the workspace itself." = "Choose a folder inside the selected workspace, not the workspace itself.";
 "Choose a folder or enter a relative pattern." = "Choose a folder or enter a relative pattern.";
+"Choose a local folder without links." = "Choose a local folder without links.";
 "Choose a project folder to inspect build outputs and caches." = "Choose a project folder to inspect build outputs and caches.";
 "Choose a rebuildable output folder inside this workspace. No files will be removed." = "Choose a rebuildable output folder inside this workspace. No files will be removed.";
 "Choose a rule version" = "Choose a rule version";
@@ -973,6 +975,7 @@
 "Inspecting directory evidence…" = "Inspecting directory evidence…";
 "Inspecting…" = "Inspecting…";
 "Inspector" = "Inspector";
+"Install" = "Install";
 "Install CLI Command" = "Install CLI Command";
 "Install Skill" = "Install Skill";
 "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed." = "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.";
@@ -1297,6 +1300,7 @@
 "No recorded location" = "No recorded location";
 "No release notes were provided." = "No release notes were provided.";
 "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation." = "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.";
+"No scan locations are available. Review Scan Locations or add a folder." = "No scan locations are available. Review Scan Locations or add a folder.";
 "No scan locations are configured yet." = "No scan locations are configured yet.";
 "No scan locations were found. Add a folder in Scan Locations to continue." = "No scan locations were found. Add a folder in Scan Locations to continue.";
 "No search results" = "No search results";
@@ -1730,6 +1734,7 @@
 "Review Cleanup…" = "Review Cleanup…";
 "Review Database Creation" = "Review Database Creation";
 "Review Disable" = "Review Disable";
+"Review Disk Access…" = "Review Disk Access…";
 "Review Enable" = "Review Enable";
 "Review Installation" = "Review Installation";
 "Review Instance Registration" = "Review Instance Registration";
@@ -1994,6 +1999,7 @@
 "Service state verified." = "Service state verified.";
 "Service states are snapshots. Refresh to check changes made outside Shou." = "Service states are snapshots. Refresh to check changes made outside Shou.";
 "Service stopped. Starting…" = "Service stopped. Starting…";
+"Services Using This Installation" = "Services Using This Installation";
 "Set as Default" = "Set as Default";
 "Set up Shou once, then get straight to cleaning." = "Set up Shou once, then get straight to cleaning.";
 "Settings" = "Settings";
@@ -2144,6 +2150,7 @@
 "State Unknown" = "State Unknown";
 "State unavailable" = "State unavailable";
 "Status" = "Status";
+"Status Unverified" = "Status Unverified";
 "Steam caches" = "Steam caches";
 "Steam logs" = "Steam logs";
 "Still running. Save your work and quit the application." = "Still running. Save your work and quit the application.";
@@ -2430,7 +2437,9 @@
 "This location could not be fully measured." = "This location could not be fully measured.";
 "This location could not be read." = "This location could not be read.";
 "This location exceeded a scan resource boundary." = "This location exceeded a scan resource boundary.";
+"This location is not owned by the current account." = "This location is not owned by the current account.";
 "This location is protected." = "This location is protected.";
+"This location's permissions could not be verified." = "This location's permissions could not be verified.";
 "This operation could not be completed. Try again." = "This operation could not be completed. Try again.";
 "This operation is unfinished or needs verification." = "This operation is unfinished or needs verification.";
 "This plan already has an execution record." = "This plan already has an execution record.";
@@ -2610,6 +2619,7 @@
 "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer." = "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer.";
 "Windows does not expose these hardware sensors through the supported read-only APIs." = "Windows does not expose these hardware sensors through the supported read-only APIs.";
 "Windows identifies this as a system package." = "Windows identifies this as a system package.";
+"Windows manages this scan location. Results are read-only." = "Windows manages this scan location. Results are read-only.";
 "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete." = "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.";
 "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete." = "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.";
 "Windows service control requires native acceptance. Current status is read-only." = "Windows service control requires native acceptance. Current status is read-only.";
@@ -2669,7 +2679,7 @@
 "incomplete_scan" = "incomplete_scan";
 "inspection_failed" = "Location inspection could not be completed.";
 "invalid_application_metadata" = "invalid_application_metadata";
-"invalid_bundle_identifier" = "invalid_bundle_identifier";
+"invalid_bundle_identifier" = "The application identifier is invalid.";
 "invalid_filename" = "invalid_filename";
 "io_error" = "The file or directory could not be read.";
 "items" = "items";
@@ -2685,6 +2695,7 @@
 "mise inventory could not be read." = "mise inventory could not be read.";
 "missing" = "Missing";
 "moving" = "Needs verification";
+"multiply_linked_content" = "The application contains shared hard links.";
 "not_scanned" = "Not inspected";
 "npm Cache" = "npm Cache";
 "npm download cache" = "npm download cache";

@@ -127,5 +127,9 @@ func nativeApplicationActivityKeepsUnlinkedHelpersBlocked() async throws {
     try expect(count == 0 && errno == ENOENT)
     let facts=try NativeApplicationUninstallEvidence(homeDirectory: fixture.fixture.workspace).facts(for: fixture.application)
     try expect(facts.running && !facts.currentApplication && process.isRunning)
+    let unrelated=try NativeActivityFixture()
+    let snapshot=try NativeApplicationUninstallEvidence(homeDirectory: fixture.fixture.workspace)
+        .facts(for: [fixture.application, unrelated.application])
+    try expect(snapshot[fixture.application.id]?.running == true && snapshot[unrelated.application.id]?.running == false)
     #endif
 }

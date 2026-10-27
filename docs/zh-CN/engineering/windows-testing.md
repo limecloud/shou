@@ -4,6 +4,14 @@
 
 本文件定义排错与验收入口，不代表全部 Windows 功能已可用。实际结果记录于 [SYNC.md](../../../SYNC.md)。本地开发时保持云电脑 `StopCharging`，本机检查与同步包准备好后再集中开机。
 
+## 2026-10-27 工具日志验收与扫描修复
+
+Windows 11 x64 的 0.18.0 候选版通过 v5 原生构建与发布启动／正常关闭检查。补齐源码包遗漏的两个示例并修正测试进程 Git PATH 后，最终主套件 1,404 项通过、0 失败、12 项 MSI／启动项 opt-in 跳过，Windows CLI 合同 213 项通过；先前失败回执保留。Computer Use 复验固定工具标题、日志剩余高度、审阅底栏、日志内部滚动、空态、目录胶囊、服务标题和应用单一加载状态，并观察到 107 项应用扫描结果。系统蓝残留、Windows 深色、准确最小逻辑尺寸、逐软件任务及完整桌面旅程仍未验收。
+
+本地证据 `output/reviews/tool-cleanup-2026-10-27/` 保存 42 张原始截图（Windows 37、Mac 5）、原有 38 份导出及 v5 的 105 份逐文件长度／SHA256 核验导出。用户最新要求为释放：精确实例 `ecd-7ig09ng1m03caqtoo` 已删除，最终 API 返回空实例、空快照和空付费网络包；释放回执与图廊均在该证据目录，不再保留计费磁盘。
+
+用户随后报告的扫描未开始，诊断显示三个内置目录实际可读、所有者为 Administrators，原实现错误归类为访问拒绝。新增[内置预配根只读扫描](../product/unified-cleanup.md#windows-扫描与审阅)、独立所有者提示与首页按需展开详情；清理计划继续拒绝这类根。此修复仅做 Mac 宿主逻辑／平台源码与 C# 引用检查，新增原生 ACL／句柄及 WinUI 交互回归待 Windows 实机验收。此前 v5 原生通过不能替代这次修复的实机证据。实际来源与范围见 [SYNC.md](../../../SYNC.md#工具日志永久清空跨端增量2026-10-27--permanent-tool-log-clearing)。
+
 ## 2026-10-26 Windows 11 云端验收
 
 环境为 Windows 11 Pro x64（10.0.26200）、.NET SDK 10.0.402、Python 3.13.9，应用版本 0.15.0。云端基线为 `2d5b55a1d5049118cbb24a37a9c3bf76382ec8ba`，叠加本机工作树 overlay 与七轮带 SHA256 的增量；不能写作最新本机 HEAD 的干净构建。主套件先于最后的界面修复运行，最终 v7 另行通过 x64 自包含构建、CLI version/capabilities、WinUI 启动及正常关闭检查，并实际复验界面。
@@ -27,7 +35,7 @@ GUI 与 CLI 共用 `%LOCALAPPDATA%\Shou\Diagnostics\application.jsonl`，最多�
 
 日志目录和文件使用当前用户所有者及私有 ACL；打开时核验句柄、类型和单链接，不跟随 reparse point。普通诊断失败不能改变业务操作结果，丢失计数写入后续事件；E2E 将日志缺失或丢失计数视为失败。永久变更的持久化意图日志仍是独立安全边界，写入失败继续阻止变更，不能被普通诊断的尽力写入语义替代。
 
-系统预配账户的 LocalAppData／既有 Shou 容器可能归 SYSTEM 或 Administrators 所有。默认路径只接受经固定句柄核验、无其他主体写权限的上级目录，不修改现有权限或所有者。Data／Diagnostics 叶目录和文件仍要求当前用户所有及私有 ACL。`SHOU_DATA_DIR`／`SHOU_DIAGNOSTICS_DIR` 显式覆盖使用严格的当前用户父目录约束。缓存与扫描根的所有者检查没有因此放宽；不可验证的位置仍报告覆盖缺口。
+系统预配账户的 LocalAppData／既有 Shou 容器可能归 SYSTEM 或 Administrators 所有。默认路径只接受经固定句柄核验、无其他主体写权限的上级目录，不修改现有权限或所有者。Data／Diagnostics 叶目录和文件仍要求当前用户所有及私有 ACL。`SHOU_DATA_DIR`／`SHOU_DIAGNOSTICS_DIR` 显式覆盖使用严格的当前用户父目录约束。该存储兼容不授予扫描或清理权限。内置预配缓存根的只读兼容与清理限制另见[日常清理](../product/unified-cleanup.md#windows-扫描与审阅)；不可核验的位置仍报告覆盖缺口。
 
 ## 分层检查
 

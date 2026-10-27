@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Shou.Windows.Core;
 using Shou.Windows.Platform;
 
@@ -19,13 +20,16 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
     private bool showLogs;
     private readonly StackPanel header = new() { Spacing = 12 };
     private readonly StackPanel rail = new() { Spacing = 6 };
-    private readonly List<ToggleSwitch> switches = [];
+    private readonly List<ToggleButton> switches = [];
     private readonly DeveloperServiceController serviceController;
     private DeveloperServiceSnapshot? services;
     private string sourceFilter = "all";
     private string? changingServiceId;
     private DeveloperServiceAction? changingServiceAction;
     private readonly StackPanel content = new() { Spacing = 16 };
+    private readonly StackPanel detailHeader = new() { Spacing = 12 };
+    private readonly ContentControl detailBody = new() { HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch };
+    private readonly ScrollViewer detailScroll = new() { HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, HorizontalScrollMode = ScrollMode.Disabled, HorizontalContentAlignment = HorizontalAlignment.Stretch };
     private readonly StackPanel footer = new() { Orientation = Orientation.Horizontal, Spacing = 12, HorizontalAlignment = HorizontalAlignment.Right };
     private readonly TextBox search = new() { MaxLength = 256, Width = 260 };
     private readonly StackPanel collection = new() { Orientation = Orientation.Horizontal, Spacing = 2 };
@@ -36,7 +40,7 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
     private readonly TextBlock status = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ProgressBar progress = new() { IsIndeterminate = true, Visibility = Visibility.Collapsed };
     private readonly HashSet<string> favorites = new(StringComparer.Ordinal);
-    private readonly List<Button> commands = [];
+    private readonly List<Control> commands = [];
     private readonly CancellationTokenSource lifetime = new();
     private DeveloperToolInventory? inventory;
     private DeveloperToolDefinition? focused;
@@ -85,12 +89,16 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         workspaceGrid.ColumnDefinitions.Add(new() { Width = new((double)Application.Current.Resources["ShouToolRailWidth"]) }); workspaceGrid.ColumnDefinitions.Add(new());
         rail.Margin = new(12);
         workspaceGrid.Children.Add(new ScrollViewer { Content = rail, HorizontalScrollMode = ScrollMode.Disabled, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, HorizontalContentAlignment = HorizontalAlignment.Stretch });
-        var scroll = new ScrollViewer { Content = content, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            HorizontalScrollMode = ScrollMode.Disabled, HorizontalContentAlignment = HorizontalAlignment.Stretch };
-        content.Margin = new(inset, 12, inset, 20); Grid.SetColumn(scroll, 1); workspaceGrid.Children.Add(scroll);
+        var detail = new Grid();
+        detail.RowDefinitions.Add(new() { Height = GridLength.Auto }); detail.RowDefinitions.Add(new());
+        detailHeader.Margin = new(inset, 12, inset, 0); detail.Children.Add(detailHeader);
+        content.Margin = new(inset, 12, inset, 20); detailScroll.Content = content;
+        detailBody.Content = detailScroll; Grid.SetRow(detailBody, 1); detail.Children.Add(detailBody);
+        Grid.SetColumn(detail, 1); workspaceGrid.Children.Add(detail);
         Grid.SetRow(workspaceGrid, 2); root.Children.Add(workspaceGrid);
-        void Fit() { content.Width = Math.Max(0, scroll.ViewportWidth - 2 * inset); search.Width = ActualWidth < 1080 ? 160 : 260; }
-        scroll.SizeChanged += (_, _) => Fit(); scroll.Loaded += (_, _) => Fit();
+        void Fit() { content.Width = Math.Max(0, detailScroll.ViewportWidth - 2 * inset); search.Width = ActualWidth < 1080 ? 160 : 260; }
+        detailScroll.SizeChanged += (_, _) => Fit(); detailScroll.Loaded += (_, _) => Fit();
+        SizeChanged += (_, _) => search.Width = ActualWidth < 1080 ? 160 : 260;
         footer.Margin = new(inset, 12, inset, 16); Grid.SetRow(footer, 3); root.Children.Add(footer); Content = root;
         search.TextChanged += (_, _) => Render();
         scan.Click += async (_, _) => await ScanAsync();
@@ -117,7 +125,7 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         {
             var updates = new Progress<DeveloperToolInventory>(value => { if (!disposed && inventoryLoading) { inventory = value; Render(); } });
             inventory = await new WindowsDeveloperToolInventory().ScanAsync(catalog, lifetime.Token, updates);
-            if (!disposed) status.Text = inventory.Issues.IsEmpty ? text.Get("Installed tool discovery finished.") :
+            if (!disposed) status.Text = inventory.Issues.IsEmpty ? "" :
                 text.Get("Some sources could not be read.");
         }
         catch (Exception error) when (error is not OutOfMemoryException) { if (!disposed) ShowError(error); }
@@ -129,14 +137,13 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
     private void Render()
     {
         if (disposed) return;
-        content.Children.Clear(); rail.Children.Clear(); footer.Children.Clear(); commands.Clear(); switches.Clear();
+        detailBody.Content = null;
+        detailHeader.Children.Clear(); content.Children.Clear(); rail.Children.Clear(); footer.Children.Clear(); commands.Clear(); switches.Clear();
+        detailBody.Content = detailScroll;
         collection.Children.Clear();
         foreach (var (index, key) in new[] { (2, "My Workspace"), (0, "Add Tools") })
         {
-            var choice = Command(key, () => { collectionIndex = index; inspection = null; plan = null; Render(); if (collectionIndex == 2) _ = LoadServicesAsync(); });
-            choice.CornerRadius = (CornerRadius)Application.Current.Resources["ShouControlRadius"];
-            if (index == collectionIndex) choice.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
-            AutomationProperties.SetAutomationId(choice, "developer.collection." + index);
+            var choice = Choice(key, index == collectionIndex, () => { collectionIndex = index; inspection = null; plan = null; Render(); if (collectionIndex == 2) _ = LoadServicesAsync(); }, "developer.collection." + index);
             collection.Children.Add(choice);
         }
         if (collectionIndex == 0) collection.Children.Add(installedOnly);
@@ -168,9 +175,12 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         if (focused is null || !tools.Any(t => t.Id == focused.Id))
         {
             if (tools.FirstOrDefault() is { } first) { Open(first); return; }
-            focused = null; rail.Children.Add(Label("No matching developer tools."));
-            content.Children.Add(WorkspaceVisuals.Artwork("projects", 180, 130)); content.Children.Add(Label("Add tools to your workspace"));
-            content.Children.Add(Command("Add Tools", () => { search.Text = ""; collectionIndex = 0; Render(); }, "developer.workspace.add")); return;
+            focused = null;
+            var empty = new StackPanel { Spacing = 16, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            empty.Children.Add(WorkspaceVisuals.Artwork("projects", 180, 130));
+            var title = Label(search.Text.Length == 0 ? "Add tools to your workspace" : "No matching developer tools."); title.HorizontalAlignment = HorizontalAlignment.Center; empty.Children.Add(title);
+            var add = Command("Add Tools", () => { search.Text = ""; collectionIndex = 0; Render(); }, "developer.workspace.add");
+            add.HorizontalAlignment = HorizontalAlignment.Center; empty.Children.Add(add); detailBody.Content = empty; return;
         }
         RenderDetail();
     }
@@ -178,12 +188,12 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
     {
         if (changingServiceId == value.Id) return showProgress ? new ProgressRing { IsActive = true, Width = 32, Height = 32 } : Caption("");
         if (value.State is not ("running" or "stopped")) return Caption(text.Get("Unknown"));
-        var toggle = new ToggleSwitch { IsOn = value.State == "running", OnContent = "", OffContent = "", MinWidth = 0, IsEnabled = !busy && !inventoryLoading && !servicesLoading && value.Controllable && WindowsDeveloperServices.PublicExecutionAvailable, VerticalAlignment = VerticalAlignment.Center };
+        var toggle = new ToggleButton { IsChecked = value.State == "running", Style = (Style)Application.Current.Resources["ShouSwitch"], IsEnabled = !busy && !inventoryLoading && !servicesLoading && value.Controllable && WindowsDeveloperServices.PublicExecutionAvailable, VerticalAlignment = VerticalAlignment.Center };
         AutomationProperties.SetAutomationId(toggle, "developer.service." + value.Id);
         AutomationProperties.SetName(toggle, text.Get(value.State == "running" ? "Stop Service" : "Start Service") + ", " + value.Name + ", " + value.Source);
         ToolTipService.SetToolTip(toggle, value.Source + ", " + value.Version + "\n" + value.InstallationPath + "\n" + text.Get(WindowsDeveloperServices.PublicExecutionAvailable ?
             "Start or stop this service now. Existing login-start registration is preserved." : "Windows service control requires native acceptance. Current status is read-only."));
-        toggle.Toggled += (_, _) => { if (toggle.IsEnabled && toggle.IsOn != (value.State == "running")) _ = ChangeServiceAsync(value, toggle.IsOn ? DeveloperServiceAction.Start : DeveloperServiceAction.Stop); };
+        toggle.Click += (_, _) => { if (toggle.IsEnabled && (toggle.IsChecked == true) != (value.State == "running")) _ = ChangeServiceAsync(value, toggle.IsChecked == true ? DeveloperServiceAction.Start : DeveloperServiceAction.Stop); };
         switches.Add(toggle); return toggle;
     }
     private void RenderCatalog(DeveloperToolDefinition[] tools)
@@ -192,7 +202,7 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         {
             var rows = tools.Where(t => t.Category == group.Id).ToArray();
             if (rows.Length == 0) continue;
-            content.Children.Add(Label(group.Title));
+            var title = Label(group.Title); title.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold; content.Children.Add(title);
             var grid = new Grid { ColumnSpacing = 20 };
             var columns = ActualWidth >= 920 ? 2 : 1;
             for (var column = 0; column < columns; column++) grid.ColumnDefinitions.Add(new());
@@ -205,13 +215,16 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
                 var identity = new StackPanel { Spacing = 5 };
                 identity.Children.Add(Label(tool.Name)); identity.Children.Add(Caption(text.Get(ToolStatus(tool.Id))));
                 var origins = Installations(tool.Id).Select(i => text.Get(i.Source)).Distinct(StringComparer.Ordinal);
-                identity.Children.Add(Caption(string.Join(" / ", origins))); row.Children.Add(identity);
-                var toggle = new ToggleSwitch { IsOn = favorites.Contains(tool.Id), OnContent = "", OffContent = "", MinWidth = 0, VerticalAlignment = VerticalAlignment.Center, IsEnabled = !busy };
+                var originText = string.Join(" / ", origins);
+                if (originText.Length > 0) identity.Children.Add(Caption(originText)); row.Children.Add(identity);
+                var toggle = new ToggleButton { IsChecked = favorites.Contains(tool.Id), Style = (Style)Application.Current.Resources["ShouSwitch"], VerticalAlignment = VerticalAlignment.Center, IsEnabled = !busy };
                 AutomationProperties.SetAutomationId(toggle, "developer.workspace.select." + tool.Id);
                 AutomationProperties.SetName(toggle, text.Get(favorites.Contains(tool.Id) ? "Remove from Workspace" : "Add to Workspace") + ", " + tool.Name);
-                toggle.Toggled += (_, _) => { if (toggle.IsEnabled) _ = ToggleFavoriteAsync(tool.Id); };
+                toggle.Click += (_, _) => { if (toggle.IsEnabled) _ = ToggleFavoriteAsync(tool.Id); }; switches.Add(toggle);
                 Grid.SetColumn(toggle, 1); row.Children.Add(toggle);
-                Grid.SetRow(row, index / columns); Grid.SetColumn(row, index % columns); grid.Children.Add(row);
+                var boundary = new Border { Child = row, BorderThickness = new(0, 0, 0, Size("ShouHairlineWidth")) };
+                ThemeResources.Apply(boundary, Border.BorderBrushProperty, "BorderBrush", "ShouDividerBrush");
+                Grid.SetRow(boundary, index / columns); Grid.SetColumn(boundary, index % columns); grid.Children.Add(boundary);
             }
             content.Children.Add(grid);
         }
@@ -265,7 +278,13 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         var restart = Command("Restart Service", () => _ = ChangeServiceAsync(value, DeveloperServiceAction.Restart), "developer.restart." + value.Id);
         restart.Content = new FontIcon { Glyph = "\uE777", FontSize = 14 }; AutomationProperties.SetName(restart, text.Get("Restart Service")); ToolTipService.SetToolTip(restart, text.Get("Restart Service"));
         restart.IsEnabled = !busy && !inventoryLoading && !servicesLoading && value.Controllable && value.State == "running" && WindowsDeveloperServices.PublicExecutionAvailable;
-        if (changingServiceId != value.Id) actions.Children.Add(restart); body.Children.Add(actions); return body;
+        if (changingServiceId != value.Id) actions.Children.Add(restart);
+        if (InstallationForService(value) is { } copy)
+        {
+            var uninstall = ManagementCommand("Uninstall", () => _ = PrepareUninstallAsync(copy), "developer.service.uninstall." + value.Id);
+            uninstall.Style = (Style)Application.Current.Resources["ShouDestructiveCompactButton"]; actions.Children.Add(uninstall);
+        }
+        body.Children.Add(actions); return body;
     }
     private async Task ChangeServiceAsync(DeveloperService expected, DeveloperServiceAction action)
     {
@@ -307,15 +326,15 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         var favorite = Command("Remove from Workspace", () => _ = ToggleFavoriteAsync(tool.Id), "developer.workspace.remove." + tool.Id);
         Grid.SetColumn(favorite, 1); heading.Children.Add(favorite);
         var guide = new HyperlinkButton { Content = text.Get("Official Guide"), NavigateUri = new Uri(tool.Homepage) };
-        Grid.SetColumn(guide, 2); heading.Children.Add(guide); content.Children.Add(heading);
+        guide.Style = (Style)Application.Current.Resources["ShouLinkButton"];
+        Grid.SetColumn(guide, 2); heading.Children.Add(guide); detailHeader.Children.Add(heading);
         if (!ai)
         {
             var tabs = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-            var versions = Command("Installation & Versions", () => { showLogs = false; Render(); }, "developer.tab.versions");
-            var logs = Command("Logs", () => { showLogs = true; Render(); }, "developer.tab.logs");
+            var versions = Choice("Installation & Versions", !showLogs, () => { showLogs = false; Render(); }, "developer.tab.versions");
+            var logs = Choice("Logs", showLogs, () => { showLogs = true; Render(); }, "developer.tab.logs");
             versions.IsEnabled = logs.IsEnabled = !busy && plan is null;
-            (showLogs ? logs : versions).Style = (Style)Application.Current.Resources["AccentButtonStyle"];
-            tabs.Children.Add(versions); tabs.Children.Add(logs); content.Children.Add(tabs);
+            tabs.Children.Add(versions); tabs.Children.Add(logs); detailHeader.Children.Add(tabs);
             if (showLogs)
             {
                 if (logsView is null)
@@ -323,61 +342,68 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
                     logsView = new(tool.Id, windowHandle, value => { HasActiveMutation = value; SetBusy(value); if (!value) Render(); });
                     _ = logsView.DiscoverAsync(Installations(tool.Id).ToImmutableArray(), ToolServices(tool.Id).ToImmutableArray());
                 }
-                content.Children.Add(logsView); return;
+                logsView.Margin = new(Size("ShouWorkspaceInset"), 12, Size("ShouWorkspaceInset"), 16);
+                detailBody.Content = logsView; return;
             }
         }
         if (AIWorkspaceSummary.Supports(tool.Id))
         {
             var tabs = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-            var installationTab = Command("Installation & Versions", () => { showWorkspace = false; Render(); });
-            var configurationTab = Command("Configuration & Extensions", () => { showWorkspace = true; Render(); });
+            var installationTab = Choice("Installation & Versions", !showWorkspace, () => { showWorkspace = false; Render(); });
+            var configurationTab = Choice("Configuration & Extensions", showWorkspace, () => { showWorkspace = true; Render(); });
             installationTab.IsEnabled = configurationTab.IsEnabled = !busy && plan is null;
-            (showWorkspace ? configurationTab : installationTab).Style = (Style)Application.Current.Resources["AccentButtonStyle"];
-            tabs.Children.Add(installationTab); tabs.Children.Add(configurationTab); content.Children.Add(tabs);
+            tabs.Children.Add(installationTab); tabs.Children.Add(configurationTab); detailHeader.Children.Add(tabs);
             if (showWorkspace) { RenderWorkspace(); return; }
         }
         var copies = Installations(tool.Id);
         var sources = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         foreach (var source in new[] { "all" }.Concat(copies.Select(r => r.Source).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)))
         {
-            var chip = Command(source == "all" ? "All Sources" : source, () => { sourceFilter = source; inspection = null; Render(); });
-            chip.CornerRadius = (CornerRadius)Application.Current.Resources["ShouControlRadius"]; chip.IsEnabled = !busy && plan is null;
-            if (sourceFilter == source) chip.Style = (Style)Application.Current.Resources["AccentButtonStyle"];
+            var chip = Choice(source == "all" ? "All Sources" : source, sourceFilter == source, () => { sourceFilter = source; inspection = null; Render(); });
+            chip.IsEnabled = !busy && plan is null;
             sources.Children.Add(chip);
         }
-        content.Children.Add(new ScrollViewer { Content = sources, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Enabled, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled });
-        if (copies.Length > 0)
+        detailHeader.Children.Add(new ScrollViewer { Content = sources, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollMode = ScrollMode.Enabled, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled });
+        if (copies.Length > 0 && plan is null)
         {
-            var installed = new StackPanel { Spacing = 12 }; installed.Children.Add(Label("Existing Installations"));
-            Grid TableRow() { var row = new Grid { ColumnSpacing = 12 }; row.ColumnDefinitions.Add(new() { Width = new((double)Application.Current.Resources["ShouToolVersionWidth"]) }); row.ColumnDefinitions.Add(new()); row.ColumnDefinitions.Add(new() { Width = new((double)Application.Current.Resources["ShouToolSourceWidth"]) }); row.ColumnDefinitions.Add(new() { Width = new((double)Application.Current.Resources["ShouToolServiceWidth"]) }); return row; }
-            var titles = TableRow(); var keys = new[] { "Version", "Path", "Installation Source", "Service" };
-            for (var index = 0; index < keys.Length; index++) { var label = Caption(text.Get(keys[index])); Grid.SetColumn(label, index); titles.Children.Add(label); } installed.Children.Add(titles);
+            var installed = new StackPanel { Spacing = 16 };
+            var installationHeader = new Grid { ColumnSpacing = 12 }; installationHeader.ColumnDefinitions.Add(new()); installationHeader.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            var title = Label("Installation & Versions"); title.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold; installationHeader.Children.Add(title);
+            var refreshVersions = ManagementCommand("Refresh Versions", () => _ = InspectAsync()); Grid.SetColumn(refreshVersions, 1); installationHeader.Children.Add(refreshVersions); installed.Children.Add(installationHeader);
             foreach (var copy in copies.Where(r => sourceFilter == "all" || r.Source == sourceFilter))
             {
-                var row = TableRow(); row.Children.Add(Label(copy.Version ?? "Version not verified"));
-                var paths = new StackPanel { Spacing = 6 }; paths.Children.Add(new TextBlock { Text = copy.Path, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
-                if (!copy.LaunchPaths.IsDefaultOrEmpty) paths.Children.Add(Caption(text.Get("Launch Paths") + "\n" + string.Join("\n", copy.LaunchPaths)));
-                Grid.SetColumn(paths, 1); row.Children.Add(paths); var origin = Label(copy.Source); Grid.SetColumn(origin, 2); row.Children.Add(origin);
-                var matches = ToolServices(tool.Id).Where(s => s.Source == copy.Source && s.Version == copy.Version && s.InstallationPath.Equals(copy.Path, StringComparison.OrdinalIgnoreCase)).ToArray();
-                var control = matches.Length == 1 ? Caption(text.Get(matches[0].State == "running" ? "Running" : matches[0].State == "stopped" ? "Stopped" : "State Unknown")) : matches.Length > 1 ? Caption(text.Get("Multiple Services")) : Caption("—");
-                if (matches.Length == 0) ToolTipService.SetToolTip(control, text.Get("Service control is not connected for this installation."));
-                var actions = new StackPanel { Spacing = 6 }; actions.Children.Add(control);
+                var row = new StackPanel { Spacing = 8 };
+                var summary = new Grid { ColumnSpacing = 20 };
+                summary.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); summary.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+                summary.ColumnDefinitions.Add(new()); summary.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+                StackPanel Version(string key, string value) { var field = new StackPanel { Spacing = 5 }; field.Children.Add(Caption(text.Get(key))); field.Children.Add(Label(value)); return field; }
+                summary.Children.Add(Version("Installed Version", copy.Version ?? text.Get("Version not verified")));
+                if (inspection is not null && WindowsDeveloperTools.PackageFor(copy, catalog) == inspection.Package)
+                { var available = Version("Available Version", inspection.AvailableVersion ?? text.Get("Unavailable")); Grid.SetColumn(available, 1); summary.Children.Add(available); }
+                var origin = Version("Installation Source", copy.Source); Grid.SetColumn(origin, 2); summary.Children.Add(origin);
                 if (WindowsDeveloperTools.PackageFor(copy, catalog) is not null)
                 {
-                    var uninstall = ManagementCommand("Review Uninstall", () => _ = PrepareUninstallAsync(copy), "developer.installation.uninstall." + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(copy.Id))).ToLowerInvariant()[..16]);
-                    uninstall.Style = (Style)Application.Current.Resources["ShouDestructiveButton"];
-                    actions.Children.Add(uninstall);
+                    var uninstall = ManagementCommand("Uninstall", () => _ = PrepareUninstallAsync(copy), "developer.installation.uninstall." + Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(copy.Id))).ToLowerInvariant()[..16]);
+                    uninstall.Style = (Style)Application.Current.Resources["ShouDestructiveCompactButton"]; uninstall.VerticalAlignment = VerticalAlignment.Top;
+                    Grid.SetColumn(uninstall, 3); summary.Children.Add(uninstall);
                 }
-                Grid.SetColumn(actions, 3); row.Children.Add(actions); installed.Children.Add(row);
+                row.Children.Add(summary);
+                row.Children.Add(new TextBlock { Text = copy.Path, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
+                if (!copy.LaunchPaths.IsDefaultOrEmpty) row.Children.Add(Caption(text.Get("Launch Paths") + ": " + string.Join(", ", copy.LaunchPaths)));
+                installed.Children.Add(row);
             }
             content.Children.Add(Surface(installed));
         }
         var serviceRows = ToolServices(tool.Id);
+        if (plan is null)
         {
-            var serviceDetails = new StackPanel { Spacing = 12 }; serviceDetails.Children.Add(Label("Service Instances"));
-            if (serviceObservationDates.TryGetValue(tool.Id, out var observed)) serviceDetails.Children.Add(Caption(text.Get("Last Checked") + ": " + observed.ToString("T", System.Globalization.CultureInfo.CurrentCulture)));
+            var serviceDetails = new StackPanel { Spacing = 12 };
+            var serviceHeader = new Grid { ColumnSpacing = 12 };
+            serviceHeader.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); serviceHeader.ColumnDefinitions.Add(new()); serviceHeader.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+            var title = Label("Service Instances"); title.FontWeight = Microsoft.UI.Text.FontWeights.SemiBold; title.VerticalAlignment = VerticalAlignment.Center; serviceHeader.Children.Add(title);
+            if (serviceObservationDates.TryGetValue(tool.Id, out var observed)) { var time = Caption(text.Get("Last Checked") + ": " + observed.ToString("T", System.Globalization.CultureInfo.CurrentCulture)); time.VerticalAlignment = VerticalAlignment.Center; Grid.SetColumn(time, 1); serviceHeader.Children.Add(time); }
             var refresh = Command(servicesLoading ? "Checking Service…" : "Refresh Status", () => _ = RefreshServicesAsync());
-            refresh.IsEnabled = !busy && !inventoryLoading && !servicesLoading; serviceDetails.Children.Add(refresh);
+            refresh.IsEnabled = !busy && !inventoryLoading && !servicesLoading; Grid.SetColumn(refresh, 2); serviceHeader.Children.Add(refresh); serviceDetails.Children.Add(serviceHeader);
             foreach (var row in serviceRows)
             {
                 var instance = new StackPanel { Spacing = 10 };
@@ -396,6 +422,7 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
             if (serviceRows.Length == 0) serviceDetails.Children.Add(Label(inventoryLoading || servicesLoading ? "Service discovery is running in the background. You can keep browsing tools." : "No verified service instances in the scanned sources."));
             content.Children.Add(Surface(serviceDetails));
         }
+        if (plan is null && package is not null && copies.Any(copy => WindowsDeveloperTools.PackageFor(copy, catalog) == package)) return;
         if (sourceFilter is not ("all" or "WinGet")) { content.Children.Add(Label("Native source not connected yet")); return; }
         if (result is not null) content.Children.Add(Label(result.State == "succeeded" ? "Developer tool change verified" : "Developer tool result needs verification"));
         if (package is null)
@@ -405,7 +432,7 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         var details = new StackPanel { Spacing = 14 };
         details.Children.Add(Label(plan is null ? "Installation & Versions" : plan.Action == DeveloperToolAction.Install ? "Review Installation" : "Review Uninstall"));
         details.Children.Add(new TextBlock { Text = "WinGet, " + package.Token, IsTextSelectionEnabled = true });
-        if (inspection is not null)
+        if (inspection is not null && (plan is not null || !copies.Any(copy => WindowsDeveloperTools.PackageFor(copy, catalog) == inspection.Package)))
         {
             details.Children.Add(Fact("Installed Version", inspection.InstalledVersion ?? text.Get("Not installed by this source")));
             details.Children.Add(Fact("Available Version", inspection.AvailableVersion ?? text.Get("Unavailable")));
@@ -415,17 +442,18 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         {
             details.Children.Add(ManagementCommand("Inspect Tool", () => _ = InspectAsync(), "developer.inspect"));
             if (inspection?.Allows(DeveloperToolAction.Install) == true) details.Children.Add(ManagementCommand("Review Installation", () => _ = PrepareAsync(DeveloperToolAction.Install)));
-            if (inspection?.Allows(DeveloperToolAction.Uninstall) == true) details.Children.Add(ManagementCommand("Review Uninstall", () => _ = PrepareAsync(DeveloperToolAction.Uninstall)));
+            if (inspection?.Allows(DeveloperToolAction.Uninstall) == true && !copies.Any(copy => WindowsDeveloperTools.PackageFor(copy, catalog) == inspection.Package)) details.Children.Add(ManagementCommand("Uninstall", () => _ = PrepareAsync(DeveloperToolAction.Uninstall)));
         }
         else
         {
+            if (plan.Action == DeveloperToolAction.Uninstall) RenderUninstallImpact(details);
             if (plan.Action == DeveloperToolAction.Install && copies.Length > 0) details.Children.Add(Label("Other installations will be kept. This installs an additional copy from the selected source."));
             details.Children.Add(Label("Installers may request administrator approval, close applications, or change their data. Shou does not restart Windows or restore an upgrade."));
             details.Children.Add(Label("This review is valid for two minutes and can be used once."));
             footer.Children.Add(Command("Cancel", () => { plan = null; Render(); }));
             var confirm = Command(plan.Action == DeveloperToolAction.Install ? "Confirm Installation" : "Confirm Uninstall", () => _ = ExecuteAsync(), "developer.confirm");
-            confirm.Style = (Style)Application.Current.Resources[plan.Action == DeveloperToolAction.Install ? "AccentButtonStyle" : "ShouDestructiveButton"];
-            confirm.IsEnabled = !busy && WindowsDeveloperTools.PublicExecutionAvailable; footer.Children.Add(confirm);
+            confirm.Style = (Style)Application.Current.Resources[plan.Action == DeveloperToolAction.Install ? "ShouPrimaryButton" : "ShouDestructiveButton"];
+            confirm.IsEnabled = !busy && CanExecutePlan() && WindowsDeveloperTools.PublicExecutionAvailable; footer.Children.Add(confirm);
         }
         if (!WindowsDeveloperTools.PublicExecutionAvailable) details.Children.Add(Label("Native installer acceptance is pending on Windows. Discovery and review are available; installation and uninstallation remain disabled."));
         content.Children.Add(Surface(details));
@@ -485,14 +513,38 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         catch (Exception error) { inspection = null; ShowError(error); }
         finally { SetBusy(false); Render(); }
     }
+    private DeveloperToolInstallation? InstallationForService(DeveloperService row) => Installations(row.ToolId).FirstOrDefault(copy =>
+        copy.Path.Equals(row.InstallationPath, StringComparison.OrdinalIgnoreCase) && copy.Version == row.Version && WindowsDeveloperTools.PackageFor(copy, catalog) is not null);
+    private DeveloperService[] UninstallServices()
+    {
+        if (plan is not { Action: DeveloperToolAction.Uninstall } current) return [];
+        var paths = Installations(current.ToolId).Where(copy => WindowsDeveloperTools.PackageFor(copy, catalog) == current.Inspection.Package).Select(copy => copy.Path).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return ToolServices(current.ToolId).Where(row => paths.Contains(row.InstallationPath)).ToArray();
+    }
+    private bool CanExecutePlan() => plan is not null && !inventoryLoading && !servicesLoading &&
+        (plan.Action != DeveloperToolAction.Uninstall || UninstallServices().All(row => row.State == "stopped" && row.Issue is null));
+    private void RenderUninstallImpact(StackPanel details)
+    {
+        var affected = UninstallServices(); if (affected.Length == 0) return;
+        details.Children.Add(Label("Services Using This Installation"));
+        foreach (var row in affected)
+        {
+            details.Children.Add(Fact("Service", row.Source + " / " + row.Version)); details.Children.Add(Caption(row.ConfigurationPath));
+            if (row.State == "running")
+            {
+                var stop = ManagementCommand("Stop Service", () => _ = ChangeServiceAsync(row, DeveloperServiceAction.Stop), "developer.uninstall.stop." + row.Id);
+                stop.IsEnabled = !busy && row.Controllable && WindowsDeveloperServices.PublicExecutionAvailable; details.Children.Add(stop);
+            }
+            else details.Children.Add(Caption(text.Get(ServiceState(row))));
+        }
+        if (!CanExecutePlan()) details.Children.Add(Label("Stop the instances using this installation before uninstalling it."));
+    }
     private async Task PrepareUninstallAsync(DeveloperToolInstallation copy)
     {
         if (busy || inventoryLoading || servicesLoading || focused?.Id != copy.ToolId || WindowsDeveloperTools.PackageFor(copy, catalog) is not { } reference) return;
         SetBusy(true); plan = null; inspection = null; result = null;
         try
         {
-            if (ToolServices(copy.ToolId).Any(row => row.InstallationPath.Equals(copy.Path, StringComparison.OrdinalIgnoreCase) && row.State != "stopped"))
-                throw new ShouException("developer_tool_running", "Stop the instances using this installation before uninstalling it.");
             var observed = await service.InspectAsync(copy.ToolId, reference, lifetime.Token);
             var sameLocation = observed.InstallationPath is { } location && !copy.Path.StartsWith("winget:", StringComparison.Ordinal) &&
                 WindowsPath.Parse(location).SamePath(WindowsPath.Parse(copy.Path));
@@ -506,7 +558,7 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
     }
     private async Task ExecuteAsync()
     {
-        if (busy || inventoryLoading || servicesLoading || plan is null || !WindowsDeveloperTools.PublicExecutionAvailable) return;
+        if (busy || !CanExecutePlan() || plan is null || !WindowsDeveloperTools.PublicExecutionAvailable) return;
         var frozen = plan; plan = null; HasActiveMutation = true; SetBusy(true);
         status.Text = text.Get("The package manager is working. Shou will wait for its result before closing.");
         try { result = await service.ExecuteAsync(frozen, frozen.Id, lifetime.Token); inspection = null; inventory = null; inventory = await new WindowsDeveloperToolInventory().ScanAsync(catalog, lifetime.Token); }
@@ -542,6 +594,12 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
     private Button ManagementCommand(string key, Action action, string? id = null)
     {
         var button = Command(key, action, id); button.IsEnabled = !busy && !inventoryLoading && !servicesLoading; return button;
+    }
+    private ToggleButton Choice(string key, bool selected, Action action, string? id = null)
+    {
+        var button = new ToggleButton { Content = text.Get(key), IsChecked = selected, IsEnabled = !busy, Style = (Style)Application.Current.Resources["ShouFilterPill"] };
+        if (id is not null) AutomationProperties.SetAutomationId(button, id);
+        button.Click += (_, _) => { if (!busy) action(); }; commands.Add(button); return button;
     }
     private TextBlock Label(string key) => new() { Text = text.Get(key), FontSize = Size("ShouBodyFontSize"), TextWrapping = TextWrapping.Wrap };
     private static TextBlock Caption(string value) { var label = new TextBlock { Text = value, TextWrapping = TextWrapping.Wrap, FontSize = Size("ShouCaptionFontSize") }; ThemeResources.Apply(label, TextBlock.ForegroundProperty, "Foreground", "ShouSecondaryTextBrush"); return label; }

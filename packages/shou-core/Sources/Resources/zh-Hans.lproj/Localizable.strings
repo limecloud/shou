@@ -44,6 +44,7 @@
 "%lld requests, %lld reported tokens" = "%lld 次请求，%lld 个报告 token";
 "%lld rules" = "%lld 条规则";
 "%lld selected" = "已选择 %lld 项";
+"%lld services use this installation" = "%lld 个服务使用此安装";
 "%lld startup entries" = "%lld 项";
 "%lld startup programs" = "%lld 个自动启动程序";
 "%lld startup registrations" = "%lld 项启动注册";
@@ -418,6 +419,7 @@
 "Choose a disk or folder to explore its storage usage." = "选择磁盘或文件夹，探索其空间占用。";
 "Choose a folder inside the selected workspace, not the workspace itself." = "请选择工作区内部的目录，不能选择工作区本身。";
 "Choose a folder or enter a relative pattern." = "请选择目录或输入相对路径模式。";
+"Choose a local folder without links." = "请选择不含链接的本地文件夹。";
 "Choose a project folder to inspect build outputs and caches." = "选择项目目录，检查构建产物与缓存。";
 "Choose a rebuildable output folder inside this workspace. No files will be removed." = "选择此工作区内可以重新生成的产物目录。本次选择不会移除文件。";
 "Choose a rule version" = "选择规则版本";
@@ -973,6 +975,7 @@
 "Inspecting directory evidence…" = "正在检查目录证据…";
 "Inspecting…" = "正在检查…";
 "Inspector" = "检查器";
+"Install" = "安装";
 "Install CLI Command" = "安装 CLI 命令";
 "Install Skill" = "安装 Skill";
 "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed." = "安装 shou 命令，供终端、Codex、Claude Code 或 WorkBuddy 操作，无需接入模型。";
@@ -1297,6 +1300,7 @@
 "No recorded location" = "未记录位置";
 "No release notes were provided." = "此版本暂未提供更新说明。";
 "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation." = "暂无规则建议。保留内容或证据不足均为有效结果，可查看调查发现或缩小范围重新调查。";
+"No scan locations are available. Review Scan Locations or add a folder." = "暂无可扫描位置，请检查扫描位置或添加文件夹。";
 "No scan locations are configured yet." = "尚未配置扫描位置。";
 "No scan locations were found. Add a folder in Scan Locations to continue." = "未找到扫描位置。请在“扫描位置”中添加文件夹后继续。";
 "No search results" = "没有搜索结果";
@@ -1730,6 +1734,7 @@
 "Review Cleanup…" = "预览清理…";
 "Review Database Creation" = "审阅建库操作";
 "Review Disable" = "审阅禁用";
+"Review Disk Access…" = "磁盘访问权限…";
 "Review Enable" = "审阅启用";
 "Review Installation" = "审阅安装";
 "Review Instance Registration" = "审阅实例登记";
@@ -1994,6 +1999,7 @@
 "Service state verified." = "服务状态已核实。";
 "Service states are snapshots. Refresh to check changes made outside Shou." = "服务状态为本次检查结果。在其他软件中操作后，请刷新状态。";
 "Service stopped. Starting…" = "服务已停止，正在启动…";
+"Services Using This Installation" = "使用此安装的服务";
 "Set as Default" = "设为默认";
 "Set up Shou once, then get straight to cleaning." = "完成初始设置，之后直接开始清理。";
 "Settings" = "设置";
@@ -2144,6 +2150,7 @@
 "State Unknown" = "状态未知";
 "State unavailable" = "状态不可用";
 "Status" = "状态";
+"Status Unverified" = "状态未核实";
 "Steam caches" = "Steam 缓存";
 "Steam logs" = "Steam 日志";
 "Still running. Save your work and quit the application." = "应用仍在运行，请保存工作并退出应用。";
@@ -2430,7 +2437,9 @@
 "This location could not be fully measured." = "未能完整统计此位置。";
 "This location could not be read." = "未能读取此位置。";
 "This location exceeded a scan resource boundary." = "此位置达到扫描资源边界，未完整统计。";
+"This location is not owned by the current account." = "此位置的所有者与当前账户不同。";
 "This location is protected." = "此位置受保护。";
+"This location's permissions could not be verified." = "无法核实此位置的权限。";
 "This operation could not be completed. Try again." = "未能完成此操作，请重试。";
 "This operation is unfinished or needs verification." = "此操作尚未结束或需要进一步核实。";
 "This plan already has an execution record." = "此清理计划已有执行记录。";
@@ -2610,6 +2619,7 @@
 "WinGet is unavailable or its official catalog could not be read. Use the application’s own updater or repair App Installer." = "WinGet 不可用或无法读取其官方目录。请使用应用自身的更新器，或修复应用安装程序。";
 "Windows does not expose these hardware sensors through the supported read-only APIs." = "Windows 未通过当前支持的只读 API 提供这些硬件传感器数据。";
 "Windows identifies this as a system package." = "Windows 将此应用识别为系统软件包。";
+"Windows manages this scan location. Results are read-only." = "此扫描位置归 Windows 管理，仅提供只读结果。";
 "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete." = "Windows 便携预览版。清理、系统卸载与启动项变更将在原生验收完成后开放。";
 "Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete." = "Windows 便携预览版。原生操作需要审阅和本次确认；完整 Windows 验收尚未完成。";
 "Windows service control requires native acceptance. Current status is read-only." = "Windows 服务控制仍待原生验收，当前仅显示只读状态。";
@@ -2669,7 +2679,7 @@
 "incomplete_scan" = "扫描未完成";
 "inspection_failed" = "位置检查未能完成。";
 "invalid_application_metadata" = "应用元数据无法解析。";
-"invalid_bundle_identifier" = "应用标识缺失或不符合支持的格式。";
+"invalid_bundle_identifier" = "应用标识无效。";
 "invalid_filename" = "文件名包含不支持的字符。";
 "io_error" = "无法读取文件或目录。";
 "items" = "项";
@@ -2685,6 +2695,7 @@
 "mise inventory could not be read." = "无法读取 mise 安装清单。";
 "missing" = "不存在";
 "moving" = "需要核实";
+"multiply_linked_content" = "应用包含共享硬链接。";
 "not_scanned" = "未检查";
 "npm Cache" = "npm 缓存";
 "npm download cache" = "npm 下载缓存";

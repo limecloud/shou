@@ -251,7 +251,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.18.0"
+    static let version = "0.19.0"
     static func main() async {
         #if canImport(Darwin) || canImport(Glibc)
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }

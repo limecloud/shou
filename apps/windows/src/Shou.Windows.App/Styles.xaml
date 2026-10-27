@@ -214,6 +214,23 @@
         <Setter Property="MinHeight" Value="{StaticResource ShouPrimaryActionContentMinHeight}" />
         <Setter Property="FontSize" Value="{StaticResource ShouBodyFontSize}" />
         <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="BorderThickness" Value="{StaticResource ShouHairlineWidth}" />
+        <Setter Property="Background" Value="{ThemeResource ShouActionBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource ShouActionTextBrush}" />
+        <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+            <Grid>
+                <VisualStateManager.VisualStateGroups><VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal" />
+                    <VisualState x:Name="PointerOver"><VisualState.Setters><Setter Target="Presenter.BorderBrush" Value="{ThemeResource ShouActionTextBrush}" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Pressed"><VisualState.Setters><Setter Target="Presenter.Opacity" Value="0.85" /></VisualState.Setters></VisualState>
+                    <VisualState x:Name="Disabled"><VisualState.Setters><Setter Target="Presenter.Background" Value="{ThemeResource ControlFillColorDisabledBrush}" /><Setter Target="Presenter.Foreground" Value="{ThemeResource TextFillColorDisabledBrush}" /><Setter Target="Presenter.BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" /></VisualState.Setters></VisualState>
+                </VisualStateGroup></VisualStateManager.VisualStateGroups>
+                <ContentPresenter x:Name="Presenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                    Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" Foreground="{TemplateBinding Foreground}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+            </Grid>
+        </ControlTemplate></Setter.Value></Setter>
     </Style>
     <Style x:Key="ShouDestructiveButton" TargetType="Button" BasedOn="{StaticResource ShouPrimaryButton}">
         <Setter Property="MinWidth" Value="{StaticResource ShouPrimaryActionMinWidth}" />
@@ -235,6 +252,11 @@
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
             </Grid>
         </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="ShouDestructiveCompactButton" TargetType="Button" BasedOn="{StaticResource ShouDestructiveButton}">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="MinHeight" Value="{StaticResource ShouControlHeight}" />
+        <Setter Property="Padding" Value="8,4" />
     </Style>
     <Style x:Key="ShouBorderedButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
         <Setter Property="MinWidth" Value="0" />

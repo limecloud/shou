@@ -201,11 +201,17 @@ struct DeveloperToolsView: View {
                     }.padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 8)
                 }
             }
+            if session.detailTab == "service.logs" {
+                DeveloperConfigurationView(model:model,tools:session,session:session.configuration,logs:true)
+                    .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topLeading).padding(ShouDesign.workspaceInset)
+            } else if tool.id == "mysql", ["mysql.log","mysql.slow-log"].contains(session.detailTab) {
+                MySQLWorkbenchView(model:model,session:session.mysql,tools:session,mode:session.detailTab)
+                    .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topLeading).padding(ShouDesign.workspaceInset)
+            } else {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     if tool.id == "mysql", session.detailTab.hasPrefix("mysql.") {
                         if session.detailTab == "mysql.service" {
-                            if !session.installations(tool.id).isEmpty { installedCopies(tool) }
                             HStack {
                                 Spacer()
                                 Button(model.t("Manage Databases")) { session.detailTab="mysql.databases" }.buttonStyle(.borderedProminent).accessibilityIdentifier("mysql.manage")
@@ -215,8 +221,10 @@ struct DeveloperToolsView: View {
                     } else if session.detailTab.hasPrefix("service.") {
                         DeveloperConfigurationView(model:model,tools:session,session:session.configuration,logs:session.detailTab == "service.logs")
                     } else if session.detailTab == "overview" {
-                        if !session.installations(tool.id).isEmpty { installedCopies(tool) }
                         serviceDetails(tool)
+                        if session.toolServices(tool.id).isEmpty && !session.installations(tool.id).isEmpty {
+                            DeveloperInstallationsView(model:model,session:session,tool:tool)
+                        }
                         if session.installations(tool.id).isEmpty {
                             Button(model.t("Version Management")) { session.detailTab="installation" }.buttonStyle(.borderedProminent)
                         }
@@ -224,8 +232,9 @@ struct DeveloperToolsView: View {
                         if session.changingServiceID != nil || session.serviceResult != nil { serviceDetails(tool) }
                         workspaceView
                     } else {
-                    if !session.installations(tool.id).isEmpty { installedCopies(tool) }
-                    if !session.packages.isEmpty { availableVersions(tool).id(tool.id) }
+                    if let plan=session.plan { review(plan) }
+                    else {
+                    DeveloperInstallationsView(model:model,session:session,tool:tool).id(tool.id)
                     if let result=session.result { resultView(result) }
                     if let failure=session.failure { Label(model.t(failure), systemImage: "exclamationmark.triangle").foregroundStyle(ShouPalette.secondary).textSelection(.enabled) }
                     if session.executing && session.changingServiceID == nil {
@@ -236,9 +245,11 @@ struct DeveloperToolsView: View {
                             Text(model.t("Not connected. Use the official guide."))
                                 .foregroundStyle(ShouPalette.secondary)
                         }.padding(22).frame(maxWidth: .infinity, alignment: .leading).modifier(WorkspaceSurface())
-                    } else if let plan=session.plan { review(plan) }
+                    }
+                    }
                     }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(ShouDesign.workspaceInset)
+            }
             }
             if session.plan != nil {
                 ShouDivider()
@@ -248,7 +259,7 @@ struct DeveloperToolsView: View {
                     Button(model.t("Cancel")) { session.plan=nil }.disabled(model.busy)
                     Button(model.t(session.plan?.action == .install ? "Confirm Installation" : "Confirm Uninstall")) { session.execute(app: model) }
                         .buttonStyle(.borderedProminent).tint(session.plan?.action == .uninstall ? ShouPalette.danger : ShouPalette.accent)
-                        .disabled(model.busy).accessibilityIdentifier("developer.confirm")
+                        .disabled(model.busy || !session.canExecutePlan).accessibilityIdentifier("developer.confirm")
                 }.padding(ShouDesign.workspaceInset)
             }
         }
@@ -262,82 +273,12 @@ struct DeveloperToolsView: View {
         else { session.configuration.update(toolID:tool.id,installations:session.installations(tool.id),services:session.toolServices(tool.id)) }
     }
     private func updateMySQLTargets() { session.mysql.updateTargets(installations:session.installations("mysql"),services:session.toolServices("mysql")) }
-    private func availableVersions(_ tool: DeveloperToolDefinition) -> some View {
-        VStack(alignment:.leading,spacing:12) {
-            HStack {
-                Text(model.t("Available Packages")).font(ShouType.body.weight(.semibold))
-                Spacer()
-                Button(model.t("Refresh Versions")) { session.loadVersions() }.disabled(model.busy || session.versionsLoading)
-            }
-            if session.versionsLoading { ProgressView().controlSize(.small) }
-            HStack {
-                Text("Homebrew").frame(maxWidth:.infinity,alignment:.leading)
-                Text(model.t("Available Version")).frame(width:100,alignment:.leading)
-                Text(model.t("Installed Version")).frame(width:140,alignment:.leading)
-                Spacer().frame(width:130)
-            }.font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
-            ForEach(session.versionInspections,id:\.package.id) { value in
-                HStack {
-                    Text(value.package.token).font(ShouType.body.weight(.medium)).frame(maxWidth:.infinity,alignment:.leading)
-                    Text(value.availableVersion ?? model.t("Unavailable")).font(ShouType.body).frame(width:100,alignment:.leading)
-                    Text(value.installed ? value.installedVersions.joined(separator:", ") : model.t("Not installed by this source")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).frame(width:140,alignment:.leading)
-                    Button(model.t(value.installed ? "Review Uninstall" : "Review Installation")) {
-                        session.package=value.package; session.inspection=value
-                        session.prepare(value.installed ? .uninstall : .install,app:model)
-                    }.disabled(model.busy || !value.allows(value.installed ? .uninstall : .install)).tint(value.installed ? ShouPalette.danger : ShouPalette.accent).frame(width:130,alignment:.trailing)
-                }
-                ShouDivider()
-            }
-        }.padding(18).modifier(WorkspaceSurface()).onAppear { if session.versionInspections.isEmpty { session.loadVersions() } }
-    }
     private func sourceChip(_ id: String, _ title: String) -> some View {
         Button { session.sourceFilter=id; session.plan=nil; session.inspection=nil } label: {
             Text(model.t(title)).font(ShouType.body.weight(.medium)).padding(.horizontal, 13).padding(.vertical, 6)
                 .foregroundStyle(session.sourceFilter == id ? ShouPalette.accent : ShouPalette.secondary)
                 .background(session.sourceFilter == id ? ShouPalette.selection : ShouPalette.inset, in: Capsule())
         }.buttonStyle(.plain).disabled(model.busy || session.plan != nil)
-    }
-    private func installedCopies(_ tool: DeveloperToolDefinition) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(model.t("Existing Installations")).font(ShouType.body.weight(.semibold))
-            HStack(spacing: 12) {
-                Text(model.t("Version")).frame(width: ShouDesign.toolVersionWidth, alignment: .leading)
-                Text(model.t("Path")).frame(maxWidth: .infinity, alignment: .leading)
-                Text(model.t("Installation Source")).frame(width: ShouDesign.toolSourceWidth, alignment: .leading)
-                Text(model.t("Service")).frame(width: ShouDesign.toolServiceWidth)
-                Text(model.t("Actions")).frame(width:100)
-            }.font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
-            ShouDivider()
-            ForEach(session.installations(tool.id).filter { session.sourceFilter == "all" || $0.source == session.sourceFilter }) { row in
-                HStack(alignment: .top, spacing: 12) {
-                    Text(row.version ?? model.t("Version not verified")).font(ShouType.body.weight(.medium)).frame(width: ShouDesign.toolVersionWidth, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(row.path).font(ShouType.body).textSelection(.enabled)
-                        if !row.launchPaths.isEmpty {
-                            Text(model.t("Launch Paths") + "\n" + row.launchPaths.joined(separator: "\n")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
-                        }
-                    }.frame(maxWidth: .infinity, alignment: .leading)
-                    Text(model.t(row.source)).font(ShouType.body).foregroundStyle(ShouPalette.secondary).frame(width: ShouDesign.toolSourceWidth, alignment: .leading)
-                    Group {
-                        if let service=session.serviceForInstallation(row) {
-                            Text(model.t(service.state == "running" ? "Running" : service.state == "stopped" ? "Stopped" : "State Unknown"))
-                                .font(ShouType.caption).foregroundStyle(service.state == "running" ? ShouPalette.accent : ShouPalette.secondary)
-                        }
-                        else if session.servicesForInstallation(row).count > 1 {
-                            Text(model.t("Multiple Services")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
-                        } else { Text("—").foregroundStyle(ShouPalette.secondary).help(model.t("Service control is not connected for this installation.")) }
-                    }.frame(width: ShouDesign.toolServiceWidth)
-                    Group { if session.managedPackage(row) != nil {
-                        Button(model.t("Review Uninstall")) { session.reviewUninstall(row,app:model) }
-                            .tint(ShouPalette.danger)
-                            .disabled(model.busy || session.inventoryLoading || session.servicesLoading || session.servicesForInstallation(row).contains(where:{ $0.state != "stopped" }))
-                            .help(model.t("Stop the instances using this installation before uninstalling it."))
-                            .accessibilityIdentifier("developer.installation.uninstall." + row.id)
-                    } else { Color.clear.frame(height:1) } }.frame(width:100)
-                }
-                ShouDivider()
-            }
-        }.padding(18).frame(maxWidth: .infinity, alignment: .leading).modifier(WorkspaceSurface())
     }
     private func serviceState(_ row: DeveloperService) -> String {
         if session.changingServiceID == row.id {
@@ -436,6 +377,11 @@ struct DeveloperToolsView: View {
                     .disabled(model.busy || session.inventoryLoading || session.servicesLoading || !row.controllable || row.state != "running" || session.staleServiceIDs.contains(row.id))
                     .accessibilityIdentifier("developer.restart." + row.id)
             }
+            if let installation=session.installationForService(row), session.managedPackage(installation) != nil {
+                Button(model.t("Uninstall")) { session.reviewUninstall(installation,app:model) }
+                    .tint(ShouPalette.danger).disabled(model.busy || session.inventoryLoading || session.servicesLoading)
+                    .accessibilityIdentifier("developer.service.uninstall." + row.id)
+            }
             if row.controllable {
                 Button(model.t("Show Service Definition")) { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: row.configurationPath)]) }.disabled(model.busy)
             }
@@ -471,7 +417,7 @@ struct DeveloperToolsView: View {
                     Button(model.t("Review Installation")) { session.prepare(.install, app: model) }.buttonStyle(.borderedProminent)
                 }
                 if value.allows(.uninstall) {
-                    Button(model.t("Review Uninstall")) { session.prepare(.uninstall, app: model) }.tint(ShouPalette.danger)
+                    Button(model.t("Uninstall")) { session.prepare(.uninstall, app: model) }.tint(ShouPalette.danger)
                 }
             }.disabled(model.busy)
         }
@@ -523,12 +469,44 @@ struct DeveloperToolsView: View {
                 Label(model.t("Other installations will be kept. This installs an additional copy from the selected source."), systemImage: "square.on.square")
                     .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             }
+            if plan.action == .uninstall { uninstallImpact }
             if !plan.inspection.dependencies.isEmpty { fact("Declared Dependencies", plan.inspection.dependencies.joined(separator: ", ")) }
             Text(model.t(plan.action == .install
                 ? "Homebrew will install this package and may install or upgrade its dependencies. It may run package setup steps. Shou does not automatically install Homebrew, use sudo or accept license agreements."
                 : "Homebrew will permanently uninstall this package. Shou does not request data removal, zap, force or dependency cleanup. Package uninstall hooks may still change files they own; back up important data first."))
                 .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
         }.padding(22).frame(maxWidth: .infinity, alignment: .leading).modifier(WorkspaceSurface())
+    }
+    private var uninstallImpact: some View {
+        VStack(alignment:.leading,spacing:12) {
+            if let failure=session.serviceFailure {
+                Text(model.t(failure)).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+            }
+            if !session.uninstallServices.isEmpty {
+                Text(model.t("Services Using This Installation")).font(ShouType.body.weight(.medium))
+                ForEach(session.uninstallServices) { row in
+                    VStack(alignment:.leading,spacing:5) {
+                        HStack {
+                            instanceSummary(row)
+                            Spacer()
+                            if row.state == "running" {
+                                Button(model.t("Stop Service")) { session.performService(.stop,expected:row,app:model) }
+                                    .disabled(model.busy || !row.controllable || session.staleServiceIDs.contains(row.id))
+                                    .accessibilityIdentifier("developer.uninstall.stop." + row.id)
+                            }
+                        }
+                        Text(row.configurationPath).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
+                    }
+                }
+                if !session.canExecutePlan {
+                    HStack {
+                        Text(model.t("Stop the instances using this installation before uninstalling it.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+                        Spacer()
+                        Button(model.t("Refresh Status")) { session.refreshServices(app:model) }.disabled(model.busy || session.servicesLoading)
+                    }
+                }
+            }
+        }
     }
     private func fact(_ title: String, _ value: String) -> some View {
         HStack(alignment: .top, spacing: 16) {

@@ -242,6 +242,8 @@ Users need to compare applications, select several, review associated data inlin
 
 List totals describe bundle allocation; the bottom bar describes the actual selected bundles and associated components. Neither promises exclusively reclaimable bytes. Missing last-used metadata stays unknown rather than using modification time. Coverage gaps, unavailable sizes and activity checks remain explicit. Refreshing or changing selection invalidates prior confirmation; mutations require a new scan for current totals and status.
 
+Application scans reuse the existing disk-access setup. Limited access permits scanning accessible locations; results retain the setup entry, and application options can reopen it. Full Disk Access and administrator uninstall authentication are separate: a failed activity check does not imply missing disk access. Failed activity checks display “Status Unverified,” with the cause in expanded rows and coverage, plus a recheck action. They do not label a completely measured size as a lower bound.
+
 ## Components and associations
 
 | Component | Evidence | Personal-data consent |
@@ -343,7 +345,7 @@ On macOS, eligible application bundles containing root-owned content may be move
 
 Activity checks combine running bundle identifiers with current-user executable paths. `kill(pid, 0)` also succeeds for zombies: an unreadable path is skipped only when the kernel confirms the process has exited or is `SZOMB`. Live or unknown processes remain blocked. An exit race receives at most one retry within the existing cancellation and three-second deadline.
 
-When an executable was unlinked during a package update (`ENOENT`), a live process still participates in activity checks. The adapter reads only the executable prefix from the kernel's cached process record, verifies current-user ownership and unchanged process start identity, and discards the temporary argument/environment buffer. It neither logs nor returns arguments or environment values. A verified path outside the selected application no longer blocks unrelated uninstall; a path inside its bundle still blocks removal. Failed verification remains unavailable.
+When an executable was unlinked during a package update (`ENOENT`), or the path API returns `ESRCH` while the kernel confirms a live process and one retry still fails, that process still participates in activity checks. The adapter reads only the executable prefix from the kernel's cached process record, verifies current-user ownership and unchanged process start identity, and discards the temporary argument/environment buffer. It neither logs nor returns arguments or environment values. A verified path outside the selected application no longer blocks unrelated uninstall; a path inside its bundle still blocks removal. Permission denial never enters this fallback, and failed verification remains unavailable.
 
 ```mermaid
 flowchart TD
@@ -358,7 +360,8 @@ flowchart TD
   Kernel -->|Yes| Skip[Skip exited process]
   Kernel -->|No| Retry[Retry at most once]
   Retry --> Unknown{Still unknown?}
-  Unknown -->|Yes| Block[Report activity unavailable and retain selection]
+  Unknown -->|Live process with ESRCH| Cached
+  Unknown -->|Permission denial or other failure| Block[Report activity unavailable and retain selection]
   Unknown -->|No| Match
   Match --> Active{Target running?}
   Active -->|Yes| Quit[Ask to close target application]

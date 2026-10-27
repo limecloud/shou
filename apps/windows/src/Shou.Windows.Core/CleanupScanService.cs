@@ -190,7 +190,7 @@ public sealed class CleanupScanService(IRecordStore store, RuleSchemaValidator v
 
     private static readonly HashSet<string> BlockedReasons = new(StringComparer.Ordinal)
     {
-        "coverage_incomplete", "protected_location", "protected_data", "project_marker_missing", "foreign_owner", "cross_volume",
+        "coverage_incomplete", "protected_location", "protected_data", "project_marker_missing", "foreign_owner", "scan_root_read_only", "cross_volume",
         "unsupported_entry", "multiple_links", "excluded", "unsupported_metadata", "below_minimum_size", "newer_than_retention"
     };
     private static ShouException Input(string message) => new("invalid_argument", message);

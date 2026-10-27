@@ -173,7 +173,7 @@ struct ScanAccessBanner: View {
                 Spacer()
                 Button(model.t("Finish Setup…")) { model.scanAccess.showingSetup=true }
                     .controlSize(.small).disabled(model.busy).accessibilityIdentifier("scan.finish-setup")
-            }.padding(.horizontal, 20).padding(.vertical, 9).background(.orange.opacity(0.06))
+            }.padding(.horizontal, 20).padding(.vertical, 9).background(ShouPalette.warning.opacity(0.06))
         }
     }
 }

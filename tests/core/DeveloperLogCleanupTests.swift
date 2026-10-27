@@ -100,7 +100,14 @@ func developerPackageUninstallRejectsRunningGeneratedImagesAndAmbiguousPaths() a
     try expect(observed)
     let activity=NativeDeveloperPackageActivity(prefixes:[fixture.workspace.path])
     try expectThrows { try activity.requireInactive(package) }
+    let second=Process(); second.executableURL=image; second.arguments=["30"]
+    try second.run()
+    defer { if second.isRunning { second.terminate(); second.waitUntilExit() } }
     child.terminate(); child.waitUntilExit()
+    // A shared installation stays blocked until every instance has stopped.
+    try expect(second.isRunning)
+    try expectThrows { try activity.requireInactive(package) }
+    second.terminate(); second.waitUntilExit()
     try activity.requireInactive(package)
     #endif
 }

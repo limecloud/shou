@@ -224,6 +224,11 @@
     "resource_id": "s7aeb346773d61f7a02ca6818",
     "text": "%lld selected"
   },
+  "%lld services use this installation": {
+    "format": "{0} services use this installation",
+    "resource_id": "sfc5bf7a088c158917ad707fd",
+    "text": "%lld services use this installation"
+  },
   "%lld startup entries": {
     "format": "{0} startup entries",
     "resource_id": "s331107e811b4edef4e078554",
@@ -2093,6 +2098,11 @@
     "format": "Choose a folder or enter a relative pattern.",
     "resource_id": "sa606f2b38bcac5d1db875cd3",
     "text": "Choose a folder or enter a relative pattern."
+  },
+  "Choose a local folder without links.": {
+    "format": "Choose a local folder without links.",
+    "resource_id": "s2f717d142d2bc7c9b827bd71",
+    "text": "Choose a local folder without links."
   },
   "Choose a project folder to inspect build outputs and caches.": {
     "format": "Choose a project folder to inspect build outputs and caches.",
@@ -4869,6 +4879,11 @@
     "resource_id": "sda188e3b1cefc8a70813b78e",
     "text": "Inspector"
   },
+  "Install": {
+    "format": "Install",
+    "resource_id": "s569ca49f4aaf7846e952c1d4",
+    "text": "Install"
+  },
   "Install CLI Command": {
     "format": "Install CLI Command",
     "resource_id": "scc5098bde78248090a63dcd7",
@@ -6488,6 +6503,11 @@
     "format": "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation.",
     "resource_id": "s952d880a316d1110c3b7093f",
     "text": "No rule suggestions. Retained content and missing evidence are valid results; review the findings or start a smaller investigation."
+  },
+  "No scan locations are available. Review Scan Locations or add a folder.": {
+    "format": "No scan locations are available. Review Scan Locations or add a folder.",
+    "resource_id": "sec8c3ecf416141938ffbcbd3",
+    "text": "No scan locations are available. Review Scan Locations or add a folder."
   },
   "No scan locations are configured yet.": {
     "format": "No scan locations are configured yet.",
@@ -8654,6 +8674,11 @@
     "resource_id": "s130a09c6fa5cf0b5baeb2f81",
     "text": "Review Disable"
   },
+  "Review Disk Access…": {
+    "format": "Review Disk Access…",
+    "resource_id": "s1cfdc3b1c20b8f3d0523fed9",
+    "text": "Review Disk Access…"
+  },
   "Review Enable": {
     "format": "Review Enable",
     "resource_id": "s601f8a0e1e75dc0b2f184114",
@@ -9974,6 +9999,11 @@
     "resource_id": "s9dd6569e4142e15c55b6c2d2",
     "text": "Service stopped. Starting…"
   },
+  "Services Using This Installation": {
+    "format": "Services Using This Installation",
+    "resource_id": "s26cbec70c895fcca7c9ae2d7",
+    "text": "Services Using This Installation"
+  },
   "Set as Default": {
     "format": "Set as Default",
     "resource_id": "s10886554da510708e6b9477c",
@@ -10723,6 +10753,11 @@
     "format": "Status",
     "resource_id": "s920e413c7d411b61ef3e8c63",
     "text": "Status"
+  },
+  "Status Unverified": {
+    "format": "Status Unverified",
+    "resource_id": "s78361fbe1fb15a95ca271975",
+    "text": "Status Unverified"
   },
   "Steam caches": {
     "format": "Steam caches",
@@ -12154,10 +12189,20 @@
     "resource_id": "sd315936cb4cdecaec37deb46",
     "text": "This location exceeded a scan resource boundary."
   },
+  "This location is not owned by the current account.": {
+    "format": "This location is not owned by the current account.",
+    "resource_id": "sad91a9f838c93ecd69b7c337",
+    "text": "This location is not owned by the current account."
+  },
   "This location is protected.": {
     "format": "This location is protected.",
     "resource_id": "s433af3446f2af67e282b940d",
     "text": "This location is protected."
+  },
+  "This location's permissions could not be verified.": {
+    "format": "This location's permissions could not be verified.",
+    "resource_id": "s3b8569c191634f9f250056e0",
+    "text": "This location's permissions could not be verified."
   },
   "This operation could not be completed. Try again.": {
     "format": "This operation could not be completed. Try again.",
@@ -13054,6 +13099,11 @@
     "resource_id": "s864fba32c0ce2d3db93b0090",
     "text": "Windows identifies this as a system package."
   },
+  "Windows manages this scan location. Results are read-only.": {
+    "format": "Windows manages this scan location. Results are read-only.",
+    "resource_id": "sc4fcf491f9e233d1009d3103",
+    "text": "Windows manages this scan location. Results are read-only."
+  },
   "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.": {
     "format": "Windows portable preview. Cleanup, system uninstall and startup changes remain unavailable until native acceptance is complete.",
     "resource_id": "s34f7d2311c068a107c952b1b",
@@ -13350,9 +13400,9 @@
     "text": "invalid_application_metadata"
   },
   "invalid_bundle_identifier": {
-    "format": "invalid_bundle_identifier",
+    "format": "The application identifier is invalid.",
     "resource_id": "s7cfe0449bac3c1210b374b60",
-    "text": "invalid_bundle_identifier"
+    "text": "The application identifier is invalid."
   },
   "invalid_filename": {
     "format": "invalid_filename",
@@ -13428,6 +13478,11 @@
     "format": "Needs verification",
     "resource_id": "s6e862940d0bf2eea9e01e33f",
     "text": "Needs verification"
+  },
+  "multiply_linked_content": {
+    "format": "The application contains shared hard links.",
+    "resource_id": "se2eaa1e6574f5ab891830888",
+    "text": "The application contains shared hard links."
   },
   "not_scanned": {
     "format": "Not inspected",

@@ -67,7 +67,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         PreviousButton.Content = text.Get("Previous");
         NextButton.Content = text.Get("Next");
         CoverageNotice.Message = text.Get("Some application registrations could not be read. The list may be incomplete.");
-        InspectButton.Content = text.Get("Review Uninstall");
+        InspectButton.Content = text.Get("Uninstall");
         ReadExecutionButton.Content = text.Get("Read Uninstall Record");
         InstallerDataDescription.Text = text.Get("I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan.");
         model.PropertyChanged += Changed;
@@ -98,8 +98,8 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         Progress.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
         Progress.IsIndeterminate = busy && AppearanceSettings.AnimationsEnabled;
         CancelButton.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
-        EmptyContent.Visibility = model.Page?.Items.IsEmpty == false ? Visibility.Collapsed : Visibility.Visible;
-        EmptyText.Text = text.Get(model.IsBusy ? "Loading…" : model.State == ApplicationsPageState.Failed ? "Application registrations could not be loaded. Try refreshing the list." : "No matching applications.");
+        EmptyContent.Visibility = busy || model.Page?.Items.IsEmpty == false ? Visibility.Collapsed : Visibility.Visible;
+        EmptyText.Text = text.Get(model.State == ApplicationsPageState.Failed ? "Application registrations could not be loaded. Try refreshing the list." : "No matching applications.");
         CoverageNotice.IsOpen = model.State == ApplicationsPageState.Partial;
         CoverageButton.Visibility = CoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
         ShowStatus(model.ErrorCode is not null ? text.Get("Application registrations could not be loaded. Try refreshing the list.") :

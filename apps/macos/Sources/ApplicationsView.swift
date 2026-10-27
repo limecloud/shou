@@ -83,6 +83,7 @@ struct ApplicationsView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 VStack(spacing: 0) {
+                    if !session.scanning { ScanAccessBanner(model: model) }
                     summary
                     Divider()
                     filters
@@ -144,6 +145,7 @@ struct ApplicationsView: View {
             Menu {
                 Toggle(model.t("Include protected system apps"), isOn: $session.includeSystem)
                 Button(model.t("View Coverage…")) { showCoverage=true }
+                Button(model.t("Review Disk Access…")) { model.scanAccess.showingSetup=true }
             } label: { Image(systemName: "ellipsis.circle") }.menuStyle(.borderlessButton).fixedSize().disabled(model.busy)
                 .accessibilityLabel(model.t("Application Options"))
             Button {
@@ -171,7 +173,7 @@ struct ApplicationsView: View {
                 }.frame(width: 270)
             } else if session.hasChanges {
                 Button(model.t("Scan again to update sizes and status")) { session.scan(app: model) }.buttonStyle(.link).font(ShouType.caption)
-            } else if session.catalog?.status == "partial" {
+            } else if session.catalog?.status == "partial" || session.items.contains(where: { !$0.issues.isEmpty }) {
                 Button { showCoverage=true } label: { Label(model.t("Partial Coverage"), systemImage: "exclamationmark.triangle") }.buttonStyle(.link).font(ShouType.caption)
             }
         }.padding(20)
@@ -249,6 +251,14 @@ struct ApplicationsView: View {
                     ForEach(Array((session.catalog?.issues ?? []).enumerated()), id: \.offset) { _, issue in
                         VStack(alignment: .leading) { Text(issue.path).textSelection(.enabled); Text(model.t(issue.code)).foregroundStyle(ShouPalette.secondary) }.font(ShouType.caption)
                     }
+                    ForEach(session.items.filter { !$0.issues.isEmpty }) { item in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(item.application.name).font(ShouType.body.weight(.medium))
+                            ForEach(item.issues, id: \.self) { issue in
+                                Text(model.t(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                            }
+                        }
+                    }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
             Text(model.t("Verified group containers may be included; unverified shared data, package receipts and external helpers remain protected. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan."))
@@ -280,7 +290,7 @@ private struct ApplicationUninstallRow: View {
     }
     private var sizeLabel: String {
         guard let bytes=summary.allocatedBytesEstimate else { return "—" }
-        return (summary.issues.isEmpty ? "" : "≥ ") + model.bytes(bytes)
+        return (summary.sizeIsLowerBound ? "≥ " : "") + model.bytes(bytes)
     }
     private var rowColor: Color {
         if session.isSelected(app.id) { return ShouPalette.accent.opacity(0.08) }
@@ -338,7 +348,7 @@ private struct ApplicationUninstallRow: View {
         case "ready": "Ready to Uninstall"
         case "running": "Quit Application First"
         case "protected": "Protected"
-        default: "Unavailable"
+        default: summary.issues.contains("application_activity_unavailable") ? "Status Unverified" : "Unavailable"
         }
         return Text(model.t(title)).font(ShouType.caption).foregroundStyle(summary.status == "ready" ? ShouPalette.secondary : ShouPalette.warning)
             .padding(.horizontal, 7).padding(.vertical, 4)
@@ -354,6 +364,20 @@ private struct ApplicationUninstallRow: View {
             }
             ApplicationUpdateRow(model: model, application: app)
             Divider()
+            if !summary.issues.isEmpty {
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        ForEach(summary.issues, id: \.self) { issue in
+                            Text(model.t(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+                        }
+                    }
+                    Spacer()
+                    if summary.issues.contains("application_activity_unavailable") {
+                        Button(model.t("Check Again")) { session.scan(app: model) }.disabled(model.busy)
+                            .accessibilityIdentifier("applications.recheck." + app.id)
+                    }
+                }
+            }
             if summary.status == "running" {
                 HStack {
                     Text(model.t("Quit the application and its helpers before uninstalling.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
@@ -388,7 +412,7 @@ private struct ApplicationUninstallRow: View {
                 }
             }
         }.padding(.leading, 54).padding(.trailing, 12).padding(.vertical, 12)
-            .overlay(alignment: .leading) { Rectangle().fill(ShouPalette.border).frame(width: 1).padding(.leading, 32).padding(.vertical, 10) }
+            .overlay(alignment: .leading) { Rectangle().fill(ShouPalette.border).frame(width: 0.5).padding(.leading, 32).padding(.vertical, 10) }
     }
     private func componentRow(_ component: UninstallComponent) -> some View {
         HStack(alignment: .top, spacing: 12) {

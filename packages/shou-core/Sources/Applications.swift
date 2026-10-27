@@ -103,6 +103,9 @@ public struct ApplicationSummary: Codable, Sendable, Identifiable {
     public let status: String
     public let lastUsed: Date?
     public let issues: [String]
+    public var sizeIsLowerBound: Bool {
+        issues.contains { !["application_activity_unavailable", "invalid_bundle_identifier", "multiply_linked_content"].contains($0) }
+    }
 }
 public struct ApplicationSummaryProgress: Sendable {
     public let processedCount: Int
