@@ -11,10 +11,28 @@ import Glibc
 public struct NativePrivacySources: PrivacySourceDiscovering {
     public init() {}
     public func discover(home: URL) throws -> [PrivacySourceDefinition] {
+        let discovery=try discoverWithCoverage(home: home)
+        guard discovery.issues.isEmpty else {
+            throw ShouError(discovery.issues.contains("permission_denied") ? "permission_denied" : "privacy_discovery_incomplete", "Some browser profiles could not be scanned.")
+        }
+        return discovery.sources
+    }
+    public func discoverWithCoverage(home: URL) throws -> PrivacySourceDiscovery {
         var result=[PrivacySourceDefinition]()
+        var issues=Set<String>()
+        func profiles(_ root: String) throws -> [String] {
+            do { return try profileNames(home.appendingPathComponent(root).path) }
+            catch let error as ShouError {
+                switch error.code {
+                case "permission_denied", "io_error", "capability_unavailable":
+                    issues.insert("privacy_discovery_incomplete"); issues.insert(error.code)
+                    return []
+                default: throw error
+                }
+            }
+        }
         for (name, bundle, root) in PrivacySourcePolicy.chromiumRoots {
-            let profiles=try profileNames(home.appendingPathComponent(root).path).filter { $0 == "Default" || $0.range(of: "^Profile [0-9]+$", options: .regularExpression) != nil }
-            for profile in profiles {
+            for profile in try profiles(root).filter({ $0 == "Default" || $0.range(of: "^Profile [0-9]+$", options: .regularExpression) != nil }) {
                 let prefix=root + "/" + profile + "/"
                 result.append(PrivacySourceDefinition(browser: .chromium, browserName: name, bundleIdentifier: bundle, profile: profile, kind: .history, relativePath: prefix + "History"))
                 // Both historical and current locations are separate exact sources.
@@ -24,7 +42,7 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
             }
         }
         let firefox="Library/Application Support/Firefox/Profiles"
-        for profile in try profileNames(home.appendingPathComponent(firefox).path) {
+        for profile in try profiles(firefox) {
             for (kind, suffix) in [(PrivacyDataKind.history, "places.sqlite"), (.cookies, "cookies.sqlite")] {
                 result.append(PrivacySourceDefinition(browser: .firefox, browserName: "Firefox", bundleIdentifier: "org.mozilla.firefox", profile: profile, kind: kind, relativePath: firefox + "/" + profile + "/" + suffix))
             }
@@ -40,7 +58,7 @@ public struct NativePrivacySources: PrivacySourceDiscovering {
                 result.append(PrivacySourceDefinition(browser: .safari, browserName: "Safari", bundleIdentifier: "com.apple.Safari", profile: "Default", kind: kind, relativePath: "", unsupported: true))
             }
         }
-        return result
+        return PrivacySourceDiscovery(sources: result, issues: issues.sorted())
     }
     public func evidence(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> [FileEntry] {
         guard (source.platform ?? "macos") == "macos", PrivacySourcePolicy.valid(source) else { throw ShouError("permission_denied", "Privacy source is outside known browser locations.") }
