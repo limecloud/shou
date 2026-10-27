@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Text.Json;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
+using Microsoft.UI.Xaml.Automation.Peers;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Shou.Windows.Core;
@@ -159,17 +160,19 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
             var label = Caption(text.Get(group.Title)); label.Margin = new(10, 12, 0, 4); rail.Children.Add(label);
             foreach (var tool in rows)
             {
-                var row = new Grid { ColumnSpacing = 4 }; row.ColumnDefinitions.Add(new()); row.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
                 var button = Command(tool.Name, () => Open(tool), "developer.tool." + tool.Id); button.HorizontalAlignment = HorizontalAlignment.Stretch;
-                button.HorizontalContentAlignment = HorizontalAlignment.Left; button.MinHeight = 48;
-                var buttonBody = new StackPanel { Spacing = 3 }; buttonBody.Children.Add(Label(tool.Name)); buttonBody.Children.Add(Caption(text.Get(ToolStatus(tool.Id)))); button.Content = buttonBody;
+                button.HorizontalContentAlignment = HorizontalAlignment.Stretch; button.MinHeight = 48;
+                var buttonBody = new Grid { ColumnSpacing = 9, HorizontalAlignment = HorizontalAlignment.Stretch };
+                buttonBody.ColumnDefinitions.Add(new()); buttonBody.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+                var identity = new StackPanel { Spacing = 3 }; identity.Children.Add(Label(tool.Name)); identity.Children.Add(Caption(text.Get(ToolStatus(tool.Id)))); buttonBody.Children.Add(identity);
+                var arrow = new FontIcon { Glyph = "\uE76C", FontSize = Size("ShouCaptionFontSize"), VerticalAlignment = VerticalAlignment.Center, IsHitTestVisible = false };
+                ThemeResources.Apply(arrow, FontIcon.ForegroundProperty, "Foreground", "TextFillColorSecondaryBrush");
+                AutomationProperties.SetAccessibilityView(arrow, AccessibilityView.Raw); Grid.SetColumn(arrow, 1); buttonBody.Children.Add(arrow);
+                button.Content = buttonBody;
                 if (focused?.Id == tool.Id) ThemeResources.Apply(button, Control.BackgroundProperty, "Background", "ShouNavSelectionBrush");
                 var flyout = new MenuFlyout(); var pin = new MenuFlyoutItem { Text = text.Get("Remove from Workspace") };
-                pin.Click += (_, _) => _ = ToggleFavoriteAsync(tool.Id); flyout.Items.Add(pin); button.ContextFlyout = flyout; row.Children.Add(button);
-                var sources = ToolServices(tool.Id);
-                if (sources.Length == 1) { var toggle = ServiceSwitch(sources[0], showProgress: false); Grid.SetColumn(toggle, 1); row.Children.Add(toggle); }
-                else if (sources.Length > 1) { var multiple = Caption(text.Get("Multiple Services")); Grid.SetColumn(multiple, 1); row.Children.Add(multiple); }
-                rail.Children.Add(row);
+                pin.Click += (_, _) => _ = ToggleFavoriteAsync(tool.Id); flyout.Items.Add(pin); button.ContextFlyout = flyout;
+                rail.Children.Add(button);
             }
         }
         if (focused is null || !tools.Any(t => t.Id == focused.Id))
@@ -184,9 +187,9 @@ internal sealed class DeveloperToolsPage : UserControl, IDisposable
         }
         RenderDetail();
     }
-    private FrameworkElement ServiceSwitch(DeveloperService value, bool showProgress = true)
+    private FrameworkElement ServiceSwitch(DeveloperService value)
     {
-        if (changingServiceId == value.Id) return showProgress ? new ProgressRing { IsActive = true, Width = 32, Height = 32 } : Caption("");
+        if (changingServiceId == value.Id) return new ProgressRing { IsActive = true, Width = 32, Height = 32 };
         if (value.State is not ("running" or "stopped")) return Caption(text.Get("Unknown"));
         var toggle = new ToggleButton { IsChecked = value.State == "running", Style = (Style)Application.Current.Resources["ShouSwitch"], IsEnabled = !busy && !inventoryLoading && !servicesLoading && value.Controllable && WindowsDeveloperServices.PublicExecutionAvailable, VerticalAlignment = VerticalAlignment.Center };
         AutomationProperties.SetAutomationId(toggle, "developer.service." + value.Id);

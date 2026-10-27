@@ -101,24 +101,19 @@ struct DeveloperToolsView: View {
                     if !tools.isEmpty {
                         Text(model.t(group.title)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.top, 14).padding(.horizontal, 12)
                         ForEach(tools) { tool in
-                            HStack(spacing: 8) {
-                                Button { session.open(tool) } label: {
-                                    HStack(spacing: 9) {
-                                        Text(String(tool.name.prefix(1)).uppercased()).font(ShouType.body.weight(.semibold))
-                                            .foregroundStyle(ShouPalette.accent).frame(width: 26, height: 28)
-                                        VStack(alignment: .leading, spacing: 3) {
-                                            Text(model.t(tool.name)).font(ShouType.body.weight(session.focusedID == tool.id ? .semibold : .regular)).lineLimit(2)
-                                            Text(model.t(toolStatus(tool.id))).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
-                                        }
-                                        Spacer(minLength: 0)
-                                    }.frame(maxWidth: .infinity, minHeight: 34, alignment: .leading).contentShape(Rectangle())
-                                }.buttonStyle(.plain).disabled(model.busy).accessibilityIdentifier("developer.tool." + tool.id)
-                                let services=session.toolServices(tool.id)
-                                if services.count == 1, let service=services.first { serviceSwitch(service, showsProgress: false) }
-                                else if services.count > 1 {
+                            Button { session.open(tool) } label: {
+                                HStack(spacing: 9) {
+                                    Text(String(tool.name.prefix(1)).uppercased()).font(ShouType.body.weight(.semibold))
+                                        .foregroundStyle(ShouPalette.accent).frame(width: 26, height: 28)
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(model.t(tool.name)).font(ShouType.body.weight(session.focusedID == tool.id ? .semibold : .regular)).lineLimit(2)
+                                        Text(model.t(toolStatus(tool.id))).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                                    }
+                                    Spacer(minLength: 0)
                                     Image(systemName:"chevron.right").font(ShouType.caption).foregroundStyle(ShouPalette.secondary).accessibilityHidden(true)
-                                }
-                            }.padding(.horizontal, 10).padding(.vertical, 5)
+                                }.frame(maxWidth: .infinity, minHeight: 34, alignment: .leading).contentShape(Rectangle())
+                                    .padding(.horizontal, 10).padding(.vertical, 5)
+                            }.buttonStyle(.plain).disabled(model.busy).accessibilityIdentifier("developer.tool." + tool.id)
                                 .background(session.focusedID == tool.id ? ShouPalette.selection : .clear, in: RoundedRectangle(cornerRadius: ShouDesign.navRadius))
                                 .contextMenu { Button(model.t("Remove from Workspace")) { session.toggleFavorite(tool.id) }.disabled(model.busy) }
                         }
@@ -128,10 +123,10 @@ struct DeveloperToolsView: View {
             }.padding(12)
         }.background(ShouPalette.inset)
     }
-    private func serviceSwitch(_ service: DeveloperService, showsProgress: Bool = true) -> some View {
+    private func serviceSwitch(_ service: DeveloperService) -> some View {
         Group {
             if session.changingServiceID == service.id {
-                if showsProgress { ProgressView().controlSize(.small).frame(width: 40) }
+                ProgressView().controlSize(.small).frame(width: 40)
             }
             else if service.controllable && !session.staleServiceIDs.contains(service.id) {
                 Toggle(model.t("Service"), isOn: Binding(get: { service.state == "running" }, set: { session.changeService(service, running: $0, app: model) }))
