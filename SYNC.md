@@ -6,6 +6,12 @@ v0.15.0 historical native CI / v0.15.0 历史原生 CI：[Windows Server 2025 x6
 
 [English implementation plan](docs/engineering/windows-native-plan.md) | [中文实施方案](docs/zh-CN/engineering/windows-native-plan.md)
 
+## macOS privacy discovery recovery, 2026-10-27 / macOS 隐私发现恢复
+
+Against baseline `3b34b3f`, macOS privacy discovery now isolates unreadable fixed browser roots. `EPERM`/`EACCES`, filesystem and filename representation failures are saved as sanitized partial-coverage issues while accessible browser roots continue; cancellation, no-follow traversal, profile limits and database identity checks remain enforced. The privacy page explains the gap and offers Full Disk Access settings, without granting permission or changing deletion confirmation / 针对基线 `3b34b3f`，macOS 隐私发现现在隔离无法读取的固定浏览器根目录。`EPERM`／`EACCES`、文件系统错误及文件名表示失败会作为脱敏覆盖缺口保存，并继续处理可访问来源；取消、禁止跟随链接、配置数量上限和数据库身份检查仍保持。隐私页展示缺口并提供完全磁盘访问设置入口，不自动授予权限，也不改变删除确认合同。
+
+Generated-fixture verification passed: `shou-tests --privacy-only` 8/8, `--privacy-discovery-only` 2/2, and `--operation-progress-only` 6/6. Localization, Windows resource and documentation checks passed. The full `scripts/test.sh` reached the macOS build but this host's Command Line Tools could not load the SwiftUI macro plugin (`SwiftUIMacros.StateMacro`); no privacy safeguard was weakened / 生成夹具验证通过：`shou-tests --privacy-only` 8/8、`--privacy-discovery-only` 2/2、`--operation-progress-only` 6/6；文案、Windows 资源和文档检查通过。完整 `scripts/test.sh` 在 macOS 构建阶段因本机 Command Line Tools 无法加载 SwiftUI 宏插件（`SwiftUIMacros.StateMacro`）停止；未放宽隐私保护。
+
 ## v0.18.0 release preparation, 2026-10-27 / 发布准备
 
 Scope / 范围：the release advances the macOS app/build, Swift CLI, Windows native payloads and private npm source template to `0.18.0`, with tag `v0.18.0`. It includes the outstanding Developer Tools and AI Workbench source, supported macOS instance/configuration/log and MySQL tasks, managed-package upgrades, desktop self-update improvements and shared Radix native styling. Existing per-software and platform limitations remain in their owning contracts; the 79-entry catalog is not full implementation evidence / 本次纳入当前工作区未发布改动，版本统一递增，不以目录收录或源码存在代替逐项验收。

@@ -6219,6 +6219,12 @@
   <data name="s51f0ce9f1d62011f7eac91fa" xml:space="preserve">
     <value>Some applications could not be fully inspected. Review ownership notices before selecting associated files.</value>
   </data>
+  <data name="s1bff2800ef93934158bd05a2" xml:space="preserve">
+    <value>Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again.</value>
+  </data>
+  <data name="s4e697c9e7017cb346b5e2490" xml:space="preserve">
+    <value>Some browser profiles could not be scanned. Accessible sources are shown below.</value>
+  </data>
   <data name="s362b097405e84cadda000d91" xml:space="preserve">
     <value>Some developer tool locations could not be read.</value>
   </data>

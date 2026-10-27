@@ -33235,6 +33235,38 @@
         }
       }
     },
+    "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分浏览器数据无法访问。请检查完全磁盘访问权限和排除项，然后重新扫描。"
+          }
+        }
+      }
+    },
+    "Some browser profiles could not be scanned. Accessible sources are shown below.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some browser profiles could not be scanned. Accessible sources are shown below."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分浏览器配置无法扫描，以下显示可访问的来源。"
+          }
+        }
+      }
+    },
     "Some developer tool locations could not be read.": {
       "extractionState": "manual",
       "localizations": {

@@ -6219,6 +6219,12 @@
   <data name="s51f0ce9f1d62011f7eac91fa" xml:space="preserve">
     <value>部分应用未能完整检查。选择关联文件前，请查看归属提示。</value>
   </data>
+  <data name="s1bff2800ef93934158bd05a2" xml:space="preserve">
+    <value>部分浏览器数据无法访问。请检查完全磁盘访问权限和排除项，然后重新扫描。</value>
+  </data>
+  <data name="s4e697c9e7017cb346b5e2490" xml:space="preserve">
+    <value>部分浏览器配置无法扫描，以下显示可访问的来源。</value>
+  </data>
   <data name="s362b097405e84cadda000d91" xml:space="preserve">
     <value>部分工具位置无法读取。</value>
   </data>

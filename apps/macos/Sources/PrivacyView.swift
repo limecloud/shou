@@ -87,6 +87,23 @@ struct PrivacyView: View {
         }.frame(maxWidth: 300).disabled(app.busy)
     }
     @ViewBuilder private func sourceSelection(_ scan: PrivacyScan) -> some View {
+        if scan.issues.contains("privacy_discovery_incomplete") {
+            Text(app.t("Some browser profiles could not be scanned. Accessible sources are shown below."))
+                .font(ShouType.body).foregroundStyle(ShouPalette.warning)
+                .accessibilityIdentifier("privacy.partial-coverage")
+        }
+        if scan.issues.contains("permission_denied") || scan.sources.contains(where: { $0.status == .permissionRequired }) {
+            HStack {
+                Text(app.t("Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again."))
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                Spacer()
+                Button(app.t("Open System Settings…")) { app.scanAccess.openSystemSettings() }
+                    .accessibilityIdentifier("privacy.disk-access")
+            }
+            if let error=app.scanAccess.setupError {
+                Text(app.diagnostic(error)).font(ShouType.caption).foregroundStyle(ShouPalette.danger)
+            }
+        }
         sourceList(scan)
         cookieConsent
         selectionFooter

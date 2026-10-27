@@ -261,15 +261,25 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL rule-scan progress: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--privacy-discovery-only"] {
+            do {
+                try await privacyDiscoveryPermissionFailureKeepsAccessibleSources()
+                try await privacyDiscoveryRejectsLinkedRootsAndPreservesLimitsAndCancellation()
+                print("2/2 privacy discovery permission, no-follow, limit and cancellation tests passed; generated fixtures only.")
+            } catch { print("FAIL privacy discovery: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--privacy-only"] {
             do {
+                try await privacyDiscoveryPermissionFailureKeepsAccessibleSources()
+                try await privacyDiscoveryRejectsLinkedRootsAndPreservesLimitsAndCancellation()
                 try await privacyChromiumRangePreservesUnselectedRelationsAndReceipts()
                 try await privacyCookiesRequireSeparateConsentAndUseLastAccessTime()
                 try await privacyFirefoxAndSafariEpochsPreserveBookmarksAndDownloads()
                 try await privacyRefusesRunningStaleExcludedAndUnsupportedSources()
                 try await privacyTransactionsRollbackAndUnknownSchemasStayUnavailable()
                 try await privacyIntegerTimeBoundsAndUnknownCascadesAreConservative()
-                print("6/6 privacy range, consent, schema, platform policy, access lease and transaction tests passed; generated databases only.")
+                print("8/8 privacy discovery, range, consent, schema, platform policy, access lease and transaction tests passed; generated databases only.")
             } catch { print("FAIL privacy: \(error)"); Foundation.exit(1) }
             return
         }
@@ -628,6 +638,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Chinese desktop default and saved language", { try desktopLanguageDefaultsAndSavedChoice() }),
             ("Runtime localization switches in both directions", { try localizedResourcesSwitchWithoutProcessRestart() }),
             ("Privacy ranges preserve unselected relations and receipts", { try await privacyChromiumRangePreservesUnselectedRelationsAndReceipts() }),
+            ("Privacy discovery keeps accessible sources when a browser denies access", { try await privacyDiscoveryPermissionFailureKeepsAccessibleSources() }),
+            ("Privacy discovery rejects linked roots and preserves limits and cancellation", { try await privacyDiscoveryRejectsLinkedRootsAndPreservesLimitsAndCancellation() }),
             ("Privacy cookies require separate consent and use last access time", { try await privacyCookiesRequireSeparateConsentAndUseLastAccessTime() }),
             ("Privacy epochs preserve bookmarks and downloads", { try await privacyFirefoxAndSafariEpochsPreserveBookmarksAndDownloads() }),
             ("Privacy refuses running, stale, excluded and unsupported sources", { try await privacyRefusesRunningStaleExcludedAndUnsupportedSources() }),

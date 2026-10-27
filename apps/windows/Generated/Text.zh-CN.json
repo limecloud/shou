@@ -10364,6 +10364,16 @@
     "resource_id": "s51f0ce9f1d62011f7eac91fa",
     "text": "部分应用未能完整检查。选择关联文件前，请查看归属提示。"
   },
+  "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again.": {
+    "format": "部分浏览器数据无法访问。请检查完全磁盘访问权限和排除项，然后重新扫描。",
+    "resource_id": "s1bff2800ef93934158bd05a2",
+    "text": "部分浏览器数据无法访问。请检查完全磁盘访问权限和排除项，然后重新扫描。"
+  },
+  "Some browser profiles could not be scanned. Accessible sources are shown below.": {
+    "format": "部分浏览器配置无法扫描，以下显示可访问的来源。",
+    "resource_id": "s4e697c9e7017cb346b5e2490",
+    "text": "部分浏览器配置无法扫描，以下显示可访问的来源。"
+  },
   "Some developer tool locations could not be read.": {
     "format": "部分工具位置无法读取。",
     "resource_id": "s362b097405e84cadda000d91",

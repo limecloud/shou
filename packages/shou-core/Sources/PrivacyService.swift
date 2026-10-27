@@ -43,7 +43,8 @@ public actor PrivacyService {
         try cancelled()
         let date=now(), config=try configuration(), homeIdentity=try filesystem.analysisRootIdentity(home.path)
         progress(ExecutionProgress(stage: "privacy-scanning", processedCount: 0, itemCount: 0))
-        let definitions=try catalog.discover(home: home)
+        let discovery=try catalog.discoverWithCoverage(home: home)
+        let definitions=discovery.sources
         guard definitions.count <= 512 else { throw ShouError("privacy_source_limit", "Too many browser sources; no privacy scan was saved.") }
         let identifiers=Set(definitions.filter { !$0.unsupported }.map(\.bundleIdentifier))
         let running: Set<String>?
@@ -82,7 +83,8 @@ public actor PrivacyService {
             sources.append(source)
             progress(ExecutionProgress(stage: "privacy-scanning", processedCount: sources.count, itemCount: definitions.count, path: definition.browserName + " · " + definition.profile))
         }
-        let result=PrivacyScan(id: Codec.id("privacy-scan"), createdAt: date, expiresAt: date.addingTimeInterval(900), range: range, rangeStart: range.start(at: date), rangeEnd: date, configurationDigest: try Digest.of(config), homeIdentity: homeIdentity, sources: sources, issues: running == nil ? ["application_activity_unavailable"] : [])
+        let issues=Array(Set(discovery.issues + (running == nil ? ["application_activity_unavailable"] : []))).sorted()
+        let result=PrivacyScan(id: Codec.id("privacy-scan"), createdAt: date, expiresAt: date.addingTimeInterval(900), range: range, rangeStart: range.start(at: date), rangeEnd: date, configurationDigest: try Digest.of(config), homeIdentity: homeIdentity, sources: sources, issues: issues)
         try save(result, "privacy-scans", result.id); return result
     }
     public func scan(id: String) throws -> PrivacyScan { try load(PrivacyScan.self, "privacy-scans", id) }

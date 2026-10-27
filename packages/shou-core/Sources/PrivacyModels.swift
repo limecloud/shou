@@ -36,14 +36,27 @@ public struct PrivacySourceDefinition: Codable, Sendable, Equatable {
 /// Platform code discovers only known browser profiles and captures no-follow identities.
 public protocol PrivacySourceDiscovering: Sendable {
     func discover(home: URL) throws -> [PrivacySourceDefinition]
+    func discoverWithCoverage(home: URL) throws -> PrivacySourceDiscovery
     func evidence(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> [FileEntry]
     func acquire(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> any PrivacySourceAccess
+}
+
+/// Discovery failures describe incomplete coverage, never empty or authorized sources.
+public struct PrivacySourceDiscovery: Sendable {
+    public let sources: [PrivacySourceDefinition]
+    public let issues: [String]
+    public init(sources: [PrivacySourceDefinition], issues: [String] = []) {
+        self.sources=sources; self.issues=issues
+    }
 }
 
 /// Platforms can keep verified database paths pinned for the complete SQLite operation.
 public protocol PrivacySourceAccess: AnyObject, Sendable { func release() }
 private final class UnpinnedPrivacySourceAccess: PrivacySourceAccess { func release() {} }
 extension PrivacySourceDiscovering {
+    public func discoverWithCoverage(home: URL) throws -> PrivacySourceDiscovery {
+        PrivacySourceDiscovery(sources: try discover(home: home))
+    }
     public func acquire(source: PrivacySourceDefinition, home: URL, writable: Bool) throws -> any PrivacySourceAccess { UnpinnedPrivacySourceAccess() }
 }
 
