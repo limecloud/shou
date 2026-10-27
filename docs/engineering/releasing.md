@@ -28,6 +28,8 @@ Windows release jobs build WinUI and the independent CLI from the exact source c
 
 Windows downloads are unsigned portable previews: `Shou-<version>-windows-<arch>.zip` for the app and `shou-cli-<version>-windows-<arch>.zip` for the CLI. Extract the app and run `Shou.Windows.App.exe`; no separate .NET or Windows App SDK installation is needed. There is no installer or automatic updater, and public cleanup/uninstall/startup mutation gates remain closed. Complete dual-architecture runtime, Authenticode, Velopack and clean-system acceptance in the [Windows plan](windows-native-plan.md) before claiming full Windows support.
 
+Manual preparation can set `prepare_only=true` and `source_commit` to a full 40-character source SHA. It runs the same verification and signed packaging jobs, skips publication, and leaves the tag and public assets untouched. Source overrides are rejected outside preparation mode. Normally published versions remain immutable. If the user explicitly requests a same-version replacement, preserve the original tag, release metadata and all asset bytes, verify the complete candidate, then promote those exact bytes as a recorded manual exception. Already installed `0.19.0` builds will not discover another `0.19.0` as an update; npm versions cannot be overwritten.
+
 ## npm channel
 
 The public CLI package remains `@limecloud/shou`. v0.19.0 references matching `shou-darwin-arm64` and `shou-darwin-x64` platform packages. Follow the [npm distribution plan](npm-distribution.md) for platform selection, native tarball tests and publication order. npm manages the CLI channel independently of desktop updates. Windows packages join a future version after native acceptance.

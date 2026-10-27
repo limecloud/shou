@@ -9,6 +9,14 @@ on:
         description: Existing version tag to release
         required: true
         default: v0.19.0
+      prepare_only:
+        description: Build verified artifacts without publishing or changing the tag
+        type: boolean
+        default: false
+      source_commit:
+        description: Full source SHA override (prepare-only builds)
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -26,11 +34,25 @@ jobs:
     outputs:
       commit: ${{ steps.resolve.outputs.commit }}
     steps:
+      - name: Validate source override
+        env:
+          SHOU_SOURCE_OVERRIDE: ${{ inputs.source_commit }}
+          SHOU_PREPARE_ONLY: ${{ inputs.prepare_only }}
+        run: |
+          if test -n "$SHOU_SOURCE_OVERRIDE"; then
+            test "$SHOU_PREPARE_ONLY" = true || { echo 'Source overrides require prepare_only'; exit 1; }
+            [[ "$SHOU_SOURCE_OVERRIDE" =~ ^[0-9a-f]{40}$ ]] || { echo 'A full source SHA is required'; exit 1; }
+          fi
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || env.SHOU_RELEASE_TAG }}
+          ref: ${{ github.event_name == 'push' && github.sha || inputs.source_commit || env.SHOU_RELEASE_TAG }}
       - id: resolve
-        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        env:
+          SHOU_SOURCE_OVERRIDE: ${{ inputs.source_commit }}
+        run: |
+          task_commit="$(git rev-parse HEAD)"
+          test -z "$SHOU_SOURCE_OVERRIDE" || test "$task_commit" = "$SHOU_SOURCE_OVERRIDE"
+          echo "commit=$task_commit" >> "$GITHUB_OUTPUT"
 
   verify:
     needs: source
@@ -209,6 +231,7 @@ jobs:
             ${{ runner.temp }}/ShouBuild/tests/evidence
 
   publish:
+    if: ${{ !inputs.prepare_only }}
     needs: [source, package, windows]
     runs-on: ubuntu-latest
     permissions:

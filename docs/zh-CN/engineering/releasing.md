@@ -28,6 +28,8 @@ Windows 发布任务按确切源码构建 x64 与 ARM64 的 WinUI 和独立 CLI�
 
 Windows 下载是未签名便携预览：应用为 `Shou-<version>-windows-<arch>.zip`，CLI 为 `shou-cli-<version>-windows-<arch>.zip`。解压应用并运行 `Shou.Windows.App.exe`，无需另装 .NET 或 Windows App SDK。当前不提供安装器或自动更新，清理、卸载及启动项变更的公开门禁保持关闭。按[Windows 原生方案](windows-native-plan.md)完成双架构运行、Authenticode、Velopack 与干净系统验收后再声明完整 Windows 支持。
 
+手动准备可设置 `prepare_only=true`，并用 `source_commit` 指定完整 40 位源码 SHA；同样执行验证与签名打包，跳过公开发布，保持现有标签和附件。非准备模式拒绝源码覆盖。正常发布版本保持不可变；用户明确要求同版本替换时，先保留原标签、Release 元数据及全部附件字节，验证完整候选后，再将这些确切字节作为人工例外晋升并记录。已安装 `0.19.0` 的用户不会检测到另一个 `0.19.0` 更新；npm 版本不能覆盖。
+
 ## npm 渠道
 
 公开 CLI 包保持 `@limecloud/shou`，v0.19.0 引用同版本的 `shou-darwin-arm64` 与 `shou-darwin-x64` 平台包。平台选择、原生 tarball 检查与发布顺序遵循 [npm 分发方案](npm-distribution.md)。npm 独立管理 CLI 渠道，与桌面更新分开。Windows 平台包通过原生验收后再纳入新版本。
