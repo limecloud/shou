@@ -267,6 +267,9 @@
   <data name="se314e0f99514e9aee074dfd5" xml:space="preserve">
     <value>AI 工作台</value>
   </data>
+  <data name="s69ba6430b3e9794e6b770675" xml:space="preserve">
+    <value>AI 应用、配置与扩展</value>
+  </data>
   <data name="sfe0b8f5290d335196adac406" xml:space="preserve">
     <value>未找到此 AI 配置。</value>
   </data>
@@ -3440,9 +3443,6 @@
   </data>
   <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
     <value>大文件，一目了然。</value>
-  </data>
-  <data name="s438b2ceca5ba20b1604fbd05" xml:space="preserve">
-    <value>管理 AI 应用与连接配置。</value>
   </data>
   <data name="sa7ce49eacadd57176cfb3652" xml:space="preserve">
     <value>管理数据库</value>

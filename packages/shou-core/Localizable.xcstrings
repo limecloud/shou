@@ -1428,6 +1428,22 @@
         }
       }
     },
+    "AI apps, configuration and extensions.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI apps, configuration and extensions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 应用、配置与扩展"
+          }
+        }
+      }
+    },
     "AI configuration not found.": {
       "localizations": {
         "en": {
@@ -18393,22 +18409,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "大文件，一目了然。"
-          }
-        }
-      }
-    },
-    "Manage AI apps and connections.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manage AI apps and connections."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理 AI 应用与连接配置。"
           }
         }
       }

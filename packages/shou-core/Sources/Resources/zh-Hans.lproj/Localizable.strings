@@ -88,6 +88,7 @@
 "AI Investigation" = "AI 调查";
 "AI Models" = "AI 模型";
 "AI Workbench" = "AI 工作台";
+"AI apps, configuration and extensions." = "AI 应用、配置与扩展";
 "AI configuration not found." = "未找到此 AI 配置。";
 "AI credential storage must be private to the current user (0700)." = "AI 凭据目录必须仅限当前用户访问（0700）。";
 "AI investigation is disabled. Enable it in Settings before making a new request." = "AI 调查已关闭，请在设置中开启后再发起新请求。";
@@ -1146,7 +1147,6 @@
 "Main model only" = "仅主模型";
 "Make Shou work the way you do." = "调整 Shou 的外观与使用偏好。";
 "Make room for more." = "大文件，一目了然。";
-"Manage AI apps and connections." = "管理 AI 应用与连接配置。";
 "Manage Databases" = "管理数据库";
 "Manage Instance" = "管理实例";
 "Manage Tool" = "管理工具";

@@ -88,6 +88,7 @@
 "AI Investigation" = "AI Investigation";
 "AI Models" = "AI Models";
 "AI Workbench" = "AI Workbench";
+"AI apps, configuration and extensions." = "AI apps, configuration and extensions.";
 "AI configuration not found." = "AI configuration not found.";
 "AI credential storage must be private to the current user (0700)." = "AI credential storage must be private to the current user (0700).";
 "AI investigation is disabled. Enable it in Settings before making a new request." = "AI investigation is disabled. Enable it in Settings before making a new request.";
@@ -1146,7 +1147,6 @@
 "Main model only" = "Main model only";
 "Make Shou work the way you do." = "Make Shou work the way you do.";
 "Make room for more." = "Make room for more.";
-"Manage AI apps and connections." = "Manage AI apps and connections.";
 "Manage Databases" = "Manage Databases";
 "Manage Instance" = "Manage Instance";
 "Manage Tool" = "Manage Tool";

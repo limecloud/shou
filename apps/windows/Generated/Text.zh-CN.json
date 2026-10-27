@@ -444,6 +444,11 @@
     "resource_id": "se314e0f99514e9aee074dfd5",
     "text": "AI 工作台"
   },
+  "AI apps, configuration and extensions.": {
+    "format": "AI 应用、配置与扩展",
+    "resource_id": "s69ba6430b3e9794e6b770675",
+    "text": "AI 应用、配置与扩展"
+  },
   "AI configuration not found.": {
     "format": "未找到此 AI 配置。",
     "resource_id": "sfe0b8f5290d335196adac406",
@@ -5733,11 +5738,6 @@
     "format": "大文件，一目了然。",
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "大文件，一目了然。"
-  },
-  "Manage AI apps and connections.": {
-    "format": "管理 AI 应用与连接配置。",
-    "resource_id": "s438b2ceca5ba20b1604fbd05",
-    "text": "管理 AI 应用与连接配置。"
   },
   "Manage Databases": {
     "format": "管理数据库",

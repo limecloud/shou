@@ -444,6 +444,11 @@
     "resource_id": "se314e0f99514e9aee074dfd5",
     "text": "AI Workbench"
   },
+  "AI apps, configuration and extensions.": {
+    "format": "AI apps, configuration and extensions.",
+    "resource_id": "s69ba6430b3e9794e6b770675",
+    "text": "AI apps, configuration and extensions."
+  },
   "AI configuration not found.": {
     "format": "AI configuration not found.",
     "resource_id": "sfe0b8f5290d335196adac406",
@@ -5733,11 +5738,6 @@
     "format": "Make room for more.",
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "Make room for more."
-  },
-  "Manage AI apps and connections.": {
-    "format": "Manage AI apps and connections.",
-    "resource_id": "s438b2ceca5ba20b1604fbd05",
-    "text": "Manage AI apps and connections."
   },
   "Manage Databases": {
     "format": "Manage Databases",

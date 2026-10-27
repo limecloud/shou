@@ -20,7 +20,7 @@ internal sealed class ToolboxPage : UserControl
         var modules = new Grid { ColumnSpacing = spacing };
         modules.ColumnDefinitions.Add(new()); modules.ColumnDefinitions.Add(new());
         var entries = new[] {
-            ("ai-tools", "AI Workbench", "Manage AI apps and connections.", "rules"),
+            ("ai-tools", "AI Workbench", "AI apps, configuration and extensions.", "rules"),
             ("developer-tools", "Developer Tools", "Manage services and development tools.", "projects")
         };
         for (var index = 0; index < entries.Length; index++)

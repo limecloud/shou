@@ -10,7 +10,7 @@ struct ToolboxView: View {
                 VStack(alignment: .leading, spacing: ShouDesign.sectionSpacing) {
                     Text(model.t("Toolbox")).font(ShouType.title)
                     HStack(alignment: .top, spacing: ShouDesign.sectionSpacing) {
-                        module("AI Workbench", detail: "Manage AI apps and connections.", artwork: .rules, section: "ai-tools")
+                        module("AI Workbench", detail: "AI apps, configuration and extensions.", artwork: .rules, section: "ai-tools")
                         module("Developer Tools", detail: "Manage services and development tools.", artwork: .projects, section: "developer-tools")
                     }
                 }
