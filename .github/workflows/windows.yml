@@ -173,6 +173,28 @@ jobs:
           $Info = dotnet --info | Out-String
           if ($LASTEXITCODE -ne 0 -or $Info -notmatch 'RID:\s+win-arm64') { throw 'The .NET SDK must run natively on ARM64.' }
           Write-Output $Info
+      - name: Prepare isolated hosted-runner browser and .NET environment
+        run: |
+          if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_ENVIRONMENT -ne 'github-hosted') { throw 'Preparation is restricted to disposable GitHub-hosted runners.' }
+          # CsWinRT's x64 IIDOptimizer must not load the native ARM64 hostfxr.
+          $Arm64Root = Split-Path (Get-Command dotnet).Source
+          $X64Root = Join-Path $env:ProgramFiles 'dotnet/x64'
+          & (Join-Path $X64Root 'dotnet.exe') --list-runtimes
+          if ($LASTEXITCODE -ne 0) { throw 'The x64 .NET host is required by the pinned build tools.' }
+          "DOTNET_ROOT_ARM64=$Arm64Root" >> $env:GITHUB_ENV
+          "DOTNET_ROOT_X64=$X64Root" >> $env:GITHUB_ENV
+          # Native privacy fixtures require idle browsers. Never stop personal browsers locally.
+          $BrowserNames = @('firefox', 'chrome', 'msedge', 'brave')
+          $Browsers = @(Get-Process -Name $BrowserNames -ErrorAction SilentlyContinue)
+          $Browsers | Select-Object Id, ProcessName, Path | ConvertTo-Json -Depth 3
+          foreach ($Browser in $Browsers) {
+            if (-not $Browser.HasExited) {
+              try { Stop-Process -InputObject $Browser -Force -ErrorAction Stop }
+              catch { if (-not $Browser.HasExited) { throw } }
+              if (-not $Browser.WaitForExit(10000)) { throw 'A hosted-runner browser did not stop before native fixture tests.' }
+            }
+          }
+          if (@(Get-Process -Name $BrowserNames -ErrorAction SilentlyContinue).Count -ne 0) { throw 'Hosted-runner browsers must be idle before native privacy tests.' }
       - name: Core, presentation, native filesystem, private records and CLI
         run: ./scripts/windows/test.ps1 -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/tests"
       - uses: actions/download-artifact@v4
