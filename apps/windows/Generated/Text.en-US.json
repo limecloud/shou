@@ -10364,6 +10364,16 @@
     "resource_id": "s51f0ce9f1d62011f7eac91fa",
     "text": "Some applications could not be fully inspected. Review ownership notices before selecting associated files."
   },
+  "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again.": {
+    "format": "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again.",
+    "resource_id": "s1bff2800ef93934158bd05a2",
+    "text": "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again."
+  },
+  "Some browser profiles could not be scanned. Accessible sources are shown below.": {
+    "format": "Some browser profiles could not be scanned. Accessible sources are shown below.",
+    "resource_id": "s4e697c9e7017cb346b5e2490",
+    "text": "Some browser profiles could not be scanned. Accessible sources are shown below."
+  },
   "Some developer tool locations could not be read.": {
     "format": "Some developer tool locations could not be read.",
     "resource_id": "s362b097405e84cadda000d91",
