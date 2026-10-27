@@ -17,6 +17,12 @@
 
 本次不支持自定义配置位置、Firefox 外部配置、标识符不同的测试版或渠道版、站点存储、权限、扩展、会话恢复、密码管理器、应用活动、剪贴板、最近项目和云端副本。关闭的浏览器以后可能通过同步恢复历史；Shou 不修改云端服务。运行中的浏览器来源不可选，Shou 不会自动终止浏览器。
 
+### macOS 访问权限与覆盖缺口
+
+发现来源时隔离无法读取的固定浏览器根目录。权限拒绝（`EPERM`／`EACCES`）、文件系统错误及无法表示的文件名，会在已保存扫描的 `issues` 中记录 `privacy_discovery_incomplete` 和脱敏原因，继续发现其他浏览器。不存在的根目录不产生问题，拒绝访问也不会冒充空来源。取消及配置／来源数量超限仍中止扫描，不放宽禁止跟随链接和数据库身份检查。
+
+隐私页在可访问来源上方显示覆盖不完整提示。发现阶段或逐数据库的权限失败还会提供系统设置 → 隐私与安全性 → 完全磁盘访问权限入口。用户检查授权和排除项后明确重新扫描；打开设置本身不授予权限或删除授权。
+
 ### Windows 平台边界
 
 Windows 已有独立 C# 只读扫描、CLI 和 WinUI 页面源码。支持固定位置的 Chrome、Chromium、Edge、Brave 历史及 Cookie，以及 Firefox 基础历史结构与 Cookie；不包含 Safari。页面初始不扫描，由用户选择时间范围并明确开始。Core 已实现独立隐私计划、当前确认、执行编排与脱敏回执；v0.15.0 已加入 `WindowsPrivacyMutation` 原生事务适配并接入 WinUI 的计划／确认／回执，但公开移除门禁保持关闭；CLI 保留只读扫描入口，只读数量不能作为删除授权。原生运行、ACL、SQLite sidecar 和界面验收待完成。见[原生方案](windows-native-plan.md)。
@@ -209,7 +215,7 @@ shou privacy execute --plan-id <plan-id>
 shou privacy history --json
 ```
 
-`tests/core/PrivacyTests.swift` 在生成的夹具用户目录下创建一次性数据库，覆盖时间纪元与有限范围、选中关联与无关孤立行、Cookie 确认、书签/下载保留、浏览器运行、证据过期、排除规则、事务回滚、不支持触发器及脱敏回执。这些测试验证受支持的结构合同，不证明所有已安装浏览器版本或私人配置的访问权限。执行结果见[验收与测试](acceptance-and-testing.md)。
+`tests/core/PrivacyTests.swift` 在生成的夹具用户目录下创建一次性数据库，覆盖可访问来源前后的浏览器根目录拒绝访问、覆盖缺口持久化、禁止跟随链接、发现数量上限与取消，以及时间纪元与有限范围、选中关联与无关孤立行、Cookie 确认、书签/下载保留、浏览器运行、证据过期、排除规则、事务回滚、不支持触发器及脱敏回执。`shou-tests --privacy-discovery-only` 单独运行生成的发现夹具，供拒绝访问验证使用。这些测试验证受支持的结构合同，不证明所有已安装浏览器版本或私人配置的访问权限。执行结果见[验收与测试](acceptance-and-testing.md)。
 
 
 来源模型及策略参考了 [MangoDisk](https://github.com/harry0703/MangoDisk)，主要源码为 `src-tauri/crates/mangodisk-core/src/privacy/browser_database.rs`、`privacy/browser_database/schema.rs`、`privacy/service/policy.rs` 及 macOS 隐私适配器。Shou 实现的范围更小，并保留明确的不支持状态。
