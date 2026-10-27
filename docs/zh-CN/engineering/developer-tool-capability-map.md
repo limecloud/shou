@@ -8,7 +8,7 @@
 
 实际注册入口 `src/render/core/AppModules.ts` 扫描 `components/*/Module.ts`，当前共 71 个根模块；`AppTool.ts` 另外注册 38 个内部工具。Composer、Maven 是嵌套管理能力，插件及用户自定义模块是开放扩展范围，均不能混入根模块计数。分类枚举声明 17 类，Cron 与 Tools 根没有显式 `moduleType`，在 Shou 归入其他。
 
-逐根能力、声明与视图链接、38 项内部工具、文件摘要及与前次提交的差异见[本次源码报告](../../../output/reviews/developer-tools-scope-2026-10-27/REPORT.md)及其[机器清单](../../../output/reviews/developer-tools-scope-2026-10-27/source-inventory.json)。未变化文件的深入调用链沿用报告中链接的前次证据；新提交另行复核。静态入口不证明运行成功，本机旧安装包也不代表当前源码行为。
+逐根能力、声明与视图链接、38 项内部工具、文件摘要及与前次提交的差异见本次源码报告 (本地证据: `output/reviews/developer-tools-scope-2026-10-27/REPORT.md`)及其机器清单 (本地证据: `output/reviews/developer-tools-scope-2026-10-27/source-inventory.json`)。未变化文件的深入调用链沿用报告中链接的前次证据；新提交另行复核。静态入口不证明运行成功，本机旧安装包也不代表当前源码行为。
 
 | 范围 | 参考根模块 | 必须保留的专属任务 |
 | --- | --- | --- |
@@ -67,6 +67,6 @@ AI 需要逐项核实可达功能：OpenCode Providers 当前只列 id/type；He
 
 当前共用层包含目录、已有安装发现、部分安装来源与服务主管。MySQL 已接入数据库／账号／导出、配置／日志及实例组的部分用例；Nginx、Redis、PostgreSQL 有本机配方及配置／日志子集；MongoDB 有配置／日志路径策略，尚无相应本机配方。Claude Code、Codex、OpenCode、Claude Desktop、Gemini 只有有限只读配置／扩展元数据。
 
-后续配置增量新增 Apache、Caddy、Meilisearch、Consul、etcd、Numa、Mailpit 七种软件目录及配置／日志路径策略，与前四种共用确切文件读写；MySQL 仍保留专属任务。按真实文件与安装观察发现已有存储，Caddyfile、TOML、JSON 使用同一编辑安全边界，配置发现移至后台。它们不是新增的本机启停配方，也未实现各软件的全部业务任务。实现与实际验证见[配置适配增量](../../../output/reviews/developer-configurations-2026-10-27/REPORT.md)。
+后续配置增量新增 Apache、Caddy、Meilisearch、Consul、etcd、Numa、Mailpit 七种软件目录及配置／日志路径策略，与前四种共用确切文件读写；MySQL 仍保留专属任务。按真实文件与安装观察发现已有存储，Caddyfile、TOML、JSON 使用同一编辑安全边界，配置发现移至后台。它们不是新增的本机启停配方，也未实现各软件的全部业务任务。实现与实际验证见配置适配增量 (本地证据: `output/reviews/developer-configurations-2026-10-27/REPORT.md`)。
 
 其余软件的专属管理，以及站点证书、语言项目／环境写入、容器、任务、完整网络和 AI 管理仍未接通。Homebrew 主管的共用能力可能覆盖更多软件，仍需精确登记与实例核验；不能因此宣称每个软件已验收。Windows SCM 与安装器的公共执行门禁继续关闭，新增配置任务尚未在 Windows 实现。

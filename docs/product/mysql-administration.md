@@ -2,7 +2,7 @@
 
 [简体中文](../zh-CN/product/mysql-administration.md) | English
 
-Status: macOS working-tree implementation, 2026-10-27. Actual engine, installation and UI evidence are recorded separately in the [task review](../../output/reviews/developer-tools-2026-10-26/REPORT.md) and [instance-registration review](../../output/reviews/mysql-instance-management-2026-10-27/REPORT.md). The Windows database adapter is not implemented; no Windows testing is performed in this round at the user's request. This does not establish parity for all developer tools.
+Status: macOS working-tree implementation, 2026-10-27. Actual engine, installation and UI evidence are recorded separately in the task review (local evidence: `output/reviews/developer-tools-2026-10-26/REPORT.md`) and instance-registration review (local evidence: `output/reviews/mysql-instance-management-2026-10-27/REPORT.md`). The Windows database adapter is not implemented; no Windows testing is performed in this round at the user's request. This does not establish parity for all developer tools.
 
 ## Tasks and identity
 

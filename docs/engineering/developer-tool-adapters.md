@@ -2,7 +2,7 @@
 
 English | [简体中文](../zh-CN/engineering/developer-tool-adapters.md)
 
-Status: working-tree implementation and requirements, 2026-10-27. The installed reference and its source checkout have different versions. Facts and unknowns are retained in the [module capability review](../../output/reviews/developer-tools-2026-10-26/flyenv-module-capabilities-detail.md), [installation and AI review](../../output/reviews/developer-tools-2026-10-26/flyenv-install-ai-detail.md), and [service interaction review](../../output/reviews/developer-tools-2026-10-26/flyenv-service-ux-detail.md). Inventorying 71 roots and analyzing 59 non-AI modules does not mean Shou implements them all.
+Status: working-tree implementation and requirements, 2026-10-27. The installed reference and its source checkout have different versions. Facts and unknowns are retained in the module capability review (local evidence: `output/reviews/developer-tools-2026-10-26/flyenv-module-capabilities-detail.md`), installation and AI review (local evidence: `output/reviews/developer-tools-2026-10-26/flyenv-install-ai-detail.md`), and service interaction review (local evidence: `output/reviews/developer-tools-2026-10-26/flyenv-service-ux-detail.md`). Inventorying 71 roots and analyzing 59 non-AI modules does not mean Shou implements them all.
 
 The [full capability and domain map](developer-tool-capability-map.md) owns the complete target, refreshed against `71288acf873fbade9889b14c25c78561362d9aab`. Existing software directories and four local-instance strategies describe implemented subsets. Projects, sites/certificates, containers, networking, tasks and dedicated AI management remain in scope; five existing adapters cannot define the entire architecture.
 
@@ -37,7 +37,7 @@ Render the workspace and in-memory installation results before awaiting Homebrew
 
 Verify services in one scoped batch for tools selected into the current workspace, retaining session results and a separate observation time for each tool. Re-entry uses those results; explicit refresh observes again. Failed background reads retain rows and errors while disabling stale observations. A scoped Core query invalidates only the requested tools and rejects unrelated adapter results. Mutations wait for source discovery/service verification and always recheck live identity/state; display caches grant no authority.
 
-FlyEnv provides per-module `installedFetched`, coalesced requests and a shared reactive list, while startup also scans visible services concurrently. This does not prove zero first-load scanning or a universal instant-load time. See the [loading trace](../../output/reviews/developer-tools-2026-10-26/flyenv-loading-detail.md). Record UI/performance evidence separately and keep read-only discovery out of global application busy state.
+FlyEnv provides per-module `installedFetched`, coalesced requests and a shared reactive list, while startup also scans visible services concurrently. This does not prove zero first-load scanning or a universal instant-load time. See the loading trace (local evidence: `output/reviews/developer-tools-2026-10-26/flyenv-loading-detail.md`). Record UI/performance evidence separately and keep read-only discovery out of global application busy state.
 
 ## Lifecycle and failures
 

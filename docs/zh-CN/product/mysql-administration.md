@@ -2,7 +2,7 @@
 
 [English](../../product/mysql-administration.md) | 简体中文
 
-状态：2026-10-27 macOS 工作区实现；原生引擎、安装与界面证据分别记录在[专属任务验收](../../../output/reviews/developer-tools-2026-10-26/REPORT.md)与[实例登记验收](../../../output/reviews/mysql-instance-management-2026-10-27/REPORT.md)。Windows 专属数据库适配尚未实现，本轮按用户要求不进行 Windows 测试。此状态不能表述为全部开发工具已对齐。
+状态：2026-10-27 macOS 工作区实现；原生引擎、安装与界面证据分别记录在专属任务验收 (本地证据: `output/reviews/developer-tools-2026-10-26/REPORT.md`)与实例登记验收 (本地证据: `output/reviews/mysql-instance-management-2026-10-27/REPORT.md`)。Windows 专属数据库适配尚未实现，本轮按用户要求不进行 Windows 测试。此状态不能表述为全部开发工具已对齐。
 
 ## 任务与对象
 

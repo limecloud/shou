@@ -7,7 +7,7 @@ import os
 import re
 
 root = Path(__file__).resolve().parents[1]
-excluded = {'.build', '.git', 'dist', '.shou-local'}
+excluded = {'.build', '.git', 'dist', '.shou-local', 'output'}
 documents = []
 for directory, children, files in os.walk(root):
     children[:] = [name for name in children if name not in excluded]

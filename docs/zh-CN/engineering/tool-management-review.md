@@ -28,9 +28,9 @@ Swift／C# 的领域接口与原生适配分别实现，不创建跨平台 Shell
 
 ## 2026-10-26 REA 与完整源码盘点
 
-本机安装包 4.18.2（ASAR SHA-256 `85120a41680fb11c137ef1549b99b40fb3b9d3e4b84e3247735c06d3cbc582d6`），源码为 4.20.2、HEAD `1d63e3300628eb1a4aa14050d3a3319fce527119`，不能混作同版行为。源码已逐项盘点 17 分类、71 个根模块路由、38 个内部工具，追踪版本来源、状态、重启、配置、日志、项目、AI 与系统变更调用链；完整行号报告见[参考证据](../../../output/reviews/developer-tools-2026-10-26/flyenv-source-ui.md)、[服务合同](../../../output/reviews/developer-tools-2026-10-26/flyenv-source-services.md)和 [AI 盘点](../../../output/reviews/developer-tools-2026-10-26/flyenv-source-ai.md)。
+本机安装包 4.18.2（ASAR SHA-256 `85120a41680fb11c137ef1549b99b40fb3b9d3e4b84e3247735c06d3cbc582d6`），源码为 4.20.2、HEAD `1d63e3300628eb1a4aa14050d3a3319fce527119`，不能混作同版行为。源码已逐项盘点 17 分类、71 个根模块路由、38 个内部工具，追踪版本来源、状态、重启、配置、日志、项目、AI 与系统变更调用链；完整行号报告见参考证据 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-source-ui.md`)、服务合同 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-source-services.md`)和 AI 盘点 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-source-ai.md`)。
 
-REA CLI 6.7.0 分析安装包主进程／fork／manifest，以及 82 个服务相关 renderer 文件；证据 ID 为 `ev_5151fcbd2d9af721209c3063c8721547f4a08c416af376ba5a5ab2c4ce6786dd`、`ev_7f186816388e3a6eac04c7aaa03bf481e04d825b169abbf75e8edf54451f4a07`。索引覆盖完整安装包，选择外源码未作语义分析；renderer 因累积结果预算保留静态事实，部分语义分析未开始，不能声称完成安装包每个模块的反编译。十个 unpacked 原生文件与 ASAR 声明摘要矛盾，按 record-and-continue 保存为不受信观察，不执行它们。首次拒绝与完整证据位于 `.build/references/flyenv/`，[精简证据和限制](../../../output/reviews/developer-tools-2026-10-26/flyenv-reference-evidence.json)供复核。当前 REA MCP 未连接，使用现有 CLI，未修改全局注册或安装分析引擎。
+REA CLI 6.7.0 分析安装包主进程／fork／manifest，以及 82 个服务相关 renderer 文件；证据 ID 为 `ev_5151fcbd2d9af721209c3063c8721547f4a08c416af376ba5a5ab2c4ce6786dd`、`ev_7f186816388e3a6eac04c7aaa03bf481e04d825b169abbf75e8edf54451f4a07`。索引覆盖完整安装包，选择外源码未作语义分析；renderer 因累积结果预算保留静态事实，部分语义分析未开始，不能声称完成安装包每个模块的反编译。十个 unpacked 原生文件与 ASAR 声明摘要矛盾，按 record-and-continue 保存为不受信观察，不执行它们。首次拒绝与完整证据位于 `.build/references/flyenv/`，精简证据和限制 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-reference-evidence.json`)供复核。当前 REA MCP 未连接，使用现有 CLI，未修改全局注册或安装分析引擎。
 
 实际 Computer Use 只读查看已运行的 4.18.2 Nginx 服务页，确认行内停止／重启、配置与日志页签及同一 Cellar 版本；未点击其启停、安装、保存或删除。FlyEnv 自管理 Nginx 正在运行而 Homebrew 服务状态为 stopped，实证了来源与生命周期必须分开。
 
@@ -38,7 +38,7 @@ REA CLI 6.7.0 分析安装包主进程／fork／manifest，以及 82 个服务�
 
 ## 逐软件复核与适配结构，2026-10-27
 
-新增[逐模块能力报告](../../../output/reviews/developer-tools-2026-10-26/flyenv-module-capabilities-detail.md)，覆盖 71 根索引及 59 非 AI 模块的差异，385 条源码引用绑定精确提交；另有[安装／AI](../../../output/reviews/developer-tools-2026-10-26/flyenv-install-ai-detail.md)和[服务交互](../../../output/reviews/developer-tools-2026-10-26/flyenv-service-ux-detail.md)细查。MySQL 的库／授权、口令记录／维护重置、备份、群组各有独立链；Mailpit Static 调用中间历史 API，服务端资产筛选仍未知；ENV、各管理器 default、Alias 和备注也不是同一能力。
+新增逐模块能力报告 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-module-capabilities-detail.md`)，覆盖 71 根索引及 59 非 AI 模块的差异，385 条源码引用绑定精确提交；另有安装／AI (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-install-ai-detail.md`)和服务交互 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-service-ux-detail.md`)细查。MySQL 的库／授权、口令记录／维护重置、备份、群组各有独立链；Mailpit Static 调用中间历史 API，服务端资产筛选仍未知；ENV、各管理器 default、Alias 和备注也不是同一能力。
 
 REA 另外选择已安装包的 Mailpit 配置、MySQL 管理／群组和 phpMyAdmin 四份源文件分析，解析 21,314 字节、5,763 AST 节点，无语法失败；证据 `ev_bdde0d876ad63f42a0d92e6649573f057919e3fa938e058dad7d88b8b798c2eb`。语义覆盖仍为 partial；对 fork 停止函数的两次语义追踪仅保留种子节点，没有证明完整调用边，因此行为结论以明确源码链为依据，不声称已完整反编译所有模块。全部仍为静态分析，未执行参考服务或其下载程序。
 
@@ -48,4 +48,4 @@ REA 另外选择已安装包的 Mailpit 配置、MySQL 管理／群组和 phpMyA
 
 参考工作树当前为 `71288acf873fbade9889b14c25c78561362d9aab`，仍标记 4.20.2；不能继续用前次提交描述最新源码。两次新增提交修改 20 个文件，根注册和视图没有变化；本次重新核对 71 个根、38 个内部工具，以及 Composer/Maven、工具链管理器、插件和自定义模块的计数边界。新增源代码差异包括公共停止时限扩展、Consul/Neo4j/Cloudflare Tunnel 的专属等待，以及 ClickHouse companion 失败处理。
 
-[本次报告](../../../output/reviews/developer-tools-scope-2026-10-27/REPORT.md)逐根列出专属能力及 Shou 当前差距；[全量领域图](developer-tool-capability-map.md)是后续范围入口。完整源码按 REA 技能要求使用普通源码工具分析，复用未变化文件的前次调用链；本次未运行参考软件，未新增二进制分析或原生验收。源码指纹覆盖不等于逐函数语义覆盖。
+本次报告 (本地证据: `output/reviews/developer-tools-scope-2026-10-27/REPORT.md`)逐根列出专属能力及 Shou 当前差距；[全量领域图](developer-tool-capability-map.md)是后续范围入口。完整源码按 REA 技能要求使用普通源码工具分析，复用未变化文件的前次调用链；本次未运行参考软件，未新增二进制分析或原生验收。源码指纹覆盖不等于逐函数语义覆盖。

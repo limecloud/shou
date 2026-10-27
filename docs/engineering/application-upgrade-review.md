@@ -6,7 +6,7 @@ On 2026-10-26, following the supplied screenshot, REA 6.7.0 inspected local `/Ap
 
 ## Evidence boundaries
 
-The target bundle is `com.egoist.pulse`; its ARM64 executable SHA256 is `4ac148f0ceb7d57a55c85e6e7a4573883529c8ef8647fffbf9bcc807fda20d88`. Original REA records and real screenshots are in the [review directory](../../output/reviews/application-upgrades-2026-10-26/).
+The target bundle is `com.egoist.pulse`; its ARM64 executable SHA256 is `4ac148f0ceb7d57a55c85e6e7a4573883529c8ef8647fffbf9bcc807fda20d88`. Original REA records and real screenshots are in the review directory (local evidence: `output/reviews/application-upgrades-2026-10-26/`).
 
 | Evidence | Supported conclusion | Not established |
 | --- | --- | --- |

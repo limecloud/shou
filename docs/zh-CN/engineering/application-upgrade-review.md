@@ -6,7 +6,7 @@
 
 ## 证据边界
 
-目标 Bundle ID 为 `com.egoist.pulse`，ARM64 主程序 SHA256 为 `4ac148f0ceb7d57a55c85e6e7a4573883529c8ef8647fffbf9bcc807fda20d88`。REA 的原始记录与真实截图保存在[本轮证据目录](../../../output/reviews/application-upgrades-2026-10-26/)。
+目标 Bundle ID 为 `com.egoist.pulse`，ARM64 主程序 SHA256 为 `4ac148f0ceb7d57a55c85e6e7a4573883529c8ef8647fffbf9bcc807fda20d88`。REA 的原始记录与真实截图保存在本轮证据目录 (本地证据: `output/reviews/application-upgrades-2026-10-26/`)。
 
 | 证据 | 可以支持的结论 | 不支持的结论 |
 | --- | --- | --- |

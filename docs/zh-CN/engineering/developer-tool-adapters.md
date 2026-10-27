@@ -2,7 +2,7 @@
 
 [English](../../engineering/developer-tool-adapters.md) | 简体中文
 
-状态：2026-10-27 工作区实现与后续实施约束。参考源码与已安装包版本不同，逐软件事实、调用链和未知范围保存在[模块能力报告](../../../output/reviews/developer-tools-2026-10-26/flyenv-module-capabilities-detail.md)、[安装与 AI 报告](../../../output/reviews/developer-tools-2026-10-26/flyenv-install-ai-detail.md)及[服务交互报告](../../../output/reviews/developer-tools-2026-10-26/flyenv-service-ux-detail.md)。71 个根模块的目录、59 个非 AI 模块的逐能力分析不等于 Shou 已实现全部功能。
+状态：2026-10-27 工作区实现与后续实施约束。参考源码与已安装包版本不同，逐软件事实、调用链和未知范围保存在模块能力报告 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-module-capabilities-detail.md`)、安装与 AI 报告 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-install-ai-detail.md`)及服务交互报告 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-service-ux-detail.md`)。71 个根模块的目录、59 个非 AI 模块的逐能力分析不等于 Shou 已实现全部功能。
 
 完整目标以[全量能力与领域边界](developer-tool-capability-map.md)为准，已按当前提交 `71288acf873fbade9889b14c25c78561362d9aab` 复核根注册、内部工具及增量。下文的软件目录与四种实例策略只描述已落地部分；语言项目、站点证书、容器、网络、任务和 AI 专属能力都属于当前目标，不能只围绕五种软件继续扩展通用服务编辑器。
 
@@ -52,7 +52,7 @@ flowchart TD
 
 服务状态按用户已选入当前工作台的工具集合批量核验，并在当前会话保留各工具结果和各自检查时间。重复进入复用结果，主动刷新重新观察；后台读取失败保留旧行和错误说明并禁用旧观察。Core 的限定查询只失效本次所选工具的观察，拒绝适配器返回其他工具，不清空其他工具的状态。安装来源盘点未完成或服务核验进行中时，变更动作暂不可用；展示缓存从不绕过执行前的身份和状态复核。
 
-FlyEnv 源码的 `Module.installedFetched`、在途请求合并与共享响应式列表提供了参考，但其启动也会并行读取可见服务，不能宣称首次不扫描或所有机器都秒开。具体调用链见[加载分析](../../../output/reviews/developer-tools-2026-10-26/flyenv-loading-detail.md)。性能与实际界面证据单独记录；不使用读取动作把整个应用变为全局 busy。
+FlyEnv 源码的 `Module.installedFetched`、在途请求合并与共享响应式列表提供了参考，但其启动也会并行读取可见服务，不能宣称首次不扫描或所有机器都秒开。具体调用链见加载分析 (本地证据: `output/reviews/developer-tools-2026-10-26/flyenv-loading-detail.md`)。性能与实际界面证据单独记录；不使用读取动作把整个应用变为全局 busy。
 
 ## 生命周期与失败
 

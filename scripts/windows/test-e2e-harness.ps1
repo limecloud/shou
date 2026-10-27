@@ -90,5 +90,7 @@ try {
     } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $ShouRun 'verification.json') -Encoding UTF8
     Write-Output "Desktop E2E harness: $($Cases.Count) checks passed. Evidence: $ShouRun"
 } finally {
-    [Environment]::SetEnvironmentVariable('SHOU_DIAGNOSTICS_DIR', $SavedDiagnostics, 'Process')
+    # The environment provider removes an absent value; a string-parameter call
+    # can turn PowerShell null into an invalid empty override on current .NET.
+    $env:SHOU_DIAGNOSTICS_DIR = $SavedDiagnostics
 }
