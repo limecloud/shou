@@ -2072,6 +2072,8 @@
 "Some application registrations could not be read. The list may be incomplete." = "Some application registrations could not be read. The list may be incomplete.";
 "Some applications could not be fully inspected. Associated files remain protected when ownership coverage is incomplete." = "Some applications could not be fully inspected. Associated files remain protected when ownership coverage is incomplete.";
 "Some applications could not be fully inspected. Review ownership notices before selecting associated files." = "Some applications could not be fully inspected. Review ownership notices before selecting associated files.";
+"Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again." = "Some browser data could not be accessed. Review Full Disk Access and your exclusions, then scan again.";
+"Some browser profiles could not be scanned. Accessible sources are shown below." = "Some browser profiles could not be scanned. Accessible sources are shown below.";
 "Some developer tool locations could not be read." = "Some developer tool locations could not be read.";
 "Some files belong to another user." = "Some files belong to another user.";
 "Some files could not be permanently removed. Other eligible files were processed." = "Some files could not be permanently removed. Other eligible files were processed.";
