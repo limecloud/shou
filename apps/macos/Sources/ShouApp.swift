@@ -18,7 +18,7 @@ import Accessibility
                 .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
                 .tint(ShouDesign.accent)
                 .accentColor(ShouDesign.accent)
-                .frame(minWidth: 960, minHeight: 680)
+                .frame(minWidth: 960, minHeight: 600)
                 .background(OperationWindowGuard(model: model))
                 .task { applicationDelegate.model=model; await model.initialize() }
         }

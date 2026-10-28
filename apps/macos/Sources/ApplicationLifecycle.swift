@@ -105,6 +105,11 @@ struct OperationWindowGuard: NSViewRepresentable {
             if self.window !== window {
                 detach(); self.window=window
                 lifecycleLog.notice("Window guard attached; number=\(window.windowNumber)")
+                adaptToVisibleScreen(window)
+                DispatchQueue.main.async { [weak self, weak window] in
+                    guard let self, let window else { return }
+                    self.adaptToVisibleScreen(window)
+                }
             }
             if window.delegate !== self {
                 originalDelegate=window.delegate
@@ -114,6 +119,45 @@ struct OperationWindowGuard: NSViewRepresentable {
         func detach() {
             if window?.delegate === self { window?.delegate=originalDelegate }
             window=nil; originalDelegate=nil
+        }
+        func adaptToVisibleScreen(_ window: NSWindow) {
+            guard let screen = window.screen ?? NSScreen.main else { return }
+            let visible = screen.visibleFrame
+            var frame = window.frame
+            var changed = false
+
+            if frame.height > visible.height {
+                frame.size.height = visible.height
+                changed = true
+            }
+            if frame.width > visible.width {
+                frame.size.width = visible.width
+                changed = true
+            }
+            if frame.minY < visible.minY {
+                frame.origin.y = visible.minY
+                changed = true
+            }
+            if frame.maxY > visible.maxY {
+                frame.origin.y = visible.maxY - frame.height
+                changed = true
+            }
+            if frame.minX < visible.minX {
+                frame.origin.x = visible.minX
+                changed = true
+            } else if frame.maxX > visible.maxX {
+                frame.origin.x = visible.maxX - frame.width
+                changed = true
+            }
+
+            if changed {
+                window.setFrame(frame, display: true)
+                lifecycleLog.notice("Window adapted to visible frame; origin=(\(frame.origin.x),\(frame.origin.y)), size=\(frame.size.width)x\(frame.size.height)")
+            }
+        }
+        func windowDidChangeScreen(_ notification: Notification) {
+            if let window { adaptToVisibleScreen(window) }
+            originalDelegate?.windowDidChangeScreen?(notification)
         }
         func windowShouldClose(_ sender: NSWindow) -> Bool {
             lifecycleLog.notice("Window close requested; waiting=\(self.closing), executing=\(self.model?.isExecuting ?? false)")

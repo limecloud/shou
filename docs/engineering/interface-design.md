@@ -25,7 +25,7 @@ Project Cleanup and Cleanup Rules belong to Cleanup. Their contextual navigation
 
 Show the application name once in the native title bar; do not repeat the logo and brand in the content header. Align primary and secondary navigation to the content’s left inset, with Toolbox, History and Settings on the right. The native title bar retains window controls and contextual tools. Introductions explain purpose; results start directly with contextual tools and data; progress and completion have their own focused composition. Results fill the remaining height. Batch selection actions remain at the bottom. Do not add duplicate version, capacity or permanently empty status bars. Operation status remains accessible.
 
-Current shared tokens set a 1280 × 800 logical-unit initial window (16:10) with a 960 × 680 pt Mac minimum; the system still restores saved window sizes. Windows fits its initial size to the available work area and DPI. Both platforms adapt to available page height rather than require a fixed aspect ratio. Check English, long paths and the minimum window. Reflow filters when necessary instead of shrinking essential text.
+Current shared tokens set a 1280 × 800 logical-unit initial window (16:10) with a 960 × 600 pt Mac minimum content size, ensuring the window with its titlebar fits within 1280 × 800 displays without being occluded by the Dock; the system still restores saved window sizes. Both Mac and Windows fit their initial size and position to the available work area (visibleFrame / WorkArea) and DPI. Both platforms adapt to available page height rather than require a fixed aspect ratio. Check English, long paths and the minimum window. Reflow filters when necessary instead of shrinking essential text.
 
 ## Cleanup workspace
 
