@@ -28,6 +28,10 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
         identity = subprocess.run(['whoami', '/user', '/fo', 'csv', '/nh'], capture_output=True, check=True, timeout=10)
         sid = re.search(rb'"(S-1-\d+(?:-\d+)+)"', identity.stdout)
         assert sid, 'The generated fixture requires the current-user SID.'
+        # Python 3.13 uses OWNER RIGHTS for mode 0700. Changing the owner with
+        # icacls can make that ACE inherit-only, so retain an explicit user ACE.
+        subprocess.run(['icacls', str(path), '/grant:r', '*' + sid[1].decode('ascii') + ':(OI)(CI)F', '/Q'],
+                       capture_output=True, check=True, timeout=20)
         # Elevated runner tokens otherwise assign Administrators as the default owner.
         subprocess.run(['icacls', str(path), '/setowner', '*' + sid[1].decode('ascii'), '/T', '/Q'],
                        capture_output=True, check=True, timeout=20)

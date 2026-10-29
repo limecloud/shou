@@ -21,6 +21,8 @@ public static class ShouPickerNative {
  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
  [DllImport("user32.dll", EntryPoint="SendMessageTimeoutW", CharSet=CharSet.Unicode, SetLastError=true)]
  public static extern IntPtr SetText(IntPtr window, uint message, UIntPtr wparam, string text, uint flags, uint timeout, out UIntPtr result);
+ [DllImport("user32.dll", EntryPoint="SendMessageTimeoutW", CharSet=CharSet.Unicode, SetLastError=true)]
+ public static extern IntPtr GetText(IntPtr window, uint message, UIntPtr capacity, System.Text.StringBuilder text, uint flags, uint timeout, out UIntPtr result);
  [DllImport("user32.dll", EntryPoint="SendMessageTimeoutW", SetLastError=true)]
  public static extern IntPtr Click(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam, uint flags, uint timeout, out UIntPtr result);
 }
@@ -110,10 +112,29 @@ function Wait-Page([string]$Page, [string[]]$States = @('ready', 'partial'), [in
     } "page $Page to reach $($States -join '/')" $Seconds
 }
 function Navigate-Page([string]$Page, [string[]]$States = @('ready', 'partial', 'empty')) {
+    if ($Page -eq 'configuration') {
+        Invoke-Control 'nav.cleanup'
+        $Options = Wait-Until {
+            $ShouWindow.FindAll([Windows.Automation.TreeScope]::Descendants,
+                [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty, 'Cleanup Options')) |
+                Where-Object { $_.Current.IsEnabled -and -not $_.Current.IsOffscreen } | Select-Object -First 1
+        } 'cleanup options menu'
+        $Options.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+        $Rules = Wait-Until {
+            [Windows.Automation.AutomationElement]::RootElement.FindAll([Windows.Automation.TreeScope]::Descendants,
+                [Windows.Automation.AndCondition]::new(
+                    [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ProcessIdProperty, $ShouProcess.Id),
+                    [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty, 'Cleanup Rules'))) |
+                Where-Object { $_.Current.ControlType -eq [Windows.Automation.ControlType]::MenuItem -and -not $_.Current.IsOffscreen } | Select-Object -First 1
+        } 'cleanup rules menu item'
+        $Rules.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+        $null = Wait-Page $Page $States
+        return
+    }
     $Group = switch ($Page) {
         'privacy' { 'cleanup' }
         'startup' { 'applications' }
-        'projects' { 'applications' }
+        'projects' { 'cleanup' }
         'large' { 'storage' }
         default { $null }
     }
@@ -242,36 +263,54 @@ function Select-Fixture([string]$Page, [string]$Path = $ShouPayload) {
                 [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty, '1152')))
         [Windows.Automation.AutomationElement]::RootElement.FindFirst([Windows.Automation.TreeScope]::Descendants, $Condition)
     } 'native folder picker'
-    $ValuePattern = $null
-    if ($Field.TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern, [ref]$ValuePattern)) {
-        $ValuePattern.SetValue($Path)
-    } else {
-        # Some system pickers expose their native Edit without managed UIA
-        # patterns. Restrict the native message to the observed app-owned HWND.
-        $Handle = [IntPtr]::new($Field.Current.NativeWindowHandle)
-        $Owner = [uint32]0; $Result = [UIntPtr]::Zero
-        [ShouPickerNative]::GetWindowThreadProcessId($Handle, [ref]$Owner) | Out-Null
-        Assert-That ($Handle -ne [IntPtr]::Zero -and $Owner -eq $ShouProcess.Id -and $Field.Current.ClassName -eq 'Edit') 'Folder input is not a verified native Edit.'
-        Assert-That ([ShouPickerNative]::SetText($Handle, 0x000C, [UIntPtr]::Zero, $Path, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero -and $Result -ne [UIntPtr]::Zero) 'Native folder input rejected the generated path.'
-    }
-    $Dialog = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($Field)
-    $Select = $null
-    while ($null -ne $Dialog -and $Dialog.Current.ProcessId -eq $ShouProcess.Id) {
-        $Select = $Dialog.FindFirst([Windows.Automation.TreeScope]::Descendants,
-            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty, '1'))
-        if ($null -ne $Select) { break }
-        $Dialog = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($Dialog)
-    }
-    Assert-That ($null -ne $Select) 'Native folder picker Select button is unavailable.'
-    $InvokePattern = $null
-    if ($Select.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$InvokePattern)) {
-        $InvokePattern.Invoke()
-    } else {
-        $Handle = [IntPtr]::new($Select.Current.NativeWindowHandle)
-        $Owner = [uint32]0; $Result = [UIntPtr]::Zero
-        [ShouPickerNative]::GetWindowThreadProcessId($Handle, [ref]$Owner) | Out-Null
-        Assert-That ($Handle -ne [IntPtr]::Zero -and $Owner -eq $ShouProcess.Id -and $Select.Current.ClassName -eq 'Button') 'Folder selection is not a verified native Button.'
-        Assert-That ([ShouPickerNative]::Click($Handle, 0x00F5, [UIntPtr]::Zero, [IntPtr]::Zero, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero) 'Native folder selection timed out.'
+    # Initial folder enumeration can replace the input after the dialog appears.
+    # Read back the real input and retry the same generated path if it does.
+    for ($Attempt = 0; $Attempt -lt 3; $Attempt++) {
+        $ValuePattern = $null
+        if ($Field.TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern, [ref]$ValuePattern)) {
+            $ValuePattern.SetValue($Path)
+        } else {
+            # Some system pickers expose their native Edit without managed UIA
+            # patterns. Restrict the native message to the observed app-owned HWND.
+            $Handle = [IntPtr]::new($Field.Current.NativeWindowHandle)
+            $Owner = [uint32]0; $Result = [UIntPtr]::Zero
+            [ShouPickerNative]::GetWindowThreadProcessId($Handle, [ref]$Owner) | Out-Null
+            Assert-That ($Handle -ne [IntPtr]::Zero -and $Owner -eq $ShouProcess.Id -and $Field.Current.ClassName -eq 'Edit') 'Folder input is not a verified native Edit.'
+            Assert-That ([ShouPickerNative]::SetText($Handle, 0x000C, [UIntPtr]::Zero, $Path, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero -and $Result -ne [UIntPtr]::Zero) 'Native folder input rejected the generated path.'
+        }
+        Start-Sleep -Milliseconds 300
+        if ($null -ne $ValuePattern) {
+            $ActualInput = $ValuePattern.Current.Value
+        } else {
+            $Text = [Text.StringBuilder]::new(32768)
+            Assert-That ([ShouPickerNative]::GetText($Handle, 0x000D, [UIntPtr]::new([uint64]$Text.Capacity), $Text, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero) 'Native folder input read timed out.'
+            $ActualInput = $Text.ToString()
+        }
+        if ($ActualInput -ne $Path) { continue }
+        $Dialog = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($Field)
+        $Select = $null
+        while ($null -ne $Dialog -and $Dialog.Current.ProcessId -eq $ShouProcess.Id) {
+            $Select = $Dialog.FindFirst([Windows.Automation.TreeScope]::Descendants,
+                [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty, '1'))
+            if ($null -ne $Select) { break }
+            $Dialog = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($Dialog)
+        }
+        Assert-That ($null -ne $Select) 'Native folder picker Select button is unavailable.'
+        $InvokePattern = $null
+        if ($Select.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$InvokePattern)) {
+            $InvokePattern.Invoke()
+        } else {
+            $Handle = [IntPtr]::new($Select.Current.NativeWindowHandle)
+            $Owner = [uint32]0; $Result = [UIntPtr]::Zero
+            [ShouPickerNative]::GetWindowThreadProcessId($Handle, [ref]$Owner) | Out-Null
+            Assert-That ($Handle -ne [IntPtr]::Zero -and $Owner -eq $ShouProcess.Id -and $Select.Current.ClassName -eq 'Button') 'Folder selection is not a verified native Button.'
+            Assert-That ([ShouPickerNative]::Click($Handle, 0x00F5, [UIntPtr]::Zero, [IntPtr]::Zero, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero) 'Native folder selection timed out.'
+        }
+        $SelectionDeadline = [DateTime]::UtcNow.AddSeconds(3)
+        do {
+            if ((Find-Control 'storage.choose').Current.Name -eq $Path) { return }
+            Start-Sleep -Milliseconds 150
+        } while ([DateTime]::UtcNow -lt $SelectionDeadline)
     }
     $null = Wait-Until { (Find-Control 'storage.choose').Current.Name -eq $Path } 'selected fixture folder'
 }
@@ -527,7 +566,9 @@ with sqlite3.connect(path) as db:
     db.executescript('CREATE TABLE cookies(last_access_utc INTEGER); CREATE TABLE retained(id INTEGER); INSERT INTO retained VALUES(99); INSERT INTO cookies VALUES(0);')
     db.execute('INSERT INTO cookies VALUES(?)', (int((time.time()-120+11644473600)*1000000),))
 '@
-        & python -c $CreateDatabase $Database
+        $CreateScript = Join-Path $ShouRun 'create-privacy-fixture.py'
+        [IO.File]::WriteAllText($CreateScript, $CreateDatabase)
+        & python $CreateScript $Database
         Assert-That ($LASTEXITCODE -eq 0) 'Generated privacy database creation failed.'
         Write-Fixture $Database ([IO.File]::ReadAllBytes($Database))
         $DatabaseHash = (Get-FileHash -LiteralPath $Database -Algorithm SHA256).Hash
@@ -583,7 +624,9 @@ with sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True) as db:
     assert db.execute('SELECT last_access_utc FROM cookies').fetchall()==[(0,)], 'Exact privacy time window was not preserved'
     assert db.execute('SELECT id FROM retained').fetchall()==[(99,)], 'Privacy cleanup changed unrelated generated rows'
 '@
-        & python -c $VerifyDatabase $Database
+        $VerifyScript = Join-Path $ShouRun 'verify-privacy-fixture.py'
+        [IO.File]::WriteAllText($VerifyScript, $VerifyDatabase)
+        & python $VerifyScript $Database
         Assert-That ($LASTEXITCODE -eq 0) 'Privacy UI cleanup did not preserve exact generated rows.'
         Close-App
         Start-App

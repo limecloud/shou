@@ -193,8 +193,9 @@ jobs:
           New-ItemProperty -Path $PrivacyState -Name PrivacyConsentStatus -Value 1 -PropertyType DWord -Force | Out-Null
           New-ItemProperty -Path $PrivacyState -Name TailoredExperiencesWithDiagnosticDataEnabled -Value 0 -PropertyType DWord -Force | Out-Null
           $Session = [Diagnostics.Process]::GetCurrentProcess().SessionId
-          foreach ($Process in @(Get-Process -Name UserOOBEBroker, UserOOBEHost, CloudExperienceHostBroker, explorer -ErrorAction SilentlyContinue)) {
+          foreach ($Process in @(Get-Process -Name UserOOBEBroker, UserOOBEHost, CloudExperienceHostBroker, CloudExperienceHostApp, msoobe, explorer -ErrorAction SilentlyContinue)) {
             if ($Process.SessionId -eq $Session -and $Process.Path.StartsWith($env:WINDIR + '\', [StringComparison]::OrdinalIgnoreCase)) {
+              $Process | Select-Object Id, ProcessName, Path | ConvertTo-Json -Compress
               Stop-Process -InputObject $Process -Force -ErrorAction Stop
               if (-not $Process.WaitForExit(10000)) { throw 'Hosted-runner privacy setup did not stop.' }
             }

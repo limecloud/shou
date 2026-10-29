@@ -100,3 +100,7 @@ powershell.exe -NoProfile -STA -File scripts/windows/test-desktop-e2e.ps1 `
 公开变更门禁关闭的产物使用 `test-desktop-e2e.ps1 -ReadOnlyPreview`。该模式实际检查扫描、筛选、勾选、取消、设置持久化、错误恢复以及清理／空间／隐私按钮保持禁用，并核对生成夹具字节不变；回执明确 `public_mutation_tested=false`。不能把它计作 UI 删除、MSI 卸载或启动项变更验收。默认模式要求公开执行能力可用，继续执行生成夹具的真实变更旅程，不自动降级。
 
 原生文件选择器缺少托管 UIA 模式时，测试只向本次应用 PID 对应的已观察 Edit／Button 句柄发送有超时的原生控件消息；仍须核对最终选择路径，不能注入页面结果。
+
+选择器初始化可能覆盖输入，脚本回读实际路径并有限重试。规则旅程从实际“清理选项”菜单进入。Python 夹具写入独立脚本文件，避免 Windows PowerShell 的原生命令参数处理移除引号。
+
+Python 3.13 的私有临时目录使用 `OWNER RIGHTS` ACL；`icacls /setowner` 可能使该 ACE 仅对子项生效。CLI 合同夹具先为已校验的当前用户 SID 添加显式完全控制，再调整生成目录的所有者；不放宽产品存储策略，不修改现有用户目录。

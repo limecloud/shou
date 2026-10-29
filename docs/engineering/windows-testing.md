@@ -102,3 +102,7 @@ The manifest preserves summary counters and individual `UnitTestResult.outcome` 
 Use `test-desktop-e2e.ps1 -ReadOnlyPreview` for payloads with closed public mutation gates. It exercises scans, filters, selection, cancellation, settings persistence, failure recovery and disabled cleanup/storage/privacy actions, while preserving generated fixture bytes. Receipts explicitly record `public_mutation_tested=false`; these checks do not count as UI removal, MSI uninstall or startup mutation acceptance. The default mode requires public execution and runs actual generated-fixture mutations without automatically downgrading.
 
 When a native folder picker lacks managed UIA patterns, the harness sends bounded native control messages only to observed Edit/Button handles owned by this app PID, and verifies the resulting selected path. It never injects page results.
+
+Picker initialization can overwrite its input, so the harness reads the actual path back and retries within a fixed limit. Rules are reached through the real Cleanup Options menu. Generated Python fixtures run from separate script files to preserve quoting through Windows PowerShell.
+
+Python 3.13 private temporary directories use an `OWNER RIGHTS` ACL; `icacls /setowner` can make that ACE inherit-only. CLI fixtures first grant explicit full control to the verified current-user SID, then assign ownership within their generated directories. Product storage policy and existing user directories are unchanged.
