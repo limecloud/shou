@@ -99,7 +99,7 @@ struct AgentRuleSetupView: View {
                 .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
                 .accessibilityIdentifier("rules.agent.copy")
             }
-        }.padding(24).frame(width: 740, height: 740)
+        }.padding(24).frame(width: 740, height: 520)
             .onChange(of: client) { _, _ in installation = nil; exported = false; issue = nil }
     }
 

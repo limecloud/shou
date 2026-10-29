@@ -246,7 +246,7 @@ struct AIConnectionEditor: View {
                 Button(model.t("Save")) { save() }.buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction).disabled(testing || saving)
                     .accessibilityIdentifier("ai.connection.save")
             }.padding(20)
-        }.frame(width: 580, height: 690)
+        }.frame(width: 580, height: 520)
             .interactiveDismissDisabled(saving)
             .onDisappear { testTask?.cancel(); key=""; decisionKey="" }
             .onChange(of: connection) { _, _ in tested=false }

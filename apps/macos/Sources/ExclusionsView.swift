@@ -101,7 +101,7 @@ struct ExclusionsView: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
             HStack { Spacer(); Button(model.t("Close")) { dismiss() }.keyboardShortcut(.cancelAction).disabled(saving) }
-        }.padding(24).frame(width: 760, height: 680)
+        }.padding(24).frame(width: 760, height: 520)
             .onChange(of: scope) { _, _ in issue=nil; pattern="" }
             .onChange(of: workspaceId) { _, _ in issue=nil; project=""; pattern="" }
             .onChange(of: pattern) { _, _ in issue=nil }

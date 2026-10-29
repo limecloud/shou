@@ -74,7 +74,7 @@ struct PersonalRuleReviewView: View {
                 }.buttonStyle(.borderedProminent).disabled(preview == nil || benefits == nil || loading || model.busy)
                     .accessibilityIdentifier("rules.review.enable-scan")
             }
-        }.padding(24).frame(width: 760, height: 680)
+        }.padding(24).frame(width: 760, height: 520)
             .task { load() }
             .interactiveDismissDisabled(loading)
             .onDisappear { if loading { model.cancel() } }

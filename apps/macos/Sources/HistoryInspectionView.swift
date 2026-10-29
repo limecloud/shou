@@ -52,7 +52,7 @@ struct HistoryInspectionView: View {
                 Spacer()
                 Button(model.t("Close")) { dismiss() }.keyboardShortcut(.cancelAction)
             }
-        }.padding(24).frame(width: 760, height: 660)
+        }.padding(24).frame(width: 760, height: 520)
             .task(id: revision) {
                 checking=true; issue=nil; report=nil
                 defer { checking=false }
