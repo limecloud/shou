@@ -85,7 +85,7 @@ try {
                 Invoke-HostedControl $Ok
                 $Actions.Add([ordered]@{ action='dismiss_temporary_paging_file_notice'; process=$Owner.ProcessName })
                 $QuietSince = [DateTime]::UtcNow
-                continue
+                break
             }
             $Title = $CandidateControls | Where-Object { -not $_.Current.IsOffscreen -and
                 ($_.Current.Name -replace '\s+', ' ') -eq 'Choose privacy settings for your device' } | Select-Object -First 1
