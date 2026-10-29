@@ -40,7 +40,10 @@ public static class MonitorUiNative {
  [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr window, uint attribute, out int value, int size);
  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
  [DllImport("user32.dll", SetLastError=true)] static extern bool AttachThreadInput(uint from, uint to, bool attach);
- [StructLayout(LayoutKind.Sequential)] struct Point { public int X, Y; }
+ [StructLayout(LayoutKind.Sequential)] public struct Point { public int X, Y; }
+ [DllImport("user32.dll")] public static extern IntPtr WindowFromPoint(Point point);
+ public delegate bool EnumWindow(IntPtr window, IntPtr parameter);
+ [DllImport("user32.dll")] public static extern bool EnumWindows(EnumWindow callback, IntPtr parameter);
  [StructLayout(LayoutKind.Sequential)] struct Message { public IntPtr Window; public uint Id; public UIntPtr Wparam; public IntPtr Lparam; public uint Time; public Point Point; public uint Private; }
  [DllImport("user32.dll")] static extern bool PeekMessageW(out Message message, IntPtr window, uint min, uint max, uint remove);
  public sealed class Activation {
@@ -102,6 +105,37 @@ function Find-Monitor([string]$Id) {
 function Get-Monitor([string]$Id) { Wait-Monitor { Find-Monitor $Id } $Id }
 function Invoke-Monitor([string]$Id) { (Get-Monitor $Id).GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke() }
 function Toggle-Monitor { (Get-Monitor 'monitor.background').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle() }
+function Focus-Monitor {
+    # UIA Invoke/Value do not grant foreground input. Click an observed control,
+    # but only after native hit testing confirms that it belongs to this fixture.
+    $Search = Get-Monitor 'monitor.process.search'
+    $Bounds = $Search.Current.BoundingRectangle
+    if ($Search.Current.IsOffscreen -or $Bounds.IsEmpty) { throw 'Monitor search has no visible bounds.' }
+    $Point = [MonitorUiNative+Point]::new()
+    $Point.X = [int]($Bounds.X + $Bounds.Width/2); $Point.Y = [int]($Bounds.Y + $Bounds.Height/2)
+    $Hit = [MonitorUiNative]::WindowFromPoint($Point)
+    $OwnerId = [uint32]0
+    [MonitorUiNative]::GetWindowThreadProcessId($Hit, [ref]$OwnerId) | Out-Null
+    $Rows = [Collections.Generic.List[object]]::new()
+    [MonitorUiNative]::EnumWindows({ param($WindowHandle, $Unused)
+        if ([MonitorUiNative]::IsWindowVisible($WindowHandle)) {
+            $Title = [Text.StringBuilder]::new(512); $Class = [Text.StringBuilder]::new(256); $ProcessId = [uint32]0
+            [MonitorUiNative]::GetWindowTextW($WindowHandle,$Title,$Title.Capacity) | Out-Null
+            [MonitorUiNative]::GetClassNameW($WindowHandle,$Class,$Class.Capacity) | Out-Null
+            [MonitorUiNative]::GetWindowThreadProcessId($WindowHandle,[ref]$ProcessId) | Out-Null
+            $Process = Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
+            $Rows.Add([ordered]@{ window=$WindowHandle.ToInt64(); title=$Title.ToString(); class=$Class.ToString(); process=$ProcessId; name=$(if ($Process) { $Process.ProcessName }) })
+        }
+        return $true
+    }, [IntPtr]::Zero) | Out-Null
+    [ordered]@{ point=$Point; hit=$Hit.ToInt64(); owner=$OwnerId; app=$App.Id; windows=@($Rows) } |
+        ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $Output '00-focus-hit-test.json') -Encoding utf8
+    if ($OwnerId -ne $App.Id) { throw 'Another window obscures the monitor search control.' }
+    if (-not [MonitorUiNative]::SetCursorPos($Point.X,$Point.Y)) { throw 'Could not target the observed search control.' }
+    [MonitorUiNative]::mouse_event(2,0,0,0,[UIntPtr]::Zero)
+    [MonitorUiNative]::mouse_event(4,0,0,0,[UIntPtr]::Zero)
+    Wait-Monitor { [MonitorUiNative]::GetForegroundWindow() -eq $Handle } 'monitor foreground after clicking search' | Out-Null
+}
 function Get-IconResult {
     $Bounds = [MonitorUiNative+Rect]::new()
     [MonitorUiNative]::Shell_NotifyIconGetRect([ref]$Icon, [ref]$Bounds)
@@ -188,6 +222,7 @@ try {
     Save-WindowState '00-prepared-activation' $Activated
     $Icon.Size = [Runtime.InteropServices.Marshal]::SizeOf($Icon); $Icon.Window = $Handle; $Icon.Id = 71
     Wait-Monitor { $Status = Find-Monitor 'monitor.status'; $null -ne $Status -and $Status.Current.Name -match 'Live|\u5b9e\u65f6' } 'first observation' | Out-Null
+    Focus-Monitor
     Start-Sleep -Seconds 3
     foreach ($Key in @('overview','cpu','gpu','memory','battery','diskRead','networkReceive','thermal')) { Get-Monitor ('monitor.metric.' + $Key) | Out-Null }
     Save-Monitor '01-live-panels'; $Checks.Add('eight live resource panels and process surface')
