@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -76,12 +77,18 @@ public sealed partial class ConfigurationPage : UserControl, IPageChrome, IDispo
     public Task EnsureLoadedAsync() => initialLoad ??= model.LoadAsync();
     public void ShowScanLocations()
     {
-        if (disposed || IsBusy) return;
-        Locations.Focus(FocusState.Programmatic); Locations.IsDropDownOpen = true;
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+        {
+            if (disposed || IsBusy || !Locations.IsLoaded) return;
+            Locations.Focus(FocusState.Programmatic); Locations.IsDropDownOpen = true;
+        });
     }
     public void ShowExclusions()
     {
-        if (!disposed && !IsBusy) ExclusionsButton.Flyout.ShowAt(ExclusionsButton);
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+        {
+            if (!disposed && !IsBusy && ExclusionsButton.IsLoaded) ExclusionsButton.Flyout.ShowAt(ExclusionsButton);
+        });
     }
     public void InvalidateConfiguration() => initialLoad = null;
     private void InvalidateEvidence(object? sender, EventArgs args) => EvidenceInvalidated?.Invoke(this, args);
@@ -89,6 +96,7 @@ public sealed partial class ConfigurationPage : UserControl, IPageChrome, IDispo
     private void Render()
     {
         if (model is null || disposed || rendering) return;
+        PageDiagnostics.Update(this, "configuration", model.State, model.ErrorCode);
         rendering = true;
         try
         {
@@ -257,7 +265,6 @@ public sealed partial class ConfigurationPage : UserControl, IPageChrome, IDispo
     public void Dispose()
     {
         if (disposed) return;
-        PageDiagnostics.Update(this, "configuration", model.State, model.ErrorCode);
         disposed = true;
         model.PropertyChanged -= Changed;
         model.EvidenceInvalidated -= InvalidateEvidence;

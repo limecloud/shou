@@ -183,24 +183,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'The x64 .NET host is required by the pinned build tools.' }
           "DOTNET_ROOT_ARM64=$Arm64Root" >> $env:GITHUB_ENV
           "DOTNET_ROOT_X64=$X64Root" >> $env:GITHUB_ENV
-          # Complete the disposable runner's privacy setup before Explorer initializes
-          # its notification area. The image can otherwise remain behind OOBE.
-          $PrivacyPolicy = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE'
-          $PrivacyState = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy'
-          New-Item -Path $PrivacyPolicy -Force | Out-Null
-          New-ItemProperty -Path $PrivacyPolicy -Name DisablePrivacyExperience -Value 1 -PropertyType DWord -Force | Out-Null
-          New-Item -Path $PrivacyState -Force | Out-Null
-          New-ItemProperty -Path $PrivacyState -Name PrivacyConsentStatus -Value 1 -PropertyType DWord -Force | Out-Null
-          New-ItemProperty -Path $PrivacyState -Name TailoredExperiencesWithDiagnosticDataEnabled -Value 0 -PropertyType DWord -Force | Out-Null
-          $Session = [Diagnostics.Process]::GetCurrentProcess().SessionId
-          foreach ($Process in @(Get-Process -Name UserOOBEBroker, UserOOBEHost, CloudExperienceHostBroker, CloudExperienceHostApp, msoobe, explorer -ErrorAction SilentlyContinue)) {
-            if ($Process.SessionId -eq $Session -and $Process.Path.StartsWith($env:WINDIR + '\', [StringComparison]::OrdinalIgnoreCase)) {
-              $Process | Select-Object Id, ProcessName, Path | ConvertTo-Json -Compress
-              Stop-Process -InputObject $Process -Force -ErrorAction Stop
-              if (-not $Process.WaitForExit(10000)) { throw 'Hosted-runner privacy setup did not stop.' }
-            }
-          }
-          Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') | Out-Null
+          ./scripts/windows/prepare-hosted-desktop.ps1 -RestartExplorer
           # Native privacy fixtures require idle browsers. Never stop personal browsers locally.
           $BrowserNames = @('firefox', 'chrome', 'msedge', 'brave')
           $Browsers = @(Get-Process -Name $BrowserNames -ErrorAction SilentlyContinue)
@@ -242,6 +225,8 @@ jobs:
         run: python scripts/windows/test-shell-completion.py --cli "$env:RUNNER_TEMP/ShouBuild/publish/cli/shou.exe" --output "$env:RUNNER_TEMP/ShouBuild/evidence/shell-interaction"
       - name: Native ARM64 monitor UI and tray menu
         run: |
+          # OOBE can start asynchronously while the preceding native checks run.
+          ./scripts/windows/prepare-hosted-desktop.ps1
           powershell.exe -NoProfile -STA -File scripts/windows/test-monitor-ui.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish" -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/evidence/monitor"
           if ($LASTEXITCODE -ne 0) { throw 'ARM64 monitor UI acceptance failed.' }
       - name: Collect ARM64 evidence

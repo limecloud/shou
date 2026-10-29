@@ -85,7 +85,16 @@ function Find-Control([string]$Id, [bool]$Optional = $false) {
     return $Result
 }
 function Invoke-Control([string]$Id) {
-    $Control = Wait-Until { $Found = Find-Control $Id $true; if ($null -ne $Found -and $Found.Current.IsEnabled -and -not $Found.Current.IsOffscreen) { $Found } } $Id
+    $Control = Wait-Until {
+        $Found = Find-Control $Id $true
+        if ($null -ne $Found -and $Found.Current.IsEnabled) {
+            if ($Found.Current.IsOffscreen) {
+                $Scroll = $null
+                if ($Found.TryGetCurrentPattern([Windows.Automation.ScrollItemPattern]::Pattern, [ref]$Scroll)) { $Scroll.ScrollIntoView() }
+            }
+            if (-not $Found.Current.IsOffscreen) { $Found }
+        }
+    } $Id
     $Pattern = $Control.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern)
     $Pattern.Invoke()
 }
@@ -543,7 +552,7 @@ try {
         $null = Wait-Until { (Find-Control 'rules.results').FindAll([Windows.Automation.TreeScope]::Children,
             [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)).Count -eq 0 } 'filtered rule list'
         Set-Text 'rules.search' ''
-        Navigate-Page 'history' @($(if ($ReadOnlyPreview) { 'empty' } else { 'ready' }))
+        Navigate-Page 'history' @('ready')
         Assert-That ((Find-Control 'history.results').FindAll([Windows.Automation.TreeScope]::Children,
             [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)).Count -eq $(if ($ReadOnlyPreview) { 0 } else { 3 })) 'History differs from the actual generated executions.'
     }
@@ -675,7 +684,7 @@ with sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True) as db:
             Assert-That (@($Events | Where-Object { $_.event -eq 'failed' -and $_.operation -eq 'ui.cleanup.loading' -and $_.exceptions.Count -gt 0 }).Count -gt 0) 'Consumed UI storage failure has no structured exception evidence.'
         } finally { $env:SHOU_DATA_DIR = $OriginalData; $env:SHOU_DIAGNOSTICS_DIR = $OriginalLogs }
         Start-App
-        Navigate-Page 'history' @($(if ($ReadOnlyPreview) { 'empty' } else { 'ready' }))
+        Navigate-Page 'history' @('ready')
         Close-App
     }
     Run-Step '11-retained-integrity-and-log-health' {
