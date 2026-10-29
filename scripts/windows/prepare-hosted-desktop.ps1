@@ -70,7 +70,10 @@ try {
         foreach ($Child in @([Windows.Automation.AutomationElement]::RootElement.FindAll(
             [Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition))) { $Candidates.Add($Child) }
         foreach ($Candidate in $Candidates) {
-            $Owner = Get-Process -Id $Candidate.Current.ProcessId -ErrorAction SilentlyContinue
+            if ($null -eq $Candidate) { continue }
+            try { $Information = $Candidate.Current } catch [Windows.Automation.ElementNotAvailableException] { continue }
+            if ($null -eq $Information -or [int]$Information.ProcessId -le 0) { continue }
+            $Owner = Get-Process -Id $Information.ProcessId -ErrorAction SilentlyContinue
             if ($null -eq $Owner -or $Owner.SessionId -ne $Session -or -not $Owner.Path) { continue }
             if (-not $Owner.Path.StartsWith($HostedWindowsRoot, [StringComparison]::OrdinalIgnoreCase)) { continue }
             $CandidateControls = @($Candidate.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
@@ -78,6 +81,19 @@ try {
                 controls=@($CandidateControls | Select-Object -First 300 | ForEach-Object {
                     [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; offscreen=$_.Current.IsOffscreen; type=[string]$_.Current.ControlType }
                 }) }
+            if ([StringComparer]::OrdinalIgnoreCase.Equals($Owner.Path, (Join-Path $env:WINDIR 'SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe')) -and
+                $Information.NativeWindowHandle -eq [HostedDesktopNative]::GetForegroundWindow().ToInt64()) {
+                # This hidden accessibility command is the shell's explicit close
+                # action, observed in the foreground Start menu's own UIA tree.
+                $CloseStart = $CandidateControls | Where-Object { $_.Current.AutomationId -eq 'CloseStartAccessibleButton' -and
+                    $_.Current.Name -eq 'Close Start menu' -and $_.Current.IsEnabled } | Select-Object -First 1
+                if ($null -ne $CloseStart) {
+                    Invoke-HostedControl $CloseStart
+                    $Actions.Add([ordered]@{ action='close_observed_start_menu'; process=$Owner.ProcessName })
+                    $QuietSince = [DateTime]::UtcNow
+                    break
+                }
+            }
             if ([StringComparer]::OrdinalIgnoreCase.Equals($Owner.Path, (Join-Path $env:WINDIR 'System32\SystemPropertiesPerformance.exe')) -and
                 @($CandidateControls | Where-Object { $_.Current.Name -like 'Windows created a temporary paging file on your computer because of a problem*' }).Count -gt 0) {
                 $Ok = $CandidateControls | Where-Object { $_.Current.Name -eq 'OK' -and $_.Current.IsEnabled -and -not $_.Current.IsOffscreen } | Select-Object -First 1
