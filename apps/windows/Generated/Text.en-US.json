@@ -384,6 +384,11 @@
     "resource_id": "s0bcdbdb6141a974e27567d1e",
     "text": "A routine that fits your own folders."
   },
+  "A selected disk is no longer available.": {
+    "format": "A selected disk is no longer available.",
+    "resource_id": "s9dab3a361c3acbe82817ff70",
+    "text": "A selected disk is no longer available."
+  },
   "A startup registration could not be read safely.": {
     "format": "A startup registration could not be read safely.",
     "resource_id": "s89fc8a07b42c3f6b6a737730",
@@ -654,10 +659,20 @@
     "resource_id": "sb8f358b6904a3920d812f930",
     "text": "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal."
   },
+  "Administrator access is required to uninstall this application.": {
+    "format": "Administrator access is required to uninstall this application.",
+    "resource_id": "saecc36cfa4031de97896646f",
+    "text": "Administrator access is required to uninstall this application."
+  },
   "Administrator authorization required": {
     "format": "Administrator authorization required",
     "resource_id": "s15b0f4273b0890833240a35f",
     "text": "Administrator authorization required"
+  },
+  "Administrator authorization was not completed. Your selection is kept.": {
+    "format": "Administrator authorization was not completed. Your selection is kept.",
+    "resource_id": "s2622e05380698992e8303dac",
+    "text": "Administrator authorization was not completed. Your selection is kept."
   },
   "Adobe Bridge caches": {
     "format": "Adobe Bridge caches",
@@ -944,6 +959,11 @@
     "resource_id": "s5de90c55077b12e25222af1c",
     "text": "App container"
   },
+  "App is running": {
+    "format": "App is running",
+    "resource_id": "s4796f35f7898d29ec8315ddc",
+    "text": "App is running"
+  },
   "App logs": {
     "format": "App logs",
     "resource_id": "s89a3901f684ccf561c7f9b10",
@@ -1018,6 +1038,11 @@
     "format": "Application Options",
     "resource_id": "sd2ef99248abbb0f23c87cf21",
     "text": "Application Options"
+  },
+  "Application Shortcut": {
+    "format": "Application Shortcut",
+    "resource_id": "sd6bde14d7466413a5b40297e",
+    "text": "Application Shortcut"
   },
   "Application Uninstall": {
     "format": "Application Uninstall",
@@ -1189,6 +1214,11 @@
     "resource_id": "s54c7c4eb660f701beeb04854",
     "text": "Apps & Projects"
   },
+  "Apps using cleanup files": {
+    "format": "Apps using cleanup files",
+    "resource_id": "secd4d7747c6727e70018e034",
+    "text": "Apps using cleanup files"
+  },
   "Arc caches": {
     "format": "Arc caches",
     "resource_id": "s954b53ba2c4c7f944810797a",
@@ -1293,6 +1323,11 @@
     "format": "Audio",
     "resource_id": "sbc1b88907d3b748af99cb9d4",
     "text": "Audio"
+  },
+  "Authenticating…": {
+    "format": "Authenticating…",
+    "resource_id": "sa705b07515ab1c96fd5a809d",
+    "text": "Authenticating…"
   },
   "Authentication": {
     "format": "Authentication",
@@ -1468,6 +1503,16 @@
     "format": "Brave download caches",
     "resource_id": "sc2d784268f63bb3763bacf0f",
     "text": "Brave download caches"
+  },
+  "Broken Shortcut": {
+    "format": "Broken Shortcut",
+    "resource_id": "s73e6632bfd5a983328ace3ba",
+    "text": "Broken Shortcut"
+  },
+  "Broken Shortcuts": {
+    "format": "Broken Shortcuts",
+    "resource_id": "s6585b79576dbc6eda7610df7",
+    "text": "Broken Shortcuts"
   },
   "Browse All Tools": {
     "format": "Browse All Tools",
@@ -1748,6 +1793,11 @@
     "format": "Candidate policy evidence could not be reproduced.",
     "resource_id": "s5b50ab6f539f0e0bc822dffe",
     "text": "Candidate policy evidence could not be reproduced."
+  },
+  "Cannot Uninstall": {
+    "format": "Cannot Uninstall",
+    "resource_id": "s053d388cc482f1a59d174078",
+    "text": "Cannot Uninstall"
   },
   "Cargo Cache": {
     "format": "Cargo Cache",
@@ -2059,6 +2109,11 @@
     "resource_id": "s91851cac103edeaa370ea867",
     "text": "Checking tool-managed storage…"
   },
+  "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept.": {
+    "format": "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept.",
+    "resource_id": "s99d81aa1aed47a95af8bce8c",
+    "text": "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept."
+  },
   "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.": {
     "format": "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.",
     "resource_id": "sf66e8d31c012b7148a8e2d6a",
@@ -2219,10 +2274,30 @@
     "resource_id": "sd6224bb9f78c0f269d0a6e08",
     "text": "Choose an unused rule version. Existing versions cannot be overwritten."
   },
+  "Choose available local disks.": {
+    "format": "Choose available local disks.",
+    "resource_id": "se28cee8c23b5efbb925f8b74",
+    "text": "Choose available local disks."
+  },
+  "Choose between one and 256 scan folders.": {
+    "format": "Choose between one and 256 scan folders.",
+    "resource_id": "s24d93c71fee87dc62dc3f6a9",
+    "text": "Choose between one and 256 scan folders."
+  },
+  "Choose between one and 32 scan folders.": {
+    "format": "Choose between one and 32 scan folders.",
+    "resource_id": "se1b691b6276a9937cdef6c33",
+    "text": "Choose between one and 32 scan folders."
+  },
   "Choose extra folders to remember for future cleanup scans.": {
     "format": "Choose extra folders to remember for future cleanup scans.",
     "resource_id": "s7679caf97c8253d89d9544ef",
     "text": "Choose extra folders to remember for future cleanup scans."
+  },
+  "Choose folders to scan.": {
+    "format": "Choose folders to scan.",
+    "resource_id": "s1e95a90d290b7065704a1375",
+    "text": "Choose folders to scan."
   },
   "Choose items to review. High-risk items require your selection.": {
     "format": "Choose items to review. High-risk items require your selection.",
@@ -2458,6 +2533,11 @@
     "format": "Cleanup execution is unavailable in this development build.",
     "resource_id": "s740d49873c036af2ed120f38",
     "text": "Cleanup execution is unavailable in this development build."
+  },
+  "Cleanup execution is unavailable until native Windows verification is complete.": {
+    "format": "Cleanup execution is unavailable until native Windows verification is complete.",
+    "resource_id": "s49fe0de586719fc09a4c0b12",
+    "text": "Cleanup execution is unavailable until native Windows verification is complete."
   },
   "Cleanup finished with issues": {
     "format": "Cleanup finished with issues",
@@ -5624,6 +5704,11 @@
     "resource_id": "s4a186dd7a70775e1c9f69e9b",
     "text": "Local data"
   },
+  "Local disk discovery is unavailable on this platform.": {
+    "format": "Local disk discovery is unavailable on this platform.",
+    "resource_id": "sa9538d840667f18ec65574a0",
+    "text": "Local disk discovery is unavailable on this platform."
+  },
   "Local instance": {
     "format": "Local instance",
     "resource_id": "s98b266df6d2e92e7218af904",
@@ -6644,6 +6729,11 @@
     "resource_id": "sfacda8d8d15aab4f83410dee",
     "text": "No verified application leftovers found."
   },
+  "No verified broken shortcuts.": {
+    "format": "No verified broken shortcuts.",
+    "resource_id": "s3b911cbd7ae66e6b8f401a67",
+    "text": "No verified broken shortcuts."
+  },
   "No verified components available. Scan again or review access notices.": {
     "format": "No verified components available. Scan again or review access notices.",
     "resource_id": "s9fbfa154ff01b126f7c043d1",
@@ -7049,6 +7139,11 @@
     "resource_id": "s176a7f19f66f16237484acfd",
     "text": "Only the versions shown above are included in this review."
   },
+  "Only this broken shortcut is removed. Its target and associated data are kept.": {
+    "format": "Only this broken shortcut is removed. Its target and associated data are kept.",
+    "resource_id": "sf3a86d65a6fa97c06033eca5",
+    "text": "Only this broken shortcut is removed. Its target and associated data are kept."
+  },
   "Only this folder and its children are investigated. This does not select files for cleanup.": {
     "format": "Only this folder and its children are investigated. This does not select files for cleanup.",
     "resource_id": "sf5aaa93ad751f8946da1a822",
@@ -7068,6 +7163,11 @@
     "format": "Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices.",
     "resource_id": "s5224726f1cd01f769b1eda89",
     "text": "Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices."
+  },
+  "Only this shortcut": {
+    "format": "Only this shortcut",
+    "resource_id": "s9d11b57b322d46369ada4748",
+    "text": "Only this shortcut"
   },
   "Only verified trashed items can be restored or permanently removed.": {
     "format": "Only verified trashed items can be restored or permanently removed.",
@@ -7398,6 +7498,11 @@
     "format": "Permanent deletion cannot be undone.",
     "resource_id": "s169668daf8bf057e4204f754",
     "text": "Permanent deletion cannot be undone."
+  },
+  "Permanent deletion completed. Review History for details.": {
+    "format": "Permanent deletion completed. Review History for details.",
+    "resource_id": "sdcbc1ee4688b5decd57436af",
+    "text": "Permanent deletion completed. Review History for details."
   },
   "Permanent removal cancelled; inspect the partial result.": {
     "format": "Permanent removal cancelled; inspect the partial result.",
@@ -7959,6 +8064,11 @@
     "resource_id": "s5aa10055a795c4655d052ec1",
     "text": "Queued directories"
   },
+  "Queued for review": {
+    "format": "Queued for review",
+    "resource_id": "s507bdf8903918f4826cfb499",
+    "text": "Queued for review"
+  },
   "Quick Look": {
     "format": "Quick Look",
     "resource_id": "s371e34282d2aa3c4b76acf91",
@@ -8004,6 +8114,16 @@
     "resource_id": "s1ec27efc39d08df984ce969e",
     "text": "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted."
   },
+  "Quit Selected Apps & Refresh": {
+    "format": "Quit Selected Apps & Refresh",
+    "resource_id": "sd761c8cb3f33d1cb531c9636",
+    "text": "Quit Selected Apps & Refresh"
+  },
+  "Quit Selected Apps and Check Again": {
+    "format": "Quit Selected Apps and Check Again",
+    "resource_id": "sd9cec540026ed4ff11589817",
+    "text": "Quit Selected Apps and Check Again"
+  },
   "Quit Shou": {
     "format": "Quit Shou",
     "resource_id": "s0d4004339a092a7ec7c9669f",
@@ -8013,6 +8133,11 @@
     "format": "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.",
     "resource_id": "s57c7b2e6768db10c7d0a2527",
     "text": "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup."
+  },
+  "Quit affected apps, then scan again.": {
+    "format": "Quit affected apps, then scan again.",
+    "resource_id": "s94635ec8bb8bd2a0a96f321a",
+    "text": "Quit affected apps, then scan again."
   },
   "Quit apps to clean their caches?": {
     "format": "Quit apps to clean their caches?",
@@ -8384,6 +8509,11 @@
     "resource_id": "s3ba982748cfdb0a88e1c39d3",
     "text": "Refresh to update extension totals after cleanup."
   },
+  "Refreshing affected cleanup locations…": {
+    "format": "Refreshing affected cleanup locations…",
+    "resource_id": "s1fac75f13f04918aa3ce0ff4",
+    "text": "Refreshing affected cleanup locations…"
+  },
   "Registered Projects": {
     "format": "Registered Projects",
     "resource_id": "s6af400683f3d6d557ed0a0e0",
@@ -8538,6 +8668,11 @@
     "format": "Requested rule is not enabled in this workspace.",
     "resource_id": "s8ee29a00c89b3cf754453319",
     "text": "Requested rule is not enabled in this workspace."
+  },
+  "Requesting applications to quit…": {
+    "format": "Requesting applications to quit…",
+    "resource_id": "sf7d1052fe7f3ff4b0e3871bd",
+    "text": "Requesting applications to quit…"
   },
   "Required for uninstall": {
     "format": "Required for uninstall",
@@ -9044,6 +9179,11 @@
     "resource_id": "s5d9208796d6fd1d4fe08325c",
     "text": "Reviewing rebuild evidence with Jev…"
   },
+  "Reviewing…": {
+    "format": "Reviewing…",
+    "resource_id": "sfcc53388888f70fd48f45c7c",
+    "text": "Reviewing…"
+  },
   "Risk": {
     "format": "Risk",
     "resource_id": "s0711a8d636e4c068ae59fa80",
@@ -9254,6 +9394,16 @@
     "resource_id": "s5fc0a3943a720cd46f7d1364",
     "text": "Save results"
   },
+  "Save your work before quitting. Apps that remain open must be closed manually.": {
+    "format": "Save your work before quitting. Apps that remain open must be closed manually.",
+    "resource_id": "s409f44abf2b55cde1d92e397",
+    "text": "Save your work before quitting. Apps that remain open must be closed manually."
+  },
+  "Save your work first. Apps that stay open will remain blocked.": {
+    "format": "Save your work first. Apps that stay open will remain blocked.",
+    "resource_id": "sc66c071f4248af85e19d87ab",
+    "text": "Save your work first. Apps that stay open will remain blocked."
+  },
   "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action.": {
     "format": "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action.",
     "resource_id": "sf7942ff1952b1cf62f8887dd",
@@ -9414,6 +9564,11 @@
     "resource_id": "sfad20ffae18135ae21155188",
     "text": "Scan Privacy Sources"
   },
+  "Scan Scope": {
+    "format": "Scan Scope",
+    "resource_id": "s79001dc29466fa18114b0341",
+    "text": "Scan Scope"
+  },
   "Scan Selected Location": {
     "format": "Scan Selected Location",
     "resource_id": "scc018bdc832d777479d51b80",
@@ -9544,6 +9699,11 @@
     "resource_id": "sf92e3c904a5f7e16496feb7d",
     "text": "Scanning and Privacy"
   },
+  "Scanning cleanup locations…": {
+    "format": "Scanning cleanup locations…",
+    "resource_id": "s2f9d19a713940794ef752ee0",
+    "text": "Scanning cleanup locations…"
+  },
   "Scanning disk usage…": {
     "format": "Scanning disk usage…",
     "resource_id": "s164b99b750451a597d62902d",
@@ -9568,6 +9728,21 @@
     "format": "Scanning reads file sizes. Nothing is selected or deleted automatically.",
     "resource_id": "sc04fafc03cb442898d37249d",
     "text": "Scanning reads file sizes. Nothing is selected or deleted automatically."
+  },
+  "Scanning selected disks…": {
+    "format": "Scanning selected disks…",
+    "resource_id": "s7a02151560dd92138444dc37",
+    "text": "Scanning selected disks…"
+  },
+  "Scanning selected folders…": {
+    "format": "Scanning selected folders…",
+    "resource_id": "s4f70299be3fff49dcf939055",
+    "text": "Scanning selected folders…"
+  },
+  "Scanning selected folder…": {
+    "format": "Scanning selected folder…",
+    "resource_id": "s69d2404b6b60f9a711875081",
+    "text": "Scanning selected folder…"
   },
   "Scanning selected workspace…": {
     "format": "Scanning selected workspace…",
@@ -9759,6 +9934,21 @@
     "resource_id": "s12de350b75bb27fd577a0d72",
     "text": "Select Build Caches"
   },
+  "Select Disks": {
+    "format": "Select Disks",
+    "resource_id": "sa782008050fbfedc15745017",
+    "text": "Select Disks"
+  },
+  "Select Disks…": {
+    "format": "Select Disks…",
+    "resource_id": "s62e90d5f9cb8bde7d79463fa",
+    "text": "Select Disks…"
+  },
+  "Select Folders…": {
+    "format": "Select Folders…",
+    "resource_id": "s198159c608e250548086cce9",
+    "text": "Select Folders…"
+  },
   "Select Item": {
     "format": "Select Item",
     "resource_id": "s7e2579b56e0b4c1083595db7",
@@ -9848,6 +10038,11 @@
     "format": "Select available updates",
     "resource_id": "s1a58b9eae374eb8251c13c95",
     "text": "Select available updates"
+  },
+  "Select broken shortcuts separately from apps that require Trash.": {
+    "format": "Select broken shortcuts separately from apps that require Trash.",
+    "resource_id": "s1c0330082f73aafaf8c3ad87",
+    "text": "Select broken shortcuts separately from apps that require Trash."
   },
   "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.": {
     "format": "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.",
@@ -9968,6 +10163,16 @@
     "format": "Selected personal app data will also move to Trash.",
     "resource_id": "seee6e806cfa3d85a0b32a505",
     "text": "Selected personal app data will also move to Trash."
+  },
+  "Selecting this application requests administrator access when needed.": {
+    "format": "Selecting this application requests administrator access when needed.",
+    "resource_id": "s00a1f9089680a70e72978147",
+    "text": "Selecting this application requests administrator access when needed."
+  },
+  "Selection is being checked…": {
+    "format": "Selection is being checked…",
+    "resource_id": "s997dbb80e2323114bfc9c695",
+    "text": "Selection is being checked…"
   },
   "Selections across locations are reviewed together. Filtering keeps your selection.": {
     "format": "Selections across locations are reviewed together. Filtering keeps your selection.",
@@ -10178,6 +10383,11 @@
     "format": "Shou cannot restore a system uninstall and does not automatically clean residual files.",
     "resource_id": "sfb32ba1e97394acee8da9953",
     "text": "Shou cannot restore a system uninstall and does not automatically clean residual files."
+  },
+  "Shou cannot uninstall itself while it is running.": {
+    "format": "Shou cannot uninstall itself while it is running.",
+    "resource_id": "sd65646b2fb6937757cb24baf",
+    "text": "Shou cannot uninstall itself while it is running."
   },
   "Shou data directory must be owned by the current user and have mode 0700.": {
     "format": "Shou data directory must be owned by the current user and have mode 0700.",
@@ -10544,6 +10754,11 @@
     "resource_id": "sd9bf7e6595300c0409d44fe9",
     "text": "Some records need verification and were kept."
   },
+  "Some scan locations could not be discovered within the limit.": {
+    "format": "Some scan locations could not be discovered within the limit.",
+    "resource_id": "scb1189b602b5973597c846b3",
+    "text": "Some scan locations could not be discovered within the limit."
+  },
   "Some scheduled task statuses could not be read.": {
     "format": "Some scheduled task statuses could not be read.",
     "resource_id": "sb01e802c8b9b0b48583aa738",
@@ -10553,6 +10768,11 @@
     "format": "Some selected items could not be processed. Inspect history.",
     "resource_id": "s4411577d476c87daf3eb206d",
     "text": "Some selected items could not be processed. Inspect history."
+  },
+  "Some shortcuts could not be verified and are kept.": {
+    "format": "Some shortcuts could not be verified and are kept.",
+    "resource_id": "seb57baf00978632e29420853",
+    "text": "Some shortcuts could not be verified and are kept."
   },
   "Some sources could not be read.": {
     "format": "Some sources could not be read.",
@@ -10663,6 +10883,11 @@
     "format": "Spark caches",
     "resource_id": "sbf47c013669b2dd1506c68d8",
     "text": "Spark caches"
+  },
+  "Standard Scan": {
+    "format": "Standard Scan",
+    "resource_id": "sf4ba9807daa439e29918860c",
+    "text": "Standard Scan"
   },
   "Start Investigation": {
     "format": "Start Investigation",
@@ -11204,6 +11429,11 @@
     "resource_id": "s85c35c367d93cc97e3b0e33f",
     "text": "System Settings…"
   },
+  "System disk": {
+    "format": "System disk",
+    "resource_id": "s8c6efbb81ebeb2bd0a5108a3",
+    "text": "System disk"
+  },
   "System package": {
     "format": "System package",
     "resource_id": "s26fb93cf8ad0bd95513d00c9",
@@ -11244,10 +11474,20 @@
     "resource_id": "s9a6f89e4fdde50899fe8b796",
     "text": "TablePlus caches"
   },
+  "Target": {
+    "format": "Target",
+    "resource_id": "s978354db0c00fc78c3a5524f",
+    "text": "Target"
+  },
   "Target Selection": {
     "format": "Target Selection",
     "resource_id": "s5da2adacf6d4ca8dfc527989",
     "text": "Target Selection"
+  },
+  "Target application is missing": {
+    "format": "Target application is missing",
+    "resource_id": "sb57addef9dccbe6b783ada62",
+    "text": "Target application is missing"
   },
   "Target identity or full directory manifest changed.": {
     "format": "Target identity or full directory manifest changed.",
@@ -11949,6 +12189,11 @@
     "resource_id": "sf81e65983d0c6d670824e835",
     "text": "The service stopped, but restart did not finish. Refresh its source before continuing."
   },
+  "The shortcut changed. Check this application again.": {
+    "format": "The shortcut changed. Check this application again.",
+    "resource_id": "s5883524b5bea3aa60fc2d956",
+    "text": "The shortcut changed. Check this application again."
+  },
   "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.": {
     "format": "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.",
     "resource_id": "s58b0b32e13932ab618db36b7",
@@ -12119,6 +12364,11 @@
     "resource_id": "sa80becd5ed54593a05163294",
     "text": "This application cannot be safely removed. Review its component details."
   },
+  "This application is protected and cannot be uninstalled.": {
+    "format": "This application is protected and cannot be uninstalled.",
+    "resource_id": "sd4c9edd7bc495042d496feb5",
+    "text": "This application is protected and cannot be uninstalled."
+  },
   "This application or one of its files is in use. Close it and review the installation again.": {
     "format": "This application or one of its files is in use. Close it and review the installation again.",
     "resource_id": "s4833d49d41998f54a0bafddc",
@@ -12204,6 +12454,11 @@
     "resource_id": "sbd88d713ecd33916fd3cc729",
     "text": "This folder is empty."
   },
+  "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions.": {
+    "format": "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions.",
+    "resource_id": "sa2596cb935d90f4080d2d895",
+    "text": "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions."
+  },
   "This folder name contains wildcard characters and cannot be represented as an exact rule.": {
     "format": "This folder name contains wildcard characters and cannot be represented as an exact rule.",
     "resource_id": "s85bd5bdb0901ea3dce467a95",
@@ -12218,6 +12473,11 @@
     "format": "This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified.",
     "resource_id": "s70ddbdec825030e4016cb9a4",
     "text": "This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified."
+  },
+  "This installer is not supported. Use Windows Settings to uninstall this application.": {
+    "format": "This installer is not supported. Use Windows Settings to uninstall this application.",
+    "resource_id": "scd2ea23b9073ce0817431f54",
+    "text": "This installer is not supported. Use Windows Settings to uninstall this application."
   },
   "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.": {
     "format": "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.",
@@ -13399,6 +13659,11 @@
     "resource_id": "sdf5203979d84b15e6429130b",
     "text": "application_changed"
   },
+  "application_link_target_missing": {
+    "format": "application_link_target_missing",
+    "resource_id": "s265e9aa2c43d924c874f542e",
+    "text": "application_link_target_missing"
+  },
   "application_metadata_missing": {
     "format": "Application metadata is unavailable. Only the application bundle can be removed; associated data is kept.",
     "resource_id": "s425b1138138cbfc21e18440d",
@@ -13578,6 +13843,11 @@
     "format": "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept.",
     "resource_id": "sa6a0b79a4018b91224e55a3c",
     "text": "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept."
+  },
+  "macOS protects this system application from uninstalling.": {
+    "format": "macOS protects this system application from uninstalling.",
+    "resource_id": "s206fcf54889a13a0d773020e",
+    "text": "macOS protects this system application from uninstalling."
   },
   "macOS regenerates this user cache when the service needs it again.": {
     "format": "macOS regenerates this user cache when the service needs it again.",

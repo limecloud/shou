@@ -20,6 +20,8 @@ public sealed record ApplicationUninstallReview(InstalledApplication Application
     DateTimeOffset ObservedAt, ImmutableArray<string> BlockingReasons, ImmutableArray<string> Warnings, string Digest)
 {
     public bool CanPreparePlan => BlockingReasons.IsEmpty && Installation.Identity is not null && Activity.State == ActivityState.Idle;
+    public bool RequiresAdministrator => Installation.Identity is { Kind: ApplicationInstallerKind.Msi, Context: MsiInstallationContext.Machine } ||
+        BlockingReasons.Contains("permission_denied") || Activity.Reason == "permission_denied";
     public bool ExecutionAvailable => false;
 }
 

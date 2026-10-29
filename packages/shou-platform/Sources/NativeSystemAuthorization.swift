@@ -19,6 +19,7 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
     #if os(macOS)
     private var channel: Int32 = -1
     private var worker: AuthorizationPeer?
+    private var sequence: UInt64=0
     #endif
     public init() {}
     #if os(macOS)
@@ -49,6 +50,22 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
         throw ShouError("unsupported_platform", "System authorization is unavailable on this platform.")
         #endif
     }
+    /// Automatic work may obtain initial consent, but never renew a failed session.
+    public func prepareAdministratorAuthorization() throws {
+        lock.lock(); defer { lock.unlock() }
+        #if os(macOS)
+        if Task.isCancelled { throw ShouError("authorization_cancelled", "The authorized operation stopped before dispatch.") }
+        // Only the first request may initiate consent. A lost or declined session
+        // requires an explicit recovery action, never another per-item prompt.
+        if state == .notRequested { try authorizeAdministrator() }
+        guard state == .authorized, channel >= 0, worker?.isCurrent == true else {
+            invalidate(); state = .unavailable
+            throw ShouError("authorization_unavailable", "Administrator authorization could not be completed. Try again.")
+        }
+        #else
+        try authorizeAdministrator()
+        #endif
+    }
     #if os(macOS)
     func perform(_ operation: AuthorizationOperation, path: String = "", manifest: [FileEntry]? = nil,
                  budget: ScanBudget? = nil, action: StartupControlAction? = nil, trashPath: String? = nil,
@@ -58,9 +75,12 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
                  cancelled: () -> Bool = { Task.isCancelled },
                  progress: (AuthorizationReply) -> Void = { _ in }) throws -> AuthorizationReply {
         lock.lock(); defer { lock.unlock() }
-        try authorizeAdministrator()
         if cancelled() { throw ShouError("authorization_cancelled", "The authorized operation stopped before dispatch.") }
-        let request=AuthorizationRequest(id: UUID().uuidString, operation: operation, path: path, manifest: manifest, budget: budget, action: action, trashPath: trashPath, rules: rules, fullDiskAccess: fullDiskAccess, document: document, text: text, logInspection: logInspection, toolID: toolID)
+        try prepareAdministratorAuthorization()
+        if cancelled() { throw ShouError("authorization_cancelled", "The authorized operation stopped before dispatch.") }
+        guard sequence < UInt64.max else { throw AuthorizationChannel.failure() }
+        sequence += 1
+        let request=AuthorizationRequest(id: UUID().uuidString, operation: operation, path: path, manifest: manifest, budget: budget, action: action, trashPath: trashPath, rules: rules, fullDiskAccess: fullDiskAccess, document: document, text: text, logInspection: logInspection, toolID: toolID, sequence: sequence)
         do {
             try AuthorizationChannel.write(request, to: channel)
             var sentCancellation=false
@@ -68,7 +88,7 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
             while true {
                 guard ContinuousClock.now < replyDeadline else { throw AuthorizationChannel.failure() }
                 if cancelled() && !sentCancellation {
-                    try AuthorizationChannel.write(AuthorizationRequest(id: request.id, operation: .cancelOperation, path: "", manifest: nil, budget: nil, action: nil), to: channel)
+                    try AuthorizationChannel.write(AuthorizationRequest(id: request.id, operation: .cancelOperation, path: "", manifest: nil, budget: nil, action: nil, sequence: request.sequence), to: channel)
                     sentCancellation=true
                 }
                 var ready=pollfd(fd: channel, events: Int16(POLLIN), revents: 0)
@@ -92,7 +112,7 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
         }
     }
     private func invalidate() {
-        if channel >= 0 { close(channel) }; channel = -1; worker=nil
+        if channel >= 0 { close(channel) }; channel = -1; worker=nil; sequence=0
     }
     private func start() throws {
         var stage="worker-executable"
@@ -146,7 +166,7 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
         guard peer.uid == 0, peer.path == executable else { throw AuthorizationChannel.failure() }
         stage="worker-handshake"
         let hello=try AuthorizationChannel.read(AuthorizationHello.self, from: connected)
-        guard hello.version == 1, hello.nonce == nonce else { throw AuthorizationChannel.failure() }
+        guard hello.version == 2, hello.nonce == nonce else { throw AuthorizationChannel.failure() }
         channel=connected; worker=peer; accepted=true
     }
     static func workerExecutable() throws -> String {
@@ -163,7 +183,7 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
     }
     static let launchScript="""
     on run argv
-      set helperCommand to quoted form of item 1 of argv & " --system-authorization-worker-v1"
+      set helperCommand to quoted form of item 1 of argv & " --system-authorization-worker-v2"
       repeat with index from 2 to count of argv
         set helperCommand to helperCommand & " " & quoted form of item index of argv
       end repeat
@@ -175,7 +195,7 @@ public final class NativeSystemAuthorization: SystemAuthorizationProviding, @unc
 
 #if os(macOS)
 enum AuthorizationOperation: String, Codable, Sendable {
-    case applicationCatalog, applicationMetadata, applicationParentIdentity, inspectApplication, purgeApplication, trashApplication, restoreApplication, purgeTrashedApplication, startupToggle
+    case applicationCatalog, applicationMetadata, applicationActivity, applicationParentIdentity, inspectApplicationShortcut, purgeApplicationShortcut, inspectApplication, purgeApplication, trashApplication, restoreApplication, purgeTrashedApplication, startupToggle
     case pathIdentity, inspectPath, inspectCleanupPath, measureStoragePath, purgePath, trashPath, restorePath, purgeTrashPath, cancelOperation
     case configurationRead, configurationSave, logRead, logInspect, logClear
 }
@@ -193,6 +213,20 @@ struct AuthorizationRequest: Codable, Sendable {
     var text: String? = nil
     var logInspection: DeveloperLogInspection? = nil
     var toolID: String? = nil
+    var sequence: UInt64=0
+}
+/// A strictly increasing counter rejects replay without an ever-growing ID set.
+struct AuthorizationRequestOrder {
+    private(set) var sequence: UInt64=0
+    private var id: String?
+    mutating func accept(_ request: AuthorizationRequest) throws {
+        guard request.operation != .cancelOperation, UUID(uuidString: request.id) != nil,
+              sequence < UInt64.max, request.sequence == sequence + 1, request.id != id else { throw AuthorizationChannel.failure() }
+        sequence=request.sequence; id=request.id
+    }
+    func matchesCancellation(_ request: AuthorizationRequest) -> Bool {
+        request.operation == .cancelOperation && request.id == id && request.sequence == sequence
+    }
 }
 struct AuthorizationHello: Codable { let version: Int; let nonce: String }
 struct AuthorizationReply: Codable, Sendable {
@@ -200,6 +234,8 @@ struct AuthorizationReply: Codable, Sendable {
     var progress=false
     var snapshot: TreeSnapshot? = nil
     var application: ApplicationDefinition? = nil
+    var applicationFacts: ApplicationUninstallFacts? = nil
+    var applicationShortcut: ApplicationShortcutSnapshot? = nil
     var catalog: ApplicationCatalog? = nil
     var identity: FileEntry? = nil
     var scanProgress: ScanProgress? = nil

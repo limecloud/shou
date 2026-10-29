@@ -190,10 +190,21 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL package updates: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--cleanup-scope-only"] {
+            do {
+                try await cleanupStandardScopeDiscoversArbitraryFoldersAndPreservesSavedPolicies()
+                try await cleanupFolderAndVolumeScopesStayWithinRequestedRoots()
+                try await cleanupDiscoveryReportsIncompleteListingsWithoutExpandingSavedScopes()
+                try nativeCleanupLocationsListsOnlyImmediateRealDirectories()
+                print("4/4 cleanup discovery, exact scope, saved policy and native no-follow checks passed.")
+            } catch { print("FAIL cleanup scan scope: \(error)"); Foundation.exit(1) }
+            return
+        }
         if Array(CommandLine.arguments.dropFirst()) == ["--application-closing-only"] {
             do {
                 try await applicationClosingVerifiesIdentityAndReportsRemainingOwners()
-                print("1/1 application-close identity, confirmation, single use, settings, remaining-process and no-file-mutation checks passed.")
+                try await applicationClosingOnlyRequestsExplicitlySelectedApplications()
+                print("2/2 application-close identity, exact selection, refusal and no-file-mutation checks passed.")
             } catch { print("FAIL application closing: \(error)"); Foundation.exit(1) }
             return
         }
@@ -232,6 +243,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--native-activity-only"] {
             do {
+                try nativeApplicationActivityReadsKernelIdentityAcrossUsers()
                 try nativeUninstallEvidenceReadsOnlyExplicitContainerMetadata()
                 try await uninstallContainerWorkersCancelAndTimeoutWithoutBlockingReview()
                 try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies()
@@ -239,7 +251,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked()
                 try nativeReadWorkerCancellationStopsOwnedChild()
                 try nativeReadWorkerTimeoutStopsOwnedChildWithoutEvidence()
-                print("7/7 native activity, unlinked executable and read-worker cancellation tests passed; generated fixtures only.")
+                print("8/8 native activity, cross-user identity, unlinked executable and read-worker cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL native activity: \(error)"); Foundation.exit(1) }
             return
         }
@@ -247,11 +259,12 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             do {
                 try executionProgressKeepsBatchTotalsAndPartialBoundaries()
                 try executionProgressRejectsLateStageAndEntryCallbacks()
+                try await storageExecutionProgressDoesNotReportAnalysisRootAsDeletionTarget()
                 try await privacyProgressTracksSourcesAndCommittedOutcomes()
                 try await privacyProgressCancellationPreservesRemainingSources()
                 try await followUpProgressPreservesDurableCancellationBoundary()
                 try await followUpProgressCountsFailedOutcomeWithoutOverwriting()
-                print("6/6 operation progress, late callbacks, partial batches, privacy transactions and cancellation tests passed; generated fixtures only.")
+                print("7/7 operation progress, selected paths, late callbacks, partial batches, privacy transactions and cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL operation progress: \(error)"); Foundation.exit(1) }
             return
         }
@@ -295,6 +308,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--applications-only"] {
             do {
+                try await applicationShortcutsRemoveOnlyVerifiedBrokenLinks()
+                try await applicationShortcutsRejectReappearingTargetsAndReplacements()
+                try nativeApplicationShortcutsRejectExpandedScopeAndForgedManifests()
+                try nativeApplicationActivityReadsKernelIdentityAcrossUsers()
                 try await applicationCatalogValidatesBeforeReadAndHonorsCancellation()
                 try nativeApplicationCatalogPreservesDistinctPathsAndBoundsItsScope()
                 try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps()
@@ -324,7 +341,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation()
                 try await nativeApplicationTrashUsesRecyclerAndVerifiesFixtureOutcomes()
                 try await nativeApplicationTrashRejectsLinksStaleAndForeignOwnerManifests()
-                print("29/29 application catalog, summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+                print("33/33 application catalog, shortcuts, summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
             } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
             return
         }
@@ -332,9 +349,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             do {
                 try storageBulkMetadataPreservesExactStatEvidence()
                 try storageCatalogParentIDsPreserveNestedNamesAndTotals()
+                try storageCatalogDirectoryCursorPreservesIDsDuringInserts()
                 try storageParallelDirectoryBenchmark()
                 try await storageDirectoryWorkersObserveParentTaskCancellation()
-                print("4/4 bulk storage metadata, catalog parent-ID equivalence, directory benchmark and worker cancellation tests passed; generated fixtures only.")
+                print("5/5 bulk storage metadata, catalog parent-ID and directory-cursor equivalence, directory benchmark and worker cancellation tests passed; generated fixtures only.")
             } catch { print("FAIL storage performance: \(error)"); Foundation.exit(1) }
             return
         }
@@ -400,9 +418,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         if Array(CommandLine.arguments.dropFirst()) == ["--storage-manifests-only"] {
             do {
                 try await storageManifestPagesVerifyCorruptionAndRetention()
+                try await storageManifestEncodingPreservesLegacyFileBytes()
                 try await storageManifestInterruptedPublicationAndLegacyPlans()
+                try await storageManifestCopyRechecksPagesBeforeJournalPublication()
                 try await permanentVerificationCancellationDoesNotRemoveFiles()
-                print("3/3 bounded manifest pages, corruption, publication, retention, legacy and cancellation checks passed; generated fixtures only.")
+                print("5/5 bounded manifest pages, byte compatibility, corruption, publication, retention, legacy and cancellation checks passed; generated fixtures only.")
             } catch { print("FAIL storage manifests: \(error)"); Foundation.exit(1) }
             return
         }
@@ -577,18 +597,24 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             return
         }
         var cases: [(String, () async throws -> Void)] = [
+            ("Broken shortcuts remove only the confirmed link", { try await applicationShortcutsRemoveOnlyVerifiedBrokenLinks() }),
+            ("Broken shortcuts reject reappearing targets and replaced links", { try await applicationShortcutsRejectReappearingTargetsAndReplacements() }),
+            ("Broken shortcuts reject expanded paths and forged manifests", { try nativeApplicationShortcutsRejectExpandedScopeAndForgedManifests() }),
             ("Monitor rate baselines and source resets", { try monitorRatesRequireFreshStableCounters() }),
             ("Monitor groups, PID reuse and bounded history", { try monitorHandlesGroupsReuseMissingDataAndBoundsHistory() }),
             ("Monitor lifecycle rejects late results", { try await monitorSessionRejectsLateResultsAndStopsWhenHidden() }),
             ("Monitor read-only native observation", { try await nativeMonitorReadsWithoutMutation() }),
             ("Paged storage manifests preserve corruption and retention boundaries", { try await storageManifestPagesVerifyCorruptionAndRetention() }),
+            ("Manifest encoding preserves legacy bytes and optional file digests", { try await storageManifestEncodingPreservesLegacyFileBytes() }),
             ("Storage manifest publication failures and legacy plans remain safe", { try await storageManifestInterruptedPublicationAndLegacyPlans() }),
             ("Cancelling permanent verification never removes files", { try await permanentVerificationCancellationDoesNotRemoveFiles() }),
             ("Execution progress preserves batch totals and partial boundaries", { try executionProgressKeepsBatchTotalsAndPartialBoundaries() }),
+            ("Storage execution progress never labels the analysis root as a deletion target", { try await storageExecutionProgressDoesNotReportAnalysisRootAsDeletionTarget() }),
             ("Execution progress rejects late stages and nested-entry regressions", { try executionProgressRejectsLateStageAndEntryCallbacks() }),
             ("Privacy independent sources continue after a changed middle source", { try await privacyChangedMiddleSourceDoesNotBlockIndependentSources() }),
             ("Privacy progress follows committed source outcomes", { try await privacyProgressTracksSourcesAndCommittedOutcomes() }),
             ("Privacy progress cancellation preserves remaining sources", { try await privacyProgressCancellationPreservesRemainingSources() }),
+            ("Application closing requests only the selected applications", { try await applicationClosingOnlyRequestsExplicitlySelectedApplications() }),
             ("Installed application caches use ordinary cleanup and preserve applications", { try await installedApplicationCachesUseNormalCleanupWithoutUninstalling() }),
             ("Installed application cache activity and identity are revalidated", { try await installedApplicationCachesKeepActivityAndIdentityGates() }),
             ("Installed application caches recheck at each mutation boundary", { try await installedApplicationCachesRecheckAtEachMutationBoundary() }),
@@ -613,6 +639,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("CLI installation preserves symbolic links", { try cliInstallationPreservesSymbolicLinks() }),
             ("Bulk metadata preserves exact stat evidence", { try storageBulkMetadataPreservesExactStatEvidence() }),
             ("Catalog parent IDs preserve nested names and totals", { try storageCatalogParentIDsPreserveNestedNamesAndTotals() }),
+            ("Catalog directory cursor preserves IDs while descendants are inserted", { try storageCatalogDirectoryCursorPreservesIDsDuringInserts() }),
             ("Directory workers observe parent task cancellation", { try await storageDirectoryWorkersObserveParentTaskCancellation() }),
             ("Streaming storage catalog measures later siblings", { try await storageCatalogScansLaterSiblingsAndLoadsExactDirectories() }),
             ("Presentation reads saved scope, paging and agent context", { try await storagePresentationReusesSnapshotAndPreservesAccounting() }),
@@ -696,6 +723,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Native application activity skips only kernel-verified zombies", { try nativeApplicationActivitySkipsOnlyKernelVerifiedZombies() }),
             ("Native application activity preserves live helper protection", { try await nativeApplicationActivityKeepsLiveHelpersBlocked() }),
             ("Native application activity preserves unlinked helper protection", { try await nativeApplicationActivityKeepsUnlinkedHelpersBlocked() }),
+            ("Native application activity reads kernel birth identities across users", { try nativeApplicationActivityReadsKernelIdentityAcrossUsers() }),
             ("Uninstall activity failures preserve their cause and allow a clean retry", { try await uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation() }),
             ("Administrator uninstall requires native Trash and preserves app data on cancellation", { try await administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation() }),
             ("Native application Trash preserves cancellation and verifies moved contents", { try await nativeApplicationTrashUsesRecyclerAndVerifiesFixtureOutcomes() }),
@@ -735,6 +763,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Read worker failures and malformed responses stay blocked", { try nativeReadWorkerRejectsFailureMalformedAndForeignResponses() }),
             ("Read worker caps live children and recovers capacity", { try nativeReadWorkerCapsConcurrentChildrenAndRecoversCapacity() }),
             ("Known location registration probes only its requested root", { try await knownLocationRegistrationUsesOnlyRequestedRoot() }),
+            ("Standard cleanup discovers arbitrary folders and preserves saved policy", { try await cleanupStandardScopeDiscoversArbitraryFoldersAndPreservesSavedPolicies() }),
+            ("Cleanup folder and volume scopes preserve requested roots", { try await cleanupFolderAndVolumeScopesStayWithinRequestedRoots() }),
+            ("Cleanup discovery preserves incomplete coverage and saved scopes", { try await cleanupDiscoveryReportsIncompleteListingsWithoutExpandingSavedScopes() }),
+            ("Native cleanup discovery refuses linked and nested directories", { try nativeCleanupLocationsListsOnlyImmediateRealDirectories() }),
             ("Batch preparation probes once and reports its root", { try await systemScanPreparationIsLinearAndReportsRootBeforeIdentity() }),
             ("Rule-scan progress remains cumulative across worker phases", { try await ruleScanProgressDoesNotResetAcrossWorkerAndPersistenceStages() }),
             ("Batch scan progress remains cumulative across locations and failure", { try await batchScanProgressKeepsCountsAndPercentagesAcrossLocationsAndFailure() }),
@@ -779,6 +811,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage preview is bounded, read-only and identity-bound", { try await storagePreviewIsBoundedReadOnlyAndRejectsChangedObjects() }),
             ("Storage analysis separates read scope and stale removal", { try await storageAnalysisProtectsRootsAndDetectsChanges() }),
             ("Storage removal rechecks exclusions and new descendants", { try await storageRemovalRechecksCurrentExclusionsAndNewDescendants() }),
+            ("Storage manifest copy rechecks source pages before mutation", { try await storageManifestCopyRechecksPagesBeforeJournalPublication() }),
             ("Native space analysis large-file Trash restore and permanent removal", { try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: CommandLine.arguments.contains("--native-trash-purge")) }),
             ("Storage and treemap accounting", { try storageAccountingAndTreemapConserveArea() }),
             ("Non-overlapping cleanup overview", { try await cleanupOverviewDoesNotDoubleCount() }),

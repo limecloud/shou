@@ -11,7 +11,7 @@ public enum NativeSystemAuthorizationWorker {
     public static func runIfRequested(_ arguments: [String]) async -> Int32? {
         guard arguments.first?.hasPrefix("--system-authorization-worker") == true else { return nil }
         #if os(macOS)
-        guard arguments.count == 7, arguments[0] == "--system-authorization-worker-v1", geteuid() == 0,
+        guard arguments.count == 7, arguments[0] == "--system-authorization-worker-v2", geteuid() == 0,
               arguments[1].hasPrefix("/private/tmp/shou-authorization-"), arguments[1].hasSuffix("/channel"),
               arguments[2].count == 72, let pid=Int32(arguments[3]), let uid=UInt32(arguments[4]), uid != 0,
               let started=UInt64(arguments[5]), let microseconds=UInt64(arguments[6]),
@@ -44,9 +44,9 @@ public enum NativeSystemAuthorizationWorker {
             let roots=["/Applications", home + "/Applications"]
             var transfers=[String]()
             defer { for path in transfers { NativeAuthorizedFileSystem.discardStorage(path,uid:uid) } }
-            try AuthorizationChannel.write(AuthorizationHello(version: 1, nonce: arguments[2]), to: descriptor)
+            try AuthorizationChannel.write(AuthorizationHello(version: 2, nonce: arguments[2]), to: descriptor)
             stage="requests"
-            var seen=Set<String>()
+            var order=AuthorizationRequestOrder()
             var completedRequest: String?
             while parent.isCurrent {
                 var ready=pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
@@ -57,11 +57,17 @@ public enum NativeSystemAuthorizationWorker {
                 let request=try AuthorizationChannel.read(AuthorizationRequest.self, from: descriptor)
                 // A cancellation sent while the final reply was in flight is
                 // consumed without dispatching or replaying the completed item.
-                if request.operation == .cancelOperation, request.id == completedRequest { continue }
-                guard UUID(uuidString: request.id) != nil, seen.insert(request.id).inserted, seen.count <= 10_000, parent.isCurrent else { return 77 }
+                if request.operation == .cancelOperation, request.id == completedRequest, order.matchesCancellation(request) { continue }
+                guard parent.isCurrent else { return 77 }
+                try order.accept(request)
                 let operation=Task.detached {
                     do { return try perform(request, descriptor: descriptor, roots: roots, home: home, uid: uid, executable: executable) }
-                    catch { return AuthorizationReply(id: request.id, error: (error as? ShouError) ?? ShouError("io_error", "The authorized system operation failed.")) }
+                    catch {
+                        let failure=(error as? ShouError) ?? ShouError("io_error", "The authorized system operation failed.")
+                        Logger(subsystem: "dev.limecloud.shou", category: "authorization")
+                            .error("Authorized \(request.operation.rawValue, privacy: .public) failed: \(failure.code, privacy: .public), stage \(failure.details["stage"] ?? "native-operation", privacy: .public), pid \(failure.details["pid"] ?? "unknown", privacy: .public), errno \(failure.details["native_error"] ?? "unknown", privacy: .public), sqlite \(failure.details["sqlite_code"] ?? "none", privacy: .public)/\(failure.details["sqlite_extended_code"] ?? "none", privacy: .public)")
+                        return AuthorizationReply(id: request.id, error: failure)
+                    }
                 }
                 let lifetime=Task.detached {
                     while !Task.isCancelled {
@@ -69,7 +75,7 @@ public enum NativeSystemAuthorizationWorker {
                         var incoming=pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
                         if poll(&incoming, 1, 100) > 0 {
                             guard let cancel=try? AuthorizationChannel.read(AuthorizationRequest.self, from: descriptor),
-                                  cancel.id == request.id, cancel.operation == .cancelOperation, cancel.path.isEmpty,
+                                  cancel.id == request.id, cancel.sequence == request.sequence, cancel.operation == .cancelOperation, cancel.path.isEmpty,
                                   cancel.manifest == nil, cancel.budget == nil, cancel.action == nil, cancel.trashPath == nil,
                                   cancel.rules == nil, cancel.fullDiskAccess == nil, cancel.document == nil, cancel.text == nil,
                                   cancel.logInspection == nil, cancel.toolID == nil else { operation.cancel(); return false }
@@ -138,6 +144,17 @@ public enum NativeSystemAuthorizationWorker {
             return AuthorizationReply(id: request.id, catalog: catalog)
         }
         let filesystem=NativeFileSystem(applicationRoots: roots, scanPrivacyPolicy: ScanPrivacyPolicy(status: .notRequired, home: home))
+        if [.inspectApplicationShortcut, .purgeApplicationShortcut].contains(request.operation) {
+            guard request.action == nil, request.budget == nil, request.trashPath == nil,
+                  !executable.hasPrefix(request.path + "/") else { throw AuthorizationChannel.failure() }
+            if request.operation == .inspectApplicationShortcut {
+                guard request.manifest == nil else { throw AuthorizationChannel.failure() }
+                return AuthorizationReply(id: request.id, applicationShortcut: try NativeApplicationShortcut.snapshot(request.path, roots: roots, uid: uid))
+            }
+            guard let manifest=request.manifest else { throw AuthorizationChannel.failure() }
+            try NativeApplicationShortcut.remove(request.path, expected: manifest, roots: roots, uid: uid)
+            return AuthorizationReply(id: request.id)
+        }
         if request.operation == .applicationParentIdentity {
             guard request.manifest == nil, request.budget == nil, request.action == nil, request.trashPath == nil else { throw AuthorizationChannel.failure() }
             return AuthorizationReply(id: request.id, identity: try filesystem.applicationParentIdentity(request.path))
@@ -150,6 +167,12 @@ public enum NativeSystemAuthorizationWorker {
             guard request.manifest == nil, request.budget == nil, request.trashPath == nil else { throw AuthorizationChannel.failure() }
             let catalog=NativeApplicationCatalog(sources: roots.enumerated().map { ApplicationSource(id: "authorized.\($0.offset)", path: $0.element) })
             return AuthorizationReply(id: request.id, application: try catalog.application(at: request.path))
+        }
+        if request.operation == .applicationActivity {
+            guard request.manifest == nil, request.budget == nil, request.trashPath == nil else { throw AuthorizationChannel.failure() }
+            let catalog=NativeApplicationCatalog(sources: roots.enumerated().map { ApplicationSource(id: "authorized.\($0.offset)", path: $0.element) })
+            let application=try catalog.application(at: request.path)
+            return AuthorizationReply(id: request.id, applicationFacts: try NativeApplicationUninstallEvidence(currentUser: uid).facts(for: application))
         }
         if request.operation == .inspectApplication {
             guard request.manifest == nil, let budget=request.budget, request.trashPath == nil else { throw AuthorizationChannel.failure() }

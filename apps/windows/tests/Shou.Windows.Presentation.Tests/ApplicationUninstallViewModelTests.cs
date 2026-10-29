@@ -5,6 +5,89 @@ namespace Shou.Windows.Presentation.Tests;
 
 public sealed class ApplicationUninstallViewModelTests
 {
+    private sealed class Authorization : ISystemAuthorization
+    {
+        public SystemAuthorizationState AdministratorState { get; set; }
+        public int Requests;
+        public bool Cancel;
+        public Task PrepareAdministratorAuthorizationAsync(CancellationToken token = default) => AdministratorState == SystemAuthorizationState.Unavailable
+            ? Task.FromException(new ShouException("authorization_unavailable", "Explicit recovery required.")) : AuthorizeAdministratorAsync(token);
+        public Task AuthorizeAdministratorAsync(CancellationToken token = default)
+        {
+            Requests++;
+            AdministratorState = Cancel ? SystemAuthorizationState.Unavailable : SystemAuthorizationState.Authorized;
+            return Cancel ? Task.FromException(new ShouException("authorization_cancelled", "Cancelled")) : Task.CompletedTask;
+        }
+    }
+
+    [Fact]
+    public async Task CancelledAuthorizationAfterDeniedInspectionRetainsExplicitRecovery()
+    {
+        var operations = new Operations(); var authorization = new Authorization { Cancel = true };
+        using var model = new ApplicationUninstallViewModel(operations, authorization: authorization);
+        var id = Review().Application.Id;
+        var inspect = model.InspectAsync(id);
+        operations.Reviews.Dequeue().SetException(new UnauthorizedAccessException()); await inspect;
+        Assert.True(model.RequiresAuthorization);
+        await model.AuthorizeAsync(id);
+        Assert.True(model.RequiresAuthorization);
+        Assert.Null(model.Review);
+        Assert.Equal("authorization_cancelled", model.ErrorCode);
+        await model.AuthorizeAsync(id);
+        Assert.Equal(2, authorization.Requests);
+        Assert.Empty(operations.ExecutionRequests);
+    }
+
+    [Fact]
+    public async Task CancelledUacKeepsExactReviewConsentAndSelectionWithoutInstallerDispatch()
+    {
+        var operations = new Operations();
+        var authorization = new Authorization { Cancel = true };
+        using var selection = new ApplicationSelectionViewModel(() => new(operations, authorization: authorization));
+        var review = Review();
+        review = review with { Installation = review.Installation with { Identity = review.Installation.Identity! with { Context = MsiInstallationContext.Machine, UserSid = null } } };
+        var pending = selection.SelectAsync(review.Application.Id, true);
+        Assert.True(selection.Item(review.Application.Id).IsSelected);
+        Assert.True(selection.IsReviewing);
+        Assert.True(selection.CanChangeSelection);
+        operations.Reviews.Dequeue().SetResult(review);
+        await pending;
+        var model = selection.Item(review.Application.Id).Review;
+        model.SetDataConsent(true);
+        Assert.Same(review, model.Review);
+        Assert.True(model.AllowInstallerDataChanges);
+        Assert.True(model.RequiresAuthorization);
+        Assert.Equal("authorization_cancelled", model.ErrorCode);
+        Assert.False(selection.CanExecute);
+        Assert.Equal(1, authorization.Requests);
+        await selection.SelectAsync(review.Application.Id, false);
+        await selection.SelectAsync(review.Application.Id, true);
+        Assert.Equal(1, authorization.Requests);
+        Assert.Empty(operations.ExecutionRequests);
+        Assert.True(selection.Item(review.Application.Id).IsSelected);
+    }
+
+    [Fact]
+    public async Task QueuedReviewsKeepIndependentIntentAndClearingDoesNotReselectLateResult()
+    {
+        var operations = new Operations { ExecutionAvailable = true };
+        using var selection = new ApplicationSelectionViewModel(() => new(operations));
+        var first = Review();
+        var second = first with { Application = first.Application with { Id = "application_" + new string('d', 64), Name = "Second" } };
+        var one = selection.SelectAsync(first.Application.Id, true);
+        var two = selection.SelectAsync(second.Application.Id, true);
+        Assert.Equal(2, selection.SelectedCount);
+        Assert.True(selection.Item(second.Application.Id).IsQueued);
+        Assert.Single(operations.Reviews);
+        selection.Clear();
+        operations.Reviews.Dequeue().SetResult(first);
+        while (operations.Reviews.Count == 0) await Task.Yield();
+        operations.Reviews.Dequeue().SetResult(second);
+        await Task.WhenAll(one, two);
+        Assert.Equal(0, selection.SelectedCount);
+        Assert.False(selection.IsReviewing);
+        Assert.False(selection.CanExecute);
+    }
     private sealed class Operations : IApplicationUninstallOperations
     {
         public bool ExecutionAvailable { get; set; }

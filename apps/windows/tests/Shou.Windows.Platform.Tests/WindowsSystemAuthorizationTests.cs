@@ -7,6 +7,32 @@ namespace Shou.Windows.Platform.Tests;
 public sealed class WindowsSystemAuthorizationTests
 {
     [Fact]
+    public async Task MoreThanTenThousandRequestsReuseTheSessionAndSequenceRejectsReplay()
+    {
+        var (client, server) = Pair(); using var session = new WindowsSystemAuthorization(client);
+        const int count = 10_005;
+        var responding = Task.Run(async () =>
+        {
+            using (server)
+            {
+                var order = new AuthorizationRequestOrder();
+                for (var index = 1; index <= count; index++)
+                {
+                    var request = await WindowsAuthorizationChannel.ReadAsync<AuthorizationRequest>(server, default);
+                    Assert.Equal((ulong)index, request.Sequence); order.Accept(request);
+                    Assert.Throws<ShouException>(() => order.Accept(request));
+                    Assert.Throws<ShouException>(() => order.Accept(request with { Sequence = request.Sequence + 2, Id = Guid.NewGuid() }));
+                    await WindowsAuthorizationChannel.WriteAsync(server, new AuthorizationReply(request.Id), default);
+                }
+            }
+        });
+        for (var index = 0; index < count; index++)
+            _ = await session.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Inspect, WindowsPath.Parse("C:/generated")), default);
+        await responding;
+        Assert.Equal(SystemAuthorizationState.Authorized, session.AdministratorState);
+    }
+
+    [Fact]
     public async Task AuthenticatedSessionReusesOneChannelAndNeverReplaysLostResults()
     {
         var (client, server) = Pair(); using var session = new WindowsSystemAuthorization(client);
@@ -21,6 +47,7 @@ public sealed class WindowsSystemAuthorizationTests
                 }
         });
         await session.AuthorizeAdministratorAsync();
+        await session.PrepareAdministratorAuthorizationAsync();
         var path = WindowsPath.Parse("C:/Users/generated/cache");
         _ = await session.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Inspect, path), default);
         _ = await session.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.ReadDirectory, path), default);
@@ -28,6 +55,10 @@ public sealed class WindowsSystemAuthorizationTests
         Assert.Equal("authorization_channel_lost", (await Assert.ThrowsAsync<ShouException>(() => session.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Cleanup, path), default))).Code);
         await responding; Assert.Equal(3, requests.Distinct().Count());
         Assert.Equal(SystemAuthorizationState.Unavailable, session.AdministratorState);
+        Assert.Equal("authorization_unavailable", (await Assert.ThrowsAsync<ShouException>(() =>
+            session.PrepareAdministratorAuthorizationAsync())).Code);
+        Assert.Equal("authorization_unavailable", (await Assert.ThrowsAsync<ShouException>(() =>
+            session.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Inspect, path), default))).Code);
     }
 
     [Fact]
@@ -41,7 +72,7 @@ public sealed class WindowsSystemAuthorizationTests
                 var request = await WindowsAuthorizationChannel.ReadAsync<AuthorizationRequest>(server, default);
                 await WindowsAuthorizationChannel.WriteAsync(server, new AuthorizationReply(request.Id, Progress:true), default);
                 var cancel = await WindowsAuthorizationChannel.ReadAsync<AuthorizationRequest>(server, default);
-                WindowsSystemAuthorizationWorker.ValidateCancel(cancel); Assert.Equal(request.Id, cancel.Id);
+                WindowsSystemAuthorizationWorker.ValidateCancel(cancel); Assert.Equal(request.Id, cancel.Id); Assert.Equal(request.Sequence, cancel.Sequence);
                 await WindowsAuthorizationChannel.WriteAsync(server, new AuthorizationReply(request.Id, Error:"cancelled"), default);
             }
         });

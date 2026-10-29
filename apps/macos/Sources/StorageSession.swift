@@ -432,8 +432,10 @@ struct StorageLocation: Identifiable {
         }
     }
     private func execute(app: AppModel, engine: ShouEngine, plan: StorageRemovalPlan, execution: UUID, position: Int, total: Int) async throws -> ExecutionReceipt {
+        let targets=plan.items.map { StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path) }
         let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { update in
-            let combined=ExecutionProgress(stage: update.stage, processedCount: position + update.processedCount, itemCount: total, path: update.path,
+            let combined=ExecutionProgress(stage: update.stage, processedCount: position + update.processedCount, itemCount: total,
+                path: ProgressPresentation.selectedPath(update.path, within: targets),
                 currentItemProcessedCount: update.currentItemProcessedCount, currentItemCount: update.currentItemCount)
             Task { @MainActor in app.updateExecutionProgress(combined, operation: execution) }
         })

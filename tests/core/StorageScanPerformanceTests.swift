@@ -63,6 +63,34 @@ func storageCatalogParentIDsPreserveNestedNamesAndTotals() throws {
     try expect(try loaded.entry(at: ".")?.node.fileCount == 1)
 }
 
+func storageCatalogDirectoryCursorPreservesIDsDuringInserts() throws {
+    let fixture=try Fixture(), url=fixture.base.appendingPathComponent("directory-cursor.sqlite")
+    let catalog=try StorageCatalog(url: url, create: true)
+    let identity=try fixture.fs.analysisRootIdentity(fixture.workspace.path)
+    let root=try catalog.append(identity, name: ".", parentID: 0)
+    var expected=[String: Int64]()
+    for index in 0..<600 {
+        var entry=identity
+        entry.path=String(format: "generated-%04d", index) + "-文件-😀"; entry.inode += UInt64(index + 1)
+        expected[entry.path]=try catalog.append(entry, name: entry.path, parentID: root.id).id
+    }
+    var observed=[String: Int64]()
+    try catalog.forEachChildDirectory(parentID: root.id) { id, item in
+        try expect(id > 0 && expected[item.entry.path] == id && observed[item.entry.path] == nil)
+        observed[item.entry.path]=id
+        var child=identity
+        child.path=item.entry.path + "/generated.bin"; child.kind="file"; child.links=1
+        child.inode += UInt64(1000 + observed.count)
+        _ = try catalog.append(child, name: "generated.bin", parentID: id)
+    }
+    try expect(observed == expected)
+    var leafDirectories=0
+    try catalog.forEachChildDirectory(parentID: require(expected.values.first)) { _, _ in leafDirectories += 1 }
+    try expect(leafDirectories == 0)
+    try catalog.seal()
+    try expect(try StorageCatalog(url: url).children(of: ".").count == 600)
+}
+
 /// A repeatable generated fixture for the directory-worker path. The test reports elapsed time
 /// for local APFS runs without making a machine-specific latency assertion.
 func storageParallelDirectoryBenchmark() throws {

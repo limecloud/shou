@@ -26,7 +26,7 @@ extension ShouEngine {
         for location in try projectLocations() {
             try Task.checkCancellation()
             let workspace=config.workspaces.first { $0.id == location.id }
-            let conventional=try ProjectLocations.isConventional(location.path, homeDirectory: homeDirectory, platform: filesystem.platform)
+            let automatic=try (workspace?.rootRef.hasPrefix("shou-location-project-") == true || ProjectLocations.isConventional(location.path, homeDirectory: homeDirectory, platform: filesystem.platform))
             var availability=location.exists ? "available" : "unavailable", issue=location.availabilityIssue
             if workspace != nil {
                 switch filesystem.locationAvailability(location.path) {
@@ -36,8 +36,8 @@ extension ShouEngine {
                 }
             }
             entries.append(ScanLocationEntry(id: location.id, title: location.title, path: location.path, category: location.category,
-                origin: conventional || workspace == nil ? "automatic" : "included", workspaceId: workspace?.id,
-                canRemove: workspace != nil && !conventional, availability: availability, issue: issue))
+                origin: automatic || workspace == nil ? "automatic" : "included", workspaceId: workspace?.id,
+                canRemove: workspace != nil && !automatic, availability: availability, issue: issue))
         }
         for location in try knownLocations() where location.exists || location.availabilityIssue != nil {
             try Task.checkCancellation()

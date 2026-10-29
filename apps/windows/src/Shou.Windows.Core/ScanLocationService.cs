@@ -8,16 +8,25 @@ public sealed record DiscoveredLocation(string Id, string Title, WindowsPath Pat
     string? WorkspaceId, string State, string? Issue, FileIdentity? Identity = null, bool CaseSensitive = false);
 public sealed record LocationDiscovery(string ConfigurationRevision, ImmutableArray<DiscoveredLocation> Locations);
 public sealed record LocationPreparation(ImmutableArray<Workspace> Workspaces, ImmutableArray<ScanIssue> Issues);
+public enum CleanupScanMode { Standard, Folders, Volumes }
+public sealed record CleanupScanScope(CleanupScanMode Mode, ImmutableArray<WindowsPath> Paths)
+{
+    public static CleanupScanScope Standard { get; } = new(CleanupScanMode.Standard, []);
+}
+public interface ICleanupScanVolumes
+{
+    Task<ImmutableArray<WindowsPath>> ReadAsync(CancellationToken cancellationToken);
+}
 public sealed record SystemScan(ImmutableArray<CleanupScan> Scans, ImmutableArray<ScanIssue> Issues, string State);
 
 /// <summary>Conventional roots are bounded discovery hints. Explicit registrations and exclusions take precedence.</summary>
 public sealed class ScanLocationService(ConfigurationService configuration, BuiltinRuleCatalog catalog, IWindowsFileSystem files,
-    string ownerSid, TimeProvider? timeProvider = null)
+    string ownerSid, TimeProvider? timeProvider = null, ICleanupScanVolumes? volumes = null)
 {
     public static readonly TimeSpan DiscoveryDuration = TimeSpan.FromSeconds(10);
     private readonly TimeProvider clock = timeProvider ?? TimeProvider.System;
 
-    public async Task<LocationDiscovery> DiscoverAsync(bool includeProjects = false, CancellationToken cancellationToken = default)
+    public async Task<LocationDiscovery> DiscoverAsync(bool includeProjects = false, CancellationToken cancellationToken = default, CleanupScanScope? scope = null)
     {
         using var diagnostic = OperationDiagnostics.Start("locations.discover");
         using var deadline = new CancellationTokenSource(DiscoveryDuration, clock);
@@ -29,19 +38,68 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
             var results = ImmutableArray.CreateBuilder<DiscoveredLocation>();
             var identities = new HashSet<FileIdentity>();
             var accepted = new List<WindowsPath>();
-            var candidates = saved.Workspaces.Where(workspace => includeProjects || catalog.Locations.Any(value => value.Path == workspace.Path))
-                .Select(workspace => (Location: new BuiltinLocation(workspace.Id, "Scan Locations", "project", workspace.Path), Workspace: (Workspace?)workspace, Origin: "included"))
-                .Concat(catalog.Locations.Select(location => (Location: location, Workspace: (Workspace?)null, Origin: "builtin")))
-                .Concat(includeProjects ? catalog.ProjectPaths.Select(relative =>
-                {
-                    var path = catalog.Directories.Home.Append(relative);
-                    var id = "project-" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(path.Value)))[..20];
-                    return (Location: new BuiltinLocation(id, "Developer Projects", "project", path), Workspace: (Workspace?)null, Origin: "automatic");
-                }) : []);
-            foreach (var (location, workspace, origin) in candidates)
+            scope ??= CleanupScanScope.Standard;
+            if (!Enum.IsDefined(scope.Mode) || scope.Paths.IsDefault || scope.Paths.Length > 256 ||
+                scope.Mode == CleanupScanMode.Folders && scope.Paths.IsEmpty)
+                throw new ShouException("invalid_argument", "Choose between one and 256 scan folders.");
+            var listingCount = 0;
+            async Task<ImmutableArray<WindowsPath>> Children(WindowsPath parent)
             {
+                var children = ImmutableArray.CreateBuilder<WindowsPath>();
+                if (++listingCount > 128) { Gap(parent, "resource_limit"); return []; }
+                try
+                {
+                    var count = 0;
+                    await foreach (var item in files.ReadDirectoryAsync(parent, token).WithCancellation(token))
+                    {
+                        if (++count > 4096) { Gap(parent, "resource_limit"); break; }
+                        if (item.Path.Parent?.SamePath(parent) != true) { Gap(parent, "source_changed"); continue; }
+                        if (item.ErrorCode is not null) { Gap(item.Path, item.ErrorCode); continue; }
+                        if (item.Entry is { Kind: EntryKind.Directory } entry && entry.Path.SamePath(item.Path) && !item.Path.Name.StartsWith('.'))
+                            children.Add(item.Path);
+                    }
+                }
+                catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
+                { Gap(parent, error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "io_error"); }
+                return children.Distinct().OrderBy(path => path.Value, StringComparer.Ordinal).ToImmutableArray();
+            }
+            void Gap(WindowsPath path, string issue) => results.Add(new(Project(path).Id + "-issue", "Scan Locations", path, "project", "automatic", null, "unavailable", issue));
+            BuiltinLocation Project(WindowsPath path) => new("project-" + Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(path.Value)))[..20], "Developer Projects", "project", path);
+            var projectPaths = new List<WindowsPath>();
+            var standard = scope.Mode != CleanupScanMode.Folders;
+            if (standard && includeProjects)
+                projectPaths.AddRange((await Children(catalog.Directories.Home)).Where(path =>
+                    !catalog.Locations.Any(location => Overlap(location.Path, path)) && !path.Name.Equals("AppData", StringComparison.OrdinalIgnoreCase)));
+            if (scope.Mode == CleanupScanMode.Folders) projectPaths.AddRange(scope.Paths);
+            if (scope.Mode == CleanupScanMode.Volumes)
+            {
+                var available = volumes is null ? throw new ShouException("unsupported_capability", "Choose available local disks.") : await volumes.ReadAsync(token);
+                if (scope.Paths.Any(path => !available.Any(value => value.SamePath(path))))
+                    throw new ShouException("plan_stale", "A selected disk is no longer available.");
+                foreach (var disk in scope.Paths.Distinct().Where(path => !catalog.Directories.Home.IsWithin(path)))
+                    projectPaths.AddRange(await Children(disk));
+            }
+            var candidates = saved.Workspaces.Where(workspace => standard ? includeProjects || catalog.Locations.Any(value => value.Path == workspace.Path) :
+                    scope.Paths.Any(path => workspace.Path.IsWithin(path)))
+                .Select(workspace => (Location: new BuiltinLocation(workspace.Id, "Scan Locations", "project", workspace.Path), Workspace: (Workspace?)workspace, Origin: "included"))
+                .Concat(standard ? catalog.Locations.Select(location => (Location: location, Workspace: (Workspace?)null, Origin: "builtin")) : [])
+                .Concat(projectPaths.Select(path => (Location: Project(path), Workspace: (Workspace?)null, Origin: "automatic"))).ToList();
+            for (var index = 0; index < candidates.Count; index++)
+            {
+                var (location, workspace, origin) = candidates[index];
                 token.ThrowIfCancellationRequested();
-                if (workspace is null && (saved.Workspaces.Any(value => Overlap(value.Path, location.Path)) || accepted.Any(path => Overlap(path, location.Path)))) continue;
+                if (workspace is null)
+                {
+                    if (accepted.Any(path => location.Path.IsWithin(path))) continue;
+                    if (saved.Workspaces.Any(value => location.Path.IsWithin(value.Path)))
+                    { Gap(location.Path, "saved_scope_required"); continue; }
+                    if (saved.Workspaces.Any(value => value.Path.IsWithin(location.Path)))
+                    {
+                        candidates.AddRange((await Children(location.Path)).Select(path => (Project(path), (Workspace?)null, "automatic")));
+                        continue;
+                    }
+                }
+                if (accepted.Count >= ConfigurationCodec.MaximumWorkspaces) { Gap(location.Path, "resource_limit"); break; }
                 try
                 {
                     var entry = await files.InspectAsync(location.Path, token).AsTask().WaitAsync(token);
@@ -74,13 +132,13 @@ public sealed class ScanLocationService(ConfigurationService configuration, Buil
         catch (Exception error) { diagnostic.Fail(error, "discovery"); throw; }
     }
 
-    public async Task<LocationPreparation> PrepareAsync(bool includeProjects = false, CancellationToken cancellationToken = default)
+    public async Task<LocationPreparation> PrepareAsync(bool includeProjects = false, CancellationToken cancellationToken = default, CleanupScanScope? scope = null)
     {
         using var diagnostic = OperationDiagnostics.Start("locations.prepare");
         var stage = "discover";
         try
         {
-            var discovery = await DiscoverAsync(includeProjects, cancellationToken);
+            var discovery = await DiscoverAsync(includeProjects, cancellationToken, scope);
             var issues = discovery.Locations.Where(location => location.Issue is not null).Select(location => new ScanIssue(location.Path, location.Issue!)).ToImmutableArray();
             var proposed = discovery.Locations.Where(value => value.State == "available").Select(location =>
                 new Workspace(location.WorkspaceId ?? RecordKey.New("ws"), location.Origin == "included" ? "existing" : "shou-location-" + location.Id,

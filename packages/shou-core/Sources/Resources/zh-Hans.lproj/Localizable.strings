@@ -76,6 +76,7 @@
 "A required ordinary project marker is missing from the parent" = "父目录缺少所需的普通项目标记文件";
 "A required read-only system tool could not be started." = "无法启动安全检查所需的只读系统工具。";
 "A routine that fits your own folders." = "为自己的文件夹，定制清理方式。";
+"A selected disk is no longer available." = "所选磁盘已不可用。";
 "A startup registration could not be read safely." = "无法安全读取某项启动注册。";
 "A structured decision provider is not configured for this connection." = "此连接尚未配置结构化决策服务。";
 "A target path containing wildcard characters requires a new workspace scan." = "目标路径包含通配符字符，请重新扫描所在位置。";
@@ -130,7 +131,9 @@
 "Administrator Access" = "管理员权限";
 "Administrator Required" = "需管理员权限";
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "不会自动请求管理员权限，当前无法卸载需要提权的应用。";
+"Administrator access is required to uninstall this application." = "卸载此应用需要管理员授权。";
 "Administrator authorization required" = "需要管理员授权";
+"Administrator authorization was not completed. Your selection is kept." = "未完成管理员授权，原有选择已保留。";
 "Adobe Bridge caches" = "Adobe Bridge 缓存";
 "Advanced" = "高级";
 "Affected items refreshed. Review your selection to continue." = "受影响项目已刷新，请检查选择后继续。";
@@ -188,6 +191,7 @@
 "App caches and developer projects are discovered automatically. Extra folders are remembered." = "自动发现应用缓存和开发项目，额外目录只需选择一次。";
 "App caches, project build outputs, and your enabled rules — together in one cleanup." = "应用缓存、项目构建产物和已启用的个人规则，一次扫描，一起清理。";
 "App container" = "应用容器";
+"App is running" = "应用正在运行";
 "App logs" = "应用日志";
 "App support data" = "应用支持数据";
 "Appearance" = "显示主题";
@@ -203,6 +207,7 @@
 "Application Leftovers" = "应用残留";
 "Application Name" = "应用名称";
 "Application Options" = "应用选项";
+"Application Shortcut" = "应用快捷方式";
 "Application Uninstall" = "应用卸载";
 "Application Updates" = "应用更新";
 "Application activity checking is unavailable on this platform." = "此平台暂不支持应用运行状态检查。";
@@ -237,6 +242,7 @@
 "Applications checked. Review components before uninstalling." = "应用检查完成。请在卸载前审阅组件。";
 "Applications recreate downloaded and rendered cache data when needed." = "应用会按需重建下载与渲染缓存。";
 "Apps & Projects" = "应用与项目";
+"Apps using cleanup files" = "占用清理文件的应用";
 "Arc caches" = "Arc 缓存";
 "Arc download caches" = "Arc 下载缓存";
 "Archives" = "压缩文件";
@@ -258,6 +264,7 @@
 "At load" = "加载时";
 "Atomic no-overwrite restoration is unavailable on this platform." = "此平台暂不支持不会覆盖现有内容的原子还原。";
 "Audio" = "音频";
+"Authenticating…" = "正在验证身份…";
 "Authentication" = "身份验证";
 "Authentication Required" = "需要身份验证";
 "Authorize Administrator Access…" = "授权管理员权限…";
@@ -293,6 +300,8 @@
 "Box caches" = "Box 缓存";
 "Brave caches" = "Brave 缓存";
 "Brave download caches" = "Brave 下载缓存";
+"Broken Shortcut" = "失效快捷方式";
+"Broken Shortcuts" = "失效快捷方式";
 "Browse All Tools" = "浏览全部工具";
 "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings." = "浏览 Run、RunOnce、启动文件夹、开机或登录计划任务，以及打包应用的启动声明。此页面不会更改启动设置。";
 "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage." = "查看已注册的应用，不包含便携应用和其他用户的应用。大小来自安装程序估算，并非实际磁盘占用。";
@@ -349,6 +358,7 @@
 "Candidate is missing, protected, excluded, or unclassified." = "清理项不存在、受保护、已排除或尚未分类。";
 "Candidate manifest does not match its snapshot." = "清理项的文件清单与扫描结果不一致。";
 "Candidate policy evidence could not be reproduced." = "无法再次核验清理项是否符合当前规则。";
+"Cannot Uninstall" = "无法卸载";
 "Cargo Cache" = "Cargo 缓存";
 "Cargo archive contains duplicate members." = "Cargo 包归档包含重复条目。";
 "Cargo archive contains unsafe directory paths." = "Cargo 包归档包含不安全的目录路径。";
@@ -411,6 +421,7 @@
 "Checking selected items…" = "正在检查所选项…";
 "Checking system facts…" = "正在检查系统信息…";
 "Checking tool-managed storage…" = "正在检查工具管理的空间…";
+"Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept." = "检查当前用户桌面和开始菜单中指向本地程序的普通快捷方式，保留其他类型。";
 "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded." = "仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。";
 "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged." = "仅检查记录中的确切路径与目录清单，保留文件及原始回执。";
 "Checks the official GitHub release. Downloads open only when you choose." = "检查 GitHub 官方发布，仅在你选择后打开下载。";
@@ -443,7 +454,11 @@
 "Choose an earlier analysis" = "选择较早的分析";
 "Choose an earlier analysis of the same directory identity. Replaced folders cannot be compared." = "请选择同一目录身份的较早分析，已被替换的文件夹不可比较。";
 "Choose an unused rule version. Existing versions cannot be overwritten." = "请使用尚未存在的版本号，已有版本不能覆盖。";
+"Choose available local disks." = "请选择可用的本地磁盘。";
+"Choose between one and 256 scan folders." = "请选择 1 至 256 个扫描文件夹。";
+"Choose between one and 32 scan folders." = "请选择 1 至 32 个扫描文件夹。";
 "Choose extra folders to remember for future cleanup scans." = "选择额外文件夹，今后的清理扫描会自动包含这些位置。";
+"Choose folders to scan." = "选择要扫描的文件夹。";
 "Choose items to review. High-risk items require your selection." = "请选择要审阅的项目。高风险项目需要手动选择。";
 "Choose light, dark, or follow your system settings." = "选择浅色、深色或跟随系统设置。";
 "Choose local storage or system credentials before saving an API key." = "保存 API 密钥前，请选择本地存储或系统凭据。";
@@ -491,6 +506,7 @@
 "Cleanup directory or its project markers changed; scan again." = "清理目录或项目标记已变化，请重新扫描。";
 "Cleanup exclusions could not be verified." = "无法核验清理排除配置。";
 "Cleanup execution is unavailable in this development build." = "当前开发版本尚未开放清理执行。";
+"Cleanup execution is unavailable until native Windows verification is complete." = "Windows 原生验收完成前，暂不提供清理执行。";
 "Cleanup finished with issues" = "清理已结束，部分项目需处理";
 "Cleanup preview failed." = "清理预览失败。";
 "Cleanup rules made for your Mac" = "为你的 Mac 定制清理规则";
@@ -1124,6 +1140,7 @@
 "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs." = "本地分析 → 结构化决策 → 必要时大模型。两项服务在同一方案中协作，按需调用。";
 "Local analysis → structured decisions. The main model is off." = "本地分析 → 结构化决策。大模型未启用。";
 "Local data" = "本地数据";
+"Local disk discovery is unavailable on this platform." = "当前平台无法读取本地磁盘列表。";
 "Local instance" = "本机实例";
 "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only." = "本地密钥由用户文件权限保护，不使用钥匙串加密；不会写入连接资料或调查历史。连接测试仅发送合成数据。";
 "Local processing comes first, then fixed-choice decisions. The main model is used only when open-ended understanding is needed." = "优先本地处理，其次使用固定选项决策，仅在需要开放式理解时调用主模型。";
@@ -1328,6 +1345,7 @@
 "No upgradable packages in this result" = "当前结果没有可升级的软件包";
 "No usage record" = "暂无使用记录";
 "No verified application leftovers found." = "未发现已确认的应用残留。";
+"No verified broken shortcuts." = "没有已核实的失效快捷方式。";
 "No verified components available. Scan again or review access notices." = "没有已核验的可用组件，请重新扫描或查看访问提示。";
 "No verified service instances in the scanned sources." = "本次扫描来源中没有已核实的服务实例。";
 "No workspace selected" = "尚未选择扫描位置";
@@ -1409,10 +1427,12 @@
 "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained." = "仅包含当前用户 Library/Caches 下的指定目录。受保护文件仍禁止清理，保留偏好设置、个人数据及缓存目录之外的已下载模型。";
 "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space." = "仅移除此已停止实例的登记，数据库、配置和日志仍保留在磁盘上。此操作不会释放磁盘空间。";
 "Only the versions shown above are included in this review." = "本次审阅仅包含上方列出的软件和目标版本。";
+"Only this broken shortcut is removed. Its target and associated data are kept." = "仅清理此失效快捷方式，保留目标位置和关联数据。";
 "Only this folder and its children are investigated. This does not select files for cleanup." = "仅调查此目录及其子目录。调查范围不改变清理勾选。";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "仅描述此目录，不能选中工作区本身或工作区外的目录。";
 "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained." = "仅包含与此已安装应用的 Bundle ID 精确匹配的缓存。应用数据与应用本身会被保留。";
 "Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices." = "仅启用并扫描此规则，确认删除前仍可调整文件选择。其他草稿保持原选择。";
+"Only this shortcut" = "仅此快捷方式";
 "Only verified trashed items can be restored or permanently removed." = "只有已核验移入废纸篓的项目才能还原或永久删除。";
 "Opam download caches" = "Opam 下载缓存";
 "Open AI Settings" = "打开 AI 设置";
@@ -1479,6 +1499,7 @@
 "Paw API caches" = "Paw API 缓存";
 "Permanent cleanup" = "永久清理";
 "Permanent deletion cannot be undone." = "永久删除后无法撤销。";
+"Permanent deletion completed. Review History for details." = "永久删除已完成，可在操作记录查看详情。";
 "Permanent removal cancelled; inspect the partial result." = "永久删除已取消，请检查已处理的结果。";
 "Permanently Clean Recommended…" = "永久清理推荐项目…";
 "Permanently Clean Selected…" = "永久清理已选项目…";
@@ -1591,6 +1612,7 @@
 "Qoder logs" = "Qoder 日志";
 "Queued" = "排队中";
 "Queued directories" = "目录队列";
+"Queued for review" = "等待核验";
 "Quick Look" = "快速查看";
 "Quick Look thumbnail caches" = "快速查看缩略图缓存";
 "Quit Application First" = "需关闭应用";
@@ -1600,8 +1622,11 @@
 "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted." = "请先退出 Claude。规则不匹配对话存储、设置、凭据、虚拟机及 Agent 会话。";
 "Quit Codex first. Conversation storage, settings, credentials, local workspaces and agent sessions are not targeted." = "请先退出 Codex。规则不匹配对话存储、设置、凭据、本地工作区及 Agent 会话。";
 "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted." = "请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。";
+"Quit Selected Apps & Refresh" = "关闭所选应用并重新检查";
+"Quit Selected Apps and Check Again" = "关闭所选应用并重新检查";
 "Quit Shou" = "退出 Shou";
 "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup." = "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。";
+"Quit affected apps, then scan again." = "请关闭相关应用后重新扫描。";
 "Quit apps to clean their caches?" = "关闭应用以清理缓存？";
 "Quit requested. Scan again after the application closes." = "已请求退出，待应用关闭后请重新扫描。";
 "Quit the affected IDEs first. Reindexing can take time. Local History, plugins, settings, projects and installed tools are not targeted." = "请先退出相关 IDE。重建索引可能需要一些时间。保留本地历史、插件、设置、项目和已安装工具。";
@@ -1676,6 +1701,7 @@
 "Refresh Tools & Services" = "刷新工具与服务";
 "Refresh Versions" = "刷新版本";
 "Refresh to update extension totals after cleanup." = "清理后请刷新，以更新扩展名统计。";
+"Refreshing affected cleanup locations…" = "正在重新检查受影响的项目…";
 "Registered Projects" = "已登记项目";
 "Registered location (unverified)" = "注册位置（未核验）";
 "Registered size" = "注册大小估算";
@@ -1707,6 +1733,7 @@
 "Report an Issue" = "问题反馈";
 "Request Quit" = "请求退出";
 "Requested rule is not enabled in this workspace." = "此工作区尚未启用所请求的规则。";
+"Requesting applications to quit…" = "正在请求应用退出…";
 "Required for uninstall" = "卸载必选";
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "重新安装需要网络或本地包缓存。请保留经过修改、链接、私有或未发布的包。";
 "Rescan" = "重新扫描";
@@ -1808,6 +1835,7 @@
 "Reviewing evidence with Jev…" = "正在通过 Jev 判断证据…";
 "Reviewing evidence with the decision provider…" = "正在通过决策服务复核证据…";
 "Reviewing rebuild evidence with Jev…" = "正在使用 Jev 复核重建证据…";
+"Reviewing…" = "正在核验…";
 "Risk" = "风险";
 "Room for" = "留出空间，";
 "Root Folder" = "根文件夹";
@@ -1850,6 +1878,8 @@
 "Save changes to this configuration file?" = "保存此配置文件的更改？";
 "Save changes to this configuration file? Restart the matching service separately to apply them." = "保存当前配置文件？更改需重启对应服务后生效。";
 "Save results" = "保存结果";
+"Save your work before quitting. Apps that remain open must be closed manually." = "请先保存工作。退出后仍在运行的应用需要手动关闭。";
+"Save your work first. Apps that stay open will remain blocked." = "请先保存工作。仍在运行的应用，其占用文件将保留。";
 "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action." = "请先保存工作。收会请求正常退出，确认关闭后刷新受影响项目。此操作不会删除文件。";
 "Saved Investigations" = "已保存的调查";
 "Saved Rule Selections" = "已保存的规则选择";
@@ -1882,6 +1912,7 @@
 "Scan Only" = "仅扫描";
 "Scan Options" = "扫描选项";
 "Scan Privacy Sources" = "扫描隐私来源";
+"Scan Scope" = "扫描范围";
 "Scan Selected Location" = "扫描所选位置";
 "Scan Startup Items" = "检查启动项";
 "Scan Workspace" = "扫描工作区";
@@ -1908,11 +1939,15 @@
 "Scan to see aggregate counts and availability. Browsing records are never displayed." = "扫描后显示汇总数量和可用状态，不展示浏览记录内容。";
 "Scanning Installed Tools…" = "正在识别已安装工具…";
 "Scanning and Privacy" = "扫描与隐私";
+"Scanning cleanup locations…" = "正在扫描可清理内容…";
 "Scanning disk usage…" = "正在扫描磁盘占用…";
 "Scanning does not delete files." = "扫描不会删除文件。";
 "Scanning is read-only. Uninstalling requires a component review and confirmation." = "扫描仅读取信息。卸载前需要审阅组件并确认。";
 "Scanning only reads application information. Review components before uninstalling." = "扫描仅读取应用信息，卸载前由你审阅关联组件。";
 "Scanning reads file sizes. Nothing is selected or deleted automatically." = "扫描仅统计文件大小，不会自动选择或删除任何内容。";
+"Scanning selected disks…" = "正在扫描所选磁盘…";
+"Scanning selected folders…" = "正在扫描所选文件夹…";
+"Scanning selected folder…" = "正在扫描所选文件夹…";
 "Scanning selected workspace…" = "正在扫描所选工作区…";
 "Scanning this directory…" = "正在扫描此目录…";
 "Scanning uses the enabled rules for this location." = "扫描将使用此位置已启用的规则。";
@@ -1951,6 +1986,9 @@
 "Select All Matching Files" = "选择全部符合条件的文件";
 "Select All in This Folder" = "全选当前文件夹";
 "Select Build Caches" = "选择构建与缓存";
+"Select Disks" = "选择磁盘";
+"Select Disks…" = "选择磁盘…";
+"Select Folders…" = "选择文件夹…";
 "Select Item" = "选择项目";
 "Select Items" = "选择项目";
 "Select Loaded Files" = "选择已载入的文件";
@@ -1969,6 +2007,7 @@
 "Select applications in this view" = "全选当前列表中的可卸载应用";
 "Select available items in this cleanup" = "选择本次清理中可操作的项目";
 "Select available updates" = "选择可用更新";
+"Select broken shortcuts separately from apps that require Trash." = "请将失效快捷方式与仅能移入废纸篓的应用分开选择。";
 "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out." = "请选择具体隐私来源。永久删除无法撤销；删除 Cookie 可能使你退出登录。";
 "Select explicit receipt items and a supported action." = "请明确选择执行记录中的项目及受支持的操作。";
 "Select files or folders to remove" = "选择需要删除的文件或文件夹";
@@ -1993,6 +2032,8 @@
 "Selected items processed. Refresh to measure current disk usage." = "所选项目已处理，刷新以重新统计磁盘占用。";
 "Selected items restored." = "所选项目已恢复。";
 "Selected personal app data will also move to Trash." = "选中的应用个人数据也将移入废纸篓。";
+"Selecting this application requests administrator access when needed." = "选择此应用时，会按需请求管理员授权。";
+"Selection is being checked…" = "正在核验所选项目…";
 "Selections across locations are reviewed together. Filtering keeps your selection." = "不同位置的所选项目将合并审阅，筛选不会清除选择。";
 "Send Feedback…" = "提交反馈…";
 "Sends relative folder names, sizes and your answers to the selected service. File contents and absolute home paths are excluded. Results are saved locally." = "向所选服务发送相对文件夹名称、大小和你的回答，不发送文件内容及个人目录的绝对路径。结果保存在本机。";
@@ -2035,6 +2076,7 @@
 "Shared groups, package receipts and external helpers are not removed. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan." = "保留共享组容器、安装包收据和外部辅助程序。不搜索自定义位置或其他账户；进程检查覆盖当前账户。不存在的关联项目不会加入计划。";
 "Shou Diagnostic Report" = "Shou 诊断报告";
 "Shou cannot restore a system uninstall and does not automatically clean residual files." = "Shou 无法恢复系统卸载，也不会自动清理残留文件。";
+"Shou cannot uninstall itself while it is running." = "Shou 运行期间无法卸载自身。";
 "Shou data directory must be owned by the current user and have mode 0700." = "Shou 数据目录必须归当前用户所有，权限须为 0700。";
 "Shou does not connect to models or host agents. Existing tools use its public CLI. Cleanup always requires confirmation." = "Shou 不接入模型，也不托管 Agent。现有工具可操作公开 CLI。每次清理均需确认。";
 "Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou." = "Shou 已附带 Skill 与 CLI，直接使用现有 Agent，无需在 Shou 中配置模型。";
@@ -2108,8 +2150,10 @@
 "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup." = "部分路径未能完整扫描。仅可审阅已独立核验的清理项。";
 "Some privacy sources could not be inspected. Counts cover only available sources." = "部分隐私来源无法检查，数量仅包含可用来源。";
 "Some records need verification and were kept." = "部分记录需要验证，已予保留。";
+"Some scan locations could not be discovered within the limit." = "部分位置未能在本次扫描限额内完成发现。";
 "Some scheduled task statuses could not be read." = "部分计划任务的状态无法读取。";
 "Some selected items could not be processed. Inspect history." = "部分所选项目未能处理，请查看历史记录。";
+"Some shortcuts could not be verified and are kept." = "部分快捷方式无法核实，已保留。";
 "Some sources could not be read." = "部分来源无法读取。";
 "Some sources were not cleaned" = "部分来源未完成清理";
 "Some startup definitions could not be inspected." = "部分启动项配置无法检查。";
@@ -2132,6 +2176,7 @@
 "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt." = "占用空间并不代表可以删除。确认内容能够重新生成后，可为此目录添加规则。";
 "Spacedrive caches" = "Spacedrive 缓存";
 "Spark caches" = "Spark 缓存";
+"Standard Scan" = "标准扫描";
 "Start Investigation" = "开始调查";
 "Start Over" = "重新开始";
 "Start Scan" = "开始扫描";
@@ -2240,6 +2285,7 @@
 "System RunOnce (64-bit)" = "系统 RunOnce（64 位）";
 "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually." = "无法打开系统设置，请手动前往“隐私与安全性 → 完全磁盘访问权限”。";
 "System Settings…" = "系统设置…";
+"System disk" = "系统磁盘";
 "System package" = "系统应用";
 "System state not checked" = "系统状态未核验";
 "System suggestions cache" = "系统建议索引缓存";
@@ -2248,7 +2294,9 @@
 "System volume usage" = "系统卷占用";
 "System-managed locations are excluded from analysis." = "分析范围不包含系统管理的位置。";
 "TablePlus caches" = "TablePlus 缓存";
+"Target" = "目标";
 "Target Selection" = "目标选择";
+"Target application is missing" = "目标应用已不存在";
 "Target identity or full directory manifest changed." = "目标身份或完整目录清单已变化。";
 "Target inspection is incomplete" = "目标检查不完整";
 "Task Scheduler reports: %@ · %@." = "任务计划程序报告：%@，%@。";
@@ -2389,6 +2437,7 @@
 "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder." = "服务响应超过允许大小。已有证据已保存，请检查连接或缩小目录。";
 "The service result needs verification. Refresh its source; Shou will not retry automatically." = "服务结果待核实，请刷新对应来源。Shou 不会自动重试。";
 "The service stopped, but restart did not finish. Refresh its source before continuing." = "服务已停止，但重启未完成。请刷新来源后再继续。";
+"The shortcut changed. Check this application again." = "快捷方式已变化，请重新检查。";
 "The space analysis index ran out of storage. Free some disk space or scan a smaller folder." = "空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。";
 "The startup scan reached the maximum folder depth." = "启动项扫描已达到文件夹深度上限。";
 "The structured decision API key is unavailable." = "结构化决策服务的 API 密钥不可用。";
@@ -2423,6 +2472,7 @@
 "This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once." = "此操作影响当前选中的数据库。多个 SQL 步骤不构成事务，失败时可能已有部分变更。请求两分钟内有效，仅使用一次。";
 "This analysis cannot be compared. Run two new space analyses of the same folder." = "此分析无法比较，请对同一文件夹重新完成两次空间分析。";
 "This application cannot be safely removed. Review its component details." = "无法安全移除此应用，请查看组件详情。";
+"This application is protected and cannot be uninstalled." = "此应用受系统保护，无法卸载。";
 "This application or one of its files is in use. Close it and review the installation again." = "此应用或其文件正在使用中。请关闭应用后重新审阅安装。";
 "This application requires elevated access. Automatic administrator removal is not supported." = "此应用需要管理员权限，暂不支持自动提权卸载。";
 "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope." = "此操作无法通过 Shou 撤销。各来源分别提交，失败时可能仅部分完成。云端同步副本及其他浏览器数据不在本次范围内。";
@@ -2440,9 +2490,11 @@
 "This folder could not be fully measured" = "此目录未能完整统计";
 "This folder is below the rule's minimum size." = "此文件夹未达到规则要求的最小容量。";
 "This folder is empty." = "此文件夹为空。";
+"This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions." = "此文件夹属于已保存的扫描位置，请扫描该位置以沿用规则和排除设置。";
 "This folder name contains wildcard characters and cannot be represented as an exact rule." = "此目录名包含通配符，当前规则格式无法精确描述该目录。";
 "This folder was not completely scanned." = "此文件夹尚未完整扫描。";
 "This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified." = "当前无法为此安装准备卸载计划，原因可能是受保护、不支持或无法核验。";
+"This installer is not supported. Use Windows Settings to uninstall this application." = "暂不支持此安装程序，请从 Windows 设置卸载此应用。";
 "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn." = "此实例由守护程序管理，需要通过对应的守护程序控制，避免停止后自动重启。";
 "This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete." = "实例正在运行。需要先核实确切配置和恢复方案，核实完成前不会停止该进程。";
 "This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions." = "此实例的工作目录可被组或其他用户写入。进程正在运行，但在目录核实前无法重启。Shou 不会修改其权限。";
@@ -2679,6 +2731,7 @@
 "administrator_permanent_removal_available" = "可授权管理员权限后永久删除";
 "application_activity_unavailable" = "无法确认应用运行状态，已阻止清理。";
 "application_changed" = "应用在检查过程中发生变化。";
+"application_link_target_missing" = "目标应用已不存在；可仅清理这个失效快捷方式。";
 "application_metadata_missing" = "应用安装信息缺失，仅卸载应用本体，保留关联数据。";
 "application_running" = "应用正在运行，请退出后重新扫描。";
 "artifact_evidence_unavailable" = "无法完成产物安全检查，已阻止清理。";
@@ -2715,6 +2768,7 @@
 "macOS handles authentication" = "由 macOS 验证身份";
 "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou." = "macOS 将隐私授权与应用签名关联。使用临时签名的开发版本更新后，可能需要重新授权。如果开关已开启但仍无法访问，请用 − 移除旧 Shou，再用 + 添加当前安装版本，并重新打开 Shou。";
 "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept." = "macOS 可能会要求验证身份。带锁标记的应用将移到废纸篓，并保留其应用数据。";
+"macOS protects this system application from uninstalling." = "此系统应用受 macOS 保护，无法卸载。";
 "macOS regenerates this user cache when the service needs it again." = "macOS 会在相关服务再次需要时重建这些用户缓存。";
 "macOS regenerates thumbnails and help indexes when needed." = "macOS 会按需重建缩略图与帮助索引。";
 "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept." = "需要时，macOS 会请求管理员密码。本次会话复用授权，仅移除所选应用程序包，保留关联数据。";

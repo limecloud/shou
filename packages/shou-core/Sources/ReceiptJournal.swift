@@ -16,6 +16,9 @@ struct ReceiptJournal {
         let manifests: [Reference]
     }
     private var saved: [String: (entries: [FileEntry], reference: Reference)]=[:]
+    private let sources: [String: FileManifestSource]
+
+    init(sources: [String: FileManifestSource] = [:]) { self.sources=sources }
 
     mutating func save(_ receipt: ExecutionReceipt, store: any RecordStore) throws {
         var compact=receipt, references=[Reference]()
@@ -26,10 +29,14 @@ struct ReceiptJournal {
             if let previous=saved[item.id], previous.entries == item.manifest { reference=previous.reference }
             else {
                 let prefix=receipt.id + "_" + String(index)
-                if item.manifest.count > FileManifestRecords.pageSize {
-                    let pages=try FileManifestRecords.pages(item.manifest, prefix: prefix, consume: { page, data in
+                let source=sources[item.id].flatMap { $0.entries == item.manifest ? $0 : nil }
+                if item.manifest.count > FileManifestRecords.pageSize || source != nil {
+                    let persist: (FileManifestPage, Data) throws -> Void = { page, data in
                         try store.write("history-manifests", id: page.id, data: data)
-                    })
+                    }
+                    let pages: [FileManifestPage]
+                    if let source { pages=try FileManifestRecords.copy(source, prefix: prefix, store: store, consume: persist) }
+                    else { pages=try FileManifestRecords.pages(item.manifest, prefix: prefix, consume: persist) }
                     let digest=try Digest.of(pages)
                     reference=Reference(itemId: item.id, id: prefix + "_" + digest.dropFirst(7).prefix(24), count: item.manifest.count, digest: digest, pages: pages)
                 } else {

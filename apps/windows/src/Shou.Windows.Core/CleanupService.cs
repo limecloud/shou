@@ -149,6 +149,8 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
         var execution = new CleanupExecution(1, CleanupRecordCodec.ExecutionId(plan.Id), plan.Id, plan.Digest, plan.Action, now, now,
             CleanupExecutionState.Executing, plan.Items.Select(item => new CleanupItemResult(item.Id, CleanupItemState.Pending)).ToImmutableArray());
         await SaveExecutionAsync(lease, execution, plan);
+        var totalEntries = plan.Items.Sum(item => item.Manifest.Length);
+        var completedEntries = 0;
         for (var index = 0; index < plan.Items.Length; index++)
         {
             var item = plan.Items[index];
@@ -194,10 +196,10 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
             CleanupItemResult result;
             try
             {
-                var completedEntries = execution.Items.Sum(result => result.RemovedEntries);
+                var removedBefore = completedEntries;
                 var observed = await mutation.ApplyAsync(source.Workspace, item, plan.Action,
                     new InlineProgress<CleanupMutationProgress>(value => Report(progress, new(value.Phase, item.Id, value.Path, index, plan.Items.Length,
-                        completedEntries + value.RemovedEntries, plan.Items.Sum(target => target.Manifest.Length)))),
+                        removedBefore + value.RemovedEntries, totalEntries))),
                     plan.Action == CleanupAction.Permanent ? cancellationToken : CancellationToken.None);
                 result = MutationResult(item, plan.Action, observed);
             }
@@ -207,8 +209,9 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
                 result = new(item.Id, CleanupItemState.Unknown, Reason: "native_result_unknown");
             }
             execution = SetItem(execution, index, result);
+            completedEntries += result.RemovedEntries;
             await SaveExecutionAsync(lease, execution, plan);
-            Report(progress, new("recorded", item.Id, item.Path, index + 1, plan.Items.Length, execution.Items.Sum(result => result.RemovedEntries), plan.Items.Sum(target => target.Manifest.Length)));
+            Report(progress, new("recorded", item.Id, item.Path, index + 1, plan.Items.Length, completedEntries, totalEntries));
             if (result.State == CleanupItemState.Unknown)
             {
                 execution = StopRemaining(execution, index + 1, CleanupItemState.Skipped, "verification_required");

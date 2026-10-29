@@ -164,7 +164,7 @@ public struct CleanupReview: Sendable {
             let complete=TreeSnapshot(entries: [], complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: [], caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths).isComplete(at: candidate.relativePath)
             grouped[key, default: []].append(CleanupSource(snapshotId: snapshot.id, workspace: snapshot.workspace, candidate: candidate,
                 fileCount: indexes[snapshot.id]?.nodes[candidate.relativePath]?.fileCount ?? 0,
-                selectable: !snapshot.previewOnly && !candidate.reasons.contains("excluded_descendant") &&
+                selectable: !snapshot.previewOnly && !candidate.reasons.contains("excluded_descendant") && !candidate.reasons.contains("application_running") &&
                     !(snapshot.workspace.protectedRelativePaths ?? []).contains { protected in
                         protected == "." || candidate.relativePath == protected || candidate.relativePath.hasPrefix(protected + "/") || protected.hasPrefix(candidate.relativePath + "/")
                     },

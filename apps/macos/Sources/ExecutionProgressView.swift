@@ -15,7 +15,7 @@ struct ExecutionProgressView: View {
 
     var body: some View {
         OperationProgressView(title: model.executionTitle, symbol: symbol,
-            currentPath: model.executionAction == "privacy" ? "" : model.executionProgress?.path ?? "",
+            currentPath: model.executionAction == "privacy" || model.executionProgress?.stage == "finalizing" ? "" : model.executionProgress?.path ?? "",
             fraction: model.executionProgress?.stage == "preparing" ? nil : model.executionProgress?.fractionCompleted,
             stopRequested: model.stopRequested, stopLabel: model.t("Stop"),
             stoppingLabel: model.t("Stopping at a safe boundary…"), onStop: model.cancel)

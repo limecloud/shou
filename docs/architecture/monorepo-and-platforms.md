@@ -45,6 +45,8 @@ Core defines the small capability interfaces it consumes. Platform implements th
 
 The Windows plan defines its target project tree. Do not create empty abstractions for future features or a second build system around the Swift application.
 
+Noninteractive macOS Keychain queries use `LAContext.interactionNotAllowed`. Per-executable ACLs in the legacy file Keychain and third-party login registrations have no equivalent modern public API. Required calls stay in the Platform `Legacy` C target, with deprecated diagnostics handled only within that implementation file. `SMAppService` manages the calling app itself and cannot replace third-party registration management. Warning fixes must preserve the signing, trust and authorization contracts.
+
 ## Shared assets
 
 The rule schema remains authoritative at `packages/shou-contracts/rule.schema.json`. Built-in rule and known-location JSON are maintained once in `packages/shou-core/Sources/Resources`; the Windows generator selects applicable declarations into `apps/windows/Generated`. Platform applicability identifies data scope and does not assert runtime support.

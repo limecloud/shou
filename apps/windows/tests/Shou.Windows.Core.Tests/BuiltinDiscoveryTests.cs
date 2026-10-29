@@ -383,4 +383,36 @@ public sealed class BuiltinDiscoveryTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => fixture.Locations.ScanRegisteredAsync(fixture.Scans, [chosen.Id], new(), stop.Token));
         Assert.Single(fixture.Store.Records);
     }
+    [Fact]
+    public async Task StandardDiscoveryIncludesArbitraryNamesAndCustomScopeDoesNotScanOldRoots()
+    {
+        var f = new Fixture();
+        f.Project("客户工程"); f.Project("Other");
+        var standard = await f.Locations.PrepareAsync(true);
+        Assert.Contains(standard.Workspaces, root => root.Path == Home.Append("客户工程"));
+        var custom = await f.Locations.PrepareAsync(true, scope: new(CleanupScanMode.Folders, [Home.Append("Other")]));
+        Assert.Single(custom.Workspaces);
+        Assert.Equal(Home.Append("Other"), custom.Workspaces[0].Path);
+        var saved = await f.Configuration.ReadAsync();
+        Assert.Contains(saved.Workspaces, root => root.Path == Home.Append("客户工程"));
+    }
+
+    [Fact]
+    public async Task DiscoverySplitsAroundSavedPoliciesAndRejectsNestedScopeOrInjectedChildren()
+    {
+        var f = new Fixture();
+        f.Files.Add(Home.Append("Projects").Value, EntryKind.Directory);
+        f.Project("Projects/Saved"); f.Project("Projects/Sibling");
+        await f.Configuration.AddWorkspaceAsync(Home.Append("Projects/Saved"), "saved");
+        f.Files.InjectedChildren.Add(new(WindowsPath.Parse("D:/injected"), new(1, new string('f', 32), Owner), EntryKind.Directory, 0, 0,
+            DateTimeOffset.UnixEpoch, DateTimeOffset.UnixEpoch));
+        var found = await f.Locations.DiscoverAsync(true);
+        Assert.Contains(found.Locations, root => root.Path == Home.Append("Projects/Saved") && root.WorkspaceId is not null);
+        Assert.Contains(found.Locations, root => root.Path == Home.Append("Projects/Sibling") && root.State == "available");
+        Assert.DoesNotContain(found.Locations, root => root.Path == WindowsPath.Parse("D:/injected"));
+        Assert.Contains(found.Locations, root => root.Issue == "source_changed");
+        var nested = await f.Locations.DiscoverAsync(true, scope: new(CleanupScanMode.Folders, [Home.Append("Projects/Saved/target")]));
+        Assert.DoesNotContain(nested.Locations, root => root.State == "available");
+        Assert.Contains(nested.Locations, root => root.Issue == "saved_scope_required");
+    }
 }

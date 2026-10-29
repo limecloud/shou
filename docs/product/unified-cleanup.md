@@ -76,8 +76,8 @@ sequenceDiagram
 
 ## User experience
 
-1. Open Smart Cleanup and choose Start Scan. The adjacent menu offers Scan Common Locations and Scan Locations. Scanning only shows results and never deletes automatically.
-2. Shou finds fixed cache roots, conventional project collections and previously included folders. It applies built-in and enabled personal rules and selects eligible results.
+1. Open Smart Cleanup and choose Start Scan. The split menu offers Standard Scan, Select Disks and Select Folders. Scanning only shows results and never deletes automatically.
+2. Shou finds fixed cache roots, actual home-directory project collections and previously included folders. It applies built-in and enabled personal rules and selects eligible results.
 3. Review and select exact paths in the results. Click the prominent red Delete Permanently button once to confirm the current scope, validate and execute without a second dialog. Trash remains an explicit alternative; actual outcomes stay itemized.
 
 The first page presents original folder artwork, a soft gradient and one primary scan action, followed by illustrated links to existing application/project, storage and rule pages. Its secondary row offers optional AI investigation; the native toolbar retains disk capacity. Scan Locations is an optional view in Smart Cleanup and Settings. Include Folder supports several extra folders at once and remembers them for later scans. Advanced rule previews can still open one folder's detail view, with a return action to Smart Cleanup.
@@ -90,9 +90,9 @@ Large Files lists matching files across folders; Space Analysis provides directo
 
 ## Automatic discovery
 
-`ProjectLocations` probes a fixed list of conventional project collections under the current user's home: `Developer`, `Projects`, `Code`, `code`, `dev`, `src`, `repos`, `GitHub`, and the `Developer`, `Projects`, `Code`, `dev`, `GitHub` children of `Documents`. This is directory metadata discovery, not recursive enumeration of the entire home folder. Windows discovery awaits a verified platform adapter.
+Standard scanning combines fixed caches, saved locations and actual immediate non-hidden home directories. Project discovery is no longer limited to conventional English directory names. Runtime-data ancestors and application directories are excluded. Saved nested policies win; unregistered siblings are discovered separately. Bounded metadata enumeration rejects links and injected non-child paths and reports incomplete coverage.
 
-Additional hints include Workspace/Workspaces, Development, Source/Sources, Git/Repos, corresponding supported collections under Documents and Projects/Code/dev under Desktop. Projects in other locations, including external volumes, participate after Include Folder. A collection is scanned recursively, so its nested repositories do not need individual registration.
+The split scan control offers Standard Scan, Select Disks and Select Folders. Folder scans use only the requested scope. Selecting a child of an existing saved scope currently asks for a rescan of that saved location, preserving its policies without silently expanding the request. Disk scans retain system standard coverage and validate extra local volumes against a fresh platform inventory; inaccessible registration roots can be split into immediate directories. These are rule-based cleanup scans, not full-disk storage measurement. macOS permits multiple folders; the Windows picker currently selects one at a time. Windows scans the prepared locations only, not all historical registrations; native WinUI acceptance remains pending.
 
 The shipped project catalog covers Rust targets, Node dependencies and framework caches, Node build/dist outputs, Swift debug/release products, Python bytecode/test/type-checker caches, Gradle build/cache directories, Maven targets, Flutter build/.dart_tool directories and CMake build directories. Exact local manifests are required for generic build/cache names. All trusted project rules check Git tracking and project activity, including binary-only targets. Generated-source exceptions require the matching tool's verified output layout; handwritten sources, project manifests, credentials and tracked contents remain protected. Unsupported layouts remain visible with blocking reasons instead of acquiring deletion authority from their names.
 
@@ -110,7 +110,7 @@ On macOS, matching directories outside automatic cleanup remain manually selecta
 
 An incomplete directory offers Continue Scanning This Directory in its details and context menu. This read-only operation measures that exact target with a separate finite budget, under the original root, enabled rules, exclusions and safety checks. Progress identifies the directory and supports Stop. A successful result replaces only that directory's displayed evidence; other results and selections remain, and the refreshed target requires a new selection. Cancellation or failure keeps the previous result. Configuration or identity changes require a fresh scan. Completing one directory does not mark its parent collection complete, and a target that still exceeds the limit remains blocked.
 
-Previously registered roots are reused with their exact logical references, rule bindings and exclusions. A conventional suggestion overlapping a registered root is skipped, preserving that root's policy instead of introducing a broader overlapping scope. Consequently, an explicitly registered child can limit automatic discovery of its parent collection. Users can include another nonoverlapping collection when needed.
+Previously registered roots retain their exact logical references, bindings and exclusions. Suggestions containing a saved child are split to discover unregistered siblings without changing the saved policy. Budget limits remain explicit coverage gaps.
 
 All roots are prepared before the first snapshot is captured so every snapshot uses the same configuration digest. `Workspace` remains an internal identity and rule-scope record, and a compatible CLI entity. It is not a prerequisite screen or a separate user-managed product feature.
 
@@ -216,6 +216,12 @@ sequenceDiagram
   Engine->>Store: Record per-item outcomes
   Engine-->>UI: Results and history
 ```
+
+## Applications using cleanup files
+
+macOS marks running applications beside affected rules and displays an inline list above results. No application is selected by default. Quit Selected Apps & Refresh creates a fresh exact-identity Core plan and requests a normal exit through Platform. Users save work first; refusal or timeout keeps related items blocked. Only affected roots are rescanned, selections use fresh evidence, deletion never resumes automatically, and no additional cleanup confirmation is introduced.
+
+Windows has an independent Core closing port and bounded Platform Restart Manager discovery for files in the current candidates. It does not infer ownership from process names. Normal-close implementation verifies PID, start time, executable, user, session and non-elevated state. Its independent public closing gate remains closed pending native acceptance; the UI lists identified users with manual-quit and rescan guidance. Services, windowless processes and unverifiable users remain incomplete observations. This does not grant cleanup authority.
 
 ## CLI and verification
 

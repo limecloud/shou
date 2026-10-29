@@ -44,7 +44,9 @@ private final class PackageFixtureRunner: PackageUpdateRunning, @unchecked Senda
         case .installed(.homebrew):
             let row: [String:Any] = ["name": malformedToken ? "--all" : "node", "full_name": malformedToken ? "--all" : "node", "desc":"Generated runtime", "pinned":pinned,
                                     "installed":[["version":versions["node"]!, "installed_on_request":true]]]
-            json=["formulae":duplicate ? [row,row] : [row], "casks":[["token":"cursor", "name":["Cursor"], "installed":versions["cursor"]!]]]
+            json=["formulae":duplicate ? [row,row] : [row], "casks":[["token":"cursor", "name":["Cursor"], "installed":versions["cursor"]!,
+                "artifacts":[["app":["Cursor.app"], "target":"/Applications/Cursor.app"],
+                    ["binary":["cursor"], "target":"/Applications/NotAnApp.app"], ["app":["Unsafe.app"], "target":"/Applications/../Unsafe.app"]]]]]
         case .outdated(.homebrew):
             json=["formulae":versions["node"] == "20.1.0" ? [["name":"node", "current_version":"20.2.0"]] : [],
                   "casks":versions["cursor"] == "1.0.0" ? [["name":"cursor", "current_version":"2.0.0"]] : []]
@@ -73,6 +75,7 @@ func packageUpdatesFreezeExactSelectionsAndVerifyInstalledVersions() async throw
     let runner=PackageFixtureRunner(), service=PackageUpdateService(runner: runner)
     let inventory=try await service.inventory(.homebrew)
     try expect(inventory.items.count == 2 && inventory.items.allSatisfy(\.canUpgrade))
+    try expect(inventory.items.first { $0.token == "cursor" }?.iconApplicationPaths == ["/Applications/Cursor.app"])
     let plan=try await service.prepare(inventory, selectedIDs: Set(inventory.items.map(\.id)))
     let results=try await service.execute(plan)
     try expect(results.count == 2 && results.allSatisfy { $0.state == "succeeded" })

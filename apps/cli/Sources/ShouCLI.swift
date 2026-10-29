@@ -251,7 +251,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.21.0"
+    static let version = "0.22.0"
     static func main() async {
         if let status=await NativeSystemAuthorizationWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         #if canImport(Darwin) || canImport(Glibc)
@@ -388,7 +388,7 @@ enum Terminal {
             let directory=ProcessInfo.processInfo.environment["SHOU_DATA_DIR"].map { URL(fileURLWithPath: $0) } ?? LocalRecordStore.defaultDirectory
             let store=try LocalRecordStore(directory: directory)
             let fs=NativeFileSystem()
-            let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence(readWorkerExecutable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL))
+            let engine=ShouEngine(store: store, filesystem: fs, applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence(readWorkerExecutable: URL(fileURLWithPath: CommandLine.arguments[0]).standardizedFileURL), cleanupLocations: NativeCleanupLocations())
             if try await AICLI.run(args, engine: engine, store: store) { return }
             if try await PrivacyCLI.run(args, engine: engine) { return }
             var value: JSONValue = .null

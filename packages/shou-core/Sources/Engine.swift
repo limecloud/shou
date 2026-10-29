@@ -4,6 +4,7 @@ public actor ShouEngine {
     let store: any RecordStore
     let filesystem: any PlatformFileSystem
     let homeDirectory: URL
+    let cleanupLocations: (any CleanupLocationReading)?
     private let applicationActivity: any ApplicationActivityChecking
     private let artifactEvidence: any ArtifactEvidenceChecking
     let now: @Sendable () -> Date
@@ -12,16 +13,17 @@ public actor ShouEngine {
     var lastRecordMaintenance: Date?
     func scanWorker(workspaceId: String, budget: ScanBudget, progress: @escaping @Sendable (ScanProgress) -> Void) async throws -> ScanSnapshot {
         let worker=ShouEngine(store: store, filesystem: filesystem, applicationActivity: applicationActivity, artifactEvidence: artifactEvidence,
-            applicationCatalog: applicationCatalog, uninstallEvidence: uninstallEvidence, homeDirectory: homeDirectory, now: now)
+            applicationCatalog: applicationCatalog, uninstallEvidence: uninstallEvidence, homeDirectory: homeDirectory, cleanupLocations: cleanupLocations, now: now)
         return try await worker.scanPreparedWorkspace(workspaceId: workspaceId, budget: budget, progress: progress)
     }
     private func scanPreparedWorkspace(workspaceId: String, budget: ScanBudget, progress: @escaping @Sendable (ScanProgress) -> Void) throws -> ScanSnapshot {
         lastRecordMaintenance=now()
         return try scan(workspaceId: workspaceId, scope: .cleanup, budget: budget, progress: progress)
     }
-    public init(store: any RecordStore, filesystem: any PlatformFileSystem, applicationActivity: any ApplicationActivityChecking = UnavailableApplicationActivity(), artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), applicationCatalog: any ApplicationCatalogReading = UnavailableApplicationCatalog(), uninstallEvidence: any ApplicationUninstallChecking = UnavailableApplicationUninstallEvidence(), homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, now: @escaping @Sendable () -> Date = { Date() }) {
+    public init(store: any RecordStore, filesystem: any PlatformFileSystem, applicationActivity: any ApplicationActivityChecking = UnavailableApplicationActivity(), artifactEvidence: any ArtifactEvidenceChecking = UnavailableArtifactEvidence(), applicationCatalog: any ApplicationCatalogReading = UnavailableApplicationCatalog(), uninstallEvidence: any ApplicationUninstallChecking = UnavailableApplicationUninstallEvidence(), homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, cleanupLocations: (any CleanupLocationReading)? = nil, now: @escaping @Sendable () -> Date = { Date() }) {
         self.store=store; self.filesystem=filesystem; self.applicationActivity=applicationActivity; self.artifactEvidence=artifactEvidence; self.applicationCatalog=applicationCatalog; self.uninstallEvidence=uninstallEvidence
         self.homeDirectory=homeDirectory
+        self.cleanupLocations=cleanupLocations
         self.now=now
     }
     public func configuration() throws -> Configuration {

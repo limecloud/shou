@@ -167,7 +167,7 @@ public sealed partial class MainWindow : Window
                     if (cleanup is null)
                     {
                         operations ??= new();
-                        cleanup = new(SharedCleanupReview(), operations);
+                        cleanup = new(SharedCleanupReview(), operations, windowHandle: WinRT.Interop.WindowNative.GetWindowHandle(this));
                         cleanup.BusyChanged += (_, _) => UpdateNavigation();
                         cleanup.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
                         cleanup.DestinationRequested += async nextDestination => await ShowPageAsync(nextDestination);
@@ -191,7 +191,7 @@ public sealed partial class MainWindow : Window
                     if (projects is null)
                     {
                         operations ??= new();
-                        projects = new(SharedCleanupReview(), operations, projectsOnly: true);
+                        projects = new(SharedCleanupReview(), operations, projectsOnly: true, windowHandle: WinRT.Interop.WindowNative.GetWindowHandle(this));
                         projects.BusyChanged += (_, _) => UpdateNavigation();
                         projects.LocationsPrepared += (_, _) => configuration?.InvalidateConfiguration();
                         projects.DestinationRequested += async nextDestination => await ShowPageAsync(nextDestination);

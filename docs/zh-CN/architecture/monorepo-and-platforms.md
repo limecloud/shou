@@ -45,6 +45,8 @@ Core 声明自身需要的最小能力接口，Platform 实现这些接口，应
 
 Windows 目标工程树由实施方案定义。按实际能力增加接口与工程，不为未来功能预建空抽象，也不围绕 Swift 应用增加另一套构建系统。
 
+macOS 的无交互钥匙串查询使用 `LAContext.interactionNotAllowed`。旧文件钥匙串的逐可执行文件 ACL 和第三方登录项注册没有同等现代公共 API，必要调用集中于 Platform 内的 `Legacy` C 目标，只在该实现文件局部处理弃用诊断。不能以只管理调用应用自身的 `SMAppService` 替换第三方登录项能力，也不能借修复 warning 改变签名、信任范围或授权合同。
+
 ## 共享资产
 
 规则 Schema 的唯一来源为 `packages/shou-contracts/rule.schema.json`。内置规则与扫描位置 JSON 统一维护于 `packages/shou-core/Sources/Resources`，Windows 生成器筛选适用声明到 `apps/windows/Generated`。平台适用字段只描述数据范围，不代表对应平台已经支持运行。

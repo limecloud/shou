@@ -3,6 +3,35 @@ import ShouCore
 #if os(macOS)
 import AppKit
 import Darwin
+import OSLog
+#endif
+
+#if os(macOS)
+/// Kernel birth identity remains readable across the caller/administrator boundary.
+struct ApplicationProcessIdentity: Equatable {
+    let uid: UInt32
+    let started: Int
+    let microseconds: Int
+
+    static func read(_ pid: pid_t) throws -> Self? {
+        var info=kinfo_proc(), size=MemoryLayout<kinfo_proc>.stride
+        var query=[Int32(CTL_KERN), Int32(KERN_PROC), Int32(KERN_PROC_PID), pid]
+        let result=query.withUnsafeMutableBufferPointer { sysctl($0.baseAddress, UInt32($0.count), &info, &size, nil, 0) }
+        let nativeError=errno
+        if result == 0 && size == 0 { return nil }
+        guard result == 0, size == MemoryLayout<kinfo_proc>.stride, info.kp_proc.p_pid == pid else {
+            throw ShouError("application_activity_unavailable", "Application processes and helpers could not be verified.",
+                details: ["stage": "process_identity", "pid": String(pid), "native_error": String(nativeError)])
+        }
+        if Int(info.kp_proc.p_stat) == Int(SZOMB) { return nil }
+        let birth=info.kp_proc.p_un.__p_starttime
+        guard birth.tv_sec > 0, (0..<1_000_000).contains(birth.tv_usec) else {
+            throw ShouError("application_activity_unavailable", "Application processes and helpers could not be verified.",
+                details: ["stage": "process_birth", "pid": String(pid)])
+        }
+        return Self(uid: info.kp_eproc.e_ucred.cr_uid, started: birth.tv_sec, microseconds: Int(birth.tv_usec))
+    }
+}
 #endif
 
 public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
@@ -18,6 +47,15 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         #endif
     }
     public func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
+        #if os(macOS)
+        if getuid() != 0, NativeSystemAuthorization.shared.administratorState == .authorized,
+           (try? NativeSystemAuthorizationWorker.validateApplicationPath(application.path,
+                roots: ["/Applications", homeDirectory.appendingPathComponent("Applications").path], verifyFilesystem: false)) != nil {
+            let reply=try NativeSystemAuthorization.shared.perform(.applicationActivity, path: application.path)
+            guard let facts=reply.applicationFacts, facts.currentUser == currentUser else { throw AuthorizationChannel.failure() }
+            return facts
+        }
+        #endif
         guard let value=try facts(for: [application])[application.id] else { throw unavailable() }
         return value
     }
@@ -26,11 +64,11 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         if applications.isEmpty { return [:] }
         let deadline=ContinuousClock.now.advanced(by: .seconds(3))
         let needed=proc_listpids(UInt32(PROC_UID_ONLY), currentUser, nil, 0)
-        guard needed > 0, needed <= 262_144 else { throw unavailable() }
+        guard needed > 0, needed <= 262_144 else { throw unavailable("process_list_size", nativeError: errno) }
         var pids=[pid_t](repeating: 0, count: Int(needed) / MemoryLayout<pid_t>.stride + 256)
         let capacity=Int32(pids.count * MemoryLayout<pid_t>.stride)
         let returned=pids.withUnsafeMutableBytes { proc_listpids(UInt32(PROC_UID_ONLY), currentUser, $0.baseAddress, capacity) }
-        guard returned > 0, returned < capacity, returned % Int32(MemoryLayout<pid_t>.stride) == 0 else { throw unavailable() }
+        guard returned > 0, returned < capacity, returned % Int32(MemoryLayout<pid_t>.stride) == 0 else { throw unavailable("process_list_read", nativeError: errno) }
         let runningIdentifiers=Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         var executablePaths=[String]()
         for pid in pids.prefix(Int(returned) / MemoryLayout<pid_t>.stride) where pid > 0 {
@@ -53,7 +91,7 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     private func executablePath(for pid: pid_t, deadline: ContinuousClock.Instant) throws -> String? {
         for attempt in 0...1 {
             if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
-            guard ContinuousClock.now < deadline else { throw unavailable() }
+            guard ContinuousClock.now < deadline else { throw unavailable("process_deadline", pid: pid) }
             var buffer=[CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
             errno=0
             let count=buffer.withUnsafeMutableBytes { proc_pidpath(pid, $0.baseAddress, UInt32($0.count)) }
@@ -68,9 +106,9 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
             if pathError == ENOENT { return try cachedExecutablePath(for: pid) }
             if kill(pid, 0) != 0 {
                 if errno == ESRCH { return nil }
-                throw unavailable()
+                throw unavailable("process_probe", pid: pid, nativeError: errno)
             }
-            guard pathError == ESRCH else { throw unavailable() }
+            guard pathError == ESRCH else { throw unavailable("process_path", pid: pid, nativeError: pathError) }
             var info=kinfo_proc(), size=MemoryLayout<kinfo_proc>.stride
             var query=[Int32(CTL_KERN), Int32(KERN_PROC), Int32(KERN_PROC_PID), pid]
             let result=query.withUnsafeMutableBufferPointer {
@@ -91,23 +129,19 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         throw unavailable()
     }
     private func cachedExecutablePath(for pid: pid_t) throws -> String? {
-        func identity() throws -> proc_bsdinfo? {
-            var info=proc_bsdinfo()
-            let size=Int32(MemoryLayout<proc_bsdinfo>.stride)
-            if proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &info, size) != size {
-                if kill(pid, 0) != 0 && errno == ESRCH { return nil }
-                throw unavailable()
-            }
-            guard info.pbi_pid == UInt32(pid), info.pbi_uid == currentUser else { throw unavailable() }
-            return info.pbi_status == UInt32(SZOMB) ? nil : info
+        func identity() throws -> ApplicationProcessIdentity? {
+            guard let info=try ApplicationProcessIdentity.read(pid) else { return nil }
+            guard info.uid == currentUser else { throw unavailable("process_owner", pid: pid) }
+            return info
         }
         guard let before=try identity() else { return nil }
         var query=[Int32(CTL_KERN), Int32(KERN_PROCARGS2), pid]
         var count=0
         let sized=query.withUnsafeMutableBufferPointer { sysctl($0.baseAddress, UInt32($0.count), nil, &count, nil, 0) }
+        let sizeError=errno
         guard sized == 0, count > MemoryLayout<Int32>.size, count <= 2_097_152 else {
             if try identity() == nil { return nil }
-            throw unavailable()
+            throw unavailable("cached_path_size", pid: pid, nativeError: sizeError)
         }
         var buffer=[UInt8](repeating: 0, count: count)
         // KERN_PROCARGS2 also returns arguments and environment. Retain only its
@@ -116,16 +150,18 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         let result=query.withUnsafeMutableBufferPointer { query in
             buffer.withUnsafeMutableBytes { sysctl(query.baseAddress, UInt32(query.count), $0.baseAddress, &count, nil, 0) }
         }
+        let readError=errno
         guard let after=try identity() else { return nil }
-        guard result == 0, before.pbi_start_tvsec == after.pbi_start_tvsec,
-              before.pbi_start_tvusec == after.pbi_start_tvusec,
-              count > MemoryLayout<Int32>.size, count <= buffer.count else { throw unavailable() }
+        guard result == 0, before == after,
+              count > MemoryLayout<Int32>.size, count <= buffer.count else {
+            throw unavailable("cached_path_read", pid: pid, nativeError: readError)
+        }
         let path: String?=buffer.withUnsafeBytes { bytes in
             let prefix=bytes[MemoryLayout<Int32>.size..<count].prefix(while: { $0 != 0 })
             guard !prefix.isEmpty, prefix.count < 4 * Int(MAXPATHLEN) else { return nil }
             return String(bytes: prefix, encoding: .utf8)
         }
-        guard let path, path.hasPrefix("/") else { throw unavailable() }
+        guard let path, path.hasPrefix("/") else { throw unavailable("cached_path_format", pid: pid) }
         let resolved=URL(fileURLWithPath: path).resolvingSymlinksInPath().standardizedFileURL.path
         return resolved.hasPrefix("/var/") ? "/private" + resolved : resolved
     }
@@ -202,7 +238,14 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         throw ShouError("unsupported_platform", "Group container discovery is currently available only on macOS.")
         #endif
     }
-    private func unavailable() -> ShouError {
-        ShouError("application_activity_unavailable", "Application processes and helpers could not be verified.")
+    private func unavailable(_ stage: String = "process_inspection", pid: Int32? = nil, nativeError: Int32? = nil) -> ShouError {
+        var details=["stage": stage, "current_user": String(currentUser)]
+        if let pid { details["pid"]=String(pid) }
+        if let nativeError { details["native_error"]=String(nativeError) }
+        #if os(macOS)
+        Logger(subsystem: "dev.limecloud.shou", category: "application-activity")
+            .error("Activity verification failed at \(stage, privacy: .public), pid \(pid ?? -1), errno \(nativeError ?? 0), caller \(getuid()), target user \(currentUser)")
+        #endif
+        return ShouError("application_activity_unavailable", "Application processes and helpers could not be verified.", details: details)
     }
 }

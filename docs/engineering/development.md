@@ -77,7 +77,7 @@ Use generated disposable files for native mutation tests. Do not scan or modify 
 
 ## Package and release
 
-`sh "scripts/build-macos.sh" release universal` builds both macOS architectures into a bundle. `python3 "scripts/install-macos.py" --check` verifies a prepared local bundle without installing it. Local installation, signed distribution and public updates are separate actions. Follow [release instructions](releasing.md) for signing, archives, feed validation and publication.
+`sh "scripts/build-macos.sh" release universal` builds both macOS architectures into a bundle. Normal local installations use Release; Debug requires an explicit debugging need, must be recorded in the receipt and is not a production scan-performance baseline. `python3 "scripts/install-macos.py" --check` verifies a prepared local bundle without installing it. Local installation, signed distribution and public updates are separate actions. Follow [release instructions](releasing.md) for signing, archives, feed validation and publication.
 
 ## Windows development boundary
 

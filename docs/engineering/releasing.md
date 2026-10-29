@@ -6,7 +6,7 @@ English | [简体中文](../zh-CN/engineering/releasing.md)
 
 Set both `CFBundleShortVersionString` and `CFBundleVersion` in `apps/macos/Info.plist` and `ShouCLI.version` to the release version. The Git tag must be `v` followed by that version. The build number increases with every release so Sparkle can compare versions.
 
-The release produces a universal macOS DMG, app ZIP, independent CLI archive, signed `appcast.xml` and `SHA256SUMS`. macOS 14 is the deployment minimum. macOS ZIP and DMG contain the same app; the CLI archive includes its rules, schema and localization resources. v0.21.0 also includes self-contained Windows x64/ARM64 portable preview ZIPs. CI stages macOS npm packages; registry publication is recorded separately.
+The release produces a universal macOS DMG, app ZIP, independent CLI archive, signed `appcast.xml` and `SHA256SUMS`. macOS 14 is the deployment minimum. macOS ZIP and DMG contain the same app; the CLI archive includes its rules, schema and localization resources. v0.22.0 also includes self-contained Windows x64/ARM64 portable preview ZIPs. CI stages macOS npm packages; registry publication is recorded separately.
 
 ## Signing
 
@@ -19,9 +19,9 @@ Sparkle update signatures are separate from Apple Developer ID signing and notar
 ## Verification and publication
 
 1. Run `sh scripts/test.sh --native-trash-purge` and review the actual logs. This explicitly enables native catalog cleanup, restoration, and permanent removal of generated fixtures. Default catalog checks restore without purging; some CLI checks independently remove their own generated fixtures permanently. No checks may target personal data.
-2. Run `sh scripts/release-macos.sh v0.21.0 /absolute/path/to/private-key-file`. This builds both CPU architectures, tests the release core and packaged CLI, inspects the DMG/ZIP/CLI archives, checks signatures, and rejects modified update archives and feeds.
+2. Run `sh scripts/release-macos.sh v0.22.0 /absolute/path/to/private-key-file`. This builds both CPU architectures, tests the release core and packaged CLI, inspects the DMG/ZIP/CLI archives, checks signatures, and rejects modified update archives and feeds.
 3. Review all source, documentation, runtime resources, and release notes before committing. Obtain any user-required submission approval before commit, push, or publication.
-4. Push the version tag. `.github/workflows/release.yml` runs all tests, including native cleanup and restoration of over 100,000 files, and release packaging on Apple Silicon and Intel, then builds and validates the universal release. Only successful jobs reach publication. Manual reruns require an existing tag.
+4. Push the version tag. `.github/workflows/release.yml` runs all tests, including native cleanup and restoration of over 100,000 files, optimized authorization-index transfer/catalog regressions, and release packaging on Apple Silicon and Intel, then builds and validates the universal release. Only successful jobs reach publication. Manual reruns require an existing tag.
 5. The publication job checks transferred SHA-256 checksums, stages assets in a draft, and publishes after upload. It refuses to replace a published release. Confirm the final release downloads and check updates from an installed app.
 
 Windows release jobs build WinUI and the independent CLI from the exact source commit for x64 and ARM64. x64 runs Core/Presentation/native Platform/CLI checks and verifies window startup/normal closing; ARM64 cross-publishing does not establish ARM64 runtime acceptance. `package-windows.py` checks PE architecture, self-contained .NET 10, Windows App SDK resources, versions, dependency metadata, archive bytes and SHA-256. Each ZIP includes a source-bound `BUILD.json` with capability limits and actual native-check status. Both Windows builds and all macOS jobs must succeed before assets/checksums are combined and published.
@@ -32,7 +32,7 @@ Manual preparation can set `prepare_only=true` and `source_commit` to a full 40-
 
 ## npm channel
 
-The public CLI package remains `@limecloud/shou`. v0.21.0 references matching `shou-darwin-arm64` and `shou-darwin-x64` platform packages. Follow the [npm distribution plan](npm-distribution.md) for platform selection, native tarball tests and publication order. npm manages the CLI channel independently of desktop updates. Windows packages join a future version after native acceptance.
+The public CLI package remains `@limecloud/shou`. v0.22.0 references matching `shou-darwin-arm64` and `shou-darwin-x64` platform packages. Follow the [npm distribution plan](npm-distribution.md) for platform selection, native tarball tests and publication order. npm manages the CLI channel independently of desktop updates. Windows packages join a future version after native acceptance.
 
 ## Desktop update behavior
 
@@ -44,9 +44,9 @@ Windows queries the fixed official GitHub latest stable release endpoint only af
 
 For local installation rehearsal, run `python3 scripts/prepare-update-acceptance.py /path/to/Shou.app --fixture-key`. It creates isolated app identities/data and a temporary test key, then serves a signed localhost update. Only the two test copies receive the temporary public key; the private key is removed after signing without accessing production keys or the keychain. By default the installed copy is assigned version `0.0.9`, exercising the update chain with the same candidate build. Pass `--installed-app /path/to/previous/Shou.app` to establish actual previous-release compatibility. The original explicit private-key-file invocation remains available. Production feed delivery and “up to date” behavior still require checks after publication.
 
-## v0.21.0 release target
+## v0.22.0 release target
 
-This release uses version `0.21.0`: Git tag `v0.21.0`, macOS app, Swift CLI, `@limecloud/shou` and both macOS platform packages report that version. The Windows version is owned by `apps/windows/Directory.Build.props` and also reports `0.21.0`. GitHub distributes portable previews; Windows npm staging remains private development output. Version changes require rebuilding native payloads; changing npm metadata alone is insufficient.
+This release uses version `0.22.0`: Git tag `v0.22.0`, macOS app, Swift CLI, `@limecloud/shou` and both macOS platform packages report that version. The Windows version is owned by `apps/windows/Directory.Build.props` and also reports `0.22.0`. GitHub distributes portable previews; Windows npm staging remains private development output. Version changes require rebuilding native payloads; changing npm metadata alone is insufficient.
 
 [SYNC.md](../../SYNC.md) and the [Windows implementation stages](windows-native-plan.md#implementation-stages) own Windows scope and gaps. Windows 11 x64 and ARM64 each require actual runtime, controlled generated fixtures, WinUI, signing, clean installation and update evidence. Mac checks and cross-publishing cannot establish full native support; portable previews expose only verified builds and explicitly limited capabilities. Any unavailable capabilities must remain accurately described in documentation and capability discovery; a version number does not establish support.
 

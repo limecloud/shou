@@ -226,7 +226,10 @@ internal sealed class SoftwareUpdatesPage : UserControl, IDisposable
                 description.Children.Add(new TextBlock { Text = package.InstalledVersion + " → " + (package.AvailableVersion ?? text.Get("Unknown")), TextWrapping = TextWrapping.Wrap });
                 description.Children.Add(new TextBlock { Text = "WinGet, " + package.Id + ", " + text.Get(package.Scope == ManagedPackageScope.User ? "Current-user installation" : "Machine installation"), TextWrapping = TextWrapping.Wrap });
                 if (!package.CanUpgrade) description.Children.Add(new TextBlock { Text = Reason(package.Reason), TextWrapping = TextWrapping.Wrap });
-                var check = new CheckBox { Content = description, IsChecked = selection.Contains(package.Id), IsEnabled = !busy && observed.Complete && package.CanUpgrade, HorizontalContentAlignment = HorizontalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 4, 0, 8) };
+                var row = new Grid { ColumnSpacing = 12 };
+                row.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); row.ColumnDefinitions.Add(new() { Width = new GridLength(1, GridUnitType.Star) });
+                row.Children.Add(SoftwarePackageIcon.Create(package.Id)); Grid.SetColumn(description, 1); row.Children.Add(description);
+                var check = new CheckBox { Content = row, IsChecked = selection.Contains(package.Id), IsEnabled = !busy && observed.Complete && package.CanUpgrade, HorizontalContentAlignment = HorizontalAlignment.Stretch, HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 4, 0, 8) };
                 AutomationProperties.SetAutomationId(check, "applications.updates.package." + package.Id);
                 check.Click += (_, _) => { if (check.IsChecked == true) selection.Add(package.Id); else selection.Remove(package.Id); UpdateAction(); };
                 rows.Children.Add(check);

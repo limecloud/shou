@@ -1,13 +1,14 @@
 import Foundation
 
 public enum UninstallComponentKind: String, Codable, CaseIterable, Sendable {
-    case application, caches, logs, preferences, applicationSupport, savedState, container, groupContainer, webKit, httpStorage
-    public var requiresUserDataConsent: Bool { ![.application, .caches, .logs].contains(self) }
+    case application, shortcut, caches, logs, preferences, applicationSupport, savedState, container, groupContainer, webKit, httpStorage
+    public var isApplicationRoot: Bool { self == .application || self == .shortcut }
+    public var requiresUserDataConsent: Bool { ![.application, .shortcut, .caches, .logs].contains(self) }
     public func associatedPath(bundleIdentifier: String, homeDirectory: URL) -> String? {
         let directory: String
         let suffix: String
         switch self {
-        case .application: return nil
+        case .application, .shortcut: return nil
         case .caches: directory="Caches"; suffix=""
         case .logs: directory="Logs"; suffix=""
         case .preferences: directory="Preferences"; suffix=".plist"
@@ -22,7 +23,7 @@ public enum UninstallComponentKind: String, Codable, CaseIterable, Sendable {
     }
 }
 
-public struct ApplicationUninstallFacts: Sendable {
+public struct ApplicationUninstallFacts: Codable, Sendable {
     public let currentUser: UInt32
     public let running: Bool
     public let currentApplication: Bool
@@ -74,7 +75,7 @@ public struct UninstallComponent: Codable, Sendable, Identifiable {
     public let warnings: [String]
     public let eligible: Bool
     public let requiresUserDataConsent: Bool
-    public var requiresAdministrator: Bool { kind == .application && warnings.contains("administrator_authorization_required") }
+    public var requiresAdministrator: Bool { kind.isApplicationRoot && warnings.contains("administrator_authorization_required") }
     public var requiresTrash: Bool {
         (requiresAdministrator && !warnings.contains("administrator_permanent_removal_available")) ||
             (kind == .application && warnings.contains("multiply_linked_content"))
@@ -96,7 +97,7 @@ public struct ApplicationUninstallReview: Codable, Sendable, Identifiable {
     public let budget: ScanBudget
     public var requiresAdministrator: Bool { components.contains(where: \.requiresAdministrator) }
     public var requiresTrash: Bool { components.contains(where: \.requiresTrash) }
-    public var keepsAssociatedData: Bool { requiresAdministrator || requiresTrash }
+    public var keepsAssociatedData: Bool { requiresAdministrator || requiresTrash || components.contains { $0.kind == .shortcut } }
 }
 public struct ApplicationUninstallPlan: Codable, Sendable, Identifiable {
     public let id: String
@@ -136,13 +137,19 @@ enum ReceiptOrigins {
         try PathPattern.validate(item.relativePath)
         if ["application_uninstall", "application_permanent_uninstall", "application_batch_uninstall", "application_batch_permanent_uninstall", "application_orphan_cleanup"].contains(receipt.operation ?? "") {
             guard let origin=item.uninstallOrigin,
-                  (origin.bundleIdentifier.map(validIdentifier) == true || (origin.kind == .application && origin.bundleIdentifier == nil)),
+                  (origin.bundleIdentifier.map(validIdentifier) == true || (origin.kind.isApplicationRoot && origin.bundleIdentifier == nil)),
                   !item.relativePath.contains("/"), !item.relativePath.contains("*"), !item.relativePath.contains("?"),
                   item.originalPath == origin.parentPath + "/" + item.relativePath,
                   origin.parentIdentity.kind == "directory", origin.parentIdentity.path == "." else {
                 throw ShouError("store_corrupt", "Application receipt origin is invalid.")
             }
-            if origin.kind == .application {
+            if origin.kind == .shortcut {
+                guard item.originalPath == origin.applicationPath, item.relativePath.lowercased().hasSuffix(".app"),
+                      origin.bundleIdentifier == nil, item.manifest.count == 1, item.manifest.first?.path == ".", item.manifest.first?.kind == "symlink",
+                      receipt.operation?.contains("permanent") == true else {
+                    throw ShouError("store_corrupt", "Application shortcut receipt scope is invalid.")
+                }
+            } else if origin.kind == .application {
                 guard item.originalPath == origin.applicationPath, item.relativePath.lowercased().hasSuffix(".app"), item.manifest.first?.kind == "directory" else {
                     throw ShouError("store_corrupt", "Application receipt does not identify an application bundle.")
                 }
@@ -159,7 +166,7 @@ enum ReceiptOrigins {
                     throw ShouError("store_corrupt", "Application receipt is outside its exact association.")
                 }
             }
-            return Origin(path: origin.parentPath, identity: origin.parentIdentity, applicationParent: origin.kind == .application)
+            return Origin(path: origin.parentPath, identity: origin.parentIdentity, applicationParent: origin.kind.isApplicationRoot)
         }
         guard receipt.operation == nil || receipt.operation == "permanent_cleanup", item.uninstallOrigin == nil, item.originalPath == receipt.workspace.path + "/" + item.relativePath else {
             throw ShouError("store_corrupt", "Receipt does not identify its original workspace item.")
@@ -203,7 +210,7 @@ extension ShouEngine {
         let review=try uninstallRecord(ApplicationUninstallReview.self, collection: "application-reviews", id: reviewId)
         guard !componentIds.isEmpty, Set(componentIds).count == componentIds.count else { throw ShouError("invalid_argument", "Select explicit application components.") }
         let selected=review.components.filter { componentIds.contains($0.id) }
-        guard selected.count == componentIds.count, selected.filter({ $0.kind == .application }).count == 1,
+        guard selected.count == componentIds.count, selected.filter({ $0.kind.isApplicationRoot }).count == 1,
               selected.allSatisfy({ $0.eligible && (!$0.kind.requiresUserDataConsent || includeUserData) }) else {
             throw ShouError("confirmation_required", "Select the application and eligible components; personal data requires separate consent.")
         }
@@ -212,7 +219,7 @@ extension ShouEngine {
             throw ShouError("plan_stale", "Application review expired or configuration changed; review again.")
         }
         var plan=ApplicationUninstallPlan(id: Codec.id("uninstall"), application: review.application, createdAt: now(), expiresAt: now().addingTimeInterval(900),
-            configurationDigest: review.configurationDigest, components: selected.sorted { ($0.kind == .application ? 1 : 0, $0.path) < ($1.kind == .application ? 1 : 0, $1.path) },
+            configurationDigest: review.configurationDigest, components: selected.sorted { ($0.kind.isApplicationRoot ? 1 : 0, $0.path) < ($1.kind.isApplicationRoot ? 1 : 0, $1.path) },
             includesUserData: includeUserData, budget: review.budget, state: "ready", executionId: nil, digest: "")
         // Omit the legacy default so older persisted Trash-plan digests remain valid.
         if action != "trash" { plan.action=action }
@@ -249,8 +256,8 @@ extension ShouEngine {
                   try plan.configurationDigest == Digest.of(configuration()),
                   try plan.digest == plan.calculatedDigest(), !plan.components.isEmpty,
                   Set(plan.components.map(\.id)).count == plan.components.count,
-                  plan.components.filter({ $0.kind == .application }).count == 1,
-                  plan.components.last?.kind == .application,
+                  plan.components.filter({ $0.kind.isApplicationRoot }).count == 1,
+                  plan.components.last?.kind.isApplicationRoot == true,
                   plan.components.allSatisfy({ !$0.kind.requiresUserDataConsent || plan.includesUserData }) else {
                 throw ShouError("plan_stale", "Application plan expired or has an invalid selection; preview again.")
             }
@@ -262,7 +269,7 @@ extension ShouEngine {
             components.append(contentsOf: plan.components.map { (plan, $0) })
         }
         guard action != "trash" || filesystem.supportsTrash else { throw ShouError("capability_unavailable", "Native Trash is required for application removal.") }
-        let first=plans[0], appOrigin=try requireUninstallOrigin(first.components.first { $0.kind == .application })
+        let first=plans[0], appOrigin=try requireUninstallOrigin(first.components.first { $0.kind.isApplicationRoot })
         let workspace=Workspace(id: first.application.id, rootRef: "application-uninstall", path: appOrigin.parentPath,
             identity: appOrigin.parentIdentity, exclusions: [], addedAt: first.createdAt)
         let items=components.map { value in
@@ -281,6 +288,17 @@ extension ShouEngine {
             guard component.eligible, try Digest.of(configuration()) == plan.configurationDigest,
                   try applicationCatalog.application(at: plan.application.path) == plan.application else {
                 throw ShouError("plan_stale", "Application or configuration changed; preview again.")
+            }
+            if component.kind == .shortcut {
+                let snapshot=try filesystem.applicationShortcut(component.path)
+                let origin=try requireUninstallOrigin(component)
+                guard action == "permanent", plan.components.count == 1, plan.application.identity.kind == "symlink",
+                      component.manifest == [snapshot.identity], snapshot.parentIdentity.sameObject(as: origin.parentIdentity),
+                      !uninstallExcluded(target: component.path, manifest: component.manifest, configuration: try configuration(), caseSensitive: filesystem.caseSensitivePaths),
+                      !store.protectedPaths.contains(where: { Self.uninstallOverlaps(component.path, $0) }), !plan.application.isSystemApplication else {
+                    throw ShouError("plan_stale", "The shortcut changed. Check this application again.")
+                }
+                return nil
             }
             let facts=try uninstallEvidence.facts(for: plan.application)
             guard !facts.running, !facts.currentApplication else { throw ShouError("application_running", "Quit the application and its helpers before uninstalling.") }
@@ -328,6 +346,7 @@ extension ShouEngine {
         if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
         let app=try applicationCatalog.application(at: path), config=try configuration()
+        if app.identity.kind == "symlink" { return try reviewApplicationShortcut(app, configuration: config, budget: budget) }
         let inventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
         var common: [String]=[]
         if app.isSystemApplication { common.append("protected_application") }
@@ -340,7 +359,7 @@ extension ShouEngine {
             if checked.currentApplication { common.append("protected_application") }
         } catch { facts=nil; common.append("application_activity_unavailable") }
         var remaining=budget.maxEntries, components: [UninstallComponent]=[]
-        for kind in UninstallComponentKind.allCases {
+        for kind in UninstallComponentKind.allCases where kind != .shortcut {
             if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
             if kind != .application && identifier == nil { continue }
             let targets: [String]
@@ -428,6 +447,9 @@ extension ShouEngine {
         }
     }
     private func validateAuthorizedApplicationSelection(_ components: [UninstallComponent], action: String) throws {
+        guard !components.contains(where: { $0.kind == .shortcut }) || (action == "permanent" && components.count == 1) else {
+            throw ShouError("permission_denied", "A broken shortcut can only be removed on its own; its target and associated data are kept.")
+        }
         guard !components.contains(where: \.requiresAdministrator) || (components.count == 1 &&
             (action == "trash" ? filesystem.supportsAuthorizedApplicationTrash : filesystem.supportsAuthorizedApplicationPermanentRemoval)) else {
             throw ShouError("permission_denied", "Applications requiring administrator access must be removed on their own. Associated app data is kept.")

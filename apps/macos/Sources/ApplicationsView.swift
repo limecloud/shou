@@ -10,13 +10,13 @@ private enum ApplicationFilter: String, CaseIterable {
         case .ready: "Ready to Uninstall"
         case .running: "Running"
         case .administrator: "Authentication Required"
-        case .protected: "Unavailable"
+        case .protected: "Cannot Uninstall"
         }
     }
     func matches(_ item: ApplicationSummary) -> Bool {
         switch self {
         case .all: true
-        case .ready: ["ready", "trash-required"].contains(item.status)
+        case .ready: ["ready", "admin-required", "trash-required", "shortcut"].contains(item.status)
         case .running: item.status == "running"
         case .administrator: item.status == "admin-required"
         case .protected: ["protected", "unavailable"].contains(item.status)
@@ -165,7 +165,7 @@ struct ApplicationsView: View {
             Text(model.t("Estimated Size")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             Text(model.bytes(session.items.reduce(0) { $0 + ($1.allocatedBytesEstimate ?? 0) })).font(ShouType.body.weight(.semibold)).foregroundStyle(ShouPalette.accent).monospacedDigit()
             Spacer()
-            if session.scanning || session.preparing {
+            if session.scanning {
                 VStack(alignment: .leading, spacing: 5) {
                     OperationProgressMeter(fraction: session.applicationCount > 0 ? Double(session.processedCount) / Double(session.applicationCount) : nil,
                         label: session.stopRequested ? model.t("Stopping…") : session.applicationCount > 0 ? String(format: model.t("%lld of %lld applications checked"), locale: model.language.locale, session.processedCount, session.applicationCount) : model.t("Reviewing application components…"), compact: true)
@@ -199,7 +199,7 @@ struct ApplicationsView: View {
     private func columns(compact: Bool) -> some View {
         HStack(spacing: 12) {
             SelectionCheckbox(state: selectedVisible == 0 ? .off : selectedVisible == eligible.count ? .on : .mixed,
-                enabled: !model.busy && !eligible.isEmpty, label: model.t("Select applications in this view"), identifier: "applications.selectAll") {
+                enabled: !model.busy && session.canChangeSelection && !eligible.isEmpty, label: model.t("Select applications in this view"), identifier: "applications.selectAll") {
                 session.selectVisible(items, app: model)
             }.frame(width: 20, height: 20)
             Color.clear.frame(width: 32, height: 1)
@@ -221,28 +221,49 @@ struct ApplicationsView: View {
         }.buttonStyle(.plain).accessibilityIdentifier("applications.sort." + label)
     }
     private var footer: some View {
+        VStack(alignment: .leading, spacing: 8) {
+        if !session.runningSelectionIDs.isEmpty {
+            Text(model.t("Save your work before quitting. Apps that remain open must be closed manually."))
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+        }
         HStack(spacing: 12) {
-            Text(String(format: model.t("%lld applications selected"), session.selectedAppIDs.count)).font(ShouType.body)
+            Text(String(format: model.t("%lld items selected"), session.selectedAppIDs.count)).font(ShouType.body)
             ShouDivider(vertical: true).frame(height: 18)
             Text(model.t("Estimated Removal")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             Text(model.bytes(session.selectedBytes)).font(ShouType.body.weight(.semibold)).monospacedDigit()
             Spacer()
+            if session.preparing {
+                Text(model.t("Selection is being checked…")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            }
             if !session.selectedAppIDs.isEmpty {
                 Button(model.t("Clear Selection")) { session.clear(app: model) }.disabled(model.busy).accessibilityIdentifier("applications.clear")
             }
-            if session.selectionRequiresTrash {
+            if !session.runningSelectionIDs.isEmpty {
+                Button(model.t("Quit Selected Apps and Check Again")) { session.closeSelected(app: model) }
+                    .buttonStyle(.borderedProminent).disabled(model.busy || session.preparing)
+                    .accessibilityIdentifier("applications.quitSelected")
+            } else if session.selectionHasShortcuts {
+                Button(role: .destructive) { session.removeSelected(app: model, action: "permanent") } label: {
+                    Label(model.t("Delete Permanently"), systemImage: "trash").font(ShouType.body.weight(.semibold))
+                        .frame(minWidth: ShouDesign.primaryActionMinWidth, minHeight: ShouDesign.primaryActionContentMinHeight)
+                }.buttonStyle(.borderedProminent).tint(ShouPalette.danger).controlSize(.large)
+                    .disabled(model.busy || session.preparing || session.selectionRequiresTrash || session.hasChanges)
+                    .help(model.t(session.selectionRequiresTrash ? "Select broken shortcuts separately from apps that require Trash." : "Permanent deletion cannot be undone."))
+                    .accessibilityIdentifier("applications.uninstall")
+            } else if session.selectionRequiresTrash {
                 Button(role: .destructive) { session.removeSelected(app: model, action: "trash") } label: {
                     Label(model.t("Move to Trash"), systemImage: "trash")
                         .font(ShouType.body.weight(.semibold))
                         .frame(minWidth: ShouDesign.primaryActionMinWidth, minHeight: ShouDesign.primaryActionContentMinHeight)
                 }.buttonStyle(.borderedProminent).tint(ShouPalette.danger).controlSize(.large)
-                    .disabled(model.busy || session.selectedAppIDs.isEmpty || session.hasChanges)
+                    .disabled(model.busy || session.preparing || session.selectedAppIDs.isEmpty || session.hasChanges)
                     .accessibilityIdentifier("applications.uninstall")
             } else {
-            CleanupActionButton(model: model, enabled: !model.busy && !session.selectedAppIDs.isEmpty && !session.hasChanges,
+            CleanupActionButton(model: model, enabled: !model.busy && !session.preparing && !session.selectedAppIDs.isEmpty && !session.hasChanges,
                 clean: { session.removeSelected(app: model, action: "permanent") },
                 trash: { session.removeSelected(app: model, action: "trash") }, identifier: "applications.uninstall")
             }
+        }
         }.padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 12).background(.bar)
     }
     private var coverage: some View {
@@ -288,11 +309,13 @@ private struct ApplicationUninstallRow: View {
     private var components: [UninstallComponent] { session.reviews[app.id]?.components.filter { $0.status != "missing" } ?? [] }
     private var chosen: Set<String> { session.selection[app.id] ?? [] }
     private var selectionState: NSControl.StateValue {
+        if session.pendingSelectionIDs.contains(app.id) || session.runningSelectionIDs.contains(app.id) { return .on }
         if chosen.isEmpty { return .off }
         return components.filter { session.componentSelectable($0, appID: app.id) }
             .allSatisfy { chosen.contains($0.id) } ? .on : .mixed
     }
     private var identitySubtitle: String {
+        if summary.issues.contains("application_link_target_missing") { return model.t("Target application is missing") }
         let identifier=app.bundleIdentifier ?? model.t("Identifier unavailable")
         let version=app.version.map { ", " + model.t("Version") + " " + $0 } ?? ""
         return identifier + version
@@ -315,7 +338,7 @@ private struct ApplicationUninstallRow: View {
     private var summaryRow: some View {
         HStack(spacing: 12) {
             SelectionCheckbox(state: selectionState,
-                enabled: !model.busy && (session.selectable(summary) || session.isSelected(app.id)), label: model.t("Select") + " " + app.name, identifier: "applications.select." + app.id) {
+                enabled: !model.busy && session.canChangeSelection && (session.selectable(summary) || session.isSelected(app.id)), label: model.t("Select") + " " + app.name, identifier: "applications.select." + app.id) {
                 session.toggle(summary, app: model)
             }.frame(width: 20, height: 24)
             Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)).resizable().frame(width: ShouDesign.workspaceIconSize, height: ShouDesign.workspaceIconSize).accessibilityHidden(true)
@@ -342,23 +365,42 @@ private struct ApplicationUninstallRow: View {
             }
     }
     @ViewBuilder private var status: some View {
-        if summary.status == "admin-required" {
-            Button { session.toggle(summary, app: model) } label: {
-                Label(model.t("Authentication Required"), systemImage: "lock.fill").font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
-            }.buttonStyle(.plain).disabled(model.busy || session.hasChanges)
-                .help(model.t("Select this application to review removal. macOS may ask you to authenticate after confirmation."))
+        if session.reviewingID == app.id {
+            HStack(spacing: 5) {
+                ProgressView().controlSize(.small)
+                Text(model.t(model.scanAccess.authorizingAdministrator ? "Authenticating…" : "Reviewing…"))
+            }.font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                .accessibilityIdentifier("applications.reviewing." + app.id)
+        } else if session.pendingSelectionIDs.contains(app.id) {
+            Text(model.t("Queued for review")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+        } else if summary.status == "admin-required" {
+            Group {
+                if model.scanAccess.administratorState == .authorized {
+                    authorizationLabel
+                } else {
+                    Button { session.authorize(summary, app: model) } label: { authorizationLabel }
+                        .buttonStyle(.plain).disabled(model.busy || session.hasChanges)
+                }
+            }
+                .help(model.t("Selecting this application requests administrator access when needed."))
                 .accessibilityIdentifier("applications.authentication." + app.id)
         } else {
             statusLabel
         }
+    }
+    private var authorizationLabel: some View {
+        Label(model.t(model.scanAccess.administratorState == .authorized ? "Authorized for this session" : "Authentication Required"),
+              systemImage: model.scanAccess.administratorState == .authorized ? "lock.open" : "lock.fill")
+            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
     }
     private var statusLabel: some View {
         let title: String=switch summary.status {
         case "ready": "Ready to Uninstall"
         case "running": "Quit Application First"
         case "trash-required": "Move to Trash"
+        case "shortcut": "Broken Shortcut"
         case "protected": "Protected"
-        default: summary.issues.contains("application_activity_unavailable") ? "Status Unverified" : "Unavailable"
+        default: summary.issues.contains("application_link_target_missing") ? "Broken Shortcut" : summary.issues.contains("linked_application") ? "Application Shortcut" : summary.issues.contains("application_activity_unavailable") ? "Status Unverified" : "Cannot Uninstall"
         }
         return Text(model.t(title)).font(ShouType.caption).foregroundStyle(summary.status == "ready" ? ShouPalette.secondary : ShouPalette.warning)
             .padding(.horizontal, 7).padding(.vertical, 4)
@@ -374,16 +416,33 @@ private struct ApplicationUninstallRow: View {
             }
             ApplicationUpdateRow(model: model, application: app)
             ShouDivider()
+            if summary.issues.contains("application_link_target_missing") {
+                Text(model.t("Only this broken shortcut is removed. Its target and associated data are kept."))
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            }
+            if let error=session.reviewErrors[app.id] {
+                HStack(alignment: .top) {
+                    Text(error).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+                    Spacer()
+                    Button(model.t("Check Again")) { session.recheck(summary, app: model) }.disabled(model.busy || session.preparing)
+                }
+            }
+            if summary.status == "protected" {
+                Text(model.t(app.isSystemApplication ? "macOS protects this system application from uninstalling." : "Shou cannot uninstall itself while it is running."))
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            }
             if !summary.issues.isEmpty {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(summary.issues, id: \.self) { issue in
-                            Text(model.t(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+                            if issue != "application_link_target_missing" || !session.selectable(summary) {
+                                Text(model.t(issue)).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+                            }
                         }
                     }
                     Spacer()
                     if summary.issues.contains("application_activity_unavailable") {
-                        Button(model.t("Check Again")) { session.scan(app: model) }.disabled(model.busy)
+                        Button(model.t("Check Again")) { session.recheck(summary, app: model) }.disabled(model.busy || session.preparing)
                             .accessibilityIdentifier("applications.recheck." + app.id)
                     }
                 }
@@ -395,8 +454,8 @@ private struct ApplicationUninstallRow: View {
                     Spacer()
                     Button(model.t("Review Disk Access…")) { model.scanAccess.showingSetup=true }.disabled(model.busy)
                         .accessibilityIdentifier("applications.access." + app.id)
-                    Button(model.t("Check Again")) { session.scan(app: model) }.disabled(model.busy)
-                    Button(model.t("Authorize…")) { model.scanAccess.authorizeAdministrator { session.scan(app: model) } }
+                    Button(model.t("Check Again")) { session.recheck(summary, app: model) }.disabled(model.busy || session.preparing)
+                    Button(model.t("Authorize…")) { session.authorize(summary, app: model) }
                         .disabled(model.busy || model.scanAccess.authorizingAdministrator)
                 }
             }
@@ -404,7 +463,8 @@ private struct ApplicationUninstallRow: View {
                 HStack {
                     Text(model.t("Quit the application and its helpers before uninstalling.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                     Spacer()
-                    Button(model.t("Request Quit")) { session.quit(summary, app: model) }.disabled(model.busy)
+                    Button(model.t("Request Quit")) { session.quit(summary, app: model) }.disabled(model.busy || session.preparing)
+                    Button(model.t("Check Again")) { session.recheck(summary, app: model) }.disabled(model.busy || session.preparing)
                 }
             }
             if summary.status == "admin-required" {
@@ -412,11 +472,18 @@ private struct ApplicationUninstallRow: View {
                     Label(model.t("Administrator Access"), systemImage: "lock.fill")
                         .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     Spacer(minLength: 12)
-                    Button(model.t("Authorize…")) { model.scanAccess.authorizeAdministrator { session.scan(app: model) } }
-                        .disabled(model.busy || model.scanAccess.authorizingAdministrator || model.scanAccess.administratorState == .authorized)
-                        .accessibilityIdentifier("applications.authorize." + app.id)
+                    if model.scanAccess.administratorState == .authorized {
+                        Text(model.t("Authorized for this session")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    } else {
+                        Button(model.t("Authorize…")) { session.authorize(summary, app: model) }
+                            .disabled(model.busy || model.scanAccess.authorizingAdministrator)
+                            .accessibilityIdentifier("applications.authorize." + app.id)
+                    }
                     Button(model.t(session.isSelected(app.id) ? "Deselect" : "Select for Removal")) { session.toggle(summary, app: model) }
                         .disabled(model.busy || session.hasChanges).accessibilityIdentifier("applications.selectForRemoval." + app.id)
+                }
+                if let error=model.scanAccess.administratorError {
+                    Text(model.t(error)).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                 }
             }
             if session.reviewingID == app.id {
@@ -451,7 +518,7 @@ private struct ApplicationUninstallRow: View {
                 Text(component.path).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(2).truncationMode(.middle).textSelection(.enabled)
                 ForEach(component.reasons + component.warnings, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
             }.frame(maxWidth: .infinity, alignment: .leading)
-            Text(model.t(component.kind == .application ? "Required for uninstall" : component.requiresUserDataConsent ? "Personal data" : component.eligible ? "Optional" : "Unavailable"))
+            Text(model.t(component.kind == .shortcut ? "Only this shortcut" : component.kind == .application ? "Required for uninstall" : component.requiresUserDataConsent ? "Personal data" : component.eligible ? "Optional" : "Unavailable"))
                 .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.horizontal, 7).padding(.vertical, 4).background(ShouPalette.inset, in: Capsule())
             Text((component.status == "partial" ? "≥ " : "") + model.bytes(component.allocatedBytesEstimate)).font(ShouType.caption).monospacedDigit().frame(width: 88, alignment: .trailing)
         }.padding(.vertical, 7)
@@ -459,6 +526,7 @@ private struct ApplicationUninstallRow: View {
     private func componentTitle(_ kind: UninstallComponentKind) -> String {
         switch kind {
         case .application: "Application bundle"
+        case .shortcut: "Broken Shortcut"
         case .caches: "App caches"
         case .logs: "App logs"
         case .preferences: "Preferences"

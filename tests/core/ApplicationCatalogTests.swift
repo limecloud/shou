@@ -133,7 +133,7 @@ func nativeApplicationCatalogSupportsNestedSingleSegmentAndLinkedApplications() 
     try FileManager.default.createSymbolicLink(at: link, withDestinationURL: fixture.workspace.appendingPathComponent("Missing.app"))
     try expectThrows { try reader.measureSummary(for: alias, budget: .init(), progress: { _ in }) }
     let missing=try reader.read(options: .init())
-    try expect(missing.items.count == 2 && missing.issues.contains { $0.path == link.path && $0.code == "io_error" })
+    try expect(missing.items.count == 2 && missing.issues.contains { $0.path == link.path && $0.code == "application_link_target_missing" })
     for identifier in ["ynote-desktop", "App", "dev.valid-app.name"] { try expect(ApplicationDefinition.isValidBundleIdentifier(identifier)) }
     for identifier in ["", ".", "..", "../escape", "/absolute", "dev..app", "a\\b", "a*b", "a\nb", String(repeating: "a", count: 256)] {
         try expect(!ApplicationDefinition.isValidBundleIdentifier(identifier))

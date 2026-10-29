@@ -251,7 +251,7 @@ func storageAnalysisProtectsRootsAndDetectsChanges() async throws {
     try expect(result.state == "partial" && result.items[0].state == "failed")
     try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("project/target/artifact.bin"), encoding: .utf8) == "changed after review")
     try await expectThrows { try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
-    var file=try require(scan.tree.entries.first { $0.path == "project/target/artifact.bin" }); file.owner=0
+    var file=try require(try await engine.storageDirectory(scanId: scan.id, path: "project/target").children.first { $0.entry.path == "project/target/artifact.bin" }?.entry); file.owner=0
     for (root,path) in [("/", "System"), ("/System/Volumes/Data", "Users"), ("/", "Users/coso"), ("/", "Users/coso/.ssh"), ("/", "Users/coso/Library/CloudStorage"), ("/", "Applications")] {
         try expect(StorageRemovalPolicy.reason(root: root, path: path, entry: file, home: "/Users/coso", protectedPaths: []) != nil)
     }

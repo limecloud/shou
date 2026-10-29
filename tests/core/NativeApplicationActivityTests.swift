@@ -1,6 +1,10 @@
 import Foundation
 import ShouCore
+#if DEBUG
+@testable import ShouPlatform
+#else
 import ShouPlatform
+#endif
 #if os(macOS)
 import Darwin
 
@@ -60,6 +64,18 @@ private func nativeActivityKernelStatus(_ pid: pid_t) throws -> Int {
     return Int(info.kp_proc.p_stat)
 }
 #endif
+
+func nativeApplicationActivityReadsKernelIdentityAcrossUsers() throws {
+    #if DEBUG && os(macOS)
+    let own=try require(ApplicationProcessIdentity.read(getpid()))
+    var bsd=proc_bsdinfo()
+    try expect(proc_pidinfo(getpid(), PROC_PIDTBSDINFO, 0, &bsd, Int32(MemoryLayout<proc_bsdinfo>.stride)) == MemoryLayout<proc_bsdinfo>.stride)
+    try expect(own.uid == getuid() && own.started == bsd.pbi_start_tvsec && own.microseconds == bsd.pbi_start_tvusec)
+    let system=try require(ApplicationProcessIdentity.read(1))
+    try expect(system.uid == 0 && system.started > 0)
+    try expect(try ApplicationProcessIdentity.read(1) == system)
+    #endif
+}
 
 func nativeApplicationActivitySkipsOnlyKernelVerifiedZombies() throws {
     #if os(macOS)

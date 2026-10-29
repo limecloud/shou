@@ -19,14 +19,21 @@ import SwiftUI
         return administratorState == .authorized ? "Authorized for this session" : "Administrator authorization required"
     }
     func authorizeAdministrator(then action: (() -> Void)? = nil) {
-        guard !authorizingAdministrator else { return }
+        Task { if await ensureAdministratorAuthorization(allowRecovery: true) { action?() } }
+    }
+    func ensureAdministratorAuthorization(allowRecovery: Bool = false) async -> Bool {
+        guard !authorizingAdministrator else { return false }
         authorizingAdministrator=true; setupError=nil; administratorError=nil
-        Task {
-            defer { authorizingAdministrator=false; administratorState=NativeSystemAuthorization.shared.administratorState }
-            do {
-                try await Task.detached(priority: .userInitiated) { try NativeSystemAuthorization.shared.authorizeAdministrator() }.value
-                action?()
-            } catch { administratorError=(error as? ShouError)?.code ?? "authorization_unavailable"; setupError=administratorError }
+        defer { authorizingAdministrator=false; administratorState=NativeSystemAuthorization.shared.administratorState }
+        do {
+            try await Task.detached(priority: .userInitiated) {
+                if allowRecovery { try NativeSystemAuthorization.shared.authorizeAdministrator() }
+                else { try NativeSystemAuthorization.shared.prepareAdministratorAuthorization() }
+            }.value
+            return true
+        } catch {
+            administratorError=(error as? ShouError)?.code ?? "authorization_unavailable"; setupError=administratorError
+            return false
         }
     }
     private var pendingScan: (() -> Void)?

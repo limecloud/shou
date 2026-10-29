@@ -142,12 +142,17 @@ extension ShouEngine {
 
     /// Register all existing roots before capturing evidence so the registrations
     /// themselves cannot invalidate earlier snapshots in this batch.
-    public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), maxConcurrentLocations: Int = 4, progress: @escaping @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) async throws -> SystemScanResult {
+    public func scanKnownLocations(includeProjects: Bool = false, budget: ScanBudget = ScanBudget(), maxConcurrentLocations: Int = 4, scope: CleanupScanScope = .standard, progress: @escaping @Sendable (KnownLocation, ScanProgress) -> Void = { _, _ in }) async throws -> SystemScanResult {
         try validateKnownLocationBudget(budget)
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
         guard (1...4).contains(maxConcurrentLocations) else { throw ShouError("invalid_argument", "Cleanup scan concurrency must be between one and four.") }
         maintainDerivedRecordsIfNeeded()
-        let locations=try knownLocations() + (includeProjects ? projectLocations() : [])
+        let locations: [KnownLocation]
+        switch scope {
+        case .standard: locations=try knownLocations() + (includeProjects ? projectLocations() : [])
+        case .folders: locations=try projectLocations(scope: scope)
+        case .volumes: locations=try knownLocations() + projectLocations(scope: scope)
+        }
         var registered: [(KnownLocation, Workspace)]=[]
         var issues=locations.compactMap { location in
             location.availabilityIssue.map { KnownLocationIssue(locationId: location.id, code: "access_unavailable", message: $0) }

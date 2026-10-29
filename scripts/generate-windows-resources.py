@@ -65,6 +65,25 @@ def resources():
     outputs = {'Illustrations/' + name: data for name, data in illustrations.items()}
     outputs['Illustrations/brand-mascot.png'] = (ROOT / 'assets/brand/shou-mascot.png').read_bytes()
     outputs['Illustrations/brand-icon.png'] = (ROOT / 'assets/brand/shou-icon-1024.png').read_bytes()
+    icon_root = ROOT / 'assets/software-icons'
+    icon_sources = json.loads((icon_root / 'sources.json').read_text())
+    icon_catalog = json.loads((icon_root / 'catalog.json').read_text())
+    for mapping in ['tokens', 'winget']:
+        if any(name not in icon_sources['icons'] for name in icon_catalog[mapping].values()):
+            raise ValueError('Unknown software icon in ' + mapping)
+    for name, record in icon_sources['icons'].items():
+        for extension in ['svg', 'png']:
+            source = icon_root / (name + '.' + extension)
+            if hashlib.sha256(source.read_bytes()).hexdigest() != record[extension + '_sha256']:
+                raise ValueError('Software icon digest differs: ' + name)
+            inputs.append(str(source.relative_to(ROOT)))
+        if icon_catalog['paths'].get(name) != ET.fromstring((icon_root / (name + '.svg')).read_bytes()).find('{http://www.w3.org/2000/svg}path').attrib['d']:
+            raise ValueError('Software icon path differs: ' + name)
+        outputs['SoftwareIcons/' + name + '.png'] = (icon_root / (name + '.png')).read_bytes()
+    for name in ['catalog.json', 'sources.json', 'LICENSE.md']:
+        source = icon_root / name
+        inputs.append(str(source.relative_to(ROOT)))
+        outputs['SoftwareIcons/' + name] = source.read_bytes()
     for source_locale, windows_locale in [('en', 'en-US'), ('zh-Hans', 'zh-CN')]:
         entries = {}
         tree = ET.Element('root')

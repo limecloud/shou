@@ -231,6 +231,9 @@
   <data name="s0bcdbdb6141a974e27567d1e" xml:space="preserve">
     <value>为自己的文件夹，定制清理方式。</value>
   </data>
+  <data name="s9dab3a361c3acbe82817ff70" xml:space="preserve">
+    <value>所选磁盘已不可用。</value>
+  </data>
   <data name="s89fc8a07b42c3f6b6a737730" xml:space="preserve">
     <value>无法安全读取某项启动注册。</value>
   </data>
@@ -393,8 +396,14 @@
   <data name="sb8f358b6904a3920d812f930" xml:space="preserve">
     <value>不会自动请求管理员权限，当前无法卸载需要提权的应用。</value>
   </data>
+  <data name="saecc36cfa4031de97896646f" xml:space="preserve">
+    <value>卸载此应用需要管理员授权。</value>
+  </data>
   <data name="s15b0f4273b0890833240a35f" xml:space="preserve">
     <value>需要管理员授权</value>
+  </data>
+  <data name="s2622e05380698992e8303dac" xml:space="preserve">
+    <value>未完成管理员授权，原有选择已保留。</value>
   </data>
   <data name="sf7b712b768c50dc7dbe81b62" xml:space="preserve">
     <value>Adobe Bridge 缓存</value>
@@ -567,6 +576,9 @@
   <data name="s5de90c55077b12e25222af1c" xml:space="preserve">
     <value>应用容器</value>
   </data>
+  <data name="s4796f35f7898d29ec8315ddc" xml:space="preserve">
+    <value>应用正在运行</value>
+  </data>
   <data name="s89a3901f684ccf561c7f9b10" xml:space="preserve">
     <value>应用日志</value>
   </data>
@@ -611,6 +623,9 @@
   </data>
   <data name="sd2ef99248abbb0f23c87cf21" xml:space="preserve">
     <value>应用选项</value>
+  </data>
+  <data name="sd6bde14d7466413a5b40297e" xml:space="preserve">
+    <value>应用快捷方式</value>
   </data>
   <data name="s3268eec8d6afab255eea00b2" xml:space="preserve">
     <value>应用卸载</value>
@@ -714,6 +729,9 @@
   <data name="s54c7c4eb660f701beeb04854" xml:space="preserve">
     <value>应用与项目</value>
   </data>
+  <data name="secd4d7747c6727e70018e034" xml:space="preserve">
+    <value>占用清理文件的应用</value>
+  </data>
   <data name="s954b53ba2c4c7f944810797a" xml:space="preserve">
     <value>Arc 缓存</value>
   </data>
@@ -776,6 +794,9 @@
   </data>
   <data name="sbc1b88907d3b748af99cb9d4" xml:space="preserve">
     <value>音频</value>
+  </data>
+  <data name="sa705b07515ab1c96fd5a809d" xml:space="preserve">
+    <value>正在验证身份…</value>
   </data>
   <data name="s66880d2d8216260d201917a7" xml:space="preserve">
     <value>身份验证</value>
@@ -881,6 +902,12 @@
   </data>
   <data name="sc2d784268f63bb3763bacf0f" xml:space="preserve">
     <value>Brave 下载缓存</value>
+  </data>
+  <data name="s73e6632bfd5a983328ace3ba" xml:space="preserve">
+    <value>失效快捷方式</value>
+  </data>
+  <data name="s6585b79576dbc6eda7610df7" xml:space="preserve">
+    <value>失效快捷方式</value>
   </data>
   <data name="s46f0a270e0634307192b8e5c" xml:space="preserve">
     <value>浏览全部工具</value>
@@ -1049,6 +1076,9 @@
   </data>
   <data name="s5b50ab6f539f0e0bc822dffe" xml:space="preserve">
     <value>无法再次核验清理项是否符合当前规则。</value>
+  </data>
+  <data name="s053d388cc482f1a59d174078" xml:space="preserve">
+    <value>无法卸载</value>
   </data>
   <data name="sf14ba4b89f642418bca652d7" xml:space="preserve">
     <value>Cargo 缓存</value>
@@ -1236,6 +1266,9 @@
   <data name="s91851cac103edeaa370ea867" xml:space="preserve">
     <value>正在检查工具管理的空间…</value>
   </data>
+  <data name="s99d81aa1aed47a95af8bce8c" xml:space="preserve">
+    <value>检查当前用户桌面和开始菜单中指向本地程序的普通快捷方式，保留其他类型。</value>
+  </data>
   <data name="sf66e8d31c012b7148a8e2d6a" xml:space="preserve">
     <value>仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。</value>
   </data>
@@ -1332,8 +1365,20 @@
   <data name="sd6224bb9f78c0f269d0a6e08" xml:space="preserve">
     <value>请使用尚未存在的版本号，已有版本不能覆盖。</value>
   </data>
+  <data name="se28cee8c23b5efbb925f8b74" xml:space="preserve">
+    <value>请选择可用的本地磁盘。</value>
+  </data>
+  <data name="s24d93c71fee87dc62dc3f6a9" xml:space="preserve">
+    <value>请选择 1 至 256 个扫描文件夹。</value>
+  </data>
+  <data name="se1b691b6276a9937cdef6c33" xml:space="preserve">
+    <value>请选择 1 至 32 个扫描文件夹。</value>
+  </data>
   <data name="s7679caf97c8253d89d9544ef" xml:space="preserve">
     <value>选择额外文件夹，今后的清理扫描会自动包含这些位置。</value>
+  </data>
+  <data name="s1e95a90d290b7065704a1375" xml:space="preserve">
+    <value>选择要扫描的文件夹。</value>
   </data>
   <data name="s34d8846a8767d96748d21f36" xml:space="preserve">
     <value>请选择要审阅的项目。高风险项目需要手动选择。</value>
@@ -1475,6 +1520,9 @@
   </data>
   <data name="s740d49873c036af2ed120f38" xml:space="preserve">
     <value>当前开发版本尚未开放清理执行。</value>
+  </data>
+  <data name="s49fe0de586719fc09a4c0b12" xml:space="preserve">
+    <value>Windows 原生验收完成前，暂不提供清理执行。</value>
   </data>
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>清理已结束，部分项目需处理</value>
@@ -3375,6 +3423,9 @@
   <data name="s4a186dd7a70775e1c9f69e9b" xml:space="preserve">
     <value>本地数据</value>
   </data>
+  <data name="sa9538d840667f18ec65574a0" xml:space="preserve">
+    <value>当前平台无法读取本地磁盘列表。</value>
+  </data>
   <data name="s98b266df6d2e92e7218af904" xml:space="preserve">
     <value>本机实例</value>
   </data>
@@ -3987,6 +4038,9 @@
   <data name="sfacda8d8d15aab4f83410dee" xml:space="preserve">
     <value>未发现已确认的应用残留。</value>
   </data>
+  <data name="s3b911cbd7ae66e6b8f401a67" xml:space="preserve">
+    <value>没有已核实的失效快捷方式。</value>
+  </data>
   <data name="s9fbfa154ff01b126f7c043d1" xml:space="preserve">
     <value>没有已核验的可用组件，请重新扫描或查看访问提示。</value>
   </data>
@@ -4230,6 +4284,9 @@
   <data name="s176a7f19f66f16237484acfd" xml:space="preserve">
     <value>本次审阅仅包含上方列出的软件和目标版本。</value>
   </data>
+  <data name="sf3a86d65a6fa97c06033eca5" xml:space="preserve">
+    <value>仅清理此失效快捷方式，保留目标位置和关联数据。</value>
+  </data>
   <data name="sf5aaa93ad751f8946da1a822" xml:space="preserve">
     <value>仅调查此目录及其子目录。调查范围不改变清理勾选。</value>
   </data>
@@ -4241,6 +4298,9 @@
   </data>
   <data name="s5224726f1cd01f769b1eda89" xml:space="preserve">
     <value>仅启用并扫描此规则，确认删除前仍可调整文件选择。其他草稿保持原选择。</value>
+  </data>
+  <data name="s9d11b57b322d46369ada4748" xml:space="preserve">
+    <value>仅此快捷方式</value>
   </data>
   <data name="s8f6a18f90db6e8dd5de23b2b" xml:space="preserve">
     <value>只有已核验移入废纸篓的项目才能还原或永久删除。</value>
@@ -4439,6 +4499,9 @@
   </data>
   <data name="s169668daf8bf057e4204f754" xml:space="preserve">
     <value>永久删除后无法撤销。</value>
+  </data>
+  <data name="sdcbc1ee4688b5decd57436af" xml:space="preserve">
+    <value>永久删除已完成，可在操作记录查看详情。</value>
   </data>
   <data name="sd45c46cabbe940fdb77dba8a" xml:space="preserve">
     <value>永久删除已取消，请检查已处理的结果。</value>
@@ -4776,6 +4839,9 @@
   <data name="s5aa10055a795c4655d052ec1" xml:space="preserve">
     <value>目录队列</value>
   </data>
+  <data name="s507bdf8903918f4826cfb499" xml:space="preserve">
+    <value>等待核验</value>
+  </data>
   <data name="s371e34282d2aa3c4b76acf91" xml:space="preserve">
     <value>快速查看</value>
   </data>
@@ -4803,11 +4869,20 @@
   <data name="s1ec27efc39d08df984ce969e" xml:space="preserve">
     <value>请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。</value>
   </data>
+  <data name="sd761c8cb3f33d1cb531c9636" xml:space="preserve">
+    <value>关闭所选应用并重新检查</value>
+  </data>
+  <data name="sd9cec540026ed4ff11589817" xml:space="preserve">
+    <value>关闭所选应用并重新检查</value>
+  </data>
   <data name="s0d4004339a092a7ec7c9669f" xml:space="preserve">
     <value>退出 Shou</value>
   </data>
   <data name="s57c7b2e6768db10c7d0a2527" xml:space="preserve">
     <value>请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。</value>
+  </data>
+  <data name="s94635ec8bb8bd2a0a96f321a" xml:space="preserve">
+    <value>请关闭相关应用后重新扫描。</value>
   </data>
   <data name="s3cca4913548de131906b11eb" xml:space="preserve">
     <value>关闭应用以清理缓存？</value>
@@ -5031,6 +5106,9 @@
   <data name="s3ba982748cfdb0a88e1c39d3" xml:space="preserve">
     <value>清理后请刷新，以更新扩展名统计。</value>
   </data>
+  <data name="s1fac75f13f04918aa3ce0ff4" xml:space="preserve">
+    <value>正在重新检查受影响的项目…</value>
+  </data>
   <data name="s6af400683f3d6d557ed0a0e0" xml:space="preserve">
     <value>已登记项目</value>
   </data>
@@ -5123,6 +5201,9 @@
   </data>
   <data name="s8ee29a00c89b3cf754453319" xml:space="preserve">
     <value>此工作区尚未启用所请求的规则。</value>
+  </data>
+  <data name="sf7d1052fe7f3ff4b0e3871bd" xml:space="preserve">
+    <value>正在请求应用退出…</value>
   </data>
   <data name="sb43e4e19601aa9f5dd5d34d4" xml:space="preserve">
     <value>卸载必选</value>
@@ -5427,6 +5508,9 @@
   <data name="s5d9208796d6fd1d4fe08325c" xml:space="preserve">
     <value>正在使用 Jev 复核重建证据…</value>
   </data>
+  <data name="sfcc53388888f70fd48f45c7c" xml:space="preserve">
+    <value>正在核验…</value>
+  </data>
   <data name="s0711a8d636e4c068ae59fa80" xml:space="preserve">
     <value>风险</value>
   </data>
@@ -5553,6 +5637,12 @@
   <data name="s5fc0a3943a720cd46f7d1364" xml:space="preserve">
     <value>保存结果</value>
   </data>
+  <data name="s409f44abf2b55cde1d92e397" xml:space="preserve">
+    <value>请先保存工作。退出后仍在运行的应用需要手动关闭。</value>
+  </data>
+  <data name="sc66c071f4248af85e19d87ab" xml:space="preserve">
+    <value>请先保存工作。仍在运行的应用，其占用文件将保留。</value>
+  </data>
   <data name="sf7942ff1952b1cf62f8887dd" xml:space="preserve">
     <value>请先保存工作。收会请求正常退出，确认关闭后刷新受影响项目。此操作不会删除文件。</value>
   </data>
@@ -5649,6 +5739,9 @@
   <data name="sfad20ffae18135ae21155188" xml:space="preserve">
     <value>扫描隐私来源</value>
   </data>
+  <data name="s79001dc29466fa18114b0341" xml:space="preserve">
+    <value>扫描范围</value>
+  </data>
   <data name="scc018bdc832d777479d51b80" xml:space="preserve">
     <value>扫描所选位置</value>
   </data>
@@ -5727,6 +5820,9 @@
   <data name="sf92e3c904a5f7e16496feb7d" xml:space="preserve">
     <value>扫描与隐私</value>
   </data>
+  <data name="s2f9d19a713940794ef752ee0" xml:space="preserve">
+    <value>正在扫描可清理内容…</value>
+  </data>
   <data name="s164b99b750451a597d62902d" xml:space="preserve">
     <value>正在扫描磁盘占用…</value>
   </data>
@@ -5741,6 +5837,15 @@
   </data>
   <data name="sc04fafc03cb442898d37249d" xml:space="preserve">
     <value>扫描仅统计文件大小，不会自动选择或删除任何内容。</value>
+  </data>
+  <data name="s7a02151560dd92138444dc37" xml:space="preserve">
+    <value>正在扫描所选磁盘…</value>
+  </data>
+  <data name="s4f70299be3fff49dcf939055" xml:space="preserve">
+    <value>正在扫描所选文件夹…</value>
+  </data>
+  <data name="s69d2404b6b60f9a711875081" xml:space="preserve">
+    <value>正在扫描所选文件夹…</value>
   </data>
   <data name="sc6474330f8853dada02952e7" xml:space="preserve">
     <value>正在扫描所选工作区…</value>
@@ -5856,6 +5961,15 @@
   <data name="s12de350b75bb27fd577a0d72" xml:space="preserve">
     <value>选择构建与缓存</value>
   </data>
+  <data name="sa782008050fbfedc15745017" xml:space="preserve">
+    <value>选择磁盘</value>
+  </data>
+  <data name="s62e90d5f9cb8bde7d79463fa" xml:space="preserve">
+    <value>选择磁盘…</value>
+  </data>
+  <data name="s198159c608e250548086cce9" xml:space="preserve">
+    <value>选择文件夹…</value>
+  </data>
   <data name="s7e2579b56e0b4c1083595db7" xml:space="preserve">
     <value>选择项目</value>
   </data>
@@ -5909,6 +6023,9 @@
   </data>
   <data name="s1a58b9eae374eb8251c13c95" xml:space="preserve">
     <value>选择可用更新</value>
+  </data>
+  <data name="s1c0330082f73aafaf8c3ad87" xml:space="preserve">
+    <value>请将失效快捷方式与仅能移入废纸篓的应用分开选择。</value>
   </data>
   <data name="s92b9ad257a055cbb99439741" xml:space="preserve">
     <value>请选择具体隐私来源。永久删除无法撤销；删除 Cookie 可能使你退出登录。</value>
@@ -5981,6 +6098,12 @@
   </data>
   <data name="seee6e806cfa3d85a0b32a505" xml:space="preserve">
     <value>选中的应用个人数据也将移入废纸篓。</value>
+  </data>
+  <data name="s00a1f9089680a70e72978147" xml:space="preserve">
+    <value>选择此应用时，会按需请求管理员授权。</value>
+  </data>
+  <data name="s997dbb80e2323114bfc9c695" xml:space="preserve">
+    <value>正在核验所选项目…</value>
   </data>
   <data name="sdeb5d9fa81a77e8fde26a892" xml:space="preserve">
     <value>不同位置的所选项目将合并审阅，筛选不会清除选择。</value>
@@ -6107,6 +6230,9 @@
   </data>
   <data name="sfb32ba1e97394acee8da9953" xml:space="preserve">
     <value>Shou 无法恢复系统卸载，也不会自动清理残留文件。</value>
+  </data>
+  <data name="sd65646b2fb6937757cb24baf" xml:space="preserve">
+    <value>Shou 运行期间无法卸载自身。</value>
   </data>
   <data name="sf8f5e1ea587085ebd3c0c9da" xml:space="preserve">
     <value>Shou 数据目录必须归当前用户所有，权限须为 0700。</value>
@@ -6327,11 +6453,17 @@
   <data name="sd9bf7e6595300c0409d44fe9" xml:space="preserve">
     <value>部分记录需要验证，已予保留。</value>
   </data>
+  <data name="scb1189b602b5973597c846b3" xml:space="preserve">
+    <value>部分位置未能在本次扫描限额内完成发现。</value>
+  </data>
   <data name="sb01e802c8b9b0b48583aa738" xml:space="preserve">
     <value>部分计划任务的状态无法读取。</value>
   </data>
   <data name="s4411577d476c87daf3eb206d" xml:space="preserve">
     <value>部分所选项目未能处理，请查看历史记录。</value>
+  </data>
+  <data name="seb57baf00978632e29420853" xml:space="preserve">
+    <value>部分快捷方式无法核实，已保留。</value>
   </data>
   <data name="s2e24ef5d1d1dd1597a317350" xml:space="preserve">
     <value>部分来源无法读取。</value>
@@ -6398,6 +6530,9 @@
   </data>
   <data name="sbf47c013669b2dd1506c68d8" xml:space="preserve">
     <value>Spark 缓存</value>
+  </data>
+  <data name="sf4ba9807daa439e29918860c" xml:space="preserve">
+    <value>标准扫描</value>
   </data>
   <data name="sbc070bb66c4c413ffb940779" xml:space="preserve">
     <value>开始调查</value>
@@ -6723,6 +6858,9 @@
   <data name="s85c35c367d93cc97e3b0e33f" xml:space="preserve">
     <value>系统设置…</value>
   </data>
+  <data name="s8c6efbb81ebeb2bd0a5108a3" xml:space="preserve">
+    <value>系统磁盘</value>
+  </data>
   <data name="s26fb93cf8ad0bd95513d00c9" xml:space="preserve">
     <value>系统应用</value>
   </data>
@@ -6747,8 +6885,14 @@
   <data name="s9a6f89e4fdde50899fe8b796" xml:space="preserve">
     <value>TablePlus 缓存</value>
   </data>
+  <data name="s978354db0c00fc78c3a5524f" xml:space="preserve">
+    <value>目标</value>
+  </data>
   <data name="s5da2adacf6d4ca8dfc527989" xml:space="preserve">
     <value>目标选择</value>
+  </data>
+  <data name="sb57addef9dccbe6b783ada62" xml:space="preserve">
+    <value>目标应用已不存在</value>
   </data>
   <data name="s5f866167c13b1b8531caae51" xml:space="preserve">
     <value>目标身份或完整目录清单已变化。</value>
@@ -7170,6 +7314,9 @@
   <data name="sf81e65983d0c6d670824e835" xml:space="preserve">
     <value>服务已停止，但重启未完成。请刷新来源后再继续。</value>
   </data>
+  <data name="s5883524b5bea3aa60fc2d956" xml:space="preserve">
+    <value>快捷方式已变化，请重新检查。</value>
+  </data>
   <data name="s58b0b32e13932ab618db36b7" xml:space="preserve">
     <value>空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。</value>
   </data>
@@ -7272,6 +7419,9 @@
   <data name="sa80becd5ed54593a05163294" xml:space="preserve">
     <value>无法安全移除此应用，请查看组件详情。</value>
   </data>
+  <data name="sd4c9edd7bc495042d496feb5" xml:space="preserve">
+    <value>此应用受系统保护，无法卸载。</value>
+  </data>
   <data name="s4833d49d41998f54a0bafddc" xml:space="preserve">
     <value>此应用或其文件正在使用中。请关闭应用后重新审阅安装。</value>
   </data>
@@ -7323,6 +7473,9 @@
   <data name="sbd88d713ecd33916fd3cc729" xml:space="preserve">
     <value>此文件夹为空。</value>
   </data>
+  <data name="sa2596cb935d90f4080d2d895" xml:space="preserve">
+    <value>此文件夹属于已保存的扫描位置，请扫描该位置以沿用规则和排除设置。</value>
+  </data>
   <data name="s85bd5bdb0901ea3dce467a95" xml:space="preserve">
     <value>此目录名包含通配符，当前规则格式无法精确描述该目录。</value>
   </data>
@@ -7331,6 +7484,9 @@
   </data>
   <data name="s70ddbdec825030e4016cb9a4" xml:space="preserve">
     <value>当前无法为此安装准备卸载计划，原因可能是受保护、不支持或无法核验。</value>
+  </data>
+  <data name="scd2ea23b9073ce0817431f54" xml:space="preserve">
+    <value>暂不支持此安装程序，请从 Windows 设置卸载此应用。</value>
   </data>
   <data name="sdaef0b33170f9c32415dc125" xml:space="preserve">
     <value>此实例由守护程序管理，需要通过对应的守护程序控制，避免停止后自动重启。</value>
@@ -8040,6 +8196,9 @@
   <data name="sdf5203979d84b15e6429130b" xml:space="preserve">
     <value>应用在检查过程中发生变化。</value>
   </data>
+  <data name="s265e9aa2c43d924c874f542e" xml:space="preserve">
+    <value>目标应用已不存在；可仅清理这个失效快捷方式。</value>
+  </data>
   <data name="s425b1138138cbfc21e18440d" xml:space="preserve">
     <value>应用安装信息缺失，仅卸载应用本体，保留关联数据。</value>
   </data>
@@ -8147,6 +8306,9 @@
   </data>
   <data name="sa6a0b79a4018b91224e55a3c" xml:space="preserve">
     <value>macOS 可能会要求验证身份。带锁标记的应用将移到废纸篓，并保留其应用数据。</value>
+  </data>
+  <data name="s206fcf54889a13a0d773020e" xml:space="preserve">
+    <value>此系统应用受 macOS 保护，无法卸载。</value>
   </data>
   <data name="s848bcdd67955e30b519b2170" xml:space="preserve">
     <value>macOS 会在相关服务再次需要时重建这些用户缓存。</value>

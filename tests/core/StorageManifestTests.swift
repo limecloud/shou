@@ -21,6 +21,11 @@ func storageManifestPagesVerifyCorruptionAndRetention() async throws {
     try expect(bytes.count < 4096)
     let pages=try fixture.store.ids("storage-plan-manifests")
     try expect(pages.count == 2)
+    let planBytes=try pages.map { try require(fixture.store.read("storage-plan-manifests", id: $0)) }
+    let legacyBytes=try stride(from: 0, to: plan.items[0].manifest.count, by: 4096).map { offset in
+        try Codec.encode(Array(plan.items[0].manifest[offset..<min(offset + 4096, plan.items[0].manifest.count)]))
+    }
+    try expect(Set(planBytes) == Set(legacyBytes))
     let zero=RecordRetentionPolicy(maxAgeSeconds: 0, maxBytes: 0, graceSeconds: 0)
     let preview=try await engine.recordRetentionPreview(policy: zero)
     try expect(preview.issues.isEmpty && !preview.records.contains { $0.collection == "storage-plan-manifests" || ($0.collection == "storage-plans" && $0.id == plan.id) })
@@ -42,6 +47,8 @@ func storageManifestPagesVerifyCorruptionAndRetention() async throws {
     try expect(finished.issues.isEmpty && finished.records.filter { $0.collection == "storage-plan-manifests" }.count == 2)
     try expect(!finished.records.contains { $0.collection == "history-manifests" })
     let historyPages=try fixture.store.ids("history-manifests")
+    let historyBytes=try historyPages.map { try require(fixture.store.read("history-manifests", id: $0)) }
+    try expect(historyBytes.count == planBytes.count && Set(historyBytes) == Set(planBytes))
     _ = try await engine.collectRecords(policy: zero)
     try expect(try fixture.store.ids("storage-plan-manifests").isEmpty && fixture.store.ids("history-manifests") == historyPages)
     let broken=try require(historyPages.first), saved=try require(fixture.store.read("history-manifests", id: broken))
@@ -50,6 +57,42 @@ func storageManifestPagesVerifyCorruptionAndRetention() async throws {
     try fixture.store.write("history-manifests", id: broken, data: saved)
     _ = try await engine.clearHistory(executionIds: [receipt.id])
     try expect(try fixture.store.ids("history-manifests").isEmpty)
+}
+
+func storageManifestEncodingPreservesLegacyFileBytes() async throws {
+    let fixture=try Fixture()
+    let filename="文件-😀-quote\".bin"
+    try fixture.put(filename, "generated encoding fixture")
+    let engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: [filename], action: "permanent")
+    try expect(plan.items[0].manifest.count == 1 && plan.items[0].manifest[0].contentDigest != nil)
+    let pages=try fixture.store.ids("storage-plan-manifests")
+    try expect(pages.count == 1)
+    let bytes=try require(fixture.store.read("storage-plan-manifests", id: pages[0]))
+    try expect(bytes == (try Codec.encode(plan.items[0].manifest)))
+    try expect(try Codec.decode([FileEntry].self, from: bytes) == plan.items[0].manifest)
+    try expect(try await engine.storageRemovalPlan(plan.id).items[0].manifest == plan.items[0].manifest)
+    try expect(try String(contentsOf: fixture.workspace.appendingPathComponent(filename), encoding: .utf8) == "generated encoding fixture")
+}
+
+func storageManifestCopyRechecksPagesBeforeJournalPublication() async throws {
+    for count in [1100, 5000] {
+        let fixture=try Fixture()
+        for index in 0..<count { try fixture.put("generated-cache/file-\(index).bin", "generated") }
+        let pageCount=(count + 1 + 4095) / 4096
+        let store=JournalWriteStore(fixture.store, corruptingManifestRead: pageCount + 1)
+        let engine=ShouEngine(store: store, filesystem: fixture.fs)
+        let scan=try await engine.scanStorage(path: fixture.workspace.path)
+        let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["generated-cache"], action: "permanent")
+        do {
+            _ = try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "changed-source-page")
+            throw CheckFailure(description: "Changed source pages must stop before journal publication or mutation.")
+        } catch let error as ShouError { try expect(error.code == "store_corrupt") }
+        try expect(try fixture.store.ids("history").isEmpty)
+        try expect(try fixture.store.ids("history-manifests").isEmpty)
+        try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("generated-cache/file-0.bin"), encoding: .utf8) == "generated")
+    }
 }
 
 func storageManifestInterruptedPublicationAndLegacyPlans() async throws {

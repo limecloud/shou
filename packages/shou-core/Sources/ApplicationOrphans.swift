@@ -44,7 +44,7 @@ extension ShouEngine {
         var components=[UninstallComponent](), remaining=budget.maxEntries
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
         for identifier in absent.sorted() {
-            for kind in UninstallComponentKind.allCases where kind != .application && kind != .groupContainer {
+            for kind in UninstallComponentKind.allCases where !kind.isApplicationRoot && kind != .groupContainer {
                 if Task.isCancelled { throw ShouError("cancelled", "Leftover scan cancelled.") }
                 guard let path=kind.associatedPath(bundleIdentifier: identifier, homeDirectory: homeDirectory) else { continue }
                 if case .missing=filesystem.targetAvailability(path) { continue }

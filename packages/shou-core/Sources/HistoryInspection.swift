@@ -31,7 +31,7 @@ enum HistoryInspector {
         try budget.validate()
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
         var remainingEntries=budget.maxEntries
-        func observe(_ path: String?, manifest: [FileEntry], permitted: Bool, trashReceipt: Bool = false) throws -> HistoryObjectObservation {
+        func observe(_ path: String?, manifest: [FileEntry], permitted: Bool, trashReceipt: Bool = false, shortcutReceipt: Bool = false) throws -> HistoryObjectObservation {
             if Task.isCancelled { throw ShouError("cancelled", "History verification cancelled.") }
             guard let path else { return HistoryObjectObservation(path: nil, state: "not_recorded", issue: nil) }
             guard permitted else { return HistoryObjectObservation(path: path, state: "unavailable", issue: "unverified_location") }
@@ -40,10 +40,17 @@ enum HistoryInspector {
             guard seconds >= 1, remainingEntries > 0 else { return HistoryObjectObservation(path: path, state: "unavailable", issue: "resource_limit") }
             switch filesystem.targetAvailability(path) {
             case .missing: return HistoryObjectObservation(path: path, state: "missing", issue: nil)
-            case .unavailable: return HistoryObjectObservation(path: path, state: "unavailable", issue: "permission_or_type_unavailable")
+            case .unavailable where !shortcutReceipt: return HistoryObjectObservation(path: path, state: "unavailable", issue: "permission_or_type_unavailable")
+            case .unavailable: break
             case .available: break
             }
             do {
+                if shortcutReceipt {
+                    let shortcut=try filesystem.applicationShortcut(path)
+                    remainingEntries -= 1
+                    let matches=manifest == [shortcut.identity]
+                    return HistoryObjectObservation(path: path, state: matches ? "matches" : "changed", issue: matches ? nil : "manifest_changed")
+                }
                 let readBudget=ScanBudget(maxEntries: remainingEntries, maxSeconds: min(seconds, budget.maxSeconds), maxDepth: budget.maxDepth)
                 let tree=try trashReceipt ? filesystem.inspectTrashTarget(path, budget: readBudget, cancelled: { Task.isCancelled }) : filesystem.inspectStorageTarget(path, budget: readBudget, cancelled: { Task.isCancelled })
                 remainingEntries=max(0, remainingEntries - tree.entries.count)
@@ -59,10 +66,11 @@ enum HistoryInspector {
             let origin=try ReceiptOrigins.resolve(receipt: receipt, item: item, homeDirectory: homeDirectory)
             let workspaceMatches=(try? ReceiptOrigins.identity(origin, filesystem: filesystem).sameObject(as: origin.identity)) == true
             guard item.manifest.first?.path == ".",
-                  item.manifest.first?.kind == "directory" || (item.manifest.first?.kind == "file" && item.manifest.count == 1) else {
+                  item.manifest.first?.kind == "directory" || (item.manifest.first?.kind == "file" && item.manifest.count == 1) ||
+                    (item.uninstallOrigin?.kind == .shortcut && item.manifest.first?.kind == "symlink" && item.manifest.count == 1) else {
                 throw ShouError("store_corrupt", "Receipt does not identify a complete workspace target.")
             }
-            let original=try observe(item.originalPath, manifest: item.manifest, permitted: workspaceMatches)
+            let original=try observe(item.originalPath, manifest: item.manifest, permitted: workspaceMatches, shortcutReceipt: item.uninstallOrigin?.kind == .shortcut)
             let trash=try observe(item.trashPath, manifest: item.manifest, permitted: item.trashPath.map(filesystem.isTrashLocation) ?? false, trashReceipt: true)
             let followUp=followUps.filter { $0.executionId == receipt.id && $0.itemId == item.id }.max { $0.createdAt < $1.createdAt }
             let state: String

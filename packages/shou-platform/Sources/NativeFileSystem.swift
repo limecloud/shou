@@ -91,6 +91,18 @@ public struct NativeFileSystem: PlatformFileSystem {
         #endif
     }
     public func applicationNeedsAuthorization(_ path: String) -> Bool { needsAuthorizationForParent(path) }
+    public func applicationShortcut(_ path: String) throws -> ApplicationShortcutSnapshot {
+        #if os(macOS)
+        if usesSystemAuthorization {
+            let reply=try NativeSystemAuthorization.shared.perform(.inspectApplicationShortcut, path: path)
+            guard let snapshot=reply.applicationShortcut, snapshot.currentUser == getuid() else { throw AuthorizationChannel.failure() }
+            return snapshot
+        }
+        return try NativeApplicationShortcut.snapshot(path, roots: applicationRoots, uid: getuid())
+        #else
+        throw ShouError("capability_unavailable", "Broken application shortcut cleanup is unavailable on this filesystem.")
+        #endif
+    }
     private func needsAuthorizationForParent(_ path: String) -> Bool {
         #if os(macOS)
         guard geteuid() != 0 else { return false }
@@ -588,6 +600,15 @@ public struct NativeFileSystem: PlatformFileSystem {
     }
     public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void, checking: @Sendable (ScanProgress) -> Void) throws {
         #if os(macOS)
+        if expected.count == 1, expected.first?.kind == "symlink" {
+            if getuid() != 0, supportsSystemAuthorization, removalNeedsAuthorization(path, expected: expected) {
+                _ = try NativeSystemAuthorization.shared.perform(.purgeApplicationShortcut, path: path, manifest: expected)
+            } else {
+                try NativeApplicationShortcut.remove(path, expected: expected, roots: applicationRoots, uid: getuid())
+            }
+            progress(1, 1, path)
+            return
+        }
         if getuid() != 0, supportsSystemAuthorization,
            path.lowercased().hasSuffix(".app"), expected.first?.kind == "directory",
            removalNeedsAuthorization(path, expected: expected) {
@@ -657,10 +678,15 @@ public struct NativeFileSystem: PlatformFileSystem {
             let full = path + "/" + entry.path
             try attempt(full) {
                 let (fd, name) = try directories.parent(of: entry)
+                let saved=context.reconciled(entry)
+                if entry.kind == "file", saved.links == 1 {
+                    // unlinkFile performs the complete comparison immediately before unlinkat.
+                    try unlinkFile(parent: fd, name: name, path: full, expected: saved, context: &context)
+                    return
+                }
                 var info=stat()
                 guard fstatat(fd, name, &info, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect receipt entry", path: full) }
                 let current = SecurePaths.entry(info, path: entry.path)
-                let saved=context.reconciled(entry)
                 guard current.sameObject(as: saved), entry.kind == "directory" || current == saved else { throw ShouError("plan_stale", "Receipt entry changed; permanent removal stopped.") }
                 if entry.kind == "file" {
                     try unlinkFile(parent: fd, name: name, path: full, expected: saved, context: &context)
@@ -694,8 +720,11 @@ public struct NativeFileSystem: PlatformFileSystem {
                 throw ShouError("plan_stale", "The hard-linked file changed before permanent removal.")
             }
         }
-        guard fstatat(parent, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0,
-              SecurePaths.entry(metadata, path: expected.path) == expected else {
+        guard fstatat(parent, name, &metadata, AT_SYMLINK_NOFOLLOW) == 0 else {
+            if errno == EACCES || errno == EPERM { throw SecurePaths.failure("Inspect receipt file", path: path) }
+            throw ShouError("plan_stale", "The file changed before permanent removal.")
+        }
+        guard SecurePaths.entry(metadata, path: expected.path) == expected else {
             throw ShouError("plan_stale", "The file changed before permanent removal.")
         }
         guard unlinkat(parent, name, 0) == 0 else { throw SecurePaths.failure("Remove receipt file", path: path) }

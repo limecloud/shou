@@ -64,7 +64,6 @@ public final class StorageCatalog {
                 // Index only substantial files. Tiny build/cache entries dominate
                 // disk inventories; they should not be revisited on every page.
                 try execute("CREATE INDEX large_files ON entries(total_allocated DESC,name,parent) WHERE kind='file' AND total_allocated>=1048576;")
-                try execute("CREATE INDEX measurement_directories ON entries(parent,name) WHERE kind='directory';")
                 try execute("CREATE TABLE hard_links(identity TEXT PRIMARY KEY) WITHOUT ROWID; BEGIN IMMEDIATE;")
                 insert=try prepare("INSERT INTO entries(path,parent,name,kind,device,inode,logical,allocated,modified,changed,mode,owner,links,total_logical,total_allocated,files,newest,complete) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
                 update=try prepare("UPDATE entries SET total_logical=?,total_allocated=?,files=?,newest=?,complete=? WHERE id=?")
@@ -174,7 +173,7 @@ public final class StorageCatalog {
     }
     public func seal(progress: (Int, Int) -> Void, checkpoint: () throws -> Void = {}) throws {
         try checkpoint()
-        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name); CREATE INDEX child_sizes ON entries(parent,total_allocated DESC,name);", "DROP TABLE hard_links; DROP INDEX measurement_directories;", "PRAGMA optimize;"]
+        let steps=["COMMIT;", "CREATE UNIQUE INDEX children ON entries(parent,name); CREATE INDEX child_sizes ON entries(parent,total_allocated DESC,name);", "DROP TABLE hard_links;", "PRAGMA optimize;"]
         progress(0, steps.count)
         try withoutActuallyEscaping(checkpoint) { callback in
             let context=CatalogCheckpoint(callback)
@@ -241,7 +240,7 @@ public final class StorageCatalog {
                     let status=sqlite3_step(statement)
                     if status == SQLITE_DONE { break }
                     guard status == SQLITE_ROW else { throw failure() }
-                    rows.append((sqlite3_column_int64(statement, 19), try item(statement)))
+                    rows.append((sqlite3_column_int64(statement, 16), try item(statement)))
                 }
             }
             guard !rows.isEmpty else { return }

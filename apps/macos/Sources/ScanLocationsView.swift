@@ -6,6 +6,7 @@ struct ScanLocationsView: View {
     @Bindable var model: AppModel
     @Environment(\.dismiss) private var dismiss
     @State private var removing: Workspace?
+    @State private var loadingProjects=true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -14,7 +15,9 @@ struct ScanLocationsView: View {
                 .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             List {
                 Section(model.t("Developer Projects")) {
-                    if model.projectLocations.isEmpty {
+                    if loadingProjects {
+                        ActivityIndicator(title: model.t("Loading…"))
+                    } else if model.projectLocations.isEmpty {
                         Text(model.t("No conventional project folders found. Include another folder or ask your AI agent."))
                             .foregroundStyle(ShouPalette.secondary)
                     }
@@ -43,7 +46,11 @@ struct ScanLocationsView: View {
                 Button(model.t("Done")) { dismiss() }.keyboardShortcut(.cancelAction).disabled(model.busy)
             }
         }.padding(ShouDesign.pagePadding).frame(width: 680, height: 600)
-            .task { await model.refresh() }
+            .task(id: model.configuration.revision) {
+                loadingProjects=true
+                await model.refreshProjectLocations()
+                loadingProjects=false
+            }
             .interactiveDismissDisabled(model.busy)
             .alert(model.t("Stop including this folder?"), isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing=nil } })) {
                 Button(model.t("Cancel"), role: .cancel) { removing=nil }

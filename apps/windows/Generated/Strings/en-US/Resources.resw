@@ -231,6 +231,9 @@
   <data name="s0bcdbdb6141a974e27567d1e" xml:space="preserve">
     <value>A routine that fits your own folders.</value>
   </data>
+  <data name="s9dab3a361c3acbe82817ff70" xml:space="preserve">
+    <value>A selected disk is no longer available.</value>
+  </data>
   <data name="s89fc8a07b42c3f6b6a737730" xml:space="preserve">
     <value>A startup registration could not be read safely.</value>
   </data>
@@ -393,8 +396,14 @@
   <data name="sb8f358b6904a3920d812f930" xml:space="preserve">
     <value>Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.</value>
   </data>
+  <data name="saecc36cfa4031de97896646f" xml:space="preserve">
+    <value>Administrator access is required to uninstall this application.</value>
+  </data>
   <data name="s15b0f4273b0890833240a35f" xml:space="preserve">
     <value>Administrator authorization required</value>
+  </data>
+  <data name="s2622e05380698992e8303dac" xml:space="preserve">
+    <value>Administrator authorization was not completed. Your selection is kept.</value>
   </data>
   <data name="sf7b712b768c50dc7dbe81b62" xml:space="preserve">
     <value>Adobe Bridge caches</value>
@@ -567,6 +576,9 @@
   <data name="s5de90c55077b12e25222af1c" xml:space="preserve">
     <value>App container</value>
   </data>
+  <data name="s4796f35f7898d29ec8315ddc" xml:space="preserve">
+    <value>App is running</value>
+  </data>
   <data name="s89a3901f684ccf561c7f9b10" xml:space="preserve">
     <value>App logs</value>
   </data>
@@ -611,6 +623,9 @@
   </data>
   <data name="sd2ef99248abbb0f23c87cf21" xml:space="preserve">
     <value>Application Options</value>
+  </data>
+  <data name="sd6bde14d7466413a5b40297e" xml:space="preserve">
+    <value>Application Shortcut</value>
   </data>
   <data name="s3268eec8d6afab255eea00b2" xml:space="preserve">
     <value>Application Uninstall</value>
@@ -714,6 +729,9 @@
   <data name="s54c7c4eb660f701beeb04854" xml:space="preserve">
     <value>Apps &amp; Projects</value>
   </data>
+  <data name="secd4d7747c6727e70018e034" xml:space="preserve">
+    <value>Apps using cleanup files</value>
+  </data>
   <data name="s954b53ba2c4c7f944810797a" xml:space="preserve">
     <value>Arc caches</value>
   </data>
@@ -776,6 +794,9 @@
   </data>
   <data name="sbc1b88907d3b748af99cb9d4" xml:space="preserve">
     <value>Audio</value>
+  </data>
+  <data name="sa705b07515ab1c96fd5a809d" xml:space="preserve">
+    <value>Authenticating…</value>
   </data>
   <data name="s66880d2d8216260d201917a7" xml:space="preserve">
     <value>Authentication</value>
@@ -881,6 +902,12 @@
   </data>
   <data name="sc2d784268f63bb3763bacf0f" xml:space="preserve">
     <value>Brave download caches</value>
+  </data>
+  <data name="s73e6632bfd5a983328ace3ba" xml:space="preserve">
+    <value>Broken Shortcut</value>
+  </data>
+  <data name="s6585b79576dbc6eda7610df7" xml:space="preserve">
+    <value>Broken Shortcuts</value>
   </data>
   <data name="s46f0a270e0634307192b8e5c" xml:space="preserve">
     <value>Browse All Tools</value>
@@ -1049,6 +1076,9 @@
   </data>
   <data name="s5b50ab6f539f0e0bc822dffe" xml:space="preserve">
     <value>Candidate policy evidence could not be reproduced.</value>
+  </data>
+  <data name="s053d388cc482f1a59d174078" xml:space="preserve">
+    <value>Cannot Uninstall</value>
   </data>
   <data name="sf14ba4b89f642418bca652d7" xml:space="preserve">
     <value>Cargo Cache</value>
@@ -1236,6 +1266,9 @@
   <data name="s91851cac103edeaa370ea867" xml:space="preserve">
     <value>Checking tool-managed storage…</value>
   </data>
+  <data name="s99d81aa1aed47a95af8bce8c" xml:space="preserve">
+    <value>Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept.</value>
+  </data>
   <data name="sf66e8d31c012b7148a8e2d6a" xml:space="preserve">
     <value>Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.</value>
   </data>
@@ -1332,8 +1365,20 @@
   <data name="sd6224bb9f78c0f269d0a6e08" xml:space="preserve">
     <value>Choose an unused rule version. Existing versions cannot be overwritten.</value>
   </data>
+  <data name="se28cee8c23b5efbb925f8b74" xml:space="preserve">
+    <value>Choose available local disks.</value>
+  </data>
+  <data name="s24d93c71fee87dc62dc3f6a9" xml:space="preserve">
+    <value>Choose between one and 256 scan folders.</value>
+  </data>
+  <data name="se1b691b6276a9937cdef6c33" xml:space="preserve">
+    <value>Choose between one and 32 scan folders.</value>
+  </data>
   <data name="s7679caf97c8253d89d9544ef" xml:space="preserve">
     <value>Choose extra folders to remember for future cleanup scans.</value>
+  </data>
+  <data name="s1e95a90d290b7065704a1375" xml:space="preserve">
+    <value>Choose folders to scan.</value>
   </data>
   <data name="s34d8846a8767d96748d21f36" xml:space="preserve">
     <value>Choose items to review. High-risk items require your selection.</value>
@@ -1475,6 +1520,9 @@
   </data>
   <data name="s740d49873c036af2ed120f38" xml:space="preserve">
     <value>Cleanup execution is unavailable in this development build.</value>
+  </data>
+  <data name="s49fe0de586719fc09a4c0b12" xml:space="preserve">
+    <value>Cleanup execution is unavailable until native Windows verification is complete.</value>
   </data>
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>Cleanup finished with issues</value>
@@ -3375,6 +3423,9 @@
   <data name="s4a186dd7a70775e1c9f69e9b" xml:space="preserve">
     <value>Local data</value>
   </data>
+  <data name="sa9538d840667f18ec65574a0" xml:space="preserve">
+    <value>Local disk discovery is unavailable on this platform.</value>
+  </data>
   <data name="s98b266df6d2e92e7218af904" xml:space="preserve">
     <value>Local instance</value>
   </data>
@@ -3987,6 +4038,9 @@
   <data name="sfacda8d8d15aab4f83410dee" xml:space="preserve">
     <value>No verified application leftovers found.</value>
   </data>
+  <data name="s3b911cbd7ae66e6b8f401a67" xml:space="preserve">
+    <value>No verified broken shortcuts.</value>
+  </data>
   <data name="s9fbfa154ff01b126f7c043d1" xml:space="preserve">
     <value>No verified components available. Scan again or review access notices.</value>
   </data>
@@ -4230,6 +4284,9 @@
   <data name="s176a7f19f66f16237484acfd" xml:space="preserve">
     <value>Only the versions shown above are included in this review.</value>
   </data>
+  <data name="sf3a86d65a6fa97c06033eca5" xml:space="preserve">
+    <value>Only this broken shortcut is removed. Its target and associated data are kept.</value>
+  </data>
   <data name="sf5aaa93ad751f8946da1a822" xml:space="preserve">
     <value>Only this folder and its children are investigated. This does not select files for cleanup.</value>
   </data>
@@ -4241,6 +4298,9 @@
   </data>
   <data name="s5224726f1cd01f769b1eda89" xml:space="preserve">
     <value>Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices.</value>
+  </data>
+  <data name="s9d11b57b322d46369ada4748" xml:space="preserve">
+    <value>Only this shortcut</value>
   </data>
   <data name="s8f6a18f90db6e8dd5de23b2b" xml:space="preserve">
     <value>Only verified trashed items can be restored or permanently removed.</value>
@@ -4439,6 +4499,9 @@
   </data>
   <data name="s169668daf8bf057e4204f754" xml:space="preserve">
     <value>Permanent deletion cannot be undone.</value>
+  </data>
+  <data name="sdcbc1ee4688b5decd57436af" xml:space="preserve">
+    <value>Permanent deletion completed. Review History for details.</value>
   </data>
   <data name="sd45c46cabbe940fdb77dba8a" xml:space="preserve">
     <value>Permanent removal cancelled; inspect the partial result.</value>
@@ -4776,6 +4839,9 @@
   <data name="s5aa10055a795c4655d052ec1" xml:space="preserve">
     <value>Queued directories</value>
   </data>
+  <data name="s507bdf8903918f4826cfb499" xml:space="preserve">
+    <value>Queued for review</value>
+  </data>
   <data name="s371e34282d2aa3c4b76acf91" xml:space="preserve">
     <value>Quick Look</value>
   </data>
@@ -4803,11 +4869,20 @@
   <data name="s1ec27efc39d08df984ce969e" xml:space="preserve">
     <value>Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted.</value>
   </data>
+  <data name="sd761c8cb3f33d1cb531c9636" xml:space="preserve">
+    <value>Quit Selected Apps &amp; Refresh</value>
+  </data>
+  <data name="sd9cec540026ed4ff11589817" xml:space="preserve">
+    <value>Quit Selected Apps and Check Again</value>
+  </data>
   <data name="s0d4004339a092a7ec7c9669f" xml:space="preserve">
     <value>Quit Shou</value>
   </data>
   <data name="s57c7b2e6768db10c7d0a2527" xml:space="preserve">
     <value>Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.</value>
+  </data>
+  <data name="s94635ec8bb8bd2a0a96f321a" xml:space="preserve">
+    <value>Quit affected apps, then scan again.</value>
   </data>
   <data name="s3cca4913548de131906b11eb" xml:space="preserve">
     <value>Quit apps to clean their caches?</value>
@@ -5031,6 +5106,9 @@
   <data name="s3ba982748cfdb0a88e1c39d3" xml:space="preserve">
     <value>Refresh to update extension totals after cleanup.</value>
   </data>
+  <data name="s1fac75f13f04918aa3ce0ff4" xml:space="preserve">
+    <value>Refreshing affected cleanup locations…</value>
+  </data>
   <data name="s6af400683f3d6d557ed0a0e0" xml:space="preserve">
     <value>Registered Projects</value>
   </data>
@@ -5123,6 +5201,9 @@
   </data>
   <data name="s8ee29a00c89b3cf754453319" xml:space="preserve">
     <value>Requested rule is not enabled in this workspace.</value>
+  </data>
+  <data name="sf7d1052fe7f3ff4b0e3871bd" xml:space="preserve">
+    <value>Requesting applications to quit…</value>
   </data>
   <data name="sb43e4e19601aa9f5dd5d34d4" xml:space="preserve">
     <value>Required for uninstall</value>
@@ -5427,6 +5508,9 @@
   <data name="s5d9208796d6fd1d4fe08325c" xml:space="preserve">
     <value>Reviewing rebuild evidence with Jev…</value>
   </data>
+  <data name="sfcc53388888f70fd48f45c7c" xml:space="preserve">
+    <value>Reviewing…</value>
+  </data>
   <data name="s0711a8d636e4c068ae59fa80" xml:space="preserve">
     <value>Risk</value>
   </data>
@@ -5553,6 +5637,12 @@
   <data name="s5fc0a3943a720cd46f7d1364" xml:space="preserve">
     <value>Save results</value>
   </data>
+  <data name="s409f44abf2b55cde1d92e397" xml:space="preserve">
+    <value>Save your work before quitting. Apps that remain open must be closed manually.</value>
+  </data>
+  <data name="sc66c071f4248af85e19d87ab" xml:space="preserve">
+    <value>Save your work first. Apps that stay open will remain blocked.</value>
+  </data>
   <data name="sf7942ff1952b1cf62f8887dd" xml:space="preserve">
     <value>Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action.</value>
   </data>
@@ -5649,6 +5739,9 @@
   <data name="sfad20ffae18135ae21155188" xml:space="preserve">
     <value>Scan Privacy Sources</value>
   </data>
+  <data name="s79001dc29466fa18114b0341" xml:space="preserve">
+    <value>Scan Scope</value>
+  </data>
   <data name="scc018bdc832d777479d51b80" xml:space="preserve">
     <value>Scan Selected Location</value>
   </data>
@@ -5727,6 +5820,9 @@
   <data name="sf92e3c904a5f7e16496feb7d" xml:space="preserve">
     <value>Scanning and Privacy</value>
   </data>
+  <data name="s2f9d19a713940794ef752ee0" xml:space="preserve">
+    <value>Scanning cleanup locations…</value>
+  </data>
   <data name="s164b99b750451a597d62902d" xml:space="preserve">
     <value>Scanning disk usage…</value>
   </data>
@@ -5741,6 +5837,15 @@
   </data>
   <data name="sc04fafc03cb442898d37249d" xml:space="preserve">
     <value>Scanning reads file sizes. Nothing is selected or deleted automatically.</value>
+  </data>
+  <data name="s7a02151560dd92138444dc37" xml:space="preserve">
+    <value>Scanning selected disks…</value>
+  </data>
+  <data name="s4f70299be3fff49dcf939055" xml:space="preserve">
+    <value>Scanning selected folders…</value>
+  </data>
+  <data name="s69d2404b6b60f9a711875081" xml:space="preserve">
+    <value>Scanning selected folder…</value>
   </data>
   <data name="sc6474330f8853dada02952e7" xml:space="preserve">
     <value>Scanning selected workspace…</value>
@@ -5856,6 +5961,15 @@
   <data name="s12de350b75bb27fd577a0d72" xml:space="preserve">
     <value>Select Build Caches</value>
   </data>
+  <data name="sa782008050fbfedc15745017" xml:space="preserve">
+    <value>Select Disks</value>
+  </data>
+  <data name="s62e90d5f9cb8bde7d79463fa" xml:space="preserve">
+    <value>Select Disks…</value>
+  </data>
+  <data name="s198159c608e250548086cce9" xml:space="preserve">
+    <value>Select Folders…</value>
+  </data>
   <data name="s7e2579b56e0b4c1083595db7" xml:space="preserve">
     <value>Select Item</value>
   </data>
@@ -5909,6 +6023,9 @@
   </data>
   <data name="s1a58b9eae374eb8251c13c95" xml:space="preserve">
     <value>Select available updates</value>
+  </data>
+  <data name="s1c0330082f73aafaf8c3ad87" xml:space="preserve">
+    <value>Select broken shortcuts separately from apps that require Trash.</value>
   </data>
   <data name="s92b9ad257a055cbb99439741" xml:space="preserve">
     <value>Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.</value>
@@ -5981,6 +6098,12 @@
   </data>
   <data name="seee6e806cfa3d85a0b32a505" xml:space="preserve">
     <value>Selected personal app data will also move to Trash.</value>
+  </data>
+  <data name="s00a1f9089680a70e72978147" xml:space="preserve">
+    <value>Selecting this application requests administrator access when needed.</value>
+  </data>
+  <data name="s997dbb80e2323114bfc9c695" xml:space="preserve">
+    <value>Selection is being checked…</value>
   </data>
   <data name="sdeb5d9fa81a77e8fde26a892" xml:space="preserve">
     <value>Selections across locations are reviewed together. Filtering keeps your selection.</value>
@@ -6107,6 +6230,9 @@
   </data>
   <data name="sfb32ba1e97394acee8da9953" xml:space="preserve">
     <value>Shou cannot restore a system uninstall and does not automatically clean residual files.</value>
+  </data>
+  <data name="sd65646b2fb6937757cb24baf" xml:space="preserve">
+    <value>Shou cannot uninstall itself while it is running.</value>
   </data>
   <data name="sf8f5e1ea587085ebd3c0c9da" xml:space="preserve">
     <value>Shou data directory must be owned by the current user and have mode 0700.</value>
@@ -6327,11 +6453,17 @@
   <data name="sd9bf7e6595300c0409d44fe9" xml:space="preserve">
     <value>Some records need verification and were kept.</value>
   </data>
+  <data name="scb1189b602b5973597c846b3" xml:space="preserve">
+    <value>Some scan locations could not be discovered within the limit.</value>
+  </data>
   <data name="sb01e802c8b9b0b48583aa738" xml:space="preserve">
     <value>Some scheduled task statuses could not be read.</value>
   </data>
   <data name="s4411577d476c87daf3eb206d" xml:space="preserve">
     <value>Some selected items could not be processed. Inspect history.</value>
+  </data>
+  <data name="seb57baf00978632e29420853" xml:space="preserve">
+    <value>Some shortcuts could not be verified and are kept.</value>
   </data>
   <data name="s2e24ef5d1d1dd1597a317350" xml:space="preserve">
     <value>Some sources could not be read.</value>
@@ -6398,6 +6530,9 @@
   </data>
   <data name="sbf47c013669b2dd1506c68d8" xml:space="preserve">
     <value>Spark caches</value>
+  </data>
+  <data name="sf4ba9807daa439e29918860c" xml:space="preserve">
+    <value>Standard Scan</value>
   </data>
   <data name="sbc070bb66c4c413ffb940779" xml:space="preserve">
     <value>Start Investigation</value>
@@ -6723,6 +6858,9 @@
   <data name="s85c35c367d93cc97e3b0e33f" xml:space="preserve">
     <value>System Settings…</value>
   </data>
+  <data name="s8c6efbb81ebeb2bd0a5108a3" xml:space="preserve">
+    <value>System disk</value>
+  </data>
   <data name="s26fb93cf8ad0bd95513d00c9" xml:space="preserve">
     <value>System package</value>
   </data>
@@ -6747,8 +6885,14 @@
   <data name="s9a6f89e4fdde50899fe8b796" xml:space="preserve">
     <value>TablePlus caches</value>
   </data>
+  <data name="s978354db0c00fc78c3a5524f" xml:space="preserve">
+    <value>Target</value>
+  </data>
   <data name="s5da2adacf6d4ca8dfc527989" xml:space="preserve">
     <value>Target Selection</value>
+  </data>
+  <data name="sb57addef9dccbe6b783ada62" xml:space="preserve">
+    <value>Target application is missing</value>
   </data>
   <data name="s5f866167c13b1b8531caae51" xml:space="preserve">
     <value>Target identity or full directory manifest changed.</value>
@@ -7170,6 +7314,9 @@
   <data name="sf81e65983d0c6d670824e835" xml:space="preserve">
     <value>The service stopped, but restart did not finish. Refresh its source before continuing.</value>
   </data>
+  <data name="s5883524b5bea3aa60fc2d956" xml:space="preserve">
+    <value>The shortcut changed. Check this application again.</value>
+  </data>
   <data name="s58b0b32e13932ab618db36b7" xml:space="preserve">
     <value>The space analysis index ran out of storage. Free some disk space or scan a smaller folder.</value>
   </data>
@@ -7272,6 +7419,9 @@
   <data name="sa80becd5ed54593a05163294" xml:space="preserve">
     <value>This application cannot be safely removed. Review its component details.</value>
   </data>
+  <data name="sd4c9edd7bc495042d496feb5" xml:space="preserve">
+    <value>This application is protected and cannot be uninstalled.</value>
+  </data>
   <data name="s4833d49d41998f54a0bafddc" xml:space="preserve">
     <value>This application or one of its files is in use. Close it and review the installation again.</value>
   </data>
@@ -7323,6 +7473,9 @@
   <data name="sbd88d713ecd33916fd3cc729" xml:space="preserve">
     <value>This folder is empty.</value>
   </data>
+  <data name="sa2596cb935d90f4080d2d895" xml:space="preserve">
+    <value>This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions.</value>
+  </data>
   <data name="s85bd5bdb0901ea3dce467a95" xml:space="preserve">
     <value>This folder name contains wildcard characters and cannot be represented as an exact rule.</value>
   </data>
@@ -7331,6 +7484,9 @@
   </data>
   <data name="s70ddbdec825030e4016cb9a4" xml:space="preserve">
     <value>This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified.</value>
+  </data>
+  <data name="scd2ea23b9073ce0817431f54" xml:space="preserve">
+    <value>This installer is not supported. Use Windows Settings to uninstall this application.</value>
   </data>
   <data name="sdaef0b33170f9c32415dc125" xml:space="preserve">
     <value>This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.</value>
@@ -8040,6 +8196,9 @@
   <data name="sdf5203979d84b15e6429130b" xml:space="preserve">
     <value>application_changed</value>
   </data>
+  <data name="s265e9aa2c43d924c874f542e" xml:space="preserve">
+    <value>application_link_target_missing</value>
+  </data>
   <data name="s425b1138138cbfc21e18440d" xml:space="preserve">
     <value>Application metadata is unavailable. Only the application bundle can be removed; associated data is kept.</value>
   </data>
@@ -8147,6 +8306,9 @@
   </data>
   <data name="sa6a0b79a4018b91224e55a3c" xml:space="preserve">
     <value>macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept.</value>
+  </data>
+  <data name="s206fcf54889a13a0d773020e" xml:space="preserve">
+    <value>macOS protects this system application from uninstalling.</value>
   </data>
   <data name="s848bcdd67955e30b519b2170" xml:space="preserve">
     <value>macOS regenerates this user cache when the service needs it again.</value>

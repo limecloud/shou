@@ -24,7 +24,7 @@ public protocol ApplicationClosing: Sendable {
 
 extension ShouEngine {
     public func cleanupApplicationClosePlan(scanIds: [String]) throws -> ApplicationClosePlan {
-        guard !scanIds.isEmpty, scanIds.count <= 200 else { throw ShouError("invalid_argument", "Select current cleanup scans.") }
+        guard !scanIds.isEmpty, scanIds.count <= 512 else { throw ShouError("invalid_argument", "Select current cleanup scans.") }
         let snapshots=try scanIds.map { try scanSnapshot($0) }
         let configDigest=try Digest.of(configuration())
         guard snapshots.allSatisfy({ $0.configurationDigest == configDigest && !$0.previewOnly }) else { throw ShouError("plan_stale", "Scan again before closing applications.") }

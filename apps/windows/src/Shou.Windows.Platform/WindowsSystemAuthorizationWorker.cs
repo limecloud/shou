@@ -10,7 +10,7 @@ public static class WindowsSystemAuthorizationWorker
     public static async Task<int?> RunIfRequestedAsync(string[] args)
     {
         if (args.Length == 0 || !args[0].StartsWith("--system-authorization-worker", StringComparison.Ordinal)) return null;
-        if (!NativeWindowsSupport.IsSupported || args.Length != 5 || args[0] != "--system-authorization-worker-v1" ||
+        if (!NativeWindowsSupport.IsSupported || args.Length != 5 || args[0] != "--system-authorization-worker-v2" ||
             !args[1].StartsWith("shou-authorization-", StringComparison.Ordinal) || !Guid.TryParseExact(args[1][19..], "N", out _) ||
             args[2].Length != 64 || !args[2].All(char.IsAsciiHexDigit) || !int.TryParse(args[3], out var pid) || !long.TryParse(args[4], out var started)) return 77;
         WindowsSystemAuthorization.EnterWorker();
@@ -22,11 +22,12 @@ public static class WindowsSystemAuthorizationWorker
             using var lifetime = new CancellationTokenSource();
             await pipe.ConnectAsync(30_000, lifetime.Token).ConfigureAwait(false);
             if (WindowsAuthorizationPeer.PipePeer(pipe.SafePipeHandle, client:false) != pid || !parent.IsCurrent) return 77;
-            await WindowsAuthorizationChannel.WriteAsync(pipe, new AuthorizationHello(1, args[2]), lifetime.Token).ConfigureAwait(false);
+            await WindowsAuthorizationChannel.WriteAsync(pipe, new AuthorizationHello(2, args[2]), lifetime.Token).ConfigureAwait(false);
             var queue = Channel.CreateBounded<AuthorizationRequest>(1);
             var gate = new object(); Guid active = Guid.Empty, completed = Guid.Empty;
             CancellationTokenSource? operation = null;
-            var seen = new HashSet<Guid>();
+            var order = new AuthorizationRequestOrder();
+            ulong activeSequence = 0, completedSequence = 0;
             var reader = Task.Run(async () =>
             {
                 try
@@ -39,12 +40,13 @@ public static class WindowsSystemAuthorizationWorker
                             if (request.Operation == AuthorizationOperation.Cancel)
                             {
                                 ValidateCancel(request);
-                                if (request.Id == active) operation?.Cancel();
-                                else if (request.Id != completed) throw WindowsAuthorizationChannel.Failure();
+                                if (request.Id == active && request.Sequence == activeSequence) operation?.Cancel();
+                                else if (request.Id != completed || request.Sequence != completedSequence) throw WindowsAuthorizationChannel.Failure();
                                 continue;
                             }
-                            if (active != Guid.Empty || request.Id == Guid.Empty || !seen.Add(request.Id) || seen.Count > 10_000) throw WindowsAuthorizationChannel.Failure();
-                            active = request.Id; operation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+                            if (active != Guid.Empty) throw WindowsAuthorizationChannel.Failure();
+                            order.Accept(request);
+                            active = request.Id; activeSequence = request.Sequence; operation = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
                         }
                         await queue.Writer.WriteAsync(request, lifetime.Token).ConfigureAwait(false);
                     }
@@ -66,7 +68,7 @@ public static class WindowsSystemAuthorizationWorker
                     try { reply = await PerformAsync(request, parent, pipe, token).ConfigureAwait(false); }
                     catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException or OperationCanceledException)
                     { reply = new(request.Id, Error:error is ShouException known ? known.Code : error is OperationCanceledException ? "cancelled" : error is UnauthorizedAccessException ? "permission_denied" : "io_error"); }
-                    lock (gate) { completed = active; active = Guid.Empty; operation?.Dispose(); operation = null; }
+                    lock (gate) { completed = active; completedSequence = activeSequence; active = Guid.Empty; operation?.Dispose(); operation = null; }
                     if (!parent.IsCurrent) break;
                     await WindowsAuthorizationChannel.WriteAsync(pipe, reply, lifetime.Token).ConfigureAwait(false);
                 }

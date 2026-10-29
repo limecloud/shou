@@ -384,6 +384,11 @@
     "resource_id": "s0bcdbdb6141a974e27567d1e",
     "text": "为自己的文件夹，定制清理方式。"
   },
+  "A selected disk is no longer available.": {
+    "format": "所选磁盘已不可用。",
+    "resource_id": "s9dab3a361c3acbe82817ff70",
+    "text": "所选磁盘已不可用。"
+  },
   "A startup registration could not be read safely.": {
     "format": "无法安全读取某项启动注册。",
     "resource_id": "s89fc8a07b42c3f6b6a737730",
@@ -654,10 +659,20 @@
     "resource_id": "sb8f358b6904a3920d812f930",
     "text": "不会自动请求管理员权限，当前无法卸载需要提权的应用。"
   },
+  "Administrator access is required to uninstall this application.": {
+    "format": "卸载此应用需要管理员授权。",
+    "resource_id": "saecc36cfa4031de97896646f",
+    "text": "卸载此应用需要管理员授权。"
+  },
   "Administrator authorization required": {
     "format": "需要管理员授权",
     "resource_id": "s15b0f4273b0890833240a35f",
     "text": "需要管理员授权"
+  },
+  "Administrator authorization was not completed. Your selection is kept.": {
+    "format": "未完成管理员授权，原有选择已保留。",
+    "resource_id": "s2622e05380698992e8303dac",
+    "text": "未完成管理员授权，原有选择已保留。"
   },
   "Adobe Bridge caches": {
     "format": "Adobe Bridge 缓存",
@@ -944,6 +959,11 @@
     "resource_id": "s5de90c55077b12e25222af1c",
     "text": "应用容器"
   },
+  "App is running": {
+    "format": "应用正在运行",
+    "resource_id": "s4796f35f7898d29ec8315ddc",
+    "text": "应用正在运行"
+  },
   "App logs": {
     "format": "应用日志",
     "resource_id": "s89a3901f684ccf561c7f9b10",
@@ -1018,6 +1038,11 @@
     "format": "应用选项",
     "resource_id": "sd2ef99248abbb0f23c87cf21",
     "text": "应用选项"
+  },
+  "Application Shortcut": {
+    "format": "应用快捷方式",
+    "resource_id": "sd6bde14d7466413a5b40297e",
+    "text": "应用快捷方式"
   },
   "Application Uninstall": {
     "format": "应用卸载",
@@ -1189,6 +1214,11 @@
     "resource_id": "s54c7c4eb660f701beeb04854",
     "text": "应用与项目"
   },
+  "Apps using cleanup files": {
+    "format": "占用清理文件的应用",
+    "resource_id": "secd4d7747c6727e70018e034",
+    "text": "占用清理文件的应用"
+  },
   "Arc caches": {
     "format": "Arc 缓存",
     "resource_id": "s954b53ba2c4c7f944810797a",
@@ -1293,6 +1323,11 @@
     "format": "音频",
     "resource_id": "sbc1b88907d3b748af99cb9d4",
     "text": "音频"
+  },
+  "Authenticating…": {
+    "format": "正在验证身份…",
+    "resource_id": "sa705b07515ab1c96fd5a809d",
+    "text": "正在验证身份…"
   },
   "Authentication": {
     "format": "身份验证",
@@ -1468,6 +1503,16 @@
     "format": "Brave 下载缓存",
     "resource_id": "sc2d784268f63bb3763bacf0f",
     "text": "Brave 下载缓存"
+  },
+  "Broken Shortcut": {
+    "format": "失效快捷方式",
+    "resource_id": "s73e6632bfd5a983328ace3ba",
+    "text": "失效快捷方式"
+  },
+  "Broken Shortcuts": {
+    "format": "失效快捷方式",
+    "resource_id": "s6585b79576dbc6eda7610df7",
+    "text": "失效快捷方式"
   },
   "Browse All Tools": {
     "format": "浏览全部工具",
@@ -1748,6 +1793,11 @@
     "format": "无法再次核验清理项是否符合当前规则。",
     "resource_id": "s5b50ab6f539f0e0bc822dffe",
     "text": "无法再次核验清理项是否符合当前规则。"
+  },
+  "Cannot Uninstall": {
+    "format": "无法卸载",
+    "resource_id": "s053d388cc482f1a59d174078",
+    "text": "无法卸载"
   },
   "Cargo Cache": {
     "format": "Cargo 缓存",
@@ -2059,6 +2109,11 @@
     "resource_id": "s91851cac103edeaa370ea867",
     "text": "正在检查工具管理的空间…"
   },
+  "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept.": {
+    "format": "检查当前用户桌面和开始菜单中指向本地程序的普通快捷方式，保留其他类型。",
+    "resource_id": "s99d81aa1aed47a95af8bce8c",
+    "text": "检查当前用户桌面和开始菜单中指向本地程序的普通快捷方式，保留其他类型。"
+  },
   "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.": {
     "format": "仅向 formulae.brew.sh 查询此应用，不安装任何内容，也不上传应用列表。",
     "resource_id": "sf66e8d31c012b7148a8e2d6a",
@@ -2219,10 +2274,30 @@
     "resource_id": "sd6224bb9f78c0f269d0a6e08",
     "text": "请使用尚未存在的版本号，已有版本不能覆盖。"
   },
+  "Choose available local disks.": {
+    "format": "请选择可用的本地磁盘。",
+    "resource_id": "se28cee8c23b5efbb925f8b74",
+    "text": "请选择可用的本地磁盘。"
+  },
+  "Choose between one and 256 scan folders.": {
+    "format": "请选择 1 至 256 个扫描文件夹。",
+    "resource_id": "s24d93c71fee87dc62dc3f6a9",
+    "text": "请选择 1 至 256 个扫描文件夹。"
+  },
+  "Choose between one and 32 scan folders.": {
+    "format": "请选择 1 至 32 个扫描文件夹。",
+    "resource_id": "se1b691b6276a9937cdef6c33",
+    "text": "请选择 1 至 32 个扫描文件夹。"
+  },
   "Choose extra folders to remember for future cleanup scans.": {
     "format": "选择额外文件夹，今后的清理扫描会自动包含这些位置。",
     "resource_id": "s7679caf97c8253d89d9544ef",
     "text": "选择额外文件夹，今后的清理扫描会自动包含这些位置。"
+  },
+  "Choose folders to scan.": {
+    "format": "选择要扫描的文件夹。",
+    "resource_id": "s1e95a90d290b7065704a1375",
+    "text": "选择要扫描的文件夹。"
   },
   "Choose items to review. High-risk items require your selection.": {
     "format": "请选择要审阅的项目。高风险项目需要手动选择。",
@@ -2458,6 +2533,11 @@
     "format": "当前开发版本尚未开放清理执行。",
     "resource_id": "s740d49873c036af2ed120f38",
     "text": "当前开发版本尚未开放清理执行。"
+  },
+  "Cleanup execution is unavailable until native Windows verification is complete.": {
+    "format": "Windows 原生验收完成前，暂不提供清理执行。",
+    "resource_id": "s49fe0de586719fc09a4c0b12",
+    "text": "Windows 原生验收完成前，暂不提供清理执行。"
   },
   "Cleanup finished with issues": {
     "format": "清理已结束，部分项目需处理",
@@ -5624,6 +5704,11 @@
     "resource_id": "s4a186dd7a70775e1c9f69e9b",
     "text": "本地数据"
   },
+  "Local disk discovery is unavailable on this platform.": {
+    "format": "当前平台无法读取本地磁盘列表。",
+    "resource_id": "sa9538d840667f18ec65574a0",
+    "text": "当前平台无法读取本地磁盘列表。"
+  },
   "Local instance": {
     "format": "本机实例",
     "resource_id": "s98b266df6d2e92e7218af904",
@@ -6644,6 +6729,11 @@
     "resource_id": "sfacda8d8d15aab4f83410dee",
     "text": "未发现已确认的应用残留。"
   },
+  "No verified broken shortcuts.": {
+    "format": "没有已核实的失效快捷方式。",
+    "resource_id": "s3b911cbd7ae66e6b8f401a67",
+    "text": "没有已核实的失效快捷方式。"
+  },
   "No verified components available. Scan again or review access notices.": {
     "format": "没有已核验的可用组件，请重新扫描或查看访问提示。",
     "resource_id": "s9fbfa154ff01b126f7c043d1",
@@ -7049,6 +7139,11 @@
     "resource_id": "s176a7f19f66f16237484acfd",
     "text": "本次审阅仅包含上方列出的软件和目标版本。"
   },
+  "Only this broken shortcut is removed. Its target and associated data are kept.": {
+    "format": "仅清理此失效快捷方式，保留目标位置和关联数据。",
+    "resource_id": "sf3a86d65a6fa97c06033eca5",
+    "text": "仅清理此失效快捷方式，保留目标位置和关联数据。"
+  },
   "Only this folder and its children are investigated. This does not select files for cleanup.": {
     "format": "仅调查此目录及其子目录。调查范围不改变清理勾选。",
     "resource_id": "sf5aaa93ad751f8946da1a822",
@@ -7068,6 +7163,11 @@
     "format": "仅启用并扫描此规则，确认删除前仍可调整文件选择。其他草稿保持原选择。",
     "resource_id": "s5224726f1cd01f769b1eda89",
     "text": "仅启用并扫描此规则，确认删除前仍可调整文件选择。其他草稿保持原选择。"
+  },
+  "Only this shortcut": {
+    "format": "仅此快捷方式",
+    "resource_id": "s9d11b57b322d46369ada4748",
+    "text": "仅此快捷方式"
   },
   "Only verified trashed items can be restored or permanently removed.": {
     "format": "只有已核验移入废纸篓的项目才能还原或永久删除。",
@@ -7398,6 +7498,11 @@
     "format": "永久删除后无法撤销。",
     "resource_id": "s169668daf8bf057e4204f754",
     "text": "永久删除后无法撤销。"
+  },
+  "Permanent deletion completed. Review History for details.": {
+    "format": "永久删除已完成，可在操作记录查看详情。",
+    "resource_id": "sdcbc1ee4688b5decd57436af",
+    "text": "永久删除已完成，可在操作记录查看详情。"
   },
   "Permanent removal cancelled; inspect the partial result.": {
     "format": "永久删除已取消，请检查已处理的结果。",
@@ -7959,6 +8064,11 @@
     "resource_id": "s5aa10055a795c4655d052ec1",
     "text": "目录队列"
   },
+  "Queued for review": {
+    "format": "等待核验",
+    "resource_id": "s507bdf8903918f4826cfb499",
+    "text": "等待核验"
+  },
   "Quick Look": {
     "format": "快速查看",
     "resource_id": "s371e34282d2aa3c4b76acf91",
@@ -8004,6 +8114,16 @@
     "resource_id": "s1ec27efc39d08df984ce969e",
     "text": "请先退出 QQ。规则不匹配聊天记录、已下载附件、账户数据及应用支持目录。"
   },
+  "Quit Selected Apps & Refresh": {
+    "format": "关闭所选应用并重新检查",
+    "resource_id": "sd761c8cb3f33d1cb531c9636",
+    "text": "关闭所选应用并重新检查"
+  },
+  "Quit Selected Apps and Check Again": {
+    "format": "关闭所选应用并重新检查",
+    "resource_id": "sd9cec540026ed4ff11589817",
+    "text": "关闭所选应用并重新检查"
+  },
   "Quit Shou": {
     "format": "退出 Shou",
     "resource_id": "s0d4004339a092a7ec7c9669f",
@@ -8013,6 +8133,11 @@
     "format": "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。",
     "resource_id": "s57c7b2e6768db10c7d0a2527",
     "text": "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。"
+  },
+  "Quit affected apps, then scan again.": {
+    "format": "请关闭相关应用后重新扫描。",
+    "resource_id": "s94635ec8bb8bd2a0a96f321a",
+    "text": "请关闭相关应用后重新扫描。"
   },
   "Quit apps to clean their caches?": {
     "format": "关闭应用以清理缓存？",
@@ -8384,6 +8509,11 @@
     "resource_id": "s3ba982748cfdb0a88e1c39d3",
     "text": "清理后请刷新，以更新扩展名统计。"
   },
+  "Refreshing affected cleanup locations…": {
+    "format": "正在重新检查受影响的项目…",
+    "resource_id": "s1fac75f13f04918aa3ce0ff4",
+    "text": "正在重新检查受影响的项目…"
+  },
   "Registered Projects": {
     "format": "已登记项目",
     "resource_id": "s6af400683f3d6d557ed0a0e0",
@@ -8538,6 +8668,11 @@
     "format": "此工作区尚未启用所请求的规则。",
     "resource_id": "s8ee29a00c89b3cf754453319",
     "text": "此工作区尚未启用所请求的规则。"
+  },
+  "Requesting applications to quit…": {
+    "format": "正在请求应用退出…",
+    "resource_id": "sf7d1052fe7f3ff4b0e3871bd",
+    "text": "正在请求应用退出…"
   },
   "Required for uninstall": {
     "format": "卸载必选",
@@ -9044,6 +9179,11 @@
     "resource_id": "s5d9208796d6fd1d4fe08325c",
     "text": "正在使用 Jev 复核重建证据…"
   },
+  "Reviewing…": {
+    "format": "正在核验…",
+    "resource_id": "sfcc53388888f70fd48f45c7c",
+    "text": "正在核验…"
+  },
   "Risk": {
     "format": "风险",
     "resource_id": "s0711a8d636e4c068ae59fa80",
@@ -9254,6 +9394,16 @@
     "resource_id": "s5fc0a3943a720cd46f7d1364",
     "text": "保存结果"
   },
+  "Save your work before quitting. Apps that remain open must be closed manually.": {
+    "format": "请先保存工作。退出后仍在运行的应用需要手动关闭。",
+    "resource_id": "s409f44abf2b55cde1d92e397",
+    "text": "请先保存工作。退出后仍在运行的应用需要手动关闭。"
+  },
+  "Save your work first. Apps that stay open will remain blocked.": {
+    "format": "请先保存工作。仍在运行的应用，其占用文件将保留。",
+    "resource_id": "sc66c071f4248af85e19d87ab",
+    "text": "请先保存工作。仍在运行的应用，其占用文件将保留。"
+  },
   "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action.": {
     "format": "请先保存工作。收会请求正常退出，确认关闭后刷新受影响项目。此操作不会删除文件。",
     "resource_id": "sf7942ff1952b1cf62f8887dd",
@@ -9414,6 +9564,11 @@
     "resource_id": "sfad20ffae18135ae21155188",
     "text": "扫描隐私来源"
   },
+  "Scan Scope": {
+    "format": "扫描范围",
+    "resource_id": "s79001dc29466fa18114b0341",
+    "text": "扫描范围"
+  },
   "Scan Selected Location": {
     "format": "扫描所选位置",
     "resource_id": "scc018bdc832d777479d51b80",
@@ -9544,6 +9699,11 @@
     "resource_id": "sf92e3c904a5f7e16496feb7d",
     "text": "扫描与隐私"
   },
+  "Scanning cleanup locations…": {
+    "format": "正在扫描可清理内容…",
+    "resource_id": "s2f9d19a713940794ef752ee0",
+    "text": "正在扫描可清理内容…"
+  },
   "Scanning disk usage…": {
     "format": "正在扫描磁盘占用…",
     "resource_id": "s164b99b750451a597d62902d",
@@ -9568,6 +9728,21 @@
     "format": "扫描仅统计文件大小，不会自动选择或删除任何内容。",
     "resource_id": "sc04fafc03cb442898d37249d",
     "text": "扫描仅统计文件大小，不会自动选择或删除任何内容。"
+  },
+  "Scanning selected disks…": {
+    "format": "正在扫描所选磁盘…",
+    "resource_id": "s7a02151560dd92138444dc37",
+    "text": "正在扫描所选磁盘…"
+  },
+  "Scanning selected folders…": {
+    "format": "正在扫描所选文件夹…",
+    "resource_id": "s4f70299be3fff49dcf939055",
+    "text": "正在扫描所选文件夹…"
+  },
+  "Scanning selected folder…": {
+    "format": "正在扫描所选文件夹…",
+    "resource_id": "s69d2404b6b60f9a711875081",
+    "text": "正在扫描所选文件夹…"
   },
   "Scanning selected workspace…": {
     "format": "正在扫描所选工作区…",
@@ -9759,6 +9934,21 @@
     "resource_id": "s12de350b75bb27fd577a0d72",
     "text": "选择构建与缓存"
   },
+  "Select Disks": {
+    "format": "选择磁盘",
+    "resource_id": "sa782008050fbfedc15745017",
+    "text": "选择磁盘"
+  },
+  "Select Disks…": {
+    "format": "选择磁盘…",
+    "resource_id": "s62e90d5f9cb8bde7d79463fa",
+    "text": "选择磁盘…"
+  },
+  "Select Folders…": {
+    "format": "选择文件夹…",
+    "resource_id": "s198159c608e250548086cce9",
+    "text": "选择文件夹…"
+  },
   "Select Item": {
     "format": "选择项目",
     "resource_id": "s7e2579b56e0b4c1083595db7",
@@ -9848,6 +10038,11 @@
     "format": "选择可用更新",
     "resource_id": "s1a58b9eae374eb8251c13c95",
     "text": "选择可用更新"
+  },
+  "Select broken shortcuts separately from apps that require Trash.": {
+    "format": "请将失效快捷方式与仅能移入废纸篓的应用分开选择。",
+    "resource_id": "s1c0330082f73aafaf8c3ad87",
+    "text": "请将失效快捷方式与仅能移入废纸篓的应用分开选择。"
   },
   "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.": {
     "format": "请选择具体隐私来源。永久删除无法撤销；删除 Cookie 可能使你退出登录。",
@@ -9968,6 +10163,16 @@
     "format": "选中的应用个人数据也将移入废纸篓。",
     "resource_id": "seee6e806cfa3d85a0b32a505",
     "text": "选中的应用个人数据也将移入废纸篓。"
+  },
+  "Selecting this application requests administrator access when needed.": {
+    "format": "选择此应用时，会按需请求管理员授权。",
+    "resource_id": "s00a1f9089680a70e72978147",
+    "text": "选择此应用时，会按需请求管理员授权。"
+  },
+  "Selection is being checked…": {
+    "format": "正在核验所选项目…",
+    "resource_id": "s997dbb80e2323114bfc9c695",
+    "text": "正在核验所选项目…"
   },
   "Selections across locations are reviewed together. Filtering keeps your selection.": {
     "format": "不同位置的所选项目将合并审阅，筛选不会清除选择。",
@@ -10178,6 +10383,11 @@
     "format": "Shou 无法恢复系统卸载，也不会自动清理残留文件。",
     "resource_id": "sfb32ba1e97394acee8da9953",
     "text": "Shou 无法恢复系统卸载，也不会自动清理残留文件。"
+  },
+  "Shou cannot uninstall itself while it is running.": {
+    "format": "Shou 运行期间无法卸载自身。",
+    "resource_id": "sd65646b2fb6937757cb24baf",
+    "text": "Shou 运行期间无法卸载自身。"
   },
   "Shou data directory must be owned by the current user and have mode 0700.": {
     "format": "Shou 数据目录必须归当前用户所有，权限须为 0700。",
@@ -10544,6 +10754,11 @@
     "resource_id": "sd9bf7e6595300c0409d44fe9",
     "text": "部分记录需要验证，已予保留。"
   },
+  "Some scan locations could not be discovered within the limit.": {
+    "format": "部分位置未能在本次扫描限额内完成发现。",
+    "resource_id": "scb1189b602b5973597c846b3",
+    "text": "部分位置未能在本次扫描限额内完成发现。"
+  },
   "Some scheduled task statuses could not be read.": {
     "format": "部分计划任务的状态无法读取。",
     "resource_id": "sb01e802c8b9b0b48583aa738",
@@ -10553,6 +10768,11 @@
     "format": "部分所选项目未能处理，请查看历史记录。",
     "resource_id": "s4411577d476c87daf3eb206d",
     "text": "部分所选项目未能处理，请查看历史记录。"
+  },
+  "Some shortcuts could not be verified and are kept.": {
+    "format": "部分快捷方式无法核实，已保留。",
+    "resource_id": "seb57baf00978632e29420853",
+    "text": "部分快捷方式无法核实，已保留。"
   },
   "Some sources could not be read.": {
     "format": "部分来源无法读取。",
@@ -10663,6 +10883,11 @@
     "format": "Spark 缓存",
     "resource_id": "sbf47c013669b2dd1506c68d8",
     "text": "Spark 缓存"
+  },
+  "Standard Scan": {
+    "format": "标准扫描",
+    "resource_id": "sf4ba9807daa439e29918860c",
+    "text": "标准扫描"
   },
   "Start Investigation": {
     "format": "开始调查",
@@ -11204,6 +11429,11 @@
     "resource_id": "s85c35c367d93cc97e3b0e33f",
     "text": "系统设置…"
   },
+  "System disk": {
+    "format": "系统磁盘",
+    "resource_id": "s8c6efbb81ebeb2bd0a5108a3",
+    "text": "系统磁盘"
+  },
   "System package": {
     "format": "系统应用",
     "resource_id": "s26fb93cf8ad0bd95513d00c9",
@@ -11244,10 +11474,20 @@
     "resource_id": "s9a6f89e4fdde50899fe8b796",
     "text": "TablePlus 缓存"
   },
+  "Target": {
+    "format": "目标",
+    "resource_id": "s978354db0c00fc78c3a5524f",
+    "text": "目标"
+  },
   "Target Selection": {
     "format": "目标选择",
     "resource_id": "s5da2adacf6d4ca8dfc527989",
     "text": "目标选择"
+  },
+  "Target application is missing": {
+    "format": "目标应用已不存在",
+    "resource_id": "sb57addef9dccbe6b783ada62",
+    "text": "目标应用已不存在"
   },
   "Target identity or full directory manifest changed.": {
     "format": "目标身份或完整目录清单已变化。",
@@ -11949,6 +12189,11 @@
     "resource_id": "sf81e65983d0c6d670824e835",
     "text": "服务已停止，但重启未完成。请刷新来源后再继续。"
   },
+  "The shortcut changed. Check this application again.": {
+    "format": "快捷方式已变化，请重新检查。",
+    "resource_id": "s5883524b5bea3aa60fc2d956",
+    "text": "快捷方式已变化，请重新检查。"
+  },
   "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.": {
     "format": "空间分析索引的存储空间不足。请释放磁盘空间，或选择较小的目录重新扫描。",
     "resource_id": "s58b0b32e13932ab618db36b7",
@@ -12119,6 +12364,11 @@
     "resource_id": "sa80becd5ed54593a05163294",
     "text": "无法安全移除此应用，请查看组件详情。"
   },
+  "This application is protected and cannot be uninstalled.": {
+    "format": "此应用受系统保护，无法卸载。",
+    "resource_id": "sd4c9edd7bc495042d496feb5",
+    "text": "此应用受系统保护，无法卸载。"
+  },
   "This application or one of its files is in use. Close it and review the installation again.": {
     "format": "此应用或其文件正在使用中。请关闭应用后重新审阅安装。",
     "resource_id": "s4833d49d41998f54a0bafddc",
@@ -12204,6 +12454,11 @@
     "resource_id": "sbd88d713ecd33916fd3cc729",
     "text": "此文件夹为空。"
   },
+  "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions.": {
+    "format": "此文件夹属于已保存的扫描位置，请扫描该位置以沿用规则和排除设置。",
+    "resource_id": "sa2596cb935d90f4080d2d895",
+    "text": "此文件夹属于已保存的扫描位置，请扫描该位置以沿用规则和排除设置。"
+  },
   "This folder name contains wildcard characters and cannot be represented as an exact rule.": {
     "format": "此目录名包含通配符，当前规则格式无法精确描述该目录。",
     "resource_id": "s85bd5bdb0901ea3dce467a95",
@@ -12218,6 +12473,11 @@
     "format": "当前无法为此安装准备卸载计划，原因可能是受保护、不支持或无法核验。",
     "resource_id": "s70ddbdec825030e4016cb9a4",
     "text": "当前无法为此安装准备卸载计划，原因可能是受保护、不支持或无法核验。"
+  },
+  "This installer is not supported. Use Windows Settings to uninstall this application.": {
+    "format": "暂不支持此安装程序，请从 Windows 设置卸载此应用。",
+    "resource_id": "scd2ea23b9073ce0817431f54",
+    "text": "暂不支持此安装程序，请从 Windows 设置卸载此应用。"
   },
   "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.": {
     "format": "此实例由守护程序管理，需要通过对应的守护程序控制，避免停止后自动重启。",
@@ -13399,6 +13659,11 @@
     "resource_id": "sdf5203979d84b15e6429130b",
     "text": "应用在检查过程中发生变化。"
   },
+  "application_link_target_missing": {
+    "format": "目标应用已不存在；可仅清理这个失效快捷方式。",
+    "resource_id": "s265e9aa2c43d924c874f542e",
+    "text": "目标应用已不存在；可仅清理这个失效快捷方式。"
+  },
   "application_metadata_missing": {
     "format": "应用安装信息缺失，仅卸载应用本体，保留关联数据。",
     "resource_id": "s425b1138138cbfc21e18440d",
@@ -13578,6 +13843,11 @@
     "format": "macOS 可能会要求验证身份。带锁标记的应用将移到废纸篓，并保留其应用数据。",
     "resource_id": "sa6a0b79a4018b91224e55a3c",
     "text": "macOS 可能会要求验证身份。带锁标记的应用将移到废纸篓，并保留其应用数据。"
+  },
+  "macOS protects this system application from uninstalling.": {
+    "format": "此系统应用受 macOS 保护，无法卸载。",
+    "resource_id": "s206fcf54889a13a0d773020e",
+    "text": "此系统应用受 macOS 保护，无法卸载。"
   },
   "macOS regenerates this user cache when the service needs it again.": {
     "format": "macOS 会在相关服务再次需要时重建这些用户缓存。",

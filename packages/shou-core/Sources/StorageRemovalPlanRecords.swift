@@ -3,6 +3,10 @@ import Foundation
 /// Plans keep small mutable metadata separate from their immutable manifests.
 /// Legacy inline plans remain readable; no existing user record is rewritten.
 enum StorageRemovalPlanRecords {
+    struct Loaded {
+        let plan: StorageRemovalPlan
+        let sources: [FileManifestSource]
+    }
     private struct Manifest: Codable {
         let count: Int
         let pages: [FileManifestPage]
@@ -49,19 +53,23 @@ enum StorageRemovalPlanRecords {
     }
 
     static func load(_ id: String, store: any RecordStore) throws -> StorageRemovalPlan {
+        try loadWithSources(id, store: store).plan
+    }
+
+    static func loadWithSources(_ id: String, store: any RecordStore) throws -> Loaded {
         guard let data=try store.read("storage-plans", id: id) else { throw ShouError("invalid_argument", "Unknown space removal plan.") }
         struct Header: Decodable { let formatVersion: Int?; let plan: StorageRemovalPlan? }
         let header=try Codec.decode(Header.self, from: data)
         guard header.formatVersion != nil || header.plan != nil else {
             let plan=try Codec.decode(StorageRemovalPlan.self, from: data)
             guard plan.id == id, plan.manifestFormatVersion == nil, try plan.calculatedDigest() == plan.digest else { throw FileManifestRecords.corrupt() }
-            return plan
+            return Loaded(plan: plan, sources: [])
         }
         let value=try Codec.decode(Record.self, from: data)
         guard value.formatVersion == 1, value.plan.manifestFormatVersion == 1, value.plan.id == id,
               value.plan.items.count == value.manifests.count, (1...5000).contains(value.plan.items.count),
               try value.digest() == value.plan.digest else { throw FileManifestRecords.corrupt() }
-        var plan=value.plan
+        var plan=value.plan, sources=[FileManifestSource]()
         for (index, item) in plan.items.enumerated() {
             guard item.manifest.isEmpty else { throw FileManifestRecords.corrupt() }
             let manifest=value.manifests[index]
@@ -69,8 +77,9 @@ enum StorageRemovalPlanRecords {
                 if Task.isCancelled { throw ShouError("cancelled", "Selection review stopped.") }
             })
             plan.items[index]=StorageRemovalItem(path: item.path, manifest: entries, allocatedBytesEstimate: item.allocatedBytesEstimate)
+            sources.append(FileManifestSource(entries: entries, pages: manifest.pages, prefix: id + "_" + String(index), collection: "storage-plan-manifests"))
         }
-        return plan
+        return Loaded(plan: plan, sources: sources)
     }
 
     static func updateState(_ plan: StorageRemovalPlan, store: any RecordStore, state: String = "executing") throws {

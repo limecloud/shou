@@ -12,6 +12,7 @@ func storageBrowsingSelectionSharesProtectionAndHierarchyWithoutMutation() async
         let workspace=try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "browse-fixture")
         let scan=try await engine.scanStorage(path: fixture.workspace.path)
         try expect((scan.catalogId != nil) == indexed)
+        if indexed { try expect(scan.tree.entries.count == 1 && scan.entryCount > 1) }
         let before=try Digest.of(await engine.configuration())
         let browse=try await engine.storageBrowsePage(scanId: scan.id)
         try expect(browse.removalReasons[".ssh"] != nil && browse.removalReasons["project"] == nil)

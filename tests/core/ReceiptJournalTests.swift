@@ -7,14 +7,26 @@ final class JournalWriteStore: RecordStore, @unchecked Sendable {
     let failingCollection: String?
     let failingWrite: Int
     let maximumRecordBytes: Int?
+    let corruptingManifestRead: Int?
     private let lockState=NSLock()
     private var writes: [String: [Int]]=[:]
-    init(_ wrapped: LocalRecordStore, failingCollection: String? = nil, failingWrite: Int = 0, maximumRecordBytes: Int? = nil) {
+    private var manifestReads=0
+    init(_ wrapped: LocalRecordStore, failingCollection: String? = nil, failingWrite: Int = 0, maximumRecordBytes: Int? = nil, corruptingManifestRead: Int? = nil) {
         self.wrapped=wrapped; self.failingCollection=failingCollection; self.failingWrite=failingWrite
         self.maximumRecordBytes=maximumRecordBytes
+        self.corruptingManifestRead=corruptingManifestRead
     }
     var protectedPaths: [String] { wrapped.protectedPaths }
-    func read(_ collection: String, id: String) throws -> Data? { try wrapped.read(collection, id: id) }
+    func read(_ collection: String, id: String) throws -> Data? {
+        if collection == "storage-plan-manifests" {
+            lockState.lock()
+            manifestReads += 1
+            let corrupt=manifestReads == corruptingManifestRead
+            lockState.unlock()
+            if corrupt { try wrapped.write(collection, id: id, data: Data("Changed after plan loading".utf8)) }
+        }
+        return try wrapped.read(collection, id: id)
+    }
     func ids(_ collection: String) throws -> [String] { try wrapped.ids(collection) }
     func records(_ collection: String) throws -> [StoredRecord] { try wrapped.records(collection) }
     func recordMetadata(_ collection: String, id: String) throws -> StoredRecord? { try wrapped.recordMetadata(collection, id: id) }

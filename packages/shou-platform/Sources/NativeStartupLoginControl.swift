@@ -3,6 +3,7 @@ import ShouCore
 #if os(macOS)
 import Darwin
 @preconcurrency import CoreServices
+import CShouMacLegacy
 #endif
 
 public struct StartupLoginRegistration: Sendable, Equatable, Hashable {
@@ -28,7 +29,7 @@ public protocol StartupLoginItemManaging: Sendable {
 #if os(macOS)
 struct NativeStartupLoginItems: StartupLoginItemManaging {
     private func list() throws -> LSSharedFileList {
-        guard let list=LSSharedFileListCreate(nil,kLSSharedFileListSessionLoginItems.takeUnretainedValue(),nil)?.takeRetainedValue() else {
+        guard let list=ShouLegacyLoginItemsCreate() else {
             throw ShouError("capability_unavailable", "Native login-item list is unavailable.")
         }
         return list
@@ -36,7 +37,7 @@ struct NativeStartupLoginItems: StartupLoginItemManaging {
     func snapshot(limit: Int, deadline: ContinuousClock.Instant) throws -> StartupLoginSnapshot {
         try check(deadline)
         let list=try list()
-        guard let snapshot=LSSharedFileListCopySnapshot(list,nil)?.takeRetainedValue() else {
+        guard let snapshot=ShouLegacyLoginItemsCopySnapshot(list) else {
             throw ShouError("capability_unavailable", "Native login-item snapshot is unavailable.")
         }
         let total=CFArrayGetCount(snapshot), scanned=min(total,max(0,limit))
@@ -46,39 +47,38 @@ struct NativeStartupLoginItems: StartupLoginItemManaging {
             if ContinuousClock.now >= deadline { incomplete=true; break }
             visited += 1
             let item=unsafeBitCast(CFArrayGetValueAtIndex(snapshot,index)!,to:LSSharedFileListItem.self)
-            let flags=UInt32(kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes)
-            guard let resolved=LSSharedFileListItemCopyResolvedURL(item,flags,nil)?.takeRetainedValue() else { incomplete=true; continue }
+            guard let resolved=ShouLegacyLoginItemCopyURL(item) else { incomplete=true; continue }
             let url=resolved as URL
             guard url.isFileURL, url.path.hasPrefix("/"), url.path.utf8.count <= 4_096,
                   url.path.rangeOfCharacter(from:.controlCharacters) == nil else { incomplete=true; continue }
-            let rawName=LSSharedFileListItemCopyDisplayName(item).takeRetainedValue() as String
+            guard let displayName=ShouLegacyLoginItemCopyName(item) else { incomplete=true; continue }
+            let rawName=displayName as String
             let name=rawName.isEmpty || rawName.utf8.count > 512 || rawName.rangeOfCharacter(from:.controlCharacters) != nil ? url.deletingPathExtension().lastPathComponent : rawName
-            items.append(StartupLoginRegistration(id:LSSharedFileListItemGetID(item),path:url.path,name:name))
+            items.append(StartupLoginRegistration(id:ShouLegacyLoginItemGetID(item),path:url.path,name:name))
         }
         return StartupLoginSnapshot(items:items,complete:!incomplete,entryCount:visited)
     }
     func insert(path: String) throws {
         let list=try list()
-        guard LSSharedFileListInsertItemURL(list,kLSSharedFileListItemLast.takeUnretainedValue(),nil,nil,URL(fileURLWithPath:path) as CFURL,nil,nil) != nil else {
+        guard ShouLegacyLoginItemInsert(list,URL(fileURLWithPath:path) as CFURL) else {
             throw ShouError("startup_control_failed", "The native login item could not be inserted.")
         }
     }
     func remove(id: UInt32, path: String) throws {
         let list=try list()
-        guard let snapshot=LSSharedFileListCopySnapshot(list,nil)?.takeRetainedValue() else { throw ShouError("capability_unavailable", "Native login-item snapshot is unavailable.") }
+        guard let snapshot=ShouLegacyLoginItemsCopySnapshot(list) else { throw ShouError("capability_unavailable", "Native login-item snapshot is unavailable.") }
         let count=CFArrayGetCount(snapshot)
         guard count <= 10_000 else { throw ShouError("resource_limit", "Login-item mutation snapshot exceeds its limit.") }
         var matches: [LSSharedFileListItem]=[]
         for index in 0..<count {
             let item=unsafeBitCast(CFArrayGetValueAtIndex(snapshot,index)!,to:LSSharedFileListItem.self)
-            if LSSharedFileListItemGetID(item) == id { matches.append(item) }
+            if ShouLegacyLoginItemGetID(item) == id { matches.append(item) }
         }
         guard matches.count == 1 else { throw ShouError("plan_stale", "The exact native login item no longer exists.") }
-        let flags=UInt32(kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes)
-        guard let resolved=LSSharedFileListItemCopyResolvedURL(matches[0],flags,nil)?.takeRetainedValue(), (resolved as URL).path == path else {
+        guard let resolved=ShouLegacyLoginItemCopyURL(matches[0]), (resolved as URL).path == path else {
             throw ShouError("plan_stale", "The native login-item target changed before removal.")
         }
-        guard LSSharedFileListItemRemove(list,matches[0]) == 0 else { throw ShouError("startup_control_failed", "The native login item could not be removed.") }
+        guard ShouLegacyLoginItemRemove(list,matches[0]) == 0 else { throw ShouError("startup_control_failed", "The native login item could not be removed.") }
     }
     private func check(_ deadline: ContinuousClock.Instant) throws {
         if Task.isCancelled { throw ShouError("cancelled", "Startup scan stopped.") }

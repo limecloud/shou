@@ -161,6 +161,8 @@ func installedApplicationCachesKeepActivityAndIdentityGates() async throws {
     fixture.activity.set(running: [fixture.identifier])
     let (_, running)=try await fixture.scan()
     try expect(try fixture.candidate(running).reasons.contains("application_running"))
+    let runningReview=try CleanupReview(snapshots: [running])
+    try expect(runningReview.sources.allSatisfy { !$0.selectable } && runningReview.recommendedSources.isEmpty)
     fixture.activity.set(unavailable: true)
     let (_, unknown)=try await fixture.scan()
     try expect(try fixture.candidate(unknown).reasons.contains("application_activity_unavailable"))

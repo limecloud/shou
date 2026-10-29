@@ -62,6 +62,8 @@ Relationships are conceptual; bindings may be shared across presets. Plan items 
 | PrivacyPlan | Exact ready sources, fixed bounds, evidence, sign-out acknowledgement, digest and state | Permanent record deletion; separate current execution consent; five-minute maximum lifetime |
 | PrivacyReceipt / PrivacyItemResult | Source IDs, fixed bounds, counts, item states and sanitized errors | Separate from file-removal history; no record contents, Trash path or restore capability |
 
+New catalog-backed macOS `StorageScan` records inline only the root identity, catalog reference, actual entry count and coverage summary. Scans below 10,000 entries no longer duplicate the complete array. Full details remain in the catalog and existing queries serve browsing, selection review, history comparisons, CLI and AI. Legacy inline records without a catalog remain readable; the root array length is not the `entryCount` or a full-inventory query.
+
 ## Windows native records
 
 Current source uses strict versioned JSON: unknown or duplicate fields, invalid references, mismatched digests and unsupported versions are refused. No stored approval field grants execution.
@@ -100,6 +102,10 @@ Windows owns its data root and ACLs. Publication is atomic per record, not acros
 ## Immutable manifest pages
 
 macOS `StorageRemovalPlan` records use a version-1 envelope with compact plan metadata and manifest references; `storage-plan-manifests` contains at most 4,096 entries per page. IDs bind the parent, item ordinal, page ordinal and SHA-256 content digest. The plan digest binds compact metadata and all page digests. All pages must be durably written before publishing metadata. State updates rewrite only metadata. Journal version 2 uses the same paging primitive in `history-manifests`; small and legacy inline records remain readable. Retention protects active parent records and all referenced pages, and removes parent metadata before reclaiming derived pages.
+
+Page encoding uses fixed snake-case field names and encodes each slice without copying a page array or converting every record's keys. Foundation JSONEncoder still provides sorting and string escaping. Output must be byte-identical to `Codec.encode([FileEntry])`, including omission of absent content digests; legacy decoding, page hashes, confirmation digests and format versions are unchanged. Field changes must update this encoding and byte-compatibility checks together.
+
+Storage-removal execution loads and verifies plan pages and decoded manifests under the same mutation lease. Initial history publication prefers copying these verified bytes, rechecking counts, page IDs and SHA-256 during the copy. Changed manifests or records without page sources use the existing encoder. History owns its page IDs and collection; pages precede journal publication, and plan expiration does not invalidate history evidence. This adds no record version, shared physical pages, cross-operation authority cache or GC migration.
 
 Windows large scans and plans use independent format-version-1 envelopes over the existing `CleanupScan` version 1 and `CleanupPlan` version 2 contracts. A page has at most 4,096 entries and 16 MiB; small records retain inline encoding. Scan pages bind measured entries and positive directory-completion evidence. Plan pages bind exact target manifests; separate execution journals reference the unchanged public plan digest. Digests stream into SHA-256 without allocating a complete serialized tree. Readers hold one record lease, verify envelope/page digests, counts, keys and the reconstructed domain record, and reject missing, changed or reordered pages. Interrupted publication leaves unreferenced pages without authority. Existing inline records remain readable; no user records are migrated. Windows history listing still reads only compact journals, while details verify the referenced plan pages. Windows record retention is not added by this change.
 

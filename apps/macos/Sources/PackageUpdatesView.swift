@@ -110,8 +110,7 @@ private struct PackageUpdatesView: View {
                             })).labelsHidden().toggleStyle(.checkbox)
                                 .disabled(!item.canUpgrade || model.busy || session.plan != nil)
                                 .accessibilityLabel(item.name).accessibilityIdentifier("packages.select." + item.id)
-                            Image(systemName: item.kind == "cask" ? "app.dashed" : "shippingbox").font(ShouType.body).foregroundStyle(ShouPalette.secondary)
-                                .frame(width: 28).accessibilityHidden(true)
+                            SoftwarePackageIcon(item: item)
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(item.name).fontWeight(.medium)
                                 if let summary=item.summary { Text(summary).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).lineLimit(2) }

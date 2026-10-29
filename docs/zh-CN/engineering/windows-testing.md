@@ -6,13 +6,19 @@
 
 GitHub ARM64 桌面排错可运行 `gh workflow run windows-desktop-diagnostics.yml -f source_run_id=<Windows检查运行ID>`，复用该次受限便携包，核验归档及文件摘要，分别记录应用源码与诊断脚本源码。它仅缩短桌面排错循环，不替代同一提交的完整原生验收。临时 runner 的[首次登录遮挡问题](https://github.com/actions/runner-images/issues/14069)通过核对当前会话和系统路径后停止对应 OOBE／WWAHost 进程处理；原生命中测试与托盘前台所有权断言保持严格。
 
+## 2026-10-29 后续本机扫描与进度回归
+
+正式发布后的工作区将完整扫描进度发送频率限制在 Core 内，并限制删除进度路径只能属于当前冻结项目，保存结果时不显示路径。Mac-host 全套检查通过 808 Core、288 Presentation、220 Platform、34 CLI 和 192 CLI 合同，98 项原生测试跳过。新增用例覆盖首条／尾条准确计数、250 ms 限频、观察者失败以及根／兄弟路径隐藏。这不延伸下方既有原生验收；本轮未启动云电脑，没有当前 Windows 原生性能或 WinUI 删除验收，公开变更门禁保持关闭。完整实验与日志摘要见[性能记录](storage-scan-performance.md)和[共享证据](../../engineering/storage-performance-evidence.json)。
+
 ## 2026-10-29 系统授权候选版验收
 
 Windows 11 Pro x64 云电脑的原生主套件共 1,433 项通过（Core 805、Presentation 288、Platform 306、CLI 34），213 项 CLI 合同通过；12 项生成 MSI／计划任务 opt-in 跳过。最终 UI 构建另通过自包含发布、窗口启动与正常关闭，以及 15 项 `-ReadOnlyPreview` 真实控件旅程，覆盖扫描、原生目录选择、停止、空间／大文件结果、应用／启动项搜索、规则／空历史、隐私选择、设置持久化与入口、存储故障恢复、保留字节和日志健康。公开变更保持禁用，`public_mutation_tested=false`；不能计为真实清理或卸载通过。
 
 验收修正了空历史的状态断言、设置屏外按钮的滚动，并修复设置跳转时弹出层早于页面／工具栏挂载而关闭的问题。最终 UI 使用 `ab1363f7add7a97fbebf72a0d09819146901bb9c` 基线及绑定本机 `33933e3` 工作区的源码增量，ZIP SHA256 为 `318c968ac80ddbcdf0e1c5675a41299b32d3d39614094cbf80a099da34654089`，逐文件摘要在本地 `.build/v021-navigation-overlay.manifest.json`。原生套件先于这次仅 UI 的增量执行。此前失败和外层 PowerShell 进程退出码为空的失败回执保留；最终通过以 E2E 自身 `verification.json` 的逐项结果及空 stderr 为据。
 
-普通令牌完成管理员 worker 握手和会话复用已有观察与截图，但重连后的 `EnableLUA=0`，不能声明启用 UAC 的完整认证流程通过。ARM64 托盘验收仍被临时 CI 桌面的系统首次隐私设置遮挡；只在 GitHub 托管 runner 的当前会话准备桌面，并在原生 UI 验收前重做检查。生产界面与验收断言不因此放宽，修复后的 ARM64 CI 结果另行记录。
+普通令牌完成管理员 worker 握手和会话复用已有观察与截图，但重连后的 `EnableLUA=0`，不能声明启用 UAC 的完整认证流程通过。同源[原生 CI 40843014989](https://github.com/limecloud/shou/actions/runs/40843014989)，提交 6f24e7796af1263823e77518ffb584f2c4867cb5，在 x64 和 Windows 11 ARM64 各通过 1,433 项测试与 213 项 CLI 合同，各跳过 12 项 opt-in；两端六组监控／托盘验收均通过，包括真实“继续监控”点击。第一次 ARM64 作业被镜像自动启动的 WSL 更新终端抢走前台，失败回执独立保留；同一提交第二次完整作业通过。[Apple Silicon 与 Intel macOS CI](https://github.com/limecloud/shou/actions/runs/40843015005) 同样通过。桌面准备仅限临时 GitHub 托管会话；完整 UI、启用 UAC 的认证、签名与安装继续分别验收。
+
+相同发布源码另通过[生成系统夹具专项 40848938714](https://github.com/limecloud/shou/actions/runs/40848938714)：每种架构各六项 MSI 卸载、六项禁用触发器与手动启动的当前用户任务控制，共 24 项实际执行通过，夹具移除与源码稳定均核验。主套件的十二项 opt-in 跳过由独立专项另行取证；这不代表 WinUI 变更、MSIX、启用 UAC 的认证或公开执行已验收，产品门禁保持关闭。
 
 ## 2026-10-27 工具日志验收与扫描修复
 

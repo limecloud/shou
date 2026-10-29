@@ -4,6 +4,16 @@ namespace Shou.Windows.Core.Tests;
 
 public sealed class StorageScannerTests
 {
+    private sealed class ProgressClock : TimeProvider
+    {
+        public long Timestamp;
+        public override long TimestampFrequency => TimeSpan.TicksPerSecond;
+        public override long GetTimestamp() => Timestamp;
+    }
+    private sealed class ScanObserver(Action<ScanProgress> action) : IProgress<ScanProgress>
+    {
+        public void Report(ScanProgress value) => action(value);
+    }
     private static readonly WindowsPath Root = WindowsPath.Parse(@"C:\Work");
     private static MemoryFileSystem Fixture(bool caseSensitive = false)
     {
@@ -194,6 +204,48 @@ public sealed class StorageScannerTests
         Assert.Equal(ScanState.Cancelled, result.State);
         Assert.Single(result.Entries);
         Assert.Contains(result.Issues, issue => issue.Code == "cancelled");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ProgressIsBoundedAndFinishesWithTheExactObservedCount(bool advanceTime)
+    {
+        var fs = Fixture();
+        for (var index = 0; index < 4096; index++) fs.Add($@"C:\Work\generated-{index:D4}.bin");
+        var clock = new ProgressClock();
+        fs.OnInspect = entry =>
+        {
+            if (advanceTime && entry.Kind == EntryKind.File) clock.Timestamp += TimeSpan.FromMilliseconds(5).Ticks;
+            return entry;
+        };
+        var updates = new List<(ScanProgress Value, long Timestamp)>();
+        var result = await new StorageScanner(fs, clock).ScanAsync(Root, new(),
+            new ScanObserver(value => updates.Add((value, clock.Timestamp))), default);
+        Assert.Equal(ScanState.Complete, result.State);
+        Assert.Equal(4097, result.Entries.Length);
+        Assert.Equal(1, updates[0].Value.MeasuredEntries);
+        Assert.Equal(result.Entries.Length, updates[^1].Value.MeasuredEntries);
+        Assert.Equal(updates.Select(item => item.Value.MeasuredEntries).Distinct().Order(), updates.Select(item => item.Value.MeasuredEntries));
+        if (!advanceTime) Assert.Equal(2, updates.Count);
+        else
+        {
+            Assert.InRange(updates.Count, 3, 84);
+            for (var index = 1; index < updates.Count - 1; index++)
+                Assert.True(clock.GetElapsedTime(updates[index - 1].Timestamp, updates[index].Timestamp) >= TimeSpan.FromMilliseconds(250));
+        }
+    }
+
+    [Fact]
+    public async Task ProgressConsumerFailureDoesNotDiscardACompleteScan()
+    {
+        var fs = Fixture();
+        fs.Add(@"C:\Work\retained.bin");
+        var snapshot = await new StorageScanner(fs).ScanAsync(Root, new(),
+            new ScanObserver(_ => throw new InvalidOperationException("Generated observer failure.")), default);
+        Assert.Equal(ScanState.Complete, snapshot.State);
+        Assert.Equal(2, snapshot.Entries.Length);
+        Assert.True(snapshot.IsCompleteAt(Root));
     }
 
     [Fact]

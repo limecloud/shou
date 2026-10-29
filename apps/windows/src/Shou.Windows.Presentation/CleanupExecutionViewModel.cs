@@ -30,7 +30,15 @@ public sealed class CleanupExecutionViewModel(ICleanupExecutionOperations operat
     public bool StopRequested { get; private set; }
     public CleanupProgress? Progress { get; private set; }
     public double? FractionCompleted => Progress is { TotalEntries: > 0 } value ? Math.Clamp((double)value.ProcessedEntries / value.TotalEntries, 0, 1) : null;
-    public string CurrentPath => Progress?.Path?.Value ?? "";
+    public string CurrentPath
+    {
+        get
+        {
+            if (Progress is not { Path: { } path } update || update.Phase == "finalizing" || AttemptedPlan is not { } plan) return "";
+            var item = plan.Items.FirstOrDefault(item => item.Id == update.ItemId);
+            return item is not null && path.IsWithin(item.Path, caseSensitive: true) ? path.Value : "";
+        }
+    }
     public string DisplayPath => OperationProgressPresentation.CompactPath(CurrentPath);
     public bool ExecutionAvailable => operations.ExecutionAvailable;
     public bool IsExecuting => State == CleanupExecutionPageState.Executing;

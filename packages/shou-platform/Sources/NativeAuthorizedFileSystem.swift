@@ -128,8 +128,14 @@ enum NativeAuthorizedFileSystem {
     static func exportStorage(_ path: String, filesystem: NativeFileSystem, uid: UInt32,
                               progress: @escaping @Sendable (ScanProgress) -> Void) throws -> (String, StorageMeasurement) {
         var template=Array("/private/tmp/shou-storage-XXXXXXXX".utf8CString)
-        guard let made=mkdtemp(&template) else { throw SecurePaths.failure("Create analysis transfer", path: "/private/tmp") }
-        let directory=String(cString: made), catalog=directory + "/catalog.sqlite"
+        // mkdtemp returns a pointer into the supplied buffer. Copy its path
+        // before that buffer's pointer scope ends, including optimized builds.
+        let created=template.withUnsafeMutableBufferPointer { buffer -> String? in
+            guard let made=mkdtemp(buffer.baseAddress!) else { return nil }
+            return String(cString: made)
+        }
+        guard let directory=created else { throw SecurePaths.failure("Create analysis transfer", path: "/private/tmp") }
+        let catalog=directory + "/catalog.sqlite"
         var published=false
         defer { if !published { try? FileManager.default.removeItem(atPath: directory) } }
         let measured=try filesystem.measureStorageDirect(path, catalog: URL(fileURLWithPath: catalog), cancelled: { Task.isCancelled }, progress: progress)

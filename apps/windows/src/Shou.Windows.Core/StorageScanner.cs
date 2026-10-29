@@ -31,6 +31,20 @@ public sealed class StorageScanner(IWindowsFileSystem fileSystem, TimeProvider? 
         var completedDirectories = new HashSet<WindowsPath>();
         var pending = new Stack<WorkItem>();
         var observedEntries = 1;
+        var lastReportedCount = 0;
+        var lastReportTimestamp = 0L;
+        var currentPath = root;
+        void Report(bool final = false)
+        {
+            if (progress is null || measured.Count == lastReportedCount) return;
+            if (!final && lastReportedCount > 0 && (measured.Count % 128 != 0 ||
+                clock.GetElapsedTime(lastReportTimestamp) < TimeSpan.FromMilliseconds(250))) return;
+            lastReportedCount = measured.Count;
+            lastReportTimestamp = clock.GetTimestamp();
+            // A progress consumer cannot invalidate the observed filesystem evidence.
+            try { progress.Report(new(lastReportedCount, currentPath)); }
+            catch (Exception error) when (error is not OutOfMemoryException) { }
+        }
         pending.Push(new(rootEntry, 0));
 
         try
@@ -73,7 +87,8 @@ public sealed class StorageScanner(IWindowsFileSystem fileSystem, TimeProvider? 
                     continue;
                 }
                 measured.Add(new(entry, firstLink ? entry.AllocatedBytes : 0));
-                progress?.Report(new(measured.Count, entry.Path));
+                currentPath = entry.Path;
+                Report();
                 if (entry.Kind != EntryKind.Directory)
                 {
                     if (entry.Kind != EntryKind.File) issues.Add(new(entry.Path, "unsupported_entry"));
@@ -155,6 +170,7 @@ public sealed class StorageScanner(IWindowsFileSystem fileSystem, TimeProvider? 
         catch (UnauthorizedAccessException) { issues.Add(new(root, "permission_denied")); }
         catch (IOException) { issues.Add(new(root, "read_failed")); }
 
+        Report(final: true);
         var state = cancellationToken.IsCancellationRequested ? ScanState.Cancelled : issues.Count > 0 ? ScanState.Partial : ScanState.Complete;
         return new("scan_" + Guid.NewGuid().ToString("N"), root, rootEntry.Identity, started, state,
             measured.ToImmutable(), issues.ToImmutable(), completedDirectories.OrderBy(path => path.Value, StringComparer.Ordinal).ToImmutableArray());

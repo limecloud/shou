@@ -8,6 +8,9 @@ public interface ICleanupReviewOperations
 {
     Task<ImmutableArray<Workspace>> ReadWorkspacesAsync(CancellationToken cancellationToken);
     Task<LocationPreparation> PrepareLocationsAsync(CancellationToken cancellationToken);
+    Task<LocationPreparation> PrepareLocationsAsync(CleanupScanScope scope, CancellationToken cancellationToken) =>
+        scope.Mode == CleanupScanMode.Standard ? PrepareLocationsAsync(cancellationToken) :
+            throw new ShouException("unsupported_capability", "This scan scope is unavailable.");
     Task<CleanupScan> ScanAsync(string workspaceId, ScanBudget budget, CancellationToken cancellationToken);
     Task<SystemScan> ScanAllAsync(ImmutableArray<string> workspaceIds, ScanBudget budget, CancellationToken cancellationToken);
     Task<CleanupPlan> CreatePlanAsync(ImmutableArray<CleanupSelection> selections, CleanupAction action, CancellationToken cancellationToken);
@@ -177,18 +180,18 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         NotifyAll();
     }
 
-    public Task DiscoverAsync() => RunAsync(CleanupReviewState.Discovering, async token =>
+    public Task DiscoverAsync(CleanupScanScope? scope = null) => RunAsync(CleanupReviewState.Discovering, async token =>
     {
         // Registration may commit even if the caller closes the page. Re-read actual configuration afterward.
         LocationPreparation? result = null;
         string? failure = null;
-        try { result = await operations.PrepareLocationsAsync(CancellationToken.None); }
+        try { result = await operations.PrepareLocationsAsync(scope ?? CleanupScanScope.Standard, CancellationToken.None); }
         catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException or OperationCanceledException)
         { failure = error is ShouException known ? known.Code : error is UnauthorizedAccessException ? "permission_denied" : "read_failed"; }
         var locations = await operations.ReadWorkspacesAsync(CancellationToken.None);
         return () =>
         {
-            Workspaces = locations.OrderBy(value => value.Path.Value, StringComparer.Ordinal).ToImmutableArray();
+            Workspaces = (result?.Workspaces ?? locations).OrderBy(value => value.Path.Value, StringComparer.Ordinal).ToImmutableArray();
             WorkspaceId = Workspaces.Any(value => value.Id == WorkspaceId) ? WorkspaceId : Workspaces.FirstOrDefault()?.Id;
             DiscoveryIssues = result?.Issues ?? [];
             DiscoveryAttempted = true;

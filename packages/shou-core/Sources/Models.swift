@@ -321,6 +321,7 @@ public protocol PlatformFileSystem: Sendable {
     func rootIdentity(_ path: String) throws -> FileEntry
     func cleanupTargetIdentity(_ path: String) throws -> FileEntry
     func applicationParentIdentity(_ path: String) throws -> FileEntry
+    func applicationShortcut(_ path: String) throws -> ApplicationShortcutSnapshot
     func analysisRootIdentity(_ path: String) throws -> FileEntry
     var supportsStorageCatalog: Bool { get }
     /// Every native mutation compares the complete manifest immediately before
@@ -386,6 +387,9 @@ extension PlatformFileSystem {
     }
     public func applicationParentIdentity(_ path: String) throws -> FileEntry {
         throw ShouError("capability_unavailable", "Application removal is unavailable on this filesystem.")
+    }
+    public func applicationShortcut(_ path: String) throws -> ApplicationShortcutSnapshot {
+        throw ShouError("capability_unavailable", "Broken application shortcut cleanup is unavailable on this filesystem.")
     }
     public var trashUnavailableReason: String? { nil }
     public func targetAvailability(_ path: String) -> LocationAvailability { locationAvailability(path) }

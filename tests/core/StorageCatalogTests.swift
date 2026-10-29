@@ -153,7 +153,9 @@ func storageCatalogMarksUnreadableDirectoriesWithoutHidingSiblings() async throw
     try expect(!scan.tree.complete && directory.item.node.isComplete == false)
     try expect(directory.children.first { $0.node.path == "a-denied" }?.node.isComplete == false)
     try expect(directory.children.first { $0.node.path == "z-readable" }?.node.isComplete == true)
-    let legacy=StorageIndex(tree: TreeSnapshot(entries: scan.tree.entries, complete: false, issues: ["resource_limit"], caseSensitive: true, completedPaths: ["z-readable"]))
+    var entries=[FileEntry]()
+    try StorageCatalog(url: require(fixture.store.storageCatalogURL(id: scan.id))).forEachEntry { entries.append($0) }
+    let legacy=StorageIndex(tree: TreeSnapshot(entries: entries, complete: false, issues: ["resource_limit"], caseSensitive: true, completedPaths: ["z-readable"]))
     try expect(legacy.nodes["."]?.isComplete == false)
     try expect(legacy.nodes["z-readable"]?.isComplete == true)
 }

@@ -4,7 +4,7 @@ import PackageDescription
 var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/teunlao/swift-ai-sdk", exact: "0.20.0")
 ]
-let platformDependencies: [Target.Dependency] = ["ShouCore", "ShouAgentSupport"]
+let platformDependencies: [Target.Dependency] = ["ShouCore", "ShouAgentSupport", .target(name: "CShouMacLegacy", condition: .when(platforms: [.macOS]))]
 let sqlitePath = "packages/sqlite"
 let sqlitePackageConfig: String? = "sqlite3"
 var products: [Product] = [
@@ -16,6 +16,8 @@ var products: [Product] = [
 ]
 var targets: [Target] = [
     .systemLibrary(name: "CSQLite", path: sqlitePath, pkgConfig: sqlitePackageConfig),
+    .target(name: "CShouMacLegacy", path: "packages/shou-platform/Legacy", publicHeadersPath: "include",
+            linkerSettings: [.linkedFramework("Security", .when(platforms: [.macOS])), .linkedFramework("CoreServices", .when(platforms: [.macOS]))]),
     .target(name: "ShouContracts", path: "packages/shou-contracts", exclude: ["README.md", "README.zh-CN.md"], resources: [.copy("rule.schema.json")]),
     .target(name: "ShouAgentSupport", path: "skills", resources: [.copy("shou-rule-authoring")]),
     .target(name: "ShouCore", dependencies: ["ShouContracts", "CSQLite"], path: "packages/shou-core/Sources", resources: [.process("Resources")]),

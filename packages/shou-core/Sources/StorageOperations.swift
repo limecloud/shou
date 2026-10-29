@@ -194,12 +194,7 @@ extension ShouEngine {
             guard measurement.tree.entries.first?.sameObject(as: identity) == true else { throw ShouError("plan_stale", "Analysis root changed during scanning.") }
             var scan=StorageScan(id: id, rootPath: path, identity: measurement.tree.entries[0], createdAt: now(), tree: measurement.tree)
             scan.catalogId=id; scan.measuredEntryCount=measurement.entryCount
-            // Small scans retain their legacy inline evidence for compatibility.
-            if measurement.entryCount <= 10_000 {
-                var entries=[FileEntry]()
-                try StorageCatalog(url: url).forEachEntry { entries.append($0) }
-                scan.tree.entries=entries.sorted { $0.path < $1.path }
-            }
+            // Catalog-backed queries retain every entry without a second inline copy.
             progress(ScanProgress(stage: "saving", entryCount: measurement.entryCount, currentPath: path))
             try StorageScanRecords.save(scan, store: store, progress: { completed, total in
                 progress(ScanProgress(stage: "saving", entryCount: measurement.entryCount, currentPath: path,
@@ -346,7 +341,8 @@ extension ShouEngine {
     }
     public func executeStorageRemoval(planId: String, confirmedDigest: String, entryPoint: String, progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> ExecutionReceipt {
         let lease=try store.lock(); defer { lease.release() }
-        let plan=try storageRemovalPlan(planId)
+        let loaded=try StorageRemovalPlanRecords.loadWithSources(planId, store: store)
+        let plan=loaded.plan
         guard plan.state == "ready" else { throw ShouError("already_executed", "This removal was already started.") }
         guard plan.expiresAt > now(), plan.digest == confirmedDigest else { throw ShouError("confirmation_required", "Removal confirmation expired or does not match.") }
         let scan=try storageScan(plan.scanId)
@@ -356,6 +352,7 @@ extension ShouEngine {
               StorageSelection.normalized(Set(plan.items.map(\.path))).count == plan.items.count else { throw ShouError("store_corrupt", "Removal scope is invalid.") }
         let workspace=Workspace(id: scan.id, rootRef: "space-analysis", path: scan.rootPath, identity: scan.identity, exclusions: [], addedAt: scan.createdAt)
         let items=plan.items.map { ItemReceipt(id: Codec.id("item"), originalPath: StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path), relativePath: $0.path, trashPath: nil, manifest: $0.manifest, state: "pending", allocatedBytesEstimate: $0.allocatedBytesEstimate, error: nil) }
+        let manifestSources=Dictionary(uniqueKeysWithValues: zip(items, loaded.sources).map { ($0.0.id, $0.1) })
         let began: (ExecutionReceipt) throws -> Void = { _ in
             try StorageRemovalPlanRecords.updateState(plan, store: self.store)
         }
@@ -380,9 +377,9 @@ extension ShouEngine {
         }
         let receipt: ExecutionReceipt
         if plan.action == "permanent" {
-            receipt=try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_permanent_removal", progress: progress, didBegin: began, validateItem: validate)
+            receipt=try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_permanent_removal", manifestSources: manifestSources, progress: progress, didBegin: began, validateItem: validate)
         } else {
-            receipt=try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_removal", progress: progress, didBegin: began, validateItem: { index in try validate(index, plan.items[index].manifest) })
+            receipt=try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "storage_removal", manifestSources: manifestSources, progress: progress, didBegin: began, validateItem: { index in try validate(index, plan.items[index].manifest) })
         }
         try StorageRemovalPlanRecords.updateState(plan, store: store, state: receipt.state)
         return receipt

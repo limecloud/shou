@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/product/operation-progress.md)
 
 Scanning, rule cleanup, application uninstall, storage analysis, large-file removal, history restore and privacy cleaning share one flat file-convergence animation and concise progress presentation: action, measured percentage when available, one middle-truncated path and Stop. Detailed progress counts and elapsed time are omitted; domain events and result evidence retain their full values.
 
+Standard scans, selected folders, selected disks and affected-location refreshes use explicit operation titles. A missing current path does not fall back to an old workspace. Application-close refreshes create a new operation identity and reuse cumulative batch progress, rejecting stale callbacks.
+
 ## Display contract
 
 | Workflow | Count source | Presentation |
@@ -21,6 +23,8 @@ Percentages describe processed work in a known set, rather than elapsed time, su
 Rule scanning uses three completed processing phases per registered location: discovery, rule matching and snapshot persistence. Worker sealing and transfer belong to discovery; their local percentages do not overwrite the overall value. A smart batch fixes its denominator after registration, offsets each location's phase count, and carries discovered entries forward across locations, including a location that fails after reading entries. The failure stays in the result and is not counted as successful coverage. Cancellation does not complete unprocessed phases. The desktop rejects regressive callbacks within the current operation. Its footer uses cumulative evidence; percentage text changes immediately so frequent events cannot overlap rolling digits. The progress bar can still animate.
 
 Progress paths retain their origin and filename and omit only the middle when space is insufficient. Keep a single ellipsis, use Unicode text boundaries and provide the full original value through hover/accessibility; CLI and domain data keep complete paths.
+
+Removal progress paths identify only a selected target or one of its descendants. Result finalization has no path; an analysis root, volume mount or target ancestor must not appear as a deletion path. The macOS storage session and Windows cleanup presentation filter against the frozen plan scope. This display filter does not replace Core/Platform execution validation.
 
 Preflight never advances deletion counts. Executors advance counts after persisting individual outcomes; failures and skipped targets are processed outcomes, while completion separately reports success, failure and remaining work. Final receipt handling retains the confirmed action title. Partial results and cancellation never receive a fabricated 100%.
 
@@ -149,7 +153,7 @@ The normal successful path is intentionally short: completion icon, measured byt
 
 ## Verification scope
 
-`shou-tests --operation-progress-only` covers batch totals, partial-plan boundaries, integer limits, late-stage and nested-entry callbacks, privacy source progress, committed transactions, cancellation and durable restore boundaries. The installed desktop also requires checks of scanning, execution, stopping, Reduce Motion and runtime language switching. Automated mutation tests use generated data only.
+`shou-tests --operation-progress-only` covers batch totals, partial-plan boundaries, integer limits, late-stage and nested-entry callbacks, selected-path boundaries, permanent/Trash finalization events, privacy source progress, committed transactions, cancellation and durable restore boundaries. Windows Presentation also checks selected targets, descendants, ancestors and same-prefix siblings. The installed desktop also requires checks of scanning, execution, stopping, Reduce Motion and runtime language switching. Automated mutation tests use generated data only.
 
 `shou-tests --rule-scan-progress-only` covers worker-stage resets, cross-location cumulative counts and percentages, failed locations, cancellation before completion, registration ordering and existing partial-result behavior.
 

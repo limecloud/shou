@@ -5,6 +5,7 @@ import Foundation
 enum TrashExecution {
     static func run(planId: String, workspace: Workspace, items: [ItemReceipt], entryPoint: String,
                     store: any RecordStore, filesystem: any PlatformFileSystem, now: Date, operation: String? = nil,
+                    manifestSources: [String: FileManifestSource] = [:],
                     progress: (ExecutionProgress) -> Void,
                     didBegin: (ExecutionReceipt) throws -> Void,
                     validateItem: (Int) throws -> String?) throws -> ExecutionReceipt {
@@ -13,7 +14,7 @@ enum TrashExecution {
             createdAt: now, entryPoint: entryPoint, state: "executing", items: items,
             volumeAvailableBefore: filesystem.availableBytes(workspace.path), volumeAvailableAfter: nil)
         receipt.operation=operation
-        var journal=ReceiptJournal()
+        var journal=ReceiptJournal(sources: manifestSources)
         func save() throws { try journal.save(receipt, store: store) }
         try save()
         try didBegin(receipt)
@@ -70,7 +71,7 @@ enum TrashExecution {
             if receipt.state == "cancelled" || receipt.items[index].state == "unknown" { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "trashed" } ? "completed" : "partial" }
-        progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "moving"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
+        progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "moving"].contains($0.state) }.count, itemCount: items.count))
         receipt.volumeAvailableAfter=filesystem.availableBytes(workspace.path)
         try save()
         HistorySummaries.save(receipt, store: store)

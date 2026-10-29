@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.21.0
+        default: v0.22.0
       prepare_only:
         description: Build verified artifacts without publishing or changing the tag
         type: boolean
@@ -80,6 +80,11 @@ jobs:
           .build/debug/shou-tests --storage-presentation-million-only
       - name: Native cleanup and restoration of more than 100,000 files
         run: .build/debug/shou-tests --native-large-trash-only
+      - name: Optimized authorization transfers and storage catalogs
+        run: |
+          swift build --jobs 4 -c debug --product shou-tests -Xswiftc -O
+          .build/debug/shou-tests --authorization-only
+          .build/debug/shou-tests --storage-catalog-only
       - name: Build and verify release application
         run: sh scripts/build-macos.sh release
       - name: Packaged CLI contracts and terminal confirmations
@@ -131,7 +136,7 @@ jobs:
           node-version: '22'
       - uses: actions/download-artifact@v4
         with:
-          pattern: shou-npm-*
+          pattern: shou-npm-macos-*
           merge-multiple: true
           path: dist/npm
       - name: Assemble exact-version npm launcher and tarballs

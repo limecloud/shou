@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using System.Collections.Immutable;
+using Microsoft.Windows.Storage.Pickers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -18,7 +20,14 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     private readonly TextCatalog text = new();
     private readonly CleanupReviewViewModel model;
     private readonly CleanupReviewScope scope;
+    private readonly nint windowHandle;
+    private CleanupScanScope scanScope = CleanupScanScope.Standard;
     private readonly CleanupExecutionViewModel execution;
+    private readonly CleanupApplicationClosingService applicationClosing = new(new WindowsCleanupApplicationClosing());
+    private CleanupApplicationUsers applicationUsers = new([], true);
+    private string? applicationScanKey;
+    private CancellationTokenSource? applicationInspection;
+    private bool closingApplications;
     private bool rendering;
     private bool disposed;
     private Task? activeExecution;
@@ -32,15 +41,18 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     public event Action<string>? DestinationRequested;
     public bool HasActiveCleanup => activeExecution is { IsCompleted: false } || execution.IsExecuting;
     public bool ShowingCompletion => CompletionContent.Visibility == Visibility.Visible;
-    private bool IsBusy => model.IsBusy || execution.IsBusy || HasActiveCleanup;
-    public void RequestCleanupStop() => execution.Cancel();
+    private bool IsBusy => model.IsBusy || execution.IsBusy || HasActiveCleanup || closingApplications;
+    public void RequestCleanupStop() { execution.Cancel(); applicationInspection?.Cancel(); }
 
-    public CleanupPage(CleanupReviewViewModel review, ICleanupExecutionOperations executionOperations, bool projectsOnly = false)
+    public CleanupPage(CleanupReviewViewModel review, ICleanupExecutionOperations executionOperations, bool projectsOnly = false, nint windowHandle = 0)
     {
         InitializeComponent();
         model = review;
+        this.windowHandle = windowHandle;
         scope = projectsOnly ? CleanupReviewScope.ProjectOutputs : CleanupReviewScope.All;
         execution = new(executionOperations);
+        ApplicationCloseTitle.Text = text.Get("Apps using cleanup files");
+        CloseSelectedApplications.Content = text.Get("Quit Selected Apps & Refresh");
         PageTitle.Text = text.Get("Room for") + "\n" + text.Get("what comes next.");
         StartIcon.Content = ProductIcon.Create("cleanup", (double)Application.Current.Resources["ShouStartIconSize"]);
         var emptyIcon = ProductIcon.Create("complete", (double)Application.Current.Resources["ShouStartIconSize"]);
@@ -49,7 +61,8 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         var scanLabel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
         var scanIcon = ProductIcon.Create("cleanup"); ProductIcon.Select(scanIcon, "ShouActionTextBrush");
         scanLabel.Children.Add(scanIcon); scanLabel.Children.Add(new TextBlock { Text = text.Get("Start Scan") }); StartButton.Content = scanLabel;
-        CommonScanItem.Text = text.Get("Scan Common Locations"); LocationsMenuItem.Text = text.Get("Scan Locations…");
+        CommonScanItem.Text = text.Get("Standard Scan");
+        DisksScanItem.Text = text.Get("Select Disks…"); FoldersScanItem.Text = text.Get("Select Folders…"); LocationsMenuItem.Text = text.Get("Scan Locations…");
         var options = new Button { Content = text.Get("Cleanup Options"), Style = (Style)Application.Current.Resources["ShouToolbarButton"] };
         AutomationProperties.SetAutomationId(options, "cleanup.options");
         var menu = new MenuFlyout();
@@ -64,10 +77,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
                 flyout.Items.Add(item);
             }
         }
-        FreeSpaceItem.Visibility = Visibility.Collapsed;
         InvestigateLink.Visibility = ExternalToolsLink.Visibility = LocationsLink.Visibility = Visibility.Collapsed;
-        FreeSpaceItem.Text = text.Get("Scan & Free Space");
-        ToolTipService.SetToolTip(FreeSpaceItem, text.Get("Cleanup execution is unavailable in this development build."));
         InvestigateLink.Content = text.Get("Investigate a Folder with AI…"); ExternalToolsLink.Content = text.Get("External AI Tools…"); LocationsLink.Content = text.Get("Scan Locations…");
         ToolTipService.SetToolTip(InvestigateLink, text.Get("AI investigation is not available in this Windows preview."));
         ToolTipService.SetToolTip(ExternalToolsLink, text.Get("AI investigation is not available in this Windows preview."));
@@ -169,6 +179,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             var activity = execution.IsBusy || model.IsBusy;
             var completion = !activity && execution.AttemptedPlan is { } attempted && attempted.Id != dismissedCompletion;
             var results = model.Batch is not null || model.Snapshot is not null;
+            if (!IsBusy) RefreshApplicationUsers();
             LandingScroll.Visibility = StartContent.Visibility = !activity && !completion && !results ? Visibility.Visible : Visibility.Collapsed;
             ResultsContent.Visibility = !activity && !completion && results ? Visibility.Visible : Visibility.Collapsed;
             PageToolbar.Visibility = !activity && !completion && results ? Visibility.Visible : Visibility.Collapsed;
@@ -370,14 +381,120 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         "system" or "cache" => "drive", _ => "archive"
     };
 
+    private string CurrentApplicationScanKey => string.Join(":", (model.Batch?.Scans ?? (model.Snapshot is { } single ? [single] : [])).Select(scan => scan.Id));
+    private async void RefreshApplicationUsers()
+    {
+        var key = CurrentApplicationScanKey;
+        if (applicationScanKey == key) return;
+        applicationScanKey = key;
+        applicationInspection?.Cancel();
+        applicationInspection?.Dispose();
+        applicationInspection = null;
+        ApplicationClosePanel.Visibility = Visibility.Collapsed;
+        ApplicationCloseChoices.Children.Clear();
+        if (key.Length == 0) return;
+        using var pending = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        applicationInspection = pending;
+        var scans = model.Batch?.Scans ?? (model.Snapshot is { } single ? [single] : []);
+        bool InCandidate(CleanupScan scan, WindowsPath path, HashSet<string> targets)
+        {
+            for (var parent = path.Parent; parent is not null && parent.IsWithin(scan.Workspace.Path); parent = parent.Parent)
+                if (targets.Contains(parent.Value)) return true;
+            return false;
+        }
+        var files = scans.SelectMany(scan =>
+        {
+            var targets = scan.Candidates.Select(candidate => candidate.Path.Value).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            return scan.Scan.Entries.Where(entry => entry.Entry.Kind == EntryKind.File && InCandidate(scan, entry.Entry.Path, targets)).Select(entry => entry.Entry.Path);
+        }).Distinct().Take(4097).ToImmutableArray();
+        try
+        {
+            var users = await applicationClosing.InspectAsync(files, pending.Token);
+            if (disposed || pending.IsCancellationRequested || CurrentApplicationScanKey != key) return;
+            applicationUsers = users;
+            foreach (var app in users.Applications)
+            {
+                if (!applicationClosing.Available) { ApplicationCloseChoices.Children.Add(new TextBlock { Text = app.Name }); continue; }
+                var choice = new CheckBox { Content = app.Name, Tag = app };
+                choice.Checked += (_, _) => UpdateApplicationCloseAction();
+                choice.Unchecked += (_, _) => UpdateApplicationCloseAction();
+                ApplicationCloseChoices.Children.Add(choice);
+            }
+            ApplicationCloseHint.Text = text.Get(applicationClosing.Available && users.Complete
+                ? "Save your work first. Apps that stay open will remain blocked." : "Quit affected apps, then scan again.");
+            ApplicationClosePanel.Visibility = users.Applications.IsEmpty && users.Complete ? Visibility.Collapsed : Visibility.Visible;
+            CloseSelectedApplications.Visibility = applicationClosing.Available ? Visibility.Visible : Visibility.Collapsed;
+            UpdateApplicationCloseAction();
+        }
+        catch (Exception error)
+        {
+            NativeDiagnostics.Write(error);
+            if (disposed || CurrentApplicationScanKey != key) return;
+            ApplicationClosePanel.Visibility = Visibility.Visible;
+            ApplicationCloseHint.Text = text.Get("Quit affected apps, then scan again.");
+            CloseSelectedApplications.Visibility = Visibility.Collapsed;
+        }
+        finally { if (applicationInspection == pending) applicationInspection = null; }
+    }
+    private void UpdateApplicationCloseAction() => CloseSelectedApplications.IsEnabled = !IsBusy && applicationClosing.Available &&
+        ApplicationCloseChoices.Children.OfType<CheckBox>().Any(choice => choice.IsChecked == true);
+    private async void QuitSelectedApplications(object sender, RoutedEventArgs args) => await GuardAsync(async () =>
+    {
+        if (IsBusy || !applicationClosing.Available || applicationScanKey != CurrentApplicationScanKey) return;
+        var selected = ApplicationCloseChoices.Children.OfType<CheckBox>().Where(choice => choice.IsChecked == true)
+            .Select(choice => (CleanupRunningApplication)choice.Tag).ToImmutableArray();
+        if (selected.IsEmpty) return;
+        closingApplications = true; BusyChanged?.Invoke(this, EventArgs.Empty);
+        try
+        {
+            var results = await applicationClosing.CloseSelectedAsync(applicationUsers, selected, CancellationToken.None);
+            // A new scan is required regardless of whether applications accepted the exit request.
+            await model.ScanAllAsync();
+            if (results.Any(result => result.State != "closed")) Status.Text = text.Get("Quit affected apps, then scan again.");
+        }
+        finally { closingApplications = false; Render(); BusyChanged?.Invoke(this, EventArgs.Empty); }
+    });
+
     private async void StartCleanupScan(object sender, RoutedEventArgs args) => await GuardAsync(async () =>
     {
-        await model.DiscoverAsync();
+        if (ReferenceEquals(sender, StartButton) || ReferenceEquals(sender, CommonScanItem)) scanScope = CleanupScanScope.Standard;
+        await model.DiscoverAsync(scanScope);
         if (disposed) return;
         PageDiagnostics.Update(this, "cleanup", model.State, model.ErrorCode, model.ResultCount);
         LocationsPrepared?.Invoke(this, EventArgs.Empty);
         if (model.ErrorCode is null && !model.Workspaces.IsEmpty) await model.ScanAllAsync();
     });
+
+    private async void ChooseCleanupFolder(object sender, RoutedEventArgs args) => await GuardAsync(async () =>
+    {
+        var folder = await new FolderPicker(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(windowHandle)).PickSingleFolderAsync();
+        if (disposed || folder is null) return;
+        scanScope = new(CleanupScanMode.Folders, [WindowsPath.Parse(folder.Path)]);
+        await ScanChosenScopeAsync();
+    });
+    private async void ChooseCleanupDisks(object sender, RoutedEventArgs args) => await GuardAsync(async () =>
+    {
+        var volumes = await Task.Run(WindowsStorageVolumes.Read);
+        if (disposed) return;
+        var system = WindowsPath.Parse(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+        var list = new StackPanel { Spacing = 12 };
+        var choices = volumes.Select(volume => (Volume: volume, Choice: new CheckBox {
+            Content = volume.Name, IsChecked = system.IsWithin(volume.Path), IsEnabled = !system.IsWithin(volume.Path) })).ToArray();
+        foreach (var item in choices) list.Children.Add(item.Choice);
+        var dialog = new ContentDialog { XamlRoot = XamlRoot, Title = text.Get("Select Disks"), Content = list,
+            PrimaryButtonText = text.Get("Start Scan"), CloseButtonText = text.Get("Cancel"), DefaultButton = ContentDialogButton.Primary,
+            IsPrimaryButtonEnabled = !volumes.IsEmpty };
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary || disposed) return;
+        scanScope = new(CleanupScanMode.Volumes, choices.Where(item => item.Choice.IsChecked == true).Select(item => item.Volume.Path).ToImmutableArray());
+        await ScanChosenScopeAsync();
+    });
+    private async Task ScanChosenScopeAsync()
+    {
+        await model.DiscoverAsync(scanScope);
+        if (disposed) return;
+        LocationsPrepared?.Invoke(this, EventArgs.Empty);
+        if (model.ErrorCode is null && !model.Workspaces.IsEmpty) await model.ScanAllAsync();
+    }
 
     private void ShowLocations(object sender, RoutedEventArgs args)
     {
@@ -530,6 +647,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
     {
         if (disposed) return;
         disposed = true;
+        applicationInspection?.Cancel();
         model.PropertyChanged -= Changed;
         execution.PropertyChanged -= ExecutionChanged;
         execution.Dispose();

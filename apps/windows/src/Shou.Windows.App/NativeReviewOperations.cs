@@ -33,13 +33,20 @@ internal sealed class NativeReviewOperations : ICleanupReviewOperations, ICleanu
         scans = new(store, validator, scanner, protection, catalog: catalog);
         cleanup = new(store, validator, scanner, protection, new WindowsCleanupActivity(), new WindowsCleanupMutation(), catalog: catalog, storageFiles: files);
         history = new(store, validator, files, scanner, store.OwnerSid);
-        locations = new(configuration, catalog, files, store.OwnerSid);
+        locations = new(configuration, catalog, files, store.OwnerSid, volumes: new NativeScanVolumes());
     }
 
     public Task<ImmutableArray<Workspace>> ReadWorkspacesAsync(CancellationToken cancellationToken) =>
         NativeDiagnostics.RunAsync("configuration.read_workspaces", () => Task.Run(async () => (await configuration.ReadAsync(cancellationToken)).Workspaces, cancellationToken));
     public Task<LocationPreparation> PrepareLocationsAsync(CancellationToken cancellationToken) =>
         NativeDiagnostics.RunAsync("locations.prepare", () => Task.Run(() => locations.PrepareAsync(includeProjects: true, cancellationToken), cancellationToken));
+    public Task<LocationPreparation> PrepareLocationsAsync(CleanupScanScope scope, CancellationToken cancellationToken) =>
+        NativeDiagnostics.RunAsync("locations.prepare", () => Task.Run(() => locations.PrepareAsync(includeProjects: true, cancellationToken, scope), cancellationToken));
+    private sealed class NativeScanVolumes : ICleanupScanVolumes
+    {
+        public Task<ImmutableArray<WindowsPath>> ReadAsync(CancellationToken token)
+        { token.ThrowIfCancellationRequested(); return Task.FromResult(WindowsStorageVolumes.Read().Select(volume => volume.Path).ToImmutableArray()); }
+    }
     public Task<Configuration> ReadConfigurationAsync(CancellationToken cancellationToken) =>
         NativeDiagnostics.RunAsync("configuration.read", () => Task.Run(() => configuration.ReadAsync(cancellationToken), cancellationToken));
     public Task<Workspace> AddWorkspaceAsync(WindowsPath path, string rootReference, CancellationToken cancellationToken) =>

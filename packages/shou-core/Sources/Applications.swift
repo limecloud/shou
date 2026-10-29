@@ -115,7 +115,7 @@ public struct ApplicationSummary: Codable, Sendable, Identifiable {
     public let lastUsed: Date?
     public let issues: [String]
     public var sizeIsLowerBound: Bool {
-        issues.contains { !ApplicationDefinition.metadataIssues.contains($0) && !["application_activity_unavailable", "linked_application", "multiply_linked_content"].contains($0) }
+        issues.contains { !ApplicationDefinition.metadataIssues.contains($0) && !["application_activity_unavailable", "linked_application", "application_link_target_missing", "multiply_linked_content"].contains($0) }
     }
 }
 public struct ApplicationSummaryProgress: Sendable {
@@ -167,6 +167,12 @@ extension ShouEngine {
                                         progress: @Sendable (ScanProgress) -> Void) throws -> ApplicationSummary {
         var issues=initialIssues
         if app.bundleIdentifier == nil || app.infoDigest == nil { issues.append("application_metadata_missing") }
+        if !app.isSystemApplication, app.identity.kind == "symlink", issues.contains("application_link_target_missing"),
+           let shortcut=try? filesystem.applicationShortcut(app.path), shortcut.identity.metadata == app.identity {
+            return ApplicationSummary(application: app, allocatedBytesEstimate: max(0, shortcut.identity.allocatedBytes),
+                status: shortcut.requiresAdministrator ? "admin-required" : "shortcut", lastUsed: nil,
+                issues: Array(Set(issues.filter { $0 != "application_activity_unavailable" })).sorted())
+        }
         var measurement: ApplicationSummaryMeasurement?
         do {
             measurement=try applicationCatalog.measureSummary(for: app, budget: budget, progress: progress)

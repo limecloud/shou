@@ -39,7 +39,7 @@ Shou provides storage analysis, reviewable cleanup and reusable rules. AI invest
 | Plan the next release | [Capability improvements, priorities and development packages](engineering/next-release-plan.md) |
 | Diagnose and use terminal support | [Read-only reports, privacy and shell completion](engineering/user-diagnostics.md) |
 | Implement native presentation | [Interface design](engineering/interface-design.md), [macOS experience](product/macos-experience.md), [Localization](product/internationalization.md) |
-| Work on scan performance | [Storage performance](engineering/storage-scan-performance.md), [Space investigation](engineering/space-analysis-agent-design.md) |
+| Improve scan and deletion performance | [Implementation and measurements](engineering/storage-scan-performance.md), [Research report](engineering/storage-performance-research.md), [Architecture proposal](engineering/storage-performance-architecture.md), [Space investigation](engineering/space-analysis-agent-design.md) |
 | Work on AI | [AI architecture](architecture/embedded-ai.md) → [Implementation boundaries](engineering/embedded-ai-implementation.md) → [Acceptance](engineering/embedded-ai-acceptance.md) |
 | Integrate external agents | [CLI contract](ai/agent-and-cli-contract.md), [Agent integration](ai/coding-agent-integration.md), [Skill distribution](ai/skill-distribution.md) |
 | Maintain rules | [Schema](../packages/shou-contracts/rule.schema.json), [Rule coverage](engineering/rule-coverage.md) |

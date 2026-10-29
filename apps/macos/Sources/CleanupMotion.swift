@@ -103,8 +103,8 @@ struct ScanActivity: View {
     var model: AppModel
 
     var body: some View {
-        OperationProgressView(title: model.t(model.scanningCleanupPath != nil || model.scanningLocation == nil ? "Scanning this directory…" : "Scan Common Locations"),
-            currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningCleanupPath ?? model.scanningLocation?.path ?? model.workspace?.path ?? "",
+        OperationProgressView(title: model.t(model.scanTitle),
+            currentPath: model.scanProgress?.currentPath.isEmpty == false ? model.scanProgress?.currentPath ?? "" : model.scanningCleanupPath ?? model.scanningLocation?.path ?? "",
             fraction: model.scanProgress?.fractionCompleted,
             stopRequested: model.stopRequested, stopLabel: model.t("Stop"), stoppingLabel: model.t("Stopping…"), onStop: model.cancel)
     }

@@ -101,6 +101,8 @@
   <x:Double x:Key="ShouCleanupMotionDuration">2.8</x:Double>
   <x:Double x:Key="ShouCleanupPathMaxWidth">480</x:Double>
   <x:Double x:Key="ShouCleanupRuleHeight">72</x:Double>
+  <x:Double x:Key="ShouCleanupScanButtonHeight">46</x:Double>
+  <x:Double x:Key="ShouCleanupScanMenuWidth">40</x:Double>
   <x:Double x:Key="ShouCleanupSearchWidth">300</x:Double>
   <x:Double x:Key="ShouCleanupSelectionFontSize">14</x:Double>
   <x:Double x:Key="ShouCompactIconSize">16</x:Double>

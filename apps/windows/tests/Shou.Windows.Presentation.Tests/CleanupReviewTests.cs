@@ -25,6 +25,9 @@ public sealed partial class CleanupReviewTests
     {
         public Func<Task<LocationPreparation>>? PrepareOperation;
         public CancellationToken PrepareToken;
+        public CleanupScanScope? RequestedScope;
+        public Task<LocationPreparation> PrepareLocationsAsync(CleanupScanScope scope, CancellationToken cancellationToken)
+        { RequestedScope = scope; return PrepareLocationsAsync(cancellationToken); }
         public Task<LocationPreparation> PrepareLocationsAsync(CancellationToken cancellationToken)
         { PrepareToken = cancellationToken; return PrepareOperation?.Invoke() ?? Task.FromResult(new LocationPreparation(Locations, [])); }
         public CleanupScan Result = Scan([Candidate(1)]);
@@ -55,6 +58,21 @@ public sealed partial class CleanupReviewTests
             var plans = sources.Select(source => Plan(source, selections.Single(value => value.ScanId == source.Id).CandidateIds, action)).ToArray();
             return Task.FromResult(plans[0] with { Sources = plans.SelectMany(plan => plan.Sources).ToImmutableArray(), Items = plans.SelectMany(plan => plan.Items).ToImmutableArray() });
         }
+    }
+
+    [Fact]
+    public async Task FolderDiscoveryScansOnlyPreparedRootsAndRetainsTheRequestedScope()
+    {
+        var requested = new CleanupScanScope(CleanupScanMode.Folders, [Location(2).Path]);
+        var operations = new Operations { Locations = [Location(1), Location(2)], Result = AtLocation(2),
+            PrepareOperation = () => Task.FromResult(new LocationPreparation([Location(2)], [])) };
+        using var model = new CleanupReviewViewModel(operations);
+        await model.DiscoverAsync(requested);
+        Assert.Equal(requested, operations.RequestedScope);
+        Assert.Equal(Location(2), Assert.Single(model.Workspaces));
+        await model.ScanAllAsync();
+        Assert.Equal(Location(2).Id, Assert.Single(operations.BatchLocations));
+        Assert.DoesNotContain(model.Workspaces, root => root.Id == Location(1).Id);
     }
 
     [Theory]

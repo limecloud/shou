@@ -13,6 +13,8 @@ public struct PackageUpdateItem: Identifiable, Equatable, Codable, Sendable {
     public let isPinned: Bool
     public let requestedVersion: String?
     public let configurationPath: String?
+    /// Presentation hints only. These paths never grant installation ownership or mutation authority.
+    public var iconApplicationPaths: [String]? = nil
     public var id: String { provider.rawValue + ":" + kind + ":" + token }
     public var installedVersion: String { installedVersions.joined(separator: " · ") }
     public var canUpgrade: Bool { !isPinned && availableVersion.map { $0 != "latest" && $0 != "unknown" && !installedVersions.contains($0) } == true }
@@ -207,7 +209,15 @@ public actor PackageUpdateService {
                     let pinned=(row["pinned"] as? Bool ?? false)
                     let kind=cask ? "cask" : receipts.contains(where: { $0["installed_on_request"] as? Bool == true }) ? "formula" : "dependency"
                     let displayName=cask ? (row["name"] as? [String])?.first.flatMap { text($0) } ?? name : name
-                    items.append(.init(provider: provider, token: token, name: displayName, kind: kind, installedVersions: versions.sorted(), availableVersion: outdatedByName[token], summary: text(row["desc"]), isPinned: pinned, requestedVersion: nil, configurationPath: nil))
+                    var item=PackageUpdateItem(provider: provider, token: token, name: displayName, kind: kind, installedVersions: versions.sorted(), availableVersion: outdatedByName[token], summary: text(row["desc"]), isPinned: pinned, requestedVersion: nil, configurationPath: nil)
+                    if cask, let artifacts=row["artifacts"] as? [[String:Any]] {
+                        item.iconApplicationPaths=artifacts.prefix(64).compactMap { artifact in
+                            guard artifact["app"] != nil, let path=text(artifact["target"]), path.hasPrefix("/"), path.hasSuffix(".app"),
+                                  path.utf8.count <= 4096, !path.split(separator: "/").contains(where: { $0 == "." || $0 == ".." }) else { return nil }
+                            return path
+                        }
+                    }
+                    items.append(item)
                 }
             }
         } else {

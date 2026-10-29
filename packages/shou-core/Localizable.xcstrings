@@ -1233,6 +1233,22 @@
         }
       }
     },
+    "A selected disk is no longer available.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A selected disk is no longer available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选磁盘已不可用。"
+          }
+        }
+      }
+    },
     "A startup registration could not be read safely.": {
       "localizations": {
         "en": {
@@ -2112,6 +2128,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要管理员授权"
+          }
+        }
+      }
+    },
+    "Administrator authorization was not completed. Your selection is kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator authorization was not completed. Your selection is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未完成管理员授权，原有选择已保留。"
           }
         }
       }
@@ -3031,6 +3063,22 @@
         }
       }
     },
+    "App is running": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App is running"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用正在运行"
+          }
+        }
+      }
+    },
     "App logs": {
       "localizations": {
         "en": {
@@ -3267,6 +3315,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用选项"
+          }
+        }
+      }
+    },
+    "Application Shortcut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application Shortcut"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用快捷方式"
           }
         }
       }
@@ -3815,6 +3879,22 @@
         }
       }
     },
+    "Apps using cleanup files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps using cleanup files"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "占用清理文件的应用"
+          }
+        }
+      }
+    },
     "Arc caches": {
       "localizations": {
         "en": {
@@ -4147,6 +4227,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "音频"
+          }
+        }
+      }
+    },
+    "Authenticating…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authenticating…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在验证身份…"
           }
         }
       }
@@ -4708,6 +4804,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Brave 下载缓存"
+          }
+        }
+      }
+    },
+    "Broken Shortcut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Broken Shortcut"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失效快捷方式"
+          }
+        }
+      }
+    },
+    "Broken Shortcuts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Broken Shortcuts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "失效快捷方式"
           }
         }
       }
@@ -5606,6 +5734,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法再次核验清理项是否符合当前规则。"
+          }
+        }
+      }
+    },
+    "Cannot Uninstall": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot Uninstall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法卸载"
           }
         }
       }
@@ -7114,6 +7258,54 @@
         }
       }
     },
+    "Choose available local disks.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose available local disks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择可用的本地磁盘。"
+          }
+        }
+      }
+    },
+    "Choose between one and 256 scan folders.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose between one and 256 scan folders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择 1 至 256 个扫描文件夹。"
+          }
+        }
+      }
+    },
+    "Choose between one and 32 scan folders.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose between one and 32 scan folders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择 1 至 32 个扫描文件夹。"
+          }
+        }
+      }
+    },
     "Choose extra folders to remember for future cleanup scans.": {
       "localizations": {
         "en": {
@@ -7126,6 +7318,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择额外文件夹，今后的清理扫描会自动包含这些位置。"
+          }
+        }
+      }
+    },
+    "Choose folders to scan.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose folders to scan."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择要扫描的文件夹。"
           }
         }
       }
@@ -15995,16 +16203,16 @@
     },
     "Installed": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已安装"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装"
           }
         }
       }
@@ -18044,6 +18252,22 @@
         }
       }
     },
+    "Local disk discovery is unavailable on this platform.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local disk discovery is unavailable on this platform."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前平台无法读取本地磁盘列表。"
+          }
+        }
+      }
+    },
     "Local instance": {
       "localizations": {
         "en": {
@@ -18687,16 +18911,16 @@
     },
     "Management module not connected": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "管理模块尚未接入"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Management module not connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理模块尚未接入"
           }
         }
       }
@@ -22616,6 +22840,22 @@
         }
       }
     },
+    "Only this broken shortcut is removed. Its target and associated data are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this broken shortcut is removed. Its target and associated data are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅清理此失效快捷方式，保留目标位置和关联数据。"
+          }
+        }
+      }
+    },
     "Only this folder and its children are investigated. This does not select files for cleanup.": {
       "localizations": {
         "en": {
@@ -22676,6 +22916,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "仅启用并扫描此规则，确认删除前仍可调整文件选择。其他草稿保持原选择。"
+          }
+        }
+      }
+    },
+    "Only this shortcut": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only this shortcut"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅此快捷方式"
           }
         }
       }
@@ -25530,6 +25786,22 @@
         }
       }
     },
+    "Queued for review": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queued for review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待核验"
+          }
+        }
+      }
+    },
     "Quick Look": {
       "localizations": {
         "en": {
@@ -25674,6 +25946,38 @@
         }
       }
     },
+    "Quit Selected Apps & Refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit Selected Apps & Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭所选应用并重新检查"
+          }
+        }
+      }
+    },
+    "Quit Selected Apps and Check Again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit Selected Apps and Check Again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭所选应用并重新检查"
+          }
+        }
+      }
+    },
     "Quit Shou": {
       "localizations": {
         "en": {
@@ -25702,6 +26006,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请先退出 Xcode。源码检出和受保护子项会阻止整个目录清理。"
+          }
+        }
+      }
+    },
+    "Quit affected apps, then scan again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quit affected apps, then scan again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请关闭相关应用后重新扫描。"
           }
         }
       }
@@ -26890,6 +27210,22 @@
         }
       }
     },
+    "Refreshing affected cleanup locations…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refreshing affected cleanup locations…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在重新检查受影响的项目…"
+          }
+        }
+      }
+    },
     "Registered Projects": {
       "localizations": {
         "en": {
@@ -27382,6 +27718,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "此工作区尚未启用所请求的规则。"
+          }
+        }
+      }
+    },
+    "Requesting applications to quit…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requesting applications to quit…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在请求应用退出…"
           }
         }
       }
@@ -29003,6 +29355,22 @@
         }
       }
     },
+    "Reviewing…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核验…"
+          }
+        }
+      }
+    },
     "Risk": {
       "localizations": {
         "en": {
@@ -29675,6 +30043,38 @@
         }
       }
     },
+    "Save your work before quitting. Apps that remain open must be closed manually.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save your work before quitting. Apps that remain open must be closed manually."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存工作。退出后仍在运行的应用需要手动关闭。"
+          }
+        }
+      }
+    },
+    "Save your work first. Apps that stay open will remain blocked.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save your work first. Apps that stay open will remain blocked."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先保存工作。仍在运行的应用，其占用文件将保留。"
+          }
+        }
+      }
+    },
     "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action.": {
       "localizations": {
         "en": {
@@ -30188,6 +30588,22 @@
         }
       }
     },
+    "Scan Scope": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan Scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描范围"
+          }
+        }
+      }
+    },
     "Scan Selected Location": {
       "localizations": {
         "en": {
@@ -30605,6 +31021,22 @@
         }
       }
     },
+    "Scanning cleanup locations…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanning cleanup locations…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在扫描可清理内容…"
+          }
+        }
+      }
+    },
     "Scanning disk usage…": {
       "localizations": {
         "en": {
@@ -30681,6 +31113,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "扫描仅统计文件大小，不会自动选择或删除任何内容。"
+          }
+        }
+      }
+    },
+    "Scanning selected disks…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanning selected disks…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在扫描所选磁盘…"
+          }
+        }
+      }
+    },
+    "Scanning selected folders…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanning selected folders…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在扫描所选文件夹…"
+          }
+        }
+      }
+    },
+    "Scanning selected folder…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanning selected folder…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在扫描所选文件夹…"
           }
         }
       }
@@ -31296,6 +31776,54 @@
         }
       }
     },
+    "Select Disks": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Disks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择磁盘"
+          }
+        }
+      }
+    },
+    "Select Disks…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Disks…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择磁盘…"
+          }
+        }
+      }
+    },
+    "Select Folders…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select Folders…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择文件夹…"
+          }
+        }
+      }
+    },
     "Select Item": {
       "localizations": {
         "en": {
@@ -31580,6 +32108,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "选择可用更新"
+          }
+        }
+      }
+    },
+    "Select broken shortcuts separately from apps that require Trash.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select broken shortcuts separately from apps that require Trash."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请将失效快捷方式与仅能移入废纸篓的应用分开选择。"
           }
         }
       }
@@ -31964,6 +32508,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "选中的应用个人数据也将移入废纸篓。"
+          }
+        }
+      }
+    },
+    "Selecting this application requests administrator access when needed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecting this application requests administrator access when needed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择此应用时，会按需请求管理员授权。"
+          }
+        }
+      }
+    },
+    "Selection is being checked…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selection is being checked…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核验所选项目…"
           }
         }
       }
@@ -32637,6 +33213,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Shou 无法恢复系统卸载，也不会自动清理残留文件。"
+          }
+        }
+      }
+    },
+    "Shou cannot uninstall itself while it is running.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou cannot uninstall itself while it is running."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou 运行期间无法卸载自身。"
           }
         }
       }
@@ -33812,6 +34404,22 @@
         }
       }
     },
+    "Some scan locations could not be discovered within the limit.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some scan locations could not be discovered within the limit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分位置未能在本次扫描限额内完成发现。"
+          }
+        }
+      }
+    },
     "Some scheduled task statuses could not be read.": {
       "localizations": {
         "en": {
@@ -34192,6 +34800,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Spark 缓存"
+          }
+        }
+      }
+    },
+    "Standard Scan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard Scan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标准扫描"
           }
         }
       }
@@ -35924,6 +36548,22 @@
         }
       }
     },
+    "System disk": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System disk"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "系统磁盘"
+          }
+        }
+      }
+    },
     "System package": {
       "localizations": {
         "en": {
@@ -36064,6 +36704,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "目标选择"
+          }
+        }
+      }
+    },
+    "Target application is missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target application is missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标应用已不存在"
           }
         }
       }
@@ -39131,6 +39787,22 @@
         }
       }
     },
+    "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此文件夹属于已保存的扫描位置，请扫描该位置以沿用规则和排除设置。"
+          }
+        }
+      }
+    },
     "This folder name contains wildcard characters and cannot be represented as an exact rule.": {
       "localizations": {
         "en": {
@@ -40033,16 +40705,16 @@
     },
     "Tool Details": {
       "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "工具详情"
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Tool Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工具详情"
           }
         }
       }
@@ -42967,6 +43639,22 @@
         }
       }
     },
+    "application_link_target_missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "application_link_target_missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标应用已不存在；可仅清理这个失效快捷方式。"
+          }
+        }
+      }
+    },
     "application_metadata_missing": {
       "localizations": {
         "en": {
@@ -43539,6 +44227,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "macOS 可能会要求验证身份。带锁标记的应用将移到废纸篓，并保留其应用数据。"
+          }
+        }
+      }
+    },
+    "macOS protects this system application from uninstalling.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS protects this system application from uninstalling."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此系统应用受 macOS 保护，无法卸载。"
           }
         }
       }
@@ -44468,6 +45172,166 @@
           "stringUnit": {
             "state": "translated",
             "value": "装下更多可能。"
+          }
+        }
+      }
+    },
+    "Administrator access is required to uninstall this application.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator access is required to uninstall this application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卸载此应用需要管理员授权。"
+          }
+        }
+      }
+    },
+    "This application is protected and cannot be uninstalled.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This application is protected and cannot be uninstalled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此应用受系统保护，无法卸载。"
+          }
+        }
+      }
+    },
+    "This installer is not supported. Use Windows Settings to uninstall this application.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This installer is not supported. Use Windows Settings to uninstall this application."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持此安装程序，请从 Windows 设置卸载此应用。"
+          }
+        }
+      }
+    },
+    "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查当前用户桌面和开始菜单中指向本地程序的普通快捷方式，保留其他类型。"
+          }
+        }
+      }
+    },
+    "No verified broken shortcuts.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No verified broken shortcuts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有已核实的失效快捷方式。"
+          }
+        }
+      }
+    },
+    "Cleanup execution is unavailable until native Windows verification is complete.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup execution is unavailable until native Windows verification is complete."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Windows 原生验收完成前，暂不提供清理执行。"
+          }
+        }
+      }
+    },
+    "Some shortcuts could not be verified and are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some shortcuts could not be verified and are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分快捷方式无法核实，已保留。"
+          }
+        }
+      }
+    },
+    "The shortcut changed. Check this application again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The shortcut changed. Check this application again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快捷方式已变化，请重新检查。"
+          }
+        }
+      }
+    },
+    "Permanent deletion completed. Review History for details.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanent deletion completed. Review History for details."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久删除已完成，可在操作记录查看详情。"
+          }
+        }
+      }
+    },
+    "Target": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Target"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目标"
           }
         }
       }

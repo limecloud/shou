@@ -7,6 +7,14 @@ namespace Shou.Windows.App;
 internal sealed class NativeApplicationOperations : IApplicationUninstallOperations
 {
     public bool ExecutionAvailable => WindowsApplicationUninstallMutation.PublicExecutionAvailable;
+    public bool ClosingAvailable => new WindowsCleanupApplicationClosing().Available;
+    public async Task CloseAsync(ApplicationUninstallReview review, CancellationToken cancellationToken)
+    {
+        var current = await reviewer.InspectAsync(review.Application.Id, cancellationToken);
+        if (current.Digest != review.Digest) throw new ShouException("plan_stale", "Review the installation again before closing its applications.");
+        var results = await new ApplicationClosingService(new WindowsFileSystem(), new WindowsCleanupApplicationClosing()).CloseAsync(current, cancellationToken);
+        if (results.Any(result => result.State != "closed")) throw new ShouException("application_running", "Save your work and quit the application manually, then check again.");
+    }
     private readonly ApplicationUninstallReviewer reviewer = new(new(new WindowsApplicationInventory()), new WindowsApplicationUninstallInspector(), new WindowsApplicationActivity());
     public Task<ApplicationUninstallReview> InspectAsync(string applicationId, CancellationToken cancellationToken) => reviewer.InspectAsync(applicationId, cancellationToken);
     public Task<ApplicationUninstallPlan> CreatePlanAsync(string applicationId, string reviewDigest, bool allowInstallerDataChanges, CancellationToken cancellationToken)

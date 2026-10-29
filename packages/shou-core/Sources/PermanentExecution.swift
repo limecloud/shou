@@ -7,6 +7,7 @@ import Foundation
 enum PermanentExecution {
     static func run(planId: String, workspace: Workspace, items: [ItemReceipt], entryPoint: String,
                     store: any RecordStore, filesystem: any PlatformFileSystem, now: Date, operation: String = "permanent_cleanup",
+                    manifestSources: [String: FileManifestSource] = [:],
                     progress: @Sendable (ExecutionProgress) -> Void,
                     didBegin: (ExecutionReceipt) throws -> Void,
                     validateItem: (Int, [FileEntry]) throws -> String?) throws -> ExecutionReceipt {
@@ -15,7 +16,7 @@ enum PermanentExecution {
             createdAt: now, entryPoint: entryPoint, state: "executing", items: items,
             volumeAvailableBefore: filesystem.availableBytes(workspace.path), volumeAvailableAfter: nil)
         receipt.operation=operation
-        var journal=ReceiptJournal()
+        var journal=ReceiptJournal(sources: manifestSources)
         func save() throws { try journal.save(receipt, store: store) }
         try save()
         try didBegin(receipt)
@@ -72,7 +73,7 @@ enum PermanentExecution {
             if receipt.state == "cancelled" || (receipt.items[index].state != "purged" && !continueRemoval) { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "purged" } ? "completed" : "partial" }
-        progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "purging"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
+        progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "purging"].contains($0.state) }.count, itemCount: items.count))
         receipt.volumeAvailableAfter=filesystem.availableBytes(workspace.path)
         try save()
         HistorySummaries.save(receipt, store: store)

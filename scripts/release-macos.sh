@@ -2,7 +2,7 @@
 set -eu
 TASK_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$TASK_ROOT"
-TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.21.0 private-key-file}
+TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.22.0 private-key-file}
 TASK_KEY=${2:?Pass the update signing key file; never pass the key itself}
 TASK_VERSION=${TASK_TAG#v}
 python3 - "$TASK_TAG" <<'PY'

@@ -6,5 +6,6 @@ public enum SystemAuthorizationState { NotRequested, Authorized, Unavailable }
 public interface ISystemAuthorization
 {
     SystemAuthorizationState AdministratorState { get; }
+    Task PrepareAdministratorAuthorizationAsync(CancellationToken cancellationToken = default);
     Task AuthorizeAdministratorAsync(CancellationToken cancellationToken = default);
 }

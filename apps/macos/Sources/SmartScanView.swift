@@ -29,6 +29,9 @@ struct SmartScanView: View {
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else if model.systemResult != nil {
                 resultSummary
+                if model.commonReview.sources.contains(where: { $0.candidate.reasons.contains("application_running") }) {
+                    CleanupApplicationClosePanel(model: model)
+                }
                 resultBrowser
                 selectionBar
             } else {
@@ -45,10 +48,6 @@ struct SmartScanView: View {
         .toolbar {
             ToolbarItemGroup {
                 if !model.scanning && model.systemResult != nil {
-                    if model.commonReview.sources.contains(where: { $0.candidate.reasons.contains("application_running") }) {
-                        CleanupApplicationCloseButton(model: model)
-                    }
-
                 }
                 DiskCapacityView(model: model)
             }
@@ -106,9 +105,7 @@ struct SmartScanView: View {
                 Text(model.bytes(model.commonReview.bytes)).font(.system(size: ShouDesign.workspaceTitleSize, weight: .medium)).monospacedDigit()
                 Text(model.t("Found (estimate)")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
-            Button { model.scanCommonLocations() } label: { Image(systemName: "arrow.clockwise") }
-                .buttonStyle(.bordered).controlSize(.large).help(model.t("Scan Again"))
-                .accessibilityLabel(model.t("Scan Again")).disabled(model.busy).accessibilityIdentifier("smart.rescan")
+            CleanupScanButton(model: model, rescan: true)
         }.padding(ShouDesign.workspaceInset)
     }
 
@@ -207,6 +204,9 @@ struct CommonRuleRow: View {
                     Text(model.t(group.title)).font(.system(size: ShouDesign.bodyFontSize, weight: .medium))
                     Text(String(format: model.t("%lld locations"), locale: model.language.locale, group.sources.count))
                         .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    if group.sources.contains(where: { $0.candidate.reasons.contains("application_running") }) {
+                        Label(model.t("App is running"), systemImage: "app.badge").font(ShouType.caption).foregroundStyle(ShouPalette.warning)
+                    }
                     if selectable.isEmpty || group.sources.contains(where: \.requiresManualReview) { Text(model.t("Review required")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary) }
                     else if group.sources.contains(where: { $0.candidate.risk == "high" }) { Text(model.t("High risk")).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
                 }

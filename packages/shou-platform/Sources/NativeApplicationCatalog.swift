@@ -164,6 +164,18 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
                   let relative=String(path.dropFirst(source.path.count + 1)).split(separator: "/")
                   return (1...(ApplicationCatalogOptions.maxContainerDepth + 1)).contains(relative.count) && !relative.dropLast().contains { $0.lowercased().hasSuffix(".app") }
               }) else { throw ShouError("invalid_argument", "Application path is outside supported application directories.") }
+        let (parent, leaf)=try SecurePaths.parent(path)
+        defer { close(parent) }
+        var metadata=stat()
+        guard fstatat(parent, leaf, &metadata, AT_SYMLINK_NOFOLLOW) == 0 else { throw SecurePaths.failure("Inspect application", path: path) }
+        if metadata.st_mode & S_IFMT == S_IFLNK {
+            _ = try NativeApplicationShortcut.snapshot(path, roots: sources.map(\.path), uid: getuid())
+            // Preserve the selected link identity. Dedicated shortcut review decides
+            // whether its target is absent; this never grants access to that target.
+            return ApplicationDefinition(path: path, source: source, identity: SecurePaths.entry(metadata, path: "."),
+                name: URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent,
+                bundleIdentifier: nil, version: nil, executableName: nil, infoDigest: nil)
+        }
         return try definition(at: path, source: source, deadline: ContinuousClock.now.advanced(by: .seconds(5))).0
         #else
         throw ShouError("unsupported_platform", "Application discovery is currently available only on macOS.")
@@ -192,7 +204,12 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
             }
         }
         func targetPath() throws -> String {
-            guard let resolved=realpath(application.path, nil) else { throw SecurePaths.failure("Resolve application link", path: application.path) }
+            guard let resolved=realpath(application.path, nil) else {
+                if errno == ENOENT {
+                    throw ShouError("application_link_target_missing", "The application shortcut points to a target that no longer exists.")
+                }
+                throw SecurePaths.failure("Resolve application link", path: application.path)
+            }
             defer { free(resolved) }
             guard let path=String(validatingCString: resolved), path.lowercased().hasSuffix(".app"),
                   path.rangeOfCharacter(from: .controlCharacters) == nil else {

@@ -39,7 +39,7 @@ Shou 提供空间分析、可审查清理与可复用规则。AI 调查是可选
 | 规划下一版本 | [能力改进、优先级与开发工作包](engineering/next-release-plan.md) |
 | 诊断与终端支持 | [只读报告、隐私与 Shell 补全](engineering/user-diagnostics.md) |
 | 实现原生界面 | [界面设计](engineering/interface-design.md)、[macOS 体验](product/macos-experience.md)、[国际化](product/internationalization.md) |
-| 改进扫描性能 | [扫描性能](engineering/storage-scan-performance.md)、[空间调查](engineering/space-analysis-agent-design.md) |
+| 改进扫描与删除性能 | [现有实现与实测](engineering/storage-scan-performance.md)、[调研报告](engineering/storage-performance-research.md)、[架构方案](engineering/storage-performance-architecture.md)、[空间调查](engineering/space-analysis-agent-design.md) |
 | 开发 AI | [AI 架构](architecture/embedded-ai.md) → [实现边界](engineering/embedded-ai-implementation.md) → [验收](engineering/embedded-ai-acceptance.md) |
 | 接入外部 Agent | [CLI 合同](ai/agent-and-cli-contract.md)、[Agent 集成](ai/coding-agent-integration.md)、[Skill 分发](ai/skill-distribution.md) |
 | 维护规则 | [Schema](../../packages/shou-contracts/rule.schema.json)、[规则覆盖](engineering/rule-coverage.md) |

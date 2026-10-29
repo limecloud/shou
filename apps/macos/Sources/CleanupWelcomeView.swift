@@ -42,15 +42,7 @@ struct CleanupWelcomeView: View {
                     .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
                     .lineSpacing(4).fixedSize(horizontal: false, vertical: true).frame(maxWidth: 430, alignment: .leading)
                 HStack(spacing: 12) {
-                    Button { model.scanCommonLocations() } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "sparkle.magnifyingglass")
-                            Text(model.t("Start Scan"))
-                            Spacer(minLength: 10)
-                            Image(systemName: "arrow.right")
-                        }
-                    }
-                    .buttonStyle(WorkspacePrimaryButtonStyle()).fixedSize().accessibilityIdentifier("smart.start")
+                    CleanupScanButton(model: model)
                     CleanupOptionsMenu(model: model, showLocations: showLocations, showAgentSetup: showAgentSetup)
                         .fixedSize().menuStyle(.borderlessButton)
                 }.padding(.top, 3)

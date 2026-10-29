@@ -23,12 +23,14 @@ func nativeSystemAuthorizationProtocolFixtures() async throws {
     let authorization=NativeSystemAuthorization(authenticatedChannel: client, peer: try AuthorizationPeer(pid: getpid()))
     let responder=Task.detached {
         defer { close(server) }
-        var requests=[String]()
-        for index in 0..<4 {
+        var requests=[String](), order=AuthorizationRequestOrder()
+        for index in 0..<7 {
             let request=try AuthorizationChannel.read(AuthorizationRequest.self, from: server)
+            try order.accept(request)
             requests.append(request.id)
-            if index == 3 { break }
-            try AuthorizationChannel.write(AuthorizationReply(id: request.id), to: server)
+            if index == 6 { break }
+            let facts=request.operation == .applicationActivity ? ApplicationUninstallFacts(currentUser: getuid(), running: true, currentApplication: false) : nil
+            try AuthorizationChannel.write(AuthorizationReply(id: request.id, applicationFacts: facts), to: server)
         }
         return requests
     }
@@ -36,6 +38,10 @@ func nativeSystemAuthorizationProtocolFixtures() async throws {
     _ = try authorization.perform(.startupToggle, path: "dev.shou.generated", action: .disable)
     _ = try authorization.perform(.applicationCatalog, path: "/Applications", budget: .init())
     _ = try authorization.perform(.inspectApplication, path: "/Applications/Generated.app", budget: .init())
+    let activity=try authorization.perform(.applicationActivity, path: "/Applications/Generated.app")
+    try expect(activity.applicationFacts?.running == true && activity.applicationFacts?.currentUser == getuid())
+    _ = try authorization.perform(.inspectApplicationShortcut, path: "/Applications/Generated Shortcut.app")
+    _ = try authorization.perform(.purgeApplicationShortcut, path: "/Applications/Generated Shortcut.app", manifest: [])
     try expect(authorization.administratorState == .authorized)
     do {
         _ = try authorization.perform(.purgeApplication, path: "/Applications/Generated.app", manifest: [])
@@ -43,7 +49,7 @@ func nativeSystemAuthorizationProtocolFixtures() async throws {
     } catch let error as ShouError { try expect(error.code == "authorization_channel_lost") }
     try expect(authorization.administratorState == .unavailable)
     let requests=try await responder.value
-    try expect(requests.count == 4 && Set(requests).count == 4)
+    try expect(requests.count == 7 && Set(requests).count == 7)
     try expect(ShouError("authorization_cancelled", "Cancelled").exitCode == 130)
     try expect(ShouError("authorization_denied", "Denied").exitCode == 3)
 
@@ -69,6 +75,30 @@ func nativeSystemAuthorizationProtocolFixtures() async throws {
     }
     let peer=try AuthorizationPeer(pid: getpid())
     try expect(peer.isCurrent && peer.uid == getuid())
+    // Large scans must not expire the authenticated worker after 10,000 calls.
+    let (longClient, longServer)=try sockets()
+    let persistent=NativeSystemAuthorization(authenticatedChannel: longClient, peer: try AuthorizationPeer(pid: getpid()))
+    let longResponder=Task.detached {
+        defer { close(longServer) }
+        var order=AuthorizationRequestOrder()
+        for _ in 0..<10_005 {
+            let request=try AuthorizationChannel.read(AuthorizationRequest.self, from: longServer)
+            try order.accept(request)
+            try expectThrows { try order.accept(request) }
+            let cancel=AuthorizationRequest(id: request.id, operation: .cancelOperation, path: "", manifest: nil, budget: nil, action: nil, sequence: request.sequence)
+            try expect(order.matchesCancellation(cancel))
+            try AuthorizationChannel.write(AuthorizationReply(id: request.id), to: longServer)
+        }
+        return order.sequence
+    }
+    for _ in 0..<10_005 { _ = try persistent.perform(.pathIdentity, path: "/generated") }
+    try expect(try await longResponder.value == 10_005)
+    // The next call detects the closed channel without replaying an operation.
+    try expectThrows { try persistent.perform(.pathIdentity, path: "/generated") }
+    do {
+        _ = try persistent.perform(.pathIdentity, path: "/generated")
+        try expect(false)
+    } catch let error as ShouError { try expect(error.code == "authorization_unavailable") }
     try nativeAuthorizedTrashStagesAndRestoresOnlyGeneratedFixtures()
     try nativeAuthorizedFilesPreserveScopeAndTransferOnlyGeneratedIndexes()
 }
@@ -98,10 +128,16 @@ private func nativeAuthorizedFilesPreserveScopeAndTransferOnlyGeneratedIndexes()
         try expect(FileManager.default.fileExists(atPath:path))
     }
     let (source,measurement)=try NativeAuthorizedFileSystem.exportStorage(target,filesystem:filesystem,uid:getuid(),progress:{ _ in })
+    let transfer=URL(fileURLWithPath:source).deletingLastPathComponent()
+    try expect(transfer.deletingLastPathComponent().path == "/private/tmp" && transfer.lastPathComponent.hasPrefix("shou-storage-"))
+    var directoryInfo=stat(), catalogInfo=stat()
+    try expect(lstat(transfer.path,&directoryInfo) == 0 && directoryInfo.st_uid == getuid() && directoryInfo.st_mode & 0o077 == 0)
+    try expect(lstat(source,&catalogInfo) == 0 && catalogInfo.st_uid == getuid() && catalogInfo.st_mode & 0o777 == 0o600)
     let output=fixture.base.appendingPathComponent("imported.sqlite")
     try NativeAuthorizedFileSystem.importStorage(source,to:output,uid:getuid())
-    try expect(measurement.entryCount > 0 && FileManager.default.fileExists(atPath:output.path))
-    try expect(!FileManager.default.fileExists(atPath:source))
+    try expect(measurement.entryCount == 2 && FileManager.default.fileExists(atPath:output.path))
+    try expect(try StorageCatalog(url:output).entry(at:"data.bin")?.entry.logicalBytes == Int64("generated payload".utf8.count))
+    try expect(!FileManager.default.fileExists(atPath:transfer.path))
     try expectThrows { try NativeAuthorizedFileSystem.importStorage(output.path,to:fixture.base.appendingPathComponent("forged.sqlite"),uid:getuid()) }
     let (failedSource,_)=try NativeAuthorizedFileSystem.exportStorage(target,filesystem:filesystem,uid:getuid(),progress:{ _ in })
     try expectThrows { try NativeAuthorizedFileSystem.importStorage(failedSource,to:output,uid:getuid()) }

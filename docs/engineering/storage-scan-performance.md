@@ -2,15 +2,17 @@
 
 English | [简体中文](../zh-CN/engineering/storage-scan-performance.md)
 
-Shou's full storage analysis is a read-only inventory. Its hot path is filesystem metadata I/O, not CPU arithmetic. A scan therefore becomes faster when independent directory reads overlap and each directory is fetched with fewer syscalls. Increasing thread count without a bound makes APFS, cloud placeholders, network volumes and the desktop compete for the same resources, so Shou uses a bounded reader pool.
+Shou's full storage analysis is a read-only inventory. Its main costs include filesystem metadata I/O, directory revalidation and per-entry index writes. Independent directory reads overlap while repeated work is reduced. Increasing thread count without a bound makes APFS, cloud placeholders, network volumes and the desktop compete for the same resources, so Shou uses a bounded reader pool.
+
+The 2026-10-29 [research report](storage-performance-research.md) checks comparable source and official documents. The [architecture proposal](storage-performance-architecture.md) separates the initial duplicate-work implementation from proposed pipelines, concurrency and incremental indexes. Measurements below establish only the explicitly tested scope.
 
 ## Reuse across operations
 
 The directory reader is shared by full measurement and bounded target/cleanup/history inspection. macOS reuses `getattrlistbulk` pages, with no-follow fallback for missing metadata. Windows uses the same bounded 64 KiB handle-based name reader for observation and native manifest verification; child metadata comes from relative handles pinned against replacement. A platform may mark entries verified only when its enumeration contract provides that evidence; other adapters retain a second metadata inspection.
 
-Windows `FileTreeIndex` builds parent/child, identity and completion indexes once per observation and shares them across rule classification, planning and context validation. Native execution does one batch policy scan, then one exact target verification at each mutation boundary, instead of scanning the whole workspace again for every target. Current activity checks, immutable scope and per-unlink verification remain. macOS uses the same capability boundary for rule cleanup, direct removal, uninstall components and orphan cleanup; browse/selection reuse request-local policy and catalog contexts. History list summaries avoid loading full manifests; explicit inspection still reads current files.
+Windows `FileTreeIndex` builds parent/child, identity and completion indexes once per observation and shares them across rule classification, planning and context validation. Execution no longer performs batch live preflight: policy and observations are checked per current item, with exact target verification by the native adapter at each mutation boundary. Current activity checks, immutable scope and per-unlink verification remain. macOS uses the same capability boundary for rule cleanup, direct removal, uninstall components and orphan cleanup; browse/selection reuse request-local policy and catalog contexts. History list summaries avoid loading full manifests; explicit inspection still reads current files.
 
-Large manifests are immutable digest-verified pages shared by plans and history. State/result writes update compact metadata instead of rewriting the complete inventory. Progress is advisory and throttled; validation paths remain visible while unknown preparation totals stay indeterminate. Release builds are required for performance comparisons. The MangoDisk analysis-removal fast path uses a different cancellation/manifest contract; it is not copied as a recursive fallback.
+Plans and history share immutable digest-verified paging machinery. macOS copies verified plan-page bytes to independent initial history pages without encoding them again; subsequent state/result writes update compact metadata. Unpaged or changed manifests retain their existing encoding path. Progress is advisory and throttled; only selected targets/descendants appear during removal, finalization has no path, and unknown preparation totals stay indeterminate. Release builds are required for performance comparisons. The MangoDisk analysis-removal fast path uses a different cancellation/manifest contract; it is not copied as a recursive fallback.
 
 ## Current pipeline
 
@@ -87,7 +89,117 @@ BuhoCleaner was inspected for package and runtime boundaries with REA. Its nativ
 
 References and acknowledgements: MangoDisk's `mangodisk-platform/src/macos/analysis.rs`, `bulk_directory.rs` and `mangodisk-core/src/storage/traversal/parallel_analysis.rs`. Retained REA artifact evidence: BuhoCleaner `ev_37ae786bf04f8b9651880aac0dea30eeb49f9adb951623d142a2d4dbfcebd8e8`; MangoDisk `ev_dda64636549bef4a0cac435f101123abb7549f224943246e65c29359c154df2e`. Artifact evidence identifies the inspected package; the algorithm findings above come from source inspection.
 
+### 2026-10-29 reference review and build-mode comparison
+
+Rechecking MangoDisk's `mangodisk-platform/src/macos/analysis.rs`, `bulk_directory.rs` and `mangodisk-core/src/storage/analysis/index_projection.rs` confirms that Shou already implements bulk metadata and an eight-reader directory pool. Result retention is different: MangoDisk aggregates directories in memory, retains bounded large-file details and enumerates again when navigation needs missing rows; Shou writes every file to an immutable SQLite catalog for complete lists, pagination and cross-scan comparisons. Lightweight aggregation warrants a separate design review. Dropping rows must not silently preserve claims of a complete snapshot or become a deletion manifest.
+
+The locally installed `0.21.0` candidate was still a Debug build. Three alternating read-only rounds against a local Release CLI used eight readers and generated fixtures. Every identity, timestamp, permission, size and completeness field matched row by row, directory totals matched and generated contents remained unchanged:
+
+| Workload | Entries | Debug median | Release median | Ratio |
+| --- | ---: | ---: | ---: | ---: |
+| Tiny files in 32 directories | 131,105 | 1.128 s | 0.469 s | 2.41× |
+| 10,241 directories and 8,192 files | 18,433 | 0.582 s | 0.410 s | 1.42× |
+
+This compares the installed candidate and Release build modes, not a new scanning algorithm, full-volume performance or Windows performance. The host was Apple Silicon/macOS 15.8.1/APFS; caches were not cleared and other foreground work plus an existing Shou scan remained active. Release additionally includes uncommitted deprecated-API fixes; scanner source was unchanged. Raw rounds, both binary hashes, source status and row digests remain local in `.build/v021-scan-performance/result.json`, with `compare.py` beside it.
+
+Normal local installations use Release. Install Debug only for an explicit debugging need and record that mode. At the user's request, `v0.21.0` continues from its frozen candidate; subsequent warning fixes and scanning algorithm changes are outside that release source.
+
+### 2026-10-29 native Shou and MangoDisk workflow measurements
+
+Optimized Release probes call each product's actual Core API on the same Apple M1/macOS 15.8.1/APFS host. Three rounds alternate Shou/MangoDisk, MangoDisk/Shou, Shou/MangoDisk. MangoDisk source is `4285d46644f2b9e53dee4ddfa3b3b5374dd64e3b`; Shou uses frozen baseline `6f24e7796af1263823e77518ffb584f2c4867cb5` plus the uncommitted warning fixes above, with scanning and removal algorithms unchanged. MangoDisk's clean worktree remains unchanged. Each run has fresh isolated state, ordinary-user privileges, a refreshed scan and a separate generated fixture with matching layout/content. Timings exclude fixture creation and process startup.
+
+| Workload | Shou median scan | MangoDisk median scan | Shou median preparation + permanent removal | MangoDisk median preparation + permanent removal |
+| --- | ---: | ---: | ---: | ---: |
+| 16 directories, 32,768 tiny files | 0.152 s | 0.109 s | 4.907 s | 2.740 s |
+| 4,608 internal directories, 4,096 files | 0.470 s | 0.110 s | 2.426 s | 0.995 s |
+
+Shou/MangoDisk scan-time ratios are 1.39/4.29, and preparation/removal ratios are 1.79/2.44. Shou median preparation takes 0.583/0.567 s and execution 4.323/1.813 s; individual phase medians need not sum to the total median. Median peak RSS for the entire probe is 55.0/52.3 MiB for Shou and 18.6/14.3 MiB for MangoDisk, not scan-only memory. All twelve runs verify exact file counts, matching paired allocated totals, actual target removal and retained content/inode identity for sibling and out-of-scope sentinels.
+
+The probes retain different persistence and deletion contracts; this is not an equal-contract algorithm comparison, GUI/full-volume timing or Windows evidence. MangoDisk's memory aggregates and bounded file index avoid Shou's complete durable detail. Its deletion pins the current target during preparation and uses scan counts for result accounting. Shou additionally preserves an immutable complete manifest, verifies its current contents at execution and persists intent and per-item results. Source explains additional work, but these end-to-end timings do not separately attribute SQLite, serialization or syscall costs.
+
+Follow-up priorities are reviewing duplicate small-scan detail persistence alongside an existing catalog, reducing serialized database round trips during directory aggregation, and avoiding repeated manifest construction/checks while retaining exact scope, identity, cancellation and receipts. A lightweight browsing snapshot needs its own design; missing rows must not become complete deletion evidence. Both products already use bulk metadata and bounded concurrency, so further thread increases require separate measurements.
+
+Caches were not purged and other desktop activity was uncontrolled. Shou's directory-heavy raw scan range was 0.263–1.000 s, showing substantial variation; these medians describe only this host sample. Raw runs, paired content digests, executable SHA-256, toolchains and source state remain local in `.build/v021-mangodisk-comparison/result.json`; `compare.py` and both probe sources are retained beside it.
+
+### 2026-10-29 initial optimization measurements
+
+The initial implementation removes duplicate inline details from small catalog-backed scans, copies revalidated plan-page bytes into independent initial storage-removal history pages, and consolidates adjacent metadata reads for ordinary single-link files in shared native permanent removal. The final complete comparison before `unlinkat`, ancestry and hard-link contracts remain. Windows separately precomputes progress totals and accumulates removed counts; portable .NET regression is not native performance evidence. See the [data model](../architecture/data-model.md).
+
+A separate pre-optimization `sample` run observed `ReceiptJournal.save → FileManifestRecords.pages → JSONEncoder` during the two seconds after execution started. This identifies duplicate encoding within that window, not a whole-operation time percentage. Profiling is separate from the timings below.
+
+The final first-phase candidate Release and retained baseline Release use identical probe source and eight readers on the Apple M1/macOS 15.8.1/APFS host above. Each workload has five alternating pairs, independent matching generated fixtures and fresh state. Access is ordinary-user, metadata is warm without cache purging, and desktop activity is uncontrolled. Timings exclude fixture generation/startup; no profiler is attached. Ratios divide baseline by candidate median time.
+
+| Generated workload | Scan before / after | Scan ratio | Preparation + deletion before / after | Preparation + deletion ratio |
+| --- | ---: | ---: | ---: | ---: |
+| 32,768 files, 16 internal directories | 0.259 / 0.263 s | 0.98 | 5.954 / 4.935 s | 1.21 |
+| 4,096 files, 4,608 internal directories | 0.556 / 0.488 s | 1.14 | 3.821 / 2.751 s | 1.39 |
+
+All twenty executions verify exact file counts, paired allocated totals, actual target removal and retained sibling/out-of-scope sentinel contents and inode identity. Twenty earlier-candidate executions also remain: directory-heavy scan 0.290 → 0.194 s and preparation/deletion 1.657 → 1.315 s. The final candidate additionally preserves native permission-read error classification. The builds remain separate; results are not pooled or selected for favorable samples.
+
+Desktop variation is material: directory scan time decreased about 33% in the first set and 12% in the final set. Final directory preparation median changed 0.818 → 1.034 s, opposite the earlier improvement, with no attribution to the implementation. File-heavy scanning has no small-scan inline-branch algorithm change, so its timing differences are not scanning-speedup evidence. Final preparation/deletion reductions of about 17%/28% describe these samples, not a stable multiplier. No individual ablation assigns gains to JSON, SQLite or syscalls. No several-fold, tenfold, full-volume, GUI, privileged-worker or Windows gain is established; proposed acceptance targets still need more controlled measurement.
+
+The shared [evidence inventory](storage-performance-evidence.json) retains all raw samples, phase medians/ranges, whole-probe RSS, both candidates/baseline hashes and final source hashes. Local `result.json`, `initial-result.json`, `compare.py`, build arguments and signing/installation receipts are under `.build/performance-20261029-optimization/`, with measured binaries retained. Earlier MangoDisk measurements are not combined with this later run as a new simultaneous comparison.
+
+The ordinary Mac script passed 352 Core/generated-fixture checks, including manifest-copy tampering, retention, legacy formats and progress scope. After the final permission-error adjustment, 11/11 native permanent-removal checks passed separately. The full script ends with the real `build_process_running` refusal for its Node fixture; no personal process was stopped and the complete script is not marked passed. Mac-host Windows checks passed 805 Core, 288 Presentation, 220 Platform with 98 native skips, 34 CLI and 192 CLI contracts. The final path-display assertions separately passed all 288 Presentation checks. This establishes no current Windows native/WinUI deletion or performance acceptance and changes no public gate.
+
+The finalization event no longer carries the analysis root, and both presentations restrict deletion paths to frozen targets/descendants. A local Release installation passed signature and 156 package-file checks, preserving all 3,772 existing record hashes. The public `v0.21.0` tag/assets were unchanged. Installed startup was observed; Full Disk Access is currently off in System Settings and restoration needs separate confirmation, so protected-directory access is not marked passed.
+
+### 2026-10-29 follow-up scan experiment and manifest encoding
+
+Read-only probes scan 65,570 file-heavy entries and 8,706 directory-heavy entries. Separate `sample` runs observe reader waits on the shared lock and SQLite commit/index sorting during sealing; sampled stacks do not establish whole-operation percentages. A follow-up experiment combines schema, rows, final indexes and temporary-table cleanup in one transaction. Five alternating Release pairs per workload use the same retained fixture, fresh state and eight readers, comparing every row field and aggregate:
+
+| Generated workload | Original transactions median | Single transaction median |
+| --- | ---: | ---: |
+| File-heavy | 0.382 s | 0.396 s |
+| Directory-heavy | 0.299 s | 0.302 s |
+
+Desktop load is uncontrolled, metadata is warm and sample ranges overlap. There is no demonstrated gain, so the transaction change was reverted; fewer SQL commits are not treated as faster completion. Source, binaries, all samples and full-field digests remain in `.build/performance-20261029-scan/` and the shared evidence inventory.
+
+Shared manifest paging separately uses fixed field names and array slices, avoiding per-entry snake-case conversion and page-array copies while retaining Foundation JSON encoding, sorting, optional omission and legacy decoding. A standalone Release probe compiles actual production paging source with only its module import added. It first checks exact bytes and legacy decoding for Unicode/escaping, numeric extremes, optional digests and 0/1/2/4095/4096/4097/8192/8193-entry boundaries. Twelve alternating pairs of ten 4,096-entry pages, both including SHA-256, have medians **0.458 → 0.242 s**. This measures repeated encoding/digests; it does not establish approximately doubled removal or scan speed. Raw runs, probe source and build arguments remain in `.build/performance-20261029-manifest/`.
+
+The complete workflow then uses the same probe and a baseline containing the first-phase fixes, changing only `FileManifestRecords.swift`; source hashes exclude SQL or syscall changes. Five alternating pairs per workload give 20 Release runs with freshly generated matching fixtures and state. Every run checks file counts, allocation, actual removal and in/out-of-scope sentinel contents/inodes. Host load is uncontrolled; no profiler is attached, and fixture generation/process startup are excluded:
+
+| Generated workload | Preparation before / after | Execution before / after | Preparation + execution before / after |
+| --- | ---: | ---: | ---: |
+| 32,768 files, 16 internal directories | 0.581 / 0.388 s | 3.588 / 3.276 s | 4.169 / 3.664 s |
+| 4,096 files, 4,608 internal directories | 0.370 / 0.313 s | 1.191 / 1.198 s | 1.543 / 1.512 s |
+
+File-heavy preparation decreases about 33% and preparation plus execution about 12%. Directory-heavy preparation decreases about 15%; execution has no observed improvement, and the roughly 2% overall difference is insufficient for a stable-speedup claim. Scanner source is unchanged: scan medians of 0.169/0.175 s and 0.253/0.240 s establish no scan gain. All ranges, RSS, samples and source/binary hashes are in the shared evidence. These runs are not pooled with first-phase or earlier MangoDisk results and do not establish full-volume, GUI, privileged-session or Windows gains.
+
+This round's ordinary script passes **353/353 Core** checks, including legacy-byte comparisons for directory pages and single-file content digests. Its last native CLI Node fixture still refuses with `build_process_running`; the full script exits 1 and no personal process is stopped. The full Mac-host Windows suite passes **808 Core, 288 Presentation, 220 Platform (98 native skips), 34 CLI and 192 CLI contracts**. There is no current Windows native or WinUI acceptance.
+
+The final follow-up Release/ARM64 was built and installed, verifying 156 package files and all 3,772 existing record hashes; updated startup was observed. Protected access remains restricted and the earlier permission-restoration confirmation is unanswered. No permission was changed and no installed-UI deletion was performed; generated Core/Presentation fixtures cover the progress logic. Public `v0.21.0` assets were not replaced.
+
+### 2026-10-29 lock-separation experiment and confirmation
+
+An experiment separates status and catalog locks while retaining one writer. Five initial alternating pairs per workload give directory-heavy medians of 0.176/0.122 s and file-heavy 0.229/0.234 s. The same binaries then run ten confirmation pairs per workload:
+
+| Workload | Shared-lock median | Separate-lock median | Shared-lock range | Separate-lock range |
+| --- | ---: | ---: | ---: | ---: |
+| File-heavy | 0.296 s | 0.317 s | 0.232–0.490 s | 0.240–0.593 s |
+| Directory-heavy | 0.147 s | 0.123 s | 0.137–0.253 s | 0.120–0.189 s |
+
+Every field and aggregate matches across all 60 read-only scans. Confirmation reduces the directory-heavy median about 16% but increases file-heavy about 7%; overlapping ranges and uncontrolled desktop load prevent acceptance based on the stronger first set. The lock change was reverted. Four native metadata/parent-cancellation checks pass. Checkpoints were already batched every 128 entries, so no duplicate batching change was added. Source, binaries, harnesses, raw samples and hashes remain in `.build/performance-20261029-scan-lock/` and shared evidence.
+
+### 2026-10-29 unused measurement-index removal
+
+At the start of the experiment, repository search found `forEachChildDirectory` only at its definition. Native traversal retains pending directories in memory and never uses the temporary `measurement_directories` index. New catalogs skip its creation, per-directory maintenance and removal during sealing. The method still queries correctly; published tables/indexes and format versions are unchanged.
+
+Additional directory-API validation exposed an existing column-index error: the appended ID is column 16, but the method read column 19 and returned 0. This is fixed, with a regression covering 600 directories, three keyset pages and descendant inserts during callbacks. The method has no production caller and does not affect the measured scanner; all five metadata/cursor/cancellation checks pass.
+
+Ten alternating Release pairs per workload give 40 read-only scans with identical fields and aggregates. File-heavy medians are 0.265/0.261 s and directory-heavy 0.160/0.160 s; overlapping ranges provide **no demonstrated scan speedup**. The directory-heavy catalog median shrinks from **1,415,168 to 1,320,960 bytes**, about 6.7%; file-heavy saves one 4 KiB page. The change removes unused indexing/storage work and is not counted as a time improvement. Samples, source and binaries remain in `.build/performance-20261029-scan-index/` and shared evidence.
+
+### Final validation and local installation for this iteration
+
+After the directory-cursor fix, the full Core suite passes **354/354** and the targeted suite **5/5**. Earlier in this iteration, the ordinary script passed its then-current 353 Core tests and subsequent CLI groups, but the final native CLI Node fixture refused with `artifact_evidence_unavailable`; an isolated rerun also exited 1. This differs from the previous iteration's `build_process_running` refusal and does not establish a green full script. No personal process was stopped or deletion protection weakened.
+
+The **Release/arm64** containing index cleanup and the cursor fix replaced `/Applications/Shou.app` after normal exit. Signatures, all 156 package files and 3,772 existing record hashes verified, and startup was observed. This installation includes the deletion-progress fix: finalization carries no path, and macOS/Windows presentations accept only frozen targets and descendants. Generated fixtures cover permanent removal, Trash and preservation outside the selection. No post-install GUI deletion or Windows native acceptance was performed in this iteration.
+
+The installed and candidate packages are both ad-hoc. An isolated same-team Developer ID signing probe timed out after 30 seconds; this alone does not establish that a Keychain password dialog appeared. Stable signing was not verified, and no Keychain permission changed. The app still reports protected access restricted; the earlier Full Disk Access confirmation is unanswered and that permission was not changed. Installation success does not establish restored privacy access. The repository design skill now requires preserving an existing Developer ID Team, explicit signing identity and separate signature/privacy verification. Public `v0.21.0` assets remain unchanged, and the cloud machine was not started. Final evidence is in `scan_index_final_validation` in the shared inventory.
+
 ## Progress and cancellation
+
+Windows full `StorageScanner` also throttles in Core, avoiding per-entry progress allocations before UI throttling. It reports the first observed entry immediately, checks 250 ms every 128 entries, and reports the exact final observed count without duplicate counts. No subscriber means no progress-object allocation; cancellation remains per entry. Ordinary observer failures do not discard filesystem evidence. Cross-target accumulation in the separate targeted `CleanupScanner` is unchanged.
 
 Progress is aggregated by entry count and throttled to at most one update per 250 ms after every 128 entries. UI updates never run once per filesystem record. Cancellation is checked before and during each bulk page, before opening children and while sealing SQLite. A cancelled or corrupt scan is discarded and never published. A time limit records `resource_limit`, seals a truthful partial catalog and sets `limitReached`; it does not masquerade as a complete scan.
 

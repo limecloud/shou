@@ -41,6 +41,8 @@ path.write_bytes(plistlib.dumps(info))
 PY
 cp "assets/brand/Shou.icns" "$TASK_APP/Contents/Resources/Shou.icns"
 cp "assets/brand/shou-mascot.png" "$TASK_APP/Contents/Resources/ShouMascot.png"
+mkdir -p "$TASK_APP/Contents/Resources/SoftwareIcons"
+cp "assets/software-icons/"*.png "assets/software-icons/catalog.json" "assets/software-icons/sources.json" "assets/software-icons/LICENSE.md" "$TASK_APP/Contents/Resources/SoftwareIcons/"
 mkdir -p "$TASK_APP/Contents/Resources/Illustrations"
 cp "assets/design/illustrations/"*.png "$TASK_APP/Contents/Resources/Illustrations/"
 cp "LICENSE" "$TASK_APP/Contents/Resources/LICENSE.txt"

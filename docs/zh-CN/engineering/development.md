@@ -77,7 +77,7 @@ macOS 日常数据根为 `~/Library/Application Support/Shou`。生成 CLI 夹�
 
 ## 打包与发布
 
-`sh "scripts/build-macos.sh" release universal` 将两种 macOS 架构构建为应用包。`python3 "scripts/install-macos.py" --check` 只验证已准备的本地包，不执行安装。本地安装、签名分发和公开更新分别处理；签名、归档、更新源验证与发布按[发布文档](releasing.md)执行。
+`sh "scripts/build-macos.sh" release universal` 将两种 macOS 架构构建为应用包。本地日常安装默认使用 Release；Debug 仅用于明确的调试需求，并在回执中标明，不用来判断正式扫描性能。`python3 "scripts/install-macos.py" --check` 只验证已准备的本地包，不执行安装。本地安装、签名分发和公开更新分别处理；签名、归档、更新源验证与发布按[发布文档](releasing.md)执行。
 
 ## Windows 开发边界
 

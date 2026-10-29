@@ -5,8 +5,27 @@ import ShouPlatform
 private final class StorageProgressProbe: @unchecked Sendable {
     private let lock=NSLock()
     private var updates=[ScanProgress]()
+    private var executionUpdates=[ExecutionProgress]()
     func record(_ value: ScanProgress) { lock.lock(); defer { lock.unlock() }; updates.append(value) }
     var values: [ScanProgress] { lock.lock(); defer { lock.unlock() }; return updates }
+    func record(_ value: ExecutionProgress) { lock.lock(); defer { lock.unlock() }; executionUpdates.append(value) }
+    var executionValues: [ExecutionProgress] { lock.lock(); defer { lock.unlock() }; return executionUpdates }
+}
+
+func storageExecutionProgressDoesNotReportAnalysisRootAsDeletionTarget() async throws {
+    for action in ["permanent", "trash"] {
+        let fixture=try Fixture(), progress=StorageProgressProbe()
+        let engine=ShouEngine(store: fixture.store, filesystem: FixtureFileSystem(native: fixture.fs, trash: fixture.trash))
+        let scan=try await engine.scanStorage(path: fixture.workspace.path)
+        let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["project/target"], action: action)
+        let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "progress-scope", progress: { progress.record($0) })
+        try expect(receipt.state == "completed")
+        let target=fixture.workspace.appendingPathComponent("project/target").path
+        let events=progress.executionValues
+        try expect(events.contains { $0.stage == "finalizing" && $0.path.isEmpty })
+        try expect(events.allSatisfy { $0.path.isEmpty || $0.path == target || $0.path.hasPrefix(target + "/") })
+        try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/Cargo.toml").path))
+    }
 }
 
 func storageWorkerReportsPostScanStagesAndExactLimit() async throws {
@@ -27,6 +46,14 @@ func storageWorkerReportsPostScanStagesAndExactLimit() async throws {
 }
 
 func progressPresentationUsesKnownWorkAndCompactPaths() throws {
+    let target="/Users/person/Library/Caches/selected"
+    try expect(ProgressPresentation.selectedPath("/System/Volumes/Data", within: [target]).isEmpty)
+    try expect(ProgressPresentation.selectedPath("/Users/person", within: [target]).isEmpty)
+    try expect(ProgressPresentation.selectedPath(target + "-other/file", within: [target]).isEmpty)
+    try expect(ProgressPresentation.selectedPath(target, within: [target]) == target)
+    try expect(ProgressPresentation.selectedPath(target + "/文件.bin", within: [target]) == target + "/文件.bin")
+    let alias="/System/Volumes/Data" + target + "/文件.bin"
+    try expect(ProgressPresentation.selectedPath(alias, within: [target]) == alias)
     try expect(ScanProgress(stage: "scanning", entryCount: 100).fractionCompleted == nil)
     try expect(ScanProgress(stage: "saving", entryCount: 100, completedUnitCount: 1, totalUnitCount: 4).fractionCompleted == 0.25)
     try expect(ScanProgress(stage: "saving", entryCount: 100, completedUnitCount: 5, totalUnitCount: 4).fractionCompleted == nil)

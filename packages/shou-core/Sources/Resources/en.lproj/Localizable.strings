@@ -76,6 +76,7 @@
 "A required ordinary project marker is missing from the parent" = "A required ordinary project marker is missing from the parent";
 "A required read-only system tool could not be started." = "A required read-only system tool could not be started.";
 "A routine that fits your own folders." = "A routine that fits your own folders.";
+"A selected disk is no longer available." = "A selected disk is no longer available.";
 "A startup registration could not be read safely." = "A startup registration could not be read safely.";
 "A structured decision provider is not configured for this connection." = "A structured decision provider is not configured for this connection.";
 "A target path containing wildcard characters requires a new workspace scan." = "A target path containing wildcard characters requires a new workspace scan.";
@@ -130,7 +131,9 @@
 "Administrator Access" = "Administrator Access";
 "Administrator Required" = "Administrator Required";
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.";
+"Administrator access is required to uninstall this application." = "Administrator access is required to uninstall this application.";
 "Administrator authorization required" = "Administrator authorization required";
+"Administrator authorization was not completed. Your selection is kept." = "Administrator authorization was not completed. Your selection is kept.";
 "Adobe Bridge caches" = "Adobe Bridge caches";
 "Advanced" = "Advanced";
 "Affected items refreshed. Review your selection to continue." = "Affected items refreshed. Review your selection to continue.";
@@ -188,6 +191,7 @@
 "App caches and developer projects are discovered automatically. Extra folders are remembered." = "App caches and developer projects are discovered automatically. Extra folders are remembered.";
 "App caches, project build outputs, and your enabled rules — together in one cleanup." = "App caches, project build outputs, and your enabled rules — together in one cleanup.";
 "App container" = "App container";
+"App is running" = "App is running";
 "App logs" = "App logs";
 "App support data" = "App support data";
 "Appearance" = "Appearance";
@@ -203,6 +207,7 @@
 "Application Leftovers" = "Application Leftovers";
 "Application Name" = "Application Name";
 "Application Options" = "Application Options";
+"Application Shortcut" = "Application Shortcut";
 "Application Uninstall" = "Application Uninstall";
 "Application Updates" = "Application Updates";
 "Application activity checking is unavailable on this platform." = "Application activity checking is unavailable on this platform.";
@@ -237,6 +242,7 @@
 "Applications checked. Review components before uninstalling." = "Applications checked. Review components before uninstalling.";
 "Applications recreate downloaded and rendered cache data when needed." = "Applications recreate downloaded and rendered cache data when needed.";
 "Apps & Projects" = "Apps & Projects";
+"Apps using cleanup files" = "Apps using cleanup files";
 "Arc caches" = "Arc caches";
 "Arc download caches" = "Arc download caches";
 "Archives" = "Archives";
@@ -258,6 +264,7 @@
 "At load" = "At load";
 "Atomic no-overwrite restoration is unavailable on this platform." = "Atomic no-overwrite restoration is unavailable on this platform.";
 "Audio" = "Audio";
+"Authenticating…" = "Authenticating…";
 "Authentication" = "Authentication";
 "Authentication Required" = "Authentication Required";
 "Authorize Administrator Access…" = "Authorize Administrator Access…";
@@ -293,6 +300,8 @@
 "Box caches" = "Box caches";
 "Brave caches" = "Brave caches";
 "Brave download caches" = "Brave download caches";
+"Broken Shortcut" = "Broken Shortcut";
+"Broken Shortcuts" = "Broken Shortcuts";
 "Browse All Tools" = "Browse All Tools";
 "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings." = "Browse Run, RunOnce, Startup folders, boot or logon scheduled tasks and packaged startup declarations. This page does not change startup settings.";
 "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage." = "Browse registered applications. Portable apps and other users are not included. Sizes are installer estimates, not measured disk usage.";
@@ -349,6 +358,7 @@
 "Candidate is missing, protected, excluded, or unclassified." = "Candidate is missing, protected, excluded, or unclassified.";
 "Candidate manifest does not match its snapshot." = "Candidate manifest does not match its snapshot.";
 "Candidate policy evidence could not be reproduced." = "Candidate policy evidence could not be reproduced.";
+"Cannot Uninstall" = "Cannot Uninstall";
 "Cargo Cache" = "Cargo Cache";
 "Cargo archive contains duplicate members." = "Cargo archive contains duplicate members.";
 "Cargo archive contains unsafe directory paths." = "Cargo archive contains unsafe directory paths.";
@@ -411,6 +421,7 @@
 "Checking selected items…" = "Checking selected items…";
 "Checking system facts…" = "Checking system facts…";
 "Checking tool-managed storage…" = "Checking tool-managed storage…";
+"Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept." = "Checks current-user Desktop and Start Menu shortcuts with plain local targets. Other shortcut types are kept.";
 "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded." = "Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded.";
 "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged." = "Checks only the exact saved paths and directory manifests. Files and receipts stay unchanged.";
 "Checks the official GitHub release. Downloads open only when you choose." = "Checks the official GitHub release. Downloads open only when you choose.";
@@ -443,7 +454,11 @@
 "Choose an earlier analysis" = "Choose an earlier analysis";
 "Choose an earlier analysis of the same directory identity. Replaced folders cannot be compared." = "Choose an earlier analysis of the same directory identity. Replaced folders cannot be compared.";
 "Choose an unused rule version. Existing versions cannot be overwritten." = "Choose an unused rule version. Existing versions cannot be overwritten.";
+"Choose available local disks." = "Choose available local disks.";
+"Choose between one and 256 scan folders." = "Choose between one and 256 scan folders.";
+"Choose between one and 32 scan folders." = "Choose between one and 32 scan folders.";
 "Choose extra folders to remember for future cleanup scans." = "Choose extra folders to remember for future cleanup scans.";
+"Choose folders to scan." = "Choose folders to scan.";
 "Choose items to review. High-risk items require your selection." = "Choose items to review. High-risk items require your selection.";
 "Choose light, dark, or follow your system settings." = "Choose light, dark, or follow your system settings.";
 "Choose local storage or system credentials before saving an API key." = "Choose local storage or system credentials before saving an API key.";
@@ -491,6 +506,7 @@
 "Cleanup directory or its project markers changed; scan again." = "Cleanup directory or its project markers changed; scan again.";
 "Cleanup exclusions could not be verified." = "Cleanup exclusions could not be verified.";
 "Cleanup execution is unavailable in this development build." = "Cleanup execution is unavailable in this development build.";
+"Cleanup execution is unavailable until native Windows verification is complete." = "Cleanup execution is unavailable until native Windows verification is complete.";
 "Cleanup finished with issues" = "Cleanup finished with issues";
 "Cleanup preview failed." = "Cleanup preview failed.";
 "Cleanup rules made for your Mac" = "Cleanup rules made for your Mac";
@@ -1124,6 +1140,7 @@
 "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs." = "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs.";
 "Local analysis → structured decisions. The main model is off." = "Local analysis → structured decisions. The main model is off.";
 "Local data" = "Local data";
+"Local disk discovery is unavailable on this platform." = "Local disk discovery is unavailable on this platform.";
 "Local instance" = "Local instance";
 "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only." = "Local keys are stored in private files accessible to your account, without Keychain encryption. Keys are excluded from profiles and investigation history. Tests send synthetic data only.";
 "Local processing comes first, then fixed-choice decisions. The main model is used only when open-ended understanding is needed." = "Local processing comes first, then fixed-choice decisions. The main model is used only when open-ended understanding is needed.";
@@ -1328,6 +1345,7 @@
 "No upgradable packages in this result" = "No upgradable packages in this result";
 "No usage record" = "No usage record";
 "No verified application leftovers found." = "No verified application leftovers found.";
+"No verified broken shortcuts." = "No verified broken shortcuts.";
 "No verified components available. Scan again or review access notices." = "No verified components available. Scan again or review access notices.";
 "No verified service instances in the scanned sources." = "No verified service instances in the scanned sources.";
 "No workspace selected" = "No scan location selected";
@@ -1409,10 +1427,12 @@
 "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained." = "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained.";
 "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space." = "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.";
 "Only the versions shown above are included in this review." = "Only the versions shown above are included in this review.";
+"Only this broken shortcut is removed. Its target and associated data are kept." = "Only this broken shortcut is removed. Its target and associated data are kept.";
 "Only this folder and its children are investigated. This does not select files for cleanup." = "Only this folder and its children are investigated. This does not select files for cleanup.";
 "Only this folder is described. The workspace itself and folders outside it cannot be selected." = "Only this folder is described. The workspace itself and folders outside it cannot be selected.";
 "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained." = "Only this installed application's exact bundle identifier cache is included. Application data and the application itself are retained.";
 "Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices." = "Only this rule will be enabled and scanned. Review the current files before confirming deletion. Other drafts keep their choices.";
+"Only this shortcut" = "Only this shortcut";
 "Only verified trashed items can be restored or permanently removed." = "Only verified trashed items can be restored or permanently removed.";
 "Opam download caches" = "Opam download caches";
 "Open AI Settings" = "Open AI Settings";
@@ -1479,6 +1499,7 @@
 "Paw API caches" = "Paw API caches";
 "Permanent cleanup" = "Permanent cleanup";
 "Permanent deletion cannot be undone." = "Permanent deletion cannot be undone.";
+"Permanent deletion completed. Review History for details." = "Permanent deletion completed. Review History for details.";
 "Permanent removal cancelled; inspect the partial result." = "Permanent removal cancelled; inspect the partial result.";
 "Permanently Clean Recommended…" = "Permanently Clean Recommended…";
 "Permanently Clean Selected…" = "Permanently Clean Selected…";
@@ -1591,6 +1612,7 @@
 "Qoder logs" = "Qoder logs";
 "Queued" = "Queued";
 "Queued directories" = "Queued directories";
+"Queued for review" = "Queued for review";
 "Quick Look" = "Quick Look";
 "Quick Look thumbnail caches" = "Quick Look thumbnail caches";
 "Quit Application First" = "Quit Application First";
@@ -1600,8 +1622,11 @@
 "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted." = "Quit Claude first. Conversation storage, settings, credentials, virtual machines and agent sessions are not targeted.";
 "Quit Codex first. Conversation storage, settings, credentials, local workspaces and agent sessions are not targeted." = "Quit Codex first. Conversation storage, settings, credentials, local workspaces and agent sessions are not targeted.";
 "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted." = "Quit QQ first. Chat history, downloaded attachments, account data and the application-support directory are not targeted.";
+"Quit Selected Apps & Refresh" = "Quit Selected Apps & Refresh";
+"Quit Selected Apps and Check Again" = "Quit Selected Apps and Check Again";
 "Quit Shou" = "Quit Shou";
 "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup." = "Quit Xcode first. Source checkouts and protected descendants can block whole-directory cleanup.";
+"Quit affected apps, then scan again." = "Quit affected apps, then scan again.";
 "Quit apps to clean their caches?" = "Quit apps to clean their caches?";
 "Quit requested. Scan again after the application closes." = "Quit requested. Scan again after the application closes.";
 "Quit the affected IDEs first. Reindexing can take time. Local History, plugins, settings, projects and installed tools are not targeted." = "Quit the affected IDEs first. Reindexing can take time. Local History, plugins, settings, projects and installed tools are not targeted.";
@@ -1676,6 +1701,7 @@
 "Refresh Tools & Services" = "Refresh Tools & Services";
 "Refresh Versions" = "Refresh Versions";
 "Refresh to update extension totals after cleanup." = "Refresh to update extension totals after cleanup.";
+"Refreshing affected cleanup locations…" = "Refreshing affected cleanup locations…";
 "Registered Projects" = "Registered Projects";
 "Registered location (unverified)" = "Registered location (unverified)";
 "Registered size" = "Registered size";
@@ -1707,6 +1733,7 @@
 "Report an Issue" = "Report an Issue";
 "Request Quit" = "Request Quit";
 "Requested rule is not enabled in this workspace." = "Requested rule is not enabled in this workspace.";
+"Requesting applications to quit…" = "Requesting applications to quit…";
 "Required for uninstall" = "Required for uninstall";
 "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages." = "Requires network access or a local package cache. Preserve patched, linked, private and unpublished packages.";
 "Rescan" = "Rescan";
@@ -1808,6 +1835,7 @@
 "Reviewing evidence with Jev…" = "Reviewing evidence with Jev…";
 "Reviewing evidence with the decision provider…" = "Reviewing evidence with the decision provider…";
 "Reviewing rebuild evidence with Jev…" = "Reviewing rebuild evidence with Jev…";
+"Reviewing…" = "Reviewing…";
 "Risk" = "Risk";
 "Room for" = "Room for";
 "Root Folder" = "Root Folder";
@@ -1850,6 +1878,8 @@
 "Save changes to this configuration file?" = "Save changes to this configuration file?";
 "Save changes to this configuration file? Restart the matching service separately to apply them." = "Save changes to this configuration file? Restart the matching service separately to apply them.";
 "Save results" = "Save results";
+"Save your work before quitting. Apps that remain open must be closed manually." = "Save your work before quitting. Apps that remain open must be closed manually.";
+"Save your work first. Apps that stay open will remain blocked." = "Save your work first. Apps that stay open will remain blocked.";
 "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action." = "Save your work first. Shou requests a normal quit, verifies closure, and refreshes affected items. Files are not deleted by this action.";
 "Saved Investigations" = "Saved Investigations";
 "Saved Rule Selections" = "Saved Rule Selections";
@@ -1882,6 +1912,7 @@
 "Scan Only" = "Scan Only";
 "Scan Options" = "Scan Options";
 "Scan Privacy Sources" = "Scan Privacy Sources";
+"Scan Scope" = "Scan Scope";
 "Scan Selected Location" = "Scan Selected Location";
 "Scan Startup Items" = "Scan Startup Items";
 "Scan Workspace" = "Scan Workspace";
@@ -1908,11 +1939,15 @@
 "Scan to see aggregate counts and availability. Browsing records are never displayed." = "Scan to see aggregate counts and availability. Browsing records are never displayed.";
 "Scanning Installed Tools…" = "Scanning Installed Tools…";
 "Scanning and Privacy" = "Scanning and Privacy";
+"Scanning cleanup locations…" = "Scanning cleanup locations…";
 "Scanning disk usage…" = "Scanning disk usage…";
 "Scanning does not delete files." = "Scanning does not delete files.";
 "Scanning is read-only. Uninstalling requires a component review and confirmation." = "Scanning is read-only. Uninstalling requires a component review and confirmation.";
 "Scanning only reads application information. Review components before uninstalling." = "Scanning only reads application information. Review components before uninstalling.";
 "Scanning reads file sizes. Nothing is selected or deleted automatically." = "Scanning reads file sizes. Nothing is selected or deleted automatically.";
+"Scanning selected disks…" = "Scanning selected disks…";
+"Scanning selected folders…" = "Scanning selected folders…";
+"Scanning selected folder…" = "Scanning selected folder…";
 "Scanning selected workspace…" = "Scanning selected workspace…";
 "Scanning this directory…" = "Scanning this directory…";
 "Scanning uses the enabled rules for this location." = "Scanning uses the enabled rules for this location.";
@@ -1951,6 +1986,9 @@
 "Select All Matching Files" = "Select All Matching Files";
 "Select All in This Folder" = "Select All in This Folder";
 "Select Build Caches" = "Select Build Caches";
+"Select Disks" = "Select Disks";
+"Select Disks…" = "Select Disks…";
+"Select Folders…" = "Select Folders…";
 "Select Item" = "Select Item";
 "Select Items" = "Select Items";
 "Select Loaded Files" = "Select Loaded Files";
@@ -1969,6 +2007,7 @@
 "Select applications in this view" = "Select applications in this view";
 "Select available items in this cleanup" = "Select available items in this cleanup";
 "Select available updates" = "Select available updates";
+"Select broken shortcuts separately from apps that require Trash." = "Select broken shortcuts separately from apps that require Trash.";
 "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out." = "Select exact privacy sources. Permanent deletion cannot be undone; deleting cookies may sign you out.";
 "Select explicit receipt items and a supported action." = "Select explicit receipt items and a supported action.";
 "Select files or folders to remove" = "Select files or folders to remove";
@@ -1993,6 +2032,8 @@
 "Selected items processed. Refresh to measure current disk usage." = "Selected items processed. Refresh to measure current disk usage.";
 "Selected items restored." = "Selected items restored.";
 "Selected personal app data will also move to Trash." = "Selected personal app data will also move to Trash.";
+"Selecting this application requests administrator access when needed." = "Selecting this application requests administrator access when needed.";
+"Selection is being checked…" = "Selection is being checked…";
 "Selections across locations are reviewed together. Filtering keeps your selection." = "Selections across locations are reviewed together. Filtering keeps your selection.";
 "Send Feedback…" = "Send Feedback…";
 "Sends relative folder names, sizes and your answers to the selected service. File contents and absolute home paths are excluded. Results are saved locally." = "Sends relative folder names, sizes and your answers to the selected service. File contents and absolute home paths are excluded. Results are saved locally.";
@@ -2035,6 +2076,7 @@
 "Shared groups, package receipts and external helpers are not removed. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan." = "Shared groups, package receipts and external helpers are not removed. Custom locations and other accounts are not searched. Process checks cover the current account. Missing associations are not added to the plan.";
 "Shou Diagnostic Report" = "Shou Diagnostic Report";
 "Shou cannot restore a system uninstall and does not automatically clean residual files." = "Shou cannot restore a system uninstall and does not automatically clean residual files.";
+"Shou cannot uninstall itself while it is running." = "Shou cannot uninstall itself while it is running.";
 "Shou data directory must be owned by the current user and have mode 0700." = "Shou data directory must be owned by the current user and have mode 0700.";
 "Shou does not connect to models or host agents. Existing tools use its public CLI. Cleanup always requires confirmation." = "Shou does not connect to models or host agents. Existing tools use its public CLI. Cleanup always requires confirmation.";
 "Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou." = "Shou includes the Skill and CLI. Use your existing agent; no model setup is needed in Shou.";
@@ -2108,8 +2150,10 @@
 "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup." = "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup.";
 "Some privacy sources could not be inspected. Counts cover only available sources." = "Some privacy sources could not be inspected. Counts cover only available sources.";
 "Some records need verification and were kept." = "Some records need verification and were kept.";
+"Some scan locations could not be discovered within the limit." = "Some scan locations could not be discovered within the limit.";
 "Some scheduled task statuses could not be read." = "Some scheduled task statuses could not be read.";
 "Some selected items could not be processed. Inspect history." = "Some selected items could not be processed. Inspect history.";
+"Some shortcuts could not be verified and are kept." = "Some shortcuts could not be verified and are kept.";
 "Some sources could not be read." = "Some sources could not be read.";
 "Some sources were not cleaned" = "Some sources were not cleaned";
 "Some startup definitions could not be inspected." = "Some startup definitions could not be inspected.";
@@ -2132,6 +2176,7 @@
 "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt." = "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.";
 "Spacedrive caches" = "Spacedrive caches";
 "Spark caches" = "Spark caches";
+"Standard Scan" = "Standard Scan";
 "Start Investigation" = "Start Investigation";
 "Start Over" = "Start Over";
 "Start Scan" = "Start Scan";
@@ -2240,6 +2285,7 @@
 "System RunOnce (64-bit)" = "System RunOnce (64-bit)";
 "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually." = "System Settings could not be opened. Open Privacy & Security → Full Disk Access manually.";
 "System Settings…" = "System Settings…";
+"System disk" = "System disk";
 "System package" = "System package";
 "System state not checked" = "System state not checked";
 "System suggestions cache" = "System suggestions cache";
@@ -2248,7 +2294,9 @@
 "System volume usage" = "System volume usage";
 "System-managed locations are excluded from analysis." = "System-managed locations are excluded from analysis.";
 "TablePlus caches" = "TablePlus caches";
+"Target" = "Target";
 "Target Selection" = "Target Selection";
+"Target application is missing" = "Target application is missing";
 "Target identity or full directory manifest changed." = "Target identity or full directory manifest changed.";
 "Target inspection is incomplete" = "Target inspection is incomplete";
 "Task Scheduler reports: %@ · %@." = "Task Scheduler reports: %@, %@.";
@@ -2389,6 +2437,7 @@
 "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder." = "The service response exceeded the permitted size. Existing evidence is saved; check the connection or try a narrower folder.";
 "The service result needs verification. Refresh its source; Shou will not retry automatically." = "The service result needs verification. Refresh its source; Shou will not retry automatically.";
 "The service stopped, but restart did not finish. Refresh its source before continuing." = "The service stopped, but restart did not finish. Refresh its source before continuing.";
+"The shortcut changed. Check this application again." = "The shortcut changed. Check this application again.";
 "The space analysis index ran out of storage. Free some disk space or scan a smaller folder." = "The space analysis index ran out of storage. Free some disk space or scan a smaller folder.";
 "The startup scan reached the maximum folder depth." = "The startup scan reached the maximum folder depth.";
 "The structured decision API key is unavailable." = "The structured decision API key is unavailable.";
@@ -2423,6 +2472,7 @@
 "This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once." = "This affects the selected live database. Multiple SQL steps are not a transaction; a failure may leave completed changes. This request expires in two minutes and is used once.";
 "This analysis cannot be compared. Run two new space analyses of the same folder." = "This analysis cannot be compared. Run two new space analyses of the same folder.";
 "This application cannot be safely removed. Review its component details." = "This application cannot be safely removed. Review its component details.";
+"This application is protected and cannot be uninstalled." = "This application is protected and cannot be uninstalled.";
 "This application or one of its files is in use. Close it and review the installation again." = "This application or one of its files is in use. Close it and review the installation again.";
 "This application requires elevated access. Automatic administrator removal is not supported." = "This application requires elevated access. Automatic administrator removal is not supported.";
 "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope." = "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.";
@@ -2440,9 +2490,11 @@
 "This folder could not be fully measured" = "This folder could not be fully measured";
 "This folder is below the rule's minimum size." = "This folder is below the rule's minimum size.";
 "This folder is empty." = "This folder is empty.";
+"This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions." = "This folder is inside a saved scan location. Scan that location to preserve its rules and exclusions.";
 "This folder name contains wildcard characters and cannot be represented as an exact rule." = "This folder name contains wildcard characters and cannot be represented as an exact rule.";
 "This folder was not completely scanned." = "This folder was not completely scanned.";
 "This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified." = "This installation cannot currently be prepared for uninstall. It may be protected, unsupported, or could not be verified.";
+"This installer is not supported. Use Windows Settings to uninstall this application." = "This installer is not supported. Use Windows Settings to uninstall this application.";
 "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn." = "This instance has a supervisor. Its lifecycle must be controlled through that exact supervisor to avoid automatic respawn.";
 "This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete." = "This instance is running. Its exact configuration must be verified before restart; no process will be stopped while its recovery recipe is incomplete.";
 "This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions." = "This instance's working directory is writable by a group or other users. Its process is running, but restart is unavailable until the directory can be verified. Shou does not change its permissions.";
@@ -2679,6 +2731,7 @@
 "administrator_permanent_removal_available" = "Supports permanent removal with administrator authorization";
 "application_activity_unavailable" = "Application activity could not be checked; cleanup is blocked.";
 "application_changed" = "application_changed";
+"application_link_target_missing" = "application_link_target_missing";
 "application_metadata_missing" = "Application metadata is unavailable. Only the application bundle can be removed; associated data is kept.";
 "application_running" = "Application is running. Quit it and scan again.";
 "artifact_evidence_unavailable" = "Artifact safety checks could not be completed; cleanup is blocked.";
@@ -2715,6 +2768,7 @@
 "macOS handles authentication" = "macOS handles authentication";
 "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou." = "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou.";
 "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept." = "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept.";
+"macOS protects this system application from uninstalling." = "macOS protects this system application from uninstalling.";
 "macOS regenerates this user cache when the service needs it again." = "macOS regenerates this user cache when the service needs it again.";
 "macOS regenerates thumbnails and help indexes when needed." = "macOS regenerates thumbnails and help indexes when needed.";
 "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept." = "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.";

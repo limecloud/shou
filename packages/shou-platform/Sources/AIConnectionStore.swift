@@ -2,6 +2,10 @@ import Foundation
 import ShouCore
 #if canImport(Security)
 import Security
+import LocalAuthentication
+#if os(macOS)
+import CShouMacLegacy
+#endif
 #endif
 
 public struct AIConnectionStore: Sendable {
@@ -95,7 +99,6 @@ public struct SystemAICredentials: AICredentialStore {
             if let migrated=try localKey(id) { return migrated }
             #if canImport(Security)
             var query=Self.query(id)
-            query[kSecUseAuthenticationUI as String]=kSecUseAuthenticationUIFail
             query[kSecReturnData as String]=true
             query[kSecMatchLimit as String]=kSecMatchLimitOne
             var result: CFTypeRef?
@@ -127,15 +130,12 @@ public struct SystemAICredentials: AICredentialStore {
         }
         #if canImport(Security)
         let query=Self.query(account), data=Data(key.utf8)
-        var updateQuery=query
-        updateQuery[kSecUseAuthenticationUI as String]=kSecUseAuthenticationUIFail
-        var status=SecItemUpdate(updateQuery as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+        var status=SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if status == errSecItemNotFound {
             var attributes=query
-            attributes[kSecUseAuthenticationUI as String]=kSecUseAuthenticationUIFail
             attributes[kSecValueData as String]=data
             attributes[kSecAttrAccessible as String]=kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-            attributes[kSecAttrLabel as String]="Shou AI · " + connection.name + (decision ? " · " + (connection.decision?.providerName ?? "Decision") : "")
+            attributes[kSecAttrLabel as String]="Shou AI: " + connection.name + (decision ? " / " + (connection.decision?.providerName ?? "Decision") : "")
             #if os(macOS)
             attributes[kSecAttrAccess as String]=try Self.applicationAccess()
             #endif
@@ -148,7 +148,10 @@ public struct SystemAICredentials: AICredentialStore {
     }
     #if canImport(Security)
     private static func query(_ id: String) -> [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "com.limecloud.shou.ai", kSecAttrAccount as String: id, kSecAttrSynchronizable as String: false]
+        let context=LAContext()
+        context.interactionNotAllowed=true
+        return [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "com.limecloud.shou.ai", kSecAttrAccount as String: id,
+                kSecAttrSynchronizable as String: false, kSecUseAuthenticationContext as String: context]
     }
     #if os(macOS)
     /// Trust only this executable and its signed companion in the same app bundle.
@@ -163,18 +166,11 @@ public struct SystemAICredentials: AICredentialStore {
             if SecStaticCodeCreateWithPath(companion as CFURL, [], &code) == errSecSuccess, let code,
                SecStaticCodeCheckValidity(code, [], nil) == errSecSuccess { paths.append(companion.path) }
         }
-        let trusted=try paths.map { path -> SecTrustedApplication in
-            var application: SecTrustedApplication?
-            guard SecTrustedApplicationCreateFromPath(path, &application) == errSecSuccess, let application else {
-                throw ShouError("ai_credential_unavailable", "Could not prepare Shou's Keychain access.")
-            }
-            return application
-        }
-        var access: SecAccess?
-        guard SecAccessCreate("Shou AI credentials" as CFString, trusted as CFArray, &access) == errSecSuccess, let access else {
+        var access: Unmanaged<SecAccess>?
+        guard ShouLegacyKeychainAccessCreate(paths as CFArray, &access) == errSecSuccess, let access else {
             throw ShouError("ai_credential_unavailable", "Could not prepare Shou's Keychain access.")
         }
-        return access
+        return access.takeRetainedValue()
     }
     #endif
     #endif

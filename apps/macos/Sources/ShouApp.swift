@@ -82,6 +82,9 @@ struct CleanupCompletion: Identifiable {
     var commonSelection=Set<String>()
     private var commonRefinements: [CleanupTargetRefinement]=[]
     var scanningCleanupPath: String?
+    var cleanupScanScope=CleanupScanScope.standard
+    var scanTitle="Scanning cleanup locations…"
+    var showingCleanupVolumes=false
     var scanningLocation: KnownLocation?
     var snapshot: ScanSnapshot? {
         didSet {
@@ -178,7 +181,7 @@ struct CleanupCompletion: Identifiable {
         let readWorker=Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/shou")
         do {
             engine=try await Task.detached(priority: .userInitiated) {
-                ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence(readWorkerExecutable: readWorker))
+                ShouEngine(store: try LocalRecordStore(), filesystem: NativeFileSystem(readWorkerExecutable: readWorker), applicationActivity: NativeApplicationActivity(), artifactEvidence: NativeArtifactEvidence(), applicationCatalog: NativeApplicationCatalog(), uninstallEvidence: NativeApplicationUninstallEvidence(readWorkerExecutable: readWorker), cleanupLocations: NativeCleanupLocations())
             }.value
             await refresh()
             await scanAccess.initialize()
@@ -244,7 +247,14 @@ struct CleanupCompletion: Identifiable {
             followups=try await engine.followUps()
             builtins=workspaceId.isEmpty ? [] : try await engine.builtinRules(workspaceId: workspaceId)
             knownLocations=try await engine.knownLocations()
-            projectLocations=try await engine.projectLocations()
+        } catch { if !Task.isCancelled { self.presentFailure(error) } }
+    }
+    func refreshProjectLocations() async {
+        guard let engine else { return }
+        do {
+            let locations=try await engine.projectLocations()
+            try Task.checkCancellation()
+            projectLocations=locations
         } catch { if !Task.isCancelled { self.presentFailure(error) } }
     }
     func refreshExternalChanges() async {
@@ -351,9 +361,10 @@ struct CleanupCompletion: Identifiable {
         }
         busy=true; scanning=true; selection=[]; scanProgress=nil; statusKey="Scanning selected workspace…"
         let id=preset?.workspaceId ?? workspaceId
+        scanTitle="Scanning selected folder…"; scanningLocation=nil; scanningCleanupPath=configuration.workspaces.first { $0.id == id }?.path
         let operation=UUID(); operationID=operation
         task=Task {
-            defer { busy=false; scanning=false }
+            defer { busy=false; scanning=false; scanningCleanupPath=nil }
             do {
                 snapshot=try await engine.scan(workspaceId: id, ruleIds: preset?.ruleIds ?? ruleIds, scope: section == "storage" ? .full : .cleanup, budget: ScanBudget(maxEntries: 500_000, maxSeconds: 180), progress: { [weak self] update in
                     Task { @MainActor in
@@ -427,19 +438,26 @@ struct CleanupCompletion: Identifiable {
     func scanApplications() {
         applicationsSession.scan(app: self)
     }
-    func scanCommonLocations(accessChecked: Bool = false) {
+    func scanCommonLocations(scope: CleanupScanScope? = nil, accessChecked: Bool = false) {
         guard let engine, !busy else { return }
+        let scope=scope ?? cleanupScanScope
         if !accessChecked {
-            scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(accessChecked: true) }
+            scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(scope: scope, accessChecked: true) }
             return
         }
         busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonRefinements=[]
         statusKey="Preparing common app scan…"
+        cleanupScanScope=scope; scanningCleanupPath=nil
+        switch scope {
+        case .standard: scanTitle="Scanning cleanup locations…"
+        case .folders: scanTitle="Scanning selected folders…"
+        case .volumes: scanTitle="Scanning selected disks…"
+        }
         let operation=UUID(); operationID=operation
         task=Task {
             defer { busy=false; scanning=false; scanningLocation=nil }
             do {
-                let result=try await engine.scanKnownLocations(includeProjects: true, progress: { [weak self] location, progress in
+                let result=try await engine.scanKnownLocations(includeProjects: true, scope: scope, progress: { [weak self] location, progress in
                     Task { @MainActor in
                         guard let self, self.scanning, self.operationID == operation else { return }
                         guard self.updateScanProgress(progress) else { return }
@@ -459,6 +477,14 @@ struct CleanupCompletion: Identifiable {
                 statusKey="Scan stopped."; await refresh()
             }
         }
+    }
+    func chooseCleanupFolders() {
+        guard !busy else { return }
+        let panel=NSOpenPanel(); panel.canChooseFiles=false; panel.canChooseDirectories=true; panel.allowsMultipleSelection=true
+        panel.message=t("Choose folders to scan.")
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
+        do { scanCommonLocations(scope: .folders(try panel.urls.map { try NativeDirectorySelection.path(for: $0) })) }
+        catch { presentFailure(error) }
     }
     @discardableResult private func updateScanProgress(_ update: ScanProgress) -> Bool {
         if let current=scanProgress {
@@ -489,6 +515,7 @@ struct CleanupCompletion: Identifiable {
         let operation=UUID(); operationID=operation
         busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; scanningCleanupPath=source.path
         statusKey="Scanning this directory…"
+        scanTitle="Scanning this directory…"
         task=Task {
             defer { busy=false; scanning=false; scanningCleanupPath=nil }
             do {
@@ -624,6 +651,7 @@ struct CleanupCompletion: Identifiable {
         catch { completion(.failure(error)); return }
         let operation=UUID(); operationID=operation
         busy=true; scanning=true; scanProgress=nil; statusKey="Previewing personal rule…"
+        scanTitle="Previewing personal rule…"; scanningLocation=nil; scanningCleanupPath=configuration.workspaces.first { $0.id == workspaceId }?.path
         task=Task {
             defer { busy=false; scanning=false; scanProgress=nil }
             do {
@@ -756,20 +784,31 @@ struct CleanupCompletion: Identifiable {
     func refreshCommonWorkspaces(_ roots: [Workspace], selectedPaths: Set<String>) {
         guard let engine, !busy else { return }
         busy=true; scanning=true; scanProgress=nil
+        stopRequested=false; scanningLocation=nil; scanningCleanupPath=nil; scanTitle="Refreshing affected cleanup locations…"
+        let operation=UUID(); operationID=operation
         let previous=systemResult
         task=Task {
-            defer { busy=false; scanning=false }
+            defer { busy=false; scanning=false; scanningCleanupPath=nil }
             do { try await updateScopedCleanup(engine: engine, roots: roots, selectedPaths: selectedPaths, previous: previous) }
             catch { if !Task.isCancelled { self.presentFailure(error) } }
         }
     }
     private func updateScopedCleanup(engine: ShouEngine, roots: [Workspace], selectedPaths: Set<String>, previous: SystemScanResult?) async throws {
+        guard !roots.isEmpty else { return }
         var snapshots=previous?.snapshots.filter { old in !roots.contains { $0.id == old.workspace.id } } ?? []
-        var scanned=Set<String>()
-        for root in roots where scanned.insert(root.id).inserted { snapshots.append(try await engine.scan(workspaceId: root.id, scope: .cleanup)) }
-        let locations=previous?.locations ?? knownLocations
-        let affectedLocations=Set(locations.filter { location in roots.contains { $0.path == location.path } }.map(\.id))
-        let issues=(previous?.issues ?? []).filter { !affectedLocations.contains($0.locationId) }
+        let operation=operationID
+        let updated=try await engine.scanKnownLocations(scope: .folders(Array(Set(roots.map(\.path))).sorted()), progress: { [weak self] location, update in
+                Task { @MainActor in
+                    guard let self, self.scanning, self.operationID == operation else { return }
+                    guard self.updateScanProgress(update) else { return }
+                    self.scanningLocation=location
+                }
+            })
+        snapshots += updated.snapshots
+        let previousLocations=previous?.locations ?? knownLocations
+        let affectedLocations=Set(previousLocations.filter { location in roots.contains { $0.path == location.path } }.map(\.id))
+        let locations=previousLocations.filter { location in !roots.contains { $0.path == location.path } } + updated.locations
+        let issues=(previous?.issues ?? []).filter { !affectedLocations.contains($0.locationId) } + updated.issues
         let refreshed=SystemScanResult(locations: locations, snapshots: snapshots, issues: issues, skippedLocationIds: previous?.skippedLocationIds ?? [])
         let retained=Set(snapshots.map(\.id))
         let refinements=commonRefinements.filter { retained.contains($0.originalSnapshotId) && retained.contains($0.snapshotId) }
@@ -783,18 +822,31 @@ struct CleanupCompletion: Identifiable {
         guard let engine, !busy, let result=systemResult else { return }
         let identifiers=Set(plan.applications.compactMap(\.bundleIdentifier))
         let affected=commonReview.categories.flatMap(\.groups).filter { !identifiers.isDisjoint(with: $0.applicationBundleIdentifiers) }.flatMap(\.sources)
-        let selectedPaths=Set(commonSelected.map(\.path) + affected.filter { $0.candidate.reasons.contains("application_running") }.map(\.path))
+        let selectedPaths=Set(commonSelected.map(\.path))
         let rootIDs=Set(affected.map { $0.workspace.id })
         let roots=result.snapshots.map(\.workspace).filter { rootIDs.contains($0.id) }
         busy=true
         task=Task {
-            defer { busy=false; scanning=false }
+            defer { busy=false; scanning=false; scanningLocation=nil; scanningCleanupPath=nil; stopRequested=false }
             do {
                 let results=try await engine.closeApplications(planId: plan.id, confirmedDigest: plan.digest, controller: NativeApplicationClosing())
+                scanning=true; stopRequested=false; scanTitle="Refreshing affected cleanup locations…"; scanProgress=nil; scanningCleanupPath=nil; scanningLocation=nil
+                operationID=UUID()
                 try await updateScopedCleanup(engine: engine, roots: roots, selectedPaths: selectedPaths, previous: result)
                 let unresolved=results.filter { $0.state != "closed" }
                 if !unresolved.isEmpty { self.error=unresolved.map { $0.name + ": " + ($0.error ?? t("Still running. Save your work and quit the application.")) }.joined(separator: "\n") }
             } catch { if !Task.isCancelled { self.presentFailure(error) } }
+        }
+    }
+    func closeSelectedCleanupApplications(_ applications: [ApplicationDefinition]) {
+        guard let engine, !busy, !applications.isEmpty else { return }
+        busy=true
+        task=Task {
+            do {
+                let plan=try await engine.applicationClosePlan(applications: applications)
+                try Task.checkCancellation()
+                busy=false; closeCleanupApplications(plan)
+            } catch { busy=false; presentFailure(error) }
         }
     }
     func clearHistory(_ ids: [String], includeRecoverable: Bool) {
@@ -1096,6 +1148,7 @@ struct ContentView: View {
         .sheet(item: $model.historyInspection) { request in HistoryInspectionView(model: model, executionId: request.id) }
         .sheet(isPresented: $ruleEditor) { RuleWizard(model: model, initialPattern: model.ruleDraftPattern) }
         .sheet(isPresented: $model.showingExclusions) { ExclusionsView(model: model) }
+        .sheet(isPresented: $model.showingCleanupVolumes) { CleanupVolumePicker(model: model) }
         .sheet(isPresented: Binding(get: { model.scanAccess.showingSetup }, set: { model.scanAccess.showingSetup=$0 }), onDismiss: { model.scanAccess.dismissed() }) { SetupView(model: model) }
         .alert(model.t("Unable to complete the operation"), isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error=nil } })) {
             if model.accessRecovery == .administrator {
