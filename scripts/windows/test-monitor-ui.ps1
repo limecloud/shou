@@ -36,6 +36,7 @@ public static class MonitorUiNative {
  [DllImport("user32.dll")] public static extern int GetMenuItemCount(IntPtr menu);
  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetMenuStringW(IntPtr menu, uint item, System.Text.StringBuilder text, int capacity, uint flags);
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowTextW(IntPtr window, System.Text.StringBuilder text, int capacity);
  [DllImport("user32.dll")] public static extern bool GetMenuItemRect(IntPtr window, IntPtr menu, uint item, out Rect rect);
  [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
  [DllImport("user32.dll")] public static extern void mouse_event(uint flags, uint x, uint y, uint data, UIntPtr extra);
@@ -44,7 +45,7 @@ public static class MonitorUiNative {
 $Output = Join-Path $ArtifactsRoot ('monitor-ui-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $Output -Force | Out-Null
 $Checks = [Collections.Generic.List[string]]::new()
-$App = $null; $Window = $null; $Failure = $null; $Icon = [MonitorUiNative+IconId]::new()
+$App = $null; $Window = $null; $Failure = $null; $ForegroundEvidence = $null; $Icon = [MonitorUiNative+IconId]::new()
 $ShellBefore = [IntPtr]::Zero; $ShellAfter = [IntPtr]::Zero; $ShellStarted = $false
 function Wait-Monitor([scriptblock]$Condition, [string]$Description) {
     $Deadline = [DateTime]::UtcNow.AddSeconds(30)
@@ -166,8 +167,15 @@ try {
     if ($ResumeIndex -lt 0) { throw 'Tray menu is missing resume.' }
     Save-Monitor '02-tray-popup'
     # Click the observed command rectangle only while this fixture owns the foreground popup.
+    $ForegroundWindow = [MonitorUiNative]::GetForegroundWindow()
     $ForegroundProcess = [uint32]0
-    [MonitorUiNative]::GetWindowThreadProcessId([MonitorUiNative]::GetForegroundWindow(), [ref]$ForegroundProcess) | Out-Null
+    [MonitorUiNative]::GetWindowThreadProcessId($ForegroundWindow, [ref]$ForegroundProcess) | Out-Null
+    $ForegroundTitle = [Text.StringBuilder]::new(1024)
+    [MonitorUiNative]::GetWindowTextW($ForegroundWindow, $ForegroundTitle, $ForegroundTitle.Capacity) | Out-Null
+    $ForegroundOwner = Get-Process -Id $ForegroundProcess -ErrorAction SilentlyContinue
+    $ForegroundEvidence = [ordered]@{ id=$ForegroundProcess; name=$(if ($null -ne $ForegroundOwner) { $ForegroundOwner.ProcessName });
+        path=$(if ($null -ne $ForegroundOwner) { $ForegroundOwner.Path }); title=$ForegroundTitle.ToString() }
+    $ForegroundEvidence | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $Output '02-foreground.json') -Encoding utf8
     if ($ForegroundProcess -ne $App.Id) { throw 'The fixture lost foreground ownership before menu navigation.' }
     $CommandBounds = [MonitorUiNative+Rect]::new()
     if (-not [MonitorUiNative]::GetMenuItemRect([IntPtr]::Zero, $NativeMenu, [uint32]$ResumeIndex, [ref]$CommandBounds) -or
@@ -199,7 +207,7 @@ try {
 finally {
     if ($null -ne $App -and -not $App.HasExited) { $App.CloseMainWindow() | Out-Null }
     [ordered]@{ source=(git rev-parse HEAD); architecture=[Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString();
-        os=[Environment]::OSVersion.VersionString; passed=($null -eq $Failure); checks=@($Checks); failure=$Failure;
+        os=[Environment]::OSVersion.VersionString; passed=($null -eq $Failure); checks=@($Checks); failure=$Failure; foreground=$ForegroundEvidence;
         shell_present_before=($ShellBefore -ne [IntPtr]::Zero); hosted_shell_started=$ShellStarted; shell_present_after=($ShellAfter -ne [IntPtr]::Zero);
         scope='Automated read-only monitor UI and native notification menu, not full desktop E2E or signed installation.' } |
         ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $Output 'verification.json') -Encoding utf8
