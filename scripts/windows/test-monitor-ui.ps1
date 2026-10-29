@@ -30,6 +30,14 @@ public static class MonitorUiNative {
  [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr window, int x, int y, int width, int height, bool repaint);
  [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr window);
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
+ [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr window);
+ [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr window);
+ [DllImport("user32.dll")] public static extern bool IsHungAppWindow(IntPtr window);
+ [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr window, out Rect bounds);
+ [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr window, uint flags);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassNameW(IntPtr window, System.Text.StringBuilder name, int capacity);
+ [DllImport("user32.dll")] public static extern IntPtr GetWindowLongPtrW(IntPtr window, int index);
+ [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr window, uint attribute, out int value, int size);
  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
  [DllImport("user32.dll", SetLastError=true)] static extern bool AttachThreadInput(uint from, uint to, bool attach);
  public static bool Activate(IntPtr window) {
@@ -120,6 +128,25 @@ function Save-Monitor([string]$Name) {
         [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; type=$_.Current.ControlType.ProgrammaticName; offscreen=$_.Current.IsOffscreen }
     }) | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $Output ($Name + '.json')) -Encoding utf8
 }
+function Save-WindowState([string]$Name, $Activation = $null) {
+    $Foreground = [MonitorUiNative]::GetForegroundWindow()
+    $OwnerId = [uint32]0
+    [MonitorUiNative]::GetWindowThreadProcessId($Foreground, [ref]$OwnerId) | Out-Null
+    $Owner = if ($OwnerId -gt 0) { Get-Process -Id $OwnerId -ErrorAction SilentlyContinue }
+    $Class = [Text.StringBuilder]::new(256)
+    [MonitorUiNative]::GetClassNameW($Handle, $Class, $Class.Capacity) | Out-Null
+    $Bounds = [MonitorUiNative+Rect]::new()
+    [MonitorUiNative]::GetWindowRect($Handle, [ref]$Bounds) | Out-Null
+    $Cloaked = 0
+    $CloakResult = [MonitorUiNative]::DwmGetWindowAttribute($Handle, 14, [ref]$Cloaked, 4)
+    [ordered]@{ activation=$Activation; window=$Handle.ToInt64(); app_process=$App.Id; class=$Class.ToString();
+        visible=[MonitorUiNative]::IsWindowVisible($Handle); minimized=[MonitorUiNative]::IsIconic($Handle);
+        hung=[MonitorUiNative]::IsHungAppWindow($Handle); cloak_result=$CloakResult; cloaked=$Cloaked;
+        style=[MonitorUiNative]::GetWindowLongPtrW($Handle,-16).ToInt64(); extended_style=[MonitorUiNative]::GetWindowLongPtrW($Handle,-20).ToInt64();
+        root_owner=[MonitorUiNative]::GetAncestor($Handle,3).ToInt64(); bounds=$Bounds;
+        foreground=$Foreground.ToInt64(); foreground_process=$OwnerId; foreground_name=$(if ($null -ne $Owner) { $Owner.ProcessName }) } |
+        ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $Output ($Name + '-native.json')) -Encoding utf8
+}
 try {
     $ShellBefore = [MonitorUiNative]::FindWindowExW([IntPtr]::Zero, [IntPtr]::Zero, 'Shell_TrayWnd', $null)
     # A fresh hosted image can have an interactive desktop without Explorer's notification area.
@@ -136,12 +163,14 @@ try {
     $App = Start-Process -FilePath $Executable -ArgumentList '--page monitor' -PassThru
     $Handle = Wait-Monitor { $App.Refresh(); if ($App.MainWindowHandle -ne [IntPtr]::Zero) { $App.MainWindowHandle } } 'monitor window'
     $Window = [Windows.Automation.AutomationElement]::FromHandle($Handle)
-    [MonitorUiNative]::Activate($Handle) | Out-Null
+    $Activated = [MonitorUiNative]::Activate($Handle)
+    Save-WindowState '00-activation' $Activated
     if ($env:GITHUB_ACTIONS -eq 'true' -and $env:RUNNER_ENVIRONMENT -eq 'github-hosted') {
         # The first visible application can trigger deferred Windows privacy setup.
         & (Join-Path $PSScriptRoot 'prepare-hosted-desktop.ps1')
     }
-    [MonitorUiNative]::Activate($Handle) | Out-Null
+    $Activated = [MonitorUiNative]::Activate($Handle)
+    Save-WindowState '00-prepared-activation' $Activated
     $Icon.Size = [Runtime.InteropServices.Marshal]::SizeOf($Icon); $Icon.Window = $Handle; $Icon.Id = 71
     Wait-Monitor { $Status = Find-Monitor 'monitor.status'; $null -ne $Status -and $Status.Current.Name -match 'Live|\u5b9e\u65f6' } 'first observation' | Out-Null
     Start-Sleep -Seconds 3
@@ -156,6 +185,7 @@ try {
     $Frozen = (Get-Monitor 'monitor.status').Current.Name; Start-Sleep -Seconds 3
     if ((Get-Monitor 'monitor.status').Current.Name -ne $Frozen) { throw 'Paused monitor continued updating.' }
     Toggle-Monitor; Wait-Monitor { (Get-IconResult) -eq 0 } 'registered tray icon' | Out-Null
+    Save-WindowState '02-before-popup'
     [MonitorUiNative]::PostMessageW($Handle, 0x8047, [UIntPtr]::new(71), [IntPtr]::new(0x205)) | Out-Null
     $Popup = Wait-Monitor {
         # Win32 popup menus can appear under the owner rather than as UIA root children.
@@ -221,6 +251,7 @@ try {
     $Checks.Add('normal exit releases the tray icon')
 } catch {
     $Failure = $_.Exception.ToString()
+    if ($null -ne $Window) { try { Save-WindowState 'failure' } catch {} }
     if ($null -ne $Window) { try { Save-Monitor 'failure' } catch {}; try { Save-NotificationProbe } catch { $_ | Out-String | Set-Content -LiteralPath (Join-Path $Output 'notification-probe-error.txt') } }
     throw
 }
