@@ -1,0 +1,59 @@
+name: Windows desktop diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Native Windows checks run containing the ARM64 preview to inspect
+        required: true
+        default: '40834663639'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  desktop:
+    runs-on: windows-11-arm
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-preview-win-arm64
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/ShouBuild/archives
+      - name: Verify the existing preview bytes and record both sources
+        run: |
+          $Archives = "$env:RUNNER_TEMP/ShouBuild/archives"
+          foreach ($Kind in @('app', 'cli')) {
+            $Stem = if ($Kind -eq 'app') { 'Shou' } else { 'shou-cli' }
+            $Name = "$Stem-0.21.0-windows-arm64.zip"
+            $Expected = @(Get-Content "$Archives/SHA256SUMS-windows-arm64" | Where-Object { $_.EndsWith("  $Name") })
+            if ($Expected.Count -ne 1 -or (Get-FileHash "$Archives/$Name" -Algorithm SHA256).Hash -ine $Expected[0].Substring(0, 64)) { throw 'Archive digest differs.' }
+            $Destination = "$env:RUNNER_TEMP/ShouBuild/publish/$Kind"
+            Expand-Archive -LiteralPath "$Archives/$Name" -DestinationPath $Destination
+            $Build = Get-Content "$Destination/BUILD.json" -Raw | ConvertFrom-Json
+            if ($Build.version -ne '0.21.0' -or $Build.runtime -ne 'win-arm64' -or $Build.kind -ne $Kind -or $Build.public_mutation_available -ne $false) { throw 'Preview identity or gates differ.' }
+            foreach ($File in $Build.files.PSObject.Properties) {
+              if ((Get-FileHash -LiteralPath (Join-Path $Destination $File.Name) -Algorithm SHA256).Hash -ine $File.Value) { throw 'Published file digest differs.' }
+            }
+            New-Item -ItemType Directory -Path "$env:RUNNER_TEMP/ShouBuild/evidence" -Force | Out-Null
+            @{ test_source=$env:GITHUB_SHA; binary_source=$Build.source_commit; archive=$Name; sha256=$Expected[0].Substring(0,64); scope='Desktop diagnosis only; does not replace same-source native acceptance.' } |
+              ConvertTo-Json | Set-Content "$env:RUNNER_TEMP/ShouBuild/evidence/$Kind-source.json"
+          }
+      - name: Prepare hosted desktop and inspect monitor UI
+        run: |
+          ./scripts/windows/prepare-hosted-desktop.ps1 -RestartExplorer
+          powershell.exe -NoProfile -STA -File scripts/windows/test-monitor-ui.ps1 -PublishRoot "$env:RUNNER_TEMP/ShouBuild/publish" -ArtifactsRoot "$env:RUNNER_TEMP/ShouBuild/evidence/monitor"
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop diagnosis failed.' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-desktop-diagnostics
+          path: ${{ runner.temp }}/ShouBuild/evidence
+          if-no-files-found: warn
