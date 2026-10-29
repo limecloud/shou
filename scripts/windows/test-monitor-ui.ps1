@@ -30,6 +30,21 @@ public static class MonitorUiNative {
  [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr window, int x, int y, int width, int height, bool repaint);
  [DllImport("user32.dll")] public static extern uint GetDpiForWindow(IntPtr window);
  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
+ [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+ [DllImport("user32.dll", SetLastError=true)] static extern bool AttachThreadInput(uint from, uint to, bool attach);
+ public static bool Activate(IntPtr window) {
+  uint ignored;
+  var current=GetCurrentThreadId();
+  var foreground=GetWindowThreadProcessId(GetForegroundWindow(), out ignored);
+  var target=GetWindowThreadProcessId(window, out ignored);
+  var attachForeground=foreground != 0 && foreground != current && AttachThreadInput(current, foreground, true);
+  var attachTarget=target != 0 && target != current && target != foreground && AttachThreadInput(current, target, true);
+  try { return SetForegroundWindow(window); }
+  finally {
+   if (attachTarget) AttachThreadInput(current, target, false);
+   if (attachForeground) AttachThreadInput(current, foreground, false);
+  }
+ }
  [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindowExW(IntPtr parent, IntPtr after, string className, string name);
  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
  [DllImport("user32.dll")] public static extern IntPtr SendMessageW(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam);
@@ -121,12 +136,12 @@ try {
     $App = Start-Process -FilePath $Executable -ArgumentList '--page monitor' -PassThru
     $Handle = Wait-Monitor { $App.Refresh(); if ($App.MainWindowHandle -ne [IntPtr]::Zero) { $App.MainWindowHandle } } 'monitor window'
     $Window = [Windows.Automation.AutomationElement]::FromHandle($Handle)
-    [MonitorUiNative]::SetForegroundWindow($Handle) | Out-Null
+    [MonitorUiNative]::Activate($Handle) | Out-Null
     if ($env:GITHUB_ACTIONS -eq 'true' -and $env:RUNNER_ENVIRONMENT -eq 'github-hosted') {
         # The first visible application can trigger deferred Windows privacy setup.
         & (Join-Path $PSScriptRoot 'prepare-hosted-desktop.ps1')
     }
-    [MonitorUiNative]::SetForegroundWindow($Handle) | Out-Null
+    [MonitorUiNative]::Activate($Handle) | Out-Null
     $Icon.Size = [Runtime.InteropServices.Marshal]::SizeOf($Icon); $Icon.Window = $Handle; $Icon.Id = 71
     Wait-Monitor { $Status = Find-Monitor 'monitor.status'; $null -ne $Status -and $Status.Current.Name -match 'Live|\u5b9e\u65f6' } 'first observation' | Out-Null
     Start-Sleep -Seconds 3
