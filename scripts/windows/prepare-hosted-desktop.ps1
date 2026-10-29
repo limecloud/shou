@@ -22,13 +22,7 @@ New-ItemProperty -Path $PrivacyState -Name PrivacyConsentStatus -Value 1 -Proper
 New-ItemProperty -Path $PrivacyState -Name TailoredExperiencesWithDiagnosticDataEnabled -Value 0 -PropertyType DWord -Force | Out-Null
 # OOBE can be hosted inside StartMenuExperienceHost and reopen after its broker
 # exits. Complete only the observed privacy page instead of terminating its host.
-$OobeRoots = @(
-    (Join-Path $env:WINDIR 'System32\oobe\'),
-    (Join-Path $env:WINDIR 'SysWOW64\oobe\'),
-    (Join-Path $env:WINDIR 'SystemApps\Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy\'),
-    (Join-Path $env:WINDIR 'SystemApps\MicrosoftWindows.Client.OOBE_cw5n1h2txyewy\'),
-    (Join-Path $env:WINDIR 'SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\')
-)
+$HostedWindowsRoot = $env:WINDIR.TrimEnd('\') + '\'
 $ExplorerPath = Join-Path $env:WINDIR 'explorer.exe'
 $Session = [Diagnostics.Process]::GetCurrentProcess().SessionId
 if ($RestartExplorer) {
@@ -54,7 +48,7 @@ try {
             [Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition))) {
             $Owner = Get-Process -Id $Candidate.Current.ProcessId -ErrorAction SilentlyContinue
             if ($null -eq $Owner -or $Owner.SessionId -ne $Session -or -not $Owner.Path) { continue }
-            if (@($OobeRoots | Where-Object { $Owner.Path.StartsWith($_, [StringComparison]::OrdinalIgnoreCase) }).Count -eq 0) { continue }
+            if (-not $Owner.Path.StartsWith($HostedWindowsRoot, [StringComparison]::OrdinalIgnoreCase)) { continue }
             $CandidateControls = @($Candidate.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
             $ObservedWindows[$Owner.Id] = [ordered]@{ process=$Owner.ProcessName; path=$Owner.Path; name=$Candidate.Current.Name;
                 controls=@($CandidateControls | Select-Object -First 300 | ForEach-Object {
