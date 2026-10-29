@@ -53,7 +53,7 @@ struct RuleRevisionEditor: View {
                     .disabled(validatedData == nil || saving || model.busy)
                     .accessibilityIdentifier("rules.revision.save")
             }
-        }.padding(24).frame(width: 760, height: 660)
+        }.padding(24).frame(width: 760, height: 520)
             .onChange(of: text) { _, _ in validatedData=nil; issue=nil }
             .interactiveDismissDisabled(saving)
     }

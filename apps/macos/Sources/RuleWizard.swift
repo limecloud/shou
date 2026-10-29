@@ -93,7 +93,7 @@ struct RuleWizard: View {
                         .accessibilityIdentifier("rules.wizard.save")
                 }
             }
-        }.padding(24).frame(width: 760, height: 680)
+        }.padding(24).frame(width: 760, height: 520)
             .onChange(of: fields) { _, _ in preview=nil; rows=[]; previewedData=nil; focusedPath=nil; issue=nil }
             .interactiveDismissDisabled(working)
             .onDisappear { if previewing { model.cancel() } }
