@@ -62,7 +62,7 @@ $env:DOTNET_ROOT="$Root/dotnet"
 
 2026-10-29 验收补充：历史空列表的页面状态仍为 `ready`，通过实际行数判断空结果；设置中的屏外按钮先使用观察到的 `ScrollItemPattern` 滚入视区，再检查可见与可用状态。设置跳转后打开位置或排除项，须在页面和工具栏挂载后显示；不能用直接点击规则页按钮代替设置入口的验收。当前实例的 `EnableLUA` 在重连后仍观察为 `0`，即使普通令牌已完成管理员 worker 握手，也不能声明已验证启用 UAC 的流程；以重连后的实际注册表和令牌为准，不反复重启消耗预算。
 
-GitHub ARM64 临时 runner 的首次隐私设置可能在准备后重新出现；只结束 broker 或 OOBE 目录内进程仍无法完成设置，实测前台还可能是 `StartMenuExperienceHost`。`prepare-hosted-desktop.ps1` 仅在 GitHub 托管环境识别当前会话、Windows 系统目录及确切隐私页标题，通过观察到的控件关闭可选项并完成 Next／Accept，保存控件树与动作回执；不结束整个 Start host。托盘验收保留截图、前台进程路径与窗口标题，并严格检查属于测试应用。不要将该环境处理用于个人桌面，也不要放宽前台所有权断言。
+GitHub ARM64 临时 runner 有[首次登录隐私窗口遮挡输入的已知问题](https://github.com/actions/runner-images/issues/14069)。截图中的隐私页与原生前台 `StartMenuExperienceHost` 可能不一致，不能仅凭其中一项判断原因。`prepare-hosted-desktop.ps1` 仅在 GitHub 托管环境检查当前会话、控制台及线程／输入桌面，停止当前会话且路径匹配的系统 `UserOOBEBroker.exe`／`WWAHost.exe`，并仅向观察到的前台开始菜单发送一次 Escape；不结束 Start host，不点击 Next／Accept。可选重启仅限当前会话的系统 Explorer。托盘验收记录窗口可见性、激活及线程附加结果、原生命中窗口和前台身份，严格检查输入目标属于测试应用。仍有遮挡时保留失败与截图，不循环发送按键或放宽断言；不要将该环境处理用于个人桌面。
 
 ## 导出与省钱
 

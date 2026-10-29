@@ -4,7 +4,7 @@ English | [简体中文](../zh-CN/engineering/windows-testing.md)
 
 This defines diagnostic and acceptance entry points, not complete Windows feature support. Executed evidence belongs in [SYNC.md](../../SYNC.md). Keep the cloud desktop in `StopCharging` during local work and prepare checks and synchronization before starting native validation.
 
-For GitHub ARM64 desktop diagnosis, run `gh workflow run windows-desktop-diagnostics.yml -f source_run_id=<Windows-check-run-ID>`. It reuses that run's restricted preview, verifies archive and file digests, and records application and diagnostic-script sources separately. This shortens desktop diagnosis without replacing full same-commit native acceptance. Disposable-runner privacy setup uses observed system controls; tray foreground-ownership assertions remain strict.
+For GitHub ARM64 desktop diagnosis, run `gh workflow run windows-desktop-diagnostics.yml -f source_run_id=<Windows-check-run-ID>`. It reuses that run's restricted preview, verifies archive and file digests, and records application and diagnostic-script sources separately. This shortens desktop diagnosis without replacing full same-commit native acceptance. The disposable runner's [first-sign-in occlusion issue](https://github.com/actions/runner-images/issues/14069) is addressed by stopping the matching OOBE/WWAHost processes after checking their session and system paths. Native hit testing and tray foreground-ownership assertions remain strict.
 
 ## 2026-10-29 system-authorization candidate acceptance
 
