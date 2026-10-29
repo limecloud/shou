@@ -34,14 +34,32 @@ if ($RestartExplorer) {
     }
     Start-Process -FilePath $ExplorerPath | Out-Null
 }
-Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Windows.Forms
 if (-not ('HostedDesktopNative' -as [type])) {
     Add-Type @'
 using System;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text;
 public static class HostedDesktopNative {
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")] public static extern IntPtr SendMessageW(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam);
+ [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+ [DllImport("user32.dll")] static extern IntPtr GetThreadDesktop(uint thread);
+ [DllImport("user32.dll", SetLastError=true)] static extern IntPtr OpenInputDesktop(uint flags, bool inherit, uint access);
+ [DllImport("user32.dll")] static extern bool CloseDesktop(IntPtr desktop);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool GetUserObjectInformationW(IntPtr handle, int index, StringBuilder value, int bytes, out int required);
+ static string Name(IntPtr desktop) {
+  if (desktop == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error());
+  var value = new StringBuilder(256); int required;
+  if (!GetUserObjectInformationW(desktop, 2, value, 512, out required)) throw new Win32Exception(Marshal.GetLastWin32Error());
+  return value.ToString();
+ }
+ public static string ThreadDesktopName() { return Name(GetThreadDesktop(GetCurrentThreadId())); }
+ public static string InputDesktopName() {
+  var desktop = OpenInputDesktop(0, false, 1);
+  try { return Name(desktop); } finally { if (desktop != IntPtr.Zero) CloseDesktop(desktop); }
+ }
 }
 '@
 }
@@ -58,10 +76,14 @@ function Invoke-HostedControl($Control) {
 $Evidence = Join-Path $env:RUNNER_TEMP ('ShouBuild/evidence/hosted-desktop-' + [Guid]::NewGuid().ToString('N') + '.json')
 New-Item -ItemType Directory -Path (Split-Path $Evidence) -Force | Out-Null
 $Actions = [Collections.Generic.List[object]]::new()
-$LastControls = @(); $ObservedWindows = @{}; $Failure = $null
+$LastControls = @(); $ObservedWindows = @{}; $Failure = $null; $Desktop = $null
 $Deadline = [DateTime]::UtcNow.AddSeconds(45)
 $QuietSince = [DateTime]::UtcNow
 try {
+    $Desktop = [ordered]@{ thread=[HostedDesktopNative]::ThreadDesktopName(); input=[HostedDesktopNative]::InputDesktopName() }
+    if ($Desktop.thread -ne 'Default' -or $Desktop.input -ne $Desktop.thread) {
+        throw "Hosted UI requires the Default input desktop; thread=$($Desktop.thread), input=$($Desktop.input)."
+    }
     do {
         $PrivacyWindow = $null
         $Candidates = [Collections.Generic.List[Windows.Automation.AutomationElement]]::new()
@@ -88,8 +110,9 @@ try {
                 $CloseStart = $CandidateControls | Where-Object { $_.Current.AutomationId -eq 'CloseStartAccessibleButton' -and
                     $_.Current.Name -eq 'Close Start menu' -and $_.Current.IsEnabled } | Select-Object -First 1
                 if ($null -ne $CloseStart) {
-                    Invoke-HostedControl $CloseStart
-                    $Actions.Add([ordered]@{ action='close_observed_start_menu'; process=$Owner.ProcessName })
+                    if ([HostedDesktopNative]::InputDesktopName() -ne $Desktop.thread) { throw 'The hosted input desktop changed before closing Start.' }
+                    [Windows.Forms.SendKeys]::SendWait('{ESC}')
+                    $Actions.Add([ordered]@{ action='escape_observed_start_menu'; process=$Owner.ProcessName })
                     $QuietSince = [DateTime]::UtcNow
                     break
                 }
@@ -136,7 +159,7 @@ try {
 } catch { $Failure = $_.Exception.ToString(); throw }
 finally {
     [ordered]@{ passed=($null -eq $Failure); failure=$Failure; actions=$Actions.ToArray(); last_controls=$LastControls;
-        observed_windows=@($ObservedWindows.Values); session=$Session } |
+        observed_windows=@($ObservedWindows.Values); session=$Session; desktop=$Desktop } |
         ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $Evidence -Encoding utf8
     Write-Output "Hosted desktop receipt: $Evidence"
 }
