@@ -15,7 +15,8 @@ New-ItemProperty -Path $PrivacyState -Name TailoredExperiencesWithDiagnosticData
 $OobeRoots = @(
     (Join-Path $env:WINDIR 'System32\oobe\'),
     (Join-Path $env:WINDIR 'SysWOW64\oobe\'),
-    (Join-Path $env:WINDIR 'SystemApps\Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy\')
+    (Join-Path $env:WINDIR 'SystemApps\Microsoft.Windows.CloudExperienceHost_cw5n1h2txyewy\'),
+    (Join-Path $env:WINDIR 'SystemApps\MicrosoftWindows.Client.OOBE_cw5n1h2txyewy\')
 )
 $ExplorerPath = Join-Path $env:WINDIR 'explorer.exe'
 $Session = [Diagnostics.Process]::GetCurrentProcess().SessionId
