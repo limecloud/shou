@@ -34,7 +34,7 @@ if ($RestartExplorer) {
     }
     Start-Process -FilePath $ExplorerPath | Out-Null
 }
-Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Windows.Forms
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 if (-not ('HostedDesktopNative' -as [type])) {
     Add-Type @'
 using System;
@@ -42,6 +42,11 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 public static class HostedDesktopNative {
+ [StructLayout(LayoutKind.Sequential)] struct Keyboard { public ushort Key, Scan; public uint Flags, Time; public UIntPtr Extra; }
+ [StructLayout(LayoutKind.Sequential)] struct Mouse { public int X, Y; public uint Data, Flags, Time; public UIntPtr Extra; }
+ [StructLayout(LayoutKind.Explicit)] struct InputData { [FieldOffset(0)] public Keyboard Keyboard; [FieldOffset(0)] public Mouse Mouse; }
+ [StructLayout(LayoutKind.Sequential)] struct Input { public uint Type; public InputData Data; }
+ [DllImport("user32.dll", SetLastError=true)] static extern uint SendInput(uint count, Input[] inputs, int size);
  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
  [DllImport("user32.dll")] public static extern IntPtr SendMessageW(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam);
  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
@@ -59,6 +64,14 @@ public static class HostedDesktopNative {
  public static string InputDesktopName() {
   var desktop = OpenInputDesktop(0, false, 1);
   try { return Name(desktop); } finally { if (desktop != IntPtr.Zero) CloseDesktop(desktop); }
+ }
+ public static void Escape() {
+  var inputs = new[] {
+   new Input { Type=1, Data=new InputData { Keyboard=new Keyboard { Key=27 } } },
+   new Input { Type=1, Data=new InputData { Keyboard=new Keyboard { Key=27, Flags=2 } } }
+  };
+  var accepted=SendInput(2, inputs, Marshal.SizeOf(typeof(Input)));
+  if (accepted != 2) throw new Win32Exception(Marshal.GetLastWin32Error(), "Hosted Escape accepted " + accepted + " of 2 input events.");
  }
 }
 '@
@@ -111,7 +124,7 @@ try {
                     $_.Current.Name -eq 'Close Start menu' -and $_.Current.IsEnabled } | Select-Object -First 1
                 if ($null -ne $CloseStart) {
                     if ([HostedDesktopNative]::InputDesktopName() -ne $Desktop.thread) { throw 'The hosted input desktop changed before closing Start.' }
-                    [Windows.Forms.SendKeys]::SendWait('{ESC}')
+                    [HostedDesktopNative]::Escape()
                     $Actions.Add([ordered]@{ action='escape_observed_start_menu'; process=$Owner.ProcessName })
                     $QuietSince = [DateTime]::UtcNow
                     break
