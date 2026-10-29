@@ -40,14 +40,29 @@ public static class MonitorUiNative {
  [DllImport("dwmapi.dll")] public static extern int DwmGetWindowAttribute(IntPtr window, uint attribute, out int value, int size);
  [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
  [DllImport("user32.dll", SetLastError=true)] static extern bool AttachThreadInput(uint from, uint to, bool attach);
- public static bool Activate(IntPtr window) {
+ [StructLayout(LayoutKind.Sequential)] struct Point { public int X, Y; }
+ [StructLayout(LayoutKind.Sequential)] struct Message { public IntPtr Window; public uint Id; public UIntPtr Wparam; public IntPtr Lparam; public uint Time; public Point Point; public uint Private; }
+ [DllImport("user32.dll")] static extern bool PeekMessageW(out Message message, IntPtr window, uint min, uint max, uint remove);
+ public sealed class Activation {
+  public uint CurrentThread, ForegroundThread, TargetThread;
+  public bool AttachedForeground, AttachedTarget, Activated;
+  public int ForegroundError, TargetError;
+ }
+ public static Activation Activate(IntPtr window) {
+  Message message;
+  PeekMessageW(out message, IntPtr.Zero, 0, 0, 0); // Ensure this automation thread has an input queue.
   uint ignored;
   var current=GetCurrentThreadId();
   var foreground=GetWindowThreadProcessId(GetForegroundWindow(), out ignored);
   var target=GetWindowThreadProcessId(window, out ignored);
+  var result=new Activation { CurrentThread=current, ForegroundThread=foreground, TargetThread=target };
   var attachForeground=foreground != 0 && foreground != current && AttachThreadInput(current, foreground, true);
+  result.AttachedForeground=attachForeground;
+  if (foreground != 0 && foreground != current && !attachForeground) result.ForegroundError=Marshal.GetLastWin32Error();
   var attachTarget=target != 0 && target != current && target != foreground && AttachThreadInput(current, target, true);
-  try { return SetForegroundWindow(window); }
+  result.AttachedTarget=attachTarget;
+  if (target != 0 && target != current && target != foreground && !attachTarget) result.TargetError=Marshal.GetLastWin32Error();
+  try { result.Activated=SetForegroundWindow(window); return result; }
   finally {
    if (attachTarget) AttachThreadInput(current, target, false);
    if (attachForeground) AttachThreadInput(current, foreground, false);
