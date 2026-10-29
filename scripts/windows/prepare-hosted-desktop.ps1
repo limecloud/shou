@@ -35,6 +35,26 @@ if ($RestartExplorer) {
     Start-Process -FilePath $ExplorerPath | Out-Null
 }
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+if (-not ('HostedDesktopNative' -as [type])) {
+    Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class HostedDesktopNative {
+ [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] public static extern IntPtr SendMessageW(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam);
+}
+'@
+}
+function Invoke-HostedControl($Control) {
+    $Pattern = $null
+    if ($Control.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$Pattern)) { $Pattern.Invoke(); return }
+    if ($Control.TryGetCurrentPattern([Windows.Automation.LegacyIAccessiblePattern]::Pattern, [ref]$Pattern)) { $Pattern.DoDefaultAction(); return }
+    if ($Control.Current.NativeWindowHandle -ne 0) {
+        [HostedDesktopNative]::SendMessageW([IntPtr]::new($Control.Current.NativeWindowHandle), 0xF5, [UIntPtr]::Zero, [IntPtr]::Zero) | Out-Null
+        return
+    }
+    throw 'The observed hosted setup button exposes no supported invocation.'
+}
 $Evidence = Join-Path $env:RUNNER_TEMP ('ShouBuild/evidence/hosted-desktop-' + [Guid]::NewGuid().ToString('N') + '.json')
 New-Item -ItemType Directory -Path (Split-Path $Evidence) -Force | Out-Null
 $Actions = [Collections.Generic.List[object]]::new()
@@ -44,16 +64,29 @@ $QuietSince = [DateTime]::UtcNow
 try {
     do {
         $PrivacyWindow = $null
-        foreach ($Candidate in @([Windows.Automation.AutomationElement]::RootElement.FindAll(
-            [Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition))) {
+        $Candidates = [Collections.Generic.List[Windows.Automation.AutomationElement]]::new()
+        $Foreground = [HostedDesktopNative]::GetForegroundWindow()
+        if ($Foreground -ne [IntPtr]::Zero) { $Candidates.Add([Windows.Automation.AutomationElement]::FromHandle($Foreground)) }
+        foreach ($Child in @([Windows.Automation.AutomationElement]::RootElement.FindAll(
+            [Windows.Automation.TreeScope]::Children, [Windows.Automation.Condition]::TrueCondition))) { $Candidates.Add($Child) }
+        foreach ($Candidate in $Candidates) {
             $Owner = Get-Process -Id $Candidate.Current.ProcessId -ErrorAction SilentlyContinue
             if ($null -eq $Owner -or $Owner.SessionId -ne $Session -or -not $Owner.Path) { continue }
             if (-not $Owner.Path.StartsWith($HostedWindowsRoot, [StringComparison]::OrdinalIgnoreCase)) { continue }
             $CandidateControls = @($Candidate.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
-            $ObservedWindows[$Owner.Id] = [ordered]@{ process=$Owner.ProcessName; path=$Owner.Path; name=$Candidate.Current.Name;
+            $ObservedWindows["$($Owner.Id):$($Candidate.Current.NativeWindowHandle)"] = [ordered]@{ process=$Owner.ProcessName; path=$Owner.Path; name=$Candidate.Current.Name;
                 controls=@($CandidateControls | Select-Object -First 300 | ForEach-Object {
                     [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; offscreen=$_.Current.IsOffscreen; type=[string]$_.Current.ControlType }
                 }) }
+            if ([StringComparer]::OrdinalIgnoreCase.Equals($Owner.Path, (Join-Path $env:WINDIR 'System32\SystemPropertiesPerformance.exe')) -and
+                @($CandidateControls | Where-Object { $_.Current.Name -like 'Windows created a temporary paging file on your computer because of a problem*' }).Count -gt 0) {
+                $Ok = $CandidateControls | Where-Object { $_.Current.Name -eq 'OK' -and $_.Current.IsEnabled -and -not $_.Current.IsOffscreen } | Select-Object -First 1
+                if ($null -eq $Ok) { throw 'The observed temporary paging-file notice has no enabled OK button.' }
+                Invoke-HostedControl $Ok
+                $Actions.Add([ordered]@{ action='dismiss_temporary_paging_file_notice'; process=$Owner.ProcessName })
+                $QuietSince = [DateTime]::UtcNow
+                continue
+            }
             $Title = $CandidateControls | Where-Object { -not $_.Current.IsOffscreen -and
                 ($_.Current.Name -replace '\s+', ' ') -eq 'Choose privacy settings for your device' } | Select-Object -First 1
             if ($null -ne $Title) { $PrivacyWindow = $Candidate; break }
@@ -79,7 +112,7 @@ try {
                 $_.Current.Name -in @('Next','Accept') -and $_.Current.IsEnabled -and -not $_.Current.IsOffscreen } | Select-Object -First 1
             if ($null -eq $Button) { throw 'The observed hosted privacy page has no enabled Next or Accept button.' }
             $Actions.Add([ordered]@{ action='advance_privacy_page'; button=$Button.Current.Name; process=$Owner.ProcessName; path=$Owner.Path })
-            $Button.GetCurrentPattern([Windows.Automation.InvokePattern]::Pattern).Invoke()
+            Invoke-HostedControl $Button
         }
         Start-Sleep -Milliseconds 500
     } while ([DateTime]::UtcNow -lt $Deadline)

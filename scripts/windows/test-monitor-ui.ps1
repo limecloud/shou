@@ -121,6 +121,7 @@ try {
     $App = Start-Process -FilePath $Executable -ArgumentList '--page monitor' -PassThru
     $Handle = Wait-Monitor { $App.Refresh(); if ($App.MainWindowHandle -ne [IntPtr]::Zero) { $App.MainWindowHandle } } 'monitor window'
     $Window = [Windows.Automation.AutomationElement]::FromHandle($Handle)
+    [MonitorUiNative]::SetForegroundWindow($Handle) | Out-Null
     if ($env:GITHUB_ACTIONS -eq 'true' -and $env:RUNNER_ENVIRONMENT -eq 'github-hosted') {
         # The first visible application can trigger deferred Windows privacy setup.
         & (Join-Path $PSScriptRoot 'prepare-hosted-desktop.ps1')
