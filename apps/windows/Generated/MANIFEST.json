@@ -139,6 +139,6 @@
     "packages/shou-core/Sources/Resources/known-locations.json": "c338241a1e5d6844436df579336da76f5dd8575d77b9f2e3d2b9de3d722d8d16",
     "packages/shou-core/Sources/Resources/project-locations.json": "077898028cd44ed58cf363a4ebb1b29ae21e8fa752a639751aaa49540403cd81",
     "scripts/design_tokens.py": "11d241040b7de842105cda2e13a09607fc2fd9ea5b76b2b56be29c1b66e71365",
-    "scripts/generate-windows-resources.py": "5342f61e40054f5b4ba2ff0c1ae2a20a4092ab4081d10b870a8cf8e116d6b21b"
+    "scripts/generate-windows-resources.py": "daa73e0ee575ee03ba9eaa75d8271c50017ad7c5a208f949f97a0bf07e1a87e9"
   }
 }

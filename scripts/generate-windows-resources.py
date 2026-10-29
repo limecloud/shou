@@ -76,13 +76,13 @@ def resources():
             source = icon_root / (name + '.' + extension)
             if hashlib.sha256(source.read_bytes()).hexdigest() != record[extension + '_sha256']:
                 raise ValueError('Software icon digest differs: ' + name)
-            inputs.append(str(source.relative_to(ROOT)))
+            inputs.append(source.relative_to(ROOT).as_posix())
         if icon_catalog['paths'].get(name) != ET.fromstring((icon_root / (name + '.svg')).read_bytes()).find('{http://www.w3.org/2000/svg}path').attrib['d']:
             raise ValueError('Software icon path differs: ' + name)
         outputs['SoftwareIcons/' + name + '.png'] = (icon_root / (name + '.png')).read_bytes()
     for name in ['catalog.json', 'sources.json', 'LICENSE.md']:
         source = icon_root / name
-        inputs.append(str(source.relative_to(ROOT)))
+        inputs.append(source.relative_to(ROOT).as_posix())
         outputs['SoftwareIcons/' + name] = source.read_bytes()
     for source_locale, windows_locale in [('en', 'en-US'), ('zh-Hans', 'zh-CN')]:
         entries = {}
