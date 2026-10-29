@@ -65,7 +65,7 @@ struct ToolCleanupPanel: View {
                 let result=try await current.scan(), receipts=try await current.history()
                 guard !Task.isCancelled else { return }
                 scan=result; history=receipts
-            } catch { if !Task.isCancelled { model.error=error.localizedDescription } }
+            } catch { if !Task.isCancelled { model.presentFailure(error) } }
         }
     }
     private func prepare(_ target: ToolCleanupTarget, scan: ToolCleanupScan) {
@@ -74,7 +74,7 @@ struct ToolCleanupPanel: View {
         operation=Task {
             defer { loading=false }
             do { plan=try await service.createPlan(scanId: scan.id, targetId: target.id) }
-            catch { model.error=error.localizedDescription }
+            catch { model.presentFailure(error) }
         }
     }
 }

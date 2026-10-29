@@ -44,7 +44,7 @@ public struct ScanBudget: Codable, Sendable {
     public init(maxEntries: Int = 100_000, maxSeconds: TimeInterval = 60, maxDepth: Int = 128) {
         self.maxEntries=maxEntries; self.maxSeconds=maxSeconds; self.maxDepth=maxDepth
     }
-    func validate() throws {
+    public func validate() throws {
         guard (1...1_000_000).contains(maxEntries), maxSeconds.isFinite,
               (1...600).contains(maxSeconds), (1...128).contains(maxDepth) else {
             throw ShouError("invalid_argument", "Scan budget is outside supported limits.")
@@ -52,7 +52,7 @@ public struct ScanBudget: Codable, Sendable {
     }
 }
 
-public struct ScanProgress: Sendable {
+public struct ScanProgress: Codable, Sendable {
     public let stage: String
     public let entryCount: Int
     public let currentPath: String
@@ -225,6 +225,12 @@ public struct ItemReceipt: Codable, Sendable, Identifiable {
     public var allocatedBytesEstimate: Int64
     public var error: String?
     public var uninstallOrigin: UninstallReceiptOrigin? = nil
+    public var accessRequirement: SystemAccessRequirement? = nil
+    /// Transient desktop reporting only; an empty manifest grants no mutation authority.
+    public static func skipped(path: String, relativePath: String, reason: String) -> ItemReceipt {
+        ItemReceipt(id: Codec.id("item"), originalPath: path, relativePath: relativePath, trashPath: nil,
+            manifest: [], state: "skipped", allocatedBytesEstimate: 0, error: reason)
+    }
 }
 public struct ExecutionReceipt: Codable, Sendable, Identifiable {
     public var id: String
@@ -307,6 +313,8 @@ public protocol PlatformFileSystem: Sendable {
     var maximumConcurrentReadOperations: Int { get }
     var supportsTrash: Bool { get }
     var supportsAuthorizedApplicationTrash: Bool { get }
+    var supportsAuthorizedApplicationPermanentRemoval: Bool { get }
+    func applicationNeedsAuthorization(_ path: String) -> Bool
     var trashUnavailableReason: String? { get }
     func locationAvailability(_ path: String) -> LocationAvailability
     func targetAvailability(_ path: String) -> LocationAvailability
@@ -343,6 +351,8 @@ extension PlatformFileSystem {
     }
     public var maximumConcurrentReadOperations: Int { 4 }
     public var supportsAuthorizedApplicationTrash: Bool { false }
+    public var supportsAuthorizedApplicationPermanentRemoval: Bool { false }
+    public func applicationNeedsAuthorization(_ path: String) -> Bool { false }
     public func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
         try moveToTrash(path, expected: expected)
     }

@@ -46,7 +46,8 @@ func applicationActivityBlocksAndRechecksExecution() async throws {
     let ids=ready.candidates.filter(\.eligible).map(\.id)
     try expect(ids.count == 2)
     activity.setRunning(["com.google.Chrome"])
-    try await expectThrows { try await engine.createPlan(scanId: ready.id, candidateIds: ids) }
+    let frozen=try await engine.createPlan(scanId: ready.id, candidateIds: ids)
+    try expect(frozen.items.count == 2) // Planning freezes reviewed scope; execution checks current activity.
     activity.setRunning([])
     let plan=try await engine.createPlan(scanId: ready.id, candidateIds: ids)
     // Starting the application after confirmation evidence was prepared must

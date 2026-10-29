@@ -134,7 +134,7 @@ public sealed class RustArtifactTests
     }
 
     [Fact]
-    public async Task TrackingChangesAfterConfirmationRejectBeforeIntentAndKeepAllBytes()
+    public async Task TrackingChangesAfterConfirmationReportItemFailureAndKeepAllBytes()
     {
         var f = await Fixture.Create(); Layout(f);
         var tracking = new Tracking(); var service = Service(f, tracking);
@@ -142,9 +142,9 @@ public sealed class RustArtifactTests
         var plan = await service.CreatePlanAsync(scan.Id, [Rust(scan).Id]);
         var consent = await service.ConfirmAsync(plan.Id, new CleanupTests.Confirmation());
         tracking.Tracked = true;
-        var error = await Assert.ThrowsAsync<ShouException>(() => service.ExecuteAsync(plan.Id, consent));
-        Assert.Equal("tracked_artifact_content", error.Code);
-        Assert.Null(await service.ExecutionAsync(plan.Id));
+        var result = await service.ExecuteAsync(plan.Id, consent);
+        Assert.Equal("tracked_artifact_content", Assert.Single(result.Items).Reason);
+        Assert.Equal(CleanupItemState.Failed, result.Items[0].State);
         Assert.True(f.Files.Entries.ContainsKey(f.Workspace.Path.Append("project-0/target/debug/build/bindgen-0123456789abcdef/out/bindings.rs").Value));
         Assert.Equal(0, f.Mutation.Calls);
     }
@@ -160,7 +160,7 @@ public sealed class RustArtifactTests
         Assert.Equal(CleanupItemState.Purged, result.Items[0].State);
         Assert.Equal(CleanupItemState.Failed, result.Items[1].State);
         Assert.Equal("tracked_artifact_content", result.Items[1].Reason);
-        Assert.Equal(6, tracking.Calls); // Two plans, two preflights, and one observation immediately before each item.
+        Assert.Equal(4, tracking.Calls); // Two plans and one observation immediately before each item.
         Assert.Equal(1, f.Mutation.Calls);
         Assert.True(f.Files.Entries.ContainsKey(f.Workspace.Path.Append("project-1/target/debug/build/bindgen-0123456789abcdef/out/bindings.rs").Value));
     }

@@ -98,6 +98,7 @@ public sealed partial class ApplicationsPage : UserControl, IPageChrome, IDispos
         EmptyContent.Visibility = busy || model.Page?.Items.IsEmpty == false ? Visibility.Collapsed : Visibility.Visible;
         EmptyText.Text = text.Get(model.State == ApplicationsPageState.Failed ? "Application registrations could not be loaded. Try refreshing the list." : "No matching applications.");
         CoverageNotice.IsOpen = model.State == ApplicationsPageState.Partial;
+        CoverageNotice.Content = model.Page?.Sources.Any(source => source.Issues.Any(AdministratorAccessButton.Required)) == true ? new AdministratorAccessButton() : null;
         CoverageButton.Visibility = CoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
         ShowStatus(model.ErrorCode is not null ? text.Get("Application registrations could not be loaded. Try refreshing the list.") :
             model.StopRequested ? text.Get("Stopping…") : model.State switch

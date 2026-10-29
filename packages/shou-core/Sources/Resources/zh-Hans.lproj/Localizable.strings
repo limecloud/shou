@@ -127,8 +127,10 @@
 "Additional Cleanup Estimate" = "预计新增可清理空间";
 "Additional residual files are not included. Uninstall only this reviewed installation?" = "本次不包含额外残留文件。仅卸载已审阅的这一安装吗？";
 "Additional scan notes are summarized here." = "另有扫描说明未逐项列出。";
+"Administrator Access" = "管理员权限";
 "Administrator Required" = "需管理员权限";
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "不会自动请求管理员权限，当前无法卸载需要提权的应用。";
+"Administrator authorization required" = "需要管理员授权";
 "Adobe Bridge caches" = "Adobe Bridge 缓存";
 "Advanced" = "高级";
 "Affected items refreshed. Review your selection to continue." = "受影响项目已刷新，请检查选择后继续。";
@@ -158,6 +160,7 @@
 "Allocated" = "分配空间";
 "Allocated estimate" = "分配容量估计";
 "Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion." = "分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。";
+"Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access." = "在“完全磁盘访问”中允许 Shou，然后重新检查应用。文件访问权限也可能造成限制。";
 "Allow access to application caches that macOS protects." = "允许访问受 macOS 保护的应用缓存。";
 "Allow selecting personal app data" = "允许选择应用个人数据";
 "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required." = "API 密钥不可用。请在 AI 设置中使用本地存储重新保存密钥，再新建调查；无需输入系统密码。";
@@ -257,6 +260,9 @@
 "Audio" = "音频";
 "Authentication" = "身份验证";
 "Authentication Required" = "需要身份验证";
+"Authorize Administrator Access…" = "授权管理员权限…";
+"Authorized for this session" = "本次会话已授权";
+"Authorize…" = "授权…";
 "Autofill" = "自动填充";
 "Automatic update checks" = "自动检查更新";
 "Automatic updates are not available in this Windows preview." = "此 Windows 预览版尚不支持自动更新。";
@@ -943,6 +949,7 @@
 "I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan." = "我已了解系统安装程序可能移除其管理的数据。本计划不包含 Shou 额外发现的残留文件。";
 "IINA caches" = "IINA 缓存";
 "Identifier unavailable" = "标识不可用";
+"If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou." = "若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。";
 "Images" = "图片";
 "Import Rule…" = "导入规则…";
 "Import a rule, choose its scan folder, then enable the version you want to use." = "导入规则，为它选择扫描文件夹，然后启用需要使用的版本。";
@@ -981,6 +988,7 @@
 "Inspector" = "检查器";
 "Install" = "安装";
 "Install CLI Command" = "安装 CLI 命令";
+"Install Shou in Applications first." = "请先将 Shou 安装到应用程序。";
 "Install Skill" = "安装 Skill";
 "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed." = "安装 shou 命令，供终端、Codex、Claude Code 或 WorkBuddy 操作，无需接入模型。";
 "Installation & Instance" = "安装与实例";
@@ -1207,6 +1215,7 @@
 "More room to build." = "给下一次构建，留点空间。";
 "Move Recommended to Trash…" = "将推荐项目移入废纸篓…";
 "Move Selected to Trash…" = "将所选项目移入废纸篓…";
+"Move Shou to Applications" = "将 Shou 移入应用程序";
 "Move these applications to Trash?" = "将这些应用移入废纸篓？";
 "Move these items to Trash?" = "将这些项目移到废纸篓？";
 "Move to Recycle Bin" = "移到回收站";
@@ -1420,6 +1429,7 @@
 "Open Source" = "开放源代码";
 "Open System Monitor" = "打开系统监控";
 "Open System Settings…" = "打开系统设置…";
+"Open the package manager to authorize this operation, then refresh in Shou." = "请在包管理器中授权此操作，然后回到 Shou 刷新。";
 "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours." = "打开已保存的调查不会联网。继续时使用原连接，调查超过 24 小时后无法续接。";
 "Opening local data…" = "正在打开本地数据…";
 "Opera caches" = "Opera 缓存";
@@ -2007,6 +2017,7 @@
 "Service states are snapshots. Refresh to check changes made outside Shou." = "服务状态为本次检查结果。在其他软件中操作后，请刷新状态。";
 "Service stopped. Starting…" = "服务已停止，正在启动…";
 "Services Using This Installation" = "使用此安装的服务";
+"Set Up Shou" = "设置 Shou";
 "Set as Default" = "设为默认";
 "Set up Shou once, then get straight to cleaning." = "完成初始设置，之后直接开始清理。";
 "Settings" = "设置";
@@ -2253,6 +2264,7 @@
 "Temperature: available sensor average. Fans are controlled by the system." = "温度为可读传感器均值，风扇由系统调节。";
 "Tencent Meeting network caches" = "腾讯会议网络缓存";
 "Tencent Video caches" = "腾讯视频 缓存";
+"Terminal Tools" = "终端工具";
 "Terminal and AI agents · optional" = "终端与 AI Agent，可选";
 "Terminal and AI agents, optional" = "终端与 AI Agent，可选";
 "Test Connection" = "测试连接";
@@ -2343,7 +2355,6 @@
 "The package manager is working. Shou will wait for its result before closing." = "包管理器正在执行。Shou 会等待当前任务返回真实结果后再关闭。";
 "The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer." = "包管理器可能下载文件、运行安装脚本并更改依赖。请先保存工作并关闭相关应用。Shou 不会自动同意协议、请求管理员密码或重启电脑。";
 "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically." = "包管理器可能已经修改文件。请重新检查来源再尝试，Shou 不会自动重试。";
-"The package manager needs permissions that Shou cannot request. Open the owning tool to continue." = "包管理器需要额外权限，请打开对应工具继续。";
 "The packaged CLI is unavailable. Install Shou in Applications first." = "找不到应用内的 CLI，请先将 Shou 安装到应用程序。";
 "The page could not be loaded. Try again." = "页面无法加载，请重试。";
 "The previous source used an unknown portion of the scan budget." = "无法确定上一个来源已消耗的扫描预算。";
@@ -2608,6 +2619,7 @@
 "Vivaldi caches" = "Vivaldi 缓存";
 "Vivaldi download caches" = "Vivaldi 下载缓存";
 "WPS Office caches" = "WPS Office 缓存";
+"Waiting for administrator authorization…" = "等待管理员授权…";
 "Waiting for confirmation or the system installer result. Keep this window open." = "正在等待确认或系统安装程序的结果，请保持窗口打开。";
 "Waiting for the service to reach its requested state…" = "正在等待服务完成状态切换…";
 "Waiting for your answer" = "等待你的回答";
@@ -2663,13 +2675,19 @@
 "Zed logs" = "Zed 日志";
 "Zen caches" = "Zen 缓存";
 "Zoom caches" = "Zoom 缓存";
-"administrator_authorization_required" = "移到废纸篓时，macOS 可能会要求验证身份";
+"administrator_authorization_required" = "需要管理员授权";
+"administrator_permanent_removal_available" = "可授权管理员权限后永久删除";
 "application_activity_unavailable" = "无法确认应用运行状态，已阻止清理。";
 "application_changed" = "应用在检查过程中发生变化。";
+"application_metadata_missing" = "应用安装信息缺失，仅卸载应用本体，保留关联数据。";
 "application_running" = "应用正在运行，请退出后重新扫描。";
 "artifact_evidence_unavailable" = "无法完成产物安全检查，已阻止清理。";
 "artifact_layout_unverified" = "无法核验产物目录结构，已阻止清理。";
 "artifact_restore_unavailable" = "无法核验保留的 Cargo 包归档，已阻止清理。";
+"authorization_cancelled" = "已取消管理员授权。";
+"authorization_channel_lost" = "授权会话已断开，请先检查记录中的结果再重试。";
+"authorization_denied" = "管理员授权未通过，请重新授权后继续。";
+"authorization_unavailable" = "无法完成管理员授权，请重试。";
 "blocked" = "已保护";
 "build_process_running" = "相关构建进程正在运行，请停止后重新扫描。";
 "cancelled" = "已停止";
@@ -2692,19 +2710,20 @@
 "invalid_filename" = "文件名包含不支持的字符。";
 "io_error" = "无法读取文件或目录。";
 "items" = "项";
-"linked_application" = "应用路径是符号链接，不跟随读取。";
+"linked_application" = "这是应用链接，可查看大小；请从实际安装位置管理卸载。";
 "macOS Help caches" = "macOS 帮助缓存";
 "macOS handles authentication" = "由 macOS 验证身份";
 "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou." = "macOS 将隐私授权与应用签名关联。使用临时签名的开发版本更新后，可能需要重新授权。如果开关已开启但仍无法访问，请用 − 移除旧 Shou，再用 + 添加当前安装版本，并重新打开 Shou。";
 "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept." = "macOS 可能会要求验证身份。带锁标记的应用将移到废纸篓，并保留其应用数据。";
 "macOS regenerates this user cache when the service needs it again." = "macOS 会在相关服务再次需要时重建这些用户缓存。";
 "macOS regenerates thumbnails and help indexes when needed." = "macOS 会按需重建缩略图与帮助索引。";
+"macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept." = "需要时，macOS 会请求管理员密码。本次会话复用授权，仅移除所选应用程序包，保留关联数据。";
 "macOS will request administrator approval for system background items." = "更改系统后台启动项时，macOS 将请求管理员授权。";
 "manifest_changed" = "对象身份或目录内容已变化。";
 "mise inventory could not be read." = "无法读取 mise 安装清单。";
 "missing" = "不存在";
 "moving" = "需要核实";
-"multiply_linked_content" = "应用包含共享硬链接。";
+"multiply_linked_content" = "应用包含共享硬链接，仅支持将应用本体移到废纸篓。";
 "not_scanned" = "未检查";
 "npm Cache" = "npm 缓存";
 "npm download cache" = "npm 下载缓存";

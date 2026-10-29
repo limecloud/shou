@@ -58,8 +58,8 @@ internal sealed class NativeReviewOperations : ICleanupReviewOperations, ICleanu
         NativeDiagnostics.RunAsync("cleanup.scan_all", () => Task.Run(() => locations.ScanRegisteredAsync(scans, workspaceIds, budget, cancellationToken), cancellationToken));
     public Task<CleanupPlan> CreatePlanAsync(ImmutableArray<CleanupSelection> selections, CleanupAction action, CancellationToken cancellationToken) =>
         NativeDiagnostics.RunAsync("cleanup.plan", () => Task.Run(() => cleanup.CreatePlanAsync(selections, action, cancellationToken), cancellationToken));
-    public Task<CleanupPlan> CreateStoragePlanAsync(ScanSnapshot snapshot, ImmutableArray<WindowsPath> paths, CancellationToken token) =>
-        NativeDiagnostics.RunAsync("storage.plan", () => Task.Run(() => cleanup.CreateStoragePlanAsync(snapshot, paths, token), token));
+    public Task<StorageRemovalReview> ReviewStorageRemovalAsync(ScanSnapshot snapshot, ImmutableArray<WindowsPath> paths, CancellationToken token) =>
+        NativeDiagnostics.RunAsync("storage.review", () => Task.Run(() => cleanup.ReviewStorageRemovalAsync(snapshot, paths, token), token));
     public Task<CleanupExecution> ExecuteAsync(string planId, ICleanupConfirmation confirmation, CancellationToken cancellationToken)
         => ExecuteAsync(planId, confirmation, null, cancellationToken);
 

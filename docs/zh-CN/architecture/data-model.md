@@ -266,7 +266,7 @@ Windows 使用独立的临时 `StartupSnapshot`／`StartupPage`，包含 `startu
 
 `ApplicationCatalog` 按物理安装位置区分应用，即使完整标识相同也保留独立对象，并明确记录来源覆盖和问题。`ApplicationUninstallReview` 包含九类确切组件、完整清单、可处理状态、个人数据同意要求、阻止原因及不授予权限的覆盖提示。`ApplicationUninstallPlan` 绑定组件选择、应用元数据、配置、同意、预算和15分钟有效期。实际配置保存前使用稳定的 `unconfigured` 版本标识。
 
-`ExecutionReceipt.operation` 为兼容旧回执而可选；应用卸载的每项保存 `UninstallReceiptOrigin`，包含组件类型、应用路径、完整标识与确切父目录身份。普通清理回执不能使用该原位置能力。恢复分别验证组件类型对应的路径和父目录身份，不依赖事后重新发现应用或后来安装的应用。单应用与批量废纸篓结果可恢复；`application_permanent_uninstall` 和 `application_batch_permanent_uninstall` 记录不可恢复结果。`ApplicationUninstallBatchPlan` 绑定子计划、动作、到期时间和单个摘要，拒绝相同及父子重叠组件路径。旧单应用计划缺省 `action`，继续使用废纸篓语义和原摘要编码。
+`ExecutionReceipt.operation` 为兼容旧回执而可选；应用卸载的每项保存 `UninstallReceiptOrigin`，包含组件类型、应用路径、可空标识与确切父目录身份；仅缺失有效元数据的应用包允许空标识，关联组件仍要求合法完整标识。普通清理回执不能使用该原位置能力。恢复分别验证组件类型对应的路径和父目录身份，不依赖事后重新发现应用或后来安装的应用。单应用与批量废纸篓结果可恢复；`application_permanent_uninstall` 和 `application_batch_permanent_uninstall` 记录不可恢复结果。`ApplicationUninstallBatchPlan` 绑定子计划、动作、到期时间和单个摘要，拒绝相同及父子重叠组件路径。旧单应用计划缺省 `action`，继续使用废纸篓语义和原摘要编码。
 
 `FileEntry.contentDigest` 可选，缺省时不编码，保持旧目录清单不变。独立文件目标只有一条根记录和有界 SHA-256 内容摘要。废纸篓根比较仅归一化 ctime，仍匹配内容和其他全部元数据；目录后代仍严格比较元数据。详见[应用卸载](../product/application-uninstall.md)。
 

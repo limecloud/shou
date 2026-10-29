@@ -17,6 +17,20 @@ public sealed class WindowsApplicationUninstallMutation : IApplicationUninstallM
 
     public async Task<ApplicationUninstallResult> ApplyAsync(ApplicationUninstallReview review, string ownerSid, DateTimeOffset authorizationExpiresAt, CancellationToken cancellationToken)
     {
+        if (WindowsSystemAuthorization.Shared.IsAuthorized && review.Installation.Identity?.Kind == ApplicationInstallerKind.Msi)
+        {
+            using var actor = WindowsIdentity.GetCurrent();
+            if (actor.User?.Value != ownerSid) return NotStarted("installation_user_changed");
+            var reply = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Uninstall, Uninstall:review, ExpiresAt:authorizationExpiresAt), cancellationToken).ConfigureAwait(false);
+            return reply.Uninstall ?? throw WindowsAuthorizationChannel.Failure();
+        }
+        return await ApplyNativeAsync(review, ownerSid, authorizationExpiresAt, cancellationToken, authorized:false).ConfigureAwait(false);
+    }
+    internal Task<ApplicationUninstallResult> ApplyAuthorizedAsync(ApplicationUninstallReview review, string ownerSid, DateTimeOffset expiresAt, CancellationToken token) =>
+        ApplyNativeAsync(review, ownerSid, expiresAt, token, authorized:true);
+
+    private async Task<ApplicationUninstallResult> ApplyNativeAsync(ApplicationUninstallReview review, string ownerSid, DateTimeOffset authorizationExpiresAt, CancellationToken cancellationToken, bool authorized)
+    {
         if (cancellationToken.IsCancellationRequested) return NotStarted("cancelled_before_installer");
         if (authorizationExpiresAt.Offset != TimeSpan.Zero || authorizationExpiresAt <= DateTimeOffset.UtcNow) return NotStarted("uninstall_authorization_expired");
         if (review?.Installation.Identity is not { } identity || !Supports(identity.Kind)) return NotStarted("unsupported_platform");
@@ -26,7 +40,7 @@ public sealed class WindowsApplicationUninstallMutation : IApplicationUninstallM
         try
         {
             using var actor = WindowsIdentity.GetCurrent();
-            if (actor.User?.Value != ownerSid || identity.Context != MsiInstallationContext.Machine && identity.UserSid != ownerSid)
+            if (actor.User?.Value != ownerSid && !(authorized && identity.Context == MsiInstallationContext.Machine) || identity.Context != MsiInstallationContext.Machine && identity.UserSid != ownerSid)
                 return NotStarted("installation_user_changed");
             var current = await new ApplicationUninstallReviewer(new(new WindowsApplicationInventory()),
                 new WindowsApplicationUninstallInspector(), new WindowsApplicationActivity()).InspectAsync(review.Application.Id, cancellationToken).ConfigureAwait(false);

@@ -57,7 +57,7 @@ func applicationSummariesStreamOneInventoryAndKeepOwnershipConservative() async 
     let result=try await engine.applicationSummaries(onSummary: { probe.emit($0) })
     try expect(probe.count("inventory") == 1 && probe.count("activity") == 1 && probe.count("measurement") == apps.count)
     try expect(result.catalog.items == apps && result.items.count == apps.count && probe.values.map(\.id) == apps.map(\.id))
-    try expect(result.items.map(\.status) == ["ready", "running", "admin-required", "protected", "protected", "admin-required", "unavailable", "unavailable"])
+    try expect(result.items.map(\.status) == ["ready", "running", "admin-required", "protected", "protected", "admin-required", "admin-required", "unavailable"])
     try expect(result.items[0].lastUsed == Date(timeIntervalSince1970: 123456) && result.items[1].lastUsed == nil)
     try expect(result.items.last?.allocatedBytesEstimate == nil && result.items.last?.issues == ["permission_denied"])
     try expect(try fixture.store.ids("application-reviews").isEmpty && fixture.store.ids("uninstall-plans").isEmpty)

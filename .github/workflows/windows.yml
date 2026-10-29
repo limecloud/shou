@@ -183,6 +183,23 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'The x64 .NET host is required by the pinned build tools.' }
           "DOTNET_ROOT_ARM64=$Arm64Root" >> $env:GITHUB_ENV
           "DOTNET_ROOT_X64=$X64Root" >> $env:GITHUB_ENV
+          # Complete the disposable runner's privacy setup before Explorer initializes
+          # its notification area. The image can otherwise remain behind OOBE.
+          $PrivacyPolicy = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE'
+          $PrivacyState = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy'
+          New-Item -Path $PrivacyPolicy -Force | Out-Null
+          New-ItemProperty -Path $PrivacyPolicy -Name DisablePrivacyExperience -Value 1 -PropertyType DWord -Force | Out-Null
+          New-Item -Path $PrivacyState -Force | Out-Null
+          New-ItemProperty -Path $PrivacyState -Name PrivacyConsentStatus -Value 1 -PropertyType DWord -Force | Out-Null
+          New-ItemProperty -Path $PrivacyState -Name TailoredExperiencesWithDiagnosticDataEnabled -Value 0 -PropertyType DWord -Force | Out-Null
+          $Session = [Diagnostics.Process]::GetCurrentProcess().SessionId
+          foreach ($Process in @(Get-Process -Name UserOOBEBroker, UserOOBEHost, CloudExperienceHostBroker, explorer -ErrorAction SilentlyContinue)) {
+            if ($Process.SessionId -eq $Session -and $Process.Path.StartsWith($env:WINDIR + '\', [StringComparison]::OrdinalIgnoreCase)) {
+              Stop-Process -InputObject $Process -Force -ErrorAction Stop
+              if (-not $Process.WaitForExit(10000)) { throw 'Hosted-runner privacy setup did not stop.' }
+            }
+          }
+          Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') | Out-Null
           # Native privacy fixtures require idle browsers. Never stop personal browsers locally.
           $BrowserNames = @('firefox', 'chrome', 'msedge', 'brave')
           $Browsers = @(Get-Process -Name $BrowserNames -ErrorAction SilentlyContinue)

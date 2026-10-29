@@ -31,5 +31,5 @@ public struct NativeApplicationAbsence: ApplicationAbsenceChecking {
     }
 }
 private enum ReceiptIdentifier {
-    static func valid(_ value: String) -> Bool { value.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", options: .regularExpression) != nil }
+    static func valid(_ value: String) -> Bool { ApplicationDefinition.isValidBundleIdentifier(value) }
 }

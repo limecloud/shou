@@ -105,7 +105,7 @@ let commands: [CommandSpec] = [
     .init("applications leftovers plan", "plan", ["review-id", "component"], ["include-user-data", "mode"], repeated: ["component"], "Select eligible orphan components; personal data needs explicit consent. Defaults to permanent removal."),
     .init("applications leftovers show", "read", ["plan-id"], [], "Read the exact leftover selection, digest and expiry."),
     .init("applications leftovers execute", "destructive", ["plan-id"], [], "Recheck owner absence and every manifest before reviewed leftover removal; use shared cleanup history."),
-    .init("applications summary", "read", [], ["include-system", "max-entries", "max-seconds"], inputSchema: applicationSummaryInputSchema, "Read application sizes, versions, activity/ownership status (ready/running/admin-required/protected/unavailable) and optional last-used metadata from one inventory. Size is an allocated-byte estimate; no removal manifests are saved. Last-used may be unknown. Per-application measurement budget defaults to 100000 entries/60 seconds. Admin-required items cannot be removed by this build."),
+    .init("applications summary", "read", [], ["include-system", "max-entries", "max-seconds"], inputSchema: applicationSummaryInputSchema, "Read application sizes, versions, activity/ownership status (ready/running/admin-required/trash-required/protected/unavailable) and optional last-used metadata from one inventory. Size is an allocated-byte estimate; no removal manifests are saved. Last-used may be unknown. Per-application measurement budget defaults to 100000 entries/60 seconds. Administrator access uses one process-bound native authorization session for application-bundle removal; associated files are kept. Hard-linked applications require application-bundle Trash removal. Missing metadata permits only the fully verified bundle, without associated files."),
     .init("applications updates source", "read", ["path"], [], "Describe a supported Homebrew Cask catalog mapping without network access or local-store writes. A mapping does not prove Homebrew installed the application."),
     .init("applications updates check", "network", ["path", "allow-network"], [], inputSchema: applicationUpdateInputSchema, "Explicitly query formulae.brew.sh for one mapped application. Requires --allow-network true. Compares numeric catalog versions only; unknown is partial/exit 6. No package downloads, installation, inventory upload, redirects or record-store access."),
     .init("applications inspect", "snapshot", ["path"], ["max-entries", "max-seconds"], "Review an application and exact bundle-identifier associations. Personal data is separate; shared groups and package receipts are not removed."),
@@ -114,7 +114,7 @@ let commands: [CommandSpec] = [
     .init("applications uninstall", "destructive", ["plan-id"], [], "Execute reviewed application components in the plan's mode after current-scope terminal confirmation. Trash supports history restore; permanent removal cannot be restored."),
     .init("applications batch plan", "plan", ["file"], ["mode"], inputSchema: uninstallBatchInputSchema, "Create one plan from a JSON array of explicit application-review selections. Each selection has review_id, component_ids and optional include_user_data (default false). Mode permanent (default, irreversible) or trash. Reject all duplicate/overlapping paths before execution; personal data requires consent per application."),
     .init("applications batch plan show", "read", ["plan-id"], [], "Show all application selections, exact components, removal mode, consent, total estimate, digest and expiry for one batch."),
-    .init("applications batch uninstall", "destructive", ["plan-id"], [], "Execute a reviewed application batch after one current-scope terminal confirmation. Recheck every application before starting and each component before mutation; partial results enter shared history."),
+    .init("applications batch uninstall", "destructive", ["plan-id"], [], "Execute a reviewed application batch after one current-scope terminal confirmation. Execute items in order, checking identity, policy and activity at each mutation; independent failures do not block the remaining items. Partial results enter shared history."),
     .init("workspaces list", "read", [], [], "List registered workspaces."),
     .init("workspaces show", "read", ["workspace"], [], "Show workspace and current process access."),
     .init("workspaces add", "configuration", ["path", "root-ref"], [], "Register a local workspace; does not grant OS permissions."),
@@ -251,8 +251,9 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.20.0"
+    static let version = "0.21.0"
     static func main() async {
+        if let status=await NativeSystemAuthorizationWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         #if canImport(Darwin) || canImport(Glibc)
         if let status=NativeReadWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         #endif

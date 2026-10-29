@@ -62,3 +62,5 @@ Shared acceptance cases specify input evidence, expected selection, blocked reas
 5. Mark every platform as implemented, planned, intentionally different or not applicable, with a reason.
 
 A macOS fix to a safety contract requires a Windows ledger entry even when the affected Windows capability is not implemented. An unverified capability remains unavailable.
+
+macOS and Windows session administrator access use small Core ports and Platform implementations. Scans, exact-manifest cleanup and supported system operations share process authorization; UI owns no passwords or deletion policy. See [system authorization and item execution](../engineering/system-authorization.md). Native acceptance and public gates remain separate.

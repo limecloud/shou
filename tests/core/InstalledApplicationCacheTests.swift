@@ -170,7 +170,8 @@ func installedApplicationCachesKeepActivityAndIdentityGates() async throws {
     fixture.activity.set()
     let (_, ready)=try await fixture.scan(), candidate=try fixture.candidate(ready)
     fixture.activity.set(running: [fixture.identifier])
-    try await expectThrows { try await fixture.engine.createPlan(scanId: ready.id, candidateIds: [candidate.id]) }
+    let frozen=try await fixture.engine.createPlan(scanId: ready.id, candidateIds: [candidate.id])
+    try expect(frozen.items.count == 1)
     fixture.activity.set()
     let plan=try await fixture.engine.createPlan(scanId: ready.id, candidateIds: [candidate.id])
     fixture.activity.set(running: [fixture.identifier])
@@ -180,13 +181,16 @@ func installedApplicationCachesKeepActivityAndIdentityGates() async throws {
 
     let changed=try InstalledCacheFixture(), (_, scanned)=try await changed.scan(), selected=try changed.candidate(scanned)
     try InstalledCacheFixture.writeApplication(changed.app, identifier: changed.identifier, version: "changed")
-    try await expectThrows { try await changed.engine.createPlan(scanId: scanned.id, candidateIds: [selected.id]) }
+    let changedPlan=try await changed.engine.createPlan(scanId: scanned.id, candidateIds: [selected.id])
+    let changedResult=try await changed.engine.execute(planId: changedPlan.id, confirmedDigest: changedPlan.digest, entryPoint: "changed-owner")
+    try expect(changedResult.items.first?.state == "failed")
     let replaced=try InstalledCacheFixture(), (_, original)=try await replaced.scan(), old=try replaced.candidate(original)
     let originalPlan=try await replaced.engine.createPlan(scanId: original.id, candidateIds: [old.id])
     try FileManager.default.moveItem(at: replaced.app, to: replaced.app.deletingLastPathComponent().appendingPathComponent("Retained Original.bundle"))
     try InstalledCacheFixture.writeApplication(replaced.app, identifier: replaced.identifier)
-    try await expectThrows { try await replaced.engine.execute(planId: originalPlan.id, confirmedDigest: originalPlan.digest, entryPoint: "generated-cache-replaced") }
-    try expect(try await replaced.engine.history().isEmpty)
+    let replacedResult=try await replaced.engine.execute(planId: originalPlan.id, confirmedDigest: originalPlan.digest, entryPoint: "generated-cache-replaced")
+    try expect(replacedResult.items.first?.state == "failed" && replacedResult.items.first?.trashPath == nil)
+    try expect(try await replaced.engine.history().count == 1)
     #endif
 }
 
@@ -351,21 +355,28 @@ func installedApplicationCachesReportInventoryGapsAndAmbiguousOwners() async thr
 
     let fresh=try InstalledCacheFixture(), (_, ready)=try await fresh.scan(), candidate=try fresh.candidate(ready)
     try InstalledCacheFixture.writeApplication(fresh.app.deletingLastPathComponent().appendingPathComponent("New Duplicate.app"), identifier: fresh.identifier)
-    try await expectThrows { try await fresh.engine.createPlan(scanId: ready.id, candidateIds: [candidate.id]) }
+    let frozen=try await fresh.engine.createPlan(scanId: ready.id, candidateIds: [candidate.id])
+    let duplicateResult=try await fresh.engine.execute(planId: frozen.id, confirmedDigest: frozen.digest, entryPoint: "duplicate-owner")
+    try expect(duplicateResult.items.first?.state == "failed")
 
     let changed=try InstalledCacheFixture(), (_, complete)=try await changed.scan(), completeCandidate=try changed.candidate(complete)
     let completePlan=try await changed.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id])
     changed.catalog.set(issues: [changed.unrelatedIssue])
-    try await expectThrows { try await changed.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id]) }
-    try await expectThrows { try await changed.engine.execute(planId: completePlan.id, confirmedDigest: completePlan.digest, entryPoint: "generated-complete-to-partial") }
-    try expect(try await changed.engine.history().isEmpty)
+    let stillFrozen=try await changed.engine.createPlan(scanId: complete.id, candidateIds: [completeCandidate.id])
+    try expect(stillFrozen.installedApplicationCaches?.first?.ownershipCoverageIncomplete != true)
+    let coverageResult=try await changed.engine.execute(planId: completePlan.id, confirmedDigest: completePlan.digest, entryPoint: "generated-complete-to-partial")
+    try expect(coverageResult.items.first?.state == "failed")
+    try expect(try await changed.engine.history().count == 1)
     let (_, rescanned)=try await changed.scan(), rescannedCandidate=try changed.candidate(rescanned)
     let reviewed=try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id])
     try expect(reviewed.installedApplicationCaches?.first?.ownershipCoverageIncomplete == true)
     changed.catalog.set(additions: [try changed.duplicateOwner()], issues: [changed.unrelatedIssue])
-    try await expectThrows { try await changed.engine.execute(planId: reviewed.id, confirmedDigest: reviewed.digest, entryPoint: "generated-new-duplicate") }
+    let failedDuplicate=try await changed.engine.execute(planId: reviewed.id, confirmedDigest: reviewed.digest, entryPoint: "generated-new-duplicate")
+    try expect(failedDuplicate.items.first?.state == "failed")
     changed.catalog.set(issues: [ApplicationCatalogIssue(path: changed.app.path, code: "source_changed")])
-    try await expectThrows { try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id]) }
+    let staleOwner=try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id])
+    let staleResult=try await changed.engine.execute(planId: staleOwner.id, confirmedDigest: staleOwner.digest, entryPoint: "unverified-owner")
+    try expect(staleResult.items.first?.state == "failed")
     changed.catalog.set()
     let recovered=try await changed.engine.createPlan(scanId: rescanned.id, candidateIds: [rescannedCandidate.id])
     try expect(recovered.installedApplicationCaches?.first?.ownershipCoverageIncomplete == true)

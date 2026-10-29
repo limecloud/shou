@@ -111,8 +111,9 @@ func fullManifestDetectsDescendantChange() async throws {
     let (engine, _, scan, candidate)=try await fixture.ready()
     let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
     try fixture.put("project/target/artifact.bin", "changed")
-    try await expectThrows { try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
-    try expect(try await engine.history().isEmpty)
+    let rejected=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    try expect(rejected.state == "partial" && rejected.items.allSatisfy { $0.state == "failed" && $0.trashPath == nil })
+    try expect(try await engine.history().count == 1)
 }
 
 func exclusionChangesInvalidatePlan() async throws {
@@ -212,7 +213,8 @@ func restoreNeverOverwritesAndTrashExpansionBlocksPurge() async throws {
     let trash=URL(fileURLWithPath: try require(receipt.items[0].trashPath))
     try Data("new".utf8).write(to: trash.appendingPathComponent("unexpected.bin"))
     let purgeDigest=try await engine.followUpDigest(executionId: receipt.id, itemIds: items, action: "purge")
-    try await expectThrows { try await engine.followUp(executionId: receipt.id, itemIds: items, action: "purge", confirmedDigest: purgeDigest) }
+    let purged=try await engine.followUp(executionId: receipt.id, itemIds: items, action: "purge", confirmedDigest: purgeDigest)
+    try expect(purged.count == 1 && purged[0].state == "failed")
     try expect(FileManager.default.fileExists(atPath: trash.appendingPathComponent("artifact.bin").path))
 }
 
@@ -288,7 +290,8 @@ func replacementDirectoryIsNotProcessed() async throws {
     let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
     try FileManager.default.moveItem(at: fixture.workspace.appendingPathComponent("project/target"), to: fixture.base.appendingPathComponent("original-target"))
     try fixture.put("project/target/new.bin", "replacement must survive")
-    try await expectThrows { try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
+    let rejected=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    try expect(rejected.state == "partial" && rejected.items.allSatisfy { $0.state == "failed" && $0.trashPath == nil })
     try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("project/target/new.bin"), encoding: .utf8) == "replacement must survive")
 }
 
@@ -299,7 +302,8 @@ func persistedPlanCannotBypassCurrentPolicy() async throws {
     plan.items[0].candidate.relativePath="project"
     plan.digest=try plan.calculatedDigest()
     try fixture.store.write("plans", id: plan.id, data: Codec.encode(plan))
-    try await expectThrows { try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
+    let rejected=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    try expect(rejected.state == "partial" && rejected.items.allSatisfy { $0.state == "failed" && $0.trashPath == nil })
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/Cargo.toml").path))
 }
 

@@ -10,7 +10,9 @@ import Glibc
 enum SecurePaths {
     static func failure(_ operation: String, path: String) -> ShouError {
         let code = errno
-        return ShouError(code == EACCES || code == EPERM ? "permission_denied" : "io_error", "\(operation): \(String(cString: strerror(code)))", details: ["path": path])
+        var details=["path": path]
+        if code == EACCES || code == EPERM { details["access_requirement"]=SystemAccessRequirement.administrator.rawValue }
+        return ShouError(code == EACCES || code == EPERM ? "permission_denied" : "io_error", "\(operation): \(String(cString: strerror(code)))", details: details)
     }
     static func components(_ path: String) throws -> [String] {
         guard path.hasPrefix("/"), !path.contains("\0") else { throw ShouError("invalid_argument", "An absolute local path is required.") }

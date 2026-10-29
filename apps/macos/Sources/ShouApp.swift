@@ -59,6 +59,7 @@ struct CleanupCompletion: Identifiable {
     let id=UUID()
     let receipts: [ExecutionReceipt]
     var failures: [String]=[]
+    var skippedItems: [ItemReceipt]=[]
     /// The page that created this result. A retry returns the user directly
     /// to the relevant scan instead of making them navigate through history.
     var sourceSection: String = "smart"
@@ -143,7 +144,12 @@ struct CleanupCompletion: Identifiable {
     var executionProgress: ExecutionProgress?
     private(set) var executionAction="permanent"
     private var executionOperation=UUID()
-    var error: String?
+    var error: String? { didSet { accessRecovery=nil } }
+    var accessRecovery: SystemAccessRequirement?
+    func presentFailure(_ failure: Error) {
+        error=failure.localizedDescription
+        accessRecovery=(failure as? ShouError)?.accessRequirement
+    }
     var statusKey=""
     var prompt: ReviewPrompt?
     var completion: CleanupCompletion?
@@ -177,7 +183,7 @@ struct CleanupCompletion: Identifiable {
             await refresh()
             await scanAccess.initialize()
         }
-        catch { engine=nil; self.error=error.localizedDescription }
+        catch { engine=nil; self.presentFailure(error) }
     }
     func t(_ key: String) -> String { L10n.string(key, locale: language.rawValue) }
     func diagnostic(_ message: String) -> String { message.components(separatedBy: "\n").map(t).joined(separator: "\n") }
@@ -239,7 +245,7 @@ struct CleanupCompletion: Identifiable {
             builtins=workspaceId.isEmpty ? [] : try await engine.builtinRules(workspaceId: workspaceId)
             knownLocations=try await engine.knownLocations()
             projectLocations=try await engine.projectLocations()
-        } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+        } catch { if !Task.isCancelled { self.presentFailure(error) } }
     }
     func refreshExternalChanges() async {
         guard let engine, !busy, !initializing, !refreshingExternalChanges else { return }
@@ -252,7 +258,7 @@ struct CleanupCompletion: Identifiable {
             invalidateScanEvidence()
             await refresh()
             externalRulesChanged=externalRulesChanged || changed
-        } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+        } catch { if !Task.isCancelled { self.presentFailure(error) } }
     }
     func loadMoreHistory() {
         guard let engine, let offset=historyNextOffset, !historyLoading else { return }
@@ -263,7 +269,7 @@ struct CleanupCompletion: Identifiable {
                 let page=try await engine.historySummaries(offset: offset, limit: 50)
                 let existing=Set(history.map(\.id))
                 history.append(contentsOf: page.receipts.filter { !existing.contains($0.id) }); historyNextOffset=page.nextOffset
-            } catch { self.error=error.localizedDescription }
+            } catch { self.presentFailure(error) }
         }
     }
     func addWorkspace(startScan: Bool = true) {
@@ -282,7 +288,7 @@ struct CleanupCompletion: Identifiable {
                 }
                 invalidateScanEvidence(); await refresh(); busy=false
                 if startScan { section="smart"; scanCommonLocations() }
-            } catch { invalidateScanEvidence(); busy=false; await refresh(); self.error=error.localizedDescription }
+            } catch { invalidateScanEvidence(); busy=false; await refresh(); self.presentFailure(error) }
         }
     }
     func selectWorkspace(_ root: Workspace) {
@@ -297,7 +303,7 @@ struct CleanupCompletion: Identifiable {
             do {
                 let root=try await engine.addWorkspace(path: path, rootRef: "location-" + String(UUID().uuidString.prefix(8)).lowercased())
                 workspaceId=root.id; snapshot=nil; selection=[]; await refresh(); startScan()
-            } catch { self.error=error.localizedDescription }
+            } catch { self.presentFailure(error) }
         }
     }
     func toggleCandidate(_ candidate: Candidate, selected: Bool) {
@@ -337,8 +343,12 @@ struct CleanupCompletion: Identifiable {
         updated.subtract(incompatible); updated.formUnion(ids)
         selection=updated
     }
-    func startScan(preset: Preset? = nil, focusAfterScan: String? = nil, ruleIds: [String] = [], selectEligible: Bool = false) {
+    func startScan(preset: Preset? = nil, focusAfterScan: String? = nil, ruleIds: [String] = [], selectEligible: Bool = false, accessChecked: Bool = false) {
         guard let engine, !workspaceId.isEmpty, !busy else { return }
+        if !accessChecked {
+            scanAccess.prepareScan { [weak self] in self?.startScan(preset: preset, focusAfterScan: focusAfterScan, ruleIds: ruleIds, selectEligible: selectEligible, accessChecked: true) }
+            return
+        }
         busy=true; scanning=true; selection=[]; scanProgress=nil; statusKey="Scanning selected workspace…"
         let id=preset?.workspaceId ?? workspaceId
         let operation=UUID(); operationID=operation
@@ -357,7 +367,7 @@ struct CleanupCompletion: Identifiable {
                     browsingPath=StorageIndex.parent(path); focusedPath=path
                 }
                 statusKey=snapshot?.status == "complete" ? "Scan complete. Review candidates before cleanup." : "Some paths could not be fully scanned. Only independently verified items can be reviewed for cleanup."
-            } catch { if !Task.isCancelled { self.error=error.localizedDescription }; statusKey="Scan stopped." }
+            } catch { if !Task.isCancelled { self.presentFailure(error) }; statusKey="Scan stopped." }
         }
     }
     func scanCurrentSection() {
@@ -382,7 +392,7 @@ struct CleanupCompletion: Identifiable {
                 statusKey=startupInventory?.status == "complete" ? "Startup definitions checked. Review coverage before drawing conclusions." : "Some startup definitions could not be inspected."
             } catch {
                 if Task.isCancelled { statusKey="Startup scan stopped." }
-                else { statusKey="Startup discovery unavailable."; self.error=error.localizedDescription }
+                else { statusKey="Startup discovery unavailable."; self.presentFailure(error) }
             }
         }
     }
@@ -445,7 +455,7 @@ struct CleanupCompletion: Identifiable {
                 statusKey=systemResult?.status == "complete" ? "Common app scan complete" : "Some locations could not be fully scanned."
                 await refresh()
             } catch {
-                if !Task.isCancelled { self.error=error.localizedDescription }
+                if !Task.isCancelled { self.presentFailure(error) }
                 statusKey="Scan stopped."; await refresh()
             }
         }
@@ -503,47 +513,61 @@ struct CleanupCompletion: Identifiable {
                 statusKey=review.sources.contains { $0.snapshotId == updated.id && $0.candidate.reasons.contains("incomplete_scan") }
                     ? "This directory still exceeds the scan limit." : "Directory scanned. Review it before selecting."
             } catch {
-                if !Task.isCancelled { self.error=error.localizedDescription }
+                if !Task.isCancelled { self.presentFailure(error) }
                 statusKey=Task.isCancelled ? "Scan stopped." : "Directory scan failed. Previous results were kept."
             }
         }
     }
     func executeCommonCleanup(permanent: Bool = true, sourceIds: Set<String>? = nil) {
-        guard !busy else { return }
-        // The inline action confirms the visible selection, including this page's scope.
+        guard !busy, let engine else { return }
         let sources=commonSelected.filter { sourceIds?.contains($0.id) ?? true }
         guard !sources.isEmpty else { return }
-        let action=permanent ? "permanent" : "trash"
-        startReviewedExecution(total: sources.count, action: action) {
-            try await self.prepareCommonCleanup(sources: sources, action: action)
-        }
-    }
-    private func prepareCommonCleanup(sources: [CleanupSource], action: String) async throws -> ReviewPrompt {
-        guard let engine else { throw ShouError("io_error", "Local store is unavailable.") }
-        var plans: [ReviewedPlan]=[], paths: [String]=[]
-        var bytes: Int64=0
-        for snapshotId in Set(sources.map(\.snapshotId)).sorted() {
-            try Task.checkCancellation()
-            let selected=sources.filter { $0.snapshotId == snapshotId }
-            let automatic=selected.filter { !$0.requiresManualReview }
-            if !automatic.isEmpty {
-                let plan=try await engine.createPlan(scanId: snapshotId, candidateIds: automatic.map(\.candidate.id), action: action)
-                plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.workspace.path))
-                paths += plan.items.map { plan.workspace.path + "/" + $0.candidate.relativePath }
-                bytes += plan.allocatedBytesEstimate
+        let action=permanent ? "permanent" : "trash", sourceSection=section
+        let roots=systemResult?.snapshots.map(\.workspace) ?? []
+        busy=true; scanProgress=nil
+        statusKey=permanent ? "Permanently removing…" : "Moving to Trash…"
+        let operation=beginExecution(total: sources.count, action: action, stage: permanent ? "purging" : "moving")
+        task=Task {
+            defer { busy=false; isExecuting=false; stopRequested=false }
+            var receipts=[ExecutionReceipt](), failures=[String](), handled=Set<String>()
+            for (position, source) in sources.enumerated() {
+                if Task.isCancelled { break }
+                handled.insert(source.path)
+                do {
+                    let progress: @Sendable (ExecutionProgress) -> Void = { [weak self] update in
+                        Task { @MainActor in
+                            self?.updateExecutionProgress(update.inBatch(processedBefore: position, itemCount: sources.count), operation: operation)
+                        }
+                    }
+                    let receipt: ExecutionReceipt
+                    if source.requiresManualReview {
+                        let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: source.snapshotId, candidateIds: [source.candidate.id], action: action)
+                        try Task.checkCancellation()
+                        receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop-manual-review", progress: progress)
+                    } else {
+                        let plan=try await engine.createPlan(scanId: source.snapshotId, candidateIds: [source.candidate.id], action: action)
+                        try Task.checkCancellation()
+                        receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: progress)
+                    }
+                    receipts.append(receipt)
+                    if receipt.state == "cancelled" || receipt.items.contains(where: { $0.state == "unknown" }) { break }
+                } catch {
+                    failures.append(source.path + "\n" + error.localizedDescription)
+                    if Task.isCancelled || ["store_corrupt", "journal_failed", "authorization_channel_lost"].contains((error as? ShouError)?.code ?? "") { break }
+                }
             }
-            let manual=selected.filter(\.requiresManualReview)
-            if !manual.isEmpty {
-                let plan=try await engine.createReviewedCleanupRemovalPlan(scanId: snapshotId, candidateIds: manual.map(\.candidate.id), action: action)
-                plans.append(ReviewedPlan(id: plan.id, digest: plan.digest, workspacePath: plan.rootPath, directRemoval: true))
-                paths += plan.items.map { StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0.path) }
-                bytes += plan.allocatedBytesEstimate
+            let succeeded=Set(receipts.flatMap(\.items).filter { ["purged", "trashed"].contains($0.state) }.map(\.originalPath))
+            let remaining=Set(sources.map(\.path)).subtracting(succeeded)
+            operationHadError = !failures.isEmpty || receipts.contains { $0.state != "completed" }
+            let notStarted=sources.filter { !handled.contains($0.path) }.map {
+                ItemReceipt.skipped(path: $0.path, relativePath: $0.candidate.relativePath, reason: t("Cleanup stopped before this location was processed."))
             }
+            completion=CleanupCompletion(receipts: receipts, failures: failures, skippedItems: notStarted, sourceSection: sourceSection, retryPaths: remaining,
+                retryWorkspaces: roots.filter { root in remaining.contains { $0.hasPrefix(root.path + "/") } })
+            snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
+            statusKey=remaining.isEmpty ? (permanent ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.") : "Some items could not be removed. Review the result."
+            await refresh()
         }
-        return ReviewPrompt(id: UUID().uuidString, digest: "", action: action,
-            paths: paths, itemIds: [], byteEstimate: bytes, plans: plans,
-            impacts: Array(Set(sources.flatMap { $0.candidate.rebuildNotes + $0.candidate.limitations + $0.candidate.reasons })).sorted(),
-            manualReview: sources.contains(where: \.requiresManualReview))
     }
     func cancel() { if busy { stopRequested=true }; task?.cancel(); space.stop(); ai.stop(); largeFiles.stop(); applicationsSession.stop(); packageUpdates.stop(); developerTools.stop(); privacySession.cancel() }
     func stopAndWaitForExecution() async -> Bool {
@@ -567,7 +591,7 @@ struct CleanupCompletion: Identifiable {
             do {
                 let handle=try FileHandle(forReadingFrom: url); defer { try? handle.close() }
                 try await saveRule(handle.read(upToCount: 262_145) ?? Data())
-            } catch { self.error=error.localizedDescription }
+            } catch { self.presentFailure(error) }
         }
     }
     func enableAndScanRule(_ record: RuleRecord, preview: ScanSnapshot) {
@@ -585,7 +609,7 @@ struct CleanupCompletion: Identifiable {
                 invalidateScanEvidence(); await refresh()
                 workspaceId=preview.workspace.id; section="overview"; externalRulesChanged=false; busy=false
                 startScan(ruleIds: [record.rule.id], selectEligible: true)
-            } catch { busy=false; self.error=error.localizedDescription }
+            } catch { busy=false; self.presentFailure(error) }
         }
     }
     func previewBenefits(scanId: String) async throws -> RulePreviewBenefits {
@@ -623,7 +647,7 @@ struct CleanupCompletion: Identifiable {
     func exportRule(_ record: RuleRecord) {
         let panel=NSSavePanel(); panel.allowedContentTypes=[.json]; panel.nameFieldStringValue=record.rule.id + ".rule.json"
         guard panel.runModal() == .OK, let url=panel.url else { return }
-        do { try Codec.encode(record.rule).write(to: url, options: [.withoutOverwriting]) } catch { self.error=error.localizedDescription }
+        do { try Codec.encode(record.rule).write(to: url, options: [.withoutOverwriting]) } catch { self.presentFailure(error) }
     }
     func removeWorkspace(_ root: Workspace) {
         guard let engine, !busy else { return }
@@ -631,7 +655,7 @@ struct CleanupCompletion: Identifiable {
         Task {
             defer { busy=false }
             do { try await engine.removeWorkspace(root.id); invalidateScanEvidence(); await refresh() }
-            catch { self.error=error.localizedDescription }
+            catch { self.presentFailure(error) }
         }
     }
     func setEnabled(_ record: RuleRecord, enabled: Bool) {
@@ -645,7 +669,7 @@ struct CleanupCompletion: Identifiable {
         Task {
             defer { busy=false }
             do { _ = try await engine.setRule(ruleId: rule.id, workspaceId: id, enabled: enabled, version: rule.version); invalidateScanEvidence(); await refresh() }
-            catch { self.error=error.localizedDescription }
+            catch { self.presentFailure(error) }
         }
     }
     func exclude(_ candidate: Candidate) {
@@ -655,7 +679,7 @@ struct CleanupCompletion: Identifiable {
             do {
                 try await saveExclusion(workspaceId: id, pattern: candidate.relativePath + "/**", remove: false)
                 if workspaceId == id { startScan() }
-            } catch { self.error=error.localizedDescription }
+            } catch { self.presentFailure(error) }
         }
     }
     func saveExclusion(workspaceId: String?, pattern: String, remove: Bool, project: String? = nil) async throws {
@@ -709,7 +733,7 @@ struct CleanupCompletion: Identifiable {
                 let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: items.map(\.id), action: action)
                 prompt=ReviewPrompt(id: receipt.id, digest: digest, action: action, paths: items.map(\.originalPath), itemIds: items.map(\.id), byteEstimate: items.reduce(0) { $0 + $1.allocatedBytesEstimate })
                 statusKey="Ready to review"
-            } catch { self.error=error.localizedDescription }
+            } catch { self.presentFailure(error) }
         }
     }
     func retryAfterCleanup(_ result: CleanupCompletion) {
@@ -736,7 +760,7 @@ struct CleanupCompletion: Identifiable {
         task=Task {
             defer { busy=false; scanning=false }
             do { try await updateScopedCleanup(engine: engine, roots: roots, selectedPaths: selectedPaths, previous: previous) }
-            catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+            catch { if !Task.isCancelled { self.presentFailure(error) } }
         }
     }
     private func updateScopedCleanup(engine: ShouEngine, roots: [Workspace], selectedPaths: Set<String>, previous: SystemScanResult?) async throws {
@@ -770,7 +794,7 @@ struct CleanupCompletion: Identifiable {
                 try await updateScopedCleanup(engine: engine, roots: roots, selectedPaths: selectedPaths, previous: result)
                 let unresolved=results.filter { $0.state != "closed" }
                 if !unresolved.isEmpty { self.error=unresolved.map { $0.name + ": " + ($0.error ?? t("Still running. Save your work and quit the application.")) }.joined(separator: "\n") }
-            } catch { if !Task.isCancelled { self.error=error.localizedDescription } }
+            } catch { if !Task.isCancelled { self.presentFailure(error) } }
         }
     }
     func clearHistory(_ ids: [String], includeRecoverable: Bool) {
@@ -779,7 +803,7 @@ struct CleanupCompletion: Identifiable {
         task=Task {
             defer { busy=false }
             do { _ = try await engine.clearHistory(executionIds: ids, includeRecoverable: includeRecoverable); await refresh() }
-            catch { self.error=error.localizedDescription; await refresh() }
+            catch { self.presentFailure(error); await refresh() }
         }
     }
     func executeToolCleanup(_ plan: ToolCleanupPlan, service: ToolCleanupService) {
@@ -793,7 +817,7 @@ struct CleanupCompletion: Identifiable {
                 toolCompletion=try await service.execute(planId: plan.id, confirmedDigest: plan.digest)
                 operationHadError=toolCompletion?.state != "completed"
                 updateExecutionProgress(.init(stage: "finalizing", processedCount: 1, itemCount: 1), operation: operation)
-            } catch { operationHadError=true; self.error=error.localizedDescription }
+            } catch { operationHadError=true; self.presentFailure(error) }
         }
     }
     func executeApplicationOrphans(_ plan: ApplicationOrphanPlan) {
@@ -810,7 +834,7 @@ struct CleanupCompletion: Identifiable {
                 completion=CleanupCompletion(receipts: [receipt], sourceSection: "applications", retryPaths: remaining, retryOrphans: true)
                 operationHadError=receipt.state != "completed"
                 await refresh()
-            } catch { operationHadError=true; self.error=error.localizedDescription }
+            } catch { operationHadError=true; self.presentFailure(error) }
         }
     }
     func confirm(_ review: ReviewPrompt) {
@@ -920,7 +944,7 @@ struct CleanupCompletion: Identifiable {
     func savePreset(_ name: String) {
         guard let engine else { return }
         let ids=configuration.bindings.filter { $0.workspaceId == workspaceId && $0.enabled && !$0.ruleId.hasPrefix(BuiltinCatalog.prefix) }.map(\.ruleId) + builtins.filter { rule in !configuration.bindings.contains { $0.workspaceId == workspaceId && $0.ruleId == rule.id && !$0.enabled } }.map(\.id)
-        Task { do { _ = try await engine.savePreset(name: name, workspaceId: workspaceId, ruleIds: ids); await refresh() } catch { self.error=error.localizedDescription } }
+        Task { do { _ = try await engine.savePreset(name: name, workspaceId: workspaceId, ruleIds: ids); await refresh() } catch { self.presentFailure(error) } }
     }
     func bytes(_ value: Int64) -> String { ByteCountFormatter.string(fromByteCount: value, countStyle: .decimal) }
 }
@@ -1074,8 +1098,16 @@ struct ContentView: View {
         .sheet(isPresented: $model.showingExclusions) { ExclusionsView(model: model) }
         .sheet(isPresented: Binding(get: { model.scanAccess.showingSetup }, set: { model.scanAccess.showingSetup=$0 }), onDismiss: { model.scanAccess.dismissed() }) { SetupView(model: model) }
         .alert(model.t("Unable to complete the operation"), isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error=nil } })) {
+            if model.accessRecovery == .administrator {
+                Button(model.t("Authorize…")) { model.error=nil; model.scanAccess.authorizeAdministrator() }
+                    .disabled(model.busy || model.scanAccess.authorizingAdministrator)
+            } else if model.accessRecovery == .fullDiskAccess {
+                Button(model.t("Review Disk Access…")) { model.error=nil; model.scanAccess.showingSetup=true }
+            }
             Button(model.t("OK")) { model.error=nil }
         } message: { Text(model.diagnostic(model.error ?? "")) }
+        .onChange(of: model.error) { _, value in if value == nil { model.accessRecovery=nil } }
+        .onChange(of: model.scanAccess.administratorError) { _, value in if let value { model.error=model.t(value) } }
         .environment(\.shouReduceMotion, model.reduceMotion)
         .onAppear {
             let action=openWindow

@@ -67,8 +67,10 @@ func historyInspectionBlocksChangedAndBudgetLimitedEvidence() async throws {
     report=try await engine.inspectHistory(executionId: receipt.id)
     try expect(report.items[0].state == "needs_verification" && report.items[0].trash.state == "changed")
     let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: receipt.items.map(\.id), action: "restore")
-    try await expectThrows { try await engine.followUp(executionId: receipt.id, itemIds: receipt.items.map(\.id), action: "restore", confirmedDigest: digest) }
-    try expect(try await engine.followUps().isEmpty)
+    let restored=try await engine.followUp(executionId: receipt.id, itemIds: receipt.items.map(\.id), action: "restore", confirmedDigest: digest)
+    try expect(restored.count == 1 && restored[0].state == "failed")
+    try expect(try await engine.followUps().allSatisfy { $0.state == "failed" })
+    try expect(try String(contentsOfFile: trash + "/artifact.bin", encoding: .utf8) == "changed fixture")
 }
 
 func perItemJournalFailuresNeverLookLikeSkippedWork() async throws {

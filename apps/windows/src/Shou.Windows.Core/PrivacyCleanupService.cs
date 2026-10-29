@@ -36,7 +36,7 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
             new[] { scan.ExpiresAt, now + PlanLifetime }.Min(), scan.Window, scan.ConfigurationDigest, sources, acknowledgeSignOut, "");
         plan = plan with { Digest = PlanDigest(plan) };
         ValidatePlan(plan, plan.Id, scan);
-        await PreflightAsync(lease, plan, cancellationToken).ConfigureAwait(false);
+        await ValidateScopeAsync(lease, plan, cancellationToken).ConfigureAwait(false);
         if (await lease.ReadAsync(plan.Id, MaximumPlanBytes, cancellationToken).ConfigureAwait(false) is not null) throw new ShouException("version_conflict", "The privacy plan already exists.");
         await lease.WriteAsync(plan.Id, RecordJson.Encode(plan, MaximumPlanBytes), cancellationToken).ConfigureAwait(false);
         return plan;
@@ -58,7 +58,7 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
         {
             plan = await LoadPlanAsync(lease, planId, cancellationToken).ConfigureAwait(false);
             RequireUnused(await lease.ReadAsync(ReceiptId(planId), MaximumReceiptBytes, cancellationToken).ConfigureAwait(false));
-            await PreflightAsync(lease, plan, cancellationToken).ConfigureAwait(false);
+            await ValidateScopeAsync(lease, plan, cancellationToken).ConfigureAwait(false);
         }
         // A user may inspect settings while the prompt is visible. Execution takes a fresh lease and rechecks them.
         var decision = await confirmation.RequestAsync(plan, cancellationToken).ConfigureAwait(false);
@@ -76,7 +76,7 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
         var plan = await LoadPlanAsync(lease, planId, cancellationToken).ConfigureAwait(false);
         RequireCurrent(plan); RequireUnused(await lease.ReadAsync(key, MaximumReceiptBytes, cancellationToken).ConfigureAwait(false));
         consent.Consume(issuer, plan, clock.GetUtcNow());
-        await PreflightAsync(lease, plan, cancellationToken).ConfigureAwait(false);
+        await ValidateScopeAsync(lease, plan, cancellationToken).ConfigureAwait(false);
         consent.RequireCurrent(clock.GetUtcNow()); cancellationToken.ThrowIfCancellationRequested();
         var now = clock.GetUtcNow();
         var receipt = new PrivacyReceipt(1, key, plan.Id, plan.Digest, plan.Window, now, now, PrivacyExecutionState.Executing,
@@ -91,14 +91,17 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
                 RequireCurrent(plan);
                 var configuration = await ConfigurationAsync(lease, plan, cancellationToken).ConfigureAwait(false);
                 await VerifySourceAsync(plan, source, configuration, cancellationToken).ConfigureAwait(false);
-                RequireCurrent(plan); cancellationToken.ThrowIfCancellationRequested();
+                RequireCurrent(plan); consent.RequireCurrent(clock.GetUtcNow()); cancellationToken.ThrowIfCancellationRequested();
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             { receipt = Stop(receipt, index, PrivacyItemState.Cancelled, "cancelled"); break; }
             catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
             {
                 receipt = Set(receipt, index, new(source.Source.Id, PrivacyItemState.Failed, 0, Reason(error)));
-                receipt = Stop(receipt, index + 1, PrivacyItemState.Skipped, "preflight_failed"); break;
+                receipt = await SaveAsync(lease, plan, receipt).ConfigureAwait(false);
+                if (error is ShouException { Code: "confirmation_required" or "time_limit" or "store_corrupt" })
+                { receipt = Stop(receipt, index + 1, PrivacyItemState.Skipped, "verification_stopped"); break; }
+                continue;
             }
             receipt = Set(receipt, index, new(source.Source.Id, PrivacyItemState.Executing, null, null));
             receipt = await SaveAsync(lease, plan, receipt).ConfigureAwait(false);
@@ -206,20 +209,11 @@ public sealed class PrivacyCleanupService(IRecordStore store, RuleSchemaValidato
         { throw Corrupt(); }
         return plan;
     }
-    private async Task PreflightAsync(IRecordReadLease lease, PrivacyPlan plan, CancellationToken token)
+    private async Task ValidateScopeAsync(IRecordReadLease lease, PrivacyPlan plan, CancellationToken token)
     {
         RequireCurrent(plan);
-        using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(2), clock);
-        using var stopped = CancellationTokenSource.CreateLinkedTokenSource(token, deadline.Token);
-        try
-        {
-            var configuration = await ConfigurationAsync(lease, plan, stopped.Token).ConfigureAwait(false);
-            foreach (var source in plan.Sources) await VerifySourceAsync(plan, source, configuration, stopped.Token).ConfigureAwait(false);
-            stopped.Token.ThrowIfCancellationRequested(); RequireCurrent(plan);
-            _ = await ConfigurationAsync(lease, plan, stopped.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (!token.IsCancellationRequested)
-        { throw new ShouException("time_limit", "Privacy verification reached its budget. No privacy execution intent was created."); }
+        _ = await ConfigurationAsync(lease, plan, token).ConfigureAwait(false);
+        token.ThrowIfCancellationRequested(); RequireCurrent(plan);
     }
     private async Task<Configuration> ConfigurationAsync(IRecordReadLease lease, PrivacyPlan plan, CancellationToken token)
     {

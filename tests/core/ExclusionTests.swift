@@ -34,7 +34,8 @@ func globalExclusionsProtectAllRootsAndRejectForgedPlans() async throws {
     forged.workspace.exclusions=settings.effectivePatterns
     forged.digest=try forged.calculatedDigest()
     try fixture.store.write("plans", id: forged.id, data: Codec.encode(forged))
-    try await expectThrows { try await engine.execute(planId: forged.id, confirmedDigest: forged.digest, entryPoint: "test") }
+    let rejected=try await engine.execute(planId: forged.id, confirmedDigest: forged.digest, entryPoint: "test")
+    try expect(rejected.items.allSatisfy { $0.state == "failed" && $0.trashPath == nil })
     try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.trash.path).isEmpty)
     _ = try await engine.setGlobalExclusion(pattern: pattern, remove: true)
     _ = try await engine.setGlobalExclusion(pattern: "**/keep/**", remove: false)

@@ -8,8 +8,14 @@ import Darwin
 public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     private let homeDirectory: URL
     private let readWorkerExecutable: URL?
-    public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, readWorkerExecutable: URL? = nil) {
+    private let currentUser: UInt32
+    public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser, readWorkerExecutable: URL? = nil, currentUser: UInt32? = nil) {
         self.homeDirectory=homeDirectory; self.readWorkerExecutable=readWorkerExecutable
+        #if os(macOS)
+        self.currentUser=currentUser ?? getuid()
+        #else
+        self.currentUser=currentUser ?? 0
+        #endif
     }
     public func facts(for application: ApplicationDefinition) throws -> ApplicationUninstallFacts {
         guard let value=try facts(for: [application])[application.id] else { throw unavailable() }
@@ -19,11 +25,11 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         #if os(macOS)
         if applications.isEmpty { return [:] }
         let deadline=ContinuousClock.now.advanced(by: .seconds(3))
-        let needed=proc_listpids(UInt32(PROC_UID_ONLY), getuid(), nil, 0)
+        let needed=proc_listpids(UInt32(PROC_UID_ONLY), currentUser, nil, 0)
         guard needed > 0, needed <= 262_144 else { throw unavailable() }
         var pids=[pid_t](repeating: 0, count: Int(needed) / MemoryLayout<pid_t>.stride + 256)
         let capacity=Int32(pids.count * MemoryLayout<pid_t>.stride)
-        let returned=pids.withUnsafeMutableBytes { proc_listpids(UInt32(PROC_UID_ONLY), getuid(), $0.baseAddress, capacity) }
+        let returned=pids.withUnsafeMutableBytes { proc_listpids(UInt32(PROC_UID_ONLY), currentUser, $0.baseAddress, capacity) }
         guard returned > 0, returned < capacity, returned % Int32(MemoryLayout<pid_t>.stride) == 0 else { throw unavailable() }
         let runningIdentifiers=Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         var executablePaths=[String]()
@@ -35,7 +41,7 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
         for application in applications {
             let prefix=application.path + "/"
             let running=application.bundleIdentifier.map(runningIdentifiers.contains) == true || executablePaths.contains { $0.hasPrefix(prefix) }
-            result[application.id]=ApplicationUninstallFacts(currentUser: getuid(), running: running,
+            result[application.id]=ApplicationUninstallFacts(currentUser: currentUser, running: running,
                 currentApplication: own.hasPrefix(prefix) || Bundle.main.bundleURL.path == application.path)
         }
         return result
@@ -92,7 +98,7 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
                 if kill(pid, 0) != 0 && errno == ESRCH { return nil }
                 throw unavailable()
             }
-            guard info.pbi_pid == UInt32(pid), info.pbi_uid == getuid() else { throw unavailable() }
+            guard info.pbi_pid == UInt32(pid), info.pbi_uid == currentUser else { throw unavailable() }
             return info.pbi_status == UInt32(SZOMB) ? nil : info
         }
         guard let before=try identity() else { return nil }
@@ -155,7 +161,7 @@ public struct NativeApplicationUninstallEvidence: ApplicationUninstallChecking {
     }
     func groupContainerPathsDirect(for bundleIdentifier: String) throws -> [String] {
         #if os(macOS)
-        guard bundleIdentifier.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", options: .regularExpression) != nil else {
+        guard ApplicationDefinition.isValidBundleIdentifier(bundleIdentifier) else {
             throw ShouError("ownership_unverified", "Group container ownership could not be verified.")
         }
         let root=homeDirectory.appendingPathComponent("Library/Group Containers", isDirectory: true).path

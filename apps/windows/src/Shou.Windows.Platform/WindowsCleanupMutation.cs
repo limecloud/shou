@@ -22,6 +22,15 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         IProgress<CleanupMutationProgress>? progress, CancellationToken cancellationToken)
     {
         if (!Supports(action)) throw new ShouException("unsupported_capability", "This native cleanup action is unavailable.");
+        if (WindowsSystemAuthorization.Shared.IsAuthorized)
+        {
+            var reply = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Cleanup, item.Path, Workspace:workspace, Item:item), cancellationToken, update =>
+            {
+                if (update.MutationProgress is not { } value) throw WindowsAuthorizationChannel.Failure();
+                Report(progress, value); return Task.CompletedTask;
+            }).ConfigureAwait(false);
+            return reply.Mutation ?? throw WindowsAuthorizationChannel.Failure();
+        }
         try
         {
             return await NativeOperationScheduler.RunToCompletionAsync(() => Apply(workspace, item, progress, cancellationToken), cancellationToken).ConfigureAwait(false);
@@ -33,7 +42,10 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         }
     }
 
-    private static CleanupMutationResult Apply(Workspace workspace, CleanupPlanItem item, IProgress<CleanupMutationProgress>? progress, CancellationToken token)
+    internal static async Task<CleanupMutationResult> ApplyAuthorizedAsync(Workspace workspace, CleanupPlanItem item, string ownerSid, IProgress<CleanupMutationProgress>? progress, CancellationToken token) =>
+        await NativeOperationScheduler.RunToCompletionAsync(() => Apply(workspace, item, progress, token, ownerSid), token).ConfigureAwait(false);
+
+    private static CleanupMutationResult Apply(Workspace workspace, CleanupPlanItem item, IProgress<CleanupMutationProgress>? progress, CancellationToken token, string? ownerSid = null)
     {
         var started = Stopwatch.GetTimestamp();
         void Check()
@@ -47,7 +59,7 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
         try
         {
             Check();
-            using var scope = Scope.Open(workspace, item, Check);
+            using var scope = Scope.Open(workspace, item, Check, ownerSid);
             // A complete native preflight precedes the first disposition. Later checks bind each individual unlink.
             if (scope.TargetEntry.Kind == EntryKind.Directory)
                 scope.VerifyTree(scope.Target, scope.TargetEntry, Check, path => Report(progress, new("checking", path, 0)));
@@ -126,10 +138,10 @@ public sealed class WindowsCleanupMutation : ICleanupMutation
                 .ToDictionary(group => group.Key, group => group.ToArray());
         }
 
-        internal static Scope Open(Workspace root, CleanupPlanItem item, Action check)
+        internal static Scope Open(Workspace root, CleanupPlanItem item, Action check, string? ownerSid = null)
         {
             using var currentUser = WindowsIdentity.GetCurrent();
-            if (root.Path.IsVolumeRoot || root.Identity.OwnerSid != currentUser.User?.Value ||
+            if (root.Path.IsVolumeRoot || root.Identity.OwnerSid != (ownerSid ?? currentUser.User?.Value) ||
                 item.Path is null || !item.Path.IsWithin(root.Path, caseSensitive: true, includeRoot: false) ||
                 item.RelativePath != item.Path.RelativeTo(root.Path, caseSensitive: true) ||
                 item.Manifest.IsDefaultOrEmpty || item.Manifest.Length > 1_000_000 || item.Context.IsDefaultOrEmpty || item.Context.Length > 80) throw Stale();

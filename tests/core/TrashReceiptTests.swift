@@ -78,8 +78,9 @@ func trashRootCTimeExceptionNeverAuthorizesPlanExecution() async throws {
     let (engine, _, scan, candidate)=try await fixture.ready()
     let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
     try updateReceiptXattr(fixture.workspace.appendingPathComponent(candidate.relativePath).path)
-    try await expectThrows { try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
-    try expect(try await engine.history().isEmpty)
+    let rejected=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    try expect(rejected.state == "partial" && rejected.items.allSatisfy { $0.state == "failed" && $0.trashPath == nil })
+    try expect(try await engine.history().count == 1)
     try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.trash.path).isEmpty)
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
 }
@@ -107,11 +108,12 @@ func changedTrashMetadataIdentityAndDescendantsStillRefuseRestore() async throws
             try updateReceiptXattr(artifact.path)
         }
         let digest=try await engine.followUpDigest(executionId: receipt.id, itemIds: [item.id], action: "restore")
-        try await expectThrows { try await engine.followUp(executionId: receipt.id, itemIds: [item.id], action: "restore", confirmedDigest: digest) }
+        let result=try await engine.followUp(executionId: receipt.id, itemIds: [item.id], action: "restore", confirmedDigest: digest)
+        try expect(result.count == 1 && result[0].state == "failed")
         // Verify the platform boundary independently of the engine's early rejection.
         try expectThrows { try fixture.fs.restore(trashPath, to: item.originalPath, expected: item.manifest) }
         try expect(FileManager.default.fileExists(atPath: artifact.path))
         try expect(!FileManager.default.fileExists(atPath: item.originalPath))
-        try expect(try await engine.followUps().isEmpty)
+        try expect(try await engine.followUps().allSatisfy { $0.state == "failed" })
     }
 }

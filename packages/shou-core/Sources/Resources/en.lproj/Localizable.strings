@@ -127,8 +127,10 @@
 "Additional Cleanup Estimate" = "Additional Cleanup Estimate";
 "Additional residual files are not included. Uninstall only this reviewed installation?" = "Additional residual files are not included. Uninstall only this reviewed installation?";
 "Additional scan notes are summarized here." = "Additional scan notes are summarized here.";
+"Administrator Access" = "Administrator Access";
 "Administrator Required" = "Administrator Required";
 "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal." = "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.";
+"Administrator authorization required" = "Administrator authorization required";
 "Adobe Bridge caches" = "Adobe Bridge caches";
 "Advanced" = "Advanced";
 "Affected items refreshed. Review your selection to continue." = "Affected items refreshed. Review your selection to continue.";
@@ -158,6 +160,7 @@
 "Allocated" = "Allocated";
 "Allocated estimate" = "Allocated estimate";
 "Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion." = "Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion.";
+"Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access." = "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.";
 "Allow access to application caches that macOS protects." = "Allow access to application caches that macOS protects.";
 "Allow selecting personal app data" = "Allow selecting personal app data";
 "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required." = "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.";
@@ -257,6 +260,9 @@
 "Audio" = "Audio";
 "Authentication" = "Authentication";
 "Authentication Required" = "Authentication Required";
+"Authorize Administrator Access…" = "Authorize Administrator Access…";
+"Authorized for this session" = "Authorized for this session";
+"Authorize…" = "Authorize…";
 "Autofill" = "Autofill";
 "Automatic update checks" = "Automatic update checks";
 "Automatic updates are not available in this Windows preview." = "Automatic updates are not available in this Windows preview.";
@@ -943,6 +949,7 @@
 "I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan." = "I understand the system installer may remove data it manages. Shou does not include additional residual files in this plan.";
 "IINA caches" = "IINA caches";
 "Identifier unavailable" = "Identifier unavailable";
+"If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou." = "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.";
 "Images" = "Images";
 "Import Rule…" = "Import Rule…";
 "Import a rule, choose its scan folder, then enable the version you want to use." = "Import a rule, choose its scan folder, then enable the version you want to use.";
@@ -981,6 +988,7 @@
 "Inspector" = "Inspector";
 "Install" = "Install";
 "Install CLI Command" = "Install CLI Command";
+"Install Shou in Applications first." = "Install Shou in Applications first.";
 "Install Skill" = "Install Skill";
 "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed." = "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.";
 "Installation & Instance" = "Installation & Instance";
@@ -1207,6 +1215,7 @@
 "More room to build." = "More room to build.";
 "Move Recommended to Trash…" = "Move Recommended to Trash…";
 "Move Selected to Trash…" = "Move Selected to Trash…";
+"Move Shou to Applications" = "Move Shou to Applications";
 "Move these applications to Trash?" = "Move these applications to Trash?";
 "Move these items to Trash?" = "Move these items to Trash?";
 "Move to Recycle Bin" = "Move to Recycle Bin";
@@ -1420,6 +1429,7 @@
 "Open Source" = "Open Source";
 "Open System Monitor" = "Open System Monitor";
 "Open System Settings…" = "Open System Settings…";
+"Open the package manager to authorize this operation, then refresh in Shou." = "Open the package manager to authorize this operation, then refresh in Shou.";
 "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours." = "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours.";
 "Opening local data…" = "Opening local data…";
 "Opera caches" = "Opera caches";
@@ -2007,6 +2017,7 @@
 "Service states are snapshots. Refresh to check changes made outside Shou." = "Service states are snapshots. Refresh to check changes made outside Shou.";
 "Service stopped. Starting…" = "Service stopped. Starting…";
 "Services Using This Installation" = "Services Using This Installation";
+"Set Up Shou" = "Set Up Shou";
 "Set as Default" = "Set as Default";
 "Set up Shou once, then get straight to cleaning." = "Set up Shou once, then get straight to cleaning.";
 "Settings" = "Settings";
@@ -2253,6 +2264,7 @@
 "Temperature: available sensor average. Fans are controlled by the system." = "Temperature: available sensor average. Fans are controlled by the system.";
 "Tencent Meeting network caches" = "Tencent Meeting network caches";
 "Tencent Video caches" = "Tencent Video caches";
+"Terminal Tools" = "Terminal Tools";
 "Terminal and AI agents · optional" = "Terminal and AI agents, optional";
 "Terminal and AI agents, optional" = "Terminal and AI agents, optional";
 "Test Connection" = "Test Connection";
@@ -2343,7 +2355,6 @@
 "The package manager is working. Shou will wait for its result before closing." = "The package manager is working. Shou will wait for its result before closing.";
 "The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer." = "The package manager may download files, run installation scripts and change dependencies. Close affected apps and save your work. Shou will not automatically accept agreements, request an administrator password, or restart the computer.";
 "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically." = "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically.";
-"The package manager needs permissions that Shou cannot request. Open the owning tool to continue." = "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.";
 "The packaged CLI is unavailable. Install Shou in Applications first." = "The packaged CLI is unavailable. Install Shou in Applications first.";
 "The page could not be loaded. Try again." = "The page could not be loaded. Try again.";
 "The previous source used an unknown portion of the scan budget." = "The previous source used an unknown portion of the scan budget.";
@@ -2608,6 +2619,7 @@
 "Vivaldi caches" = "Vivaldi caches";
 "Vivaldi download caches" = "Vivaldi download caches";
 "WPS Office caches" = "WPS Office caches";
+"Waiting for administrator authorization…" = "Waiting for administrator authorization…";
 "Waiting for confirmation or the system installer result. Keep this window open." = "Waiting for confirmation or the system installer result. Keep this window open.";
 "Waiting for the service to reach its requested state…" = "Waiting for the service to reach its requested state…";
 "Waiting for your answer" = "Waiting for your answer";
@@ -2663,13 +2675,19 @@
 "Zed logs" = "Zed logs";
 "Zen caches" = "Zen caches";
 "Zoom caches" = "Zoom caches";
-"administrator_authorization_required" = "macOS may ask you to authenticate when moving to Trash";
+"administrator_authorization_required" = "Administrator authorization required";
+"administrator_permanent_removal_available" = "Supports permanent removal with administrator authorization";
 "application_activity_unavailable" = "Application activity could not be checked; cleanup is blocked.";
 "application_changed" = "application_changed";
+"application_metadata_missing" = "Application metadata is unavailable. Only the application bundle can be removed; associated data is kept.";
 "application_running" = "Application is running. Quit it and scan again.";
 "artifact_evidence_unavailable" = "Artifact safety checks could not be completed; cleanup is blocked.";
 "artifact_layout_unverified" = "The artifact directory layout could not be verified; cleanup is blocked.";
 "artifact_restore_unavailable" = "The retained Cargo package archive could not be verified; cleanup is blocked.";
+"authorization_cancelled" = "Administrator authorization was cancelled.";
+"authorization_channel_lost" = "The authorization session disconnected. Inspect recorded results before retrying.";
+"authorization_denied" = "Administrator authorization was denied. Authorize again to continue.";
+"authorization_unavailable" = "Administrator authorization could not be completed. Try again.";
 "blocked" = "blocked";
 "build_process_running" = "A related build process is running. Stop it and scan again.";
 "cancelled" = "Stopped";
@@ -2692,19 +2710,20 @@
 "invalid_filename" = "invalid_filename";
 "io_error" = "The file or directory could not be read.";
 "items" = "items";
-"linked_application" = "linked_application";
+"linked_application" = "This is an application link. Its size can be read; manage removal at the actual installation location.";
 "macOS Help caches" = "macOS Help caches";
 "macOS handles authentication" = "macOS handles authentication";
 "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou." = "macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou.";
 "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept." = "macOS may ask you to authenticate. Applications marked with a lock move to Trash with their app data kept.";
 "macOS regenerates this user cache when the service needs it again." = "macOS regenerates this user cache when the service needs it again.";
 "macOS regenerates thumbnails and help indexes when needed." = "macOS regenerates thumbnails and help indexes when needed.";
+"macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept." = "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.";
 "macOS will request administrator approval for system background items." = "macOS will request administrator approval for system background items.";
 "manifest_changed" = "The object identity or directory contents changed.";
 "mise inventory could not be read." = "mise inventory could not be read.";
 "missing" = "Missing";
 "moving" = "Needs verification";
-"multiply_linked_content" = "The application contains shared hard links.";
+"multiply_linked_content" = "The application contains shared hard links. Only its application bundle can be moved to Trash.";
 "not_scanned" = "Not inspected";
 "npm Cache" = "npm Cache";
 "npm download cache" = "npm download cache";

@@ -12,6 +12,26 @@ extension NativeApplicationCatalog {
                                progress: @Sendable (ScanProgress) -> Void) throws -> ApplicationSummaryMeasurement {
         #if os(macOS)
         let deadline=ContinuousClock.now.advanced(by: .seconds(budget.maxSeconds))
+        if application.identity.kind == "symlink" {
+            let (target, _)=try resolvedApplicationLink(application, deadline: deadline)
+            let measured=try measureSummary(for: target, budget: budget, progress: progress)
+            let (current, _)=try resolvedApplicationLink(application, deadline: deadline)
+            guard target == current else { throw ShouError("application_changed", "Linked application changed during size measurement.") }
+            return measured
+        }
+        if getuid() != 0, NativeSystemAuthorization.shared.administratorState == .authorized,
+           (try? NativeSystemAuthorizationWorker.validateApplicationPath(application.path,
+                roots: ["/Applications", FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path], verifyFilesystem: false)) != nil {
+            let reply=try NativeSystemAuthorization.shared.perform(.inspectApplication, path: application.path, budget: budget)
+            guard let tree=reply.snapshot, let root=tree.entries.first, root.sameObject(as: application.identity) else { throw AuthorizationChannel.failure() }
+            let index=StorageIndex(entries: tree.entries)
+            var issues=tree.issues
+            if tree.entries.contains(where: { $0.kind == "file" && $0.links > 1 }) { issues.append("multiply_linked_content") }
+            var measured=ApplicationSummaryMeasurement(allocatedBytesEstimate: index.nodes["."]?.allocatedBytes ?? 0, owner: root.owner,
+                containsForeignOwnedContent: tree.entries.contains { $0.owner != getuid() }, issues: Array(Set(issues)).sorted())
+            measured.requiresAdministrator=NativeFileSystem().applicationNeedsAuthorization(application.path)
+            return measured
+        }
         let root=try SecurePaths.directory(application.path)
         defer { close(root) }
         var initial=stat()
@@ -78,8 +98,10 @@ extension NativeApplicationCatalog {
             lastUsed=MDItemCopyAttribute(item, kMDItemLastUsedDate) as? Date
         }
         progress(ScanProgress(stage: "measuring", entryCount: count, currentPath: application.path))
-        return ApplicationSummaryMeasurement(allocatedBytesEstimate: allocated, owner: initial.st_uid,
+        var result=ApplicationSummaryMeasurement(allocatedBytesEstimate: allocated, owner: initial.st_uid,
             containsForeignOwnedContent: foreign, lastUsed: lastUsed, issues: issues.sorted())
+        result.requiresAdministrator=NativeFileSystem().applicationNeedsAuthorization(application.path)
+        return result
         #else
         throw ShouError("unsupported_platform", "Application size measurement is currently available only on macOS.")
         #endif

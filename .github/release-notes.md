@@ -1,19 +1,19 @@
-Shou v0.20.0 simplifies everyday navigation, introduces a toolbox entry and gives software updates a dedicated page.
+Shou v0.21.0 improves system authorization and lets independent cleanup items finish when another item fails.
 
-- Focus the main navigation on Cleanup, Applications, Space Analysis and Monitor. Toolbox, History and Settings remain directly accessible; cleanup rules and project cleanup move into Cleanup Options.
-- Open AI Workbench or Developer Tools from Toolbox before starting their inventories. Tool navigation shows name, status and an arrow; service switches stay beside the exact instances in details.
-- Separate installed applications, software updates and startup items. macOS software updates use Homebrew or mise; Windows uses the verified WinGet source in a persistent page with a fixed review/action area. Checks start only on request, and upgrade execution retains its exact-selection confirmation and navigation protection.
-- Simplify the cleanup welcome page with application, space and privacy entries, concise copy and fewer decorative effects. Keep shared English/Chinese text and platform navigation aligned.
-- Include the macOS privacy-discovery fix from [PR #1](https://github.com/limecloud/shou/pull/1): inaccessible browser roots no longer hide independently accessible sources. Coverage gaps remain visible, and cleanup still requires exact source validation and confirmation.
+- Reuse one administrator authorization within the current session across supported scans, application removal, file cleanup, recovery, startup control and developer configuration operations. Credentials stay in the system authentication window.
+- Fix macOS authorization failing after password verification. The application now reads the elevated process identity through an interface available to ordinary users, while retaining process, executable and session checks.
+- Validate and execute each selected item in turn. Known item failures are reported separately; unknown outcomes, cancellation and record failures still stop further changes. The reviewed selection remains the authorization scope.
+- Keep applications with incomplete metadata available for app-only review. Simplify permission guidance, cleanup results and settings, with concise shared English/Chinese text.
+- Align Windows authorization and independent-item execution in the platform layer. Windows downloads remain portable previews with public cleanup, uninstall, startup and privacy mutation gates closed.
 
-macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. The app uses an ad-hoc signature and is not Apple-notarized. Windows downloads remain unsigned, self-contained x64/ARM64 portable previews for Windows 11; public cleanup, uninstall and startup mutation gates stay closed. Windows developer services/installers, MySQL administration and package upgrades retain their documented acceptance gaps. The new Windows navigation and update page have not received a new Windows 11 Computer Use acceptance; full accessibility, ARM64 tray interaction, signing, installation and automatic updating remain pending. GitHub publication stages macOS npm tarballs; npm registry publication is separate.
+macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. The app uses an ad-hoc signature and is not Apple-notarized; Full Disk Access may need to be granted again after replacement. Windows x64/ARM64 downloads are unsigned, self-contained previews for Windows 11. Native fixture checks, interactive preview journeys, UAC, ARM64 interaction, signing, installation and updates are separate acceptance scopes. npm registry publication is verified separately from GitHub assets.
 
-简体中文：Shou v0.20.0 简化日常导航，新增工具箱入口，并将软件更新整理为独立页面。
+简体中文：Shou v0.21.0 改进系统授权，支持清理时逐项执行并报告结果。
 
-- 主导航聚焦清理、应用、空间分析和监控；工具箱、操作记录和设置保持直接可达。清理规则与项目清理从“清理选项”进入。
-- 从工具箱选择 AI 工作台或开发者工具后才启动对应盘点。工具导航统一展示名称、状态及箭头，服务启停位于右侧确切实例行。
-- 应用管理、软件更新和启动项分为独立任务。macOS 软件更新使用 Homebrew／mise 来源；Windows 使用经过核实的 WinGet 来源，页内保留检查结果和固定审阅操作区。仅在用户主动请求后检查，升级继续绑定确切选择、单次确认和执行期间导航保护。
-- 简化清理首页，提供应用、空间分析与隐私入口，精简文案和装饰动效，同步中英文文案与两端导航。
-- 纳入 [PR #1](https://github.com/limecloud/shou/pull/1) 的 macOS 隐私发现修复：浏览器目录不可访问时保留其他可访问来源，明确展示覆盖缺口；清理仍须确切来源核验和确认。
+- 支持在当前会话中复用一次管理员授权，用于已接入的扫描、应用卸载、文件清理、恢复、启动控制及开发工具配置。密码只在系统认证窗口输入。
+- 修复 macOS 输入密码后仍无法完成授权的问题。改用普通用户可读取的系统接口核实管理员进程，继续校验进程身份、可执行路径及会话。
+- 按所选项目依次核验和执行，单项已知失败单独报告；结果不确定、用户取消或记录失败时停止后续操作。授权范围仍绑定本次审阅的确切选择。
+- 缺少完整元数据的应用仍可单独审阅应用包。精简权限引导、清理结果和设置，同步中英文文案。
+- Windows 在平台层对齐统一授权与逐项执行。便携预览的公开清理、卸载、启动项及隐私变更门禁保持关闭。
 
-macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新及校验和；应用为 ad-hoc 签名，未经 Apple 公证。Windows 继续提供 Windows 11 未签名 x64／ARM64 自包含便携预览，公开清理、卸载及启动项变更门禁保持关闭。Windows 开发服务、安装器、MySQL 管理及软件包升级保留文档所列验收缺口；本次新导航与软件更新页尚无新的 Windows 11 Computer Use 验收，完整辅助功能、ARM64 托盘、签名、安装及自动更新仍待完成。GitHub 流水线准备 macOS npm 包，registry 发布单独管理。
+macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新及校验和。应用为 ad-hoc 签名，未经 Apple 公证，替换后可能需要重新授予完全磁盘访问权限。Windows 提供 Windows 11 未签名 x64／ARM64 自包含便携预览。原生夹具、预览版界面旅程、UAC、ARM64 交互、签名、安装与更新分别验收；npm registry 与 GitHub 附件分别验证。

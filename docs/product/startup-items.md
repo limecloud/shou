@@ -4,6 +4,8 @@ English | [简体中文](../zh-CN/product/startup-items.md)
 
 The macOS native page groups startup registrations by verified application path and provides state counts, All / Enabled / Disabled / Leftovers filters, search, inline controls and expandable details. Direct controls cover eligible LaunchAgents, third-party system daemons and native application login registrations. Unsupported registrations retain a macOS Settings entry point. Windows sources, controls and verification boundaries are described below.
 
+macOS system-daemon switches reuse the process-bound Platform administrator session shared with application operations. Native consent is requested once per session; exact label and definition validation remain required for every operation.
+
 ## User workflow
 
 Open Startup Items to read launchd definitions and available login registrations. Search by application, publisher, label, definition path or executable. Expand an application to inspect each registration, its configured and runtime states, source and trigger clues; copy paths or reveal them in Finder. Apple system definitions remain optional under Startup Options. Scan Again reads fresh metadata; Stop requests cooperative cancellation. Existing results remain visible during a refresh.

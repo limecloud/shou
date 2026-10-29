@@ -98,12 +98,12 @@ func lostExecutionCoverageRefusesPreviouslyValidPlan() async throws {
     let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [target.id])
     for paths: [String]? in [nil, [], ["project/target-sibling"]] {
         coverage.set(paths)
-        do {
-            _ = try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "coverage-test")
-            throw CheckFailure(description: "Execution must reproduce complete target coverage.")
-        } catch let failure as ShouError { try expect(failure.code == "plan_stale") }
+        let currentPlan=try await engine.createPlan(scanId: scan.id, candidateIds: [target.id])
+        let rejected=try await engine.execute(planId: currentPlan.id, confirmedDigest: currentPlan.digest, entryPoint: "coverage-test")
+        try expect(rejected.state == "partial" && rejected.items.first?.state == "failed" && rejected.items.first?.trashPath == nil)
+        try await expectThrows { try await engine.execute(planId: currentPlan.id, confirmedDigest: currentPlan.digest, entryPoint: "reject-replay") }
     }
-    try expect(try await engine.history().isEmpty)
+    try expect(try await engine.history().count == 3)
     try expect(try await engine.plan(plan.id).executionId == nil)
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
     try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.trash.path).isEmpty)
@@ -116,11 +116,9 @@ func changedTargetWithCoverageStillRefusesExecution() async throws {
     let target=try require(scan.candidates.first { $0.relativePath == "project/target" && $0.eligible })
     let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [target.id])
     try fixture.put("project/target/artifact.bin", "changed after planning")
-    do {
-        _ = try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "coverage-test")
-        throw CheckFailure(description: "Coverage does not authorize a changed target manifest.")
-    } catch let failure as ShouError { try expect(failure.code == "plan_stale") }
-    try expect(try await engine.history().isEmpty)
+    let rejected=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "coverage-test")
+    try expect(rejected.state == "partial" && rejected.items.first?.state == "failed" && rejected.items.first?.trashPath == nil)
+    try expect(try await engine.history().count == 1)
     try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("project/target/artifact.bin"), encoding: .utf8) == "changed after planning")
     try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.trash.path).isEmpty)
 }

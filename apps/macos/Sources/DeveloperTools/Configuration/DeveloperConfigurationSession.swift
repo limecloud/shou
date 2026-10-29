@@ -14,12 +14,14 @@ import ShouPlatform
     var saving=false
     var reviewing=false
     var failure: String?
+    var accessRequirement: SystemAccessRequirement?
     var message: String?
     var logTargets=[DeveloperLogTarget]()
     var logID=""
     var logText: String?
     var logLoading=false
     var logFailure: String?
+    var logAccessRequirement: SystemAccessRequirement?
     let logCleanup=DeveloperLogCleanupSession()
     var mutating: Bool { saving || logCleanup.clearing }
     private var services=[DeveloperService]()
@@ -34,7 +36,7 @@ import ShouPlatform
         if self.toolID != toolID {
             task?.cancel(); logTask?.cancel(); revision += 1
             self.toolID=toolID; targetID=""; targets=[]; document=nil; text=""; reviewing=false
-            loading=false; logLoading=false; logText=nil; logID=""; logTargets=[]; sourceLogs=[]; failure=nil; message=nil; logFailure=nil
+            loading=false; logLoading=false; logText=nil; logID=""; logTargets=[]; sourceLogs=[]; failure=nil; accessRequirement=nil; message=nil; logFailure=nil; logAccessRequirement=nil
             logCleanup.configure(toolID:toolID,path:"")
         }
         self.services=services
@@ -62,14 +64,14 @@ import ShouPlatform
         guard !saving else { return }
         if !targets.contains(where: { $0.path == path }) { targets.append(.init(path:path,source:"Selected File")) }
         revision += 1; let current=revision
-        targetID=path; task?.cancel(); document=nil; text=""; failure=nil; message=nil; reviewing=false; loading=true
+        targetID=path; task?.cancel(); document=nil; text=""; failure=nil; accessRequirement=nil; message=nil; reviewing=false; loading=true
         task=Task {
             let work=Task.detached(priority:.utility) { try NativeDeveloperConfigurationFiles().read(path) }
             do {
                 let value=try await work.value
                 guard !Task.isCancelled, revision == current else { return }
-                document=value; text=value.text; updateLogs()
-            } catch { if !Task.isCancelled, revision == current { failure="The configuration file could not be read. Select its exact path or check access permissions." } }
+                document=value; text=value.text; accessRequirement=value.requiresAdministrator ? .administrator : nil; updateLogs()
+            } catch { if !Task.isCancelled, revision == current { failure="The configuration file could not be read. Select its exact path or check access permissions."; accessRequirement=(error as? ShouError)?.accessRequirement } }
             if revision == current { loading=false }
         }
     }
@@ -91,12 +93,12 @@ import ShouPlatform
                 self.document=try await work.value
                 message="Configuration saved."; updateLogs()
                 app.busy=false; app.isExecuting=false; completed()
-            } catch { failure="The configuration changed or could not be saved. Reload the file before trying again."; app.operationHadError=true }
+            } catch { failure="The configuration changed or could not be saved. Reload the file before trying again."; accessRequirement=(error as? ShouError)?.accessRequirement; app.operationHadError=true }
         }
     }
     func readLog() {
         guard !logID.isEmpty else { return }
-        logTask?.cancel(); logLoading=true; logFailure=nil; logText=nil; logCleanup.plan=nil
+        logTask?.cancel(); logLoading=true; logFailure=nil; logAccessRequirement=nil; logText=nil; logCleanup.plan=nil
         let path=logID, current=revision
         logTask=Task {
             let work=Task.detached(priority:.utility) { try NativeDeveloperConfigurationFiles().log(path:path) }
@@ -104,7 +106,7 @@ import ShouPlatform
                 let value=try await work.value
                 guard !Task.isCancelled, revision == current, logID == path else { return }
                 logText=value
-            } catch { if !Task.isCancelled, revision == current, logID == path { logFailure="The service log cannot be read. Check its path and access permissions." } }
+            } catch { if !Task.isCancelled, revision == current, logID == path { logFailure="The service log cannot be read. Check its path and access permissions."; logAccessRequirement=(error as? ShouError)?.accessRequirement } }
             if revision == current, logID == path { logLoading=false }
         }
     }
@@ -113,6 +115,9 @@ import ShouPlatform
     private func updateLogs() {
         var seen=Set<String>()
         logTargets=(NativeDeveloperConfiguration().logs(toolID:toolID,document:document,services:[]) + sourceLogs).filter { seen.insert($0.path).inserted }
-        if !logTargets.contains(where: { $0.path == logID }) { logID=logTargets.first?.path ?? ""; logText=nil; logCleanup.configure(toolID:toolID,path:logID) }
+        if !logTargets.contains(where: { $0.path == logID }) {
+            logID=logTargets.first?.path ?? ""; logText=nil; logFailure=nil; logAccessRequirement=nil
+            logCleanup.configure(toolID:toolID,path:logID)
+        }
     }
 }

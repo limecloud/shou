@@ -19,10 +19,12 @@ func applicationOrphansRequireAbsenceConsentAndReuseDeletionJournals() async thr
     try await expectThrows { try await engine.createApplicationOrphanPlan(reviewId: review.id, componentIds: [preferences.id]) }
     let plan=try await engine.createApplicationOrphanPlan(reviewId: review.id, componentIds: [cache.id])
     presence.absent=false
-    try await expectThrows { try await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: presence, entryPoint: "test") }
+    let blocked=try await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: presence, entryPoint: "test")
+    try expect(blocked.state == "partial" && blocked.items.first?.state == "failed")
     try expect(FileManager.default.fileExists(atPath: cache.path))
     presence.absent=true
-    let receipt=try await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: presence, entryPoint: "test")
+    let retry=try await engine.createApplicationOrphanPlan(reviewId: review.id, componentIds: [cache.id])
+    let receipt=try await engine.executeApplicationOrphans(planId: retry.id, confirmedDigest: retry.digest, presence: presence, entryPoint: "test")
     try expect(receipt.state == "completed" && receipt.items.allSatisfy { $0.state == "purged" })
     try expect(!FileManager.default.fileExists(atPath: cache.path))
     try expect(try await engine.history(receipt.id).operation == "application_orphan_cleanup")
@@ -47,7 +49,8 @@ func applicationOrphansRespectUnknownOwnersExclusionsAndChangedContents() async 
     let component=try require(review.components.first { $0.kind == .caches && $0.eligible })
     let plan=try await engine.createApplicationOrphanPlan(reviewId: review.id, componentIds: [component.id])
     try fixture.put("Library/Caches/com.google.Chrome/new.bin", "changed after review")
-    try await expectThrows { try await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: presence, entryPoint: "test") }
+    let failed=try await engine.executeApplicationOrphans(planId: plan.id, confirmedDigest: plan.digest, presence: presence, entryPoint: "test")
+    try expect(failed.state == "partial" && failed.items.first?.state == "failed")
     _ = try await engine.setGlobalExclusion(pattern: "**/com.google.Chrome", remove: false)
     let excluded=try await engine.reviewApplicationOrphans(presence: presence)
     try expect(excluded.components.first { $0.kind == .caches }?.reasons.contains("excluded") == true)

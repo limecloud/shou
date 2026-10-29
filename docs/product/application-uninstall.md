@@ -235,9 +235,9 @@ Users need to compare applications, select several, review associated data inlin
 | Preserve personal data | Preferences, databases, sessions and containers remain unselected until separately allowed and individually selected |
 | Select the current view | The header affects only currently filtered eligible applications and preserves selections outside the filter and customized components; deselecting the required bundle deselects the application |
 | Running application | Request normal quit, then rescan; no forced termination or automatic selection |
-| Administrator application | Selectable lock indicator; eligible current-user/root-owned bundles use Finder’s native Trash operation, with macOS authentication when required; associated data is kept |
+| Administrator application | Selectable lock indicator; eligible current-user/root-owned bundles use a shared Platform authorization session for permanent or Trash removal; associated data is kept |
 | Protected application | System/current applications, other-user content and unverifiable targets remain unavailable |
-| Uninstall | Review components and personal-data impact inline; click the red Delete Permanently footer button once to confirm the exact selection, validate and execute without another dialog. Trash remains a secondary menu action. Administrator applications require explicit Trash and system authentication |
+| Uninstall | Review components and personal-data impact inline; click the red Delete Permanently footer button once to confirm the exact selection, validate and execute without another dialog. Trash remains a secondary menu action. Shared-hard-link bundles expose Trash as the main action; administrator applications request system authentication when needed |
 | Results and recovery | Shared per-item history; only verified Trash items can be restored; permanent removal cannot be restored |
 
 List totals describe bundle allocation; the bottom bar describes the actual selected bundles and associated components. Neither promises exclusively reclaimable bytes. Missing last-used metadata stays unknown rather than using modification time. Coverage gaps, unavailable sizes and activity checks remain explicit. Refreshing or changing selection invalidates prior confirmation; mutations require a new scan for current totals and status.
@@ -258,9 +258,11 @@ Application scans reuse the existing disk-access setup. Limited access permits s
 
 An identifier provides association, not exclusive ownership. Duplicate installations may share components. Unverified/shared components remain protected. Batch plans reject identical or overlapping component paths across applications. Similar names, vendor prefixes and orphan-only leftovers do not authorize removal. Package receipts, external registrations, custom data locations and other accounts remain outside this scope.
 
-Discovery checks `~/Applications`, `/Applications` and two levels of container folders, with a 4,000-entry/10-second budget. Explicitly included system applications stay protected. Embedded bundles are not separately discovered. Each application has its own bounded size measurement; selected components need complete current manifests. Windows is unverified.
+Discovery checks `~/Applications`, `/Applications` and up to eight levels of container folders, with a 4,000-entry/10-second budget. Explicitly included system applications stay protected. Embedded bundles are not separately discovered. Each application has its own bounded size measurement; selected components need complete current manifests. Windows is unverified.
 
 macOS desktop and CLI isolate container ownership metadata reads in the existing read-only child process. Group discovery and individual metadata reads have three- and two-second budgets, respectively, plus the shared two-second IPC allowance. Stop returns without waiting for a blocked kernel read and terminates only the owned child; unresolved children retain the shared two-child limit. Timeout, cancellation and truncated group discovery produce no ownership authority. The worker never opens business records or performs cleanup.
+
+Single-segment identifiers such as `ynote-desktop` are valid association keys. Missing or invalid Info.plist metadata retains a bundle-only option after complete manifest verification, with no inferred associated files. Application links resolve only for read-only metadata/size display and never grant uninstall authority. The list has no persistent partial-coverage banner; Options retains coverage details and expanded rows show the relevant access guidance.
 
 ## Architecture
 
@@ -294,7 +296,7 @@ flowchart TD
   Consent --> Plan
   Plan --> Confirm{Confirm exact paths and mode}
   Confirm -->|Cancel| Select
-  Confirm -->|Confirm| Recheck[Whole-batch preflight then per-item validation]
+  Confirm -->|Confirm| Recheck[Process in order and validate the current item]
   Recheck --> Run[Journal intent and execute; bundle last]
   Run --> Result[Completed failed cancelled or unknown items]
   Result --> Refresh[Rescan current sizes and status]
@@ -325,7 +327,6 @@ sequenceDiagram
   User->>UI: Confirm
   UI->>Core: executeUninstallBatch
   Core->>Store: Acquire mutation lease
-  Core->>Mac: Whole-batch preflight
   loop Components then bundle for each application
     Core->>Mac: Revalidate component and application activity
     Core->>Store: Persist intent
@@ -337,11 +338,11 @@ sequenceDiagram
 
 ## Execution and recovery
 
-Plans expire in 15 minutes and bind application identity, complete manifests, configuration, personal-data consent and mode. Whole-batch preflight failure prevents mutation. Failures or cancellation after starting can leave partial results: this is not a cross-application atomic transaction. Stop takes effect at safe item boundaries; completed items are not automatically rolled back and unknown outcomes are never blindly retried.
+Plans expire in 15 minutes and bind application identity, complete manifests, configuration, personal-data consent and mode. There is no whole-batch filesystem preflight. Structural scope, digest and configuration checks precede ordered per-item identity, association and activity checks. Independent permission, stale-content or activity failures are recorded while remaining items continue. Cancellation, journal failure and lost result channels stop further work; partial success is expected. Stop takes effect at safe item boundaries; completed items are not automatically rolled back and unknown outcomes are never blindly retried.
 
-Protected cases include system/current applications, running owners and helpers, unknown activity, other-user owners, special files, multiple hard links, credentials, Shou records and exclusions. Bundle links are handled as links. Preference files have bounded content digests; directories retain complete metadata manifests. Restoration verifies every exact original parent without creating parents or overwriting files. Permanent outcomes cannot be restored.
+Protected cases include system-directory/current applications, running owners and helpers, unknown activity, other-user owners, special files, credentials, Shou records and exclusions. User-installed Apple applications are not blanket-protected by their `com.apple.*` identifier. Shared-hard-link bundles permit whole-bundle Trash only, retaining associated data. Bundle links are handled as links. Preference files have bounded content digests; directories retain complete metadata manifests. Restoration verifies every exact original parent without creating parents or overwriting files. Permanent outcomes cannot be restored.
 
-On macOS, eligible application bundles containing root-owned content may be moved to Trash alone through `NSWorkspace.recycle`, which uses Finder’s system interaction. The app never collects a password or runs a privileged deletion command. This path retains the complete preflight, per-item journal and destination identity/content verification. Cancelling authentication leaves the application and its associated data in place. Other-user content and protected applications remain blocked. Associated data is not included in an administrator application’s plan; permanent removal is refused. Restoring a protected installation may still require Finder.
+macOS administrator operations share the process-bound `NativeSystemAuthorization` session. The first request uses the system password/Touch ID interface; later operations reuse its constrained worker. Shou never reads or stores passwords. This Platform service supports application reads, permanent removal, Trash/restoration and system startup switches. Administrator removal retains associated data. Cancelling consent prevents dispatch; losing the result channel never replays a request. The worker stages and verifies the exact bundle, then moves it without overwriting into the caller's private same-volume `.Trash` and records its exact location. Restoration also forbids overwriting. Environments without the packaged worker retain the native system recycler fallback, whose authentication is not promised to share this session.
 
 Activity checks combine running bundle identifiers with current-user executable paths. `kill(pid, 0)` also succeeds for zombies: an unreadable path is skipped only when the kernel confirms the process has exited or is `SZOMB`. Live or unknown processes remain blocked. An exit race receives at most one retry within the existing cancellation and three-second deadline.
 
@@ -368,7 +369,7 @@ flowchart TD
   Active -->|No| Continue[Continue exact component validation]
 ```
 
-Failed activity inspection reports `application_activity_unavailable`; an active target reports `application_running`. Neither is mislabeled as changed files. A failed preflight creates no execution receipt and mutates no component. The desktop retains selection after unavailable activity and allows another review, followed by a fresh confirmation. Actual identity, configuration or content changes continue to invalidate old plans.
+Failed activity inspection reports `application_activity_unavailable`; an active target reports `application_running`. Neither is mislabeled as changed files. A failed item check records its failure without changing that item; independent items continue. The desktop retains selection after unavailable activity and allows another review, followed by a fresh confirmation. Identity or content changes fail the affected item; configuration or structural scope changes reject the plan.
 
 ## CLI
 

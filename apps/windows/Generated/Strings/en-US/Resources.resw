@@ -384,11 +384,17 @@
   <data name="s537b8fe5fcee9a78db101eb6" xml:space="preserve">
     <value>Additional scan notes are summarized here.</value>
   </data>
+  <data name="s1e5aa6d6870aa89ee93e6a7d" xml:space="preserve">
+    <value>Administrator Access</value>
+  </data>
   <data name="s394ebd85e8e74a57a363b9ba" xml:space="preserve">
     <value>Administrator Required</value>
   </data>
   <data name="sb8f358b6904a3920d812f930" xml:space="preserve">
     <value>Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.</value>
+  </data>
+  <data name="s15b0f4273b0890833240a35f" xml:space="preserve">
+    <value>Administrator authorization required</value>
   </data>
   <data name="sf7b712b768c50dc7dbe81b62" xml:space="preserve">
     <value>Adobe Bridge caches</value>
@@ -476,6 +482,9 @@
   </data>
   <data name="sa5c1b673e858430fe643981f" xml:space="preserve">
     <value>Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion.</value>
+  </data>
+  <data name="sca2950310f3b8a3e48c3c90e" xml:space="preserve">
+    <value>Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.</value>
   </data>
   <data name="sed64e4c9799abb0ca6f3912c" xml:space="preserve">
     <value>Allow access to application caches that macOS protects.</value>
@@ -773,6 +782,15 @@
   </data>
   <data name="s732c5220f394086a3377a962" xml:space="preserve">
     <value>Authentication Required</value>
+  </data>
+  <data name="s57880a7ab6cdc8e6b42e9d0e" xml:space="preserve">
+    <value>Authorize Administrator Access…</value>
+  </data>
+  <data name="s47c1f8f4189c162034892bbc" xml:space="preserve">
+    <value>Authorized for this session</value>
+  </data>
+  <data name="s9cbc4142c853005b84412f6d" xml:space="preserve">
+    <value>Authorize…</value>
   </data>
   <data name="s1330d8a79c058a9c97954061" xml:space="preserve">
     <value>Autofill</value>
@@ -2832,6 +2850,9 @@
   <data name="sc3a8450e7e90452dd21c530d" xml:space="preserve">
     <value>Identifier unavailable</value>
   </data>
+  <data name="scf731a3c7fd27092f9ca1b77" xml:space="preserve">
+    <value>If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.</value>
+  </data>
   <data name="sbe7e2f20129365c2899b2c11" xml:space="preserve">
     <value>Images</value>
   </data>
@@ -2945,6 +2966,9 @@
   </data>
   <data name="scc5098bde78248090a63dcd7" xml:space="preserve">
     <value>Install CLI Command</value>
+  </data>
+  <data name="sd499e7c1555da21ca9525b5a" xml:space="preserve">
+    <value>Install Shou in Applications first.</value>
   </data>
   <data name="s952c695be80a28c4657e1759" xml:space="preserve">
     <value>Install Skill</value>
@@ -3624,6 +3648,9 @@
   <data name="s3200ba0d537c5463799f31b3" xml:space="preserve">
     <value>Move Selected to Trash…</value>
   </data>
+  <data name="sb70f485ea0a4bf03bb8de063" xml:space="preserve">
+    <value>Move Shou to Applications</value>
+  </data>
   <data name="sa455d80fdfabbb3405cdce4d" xml:space="preserve">
     <value>Move these applications to Trash?</value>
   </data>
@@ -4262,6 +4289,9 @@
   </data>
   <data name="s4bc31545a3b75753514715b7" xml:space="preserve">
     <value>Open System Settings…</value>
+  </data>
+  <data name="sb8a310b6bdb3900c2989fc7b" xml:space="preserve">
+    <value>Open the package manager to authorize this operation, then refresh in Shou.</value>
   </data>
   <data name="sc42fcb581727c4c39d90529c" xml:space="preserve">
     <value>Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours.</value>
@@ -6024,6 +6054,9 @@
   <data name="s26cbec70c895fcca7c9ae2d7" xml:space="preserve">
     <value>Services Using This Installation</value>
   </data>
+  <data name="s7e32d5474f09229f3a65bbe9" xml:space="preserve">
+    <value>Set Up Shou</value>
+  </data>
   <data name="s10886554da510708e6b9477c" xml:space="preserve">
     <value>Set as Default</value>
   </data>
@@ -6762,6 +6795,9 @@
   <data name="sbf665f9e61d5830ebbabf2de" xml:space="preserve">
     <value>Tencent Video caches</value>
   </data>
+  <data name="sb79672161b178efdf94035f1" xml:space="preserve">
+    <value>Terminal Tools</value>
+  </data>
   <data name="s3cab61efade83d717cecb68b" xml:space="preserve">
     <value>Terminal and AI agents, optional</value>
   </data>
@@ -7031,9 +7067,6 @@
   </data>
   <data name="s6b79e04ff623d1cde8b11a02" xml:space="preserve">
     <value>The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically.</value>
-  </data>
-  <data name="s0a0770b3a07bf45df9c36e52" xml:space="preserve">
-    <value>The package manager needs permissions that Shou cannot request. Open the owning tool to continue.</value>
   </data>
   <data name="sa250c2fd54e809f2ccbb5345" xml:space="preserve">
     <value>The packaged CLI is unavailable. Install Shou in Applications first.</value>
@@ -7827,6 +7860,9 @@
   <data name="sf8a5c8d87f6ba89cef0a8993" xml:space="preserve">
     <value>WPS Office caches</value>
   </data>
+  <data name="s859e2cc6fd2e59a75e372167" xml:space="preserve">
+    <value>Waiting for administrator authorization…</value>
+  </data>
   <data name="sf13707d81cb6f2c7264ab3ec" xml:space="preserve">
     <value>Waiting for confirmation or the system installer result. Keep this window open.</value>
   </data>
@@ -7993,13 +8029,19 @@
     <value>Zoom caches</value>
   </data>
   <data name="s56b9e73c13720fadc5951477" xml:space="preserve">
-    <value>macOS may ask you to authenticate when moving to Trash</value>
+    <value>Administrator authorization required</value>
+  </data>
+  <data name="sf4af6c489130123385d8681e" xml:space="preserve">
+    <value>Supports permanent removal with administrator authorization</value>
   </data>
   <data name="s193531babf3019f2fdf2797d" xml:space="preserve">
     <value>Application activity could not be checked; cleanup is blocked.</value>
   </data>
   <data name="sdf5203979d84b15e6429130b" xml:space="preserve">
     <value>application_changed</value>
+  </data>
+  <data name="s425b1138138cbfc21e18440d" xml:space="preserve">
+    <value>Application metadata is unavailable. Only the application bundle can be removed; associated data is kept.</value>
   </data>
   <data name="sda3abe8bca543b00d7a0ffeb" xml:space="preserve">
     <value>Application is running. Quit it and scan again.</value>
@@ -8012,6 +8054,18 @@
   </data>
   <data name="sc3c49ef2da4bef92a8879570" xml:space="preserve">
     <value>The retained Cargo package archive could not be verified; cleanup is blocked.</value>
+  </data>
+  <data name="sed6edf06fa5821d0bddea1df" xml:space="preserve">
+    <value>Administrator authorization was cancelled.</value>
+  </data>
+  <data name="s338edd1d9c1c5847cd6b1266" xml:space="preserve">
+    <value>The authorization session disconnected. Inspect recorded results before retrying.</value>
+  </data>
+  <data name="sb93124de3ae12ea1a1a41a52" xml:space="preserve">
+    <value>Administrator authorization was denied. Authorize again to continue.</value>
+  </data>
+  <data name="s3f8b91e3059227c6d5a135a1" xml:space="preserve">
+    <value>Administrator authorization could not be completed. Try again.</value>
   </data>
   <data name="s6973dddd3ef9cb6a2932702f" xml:space="preserve">
     <value>blocked</value>
@@ -8080,7 +8134,7 @@
     <value>items</value>
   </data>
   <data name="s3431ed1652651a23805ce665" xml:space="preserve">
-    <value>linked_application</value>
+    <value>This is an application link. Its size can be read; manage removal at the actual installation location.</value>
   </data>
   <data name="s95e74e7da69a285aab54f808" xml:space="preserve">
     <value>macOS Help caches</value>
@@ -8100,6 +8154,9 @@
   <data name="s7423069311b8dc8cc8744749" xml:space="preserve">
     <value>macOS regenerates thumbnails and help indexes when needed.</value>
   </data>
+  <data name="s0bd40bf26e76a864f2858151" xml:space="preserve">
+    <value>macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.</value>
+  </data>
   <data name="s9dc1766ee513e92695321d4f" xml:space="preserve">
     <value>macOS will request administrator approval for system background items.</value>
   </data>
@@ -8116,7 +8173,7 @@
     <value>Needs verification</value>
   </data>
   <data name="se2eaa1e6574f5ab891830888" xml:space="preserve">
-    <value>The application contains shared hard links.</value>
+    <value>The application contains shared hard links. Only its application bundle can be moved to Trash.</value>
   </data>
   <data name="sf923eac087499adee3fda8b8" xml:space="preserve">
     <value>Not inspected</value>

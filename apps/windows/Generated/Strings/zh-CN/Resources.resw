@@ -384,11 +384,17 @@
   <data name="s537b8fe5fcee9a78db101eb6" xml:space="preserve">
     <value>另有扫描说明未逐项列出。</value>
   </data>
+  <data name="s1e5aa6d6870aa89ee93e6a7d" xml:space="preserve">
+    <value>管理员权限</value>
+  </data>
   <data name="s394ebd85e8e74a57a363b9ba" xml:space="preserve">
     <value>需管理员权限</value>
   </data>
   <data name="sb8f358b6904a3920d812f930" xml:space="preserve">
     <value>不会自动请求管理员权限，当前无法卸载需要提权的应用。</value>
+  </data>
+  <data name="s15b0f4273b0890833240a35f" xml:space="preserve">
+    <value>需要管理员授权</value>
   </data>
   <data name="sf7b712b768c50dc7dbe81b62" xml:space="preserve">
     <value>Adobe Bridge 缓存</value>
@@ -476,6 +482,9 @@
   </data>
   <data name="sa5c1b673e858430fe643981f" xml:space="preserve">
     <value>分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。</value>
+  </data>
+  <data name="sca2950310f3b8a3e48c3c90e" xml:space="preserve">
+    <value>在“完全磁盘访问”中允许 Shou，然后重新检查应用。文件访问权限也可能造成限制。</value>
   </data>
   <data name="sed64e4c9799abb0ca6f3912c" xml:space="preserve">
     <value>允许访问受 macOS 保护的应用缓存。</value>
@@ -773,6 +782,15 @@
   </data>
   <data name="s732c5220f394086a3377a962" xml:space="preserve">
     <value>需要身份验证</value>
+  </data>
+  <data name="s57880a7ab6cdc8e6b42e9d0e" xml:space="preserve">
+    <value>授权管理员权限…</value>
+  </data>
+  <data name="s47c1f8f4189c162034892bbc" xml:space="preserve">
+    <value>本次会话已授权</value>
+  </data>
+  <data name="s9cbc4142c853005b84412f6d" xml:space="preserve">
+    <value>授权…</value>
   </data>
   <data name="s1330d8a79c058a9c97954061" xml:space="preserve">
     <value>自动填充</value>
@@ -2832,6 +2850,9 @@
   <data name="sc3a8450e7e90452dd21c530d" xml:space="preserve">
     <value>标识不可用</value>
   </data>
+  <data name="scf731a3c7fd27092f9ca1b77" xml:space="preserve">
+    <value>若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。</value>
+  </data>
   <data name="sbe7e2f20129365c2899b2c11" xml:space="preserve">
     <value>图片</value>
   </data>
@@ -2945,6 +2966,9 @@
   </data>
   <data name="scc5098bde78248090a63dcd7" xml:space="preserve">
     <value>安装 CLI 命令</value>
+  </data>
+  <data name="sd499e7c1555da21ca9525b5a" xml:space="preserve">
+    <value>请先将 Shou 安装到应用程序。</value>
   </data>
   <data name="s952c695be80a28c4657e1759" xml:space="preserve">
     <value>安装 Skill</value>
@@ -3624,6 +3648,9 @@
   <data name="s3200ba0d537c5463799f31b3" xml:space="preserve">
     <value>将所选项目移入废纸篓…</value>
   </data>
+  <data name="sb70f485ea0a4bf03bb8de063" xml:space="preserve">
+    <value>将 Shou 移入应用程序</value>
+  </data>
   <data name="sa455d80fdfabbb3405cdce4d" xml:space="preserve">
     <value>将这些应用移入废纸篓？</value>
   </data>
@@ -4262,6 +4289,9 @@
   </data>
   <data name="s4bc31545a3b75753514715b7" xml:space="preserve">
     <value>打开系统设置…</value>
+  </data>
+  <data name="sb8a310b6bdb3900c2989fc7b" xml:space="preserve">
+    <value>请在包管理器中授权此操作，然后回到 Shou 刷新。</value>
   </data>
   <data name="sc42fcb581727c4c39d90529c" xml:space="preserve">
     <value>打开已保存的调查不会联网。继续时使用原连接，调查超过 24 小时后无法续接。</value>
@@ -6024,6 +6054,9 @@
   <data name="s26cbec70c895fcca7c9ae2d7" xml:space="preserve">
     <value>使用此安装的服务</value>
   </data>
+  <data name="s7e32d5474f09229f3a65bbe9" xml:space="preserve">
+    <value>设置 Shou</value>
+  </data>
   <data name="s10886554da510708e6b9477c" xml:space="preserve">
     <value>设为默认</value>
   </data>
@@ -6762,6 +6795,9 @@
   <data name="sbf665f9e61d5830ebbabf2de" xml:space="preserve">
     <value>腾讯视频 缓存</value>
   </data>
+  <data name="sb79672161b178efdf94035f1" xml:space="preserve">
+    <value>终端工具</value>
+  </data>
   <data name="s3cab61efade83d717cecb68b" xml:space="preserve">
     <value>终端与 AI Agent，可选</value>
   </data>
@@ -7031,9 +7067,6 @@
   </data>
   <data name="s6b79e04ff623d1cde8b11a02" xml:space="preserve">
     <value>包管理器可能已经修改文件。请重新检查来源再尝试，Shou 不会自动重试。</value>
-  </data>
-  <data name="s0a0770b3a07bf45df9c36e52" xml:space="preserve">
-    <value>包管理器需要额外权限，请打开对应工具继续。</value>
   </data>
   <data name="sa250c2fd54e809f2ccbb5345" xml:space="preserve">
     <value>找不到应用内的 CLI，请先将 Shou 安装到应用程序。</value>
@@ -7827,6 +7860,9 @@
   <data name="sf8a5c8d87f6ba89cef0a8993" xml:space="preserve">
     <value>WPS Office 缓存</value>
   </data>
+  <data name="s859e2cc6fd2e59a75e372167" xml:space="preserve">
+    <value>等待管理员授权…</value>
+  </data>
   <data name="sf13707d81cb6f2c7264ab3ec" xml:space="preserve">
     <value>正在等待确认或系统安装程序的结果，请保持窗口打开。</value>
   </data>
@@ -7993,13 +8029,19 @@
     <value>Zoom 缓存</value>
   </data>
   <data name="s56b9e73c13720fadc5951477" xml:space="preserve">
-    <value>移到废纸篓时，macOS 可能会要求验证身份</value>
+    <value>需要管理员授权</value>
+  </data>
+  <data name="sf4af6c489130123385d8681e" xml:space="preserve">
+    <value>可授权管理员权限后永久删除</value>
   </data>
   <data name="s193531babf3019f2fdf2797d" xml:space="preserve">
     <value>无法确认应用运行状态，已阻止清理。</value>
   </data>
   <data name="sdf5203979d84b15e6429130b" xml:space="preserve">
     <value>应用在检查过程中发生变化。</value>
+  </data>
+  <data name="s425b1138138cbfc21e18440d" xml:space="preserve">
+    <value>应用安装信息缺失，仅卸载应用本体，保留关联数据。</value>
   </data>
   <data name="sda3abe8bca543b00d7a0ffeb" xml:space="preserve">
     <value>应用正在运行，请退出后重新扫描。</value>
@@ -8012,6 +8054,18 @@
   </data>
   <data name="sc3c49ef2da4bef92a8879570" xml:space="preserve">
     <value>无法核验保留的 Cargo 包归档，已阻止清理。</value>
+  </data>
+  <data name="sed6edf06fa5821d0bddea1df" xml:space="preserve">
+    <value>已取消管理员授权。</value>
+  </data>
+  <data name="s338edd1d9c1c5847cd6b1266" xml:space="preserve">
+    <value>授权会话已断开，请先检查记录中的结果再重试。</value>
+  </data>
+  <data name="sb93124de3ae12ea1a1a41a52" xml:space="preserve">
+    <value>管理员授权未通过，请重新授权后继续。</value>
+  </data>
+  <data name="s3f8b91e3059227c6d5a135a1" xml:space="preserve">
+    <value>无法完成管理员授权，请重试。</value>
   </data>
   <data name="s6973dddd3ef9cb6a2932702f" xml:space="preserve">
     <value>已保护</value>
@@ -8080,7 +8134,7 @@
     <value>项</value>
   </data>
   <data name="s3431ed1652651a23805ce665" xml:space="preserve">
-    <value>应用路径是符号链接，不跟随读取。</value>
+    <value>这是应用链接，可查看大小；请从实际安装位置管理卸载。</value>
   </data>
   <data name="s95e74e7da69a285aab54f808" xml:space="preserve">
     <value>macOS 帮助缓存</value>
@@ -8100,6 +8154,9 @@
   <data name="s7423069311b8dc8cc8744749" xml:space="preserve">
     <value>macOS 会按需重建缩略图与帮助索引。</value>
   </data>
+  <data name="s0bd40bf26e76a864f2858151" xml:space="preserve">
+    <value>需要时，macOS 会请求管理员密码。本次会话复用授权，仅移除所选应用程序包，保留关联数据。</value>
+  </data>
   <data name="s9dc1766ee513e92695321d4f" xml:space="preserve">
     <value>更改系统后台启动项时，macOS 将请求管理员授权。</value>
   </data>
@@ -8116,7 +8173,7 @@
     <value>需要核实</value>
   </data>
   <data name="se2eaa1e6574f5ab891830888" xml:space="preserve">
-    <value>应用包含共享硬链接。</value>
+    <value>应用包含共享硬链接，仅支持将应用本体移到废纸篓。</value>
   </data>
   <data name="sf923eac087499adee3fda8b8" xml:space="preserve">
     <value>未检查</value>

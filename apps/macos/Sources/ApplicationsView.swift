@@ -16,7 +16,7 @@ private enum ApplicationFilter: String, CaseIterable {
     func matches(_ item: ApplicationSummary) -> Bool {
         switch self {
         case .all: true
-        case .ready: item.status == "ready"
+        case .ready: ["ready", "trash-required"].contains(item.status)
         case .running: item.status == "running"
         case .administrator: item.status == "admin-required"
         case .protected: ["protected", "unavailable"].contains(item.status)
@@ -85,11 +85,11 @@ struct ApplicationsView: View {
                 VStack(spacing: 0) {
                     if !session.scanning { ScanAccessBanner(model: model) }
                     summary
-                    Divider()
+                    ShouDivider()
                     filters
-                    Divider()
+                    ShouDivider()
                     columns(compact: geometry.size.width < 840)
-                    Divider()
+                    ShouDivider()
                     if session.scanning && session.items.isEmpty {
                         VStack(spacing: 14) {
                             OperationActivityArtwork(symbol: "app.dashed", stopped: session.stopRequested)
@@ -101,7 +101,7 @@ struct ApplicationsView: View {
                             LazyVStack(spacing: 0) {
                                 ForEach(items, id: \.application.id) { item in
                                     ApplicationUninstallRow(model: model, session: session, summary: item, compact: geometry.size.width < 840)
-                                    Divider().padding(.leading, 54)
+                                    ShouDivider().padding(.leading, 54)
                                 }
                             }.padding(.horizontal, 10)
                         }
@@ -146,6 +146,8 @@ struct ApplicationsView: View {
                 Toggle(model.t("Include protected system apps"), isOn: $session.includeSystem)
                 Button(model.t("View Coverage…")) { showCoverage=true }
                 Button(model.t("Review Disk Access…")) { model.scanAccess.showingSetup=true }
+                Button(model.t("Authorize Administrator Access…")) { model.scanAccess.authorizeAdministrator { session.scan(app: model) } }
+                    .disabled(model.scanAccess.authorizingAdministrator)
             } label: { Image(systemName: "ellipsis.circle") }.menuStyle(.borderlessButton).fixedSize().disabled(model.busy)
                 .accessibilityLabel(model.t("Application Options"))
             Button {
@@ -173,8 +175,6 @@ struct ApplicationsView: View {
                 }.frame(width: 270)
             } else if session.hasChanges {
                 Button(model.t("Scan again to update sizes and status")) { session.scan(app: model) }.buttonStyle(.link).font(ShouType.caption)
-            } else if session.catalog?.status == "partial" || session.items.contains(where: { !$0.issues.isEmpty }) {
-                Button { showCoverage=true } label: { Label(model.t("Partial Coverage"), systemImage: "exclamationmark.triangle") }.buttonStyle(.link).font(ShouType.caption)
             }
         }.padding(20)
     }
@@ -223,17 +223,26 @@ struct ApplicationsView: View {
     private var footer: some View {
         HStack(spacing: 12) {
             Text(String(format: model.t("%lld applications selected"), session.selectedAppIDs.count)).font(ShouType.body)
-            Divider().frame(height: 18)
+            ShouDivider(vertical: true).frame(height: 18)
             Text(model.t("Estimated Removal")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             Text(model.bytes(session.selectedBytes)).font(ShouType.body.weight(.semibold)).monospacedDigit()
             Spacer()
             if !session.selectedAppIDs.isEmpty {
                 Button(model.t("Clear Selection")) { session.clear(app: model) }.disabled(model.busy).accessibilityIdentifier("applications.clear")
             }
+            if session.selectionRequiresTrash {
+                Button(role: .destructive) { session.removeSelected(app: model, action: "trash") } label: {
+                    Label(model.t("Move to Trash"), systemImage: "trash")
+                        .font(ShouType.body.weight(.semibold))
+                        .frame(minWidth: ShouDesign.primaryActionMinWidth, minHeight: ShouDesign.primaryActionContentMinHeight)
+                }.buttonStyle(.borderedProminent).tint(ShouPalette.danger).controlSize(.large)
+                    .disabled(model.busy || session.selectedAppIDs.isEmpty || session.hasChanges)
+                    .accessibilityIdentifier("applications.uninstall")
+            } else {
             CleanupActionButton(model: model, enabled: !model.busy && !session.selectedAppIDs.isEmpty && !session.hasChanges,
                 clean: { session.removeSelected(app: model, action: "permanent") },
-                trash: { session.removeSelected(app: model, action: "trash") }, identifier: "applications.uninstall",
-                permanentEnabled: !session.selectionRequiresAdministrator)
+                trash: { session.removeSelected(app: model, action: "trash") }, identifier: "applications.uninstall")
+            }
         }.padding(.horizontal, ShouDesign.workspaceInset).padding(.vertical, 12).background(.bar)
     }
     private var coverage: some View {
@@ -241,7 +250,7 @@ struct ApplicationsView: View {
             Text(model.t("Application Discovery Coverage")).font(ShouType.title.bold())
             Text(model.t("Application sizes describe the app bundle. Associated files are measured when you expand or select an application. System usage records can be unavailable."))
                 .foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
-            Text(model.t("For applications requiring administrator access, macOS handles authentication when you move the app to Trash. Associated app data is kept."))
+            Text(model.t("macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept."))
                 .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
@@ -347,6 +356,7 @@ private struct ApplicationUninstallRow: View {
         let title: String=switch summary.status {
         case "ready": "Ready to Uninstall"
         case "running": "Quit Application First"
+        case "trash-required": "Move to Trash"
         case "protected": "Protected"
         default: summary.issues.contains("application_activity_unavailable") ? "Status Unverified" : "Unavailable"
         }
@@ -363,7 +373,7 @@ private struct ApplicationUninstallRow: View {
                     .buttonStyle(.plain).accessibilityLabel(model.t("Reveal in Finder"))
             }
             ApplicationUpdateRow(model: model, application: app)
-            Divider()
+            ShouDivider()
             if !summary.issues.isEmpty {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -378,6 +388,18 @@ private struct ApplicationUninstallRow: View {
                     }
                 }
             }
+            if needsDiskAccess {
+                HStack(alignment: .top, spacing: 12) {
+                    Text(model.t("Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access."))
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    Spacer()
+                    Button(model.t("Review Disk Access…")) { model.scanAccess.showingSetup=true }.disabled(model.busy)
+                        .accessibilityIdentifier("applications.access." + app.id)
+                    Button(model.t("Check Again")) { session.scan(app: model) }.disabled(model.busy)
+                    Button(model.t("Authorize…")) { model.scanAccess.authorizeAdministrator { session.scan(app: model) } }
+                        .disabled(model.busy || model.scanAccess.authorizingAdministrator)
+                }
+            }
             if summary.status == "running" {
                 HStack {
                     Text(model.t("Quit the application and its helpers before uninstalling.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
@@ -386,33 +408,35 @@ private struct ApplicationUninstallRow: View {
                 }
             }
             if summary.status == "admin-required" {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: "lock.fill").foregroundStyle(ShouPalette.secondary)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(model.t("macOS handles authentication")).font(ShouType.body.weight(.medium))
-                        Text(model.t("After you confirm Move to Trash, macOS may ask for Touch ID or an administrator password. Associated app data is kept. Cancelling authentication leaves this application in place."))
-                            .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
-                    }
+                HStack(spacing: ShouDesign.itemSpacing) {
+                    Label(model.t("Administrator Access"), systemImage: "lock.fill")
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                     Spacer(minLength: 12)
+                    Button(model.t("Authorize…")) { model.scanAccess.authorizeAdministrator { session.scan(app: model) } }
+                        .disabled(model.busy || model.scanAccess.authorizingAdministrator || model.scanAccess.administratorState == .authorized)
+                        .accessibilityIdentifier("applications.authorize." + app.id)
                     Button(model.t(session.isSelected(app.id) ? "Deselect" : "Select for Removal")) { session.toggle(summary, app: model) }
                         .disabled(model.busy || session.hasChanges).accessibilityIdentifier("applications.selectForRemoval." + app.id)
-                }.padding(12).background(.quaternary.opacity(0.4), in: RoundedRectangle(cornerRadius: 8))
+                }
             }
             if session.reviewingID == app.id {
                 HStack { ProgressView().controlSize(.small); Text(model.t("Reviewing application components…")).font(ShouType.caption) }.padding(.vertical, 12)
             } else {
-                if session.reviews[app.id]?.requiresAdministrator != true && components.contains(where: \.requiresUserDataConsent) {
+                if session.reviews[app.id]?.keepsAssociatedData != true && components.contains(where: \.requiresUserDataConsent) {
                     Text(model.t("Personal app data selected; work and sign-in information may be lost.")).font(ShouType.caption).foregroundStyle(ShouPalette.warning)
                     Toggle(model.t("Allow selecting personal app data"), isOn: Binding(get: { session.personalDataConsent.contains(app.id) }, set: { session.allowPersonalData(app.id, allowed: $0, app: model) }))
                         .toggleStyle(.checkbox).font(ShouType.caption).disabled(model.busy).accessibilityIdentifier("applications.personalData." + app.id)
                 }
-                ForEach(components.filter { session.reviews[app.id]?.requiresAdministrator != true || $0.kind == .application }) { component in componentRow(component) }
+                ForEach(components.filter { session.reviews[app.id]?.keepsAssociatedData != true || $0.kind == .application }) { component in componentRow(component) }
                 if components.isEmpty {
                     Text(model.t("No verified components available. Scan again or review access notices.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
             }
         }.padding(.leading, 54).padding(.trailing, 12).padding(.vertical, 12)
-            .overlay(alignment: .leading) { Rectangle().fill(ShouPalette.border).frame(width: 0.5).padding(.leading, 32).padding(.vertical, 10) }
+    }
+    private var needsDiskAccess: Bool {
+        let reasons=summary.issues + components.flatMap(\.reasons)
+        return reasons.contains { ["permission_denied", "permission_or_type_unavailable", "unreadable_directory", "unreadable_entry", "privacy_permission_required"].contains($0) }
     }
     private func componentRow(_ component: UninstallComponent) -> some View {
         HStack(alignment: .top, spacing: 12) {
@@ -428,7 +452,7 @@ private struct ApplicationUninstallRow: View {
                 ForEach(component.reasons + component.warnings, id: \.self) { Text(model.t($0)).font(ShouType.caption).foregroundStyle(ShouPalette.warning) }
             }.frame(maxWidth: .infinity, alignment: .leading)
             Text(model.t(component.kind == .application ? "Required for uninstall" : component.requiresUserDataConsent ? "Personal data" : component.eligible ? "Optional" : "Unavailable"))
-                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.horizontal, 7).padding(.vertical, 4).background(.quaternary, in: Capsule())
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.horizontal, 7).padding(.vertical, 4).background(ShouPalette.inset, in: Capsule())
             Text((component.status == "partial" ? "≥ " : "") + model.bytes(component.allocatedBytesEstimate)).font(ShouType.caption).monospacedDigit().frame(width: 88, alignment: .trailing)
         }.padding(.vertical, 7)
     }

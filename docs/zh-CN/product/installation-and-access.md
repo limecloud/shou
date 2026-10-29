@@ -2,6 +2,17 @@
 
 [English](../../product/installation-and-access.md) | 简体中文
 
+## 暂无开发者证书时的安装
+
+当前 Mac 版本使用临时签名，尚无 Apple 开发者证书和 Apple 公证。从本仓库 [Releases](https://github.com/limecloud/shou/releases) 下载并将 `Shou.app` 放入**应用程序**后，如果 macOS 阻止首次打开，在“终端”执行：
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Shou.app"
+open "/Applications/Shou.app"
+```
+
+命令仅递归移除该应用的 `com.apple.quarantine` 下载隔离属性；安装在其他目录时，替换为实际 `Shou.app` 路径。此步骤不授予完全磁盘访问权限，磁盘扫描仍按下方引导单独授权。
+
 先将 Shou 安装到**应用程序**，再设置磁盘访问权限。打开安装后的应用，通过**设置 → 安装与 CLI → 设置引导**完成配置。首次启动会显示引导，之后也可从设置或扫描范围提示重新打开。
 
 ## 首次使用
@@ -35,6 +46,8 @@ flowchart TD
 macOS 没有返回通用完全磁盘访问授权状态的受支持 API。Shou 只读打开系统保护的 `/Library/Application Support/com.apple.TCC/TCC.db` 探测文件，并立即关闭，不读取内容。这属于访问能力的实际证据，并非查询该数据库；文件缺失或其他异常保持未知。设置页不会为检查状态而探测其他应用的容器。
 
 检查结果受限或未知时，原生扫描器不进入已知的应用容器、邮件、信息、浏览器等受保护边界，记录 `authorization_required`，保留可访问的同级目录，也不会将跳过的子树显示为已完整统计的零字节。策略同时适用于只读 Worker 和直接扫描。它不穷尽 macOS 现在及未来的所有隐私边界，其他无法访问的位置仍记录为覆盖缺口，macOS 也可能请求特定文件夹的访问许可。
+
+管理员权限由 Platform 的进程期会话统一提供。可从“设置 → 扫描与隐私”或受阻应用行点击“授权”，首次实际管理员操作也会按需请求系统认证。密码／Touch ID 界面由 macOS 提供，Shou 不保存密码；后续受支持的扫描、清理、配置／日志和系统操作复用会话，直到退出应用或通道失效。系统授权只获得底层能力，每次清理仍对确切选择确认一次并逐项记录结果。完全磁盘访问仍需独立系统开关，不安装常驻 root 服务。
 
 ```mermaid
 sequenceDiagram

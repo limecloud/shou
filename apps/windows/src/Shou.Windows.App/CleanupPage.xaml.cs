@@ -210,6 +210,9 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
             StartCoverageNotice.IsOpen = !activity && !results && !issues.IsEmpty;
             StartCoverageDetailsButton.Visibility = StartCoverageNotice.IsOpen ? Visibility.Visible : Visibility.Collapsed;
             StartCoverageNotice.Message = CoverageNotice.Message;
+            var needsAuthorization = issues.Any(issue => AdministratorAccessButton.Required(issue.Code)) || AdministratorAccessButton.Required(model.ErrorCode);
+            CoverageNotice.Content = needsAuthorization ? new AdministratorAccessButton() : null;
+            StartCoverageNotice.Content = needsAuthorization ? new AdministratorAccessButton() : null;
             ScanState.Text = text.Get(model.Batch?.State == "complete" || model.Batch is null && model.Snapshot?.Scan.IsComplete == true ? "Scan Complete" : "Partial Scan");
             PreviousButton.IsEnabled = !IsBusy && model.HasPrevious;
             NextButton.IsEnabled = !IsBusy && model.HasNext;
@@ -452,6 +455,7 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
         CompletionTitle.Text = text.Get(summary.TitleKey);
         AutomationProperties.SetItemStatus(CompletionTitle, summary.Complete ? "completed" : summary.Cancelled ? "cancelled" : summary.HasRecord ? "partial" : "unverified");
         CompletionDescription.Text = text.Get(summary.DescriptionKey);
+        CompletionAuthorization.Visibility = execution.Execution?.Items.Any(item => AdministratorAccessButton.Required(item.Reason)) == true ? Visibility.Visible : Visibility.Collapsed;
         CompletionDate.Text = summary.StartedAt?.ToLocalTime().ToString("g", System.Globalization.CultureInfo.CurrentCulture) ?? "";
         CompletionDate.Visibility = summary.StartedAt is null ? Visibility.Collapsed : Visibility.Visible;
         CompletionBytes.Text = StorageRow.FormatBytes(summary.RemovedBytesEstimate);

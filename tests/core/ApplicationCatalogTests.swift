@@ -97,12 +97,46 @@ func nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps() th
         }
     }
     try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("Linked.app"), withDestinationURL: root.appendingPathComponent("Unknown.app"))
-    try FileManager.default.createDirectory(at: root.appendingPathComponent("a/b/c/TooDeep.app"), withIntermediateDirectories: true)
+    let beyondLimit=Array(repeating: "nested", count: ApplicationCatalogOptions.maxContainerDepth + 1).joined(separator: "/")
+    try FileManager.default.createDirectory(at: root.appendingPathComponent(beyondLimit + "/TooDeep.app"), withIntermediateDirectories: true)
     let reader=NativeApplicationCatalog(sources: [ApplicationSource(id: "fixture.apps", path: root.path)])
     let report=try reader.read(options: ApplicationCatalogOptions())
-    try expect(report.status == "partial" && report.items.count == 7 && report.issues.count == 9)
+    try expect(report.status == "partial" && report.items.count == 8 && report.issues.count == 10)
     try expect(report.items.allSatisfy { $0.bundleIdentifier == nil && $0.infoDigest == nil })
     try expect(Set(report.issues.map(\.code)).isSuperset(of: ["linked_definition", "unsupported_definition", "definition_too_large", "invalid_application_metadata", "invalid_bundle_identifier", "unsupported_bundle", "linked_application", "depth_limit"]))
     try expect(try Data(contentsOf: external) == original)
+    #endif
+}
+
+func nativeApplicationCatalogSupportsNestedSingleSegmentAndLinkedApplications() throws {
+    #if os(macOS)
+    let fixture=try Fixture(), root=fixture.workspace.appendingPathComponent("Applications")
+    let deep=root.appendingPathComponent("Utilities/Vendor/Components/Client.app")
+    try FileManager.default.createDirectory(at: deep.appendingPathComponent("Contents"), withIntermediateDirectories: true)
+    try PropertyListSerialization.data(fromPropertyList: ["CFBundleIdentifier": "ynote-desktop", "CFBundleName": "Generated Client"], format: .binary, options: 0)
+        .write(to: deep.appendingPathComponent("Contents/Info.plist"))
+    let reader=NativeApplicationCatalog(sources: [ApplicationSource(id: "fixture.apps", path: root.path)])
+    let first=try reader.read(options: .init())
+    try expect(first.status == "complete" && first.items.count == 1 && first.items[0].bundleIdentifier == "ynote-desktop")
+    try expect(try reader.application(at: deep.path) == first.items[0])
+    _ = try NativeFileSystem(applicationRoots: [root.path]).applicationParentIdentity(deep.deletingLastPathComponent().path)
+    let link=root.appendingPathComponent("Alias.app")
+    try FileManager.default.createSymbolicLink(at: link, withDestinationURL: deep)
+    let report=try reader.read(options: .init()), alias=try require(report.items.first { $0.path == link.path })
+    try expect(alias.name == "Generated Client" && alias.bundleIdentifier == "ynote-desktop" && alias.identity.kind == "symlink")
+    try expect(report.issues == [ApplicationCatalogIssue(path: link.path, code: "linked_application")])
+    let measured=try reader.measureSummary(for: alias, budget: .init(), progress: { _ in })
+    let original=try reader.measureSummary(for: first.items[0], budget: .init(), progress: { _ in })
+    try expect(measured.allocatedBytesEstimate == original.allocatedBytesEstimate && measured.issues.isEmpty)
+    try expectThrows { try reader.application(at: link.path) }
+    try FileManager.default.removeItem(at: link)
+    try FileManager.default.createSymbolicLink(at: link, withDestinationURL: fixture.workspace.appendingPathComponent("Missing.app"))
+    try expectThrows { try reader.measureSummary(for: alias, budget: .init(), progress: { _ in }) }
+    let missing=try reader.read(options: .init())
+    try expect(missing.items.count == 2 && missing.issues.contains { $0.path == link.path && $0.code == "io_error" })
+    for identifier in ["ynote-desktop", "App", "dev.valid-app.name"] { try expect(ApplicationDefinition.isValidBundleIdentifier(identifier)) }
+    for identifier in ["", ".", "..", "../escape", "/absolute", "dev..app", "a\\b", "a*b", "a\nb", String(repeating: "a", count: 256)] {
+        try expect(!ApplicationDefinition.isValidBundleIdentifier(identifier))
+    }
     #endif
 }

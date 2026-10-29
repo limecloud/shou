@@ -29,8 +29,10 @@ public struct ScanPrivacyPolicy: Sendable {
     public let status: DiskAccessStatus
     public let home: String
     private let protectedRoots: [String]
-    public init(status: DiskAccessStatus, home: String) {
+    private let excludedRoots: [String]
+    public init(status: DiskAccessStatus, home: String, excludedRoots: [String] = []) {
         self.status=status; self.home=home
+        self.excludedRoots=excludedRoots.map(Self.normalizedPath)
         let base=Self.normalizedPath(home)
         protectedRoots=["Library/Containers", "Library/Group Containers", "Library/Daemon Containers",
                         "Library/Mail", "Library/Messages", "Library/Safari", "Library/Accounts",
@@ -42,13 +44,18 @@ public struct ScanPrivacyPolicy: Sendable {
         Self(status: NativeDiskAccess.check(), home: FileManager.default.homeDirectoryForCurrentUser.path)
     }
     public func requiresAuthorization(_ path: String) -> Bool {
-        guard status != .available && status != .notRequired else { return false }
         let candidate=Self.normalizedPath(path)
+        if excludedRoots.contains(where: { candidate == $0 || candidate.hasPrefix($0 + "/") }) { return true }
+        guard status != .available && status != .notRequired else { return false }
         return protectedRoots.contains { boundary in
             // macOS home volumes are usually case insensitive; be conservative
             // for alternative spelling, without confusing prefix siblings.
             return candidate == boundary || candidate.hasPrefix(boundary + "/")
         }
+    }
+    public func coverageCode(_ path: String) -> String {
+        let candidate=Self.normalizedPath(path)
+        return excludedRoots.contains(where: { candidate == $0 || candidate.hasPrefix($0 + "/") }) ? "protected_content" : "authorization_required"
     }
     private static func normalizedPath(_ path: String) -> String {
         // Match the lexical path accepted by traversal without touching the
@@ -66,7 +73,11 @@ public struct ScanPrivacyPolicy: Sendable {
     }
     public func checkRoot(_ path: String) throws {
         if requiresAuthorization(path) {
-            throw ShouError("permission_denied", "Full Disk Access is needed for this protected location. Open Shou Settings to finish setup.", details: ["path": path])
+            let candidate=Self.normalizedPath(path)
+            if excludedRoots.contains(where: { candidate == $0 || candidate.hasPrefix($0 + "/") }) {
+                throw ShouError("protected_content", "Other users' private directories remain protected.", details: ["path": path])
+            }
+            throw ShouError("permission_denied", "Full Disk Access is needed for this protected location. Open Shou Settings to finish setup.", details: ["path": path, "access_requirement": SystemAccessRequirement.fullDiskAccess.rawValue])
         }
     }
 }

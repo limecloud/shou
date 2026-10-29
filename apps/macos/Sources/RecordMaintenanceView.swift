@@ -12,7 +12,7 @@ struct RecordMaintenanceButton: View {
             Task {
                 defer { loading=false }
                 do { preview=try await engine.recordRetentionPreview() }
-                catch { model.error=error.localizedDescription }
+                catch { model.presentFailure(error) }
             }
         }
         .disabled(model.busy || loading)
@@ -25,7 +25,7 @@ struct RecordMaintenanceButton: View {
                 Task {
                     defer { loading=false }
                     do { _ = try await engine.collectRecords() }
-                    catch { model.error=error.localizedDescription }
+                    catch { model.presentFailure(error) }
                 }
             }.disabled(preview?.records.isEmpty != false)
         } message: {

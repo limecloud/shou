@@ -94,3 +94,9 @@ powershell.exe -NoProfile -STA -File scripts/windows/test-desktop-e2e.ps1 `
 ```
 
 清单保留 TRX 汇总计数和逐个 `UnitTestResult.outcome` 的 `result_counts`；xUnit 可能出现汇总 `notExecuted=0` 而实际结果为 `NotExecuted`，必须列出跳过。另包含日志、架构、空间、缺失项和产物 SHA256；通过 XML 属性读取带命名空间的 TRX，避免空计数被当成测试通过。E2E 另生成 `verification.json`、逐步截图和命令输出。原始截图及控件树可能包含当前用户可见的应用名称／路径，仅保存在私有证据目录，分享前复核。导出成功本身不构成验收通过。云端导出完成后按最新生命周期选择关机保留或释放。
+
+### 便携预览的交互验收
+
+公开变更门禁关闭的产物使用 `test-desktop-e2e.ps1 -ReadOnlyPreview`。该模式实际检查扫描、筛选、勾选、取消、设置持久化、错误恢复以及清理／空间／隐私按钮保持禁用，并核对生成夹具字节不变；回执明确 `public_mutation_tested=false`。不能把它计作 UI 删除、MSI 卸载或启动项变更验收。默认模式要求公开执行能力可用，继续执行生成夹具的真实变更旅程，不自动降级。
+
+原生文件选择器缺少托管 UIA 模式时，测试只向本次应用 PID 对应的已观察 Edit／Button 句柄发送有超时的原生控件消息；仍须核对最终选择路径，不能注入页面结果。

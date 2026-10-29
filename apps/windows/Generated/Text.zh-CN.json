@@ -639,6 +639,11 @@
     "resource_id": "s537b8fe5fcee9a78db101eb6",
     "text": "另有扫描说明未逐项列出。"
   },
+  "Administrator Access": {
+    "format": "管理员权限",
+    "resource_id": "s1e5aa6d6870aa89ee93e6a7d",
+    "text": "管理员权限"
+  },
   "Administrator Required": {
     "format": "需管理员权限",
     "resource_id": "s394ebd85e8e74a57a363b9ba",
@@ -648,6 +653,11 @@
     "format": "不会自动请求管理员权限，当前无法卸载需要提权的应用。",
     "resource_id": "sb8f358b6904a3920d812f930",
     "text": "不会自动请求管理员权限，当前无法卸载需要提权的应用。"
+  },
+  "Administrator authorization required": {
+    "format": "需要管理员授权",
+    "resource_id": "s15b0f4273b0890833240a35f",
+    "text": "需要管理员授权"
   },
   "Adobe Bridge caches": {
     "format": "Adobe Bridge 缓存",
@@ -793,6 +803,11 @@
     "format": "分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。",
     "resource_id": "sa5c1b673e858430fe643981f",
     "text": "分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。"
+  },
+  "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.": {
+    "format": "在“完全磁盘访问”中允许 Shou，然后重新检查应用。文件访问权限也可能造成限制。",
+    "resource_id": "sca2950310f3b8a3e48c3c90e",
+    "text": "在“完全磁盘访问”中允许 Shou，然后重新检查应用。文件访问权限也可能造成限制。"
   },
   "Allow access to application caches that macOS protects.": {
     "format": "允许访问受 macOS 保护的应用缓存。",
@@ -1288,6 +1303,21 @@
     "format": "需要身份验证",
     "resource_id": "s732c5220f394086a3377a962",
     "text": "需要身份验证"
+  },
+  "Authorize Administrator Access…": {
+    "format": "授权管理员权限…",
+    "resource_id": "s57880a7ab6cdc8e6b42e9d0e",
+    "text": "授权管理员权限…"
+  },
+  "Authorized for this session": {
+    "format": "本次会话已授权",
+    "resource_id": "s47c1f8f4189c162034892bbc",
+    "text": "本次会话已授权"
+  },
+  "Authorize…": {
+    "format": "授权…",
+    "resource_id": "s9cbc4142c853005b84412f6d",
+    "text": "授权…"
   },
   "Autofill": {
     "format": "自动填充",
@@ -4719,6 +4749,11 @@
     "resource_id": "sc3a8450e7e90452dd21c530d",
     "text": "标识不可用"
   },
+  "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.": {
+    "format": "若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。",
+    "resource_id": "scf731a3c7fd27092f9ca1b77",
+    "text": "若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。"
+  },
   "Images": {
     "format": "图片",
     "resource_id": "sbe7e2f20129365c2899b2c11",
@@ -4908,6 +4943,11 @@
     "format": "安装 CLI 命令",
     "resource_id": "scc5098bde78248090a63dcd7",
     "text": "安装 CLI 命令"
+  },
+  "Install Shou in Applications first.": {
+    "format": "请先将 Shou 安装到应用程序。",
+    "resource_id": "sd499e7c1555da21ca9525b5a",
+    "text": "请先将 Shou 安装到应用程序。"
   },
   "Install Skill": {
     "format": "安装 Skill",
@@ -6039,6 +6079,11 @@
     "resource_id": "s3200ba0d537c5463799f31b3",
     "text": "将所选项目移入废纸篓…"
   },
+  "Move Shou to Applications": {
+    "format": "将 Shou 移入应用程序",
+    "resource_id": "sb70f485ea0a4bf03bb8de063",
+    "text": "将 Shou 移入应用程序"
+  },
   "Move these applications to Trash?": {
     "format": "将这些应用移入废纸篓？",
     "resource_id": "sa455d80fdfabbb3405cdce4d",
@@ -7103,6 +7148,11 @@
     "format": "打开系统设置…",
     "resource_id": "s4bc31545a3b75753514715b7",
     "text": "打开系统设置…"
+  },
+  "Open the package manager to authorize this operation, then refresh in Shou.": {
+    "format": "请在包管理器中授权此操作，然后回到 Shou 刷新。",
+    "resource_id": "sb8a310b6bdb3900c2989fc7b",
+    "text": "请在包管理器中授权此操作，然后回到 Shou 刷新。"
   },
   "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours.": {
     "format": "打开已保存的调查不会联网。继续时使用原连接，调查超过 24 小时后无法续接。",
@@ -10039,6 +10089,11 @@
     "resource_id": "s26cbec70c895fcca7c9ae2d7",
     "text": "使用此安装的服务"
   },
+  "Set Up Shou": {
+    "format": "设置 Shou",
+    "resource_id": "s7e32d5474f09229f3a65bbe9",
+    "text": "设置 Shou"
+  },
   "Set as Default": {
     "format": "设为默认",
     "resource_id": "s10886554da510708e6b9477c",
@@ -11269,6 +11324,11 @@
     "resource_id": "sbf665f9e61d5830ebbabf2de",
     "text": "腾讯视频 缓存"
   },
+  "Terminal Tools": {
+    "format": "终端工具",
+    "resource_id": "sb79672161b178efdf94035f1",
+    "text": "终端工具"
+  },
   "Terminal and AI agents · optional": {
     "format": "终端与 AI Agent，可选",
     "resource_id": "s3cab61efade83d717cecb68b",
@@ -11718,11 +11778,6 @@
     "format": "包管理器可能已经修改文件。请重新检查来源再尝试，Shou 不会自动重试。",
     "resource_id": "s6b79e04ff623d1cde8b11a02",
     "text": "包管理器可能已经修改文件。请重新检查来源再尝试，Shou 不会自动重试。"
-  },
-  "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.": {
-    "format": "包管理器需要额外权限，请打开对应工具继续。",
-    "resource_id": "s0a0770b3a07bf45df9c36e52",
-    "text": "包管理器需要额外权限，请打开对应工具继续。"
   },
   "The packaged CLI is unavailable. Install Shou in Applications first.": {
     "format": "找不到应用内的 CLI，请先将 Shou 安装到应用程序。",
@@ -13044,6 +13099,11 @@
     "resource_id": "sf8a5c8d87f6ba89cef0a8993",
     "text": "WPS Office 缓存"
   },
+  "Waiting for administrator authorization…": {
+    "format": "等待管理员授权…",
+    "resource_id": "s859e2cc6fd2e59a75e372167",
+    "text": "等待管理员授权…"
+  },
   "Waiting for confirmation or the system installer result. Keep this window open.": {
     "format": "正在等待确认或系统安装程序的结果，请保持窗口打开。",
     "resource_id": "sf13707d81cb6f2c7264ab3ec",
@@ -13320,9 +13380,14 @@
     "text": "Zoom 缓存"
   },
   "administrator_authorization_required": {
-    "format": "移到废纸篓时，macOS 可能会要求验证身份",
+    "format": "需要管理员授权",
     "resource_id": "s56b9e73c13720fadc5951477",
-    "text": "移到废纸篓时，macOS 可能会要求验证身份"
+    "text": "需要管理员授权"
+  },
+  "administrator_permanent_removal_available": {
+    "format": "可授权管理员权限后永久删除",
+    "resource_id": "sf4af6c489130123385d8681e",
+    "text": "可授权管理员权限后永久删除"
   },
   "application_activity_unavailable": {
     "format": "无法确认应用运行状态，已阻止清理。",
@@ -13333,6 +13398,11 @@
     "format": "应用在检查过程中发生变化。",
     "resource_id": "sdf5203979d84b15e6429130b",
     "text": "应用在检查过程中发生变化。"
+  },
+  "application_metadata_missing": {
+    "format": "应用安装信息缺失，仅卸载应用本体，保留关联数据。",
+    "resource_id": "s425b1138138cbfc21e18440d",
+    "text": "应用安装信息缺失，仅卸载应用本体，保留关联数据。"
   },
   "application_running": {
     "format": "应用正在运行，请退出后重新扫描。",
@@ -13353,6 +13423,26 @@
     "format": "无法核验保留的 Cargo 包归档，已阻止清理。",
     "resource_id": "sc3c49ef2da4bef92a8879570",
     "text": "无法核验保留的 Cargo 包归档，已阻止清理。"
+  },
+  "authorization_cancelled": {
+    "format": "已取消管理员授权。",
+    "resource_id": "sed6edf06fa5821d0bddea1df",
+    "text": "已取消管理员授权。"
+  },
+  "authorization_channel_lost": {
+    "format": "授权会话已断开，请先检查记录中的结果再重试。",
+    "resource_id": "s338edd1d9c1c5847cd6b1266",
+    "text": "授权会话已断开，请先检查记录中的结果再重试。"
+  },
+  "authorization_denied": {
+    "format": "管理员授权未通过，请重新授权后继续。",
+    "resource_id": "sb93124de3ae12ea1a1a41a52",
+    "text": "管理员授权未通过，请重新授权后继续。"
+  },
+  "authorization_unavailable": {
+    "format": "无法完成管理员授权，请重试。",
+    "resource_id": "s3f8b91e3059227c6d5a135a1",
+    "text": "无法完成管理员授权，请重试。"
   },
   "blocked": {
     "format": "已保护",
@@ -13465,9 +13555,9 @@
     "text": "项"
   },
   "linked_application": {
-    "format": "应用路径是符号链接，不跟随读取。",
+    "format": "这是应用链接，可查看大小；请从实际安装位置管理卸载。",
     "resource_id": "s3431ed1652651a23805ce665",
-    "text": "应用路径是符号链接，不跟随读取。"
+    "text": "这是应用链接，可查看大小；请从实际安装位置管理卸载。"
   },
   "macOS Help caches": {
     "format": "macOS 帮助缓存",
@@ -13499,6 +13589,11 @@
     "resource_id": "s7423069311b8dc8cc8744749",
     "text": "macOS 会按需重建缩略图与帮助索引。"
   },
+  "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.": {
+    "format": "需要时，macOS 会请求管理员密码。本次会话复用授权，仅移除所选应用程序包，保留关联数据。",
+    "resource_id": "s0bd40bf26e76a864f2858151",
+    "text": "需要时，macOS 会请求管理员密码。本次会话复用授权，仅移除所选应用程序包，保留关联数据。"
+  },
   "macOS will request administrator approval for system background items.": {
     "format": "更改系统后台启动项时，macOS 将请求管理员授权。",
     "resource_id": "s9dc1766ee513e92695321d4f",
@@ -13525,9 +13620,9 @@
     "text": "需要核实"
   },
   "multiply_linked_content": {
-    "format": "应用包含共享硬链接。",
+    "format": "应用包含共享硬链接，仅支持将应用本体移到废纸篓。",
     "resource_id": "se2eaa1e6574f5ab891830888",
-    "text": "应用包含共享硬链接。"
+    "text": "应用包含共享硬链接，仅支持将应用本体移到废纸篓。"
   },
   "not_scanned": {
     "format": "未检查",

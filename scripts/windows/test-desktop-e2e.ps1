@@ -1,7 +1,8 @@
 param(
     [Parameter(Mandatory)][string]$PublishRoot,
     [Parameter(Mandatory)][string]$ArtifactsRoot,
-    [ValidateRange(30, 600)][int]$ScanTimeoutSeconds = 240
+    [ValidateRange(30, 600)][int]$ScanTimeoutSeconds = 240,
+    [switch]$ReadOnlyPreview
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
@@ -13,6 +14,17 @@ if ([Threading.Thread]::CurrentThread.ApartmentState -ne 'STA') {
     throw 'Run with powershell.exe -NoProfile -STA -File scripts/windows/test-desktop-e2e.ps1 ...'
 }
 Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes, System.Drawing
+Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class ShouPickerNative {
+ [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
+ [DllImport("user32.dll", EntryPoint="SendMessageTimeoutW", CharSet=CharSet.Unicode, SetLastError=true)]
+ public static extern IntPtr SetText(IntPtr window, uint message, UIntPtr wparam, string text, uint flags, uint timeout, out UIntPtr result);
+ [DllImport("user32.dll", EntryPoint="SendMessageTimeoutW", SetLastError=true)]
+ public static extern IntPtr Click(IntPtr window, uint message, UIntPtr wparam, IntPtr lparam, uint flags, uint timeout, out UIntPtr result);
+}
+'@
 $PublishRoot = (Resolve-Path -LiteralPath $PublishRoot).Path
 $ShouApp = Join-Path $PublishRoot 'app/Shou.Windows.App.exe'
 $ShouCli = Join-Path $PublishRoot 'cli/shou.exe'
@@ -234,7 +246,13 @@ function Select-Fixture([string]$Page, [string]$Path = $ShouPayload) {
     if ($Field.TryGetCurrentPattern([Windows.Automation.ValuePattern]::Pattern, [ref]$ValuePattern)) {
         $ValuePattern.SetValue($Path)
     } else {
-        $Field.GetCurrentPattern([Windows.Automation.LegacyIAccessiblePattern]::Pattern).SetValue($Path)
+        # Some system pickers expose their native Edit without managed UIA
+        # patterns. Restrict the native message to the observed app-owned HWND.
+        $Handle = [IntPtr]::new($Field.Current.NativeWindowHandle)
+        $Owner = [uint32]0; $Result = [UIntPtr]::Zero
+        [ShouPickerNative]::GetWindowThreadProcessId($Handle, [ref]$Owner) | Out-Null
+        Assert-That ($Handle -ne [IntPtr]::Zero -and $Owner -eq $ShouProcess.Id -and $Field.Current.ClassName -eq 'Edit') 'Folder input is not a verified native Edit.'
+        Assert-That ([ShouPickerNative]::SetText($Handle, 0x000C, [UIntPtr]::Zero, $Path, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero -and $Result -ne [UIntPtr]::Zero) 'Native folder input rejected the generated path.'
     }
     $Dialog = [Windows.Automation.TreeWalker]::ControlViewWalker.GetParent($Field)
     $Select = $null
@@ -249,7 +267,11 @@ function Select-Fixture([string]$Page, [string]$Path = $ShouPayload) {
     if ($Select.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern, [ref]$InvokePattern)) {
         $InvokePattern.Invoke()
     } else {
-        $Select.GetCurrentPattern([Windows.Automation.LegacyIAccessiblePattern]::Pattern).DoDefaultAction()
+        $Handle = [IntPtr]::new($Select.Current.NativeWindowHandle)
+        $Owner = [uint32]0; $Result = [UIntPtr]::Zero
+        [ShouPickerNative]::GetWindowThreadProcessId($Handle, [ref]$Owner) | Out-Null
+        Assert-That ($Handle -ne [IntPtr]::Zero -and $Owner -eq $ShouProcess.Id -and $Select.Current.ClassName -eq 'Button') 'Folder selection is not a verified native Button.'
+        Assert-That ([ShouPickerNative]::Click($Handle, 0x00F5, [UIntPtr]::Zero, [IntPtr]::Zero, 2, 2000, [ref]$Result) -ne [IntPtr]::Zero) 'Native folder selection timed out.'
     }
     $null = Wait-Until { (Find-Control 'storage.choose').Current.Name -eq $Path } 'selected fixture folder'
 }
@@ -278,7 +300,7 @@ try {
     Write-Fixture (Join-Path $ShouPayload 'target/cache.bin') ([byte[]]::new(8192))
     Write-Fixture (Join-Path $ShouPayload 'retained.txt') ([Text.Encoding]::UTF8.GetBytes('Generated fixture; must remain unchanged.'))
     $ShouBefore = @(Get-ChildItem -LiteralPath $ShouPayload -File -Recurse |
-        Where-Object { $_.FullName -notlike ((Join-Path $ShouPayload 'target') + '\*') } |
+        Where-Object { $ReadOnlyPreview -or $_.FullName -notlike ((Join-Path $ShouPayload 'target') + '\*') } |
         Get-FileHash -Algorithm SHA256 | Select-Object Path, Hash)
     foreach ($Name in @('SHOU_DATA_DIR', 'SHOU_DIAGNOSTICS_DIR')) { $ShouSavedEnvironment[$Name] = [Environment]::GetEnvironmentVariable($Name, 'Process') }
     $env:SHOU_DATA_DIR = Join-Path $ShouRun 'Data'
@@ -317,8 +339,15 @@ try {
         Assert-That ($Candidate.Count -eq 1) 'Generated personal rule did not match exactly one target.'
         $Plan = (Run-Cli 'fixture-plan' @('plan', 'create', '--scan-id', $Scan.scan_id, '--candidate', $Candidate[0].id, '--mode', 'permanent')).data
         Assert-That ($Plan.items.Count -eq 1 -and $Plan.action -eq 'permanent') 'Plan differs from the selected generated target.'
-        $Rejected = Run-Cli 'mutation-no-tty' @('plan', 'execute', '--plan-id', $Plan.id) @(7) 'confirmation_required'
-        Assert-That ($Rejected.error.code -eq 'confirmation_required') 'Noninteractive cleanup must require current confirmation.'
+        $Capabilities = (Run-Cli 'mutation-capabilities' @('capabilities')).data
+        Assert-That ($Capabilities.mutation_available -ne [bool]$ReadOnlyPreview) 'Select ReadOnlyPreview only for a payload with closed public mutation gates.'
+        if ($Capabilities.mutation_available) {
+            $Rejected = Run-Cli 'mutation-no-tty' @('plan', 'execute', '--plan-id', $Plan.id) @(7) 'confirmation_required'
+            Assert-That ($Rejected.error.code -eq 'confirmation_required') 'Noninteractive cleanup must require current confirmation.'
+        } else {
+            $Rejected = Run-Cli 'mutation-gate-closed' @('plan', 'execute', '--plan-id', $Plan.id) @(8) 'unsupported_capability'
+            Assert-That ($Rejected.error.code -eq 'unsupported_capability') 'Public cleanup must remain unavailable until native acceptance.'
+        }
         Assert-That (Test-Path -LiteralPath (Join-Path $ShouPayload 'target')) 'Unconfirmed cleanup changed the fixture.'
     }
     Run-Step '03-ui-generated-smart-results-and-filter' {
@@ -357,8 +386,13 @@ try {
         $Target = Wait-Until { Find-GeneratedCleanupTarget } 'cleared generated cleanup target'
         Assert-That ($Target.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Current.ToggleState -eq [Windows.Automation.ToggleState]::Off) 'Clear Selection retained the generated target.'
         $Target.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle()
+        if ($ReadOnlyPreview) {
+            $Button = Find-Control 'cleanup.execute' $true
+            Assert-That ($null -ne $Button -and -not $Button.Current.IsEnabled) 'Preview cleanup unexpectedly permits execution.'
+            Assert-That (Test-Path -LiteralPath (Join-Path $ShouPayload 'target')) 'Preview cleanup changed the generated target.'
+            return
+        }
         Invoke-Control 'cleanup.execute'
-        Invoke-Control 'PrimaryButton'
         $null = Wait-Until { -not (Test-Path -LiteralPath (Join-Path $ShouPayload 'target')) } 'confirmed generated target removal' $ScanTimeoutSeconds
         $null = Wait-Until { $Result = Find-Control 'cleanup.result.title' $true; $Result -and -not $Result.Current.IsOffscreen -and
             $Result.Current.ItemStatus -eq 'completed' } 'recorded cleanup completion page'
@@ -408,11 +442,12 @@ try {
         }
         Assert-That ($null -ne $Check -and $Check.Current.IsEnabled) 'Generated space target is not selectable.'
         $Check.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle()
+        if ($ReadOnlyPreview) {
+            Assert-That (-not (Find-Control 'storage.remove' $true).Current.IsEnabled) 'Preview storage removal unexpectedly permits execution.'
+            Assert-That (Test-Path -LiteralPath (Join-Path $RemovalRoot 'remove-space.bin')) 'Preview storage removal changed the fixture.'
+            return
+        }
         Invoke-Control 'storage.remove'
-        Invoke-Control 'CloseButton'
-        Assert-That (Test-Path -LiteralPath (Join-Path $RemovalRoot 'remove-space.bin')) 'Cancelled space removal changed the fixture.'
-        Invoke-Control 'storage.remove'
-        Invoke-Control 'PrimaryButton'
         $null = Wait-Until { -not (Test-Path -LiteralPath (Join-Path $RemovalRoot 'remove-space.bin')) } 'space removal' $ScanTimeoutSeconds
         Assert-That (([IO.File]::ReadAllBytes((Join-Path $RemovalRoot 'keep.bin')) -join ',') -eq '7,8,9') 'Space removal changed retained bytes.'
     }
@@ -428,8 +463,12 @@ try {
         $Check = (Find-Control 'large.results').FindFirst([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty, $Target))
         Assert-That ($null -ne $Check -and $Check.Current.IsEnabled) 'Generated large file is not selectable.'
         $Check.GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle()
+        if ($ReadOnlyPreview) {
+            Assert-That (-not (Find-Control 'storage.remove' $true).Current.IsEnabled) 'Preview large-file removal unexpectedly permits execution.'
+            Assert-That (Test-Path -LiteralPath $Target) 'Preview large-file removal changed the fixture.'
+            return
+        }
         Invoke-Control 'storage.remove'
-        Invoke-Control 'PrimaryButton'
         $null = Wait-Until { -not (Test-Path -LiteralPath $Target) } 'large-file removal' $ScanTimeoutSeconds
         Assert-That (([IO.File]::ReadAllBytes((Join-Path $RemovalRoot 'keep.bin')) -join ',') -eq '4,5,6') 'Large-file removal changed retained bytes.'
     }
@@ -465,9 +504,9 @@ try {
         $null = Wait-Until { (Find-Control 'rules.results').FindAll([Windows.Automation.TreeScope]::Children,
             [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)).Count -eq 0 } 'filtered rule list'
         Set-Text 'rules.search' ''
-        Navigate-Page 'history' @('ready')
+        Navigate-Page 'history' @($(if ($ReadOnlyPreview) { 'empty' } else { 'ready' }))
         Assert-That ((Find-Control 'history.results').FindAll([Windows.Automation.TreeScope]::Children,
-            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)).Count -eq 3) 'Generated cleanup executions are missing from history.'
+            [Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::ControlTypeProperty, [Windows.Automation.ControlType]::ListItem)).Count -eq $(if ($ReadOnlyPreview) { 0 } else { 3 })) 'History differs from the actual generated executions.'
     }
     Run-Step '09-privacy-generated-cookie-removal' {
         # Provision a new, random profile only. Never open, replace, or change ACLs of an existing browser database.
@@ -515,6 +554,11 @@ with sqlite3.connect(path) as db:
         $null = Wait-Until { (Find-Control 'privacy.selection').Current.ItemStatus -eq '0' -and -not (Find-Control $TargetId).Current.IsEnabled } 'cookie selection revoked with acknowledgement'
         (Find-Control 'privacy.cookie-consent').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle()
         (Find-Control $TargetId).GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle()
+        if ($ReadOnlyPreview) {
+            Assert-That (-not (Find-Control 'privacy.remove' $true).Current.IsEnabled) 'Preview privacy cleanup unexpectedly permits execution.'
+            Assert-That ((Get-FileHash -LiteralPath $Database -Algorithm SHA256).Hash -eq $DatabaseHash) 'Preview privacy selection changed the generated database.'
+            return
+        }
         Invoke-Control 'privacy.remove'
         $null = Wait-Until { Find-Control 'privacy.signout' $true } 'separate cookie sign-out consent'
         Assert-That (-not (Find-Control 'PrimaryButton').Current.IsEnabled) 'Cookie deletion bypassed separate sign-out consent.'
@@ -588,7 +632,7 @@ with sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True) as db:
             Assert-That (@($Events | Where-Object { $_.event -eq 'failed' -and $_.operation -eq 'ui.cleanup.loading' -and $_.exceptions.Count -gt 0 }).Count -gt 0) 'Consumed UI storage failure has no structured exception evidence.'
         } finally { $env:SHOU_DATA_DIR = $OriginalData; $env:SHOU_DIAGNOSTICS_DIR = $OriginalLogs }
         Start-App
-        Navigate-Page 'history' @('ready')
+        Navigate-Page 'history' @($(if ($ReadOnlyPreview) { 'empty' } else { 'ready' }))
         Close-App
     }
     Run-Step '11-retained-integrity-and-log-health' {
@@ -643,9 +687,10 @@ with sqlite3.connect('file:'+sys.argv[1]+'?mode=ro',uri=True) as db:
             os = [Environment]::OSVersion.VersionString; process_architecture = $env:PROCESSOR_ARCHITECTURE;
             app_sha256 = (Get-FileHash -LiteralPath $ShouApp -Algorithm SHA256).Hash;
             cli_sha256 = (Get-FileHash -LiteralPath $ShouCli -Algorithm SHA256).Hash;
+            read_only_preview = [bool]$ReadOnlyPreview; public_mutation_tested = -not [bool]$ReadOnlyPreview;
             outcome = $(if ($null -eq $ShouFailure -and @($ShouResults | Where-Object { $_.outcome -ne 'passed' }).Count -eq 0) { 'passed' } else { 'failed' });
             steps = @($ShouResults.ToArray()); expected_cli_rejections = @($ShouExpectedRejections.ToArray()); artifacts = $Files;
-            limitations = @('Windows x64 interactive journeys; generated cleanup mutation is covered by this run', 'Generated MSI and scheduled-task fixtures run through their separate opt-in scripts', 'Signing, ARM64, installation, update, visual parity and full accessibility are separate acceptance')
+            limitations = @($(if ($ReadOnlyPreview) { 'Read-only preview journeys and closed mutation gates; no public UI cleanup or privacy mutation was executed' } else { 'Windows interactive journeys including generated cleanup mutation' }), 'Generated MSI and scheduled-task fixtures run through their separate opt-in scripts', 'Signing, other architectures, installation, update, visual parity and full accessibility are separate acceptance')
         } | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $ShouRun 'verification.json') -Encoding UTF8
         Write-Output "Desktop E2E evidence: $ShouRun"
     }

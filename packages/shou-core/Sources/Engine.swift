@@ -366,28 +366,9 @@ public actor ShouEngine {
         guard try Digest.of(config) == snapshot.configurationDigest else { throw ShouError("plan_stale", "Configuration changed; scan again.") }
         let selectedRuleIds=snapshot.candidates.filter { candidateIds.contains($0.id) }.flatMap(\.ruleIds)
         let installedCaches=try InstalledApplicationCaches.selected(snapshot.installedApplicationCaches, ruleIds: selectedRuleIds)
-        try revalidateInstalledCaches(installedCaches, workspace: snapshot.workspace)
-        let eligibleRules = try activeRules(config, workspaceId: snapshot.workspace.id,
-            additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: snapshot.workspace) })
-        let blocked=try ApplicationSafety.blockedRules(eligibleRules.map(\.id), activity: applicationActivity).merging(
-            InstalledApplicationCaches.blocked(installedCaches, workspace: snapshot.workspace, activity: uninstallEvidence), uniquingKeysWith: { _, value in value })
-        let reviewed = try Analysis.candidates(tree: TreeSnapshot(entries: snapshot.entries, complete: snapshot.treeComplete ?? (snapshot.status == "complete"), issues: snapshot.issues, caseSensitive: snapshot.caseSensitive, completedPaths: snapshot.completedPaths), workspace: protectedWorkspace(snapshot.workspace, configuration: config), rules: eligibleRules, now: snapshot.createdAt, blockedRules: blocked, artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds, selectedPaths: Set(selected.map(\.relativePath)))
         var items: [PlanItem] = []
         for candidate in selected {
             let path = candidate.relativePath
-            if let reason=candidate.ruleIds.compactMap({ blocked[$0] }).sorted().first {
-                throw ShouError(reason, "Quit the affected application and scan again before cleanup.")
-            }
-            guard let current=reviewed.first(where: { $0.relativePath == path }), current.ruleVersions == candidate.ruleVersions else {
-                throw ShouError("store_corrupt", "Candidate policy evidence could not be reproduced.", details: ["path": snapshot.workspace.path + "/" + path])
-            }
-            guard current.eligible else {
-                throw ShouError("plan_stale", "Cleanup safety checks changed. Scan again before cleaning this directory.",
-                    details: ["path": snapshot.workspace.path + "/" + path, "reasons": current.reasons.joined(separator: "\n")])
-            }
-            guard current.manifestDigest == candidate.manifestDigest else {
-                throw ShouError("store_corrupt", "Candidate policy evidence could not be reproduced.", details: ["path": snapshot.workspace.path + "/" + path])
-            }
             guard !items.contains(where: { $0.candidate.relativePath.hasPrefix(path + "/") || path.hasPrefix($0.candidate.relativePath + "/") }) else { throw ShouError("invalid_argument", "Parent and child targets cannot be selected together.") }
             let manifest = Analysis.subtree(snapshot.entries, path: path)
             guard try Digest.of(manifest) == candidate.manifestDigest else { throw ShouError("store_corrupt", "Candidate manifest does not match its snapshot.") }
@@ -422,41 +403,47 @@ public actor ShouEngine {
               registered.path == plan.workspace.path else { throw ShouError("plan_stale", "Plan workspace does not match its registered binding.") }
         let workspace=protectedWorkspace(registered, configuration: currentConfig)
         guard workspace.exclusions == plan.workspace.exclusions else { throw ShouError("plan_stale", "Plan workspace does not match its registered binding.") }
-        // Persisted plans are data, never authority. Reproduce policy from fresh
-        // coverage; every selected subtree must be complete independently.
-        progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.items.count, path: registered.path))
         let installedCaches=try InstalledApplicationCaches.selected(plan.installedApplicationCaches, ruleIds: plan.items.flatMap { $0.candidate.ruleIds })
-        try revalidateInstalledCaches(installedCaches, workspace: workspace)
         let currentRules=try activeRules(currentConfig, workspaceId: registered.id,
             additionalBuiltins: installedCaches.map { try InstalledApplicationCaches.rule($0, workspace: workspace) })
         let budget=plan.scanBudget ?? ScanBudget()
         try budget.validate()
-        var readRules=currentRules
         for item in plan.items { try PathPattern.validate(item.candidate.relativePath) }
-        if plan.scanScope == .cleanup, plan.items.allSatisfy({ !$0.candidate.relativePath.contains("*") && !$0.candidate.relativePath.contains("?") }) {
-            // Selected paths bound I/O, never policy. Re-scanning their siblings
-            // could exhaust a budget that already measured these full targets.
-            readRules=currentRules.compactMap { rule in
-                let paths=plan.items.filter { $0.candidate.ruleIds.contains(rule.id) }.map(\.candidate.relativePath)
-                guard !paths.isEmpty else { return nil }
-                var copy=rule; copy.match.relativePatterns=paths; return copy
+        // Reproduce policy for the current item only. Native adapters own the
+        // final manifest comparison immediately before that item's mutation.
+        let executionPlan=plan
+        let validate: (Int, [FileEntry]) throws -> String? = { [self] index, expected in
+            let item=executionPlan.items[index]
+            guard try Digest.of(configuration()) == executionPlan.configurationDigest,
+                  rootIdentityMatches(try filesystem.rootIdentity(workspace.path), workspace.identity) else {
+                throw ShouError("access_expired", "The cleanup root or configuration changed.")
             }
-        }
-        let currentTree = try inspect(registered.path, rules: readRules, scope: plan.scanScope ?? .full, budget: budget, progress: { [itemCount=plan.items.count] update in
-            progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: itemCount, path: update.currentPath))
-        })
-        let currentEntries=Dictionary(uniqueKeysWithValues: currentTree.entries.map { ($0.path, $0) })
-        let currentCandidates = try Analysis.candidates(tree: currentTree, workspace: workspace, rules: currentRules, now: now(), artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds)
-        for item in plan.items {
-            progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.items.count, path: plan.workspace.path + "/" + item.candidate.relativePath))
-            try PathPattern.validate(item.candidate.relativePath)
-            guard currentCandidates.contains(where: { $0.relativePath == item.candidate.relativePath && $0.eligible && $0.manifestDigest == item.candidate.manifestDigest && $0.ruleVersions == item.candidate.ruleVersions }),
-                  try Digest.of(item.manifest) == item.candidate.manifestDigest else { throw ShouError("plan_stale", "Current policy or full manifest no longer permits this target.") }
-            // The candidate above was reproduced from this operation's fresh,
-            // complete tree. Its verified manifest digest already proves equality;
-            // native mutation still rechecks the exact target at its boundary.
-            try FileManifestVerification.beforeMutation(filesystem: filesystem,
-                path: plan.workspace.path + "/" + item.candidate.relativePath, manifest: item.manifest, budget: budget)
+            let owners=installedCaches.filter { item.candidate.ruleIds.contains($0.ruleId) }
+            try revalidateInstalledCaches(owners, workspace: workspace)
+            let rules=currentRules.filter { item.candidate.ruleIds.contains($0.id) }
+            let reads=rules.map { rule in var copy=rule; copy.match.relativePatterns=[item.candidate.relativePath]; return copy }
+            let tree=try filesystem.inspectCleanup(workspace.path, rules: reads, budget: budget, cancelled: { Task.isCancelled }, progress: { _ in })
+            let candidates=try Analysis.candidates(tree: tree, workspace: workspace, rules: rules, now: now(),
+                artifactEvidence: artifactEvidence, artifactHomeDirectory: homeDirectory, maxSeconds: budget.maxSeconds)
+            let expectedDigest=try Digest.of(expected)
+            let current=candidates.first { $0.relativePath == item.candidate.relativePath }
+            guard let current, current.eligible, current.manifestDigest == expectedDigest,
+                current.ruleVersions == item.candidate.ruleVersions,
+                try Digest.of(item.manifest) == item.candidate.manifestDigest else {
+                throw ShouError("plan_stale", "Current policy or full manifest no longer permits this target.",
+                    details: ["path": workspace.path + "/" + item.candidate.relativePath, "reasons": current?.reasons.joined(separator: ",") ?? ""])
+            }
+            try FileManifestVerification.beforeMutation(filesystem: filesystem, path: workspace.path + "/" + item.candidate.relativePath,
+                manifest: expected, budget: budget)
+            if let reason=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity).values.sorted().first { return reason }
+            if let reason=try installedCacheBlock(for: item, evidence: owners, workspace: workspace) { return reason }
+            let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: expected,
+                entries: Dictionary(uniqueKeysWithValues: tree.entries.map { ($0.path, $0) }), workspace: workspace,
+                rules: rules, homeDirectory: homeDirectory, evidence: artifactEvidence)
+            guard policy.reasons.isEmpty else {
+                throw ShouError("plan_stale", "Artifact ownership or build activity changed before cleanup.", details: ["reasons": policy.reasons.joined(separator: ",")])
+            }
+            return nil
         }
         let items=plan.items.map {
             ItemReceipt(id: $0.id, originalPath: plan.workspace.path + "/" + $0.candidate.relativePath, relativePath: $0.candidate.relativePath, trashPath: nil, manifest: $0.manifest, state: "pending", allocatedBytesEstimate: $0.candidate.allocatedBytesEstimate, error: nil)
@@ -468,34 +455,14 @@ public actor ShouEngine {
                 didBegin: { receipt in
                     plan.executionId=receipt.id; plan.state="executing"
                     try save(plan, collection: "plans", id: plan.id)
-                }, validateItem: { index, _ in
-                    let item=plan.items[index]
-                    let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
-                    if let reason=blocked.values.sorted().first { return reason }
-                    if let reason=try installedCacheBlock(for: item, evidence: installedCaches, workspace: workspace) { return reason }
-                    let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
-                        entries: currentEntries, workspace: workspace,
-                        rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
-                    guard policy.reasons.isEmpty else { throw ShouError("plan_stale", "Artifact ownership or build activity changed before cleanup.", details: ["reasons": policy.reasons.joined(separator: ",")]) }
-                    return nil
-                })
+                }, validateItem: { index, manifest in try validate(index, manifest) })
         } else {
             receipt=try TrashExecution.run(planId: plan.id, workspace: plan.workspace, items: items, entryPoint: entryPoint,
                 store: store, filesystem: filesystem, now: now(), progress: progress,
                 didBegin: { receipt in
                     plan.executionId=receipt.id; plan.state="executing"
                     try save(plan, collection: "plans", id: plan.id)
-                }, validateItem: { index in
-                    let item=plan.items[index]
-                    let blocked=ApplicationSafety.blockedRules(item.candidate.ruleIds, activity: applicationActivity)
-                    if let reason=blocked.values.sorted().first { return reason }
-                    if let reason=try installedCacheBlock(for: item, evidence: installedCaches, workspace: workspace) { return reason }
-                    let policy=ArtifactSafety.sourcePolicy(path: item.candidate.relativePath, manifest: item.manifest,
-                        entries: currentEntries, workspace: workspace,
-                        rules: currentRules.filter { item.candidate.ruleIds.contains($0.id) }, homeDirectory: homeDirectory, evidence: artifactEvidence)
-                    guard policy.reasons.isEmpty else { throw ShouError("plan_stale", "Artifact ownership or build activity changed before cleanup.", details: ["reasons": policy.reasons.joined(separator: ",")]) }
-                    return nil
-                })
+                }, validateItem: { index in try validate(index, executionPlan.items[index].manifest) })
         }
         plan.state=receipt.state; try save(plan, collection: "plans", id: plan.id)
         return receipt
@@ -590,11 +557,18 @@ public actor ShouEngine {
                     guard try ReceiptOrigins.identity(origin, filesystem: filesystem).sameObject(as: origin.identity) else { throw ShouError("access_expired", "Original workspace identity changed.") }
                 }
             }
-            catch { if Task.isCancelled { break }; throw error }
+            catch {
+                if Task.isCancelled { break }
+                guard ExecutionFailurePolicy.continues(after:error) else { throw error }
+                result.state="failed"; result.error=TrashExecution.diagnostic(error)
+                try save(result,collection:"followups",id:result.id); results.append(result)
+                continue
+            }
             if Task.isCancelled { break }
             try save(result, collection: "followups", id: result.id)
             let stage=action == "restore" ? "restoring" : "purging"
             let path=action == "restore" ? item.originalPath : trashPath
+            var stopAfterItem=false
             progress(ExecutionProgress(stage: stage, processedCount: results.count, itemCount: items.count, path: path))
             do {
                 if action == "restore" {
@@ -609,12 +583,14 @@ public actor ShouEngine {
             } catch {
                 // An uncertain native move retains its durable intent, which
                 // blocks replay until read-only history inspection resolves it.
-                result.state=["restore_outcome_unknown", "purge_outcome_unknown"].contains((error as? ShouError)?.code ?? "") ? "pending" : "failed"
+                result.state=["restore_outcome_unknown", "purge_outcome_unknown", "authorization_channel_lost"].contains((error as? ShouError)?.code ?? "") ? "pending" : "failed"
                 result.resultingPath=(error as? ShouError)?.details["resulting_path"]
                 result.error=TrashExecution.diagnostic(error)
+                stopAfterItem=result.state == "pending" || ExecutionFailurePolicy.authorizationCancelled(error)
             }
             try save(result, collection: "followups", id: result.id); results.append(result)
             progress(ExecutionProgress(stage: stage, processedCount: results.count, itemCount: items.count, path: path))
+            if stopAfterItem { break }
         }
         return results
     }

@@ -33,8 +33,15 @@ import ShouPlatform
         }
     }
     func changeRange() { guard !working else { return }; scan=nil; selected=[]; plan=nil; receipt=nil; allowCookieReview=false }
-    func scan(app: AppModel) {
+    func scan(app: AppModel, accessChecked: Bool = false) {
         guard !app.busy, let engine=app.engine else { return }
+        if !accessChecked {
+            app.scanAccess.prepareScan { [weak self, weak app] in
+                guard let self, let app else { return }
+                self.scan(app: app, accessChecked: true)
+            }
+            return
+        }
         begin(app)
         let token=operation
         app.statusKey="Scanning…"
@@ -91,6 +98,6 @@ import ShouPlatform
         if error is CancellationError || (error as? ShouError)?.code == "cancelled" { app.statusKey="Privacy operation stopped."; return }
         app.operationHadError=true
         app.statusKey="Privacy operation failed."
-        app.error=app.diagnostic((error as? ShouError)?.message ?? "Privacy operation failed.")
+        app.presentFailure(error)
     }
 }

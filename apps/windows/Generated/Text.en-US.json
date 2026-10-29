@@ -639,6 +639,11 @@
     "resource_id": "s537b8fe5fcee9a78db101eb6",
     "text": "Additional scan notes are summarized here."
   },
+  "Administrator Access": {
+    "format": "Administrator Access",
+    "resource_id": "s1e5aa6d6870aa89ee93e6a7d",
+    "text": "Administrator Access"
+  },
   "Administrator Required": {
     "format": "Administrator Required",
     "resource_id": "s394ebd85e8e74a57a363b9ba",
@@ -648,6 +653,11 @@
     "format": "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal.",
     "resource_id": "sb8f358b6904a3920d812f930",
     "text": "Administrator access is not requested automatically. Applications requiring elevated access remain unavailable for removal."
+  },
+  "Administrator authorization required": {
+    "format": "Administrator authorization required",
+    "resource_id": "s15b0f4273b0890833240a35f",
+    "text": "Administrator authorization required"
   },
   "Adobe Bridge caches": {
     "format": "Adobe Bridge caches",
@@ -793,6 +803,11 @@
     "format": "Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion.",
     "resource_id": "sa5c1b673e858430fe643981f",
     "text": "Allocated sizes are estimates. Hard-link attribution, shared blocks and sparse files can affect changes; these values are not reclaimable space. An item seen in only one analysis is not proof of creation or deletion."
+  },
+  "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.": {
+    "format": "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.",
+    "resource_id": "sca2950310f3b8a3e48c3c90e",
+    "text": "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access."
   },
   "Allow access to application caches that macOS protects.": {
     "format": "Allow access to application caches that macOS protects.",
@@ -1288,6 +1303,21 @@
     "format": "Authentication Required",
     "resource_id": "s732c5220f394086a3377a962",
     "text": "Authentication Required"
+  },
+  "Authorize Administrator Access…": {
+    "format": "Authorize Administrator Access…",
+    "resource_id": "s57880a7ab6cdc8e6b42e9d0e",
+    "text": "Authorize Administrator Access…"
+  },
+  "Authorized for this session": {
+    "format": "Authorized for this session",
+    "resource_id": "s47c1f8f4189c162034892bbc",
+    "text": "Authorized for this session"
+  },
+  "Authorize…": {
+    "format": "Authorize…",
+    "resource_id": "s9cbc4142c853005b84412f6d",
+    "text": "Authorize…"
   },
   "Autofill": {
     "format": "Autofill",
@@ -4719,6 +4749,11 @@
     "resource_id": "sc3a8450e7e90452dd21c530d",
     "text": "Identifier unavailable"
   },
+  "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.": {
+    "format": "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.",
+    "resource_id": "scf731a3c7fd27092f9ca1b77",
+    "text": "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou."
+  },
   "Images": {
     "format": "Images",
     "resource_id": "sbe7e2f20129365c2899b2c11",
@@ -4908,6 +4943,11 @@
     "format": "Install CLI Command",
     "resource_id": "scc5098bde78248090a63dcd7",
     "text": "Install CLI Command"
+  },
+  "Install Shou in Applications first.": {
+    "format": "Install Shou in Applications first.",
+    "resource_id": "sd499e7c1555da21ca9525b5a",
+    "text": "Install Shou in Applications first."
   },
   "Install Skill": {
     "format": "Install Skill",
@@ -6039,6 +6079,11 @@
     "resource_id": "s3200ba0d537c5463799f31b3",
     "text": "Move Selected to Trash…"
   },
+  "Move Shou to Applications": {
+    "format": "Move Shou to Applications",
+    "resource_id": "sb70f485ea0a4bf03bb8de063",
+    "text": "Move Shou to Applications"
+  },
   "Move these applications to Trash?": {
     "format": "Move these applications to Trash?",
     "resource_id": "sa455d80fdfabbb3405cdce4d",
@@ -7103,6 +7148,11 @@
     "format": "Open System Settings…",
     "resource_id": "s4bc31545a3b75753514715b7",
     "text": "Open System Settings…"
+  },
+  "Open the package manager to authorize this operation, then refresh in Shou.": {
+    "format": "Open the package manager to authorize this operation, then refresh in Shou.",
+    "resource_id": "sb8a310b6bdb3900c2989fc7b",
+    "text": "Open the package manager to authorize this operation, then refresh in Shou."
   },
   "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours.": {
     "format": "Opening a saved investigation makes no network request. Continuing uses its original connection and expires after 24 hours.",
@@ -10039,6 +10089,11 @@
     "resource_id": "s26cbec70c895fcca7c9ae2d7",
     "text": "Services Using This Installation"
   },
+  "Set Up Shou": {
+    "format": "Set Up Shou",
+    "resource_id": "s7e32d5474f09229f3a65bbe9",
+    "text": "Set Up Shou"
+  },
   "Set as Default": {
     "format": "Set as Default",
     "resource_id": "s10886554da510708e6b9477c",
@@ -11269,6 +11324,11 @@
     "resource_id": "sbf665f9e61d5830ebbabf2de",
     "text": "Tencent Video caches"
   },
+  "Terminal Tools": {
+    "format": "Terminal Tools",
+    "resource_id": "sb79672161b178efdf94035f1",
+    "text": "Terminal Tools"
+  },
   "Terminal and AI agents · optional": {
     "format": "Terminal and AI agents, optional",
     "resource_id": "s3cab61efade83d717cecb68b",
@@ -11718,11 +11778,6 @@
     "format": "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically.",
     "resource_id": "s6b79e04ff623d1cde8b11a02",
     "text": "The package manager may have changed files. Inspect the source before trying again; Shou will not retry automatically."
-  },
-  "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.": {
-    "format": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.",
-    "resource_id": "s0a0770b3a07bf45df9c36e52",
-    "text": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue."
   },
   "The packaged CLI is unavailable. Install Shou in Applications first.": {
     "format": "The packaged CLI is unavailable. Install Shou in Applications first.",
@@ -13044,6 +13099,11 @@
     "resource_id": "sf8a5c8d87f6ba89cef0a8993",
     "text": "WPS Office caches"
   },
+  "Waiting for administrator authorization…": {
+    "format": "Waiting for administrator authorization…",
+    "resource_id": "s859e2cc6fd2e59a75e372167",
+    "text": "Waiting for administrator authorization…"
+  },
   "Waiting for confirmation or the system installer result. Keep this window open.": {
     "format": "Waiting for confirmation or the system installer result. Keep this window open.",
     "resource_id": "sf13707d81cb6f2c7264ab3ec",
@@ -13320,9 +13380,14 @@
     "text": "Zoom caches"
   },
   "administrator_authorization_required": {
-    "format": "macOS may ask you to authenticate when moving to Trash",
+    "format": "Administrator authorization required",
     "resource_id": "s56b9e73c13720fadc5951477",
-    "text": "macOS may ask you to authenticate when moving to Trash"
+    "text": "Administrator authorization required"
+  },
+  "administrator_permanent_removal_available": {
+    "format": "Supports permanent removal with administrator authorization",
+    "resource_id": "sf4af6c489130123385d8681e",
+    "text": "Supports permanent removal with administrator authorization"
   },
   "application_activity_unavailable": {
     "format": "Application activity could not be checked; cleanup is blocked.",
@@ -13333,6 +13398,11 @@
     "format": "application_changed",
     "resource_id": "sdf5203979d84b15e6429130b",
     "text": "application_changed"
+  },
+  "application_metadata_missing": {
+    "format": "Application metadata is unavailable. Only the application bundle can be removed; associated data is kept.",
+    "resource_id": "s425b1138138cbfc21e18440d",
+    "text": "Application metadata is unavailable. Only the application bundle can be removed; associated data is kept."
   },
   "application_running": {
     "format": "Application is running. Quit it and scan again.",
@@ -13353,6 +13423,26 @@
     "format": "The retained Cargo package archive could not be verified; cleanup is blocked.",
     "resource_id": "sc3c49ef2da4bef92a8879570",
     "text": "The retained Cargo package archive could not be verified; cleanup is blocked."
+  },
+  "authorization_cancelled": {
+    "format": "Administrator authorization was cancelled.",
+    "resource_id": "sed6edf06fa5821d0bddea1df",
+    "text": "Administrator authorization was cancelled."
+  },
+  "authorization_channel_lost": {
+    "format": "The authorization session disconnected. Inspect recorded results before retrying.",
+    "resource_id": "s338edd1d9c1c5847cd6b1266",
+    "text": "The authorization session disconnected. Inspect recorded results before retrying."
+  },
+  "authorization_denied": {
+    "format": "Administrator authorization was denied. Authorize again to continue.",
+    "resource_id": "sb93124de3ae12ea1a1a41a52",
+    "text": "Administrator authorization was denied. Authorize again to continue."
+  },
+  "authorization_unavailable": {
+    "format": "Administrator authorization could not be completed. Try again.",
+    "resource_id": "s3f8b91e3059227c6d5a135a1",
+    "text": "Administrator authorization could not be completed. Try again."
   },
   "blocked": {
     "format": "blocked",
@@ -13465,9 +13555,9 @@
     "text": "items"
   },
   "linked_application": {
-    "format": "linked_application",
+    "format": "This is an application link. Its size can be read; manage removal at the actual installation location.",
     "resource_id": "s3431ed1652651a23805ce665",
-    "text": "linked_application"
+    "text": "This is an application link. Its size can be read; manage removal at the actual installation location."
   },
   "macOS Help caches": {
     "format": "macOS Help caches",
@@ -13499,6 +13589,11 @@
     "resource_id": "s7423069311b8dc8cc8744749",
     "text": "macOS regenerates thumbnails and help indexes when needed."
   },
+  "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.": {
+    "format": "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.",
+    "resource_id": "s0bd40bf26e76a864f2858151",
+    "text": "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept."
+  },
   "macOS will request administrator approval for system background items.": {
     "format": "macOS will request administrator approval for system background items.",
     "resource_id": "s9dc1766ee513e92695321d4f",
@@ -13525,9 +13620,9 @@
     "text": "Needs verification"
   },
   "multiply_linked_content": {
-    "format": "The application contains shared hard links.",
+    "format": "The application contains shared hard links. Only its application bundle can be moved to Trash.",
     "resource_id": "se2eaa1e6574f5ab891830888",
-    "text": "The application contains shared hard links."
+    "text": "The application contains shared hard links. Only its application bundle can be moved to Trash."
   },
   "not_scanned": {
     "format": "Not inspected",

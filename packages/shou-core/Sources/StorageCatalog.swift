@@ -9,7 +9,7 @@ private final class CatalogCheckpoint {
 
 private final class CatalogMapDirectories { var ids=Set<Int64>() }
 
-public struct StorageMeasurement: Sendable {
+public struct StorageMeasurement: Codable, Sendable {
     public let tree: TreeSnapshot
     public let entryCount: Int
     public init(tree: TreeSnapshot, entryCount: Int) { self.tree=tree; self.entryCount=entryCount }

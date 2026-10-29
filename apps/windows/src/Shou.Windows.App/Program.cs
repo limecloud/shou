@@ -7,8 +7,9 @@ namespace Shou.Windows.App;
 internal static class Program
 {
     [STAThread]
-    private static void Main()
+    private static void Main(string[] args)
     {
+        if (WindowsSystemAuthorizationWorker.RunIfRequestedAsync(args).GetAwaiter().GetResult() is { } workerExit) { Environment.ExitCode = workerExit; return; }
         try
         {
             NativeDiagnostics.Initialize();

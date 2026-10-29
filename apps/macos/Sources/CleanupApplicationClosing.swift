@@ -12,7 +12,7 @@ struct CleanupApplicationCloseButton: View {
             Task {
                 defer { loading=false }
                 do { plan=try await engine.cleanupApplicationClosePlan(scanIds: scans.map(\.id)) }
-                catch { model.error=error.localizedDescription }
+                catch { model.presentFailure(error) }
             }
         }.disabled(model.busy || loading)
         .accessibilityIdentifier("cleanup.quit-and-refresh")

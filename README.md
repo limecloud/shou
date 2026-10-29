@@ -11,6 +11,17 @@
   <a href="LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-blue" /></a>
 </p>
 
+## First launch on macOS
+
+We do not currently have an Apple Developer certificate. Mac builds use an ad-hoc signature and are not Apple-notarized. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then drag **Shou.app** into **Applications**. If macOS blocks the first launch, run in Terminal:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Shou.app"
+open "/Applications/Shou.app"
+```
+
+`xattr` removes only this app's download quarantine attribute. It does not grant Full Disk Access; configure scanning access in the first-use guide. See [installation and permissions](docs/product/installation-and-access.md).
+
 A native macOS cleaner with cleanup rules tailored by your existing AI agent. Tell Codex, Claude Code, or WorkBuddy what takes space and what to keep; it asks the missing questions and drafts reusable rules. Shou scans, validates, previews, and cleans locally.
 
 Shou v0.13.0 unifies native traversal, pages large cleanup manifests and keeps measured cleanup progress in the main window. The npm CLI uses one installation entry with exact-version native platform packages. See the [release notes](https://github.com/limecloud/shou/releases/tag/v0.13.0) and [npm distribution](docs/engineering/npm-distribution.md).
@@ -25,7 +36,7 @@ Download Shou v0.13.0 for **macOS 14 or later**. The universal app runs on Apple
 
 v0.13.0 includes unsigned, self-contained Windows portable previews with independent WinUI 3/.NET 10 implementations. Extract the app ZIP and run Shou.Windows.App.exe. Native cleanup, uninstall and startup mutation gates remain closed; ARM64 runtime, signing, installation and updates await separate acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
 
-This release uses an ad-hoc signature and is not Apple-notarized. If macOS blocks the first launch, check the download source, then review **System Settings → Privacy & Security → Open Anyway**.
+If the first launch is blocked, follow the `xattr` steps above, or allow this app through **System Settings → Privacy & Security → Open Anyway**.
 
 The first-use guide explains Full Disk Access and optional CLI installation. You can continue with accessible folders and revisit **Settings → Setup Guide** at any time. See [installation and permissions](docs/product/installation-and-access.md).
 

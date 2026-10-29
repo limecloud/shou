@@ -23,6 +23,15 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
 
 @main enum TestRunner {
     static func main() async {
+        #if DEBUG && os(macOS)
+        if Array(CommandLine.arguments.dropFirst()) == ["--authorization-only"] {
+            do {
+                try await nativeSystemAuthorizationProtocolFixtures()
+                print("Authorization session reuse, lost-response non-replay, frame/scope rejection and staged Trash fixtures passed; no native administrator prompt was opened.")
+            } catch { print("FAIL authorization: \(error)"); Foundation.exit(1) }
+            return
+        }
+        #endif
         if Array(CommandLine.arguments.dropFirst()) == ["--system-monitor-only"] {
             do {
                 try monitorRatesRequireFreshStableCounters()
@@ -279,17 +288,25 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await privacyRefusesRunningStaleExcludedAndUnsupportedSources()
                 try await privacyTransactionsRollbackAndUnknownSchemasStayUnavailable()
                 try await privacyIntegerTimeBoundsAndUnknownCascadesAreConservative()
-                print("8/8 privacy discovery, range, consent, schema, platform policy, access lease and transaction tests passed; generated databases only.")
+                try await privacyChangedMiddleSourceDoesNotBlockIndependentSources()
+                print("9/9 privacy discovery, range, consent, schema, platform policy, access lease and transaction tests passed; generated databases only.")
             } catch { print("FAIL privacy: \(error)"); Foundation.exit(1) }
             return
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--applications-only"] {
             do {
+                try await applicationCatalogValidatesBeforeReadAndHonorsCancellation()
+                try nativeApplicationCatalogPreservesDistinctPathsAndBoundsItsScope()
+                try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps()
+                try nativeApplicationCatalogSupportsNestedSingleSegmentAndLinkedApplications()
+                try await uninstallMissingMetadataKeepsAssociationsAndRestoresBundle()
+                try await uninstallHardLinkedBundleUsesTrashAndPreservesExternalContent()
+                try await uninstallUserInstalledAppleAppsAndSingleSegmentIdentifiers()
                 try await applicationSummariesStreamOneInventoryAndKeepOwnershipConservative()
                 try nativeApplicationSummaryMeasuresWithoutManifestsOrLinkTraversal()
                 try await uninstallBatchUsesOneReceiptAndRestoresTwoApplications()
                 try await uninstallBatchDefaultPermanentCannotRestoreAndSingleTrashRemainsCompatible()
-                try await uninstallBatchPreflightsAllAppsAndRejectsConsentRunningStaleAndOverlaps()
+                try await uninstallBatchContinuesIndependentItemsAndRejectsInvalidScopes()
                 try await uninstallPermanentRechecksActivityAtJournalBoundary()
                 try await uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles()
                 try await uninstallReviewIncludesOnlyVerifiedGroupContainers()
@@ -307,7 +324,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation()
                 try await nativeApplicationTrashUsesRecyclerAndVerifiesFixtureOutcomes()
                 try await nativeApplicationTrashRejectsLinksStaleAndForeignOwnerManifests()
-                print("22/22 application summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
+                print("29/29 application catalog, summary, authorization, batch and legacy uninstall safety tests passed; only generated fixtures were moved, restored or permanently removed.")
             } catch { print("FAIL applications: \(error)"); Foundation.exit(1) }
             return
         }
@@ -393,11 +410,15 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             do {
                 try await storageReviewRefreshesDirectoryChangesBeforeConfirmation()
                 try await storageIncompleteReviewReportsCauseAndRemainsRetryable()
+                try await storageBatchReviewSkipsIncompleteTargetsAndExecutesCompleteSiblings()
+                try await storageBatchReviewAllExcludedTargetsProducesNoPlanOrMutation()
+                try await storageBatchReviewSkipsDisappearedTargets()
+                try await storageBatchReviewDoesNotSkipStaleObjectsOrCancellation()
                 try await storageNativeRemovalReportsManifestProgress()
                 try await storageAnalysisProtectsRootsAndDetectsChanges()
                 try await storageRemovalRechecksCurrentExclusionsAndNewDescendants()
                 try await storageNativeLargeFileTrashRestoreAndPermanentRemoval(permanent: true)
-                print("6/6 storage review, retry, progress, stale evidence, exclusions and native deletion tests passed; generated fixtures only.")
+                print("10/10 storage review, batch skips, retry, progress, stale evidence, exclusions and native deletion tests passed; generated fixtures only.")
             } catch { print("FAIL storage removal: \(error)"); Foundation.exit(1) }
             return
         }
@@ -565,6 +586,7 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Cancelling permanent verification never removes files", { try await permanentVerificationCancellationDoesNotRemoveFiles() }),
             ("Execution progress preserves batch totals and partial boundaries", { try executionProgressKeepsBatchTotalsAndPartialBoundaries() }),
             ("Execution progress rejects late stages and nested-entry regressions", { try executionProgressRejectsLateStageAndEntryCallbacks() }),
+            ("Privacy independent sources continue after a changed middle source", { try await privacyChangedMiddleSourceDoesNotBlockIndependentSources() }),
             ("Privacy progress follows committed source outcomes", { try await privacyProgressTracksSourcesAndCommittedOutcomes() }),
             ("Privacy progress cancellation preserves remaining sources", { try await privacyProgressCancellationPreservesRemainingSources() }),
             ("Installed application caches use ordinary cleanup and preserve applications", { try await installedApplicationCachesUseNormalCleanupWithoutUninstalling() }),
@@ -616,6 +638,10 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Storage coverage distinguishes system and user access", { try storageCoverageSeparatesSystemLocationsFromUserAccess() }),
             ("Storage review refreshes directory changes before confirmation", { try await storageReviewRefreshesDirectoryChangesBeforeConfirmation() }),
             ("Storage incomplete review stays retryable", { try await storageIncompleteReviewReportsCauseAndRemainsRetryable() }),
+            ("Storage batch review skips incomplete targets and executes complete siblings", { try await storageBatchReviewSkipsIncompleteTargetsAndExecutesCompleteSiblings() }),
+            ("Storage batch review with all excluded targets creates no plan", { try await storageBatchReviewAllExcludedTargetsProducesNoPlanOrMutation() }),
+            ("Storage batch review skips disappeared targets", { try await storageBatchReviewSkipsDisappearedTargets() }),
+            ("Storage batch review preserves stale-object and cancellation failures", { try await storageBatchReviewDoesNotSkipStaleObjectsOrCancellation() }),
             ("Storage native removal reports manifest progress", { try await storageNativeRemovalReportsManifestProgress() }),
             ("Paged read worker preserves evidence and cancels loading", { try storageWorkerPagesLargeResultsWithoutChangingEvidence() }),
             ("Large storage pages round-trip and reject corruption", { try await storagePagedResultsRoundTripAndRejectCorruption() }),
@@ -648,13 +674,17 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("Application discovery validates before read and cancellation", { try await applicationCatalogValidatesBeforeReadAndHonorsCancellation() }),
             ("Application catalog preserves distinct paths and explicit scope", { try nativeApplicationCatalogPreservesDistinctPathsAndBoundsItsScope() }),
             ("Application catalog rejects unsafe metadata with explicit gaps", { try nativeApplicationCatalogRejectsUnsafeMetadataWithoutHidingCoverageGaps() }),
+            ("Application catalog reads nested, single-segment and linked applications", { try nativeApplicationCatalogSupportsNestedSingleSegmentAndLinkedApplications() }),
+            ("Incomplete application removal preserves associations and supports restore", { try await uninstallMissingMetadataKeepsAssociationsAndRestoresBundle() }),
+            ("Hard-linked application Trash preserves external content", { try await uninstallHardLinkedBundleUsesTrashAndPreservesExternalContent() }),
+            ("User-installed Apple apps and single-segment identifiers support uninstall", { try await uninstallUserInstalledAppleAppsAndSingleSegmentIdentifiers() }),
             ("File targets bind bounded content and preserve legacy manifests", { try fileTargetsRequireBoundedContentEvidenceAndKeepLegacyManifestsStable() }),
             ("Uninstall preview separates personal data without file mutation", { try await uninstallReviewSeparatesPersonalDataAndDoesNotModifyFiles() }),
             ("Application summaries stream one inventory and conservative ownership", { try await applicationSummariesStreamOneInventoryAndKeepOwnershipConservative() }),
             ("Native application summaries avoid manifests and link traversal", { try nativeApplicationSummaryMeasuresWithoutManifestsOrLinkTraversal() }),
             ("Application batch uses one receipt and restores two applications", { try await uninstallBatchUsesOneReceiptAndRestoresTwoApplications() }),
             ("Application batch permanent default cannot restore; single Trash remains compatible", { try await uninstallBatchDefaultPermanentCannotRestoreAndSingleTrashRemainsCompatible() }),
-            ("Application batch preflights consent, activity, stale evidence and overlaps", { try await uninstallBatchPreflightsAllAppsAndRejectsConsentRunningStaleAndOverlaps() }),
+            ("Application batch reports per-item failures and rejects invalid consent and overlaps", { try await uninstallBatchContinuesIndependentItemsAndRejectsInvalidScopes() }),
             ("Permanent uninstall rechecks activity before mutation intent", { try await uninstallPermanentRechecksActivityAtJournalBoundary() }),
             ("Uninstall includes only verified shared group containers", { try await uninstallReviewIncludesOnlyVerifiedGroupContainers() }),
             ("Uninstall restores independent component origins", { try await uninstallCompleteLoopRestoresIndependentComponentOrigins() }),
@@ -882,6 +912,12 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
         for field in ["shell", "schema_version", "action", "scope", "conditions"] {
             cases.append(("Reject contract field \(field)", { try rejectsContractViolations(field) }))
         }
+        #if DEBUG && os(macOS)
+        do {
+            try await nativeSystemAuthorizationProtocolFixtures()
+            print("PASS Authorization protocol and generated Trash fixtures")
+        } catch { print("FAIL Authorization protocol: \(error)"); Foundation.exit(1) }
+        #endif
         var failures=0
         let includeNativePurge=CommandLine.arguments.contains("--native-trash-purge")
         if CommandLine.arguments.contains("--native-trash") || includeNativePurge {

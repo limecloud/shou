@@ -16,6 +16,7 @@ public struct DeveloperLogCleanupResult: Codable, Sendable {
     public let state: String
     public let observed: DeveloperLogInspection?
     public let issue: String?
+    public var accessRequirement: SystemAccessRequirement? = nil
 }
 public protocol DeveloperLogCleaning: Sendable {
     func inspect() throws -> DeveloperLogInspection
@@ -57,7 +58,8 @@ public actor DeveloperLogCleanup {
                 after.file.sameObject(as:plan.inspection.file) && after.file.logicalBytes == 0
             result = .init(plan:plan,state:verified ? "succeeded" : "unknown",observed:after,issue:verified ? nil : "developer_log_unverified")
         } catch {
-            result = .init(plan:plan,state:"unknown",observed:nil,issue:(error as? ShouError)?.code ?? "developer_log_unavailable")
+            result = .init(plan:plan,state:ExecutionFailurePolicy.authorizationCancelled(error) ? "cancelled" : "unknown",observed:nil,
+                           issue:(error as? ShouError)?.code ?? "developer_log_unavailable",accessRequirement:(error as? ShouError)?.accessRequirement)
         }
         try store.write("developer-log-cleanup-results",id:plan.id,data:Codec.encode(result))
         return result

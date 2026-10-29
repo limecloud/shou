@@ -40,12 +40,11 @@ extension ShouEngine {
             throw ShouError("invalid_argument", "Select 1–100 distinct application reviews and a supported removal mode.")
         }
         let lease=try store.lock(); defer { lease.release() }
-        let inventory=try applicationCatalog.read(options: ApplicationCatalogOptions())
         var plans=[ApplicationUninstallPlan]()
         for selection in selections {
             if Task.isCancelled { throw ShouError("cancelled", "Application batch planning stopped.") }
             plans.append(try prepareUninstallPlan(reviewId: selection.reviewId, componentIds: selection.componentIds,
-                includeUserData: selection.includeUserData, action: action, inventory: inventory))
+                includeUserData: selection.includeUserData, action: action))
         }
         try validateUninstallPlanOverlaps(plans)
         var plan=ApplicationUninstallBatchPlan(id: Codec.id("uninstallbatch"), plans: plans.sorted { $0.application.path < $1.application.path },

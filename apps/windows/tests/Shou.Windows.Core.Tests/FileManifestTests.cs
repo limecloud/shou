@@ -138,7 +138,7 @@ public sealed class FileManifestTests
     private sealed class Progress(Action<CleanupProgress> report) : IProgress<CleanupProgress> { public void Report(CleanupProgress value) => report(value); }
 
     [Fact]
-    public async Task VerifiedAdapterUsesOneBatchTraversalAndReportsRealEntryProgress()
+    public async Task VerifiedAdapterChecksEachItemAndReportsRealEntryProgress()
     {
         var fixture = await CleanupTests.Fixture.Create(8);
         var plan = await fixture.Plan();
@@ -148,7 +148,7 @@ public sealed class FileManifestTests
         fixture.Files.Enumerated.Clear();
         var updates = new List<CleanupProgress>();
         Assert.Equal(CleanupExecutionState.Completed, (await service.ExecuteAsync(plan.Id, consent, new Progress(updates.Add))).State);
-        Assert.Equal(1, fixture.Files.Enumerated.Count(path => path == fixture.Workspace.Path.Value));
+        Assert.Equal(8, fixture.Files.Enumerated.Count(path => path == fixture.Workspace.Path.Value));
         Assert.Contains(updates, update => update.Phase == "checking" && update.Path is not null);
         Assert.Contains(updates, update => update.Phase == "purging" && update.ProcessedEntries > 0 && update.TotalEntries == 16);
         Assert.Equal(16, updates.Last().ProcessedEntries);

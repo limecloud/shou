@@ -35,7 +35,7 @@ struct SettingsView: View {
                         }.labelsHidden().frame(width: 200)
                     }
                     ShouDivider().padding(ShouDesign.settingsSeparatorInset)
-                    row("Reduce Motion", "Use static indicators and immediate transitions. When off, follow macOS Reduce Motion.", icon: "pause.circle") {
+                    row("Reduce Motion", "", icon: "pause.circle") {
                         Toggle(model.t("Reduce Motion"), isOn: $model.reduceMotion)
                             .labelsHidden().toggleStyle(.switch)
                             .help(model.t("Use static indicators and immediate transitions. When off, follow macOS Reduce Motion."))
@@ -75,11 +75,11 @@ struct SettingsView: View {
                 }
                 AIConnectionsSettings(model: model, session: model.ai)
                 group("Scanning and Privacy") {
-                    row("Scan Locations", "App caches and developer projects are discovered automatically. Extra folders are remembered.", icon: "folder.badge.magnifyingglass") {
+                    row("Scan Locations", "", icon: "folder.badge.magnifyingglass") {
                         Button(model.t("View…")) { scanLocations=true }.disabled(model.busy)
                     }
                     ShouDivider().padding(ShouDesign.settingsSeparatorInset)
-                    row("Exclusions", "Keep chosen files and projects out of cleanup.", icon: "hand.raised") {
+                    row("Exclusions", "", icon: "hand.raised") {
                         Button(model.t("Manage…")) { model.showingExclusions=true }.disabled(model.busy)
                     }
                     ShouDivider().padding(ShouDesign.settingsSeparatorInset)
@@ -89,18 +89,24 @@ struct SettingsView: View {
                         }.disabled(model.busy)
                     }
                     ShouDivider().padding(ShouDesign.settingsSeparatorInset)
-                    row("Installation and CLI", "Review app installation, disk permissions, and the optional terminal command.", icon: "shippingbox") {
+                    row("Administrator Access", model.scanAccess.administratorTitle, icon: "lock.shield") {
+                        Button(model.t("Authorize…")) { model.scanAccess.authorizeAdministrator() }
+                            .disabled(model.busy || model.scanAccess.authorizingAdministrator || model.scanAccess.administratorState == .authorized)
+                            .accessibilityIdentifier("settings.authorize-administrator")
+                    }
+                    ShouDivider().padding(ShouDesign.settingsSeparatorInset)
+                    row("Installation and CLI", "", icon: "shippingbox") {
                         Button(model.t("Setup Guide…")) { model.scanAccess.showingSetup=true }.disabled(model.busy)
                     }
                     ShouDivider().padding(ShouDesign.settingsSeparatorInset)
-                    row("Local data", "Rules and cleanup history stay on this Mac.", icon: "externaldrive") {
+                    row("Local data", "", icon: "externaldrive") {
                         RecordMaintenanceButton(model: model)
                         Button(model.t("Open Folder…")) { NSWorkspace.shared.open(LocalRecordStore.defaultDirectory) }
                             .help(LocalRecordStore.defaultDirectory.path)
                     }
                 }
                 group("Support") {
-                    row("Diagnostics", "Check disk access, free space, and local records without changing files.", icon: "stethoscope") {
+                    row("Diagnostics", "", icon: "stethoscope") {
                         Button(model.t("Run Diagnostics…")) { diagnostics=true }
                             .accessibilityIdentifier("settings.diagnostics")
                     }

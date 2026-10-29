@@ -61,6 +61,58 @@ public struct NativeFileSystem: PlatformFileSystem {
         self.applicationRoots=applicationRoots ?? [FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path, "/Applications"]
         self.applicationRecycler=applicationRecycler
     }
+    var usesSystemAuthorization: Bool {
+        #if os(macOS)
+        getuid() != 0 && supportsSystemAuthorization && NativeSystemAuthorization.shared.administratorState == .authorized
+        #else
+        false
+        #endif
+    }
+    func directoryIdentity(_ path: String) throws -> FileEntry {
+        #if os(macOS)
+        if usesSystemAuthorization {
+            let reply=try NativeSystemAuthorization.shared.perform(.pathIdentity, path: path)
+            guard let identity=reply.identity, identity.kind == "directory" else { throw ShouError("plan_stale", "The selected directory is unavailable.") }
+            return identity
+        }
+        #endif
+        let descriptor=try SecurePaths.directory(path, readFinalDirectory: false)
+        defer { close(descriptor) }
+        var metadata=stat()
+        guard fstat(descriptor, &metadata) == 0 else { throw SecurePaths.failure("Inspect directory", path: path) }
+        return SecurePaths.entry(metadata, path: ".")
+    }
+    public var supportsAuthorizedApplicationPermanentRemoval: Bool { supportsSystemAuthorization }
+    private var supportsSystemAuthorization: Bool {
+        #if os(macOS)
+        return (try? NativeSystemAuthorization.workerExecutable()) != nil
+        #else
+        return false
+        #endif
+    }
+    public func applicationNeedsAuthorization(_ path: String) -> Bool { needsAuthorizationForParent(path) }
+    private func needsAuthorizationForParent(_ path: String) -> Bool {
+        #if os(macOS)
+        guard geteuid() != 0 else { return false }
+        guard let (parent, _)=try? SecurePaths.parent(path) else { return true }
+        defer { close(parent) }
+        return faccessat(parent, ".", W_OK | X_OK, 0) != 0
+        #else
+        return false
+        #endif
+    }
+    #if os(macOS)
+    func removalNeedsAuthorization(_ path: String, expected: [FileEntry]) -> Bool {
+        if needsAuthorizationForParent(path) || expected.contains(where: { $0.owner == 0 }) { return true }
+        // Removing directory contents needs write/search access to each parent,
+        // even when every entry is owned by the caller and readable for review.
+        return expected.contains { entry in
+            guard entry.kind == "directory" else { return false }
+            let directory=entry.path == "." ? path : path + "/" + entry.path
+            return access(directory, W_OK | X_OK) != 0
+        }
+    }
+    #endif
     public func applicationParentIdentity(_ path: String) throws -> FileEntry {
         let components=try SecurePaths.components(path)
         guard "/" + components.joined(separator: "/") == path,
@@ -69,8 +121,15 @@ public struct NativeFileSystem: PlatformFileSystem {
                   if path == root { return true }
                   guard path.hasPrefix(root + "/") else { return false }
                   let relative=path.dropFirst(root.count + 1).split(separator: "/")
-                  return relative.count <= 2 && !relative.contains { $0.lowercased().hasSuffix(".app") }
+                  return relative.count <= ApplicationCatalogOptions.maxContainerDepth && !relative.contains { $0.lowercased().hasSuffix(".app") }
               }) else { throw ShouError("permission_denied", "Application parent is outside supported installation directories.") }
+        #if os(macOS)
+        if getuid() != 0, NativeSystemAuthorization.shared.administratorState == .authorized {
+            let reply=try NativeSystemAuthorization.shared.perform(.applicationParentIdentity, path: path)
+            guard let identity=reply.identity, identity.path == ".", identity.kind == "directory" else { throw AuthorizationChannel.failure() }
+            return identity
+        }
+        #endif
         let descriptor=try SecurePaths.directory(path, readFinalDirectory: false)
         defer { close(descriptor) }
         var metadata=stat()
@@ -81,6 +140,9 @@ public struct NativeFileSystem: PlatformFileSystem {
         return SecurePaths.entry(metadata, path: ".")
     }
     public func locationAvailability(_ path: String) -> LocationAvailability {
+        #if os(macOS)
+        if let value=authorizedAvailability(path,directoryOnly:true) { return value }
+        #endif
         // Availability needs only directory metadata. Foundation attributes can
         // query extended attributes and stall discovery of known locations.
         var metadata=stat()
@@ -92,6 +154,9 @@ public struct NativeFileSystem: PlatformFileSystem {
         return .unavailable("The scan location could not be inspected.")
     }
     public func targetAvailability(_ path: String) -> LocationAvailability {
+        #if os(macOS)
+        if let value=authorizedAvailability(path,directoryOnly:false) { return value }
+        #endif
         do {
             let (parent, name)=try SecurePaths.parent(path)
             defer { close(parent) }
@@ -104,50 +169,59 @@ public struct NativeFileSystem: PlatformFileSystem {
         } catch { return .unavailable(error.localizedDescription) }
     }
     public func rootIdentity(_ path: String) throws -> FileEntry {
-        if let readWorkerExecutable {
+        if let readWorkerExecutable, !usesSystemAuthorization {
             return try NativeReadClient(executable: readWorkerExecutable).rootIdentity(path)
         }
         try scanPrivacyPolicy.checkRoot(path)
         // Identity needs metadata and search access, not permission to enumerate.
-        let fd = try SecurePaths.directory(path, readFinalDirectory: false); defer { close(fd) }
         let normalized = "/" + (try SecurePaths.components(path)).joined(separator: "/")
-        var metadata=stat()
-        guard fstat(fd, &metadata) == 0 else { throw SecurePaths.failure("Inspect workspace", path: path) }
+        let identity=try directoryIdentity(path)
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let blocked = ["/", home, "/Users", "/System", "/Library", "/Applications", "/Volumes", "/private", "/usr", "/bin", "/sbin", "/etc", "/dev"]
         let data = LocalRecordStore.defaultDirectory.path
         guard !blocked.contains(normalized), !["/System/", "/usr/", "/Library/", "/Applications/", "/bin/", "/sbin/", "/dev/"].contains(where: normalized.hasPrefix),
               !normalized.hasPrefix(home + "/.Trash"), !normalized.hasPrefix(data),
-              !normalized.hasPrefix(home + "/Library/Mobile Documents"), !normalized.hasPrefix(home + "/Library/CloudStorage"), metadata.st_uid == getuid() else {
+              !normalized.hasPrefix(home + "/Library/Mobile Documents"), !normalized.hasPrefix(home + "/Library/CloudStorage"), identity.owner == getuid() else {
             throw ShouError("permission_denied", "This root is protected or is not owned by the current user.", details: ["path": path])
         }
         if let local = try URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeIsLocalKey]).volumeIsLocal, !local {
             throw ShouError("capability_unavailable", "Network workspaces are outside the supported execution scope.")
         }
         if Task.isCancelled { throw ShouError("cancelled", "Scan cancelled.") }
-        return SecurePaths.entry(metadata, path: ".")
+        return identity
     }
     public func analysisRootIdentity(_ path: String) throws -> FileEntry {
-        let descriptor=try SecurePaths.directory(path, readFinalDirectory: false)
-        defer { close(descriptor) }
-        var metadata=stat()
-        guard fstat(descriptor, &metadata) == 0 else { throw SecurePaths.failure("Inspect analysis root", path: path) }
+        let identity=try directoryIdentity(path)
         guard (try URL(fileURLWithPath: path).resourceValues(forKeys: [.volumeIsLocalKey])).volumeIsLocal == true else {
             throw ShouError("capability_unavailable", "Space analysis requires a local volume.")
         }
-        return SecurePaths.entry(metadata, path: ".")
+        return identity
     }
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         try inspect(path, budget: budget, cancelled: cancelled, progress: { _ in })
     }
     public func inspectTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
-        try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true)
+        #if os(macOS)
+        if getuid() != 0, NativeSystemAuthorization.shared.administratorState == .authorized,
+           (try? NativeSystemAuthorizationWorker.validateApplicationPath(path, roots: applicationRoots, verifyFilesystem: false)) != nil {
+            let reply=try NativeSystemAuthorization.shared.perform(.inspectApplication, path: path, budget: budget)
+            guard let snapshot=reply.snapshot else { throw AuthorizationChannel.failure() }
+            return snapshot
+        }
+        #endif
+        #if os(macOS)
+        if let result=try authorizedInspection(path, operation: .inspectPath, budget: budget, cancelled: cancelled, progress: { _ in }) { return result }
+        #endif
+        return try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true)
     }
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
-        try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true, largeFile: true)
+        try inspectStorageTarget(path, budget: budget, cancelled: cancelled, progress: { _ in })
     }
     public func inspectStorageTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
-        try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true, largeFile: true, progress: progress)
+        #if os(macOS)
+        if let result=try authorizedInspection(path, operation: .inspectPath, budget: budget, cancelled: cancelled, progress: progress) { return result }
+        #endif
+        return try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: true, largeFile: true, progress: progress)
     }
     public func inspectTrashTarget(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool) throws -> TreeSnapshot {
         guard isTrashLocation(path) else { throw ShouError("permission_denied", "Only an exact system Trash item can be inspected.") }
@@ -214,12 +288,18 @@ public struct NativeFileSystem: PlatformFileSystem {
         return TreeSnapshot(entries: [expected], complete: true, issues: [], caseSensitive: values?.volumeSupportsCaseSensitiveNames ?? true)
     }
     public func inspect(_ path: String, budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        #if os(macOS)
+        if let result=try authorizedInspection(path, operation: .inspectPath, budget: budget, cancelled: cancelled, progress: progress) { return result }
+        #endif
         if let readWorkerExecutable {
             return try NativeReadClient(executable: readWorkerExecutable).inspect(path, rules: nil, budget: budget, cancelled: cancelled, progress: progress)
         }
         return try inspectTree(path, cleanupRules: nil, budget: budget, cancelled: cancelled, progress: progress)
     }
     public func inspectCleanup(_ path: String, rules: [CleanupRule], budget: ScanBudget, cancelled: @Sendable () -> Bool, progress: @Sendable (ScanProgress) -> Void) throws -> TreeSnapshot {
+        #if os(macOS)
+        if let result=try authorizedInspection(path, operation: .inspectCleanupPath, budget: budget, rules: rules, cancelled: cancelled, progress: progress) { return result }
+        #endif
         if let readWorkerExecutable {
             return try NativeReadClient(executable: readWorkerExecutable).inspect(path, rules: rules, budget: budget, cancelled: cancelled, progress: progress)
         }
@@ -298,7 +378,7 @@ public struct NativeFileSystem: PlatformFileSystem {
                     }
                     if directory && (measuring || discover) {
                         if privacy.requiresAuthorization(path + "/" + child) {
-                            issues.append("authorization_required: " + child); continue
+                            issues.append(privacy.coverageCode(path + "/" + child) + ": " + child); continue
                         }
                         let sub = openat(descriptor, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                         guard sub >= 0 else { issues.append("unreadable_directory: " + child); continue }
@@ -378,7 +458,16 @@ public struct NativeFileSystem: PlatformFileSystem {
         return try inspectTarget(path, budget: budget, cancelled: cancelled, useWorker: false, largeFile: true, progress: progress)
     }
     public func moveToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
-        try moveToTrashChecked(path,expected:expected,applicationRecycler:nil)
+        #if os(macOS)
+        if getuid() != 0, supportsSystemAuthorization, applicationNeedsAuthorization(path) {
+            _ = try FileManager.default.url(for:.trashDirectory,in:.userDomainMask,appropriateFor:nil,create:true)
+            let reply=try NativeSystemAuthorization.shared.perform(.trashPath,path:path,manifest:expected,
+                fullDiskAccess:[.available,.notRequired].contains(scanPrivacyPolicy.status))
+            guard let destination=reply.path, let snapshot=reply.snapshot else { throw AuthorizationChannel.failure() }
+            return TrashResult(path:destination,manifest:snapshot.entries,verified:snapshot.complete && FileManifestVerification.matches(snapshot.entries,expected,allowingTrashRootChanges:true))
+        }
+        #endif
+        return try moveToTrashChecked(path,expected:expected,applicationRecycler:nil)
     }
     public func moveApplicationToTrash(_ path: String, expected: [FileEntry]) throws -> TrashResult {
         #if os(macOS)
@@ -390,6 +479,15 @@ public struct NativeFileSystem: PlatformFileSystem {
             throw ShouError("permission_denied", "Only a fully observed local application owned by the current user or the system may use native application recycling.")
         }
         _ = try applicationParentIdentity(URL(fileURLWithPath:path).deletingLastPathComponent().path)
+        if applicationRecycler == nil, getuid() != 0, supportsSystemAuthorization,
+           expected.contains(where: { $0.owner == 0 }) || applicationNeedsAuthorization(path) {
+            // Create the caller's native Trash as that caller before elevating.
+            _ = try FileManager.default.url(for: .trashDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            let reply=try NativeSystemAuthorization.shared.perform(.trashApplication, path: path, manifest: expected)
+            guard let destination=reply.path, let snapshot=reply.snapshot else { throw AuthorizationChannel.failure() }
+            return TrashResult(path: destination, manifest: snapshot.entries, verified: snapshot.complete &&
+                FileManifestVerification.matches(snapshot.entries, expected, allowingTrashRootChanges: true))
+        }
         return try moveToTrashChecked(path,expected:expected,applicationRecycler:applicationRecycler ?? SystemApplicationRecycler())
         #else
         throw ShouError("capability_unavailable", "Authorized application recycling is available only on macOS.")
@@ -453,6 +551,19 @@ public struct NativeFileSystem: PlatformFileSystem {
         #endif
     }
     public func restore(_ path: String, to destination: String, expected: [FileEntry]) throws {
+        #if os(macOS)
+        if getuid() != 0, supportsSystemAuthorization, destination.lowercased().hasSuffix(".app"),
+           expected.contains(where: { $0.owner == 0 }) || applicationNeedsAuthorization(destination) {
+            try NativeSystemAuthorizationWorker.validateApplicationPath(destination, roots: applicationRoots, requireExisting: false, verifyFilesystem: false)
+            _ = try NativeSystemAuthorization.shared.perform(.restoreApplication, path: destination, manifest: expected, trashPath: path)
+            return
+        }
+        if getuid() != 0, supportsSystemAuthorization, applicationNeedsAuthorization(destination) {
+            _ = try NativeSystemAuthorization.shared.perform(.restorePath,path:destination,manifest:expected,trashPath:path,
+                fullDiskAccess:[.available,.notRequired].contains(scanPrivacyPolicy.status))
+            return
+        }
+        #endif
         try verify(path, expected, trashReceipt: true)
         let (sourceFD, sourceName) = try SecurePaths.parent(path, cancelled: { false }); defer { close(sourceFD) }
         let (destinationFD, destinationName) = try SecurePaths.parent(destination, cancelled: { false }); defer { close(destinationFD) }
@@ -476,6 +587,33 @@ public struct NativeFileSystem: PlatformFileSystem {
         try purge(path, expected: expected, context: &context, progress: progress, checking: { _ in })
     }
     public func purge(_ path: String, expected: [FileEntry], context: inout PermanentRemovalContext, progress: (Int, Int, String) -> Void, checking: @Sendable (ScanProgress) -> Void) throws {
+        #if os(macOS)
+        if getuid() != 0, supportsSystemAuthorization,
+           path.lowercased().hasSuffix(".app"), expected.first?.kind == "directory",
+           removalNeedsAuthorization(path, expected: expected) {
+            let operation: AuthorizationOperation
+            if isTrashLocation(path) {
+                try NativeAuthorizedTrash.validate(path, home: FileManager.default.homeDirectoryForCurrentUser.path, uid: getuid())
+                operation = .purgeTrashedApplication
+            } else {
+                try NativeSystemAuthorizationWorker.validateApplicationPath(path, roots: applicationRoots, verifyFilesystem: false)
+                operation = .purgeApplication
+            }
+            _ = try NativeSystemAuthorization.shared.perform(operation, path: path, manifest: context.reconciled(expected), progress: { reply in
+                if let completed=reply.completed, let total=reply.total { progress(completed, total, reply.path ?? path) }
+            })
+            return
+        }
+        if getuid() != 0, supportsSystemAuthorization, removalNeedsAuthorization(path, expected: expected) {
+            let manifest=context.reconciled(expected)
+            try NativeAuthorizedFileSystem.validateReadPath(path, home: FileManager.default.homeDirectoryForCurrentUser.path)
+            _ = try NativeSystemAuthorization.shared.perform(isTrashLocation(path) ? .purgeTrashPath : .purgePath, path: path, manifest: manifest,
+                fullDiskAccess: [.available, .notRequired].contains(scanPrivacyPolicy.status), progress: { reply in
+                    if let completed=reply.completed, let total=reply.total { progress(completed, total, reply.path ?? path) }
+                })
+            return
+        }
+        #endif
         var processed=0, lastReport=ProcessInfo.processInfo.systemUptime
         func report(_ current: String) {
             processed += 1

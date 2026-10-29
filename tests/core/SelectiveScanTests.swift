@@ -313,16 +313,14 @@ func cleanupPlanRechecksOnlySelectedPolicyAndReportsChangedSafety() async throws
     let target=try require(scan.candidates.first { $0.relativePath == "project/target" && $0.eligible })
     evidence.reset()
     let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [target.id], action: "permanent")
-    try expect(plan.items.count == 1 && evidence.checkedPaths == [fixture.workspace.path + "/project/target"])
+    try expect(plan.items.count == 1 && evidence.checkedPaths.isEmpty)
     evidence.reset(active: true)
-    do {
-        _ = try await engine.createPlan(scanId: scan.id, candidateIds: [target.id], action: "permanent")
-        throw CheckFailure(description: "A newly active build must reject the old selection.")
-    } catch let error as ShouError {
-        try expect(error.code == "plan_stale" && error.details["reasons"] == "build_process_running")
-        try expect(error.details["path"] == fixture.workspace.path + "/project/target")
-    }
-    try expect(try await engine.history().isEmpty)
+    let rejected=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "selected-policy")
+    try expect(rejected.state == "partial" && rejected.items.first?.state == "failed")
+    try expect(rejected.items.first?.error?.contains("build_process_running") == true)
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.path + "/project/target"))
+    try expect(try await engine.history().count == 1)
+
 }
 
 func manualCleanupSelectionPreparesFreshScopeAndPermanentlyRemovesOnlyFixture() async throws {

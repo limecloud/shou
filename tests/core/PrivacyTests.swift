@@ -170,10 +170,17 @@ func privacyRefusesRunningStaleExcludedAndUnsupportedSources() async throws {
     let scan=try await service.scan(range: .allTime), source=try require(scan.sources.first { $0.definition.relativePath == chromeCookies })
     let plan=try await service.preparePlan(scanId: scan.id, sourceIDs: [source.id], acknowledgeSignOut: true)
     activity.setRunning(true)
+    let running=try await service.execute(planId: plan.id, digest: plan.digest, consent: PrivacyConsent(irreversibleDeletion: true, signOut: true))
+    try expect(running.items.first?.reason == "application_running" && running.items.first?.state == "failed")
+    try expect(try privacyScalar(url, "SELECT COUNT(*) FROM cookies") == 1)
     try await expectThrows { try await service.execute(planId: plan.id, digest: plan.digest, consent: PrivacyConsent(irreversibleDeletion: true, signOut: true)) }
     activity.setRunning(false)
+    let freshScan=try await service.scan(range: .allTime)
+    let freshSource=try require(freshScan.sources.first { $0.definition.relativePath == chromeCookies })
+    let freshPlan=try await service.preparePlan(scanId:freshScan.id,sourceIDs:[freshSource.id],acknowledgeSignOut:true)
     try privacySQL(url, "INSERT INTO cookies VALUES(1)")
-    try await expectThrows { try await service.execute(planId: plan.id, digest: plan.digest, consent: PrivacyConsent(irreversibleDeletion: true, signOut: true)) }
+    let stale=try await service.execute(planId:freshPlan.id,digest:freshPlan.digest,consent:PrivacyConsent(irreversibleDeletion:true,signOut:true))
+    try expect(stale.items.first?.reason == "plan_stale" && stale.items.first?.state == "failed")
     var config=Configuration(); config.globalExclusions=["Library/Application Support/Google/**"]
     try fixture.store.write("configuration", id: "current", data: Codec.encode(config))
     let protected=try await service.scan(range: .allTime)
@@ -233,6 +240,27 @@ private final class PrivacyProgressProbe: @unchecked Sendable {
     func record(_ event: ExecutionProgress) { lock.lock(); defer { lock.unlock() }; values.append(event) }
 }
 
+func privacyChangedMiddleSourceDoesNotBlockIndependentSources() async throws {
+    let fixture=try Fixture(), service=privacyService(fixture)
+    let recent=Int64((privacyDate.timeIntervalSince1970 + 11_644_473_600 - 60) * 1_000_000)
+    for browser in ["Google/Chrome","Chromium","Microsoft Edge"] {
+        try privacySQL(fixture.workspace.appendingPathComponent("Library/Application Support/" + browser + "/Default/History"),
+                       chromeSchema(recent:recent,old:recent))
+    }
+    let scan=try await service.scan(range:.lastHour), sources=scan.sources.filter(\.eligible)
+    try expect(sources.count == 3)
+    let plan=try await service.preparePlan(scanId:scan.id,sourceIDs:sources.map(\.id))
+    let middle=fixture.workspace.appendingPathComponent(plan.sources[1].definition.relativePath)
+    try privacySQL(middle,"INSERT INTO visits VALUES(3,1,\(recent),0,0,0,30)")
+    let result=try await service.execute(planId:plan.id,digest:plan.digest,consent:PrivacyConsent(irreversibleDeletion:true))
+    try expect(result.items.map(\.state) == ["completed","failed","completed"])
+    for index in plan.sources.indices {
+        let path=fixture.workspace.appendingPathComponent(plan.sources[index].definition.relativePath)
+        try expect(try privacyScalar(path,"SELECT COUNT(*) FROM visits") == (index == 1 ? 3 : 0))
+    }
+    try await expectThrows { try await service.execute(planId:plan.id,digest:plan.digest,consent:PrivacyConsent(irreversibleDeletion:true)) }
+}
+
 func privacyProgressTracksSourcesAndCommittedOutcomes() async throws {
     let fixture=try Fixture(), service=privacyService(fixture), probe=PrivacyProgressProbe()
     let recent=Int64((privacyDate.timeIntervalSince1970 + 11_644_473_600 - 60) * 1_000_000)
@@ -248,7 +276,7 @@ func privacyProgressTracksSourcesAndCommittedOutcomes() async throws {
     let execute=PrivacyProgressProbe()
     let receipt=try await service.execute(planId: plan.id, digest: plan.digest, consent: PrivacyConsent(irreversibleDeletion: true), progress: execute.record)
     try expect(receipt.state == "completed")
-    try expect(execute.events.first?.stage == "preflight" && execute.events.first?.processedCount == 0)
+    try expect(execute.events.first?.stage == "privacy-cleaning" && execute.events.first?.processedCount == 0)
     try expect(execute.events.last?.stage == "privacy-cleaning" && execute.events.last?.processedCount == 1)
     try expect(execute.events.allSatisfy { $0.itemCount == 1 && !$0.path.contains("private.example") && !$0.path.contains("History") })
     try expect(try privacyScalar(url, "SELECT COUNT(*) FROM visits") == 1)

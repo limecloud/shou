@@ -28,6 +28,11 @@ public sealed class WindowsStartupControlInspector : IStartupControlInspector
     public async Task<StartupControlTask> InspectAsync(string taskPath, CancellationToken cancellationToken)
     {
         if (!StartupControlReviewer.ValidTaskPath(taskPath)) throw new ShouException("invalid_argument", "Choose an exact scheduled-task identifier.");
+        if (WindowsSystemAuthorization.Shared.IsAuthorized)
+        {
+            var reply = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.StartupInspect, TaskPath:taskPath), cancellationToken).ConfigureAwait(false);
+            return reply.Startup is { } task && task.TaskPath == taskPath && task.ActorSid == ActorSid() ? task : throw WindowsAuthorizationChannel.Failure();
+        }
         if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000) || !Environment.Is64BitProcess)
             throw new ShouException("unsupported_platform", "Scheduled-task review requires supported Windows.");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -141,6 +146,11 @@ public sealed class WindowsStartupControlMutation : IStartupControlMutation
 
     public async Task<StartupControlNativeResult> ApplyAsync(StartupControlReview review, DateTimeOffset authorizationExpiresAt, CancellationToken cancellationToken)
     {
+        if (WindowsSystemAuthorization.Shared.IsAuthorized)
+        {
+            var reply = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.StartupToggle, Startup:review, ExpiresAt:authorizationExpiresAt), cancellationToken).ConfigureAwait(false);
+            return reply.StartupResult ?? throw WindowsAuthorizationChannel.Failure();
+        }
         if (!Available) return NotStarted("unsupported_platform");
         if (!StartupControlReviewer.ValidTaskPath(review.Task.TaskPath)) return NotStarted("startup_inspection_invalid");
         try

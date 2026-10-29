@@ -164,6 +164,20 @@ private final class StorageScanCancellation: @unchecked Sendable {
 
 extension NativeFileSystem {
     func measureStorageImpl(_ path: String, catalog: URL, cancelled: @escaping @Sendable () -> Bool, progress: @escaping @Sendable (ScanProgress) -> Void) throws -> StorageMeasurement {
+        #if os(macOS)
+        if usesSystemAuthorization {
+            if cancelled() { throw ShouError("cancelled", "Space analysis stopped.") }
+            try scanPrivacyPolicy.checkRoot(path)
+            let reply=try NativeSystemAuthorization.shared.perform(.measureStoragePath, path: path,
+                fullDiskAccess: [.available, .notRequired].contains(scanPrivacyPolicy.status), cancelled: cancelled, progress: { reply in
+                    if let update=reply.scanProgress { progress(update) }
+                })
+            guard let source=reply.path, let measurement=reply.storage else { throw AuthorizationChannel.failure() }
+            try NativeAuthorizedFileSystem.importStorage(source, to: catalog, uid: getuid())
+            if cancelled() { throw ShouError("cancelled", "Space analysis stopped.") }
+            return measurement
+        }
+        #endif
         if let executable=storageReadWorkerExecutable {
             return try NativeReadClient(executable: executable).measureStorage(path, catalog: catalog, cancelled: cancelled, progress: progress)
         }
@@ -353,7 +367,7 @@ extension NativeFileSystem {
             let childGroup=DispatchGroup(), childResults=StorageChildResults()
             for (_, child, node, childID) in directories {
                 if privacy.requiresAuthorization(path + "/" + child.path) {
-                    state.issue("authorization_required: " + child.path)
+                    state.issue(privacy.coverageCode(path + "/" + child.path) + ": " + child.path)
                     locallyIncomplete=true
                     continue
                 }
@@ -508,7 +522,7 @@ extension NativeFileSystem {
                 for (name, child, node, childID) in directories {
                     try checkCancellation()
                     if privacy.requiresAuthorization(path + "/" + child.path) {
-                        issue("authorization_required: " + child.path); continue
+                        issue(privacy.coverageCode(path + "/" + child.path) + ": " + child.path); continue
                     }
                     let sub=openat(descriptor, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
                     guard sub >= 0 else { issue("unreadable_directory: " + child.path); continue }

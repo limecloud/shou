@@ -251,28 +251,32 @@ public sealed class PrivacyCleanupTests
     [InlineData("schema")]
     [InlineData("activity")]
     [InlineData("configuration")]
-    public async Task ChangedEvidenceBeforeConfirmationOrExecutionNeverWritesIntent(string change)
+    public async Task ChangedEvidenceIsCheckedPerSourceAndConfigurationRemainsGlobal(string change)
     {
-        foreach (var afterConfirm in new[] { false, true })
+        var f = new Fixture(); var plan = await f.Plan(2); var consent = await f.Confirm(plan);
+        switch (change)
         {
-            var f = new Fixture(); var plan = await f.Plan(2); var consent = afterConfirm ? await f.Confirm(plan) : null;
-            switch (change)
-            {
-                case "count": f.Source.Count++; break;
-                case "identity":
-                    var path = plan.Sources[1].Source.Path.Value; var entry = f.Source.Files.Entries[path];
-                    f.Source.Files.Entries[path] = entry with { Identity = new(1, new string('f', 32), entry.Identity.OwnerSid) }; break;
-                case "schema": f.Source.Alter = observation => observation with { SchemaDigest = "sha256:" + new string('b', 64) }; break;
-                case "activity": f.Source.Activity = ActivityState.Active; break;
-                default: f.Source.Configure(["**/History"]); break;
-            }
-            var error = await Assert.ThrowsAsync<ShouException>(() => afterConfirm ? f.Service.ExecuteAsync(plan.Id, consent) : Confirm(f.Service, plan.Id));
-            Assert.Contains(error.Code, new[] { "plan_stale", "privacy_browser_running" }); Assert.Empty(f.Mutation.Requests);
+            case "count": f.Source.Count++; break;
+            case "identity":
+                var path = plan.Sources[1].Source.Path.Value; var entry = f.Source.Files.Entries[path];
+                f.Source.Files.Entries[path] = entry with { Identity = new(1, new string('f', 32), entry.Identity.OwnerSid) }; break;
+            case "schema": f.Source.Alter = observation => observation with { SchemaDigest = "sha256:" + new string('b', 64) }; break;
+            case "activity": f.Source.Activity = ActivityState.Active; break;
+            default: f.Source.Configure(["**/History"]); break;
+        }
+        if (change == "configuration")
+        {
+            Assert.Equal("plan_stale", (await Assert.ThrowsAsync<ShouException>(() => f.Service.ExecuteAsync(plan.Id, consent))).Code);
             Assert.DoesNotContain(f.Source.Store.Records, pair => pair.Key.StartsWith("privacy_receipt_", StringComparison.Ordinal));
         }
+        else
+        {
+            var result = await f.Service.ExecuteAsync(plan.Id, consent);
+            Assert.Equal(PrivacyExecutionState.Partial, result.State);
+            Assert.Contains(result.Items, item => item.State == PrivacyItemState.Failed);
+            Assert.Equal(change == "identity" ? 1 : 0, f.Mutation.Requests.Count);
+        }
     }
-    private static async Task<PrivacyReceipt> Confirm(PrivacyCleanupService service, string id)
-    { await service.ConfirmAsync(id, new Confirmation()); throw new InvalidOperationException("Confirmation should fail."); }
 
     [Theory]
     [InlineData(false)]
@@ -294,8 +298,17 @@ public sealed class PrivacyCleanupTests
         var f = new Fixture(); var plan = await f.Plan(); f.Source.Clock.Now = plan.CreatedAt.AddSeconds(10); var consent = await f.Confirm(plan);
         if (kind == "preflight_expired") f.Source.OnDatabase = () => f.Source.Clock.Now = f.Source.Clock.Now.AddMinutes(1);
         else f.Source.Clock.Now = kind switch { "plan_expired" => plan.ExpiresAt, "consent_expired" => f.Source.Clock.Now.AddMinutes(1), _ => plan.CreatedAt.AddSeconds(5) };
-        Assert.Contains((await Assert.ThrowsAsync<ShouException>(() => f.Service.ExecuteAsync(plan.Id, consent))).Code, new[] { "plan_stale", "confirmation_required" });
-        Assert.Empty(f.Mutation.Requests); Assert.DoesNotContain(f.Source.Store.Records, pair => pair.Key.StartsWith("privacy_receipt_", StringComparison.Ordinal));
+        if (kind == "preflight_expired")
+        {
+            var result = await f.Service.ExecuteAsync(plan.Id, consent);
+            Assert.Equal(PrivacyItemState.Failed, result.Items[0].State);
+        }
+        else
+        {
+            Assert.Contains((await Assert.ThrowsAsync<ShouException>(() => f.Service.ExecuteAsync(plan.Id, consent))).Code, new[] { "plan_stale", "confirmation_required" });
+            Assert.DoesNotContain(f.Source.Store.Records, pair => pair.Key.StartsWith("privacy_receipt_", StringComparison.Ordinal));
+        }
+        Assert.Empty(f.Mutation.Requests);
     }
 
     [Fact]
@@ -394,12 +407,14 @@ public sealed class PrivacyCleanupTests
     }
 
     [Fact]
-    public async Task BrowserStartingDuringLastPreflightStopsBeforeIntent()
+    public async Task BrowserStartingBeforeSecondSourcePreservesFirstResult()
     {
         var f = new Fixture(); var plan = await f.Plan(2); var consent = await f.Confirm(plan); var reads = 0;
         f.Source.OnDatabase = () => { if (++reads == 2) f.Source.Activity = ActivityState.Active; };
-        await Assert.ThrowsAsync<ShouException>(() => f.Service.ExecuteAsync(plan.Id, consent)); Assert.Empty(f.Mutation.Requests);
-        Assert.DoesNotContain(f.Source.Store.Records, pair => pair.Key.StartsWith("privacy_receipt_", StringComparison.Ordinal));
+        var result = await f.Service.ExecuteAsync(plan.Id, consent);
+        Assert.Equal(PrivacyItemState.Completed, result.Items[0].State);
+        Assert.Equal(PrivacyItemState.Failed, result.Items[1].State);
+        Assert.Single(f.Mutation.Requests);
     }
 
     [Theory]

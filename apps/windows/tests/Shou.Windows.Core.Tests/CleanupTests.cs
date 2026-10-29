@@ -177,8 +177,9 @@ public sealed class CleanupTests
         var plan = await fixture.Plan();
         var consent = await fixture.Service.ConfirmAsync(plan.Id, new Confirmation());
         fixture.Activity.State = state;
-        await Assert.ThrowsAsync<ShouException>(() => fixture.Service.ExecuteAsync(plan.Id, consent));
-        Assert.Null(await fixture.Service.ExecutionAsync(plan.Id));
+        var result = await fixture.Service.ExecuteAsync(plan.Id, consent);
+        Assert.Equal(CleanupItemState.Failed, Assert.Single(result.Items).State);
+        Assert.NotNull(await fixture.Service.ExecutionAsync(plan.Id));
         Assert.Equal(0, fixture.Mutation.Calls);
     }
 
@@ -206,7 +207,7 @@ public sealed class CleanupTests
     [InlineData("new-child")]
     [InlineData("marker")]
     [InlineData("parent")]
-    public async Task ChangedEvidenceAfterConfirmationStopsBeforeAnyIntentOrMutation(string change)
+    public async Task ChangedEvidenceAfterConfirmationReportsItemFailure(string change)
     {
         var fixture = await Fixture.Create();
         var plan = await fixture.Plan();
@@ -226,9 +227,18 @@ public sealed class CleanupTests
                 fixture.Files.Entries[parent] = fixture.Files.Entries[parent] with { Identity = new(1, 1000.ToString("x32"), Owner) };
                 break;
         }
-        Assert.Equal("plan_stale", (await Assert.ThrowsAsync<ShouException>(() => fixture.Service.ExecuteAsync(plan.Id, consent))).Code);
+        if (change == "configuration")
+        {
+            Assert.Equal("plan_stale", (await Assert.ThrowsAsync<ShouException>(() => fixture.Service.ExecuteAsync(plan.Id, consent))).Code);
+            Assert.Null(await fixture.Service.ExecutionAsync(plan.Id));
+        }
+        else
+        {
+            var result = await fixture.Service.ExecuteAsync(plan.Id, consent);
+            Assert.Equal(CleanupItemState.Failed, Assert.Single(result.Items).State);
+            Assert.NotNull(await fixture.Service.ExecutionAsync(plan.Id));
+        }
         Assert.Equal(0, fixture.Mutation.Calls);
-        Assert.Null(await fixture.Service.ExecutionAsync(plan.Id));
     }
 
     [Fact]

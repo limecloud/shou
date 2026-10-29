@@ -2,6 +2,17 @@
 
 English | [简体中文](../zh-CN/product/installation-and-access.md)
 
+## Installation without a Developer certificate
+
+Current Mac builds use an ad-hoc signature without an Apple Developer certificate or Apple notarization. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then place `Shou.app` in **Applications**. If macOS blocks its first launch, run in Terminal:
+
+```sh
+xattr -dr com.apple.quarantine "/Applications/Shou.app"
+open "/Applications/Shou.app"
+```
+
+This recursively removes only the app's `com.apple.quarantine` download attribute. Substitute the actual `Shou.app` path if installed elsewhere. It does not grant Full Disk Access; configure scanning access separately below.
+
 Install Shou in **Applications** before granting disk access. Open the installed copy and follow **Settings → Installation and CLI → Setup Guide**. The guide appears on first launch and remains available from Settings and scan coverage notices.
 
 ## First use
@@ -35,6 +46,8 @@ flowchart TD
 macOS exposes no supported API returning a universal Full Disk Access authorization state. Shou opens the system-protected `/Library/Application Support/com.apple.TCC/TCC.db` sentinel read-only and immediately closes it, without reading its contents. This is operational evidence, not a query of that database. Missing or unexpected failures stay unknown. It does not probe another app's container merely to populate Settings.
 
 When this check is limited or unknown, the native scanner avoids descending into known app container, mail, message, browser and similar protected boundaries. It reports `authorization_required`, preserves accessible siblings, and never publishes the skipped subtree as complete zero bytes. The policy runs in the read worker as well as the direct scanner. It is not an exhaustive model of every present or future macOS privacy boundary: other unreadable paths remain explicit coverage issues, and macOS may still request folder-specific consent.
+
+Administrator Access uses one process-bound Platform session. Choose Authorize in Settings → Scanning and Privacy or in an affected application row; the first privileged action can also request native consent. macOS owns the password/Touch ID dialog, and Shou never stores a password. Later supported scans, cleanup, configuration/log and system operations reuse the session until the app exits or its channel is lost. This consent grants system capability only: each cleanup still confirms its exact selected scope once and journals per-item results. Full Disk Access requires its separate system switch. No persistent root service is installed.
 
 ```mermaid
 sequenceDiagram

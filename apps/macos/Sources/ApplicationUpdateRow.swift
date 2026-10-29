@@ -13,6 +13,9 @@ struct ApplicationUpdateRow: View {
     private var source: ApplicationUpdateSource? { try? ApplicationUpdateChecker.source(for: application) }
 
     var body: some View {
+        if source != nil { content }
+    }
+    private var content: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Label(model.t("Application Updates"), systemImage: "arrow.down.app").font(ShouType.body.weight(.medium))
@@ -24,12 +27,11 @@ struct ApplicationUpdateRow: View {
                     } else {
                         Button(model.t("Check Homebrew Catalog")) { result=nil; failure=nil; request=UUID() }
                             .disabled(model.busy).accessibilityIdentifier("applications.update.check")
+                            .help(model.t("Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded."))
                     }
                 }
             }
             if let source {
-                Text(model.t("Checks formulae.brew.sh for this app only. Nothing is installed and your application list is not uploaded."))
-                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                 if let result {
                     HStack(alignment: .top, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
@@ -51,13 +53,8 @@ struct ApplicationUpdateRow: View {
                             }.disabled(model.busy).accessibilityIdentifier("applications.update.open")
                         }
                     }.accessibilityIdentifier("applications.update.result")
-                    Text(model.t("Catalog versions do not verify installation compatibility. Use the app or its official updater to install updates."))
-                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let failure { Text(model.t(failure)).font(ShouType.caption).foregroundStyle(ShouPalette.warning).fixedSize(horizontal: false, vertical: true) }
-            } else {
-                Text(model.t("No supported catalog source for this application. Check for updates in the app."))
-                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 8)

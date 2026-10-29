@@ -375,7 +375,7 @@ struct StorageCoverageView: View {
                 }
                 if !note.systemManaged && ["authorization_required", "unreadable", "unreadable_directory"].contains(note.code) {
                     HStack {
-                        Button(model.t("Finish Setup…")) { dismiss(); model.scanAccess.showingSetup=true }
+                        AccessRecoveryControls(model:model,requirement:note.code == "authorization_required" ? .fullDiskAccess : .administrator)
                         Button(model.t("Reveal in Finder")) { session.reveal(note.path) }
                     }.font(ShouType.caption).buttonStyle(.link)
                 }

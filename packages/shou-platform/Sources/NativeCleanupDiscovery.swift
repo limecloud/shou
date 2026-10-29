@@ -153,7 +153,7 @@ extension NativeFileSystem {
                     }
                     guard !matches.isEmpty || discover else { continue }
                     entries[child.path]=child; directories[child.path]=child
-                    if privacy.requiresAuthorization(absolute(child.path)) { issues.append("authorization_required: " + child.path); continue }
+                    if privacy.requiresAuthorization(absolute(child.path)) { issues.append(privacy.coverageCode(absolute(child.path)) + ": " + child.path); continue }
                     let childItem=CleanupDirectory(entry: child, depth: item.depth + 1)
                     if !matches.isEmpty { targets.append(childItem) }
                     else if prepared.contains(where: { rule, patterns in

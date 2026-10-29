@@ -87,7 +87,7 @@ npm 入口保持 `@limecloud/shou`，命令保持 `shou`，由平台启动器选
 
 Windows 使用当前用户私有数据根、ACL、原子写入、持久化日志和跨进程变更锁。Schema 与记录版本由 Windows 实现拥有。产品错误语义与夹具预期和 macOS 对齐；二进制存储布局、平台身份 DTO 分别定义。
 
-当前配置、位置发现、内置规则、扫描、计划创建、终端确认、界面审阅、只读历史与私有记录的命令、预算和流程见 [Windows 开发](windows.md)，记录格式见[数据合同](../architecture/data-model.md#windows-原生记录)。草稿不能成为计划来源；CLI 默认回收站动作不可用，永久计划须明确选择。Core 计划、当前确认、逐项日志及历史查询／现场核对已有模拟测试；Presentation 已覆盖个人规则配置、具体版本绑定、内置规则偏好、发现后配置核对、排除预览、写入核对、证据失效、选择、取消与历史观察。位置发现使用共享声明，整批登记保留已有范围与偏好；CLI 与界面批量扫描顺序共享预算；界面已汇总跨位置类别、规则与路径并保留筛选外选择；一个多位置计划绑定全部来源，使用一次当前确认、全部来源预检和逐项日志，公共执行门禁仍关闭。Platform 已有相对句柄永久移除、Restart Manager 文件占用和项目范围工具进程观察源码；内部进程 ABI、竞态、中断和实际终端行为仍待原生验收。CLI 与界面共用 Platform 中关闭的执行门禁。WinUI 确认、停止等待、结果查询及正常关闭保护已有源码；原生验收和恢复仍待完成。
+当前配置、位置发现、内置规则、扫描、计划创建、终端确认、界面审阅、只读历史与私有记录的命令、预算和流程见 [Windows 开发](windows.md)，记录格式见[数据合同](../architecture/data-model.md#windows-原生记录)。草稿不能成为计划来源；CLI 默认回收站动作不可用，永久计划须明确选择。Core 计划、当前确认、逐项日志及历史查询／现场核对已有模拟测试；Presentation 已覆盖个人规则配置、具体版本绑定、内置规则偏好、发现后配置核对、排除预览、写入核对、证据失效、选择、取消与历史观察。位置发现使用共享声明，整批登记保留已有范围与偏好；CLI 与界面批量扫描顺序共享预算；界面已汇总跨位置类别、规则与路径并保留筛选外选择；一个多位置计划绑定全部来源，使用一次当前确认、逐项复核执行和日志，公共执行门禁仍关闭。Platform 已有相对句柄永久移除、Restart Manager 文件占用和项目范围工具进程观察源码；内部进程 ABI、竞态、中断和实际终端行为仍待原生验收。CLI 与界面共用 Platform 中关闭的执行门禁。WinUI 确认、停止等待、结果查询及正常关闭保护已有源码；原生验收和恢复仍待完成。
 
 应用发现由 Core `ApplicationCatalog` / `IApplicationInventory`、Platform `WindowsApplicationInventory`、Presentation `ApplicationsViewModel`、WinUI `ApplicationsPage` 和 CLI `applications summary` 分担。注册发现只读，不依赖清理存储；MSI、MSIX、其他安装程序和残留组件的变更合同不能混同。来源、预算、估算及当前分页限制见[应用卸载](../product/application-uninstall.md#windows-应用发现与卸载边界)。
 

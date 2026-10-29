@@ -83,12 +83,12 @@ public struct ShouError: Error, Codable, Sendable, LocalizedError {
     public var exitCode: Int {
         switch code {
         case "invalid_argument", "invalid_rule", "unsupported_schema": 2
-        case "permission_denied", "access_expired": 3
+        case "permission_denied", "access_expired", "authorization_denied": 3
         case "plan_stale", "already_executed", "store_busy", "version_conflict", "restore_conflict", "application_running": 4
         case "partial_result", "resource_limit": 6
         case "confirmation_required": 7
-        case "unsupported_platform", "capability_unavailable", "application_activity_unavailable", "comparison_unavailable": 8
-        case "cancelled": 130
+        case "unsupported_platform", "capability_unavailable", "application_activity_unavailable", "comparison_unavailable", "authorization_unavailable": 8
+        case "cancelled", "authorization_cancelled": 130
         default: 5
         }
     }

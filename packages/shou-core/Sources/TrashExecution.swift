@@ -33,7 +33,9 @@ enum TrashExecution {
             } catch {
                 if Task.isCancelled { receipt.state="cancelled"; break }
                 receipt.items[index].state="failed"; receipt.items[index].error=diagnostic(error)
+                receipt.items[index].accessRequirement=(error as? ShouError)?.accessRequirement
                 try save()
+                if ExecutionFailurePolicy.continues(after: error) { continue }
                 break
             }
             // A lost result write must leave a durable started-item intent.
@@ -49,22 +51,23 @@ enum TrashExecution {
                 if !moved.verified { receipt.items[index].error="Moved identity or contents could not be verified." }
             } catch {
                 let nativeError=error as NSError
-                let cancelled=(nativeError.domain == NSCocoaErrorDomain && nativeError.code == NSUserCancelledError) ||
+                let cancelled=ExecutionFailurePolicy.authorizationCancelled(error) || (nativeError.domain == NSCocoaErrorDomain && nativeError.code == NSUserCancelledError) ||
                     (nativeError.domain == NSOSStatusErrorDomain && nativeError.code == -128)
                 if cancelled {
                     receipt.items[index].state="skipped"
                     receipt.state="cancelled"
                 } else {
-                    receipt.items[index].state=(error as? ShouError)?.code == "trash_outcome_unknown" ? "unknown" : "failed"
+                    receipt.items[index].state=["trash_outcome_unknown", "authorization_channel_lost"].contains((error as? ShouError)?.code ?? "") ? "unknown" : "failed"
                 }
                 if let observed=(error as? ShouError)?.details["resulting_path"], !observed.isEmpty {
                     receipt.items[index].trashPath=observed
                 }
                 receipt.items[index].error=diagnostic(error)
+                receipt.items[index].accessRequirement=(error as? ShouError)?.accessRequirement
             }
             try save()
             progress(ExecutionProgress(stage: "moving", processedCount: index + 1, itemCount: items.count, path: path))
-            if receipt.items[index].state != "trashed" { break }
+            if receipt.state == "cancelled" || receipt.items[index].state == "unknown" { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "trashed" } ? "completed" : "partial" }
         progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "moving"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))
@@ -78,6 +81,8 @@ enum TrashExecution {
         let reasons=(error as? ShouError)?.details["reasons"]?.split(separator: ",").map(String.init) ?? []
         let observed=(error as? ShouError)?.details["resulting_path"].flatMap { $0.isEmpty ? nil : "Observed result: " + $0 }
         let failures=(error as? ShouError)?.details["failures"].map { [$0] } ?? []
-        return ([error.localizedDescription] + reasons + failures + (observed.map { [$0] } ?? [])).joined(separator: "\n")
+        let code=(error as? ShouError)?.code ?? ""
+        let message=code.hasPrefix("authorization_") ? code : error.localizedDescription
+        return ([message] + reasons + failures + (observed.map { [$0] } ?? [])).joined(separator: "\n")
     }
 }

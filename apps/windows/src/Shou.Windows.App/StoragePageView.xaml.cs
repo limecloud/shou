@@ -142,9 +142,11 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         ScanActivity.Update(busy, text.Get("Scanning…"), "drive", model.Progress?.CurrentPath.Value ?? root?.Value ?? "",
             stopRequested: model.StopRequested);
         FailureNotice.IsOpen = model.State is StoragePageState.Failed || model.State == StoragePageState.Cancelled && !hasResults;
+        FailureNotice.Content = AdministratorAccessButton.Required(model.ErrorCode) ? new AdministratorAccessButton() : null;
         FailureNotice.Message = model.State == StoragePageState.Cancelled ? text.Get("Scan cancelled") : ReviewText.Error(text, model.ErrorCode);
         CoverageNotice.IsOpen = hasResults && model.State is StoragePageState.Partial or StoragePageState.Cancelled;
         CoverageNotice.Message = text.Get(model.State == StoragePageState.Cancelled ? "Scan cancelled" : "Some locations could not be read. Sizes show only measured data.");
+        CoverageNotice.Content = model.Snapshot?.Issues.Any(issue => AdministratorAccessButton.Required(issue.Code)) == true ? new AdministratorAccessButton() : null;
     }
     private void RefreshResults()
     {
@@ -192,27 +194,65 @@ public sealed partial class StoragePageView : UserControl, IPageChrome, IDisposa
         ResultContent.IsHitTestVisible = PageToolbar.IsHitTestVisible = false;
         BusyChanged?.Invoke(this, EventArgs.Empty);
         using var diagnostic = OperationDiagnostics.Start("ui.storage.remove");
+        StorageRemovalReview? review = null;
         try
         {
             var operations = new NativeReviewOperations();
-            var plan = await operations.CreateStoragePlanAsync(snapshot, paths, cancellation.Token);
+            review = await operations.ReviewStorageRemovalAsync(snapshot, paths, cancellation.Token);
+            if (review.Plan is not { } plan)
+            {
+                PresentRemovalResult(review, null);
+                diagnostic.Complete("skipped", 0, review.SkippedItems.Length);
+                return;
+            }
             var confirmation = WinUICleanupConfirmation.Create(this, plan);
             var result = await operations.ExecuteAsync(plan.Id, confirmation, cancellation.Token);
             diagnostic.Complete(result.State.ToString().ToLowerInvariant(), result.Items.Length);
             var removed = plan.Items.Where(item => result.Items.Any(value => value.ItemId == item.Id && value.State == CleanupItemState.Purged)).Select(item => item.Path).ToArray();
             rendered = snapshot with { Entries = snapshot.Entries.Where(value => !removed.Any(path => value.Entry.Path.IsWithin(path, caseSensitive: true))).ToImmutableArray() };
             analysis = new(rendered); selection?.Clear(); RefreshResults();
-            FailureNotice.Severity = result.State == CleanupExecutionState.Completed ? InfoBarSeverity.Success : InfoBarSeverity.Warning;
-            FailureNotice.Message = ReviewText.ExecutionState(text, result.State) + ", " + result.Id + Environment.NewLine +
-                string.Join(Environment.NewLine, result.Items.Where(item => item.State != CleanupItemState.Purged).Select(item => ReviewText.ItemState(text, item.State) + ", " + ReviewText.Error(text, item.Reason)));
-            FailureNotice.IsOpen = true;
+            PresentRemovalResult(review, result);
         }
-        catch (Exception error) { diagnostic.Fail(error); Fail(error); }
+        catch (Exception error)
+        {
+            diagnostic.Fail(error);
+            if (review is { SkippedItems.IsEmpty: false }) PresentRemovalResult(review, null);
+            Fail(error);
+        }
         finally
         {
             completion.TrySetResult(); removal = null; removalCancellation = null;
             ResultContent.IsHitTestVisible = PageToolbar.IsHitTestVisible = true;
             UpdateSelection(); BusyChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+    private void PresentRemovalResult(StorageRemovalReview review, CleanupExecution? execution)
+    {
+        var skipped = review.SkippedItems.Length + (execution?.Items.Count(item => item.State == CleanupItemState.Skipped) ?? 0);
+        var removed = execution?.Items.Count(item => item.State == CleanupItemState.Purged) ?? 0;
+        var issues = new StackPanel { Spacing = 8 };
+        foreach (var item in review.SkippedItems) AddIssue(item.Path, text.Get("Skipped"), ReviewText.Error(text, item.Reason));
+        if (execution is not null && review.Plan is { } plan)
+            foreach (var item in execution.Items.Where(item => item.State != CleanupItemState.Purged))
+                AddIssue(plan.Items.Single(target => target.Id == item.ItemId).Path, ReviewText.ItemState(text, item.State),
+                    item.Reason is null ? "" : ReviewText.Error(text, item.Reason));
+        FailureNotice.Severity = execution?.State == CleanupExecutionState.Completed && skipped == 0 ? InfoBarSeverity.Success : InfoBarSeverity.Warning;
+        FailureNotice.Message = text.Get("Permanently removed") + ": " + removed + ", " + text.Get("Skipped") + ": " + skipped +
+            (execution is null ? "" : ", " + ReviewText.ExecutionState(text, execution.State));
+        FailureNotice.Content = issues.Children.Count == 0 ? null : new ScrollViewer { Content = issues, MaxHeight = 220,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        FailureNotice.IsOpen = true;
+
+        void AddIssue(WindowsPath path, string state, string reason)
+        {
+            var row = new StackPanel { Spacing = 3 };
+            row.Children.Add(new TextBlock { Text = path.Name, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
+            row.Children.Add(new TextBlock { Text = state + (reason.Length == 0 ? "" : ": " + reason), TextWrapping = TextWrapping.Wrap,
+                Style = (Style)Application.Current.Resources["ShouCaption"] });
+            row.Children.Add(new Expander { Header = text.Get("Path"), HorizontalAlignment = HorizontalAlignment.Stretch,
+                Content = new TextBlock { Text = path.Value, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true,
+                    Style = (Style)Application.Current.Resources["ShouCaption"] } });
+            issues.Children.Add(row);
         }
     }
     private void Inspect(StorageRow row)

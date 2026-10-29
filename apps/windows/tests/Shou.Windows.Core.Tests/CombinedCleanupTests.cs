@@ -68,14 +68,17 @@ public sealed class CombinedCleanupTests
     }
 
     [Fact]
-    public async Task ChangedSecondSourceFailsAllPreflightBeforeAnyIntentOrMutation()
+    public async Task ChangedSecondSourceReportsFailureAfterIndependentFirstItem()
     {
         var f = await Create(); var plan = await f.Service.CreatePlanAsync(await f.Scan());
         var consent = await f.Service.ConfirmAsync(plan.Id, new CleanupTests.Confirmation());
         var target = plan.Items.Single(item => item.Path.IsWithin(f.Second.Path)).Manifest.Last();
         f.Inner.Files.Entries[target.Path.Value] = target with { LogicalBytes = target.LogicalBytes + 1 };
-        Assert.Equal("plan_stale", (await Assert.ThrowsAsync<ShouException>(() => f.Service.ExecuteAsync(plan.Id, consent))).Code);
-        Assert.Empty(f.Mutation.Workspaces); Assert.Null(await f.Service.ExecutionAsync(plan.Id));
+        var result = await f.Service.ExecuteAsync(plan.Id, consent);
+        Assert.Equal(CleanupExecutionState.Partial, result.State);
+        Assert.Single(f.Mutation.Workspaces);
+        Assert.Single(result.Items, item => item.State == CleanupItemState.Failed && item.Reason == "plan_stale");
+        Assert.NotNull(await f.Service.ExecutionAsync(plan.Id));
     }
 
     [Fact]

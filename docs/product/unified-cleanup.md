@@ -20,7 +20,7 @@ The page shows observed and total location counts. Results initially span all ob
 
 Review submits the selected `scan_id → candidate_ids` bindings to Core once. Under one configuration lease, Core reinspects every source, rule, complete manifest and activity state, rejecting repeated scans, multiple snapshots of one location, foreign-source candidates, overlapping paths and duplicate file identities. It saves one plan and digest for all locations. Each source binds its root identity and rules, and each item names its source. One current confirmation binds every exact path, action and the same digest; it does not create reusable per-location approvals.
 
-Plan creation and each execution have one shared measured-entry and time budget, using the largest selected source limit for each dimension rather than summing limits by location. Execution preflights every source under one mutation lease before saving any execution intent; each subsequent mutation still rechecks its item and saves item intent first. Stopping prevents further dispatch while retaining returned outcomes. Unknown outcomes stop later items; querying never restores authority. Public execution remains disabled, and simulated checks do not establish real deletion or release readiness.
+Plan creation and each execution have one shared measured-entry and time budget, using the largest selected source limit for each dimension rather than summing limits by location. Execution validates frozen scope under one mutation lease before saving batch intent; each item then freshly observes its source, verifies its own evidence and saves item intent before mutation. Independent failures are recorded and remaining selected items continue. Stopping prevents further dispatch while retaining returned outcomes. Unknown outcomes stop later items; querying never restores authority. Public execution remains disabled, and simulated checks do not establish real deletion or release readiness.
 
 Configuration invalidation, page disposal and newer scans isolate late responses. Failed plan revalidation discards the reusable batch and selection and requires a fresh scan. Scanning, selection, recommendations and review cannot replace current-entry confirmation.
 
@@ -35,7 +35,7 @@ flowchart TD
     Plan --> Gate{Public native gate open?}
     Gate -->|Currently closed| Review[Review only; no execution]
     Gate -->|Native acceptance complete| Confirm[One current exact-scope confirmation]
-    Confirm --> Preflight[Preflight every location under mutation lease]
+    Confirm --> Preflight[Validate frozen scope under mutation lease]
     Preflight --> Intent[Persist execution and item intent first]
     Intent --> Mutation[Recheck and mutate each item; retain returned outcomes on stop]
     Mutation --> Receipt[One execution record; unknown stops later dispatch]
@@ -61,10 +61,10 @@ sequenceDiagram
     opt Native acceptance complete and user confirms current digest
         UI->>Core: Single current confirmation
         Core->>Store: Mutation lease, replay and configuration checks
-        Core->>Native: Preflight every selected source and activity
+        Core->>Store: Validate frozen source bindings
         Core->>Store: Persist combined execution record
         loop Each item until stopped or unknown
-            Core->>Native: Recheck exact item evidence and activity
+            Core->>Native: Freshly observe this source, item evidence and activity
             Core->>Store: Persist item intent
             Core->>Native: Mutate only its bound location and manifest
             Native-->>Core: Real outcome or unknown

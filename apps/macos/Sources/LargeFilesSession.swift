@@ -47,7 +47,7 @@ import ShouCore
                 items += page.items
                 totalCount=page.totalCount; totalBytes=page.totalAllocatedBytes; nextCursor=page.nextCursor
                 loadedQuery=Query(scanId: scan.id, minimumBytes: minimum, type: filter); hasLoaded=true
-            } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+            } catch { if !Task.isCancelled { app.presentFailure(error) } }
         }
     }
     func useSpaceAnalysis(app: AppModel) {
@@ -55,7 +55,7 @@ import ShouCore
         task?.cancel(); loading=true
         task=Task {
             do { try await storage.useExistingScan(scan, app: app); loading=false; load(app: app) }
-            catch { loading=false; if !Task.isCancelled { app.error=error.localizedDescription } }
+            catch { loading=false; if !Task.isCancelled { app.presentFailure(error) } }
         }
     }
     func selectLoaded(app: AppModel) {
@@ -85,7 +85,7 @@ import ShouCore
                     cursor=page.nextCursor
                 } while cursor != nil
                 storage.selected=selected
-            } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+            } catch { if !Task.isCancelled { app.presentFailure(error) } }
         }
     }
     func stop() { task?.cancel(); storage.stop() }

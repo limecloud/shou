@@ -96,3 +96,9 @@ Failure-tree evidence includes app/root/element process IDs, native handles, cla
 ```
 
 The manifest preserves summary counters and individual `UnitTestResult.outcome` counts in `result_counts`; xUnit can report summary `notExecuted=0` while actual results are `NotExecuted`. Report those skips explicitly. It also includes logs, architecture, disk space, missing evidence and payload SHA256. Namespaced TRX counters are read through XML attributes rather than treating an empty object as a pass. E2E also produces `verification.json`, screenshots and command receipts. Screenshots/UI trees may include visible application names/paths; retain them privately and review before sharing. Collection success is not acceptance. Export before applying the user's latest stop/retain or release choice.
+
+### Interactive portable-preview acceptance
+
+Use `test-desktop-e2e.ps1 -ReadOnlyPreview` for payloads with closed public mutation gates. It exercises scans, filters, selection, cancellation, settings persistence, failure recovery and disabled cleanup/storage/privacy actions, while preserving generated fixture bytes. Receipts explicitly record `public_mutation_tested=false`; these checks do not count as UI removal, MSI uninstall or startup mutation acceptance. The default mode requires public execution and runs actual generated-fixture mutations without automatically downgrading.
+
+When a native folder picker lacks managed UIA patterns, the harness sends bounded native control messages only to observed Edit/Button handles owned by this app PID, and verifies the resulting selected path. It never injects page results.

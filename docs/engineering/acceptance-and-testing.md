@@ -139,7 +139,7 @@ Scheduled-task control has a [generated-task native entry](windows.md#native-sta
 
 ## Windows multi-location cleanup acceptance
 
-Core simulated-port cases are in `CombinedCleanupTests.cs`; Presentation cases are in `CombinedCleanupReviewTests.cs`. They cover all-source bindings in one plan/confirmation/execution record, all-source preflight, changed evidence, forged/repeated sources, shared budgets, stop/unknown outcomes, canonical categories, global selection across filters, tri-state selection, recommendation eligibility and atomic group limit/overlap failure. Mutations use in-memory ports without touching real user files.
+Core simulated-port cases are in `CombinedCleanupTests.cs`; Presentation cases are in `CombinedCleanupReviewTests.cs`. They cover all-source bindings in one plan/confirmation/execution record, per-item live verification and independent failure receipts, changed evidence, forged/repeated sources, shared budgets, stop/unknown outcomes, canonical categories, global selection across filters, tri-state selection, recommendation eligibility and atomic group limit/overlap failure. Mutations use in-memory ports without touching real user files.
 
 `SYNC.md` records the matching source, checks and payload evidence. These tests cannot open public execution. Generated fixtures must separately verify native multiple-root/cross-volume operations, cancellation/interruption and races, with actual WinUI filters, selection, combined confirmation and window lifecycle acceptance.
 

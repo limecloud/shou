@@ -45,8 +45,9 @@ public struct NativeStartupControl: StartupControlling {
             let state=try StartupSystemDaemonAuthorization.apply(label:definition.label,action:action,command:{ arguments,_ in try run(arguments) },administrator:{ arguments,_ in
                 if let administrator { return try administrator(arguments,120) }
                 if geteuid() == 0 { return try run(arguments) }
-                let script=try StartupSystemDaemonAuthorization.script(action:action,label:definition.label)
-                return try NativeStartupCommand.run(["-e",script],executable:"/usr/bin/osascript",deadline:ContinuousClock.now.advanced(by:.seconds(120)))
+                let reply=try NativeSystemAuthorization.shared.perform(.startupToggle, path: definition.label, action: action)
+                guard let output=reply.command else { throw AuthorizationChannel.failure() }
+                return output
             })
             return StartupControlResult(definitionId:definition.id,label:definition.label,action:action,configuredState:state,runtimeState:"unknown",controlCapability:definition.controlCapability,message:"System startup definition updated and verified.")
         }

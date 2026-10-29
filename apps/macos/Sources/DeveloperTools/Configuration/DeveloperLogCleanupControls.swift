@@ -30,6 +30,9 @@ struct DeveloperLogCleanupControls: View {
                 }
             }
             if let failure=session.failure { Text(model.t(failure)).foregroundStyle(ShouPalette.secondary) }
+            if let requirement=session.accessRequirement {
+                AccessRecoveryControls(model:model,requirement:requirement) { session.review() }
+            }
             if let message=session.message { Text(model.t(message)).foregroundStyle(ShouPalette.secondary) }
         }
         .onAppear { session.configure(toolID:toolID,path:path) }

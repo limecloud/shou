@@ -1,6 +1,7 @@
 import Foundation
 
 public struct ApplicationCatalogOptions: Sendable {
+    public static let maxContainerDepth=8
     public var includeSystem: Bool
     public var maxEntries: Int
     public var maxSeconds: Double
@@ -24,6 +25,15 @@ public struct ApplicationSource: Codable, Sendable, Equatable, Identifiable {
 }
 
 public struct ApplicationDefinition: Codable, Sendable, Equatable, Identifiable {
+    public static func isValidBundleIdentifier(_ value: String) -> Bool {
+        value.utf8.count <= 255 && value.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)*$", options: .regularExpression) != nil
+    }
+    public var isSystemApplication: Bool {
+        source.systemOwned || path.hasPrefix("/System/") ||
+            (identity.kind == "symlink" && bundleIdentifier?.lowercased().hasPrefix("com.apple.") == true)
+    }
+    public static let metadataIssues: Set<String> = ["invalid_bundle_identifier", "application_metadata_missing", "unsupported_bundle",
+        "invalid_application_metadata", "linked_definition", "unsupported_definition", "definition_too_large"]
     public let id: String
     public let path: String
     public let source: ApplicationSource
@@ -90,6 +100,7 @@ public struct ApplicationSummaryMeasurement: Sendable {
     public let containsForeignOwnedContent: Bool
     public let lastUsed: Date?
     public let issues: [String]
+    public var requiresAdministrator: Bool = false
     public init(allocatedBytesEstimate: Int64, owner: UInt32, containsForeignOwnedContent: Bool = false, lastUsed: Date? = nil, issues: [String] = []) {
         self.allocatedBytesEstimate=allocatedBytesEstimate; self.owner=owner; self.containsForeignOwnedContent=containsForeignOwnedContent
         self.lastUsed=lastUsed; self.issues=issues
@@ -104,7 +115,7 @@ public struct ApplicationSummary: Codable, Sendable, Identifiable {
     public let lastUsed: Date?
     public let issues: [String]
     public var sizeIsLowerBound: Bool {
-        issues.contains { !["application_activity_unavailable", "invalid_bundle_identifier", "multiply_linked_content"].contains($0) }
+        issues.contains { !ApplicationDefinition.metadataIssues.contains($0) && !["application_activity_unavailable", "linked_application", "multiply_linked_content"].contains($0) }
     }
 }
 public struct ApplicationSummaryProgress: Sendable {
@@ -155,16 +166,19 @@ extension ShouEngine {
     private func makeApplicationSummary(_ app: ApplicationDefinition, activity: ApplicationUninstallFacts?, issues initialIssues: [String], budget: ScanBudget,
                                         progress: @Sendable (ScanProgress) -> Void) throws -> ApplicationSummary {
         var issues=initialIssues
+        if app.bundleIdentifier == nil || app.infoDigest == nil { issues.append("application_metadata_missing") }
         var measurement: ApplicationSummaryMeasurement?
         do {
             measurement=try applicationCatalog.measureSummary(for: app, budget: budget, progress: progress)
         } catch let error as ShouError { if error.code == "cancelled" { throw error }; issues.append(error.code) }
         if let measurement { issues.append(contentsOf: measurement.issues) }
         let status: String
-        if app.source.systemOwned || app.bundleIdentifier?.hasPrefix("com.apple.") == true || activity?.currentApplication == true { status="protected" }
+        let blockingIssues=issues.filter { !ApplicationDefinition.metadataIssues.contains($0) && $0 != "multiply_linked_content" }
+        if app.isSystemApplication || activity?.currentApplication == true { status="protected" }
         else if activity?.running == true { status="running" }
-        else if activity == nil || measurement == nil || !issues.isEmpty || app.infoDigest == nil || app.bundleIdentifier == nil { status="unavailable" }
-        else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true { status="admin-required" }
+        else if activity == nil || measurement == nil || !blockingIssues.isEmpty || app.identity.kind != "directory" { status="unavailable" }
+        else if let activity, (measurement?.owner ?? app.identity.owner) != activity.currentUser || measurement?.containsForeignOwnedContent == true || measurement?.requiresAdministrator == true { status="admin-required" }
+        else if issues.contains("multiply_linked_content") { status="trash-required" }
         else { status="ready" }
         return ApplicationSummary(application: app, allocatedBytesEstimate: measurement?.allocatedBytesEstimate, status: status,
             lastUsed: measurement?.lastUsed, issues: Array(Set(issues)).sorted())

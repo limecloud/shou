@@ -9,8 +9,16 @@ namespace Shou.Windows.Platform;
 
 public sealed class WindowsFileSystem : IWindowsFileSystem, IProvisionedScanAccess
 {
-    public ValueTask VerifyReadOnlyRootAsync(FileEntry root, WindowsPath anchor, string ownerSid, CancellationToken cancellationToken) =>
-        WindowsProvisionedScanAccess.VerifyAsync(root, anchor, ownerSid, cancellationToken);
+    public async ValueTask VerifyReadOnlyRootAsync(FileEntry root, WindowsPath anchor, string ownerSid, CancellationToken cancellationToken)
+    {
+        if (WindowsSystemAuthorization.Shared.IsAuthorized)
+        {
+            using var actor = System.Security.Principal.WindowsIdentity.GetCurrent();
+            if (actor.User?.Value != ownerSid) throw new ShouException("scan_location_permissions", "The scan owner changed.");
+            _ = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.VerifyRoot, root.Path, root, anchor), cancellationToken).ConfigureAwait(false);
+        }
+        else await WindowsProvisionedScanAccess.VerifyAsync(root, anchor, ownerSid, cancellationToken).ConfigureAwait(false);
+    }
 
     public bool VerifiesDirectoryEntries => true;
     public ValueTask<byte[]> ReadRuleFileAsync(WindowsPath path, CancellationToken cancellationToken) =>
@@ -42,14 +50,52 @@ public sealed class WindowsFileSystem : IWindowsFileSystem, IProvisionedScanAcce
         return bytes;
     }
 
-    public ValueTask<FileEntry> InspectAsync(WindowsPath path, CancellationToken cancellationToken) =>
-        NativeOperationScheduler.RunAsync(() =>
+    public async ValueTask<FileEntry> InspectAsync(WindowsPath path, CancellationToken cancellationToken)
+    {
+        if (WindowsSystemAuthorization.Shared.IsAuthorized)
+        {
+            var reply = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.Inspect, path), cancellationToken).ConfigureAwait(false);
+            return reply.Entry is { } entry && entry.Path == path ? entry : throw WindowsAuthorizationChannel.Failure();
+        }
+        return await NativeOperationScheduler.RunAsync(() =>
         {
             using var pinned = PinPath(path);
             return ReadEntry(path, pinned.Final);
-        }, cancellationToken);
+        }, cancellationToken).ConfigureAwait(false);
+    }
 
     public async IAsyncEnumerable<DirectoryReadItem> ReadDirectoryAsync(WindowsPath directory,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        if (!WindowsSystemAuthorization.Shared.IsAuthorized)
+        {
+            await foreach (var entry in ReadDirectoryNativeAsync(directory, cancellationToken).ConfigureAwait(false)) yield return entry;
+            yield break;
+        }
+        using var stopped = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var channel = Channel.CreateBounded<DirectoryReadItem>(128);
+        var producer = Task.Run(async () =>
+        {
+            try
+            {
+                _ = await WindowsSystemAuthorization.Shared.PerformAsync(new(Guid.NewGuid(), AuthorizationOperation.ReadDirectory, directory), stopped.Token, async reply =>
+                {
+                    if (reply.Entries is not { Length: > 0 and <= 128 } entries) throw WindowsAuthorizationChannel.Failure();
+                    foreach (var entry in entries)
+                    {
+                        if (entry.Path.Parent != directory || entry.Entry is { } metadata && metadata.Path != entry.Path) throw WindowsAuthorizationChannel.Failure();
+                        if (!stopped.IsCancellationRequested) await channel.Writer.WriteAsync(entry, stopped.Token).ConfigureAwait(false);
+                    }
+                }).ConfigureAwait(false);
+                channel.Writer.TryComplete();
+            }
+            catch (Exception error) { channel.Writer.TryComplete(error); }
+        }, CancellationToken.None);
+        try { await foreach (var entry in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false)) yield return entry; }
+        finally { stopped.Cancel(); await producer.ConfigureAwait(false); }
+    }
+
+    private async IAsyncEnumerable<DirectoryReadItem> ReadDirectoryNativeAsync(WindowsPath directory,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using var stopped = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

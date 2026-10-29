@@ -12,6 +12,7 @@ internal static class Program
 
     private static async Task<int> Main(string[] args)
     {
+        if (await WindowsSystemAuthorizationWorker.RunIfRequestedAsync(args) is { } workerExit) return workerExit;
         if (IsSupportRequest(args)) return await ExecuteAsync(args, "request_" + Guid.NewGuid().ToString("N"));
         if (HostSupported) NativeDiagnostics.Initialize();
         using var diagnostic = OperationDiagnostics.Start("cli.request");

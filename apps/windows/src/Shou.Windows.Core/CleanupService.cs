@@ -143,24 +143,6 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
         var configuration = await ReadConfigurationAsync(lease, cancellationToken);
         RequireSources(configuration, plan);
         RequireBindings(configuration, plan);
-        Report(progress, new("preflight", null, null, 0, plan.Items.Length));
-        // Revalidate every selected location before persisting intent or changing any target.
-        foreach (var source in plan.Sources)
-        {
-            if (plan.Version == 3)
-            {
-                await VerifyStorageItemsAsync(configuration, source, plan.Items.Where(item => item.ScanId == source.ScanId), validation, cancellationToken);
-                continue;
-            }
-            var preflight = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken,
-                new InlineProgress<ScanProgress>(value => Report(progress, new("checking", null, value.CurrentPath, 0, plan.Items.Length, 0, plan.Items.Sum(item => item.Manifest.Length)))),
-                plan.Items.Where(item => item.ScanId == source.ScanId).Select(item => item.Path).ToArray());
-            foreach (var item in plan.Items.Where(item => item.ScanId == source.ScanId))
-            {
-                VerifyItem(item, preflight);
-                await RequireIdleAsync(source.Workspace, item, cancellationToken);
-            }
-        }
         cancellationToken.ThrowIfCancellationRequested();
         RequireCurrentTime(plan);
         var now = clock.GetUtcNow();
@@ -182,7 +164,7 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
                 // Configuration is stable under this lease. Native adapters own the final exact-tree check.
                 if (plan.Version == 3)
                     await VerifyStorageItemsAsync(configuration, source, [item], validation, cancellationToken);
-                else if (!mutation.VerifiesMutationManifest)
+                else
                 {
                     var current = await ObserveAsync(configuration, source.Workspace, ParseRules(source), validation, cancellationToken, targets: [item.Path]);
                     VerifyItem(item, current);
@@ -197,9 +179,13 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
             catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException)
             {
                 execution = SetItem(execution, index, new(item.Id, CleanupItemState.Failed, Reason: Reason(error)));
-                execution = StopRemaining(execution, index + 1, CleanupItemState.Skipped, "preflight_failed");
                 await SaveExecutionAsync(lease, execution, plan);
-                break;
+                if (error is ShouException { Code: "plan_expired" or "time_limit" or "resource_limit" or "store_corrupt" })
+                {
+                    execution = StopRemaining(execution, index + 1, CleanupItemState.Skipped, "verification_stopped");
+                    break;
+                }
+                continue;
             }
             var intent = plan.Action == CleanupAction.Permanent ? CleanupItemState.Purging : CleanupItemState.Moving;
             execution = SetItem(execution, index, new(item.Id, intent));

@@ -313,7 +313,7 @@ import ShouPlatform
         case "tool_not_installed": "Homebrew is not available in a supported location. Install it from its official website, then inspect again."
         case "developer_tool_changed", "confirmation_required": "The tool or its source changed. Inspect it and review the operation again."
         case "store_busy": "Another Shou operation is using the local records. Try again after it finishes."
-        case "permission_denied": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue."
+        case "permission_denied": "Open the package manager to authorize this operation, then refresh in Shou."
         case "developer_tool_running": "Stop the instances using this installation before uninstalling it."
         case "developer_tool_activity_unavailable": "Running programs could not be verified. Refresh before uninstalling."
         default: "The tool could not be inspected or changed. Use its official guide or inspect again."

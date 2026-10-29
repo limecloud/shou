@@ -81,15 +81,17 @@ func uninstallActivityFailuresKeepTheirCauseAndAllowRetryWithoutMutation() async
         let plan=try await fixture.engine.createUninstallBatchPlan(selections: [ApplicationUninstallSelection(reviewId: review.id, componentIds: ids)], action: "trash")
         fixture.evidence.setRunning(code == "application_running")
         fixture.evidence.setUnavailable(code == "application_activity_unavailable")
-        do {
-            _ = try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-activity-failure")
-            throw CheckFailure(description: "Application activity failure was not rejected.")
-        } catch let error as ShouError { try expect(error.code == code) }
+        let failed=try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-activity-failure")
+        try expect(failed.state == "partial" && failed.items.allSatisfy { $0.state == "failed" })
+        try expect(failed.items.allSatisfy { $0.error?.contains(code == "application_running" ? "Quit" : "activity") == true })
         let history=try await fixture.engine.history()
-        try expect(try fixture.hashes() == before && history.isEmpty)
-        try expect(try await fixture.engine.uninstallBatchPlan(plan.id).executionId == nil)
+        try expect(try fixture.hashes() == before && history.count == 1)
+        try await expectThrows { try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "reject-replay") }
         fixture.evidence.setRunning(false); fixture.evidence.setUnavailable(false)
-        let receipt=try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-activity-retry")
+        let fresh=try await fixture.engine.reviewApplication(path: fixture.app.path)
+        let retry=try await fixture.engine.createUninstallBatchPlan(selections: [ApplicationUninstallSelection(reviewId: fresh.id,
+            componentIds: fresh.components.filter { $0.eligible && !$0.requiresUserDataConsent }.map(\.id))], action: "trash")
+        let receipt=try await fixture.engine.executeUninstallBatch(planId: retry.id, confirmedDigest: retry.digest, entryPoint: "generated-activity-retry")
         try expect(receipt.state == "completed" && receipt.items.allSatisfy { $0.state == "trashed" })
         let itemIds=receipt.items.map(\.id)
         let digest=try await fixture.engine.followUpDigest(executionId: receipt.id, itemIds: itemIds, action: "restore")
@@ -151,7 +153,7 @@ func uninstallBatchDefaultPermanentCannotRestoreAndSingleTrashRemainsCompatible(
     try expect(loaded.effectiveAction == "trash" && loaded.digest == loaded.calculatedDigest())
 }
 
-func uninstallBatchPreflightsAllAppsAndRejectsConsentRunningStaleAndOverlaps() async throws {
+func uninstallBatchContinuesIndependentItemsAndRejectsInvalidScopes() async throws {
     for change in ["consent", "running", "stale", "duplicate", "overlap", "forged-consent"] {
         let fixture=try UninstallFixture(), second=try fixture.addApplication(), before=try fixture.hashes()
         var selections=[ApplicationUninstallSelection]()
@@ -178,12 +180,48 @@ func uninstallBatchPreflightsAllAppsAndRejectsConsentRunningStaleAndOverlaps() a
                 plan.digest=try plan.calculatedDigest()
                 try fixture.fixture.store.write("uninstall-batch-plans", id: plan.id, data: Codec.encode(plan))
             }
+            if ["running", "stale"].contains(change) {
+                let result=try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+                try expect(result.state == "partial" && result.items.contains { $0.state == "failed" })
+                if change == "running" {
+                    try expect(result.items.allSatisfy { $0.state == "failed" } && fixture.hashes() == before)
+                } else {
+                    try expect(result.items.contains { $0.state == "purged" && $0.originalPath == fixture.app.path })
+                    try expect(FileManager.default.fileExists(atPath: second.path))
+                }
+                try expect(try await fixture.engine.history().count == 1)
+                continue
+            }
             try await expectThrows { try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
         }
         try expect(FileManager.default.fileExists(atPath: fixture.app.path) && FileManager.default.fileExists(atPath: second.path))
         try expect(try await fixture.engine.history().isEmpty)
-        if change != "stale" { try expect(try fixture.hashes() == before) }
+        try expect(try fixture.hashes() == before)
     }
+
+    for action in ["trash", "permanent"] {
+        let fixture=try UninstallFixture()
+        let first=try fixture.addApplication(name: "AFirst", identifier: "dev.shou.generated.first")
+        let middle=try fixture.addApplication(name: "MMiddle", identifier: "dev.shou.generated.middle")
+        let last=try fixture.addApplication(name: "ZLast", identifier: "dev.shou.generated.last")
+        var selections=[ApplicationUninstallSelection]()
+        for app in [first, middle, last] {
+            let review=try await fixture.engine.reviewApplication(path: app.path)
+            let bundle=try require(review.components.first { $0.kind == .application && $0.eligible })
+            selections.append(ApplicationUninstallSelection(reviewId: review.id, componentIds: [bundle.id]))
+        }
+        let plan=try await fixture.engine.createUninstallBatchPlan(selections: selections, action: action)
+        let changed=Data("changed middle item must survive".utf8)
+        try changed.write(to: middle.appendingPathComponent("Contents/MacOS/Fixture"))
+        let receipt=try await fixture.engine.executeUninstallBatch(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-middle-failure")
+        try expect(receipt.state == "partial" && receipt.items.count == 3)
+        try expect(receipt.items.map(\.originalPath) == [first.path, middle.path, last.path])
+        try expect(receipt.items.map(\.state) == [action == "trash" ? "trashed" : "purged", "failed", action == "trash" ? "trashed" : "purged"])
+        try expect(try Data(contentsOf: middle.appendingPathComponent("Contents/MacOS/Fixture")) == changed)
+        try expect(FileManager.default.fileExists(atPath: fixture.app.path))
+        try expect(try await fixture.engine.history().count == 1)
+    }
+
 }
 
 func uninstallPermanentRechecksActivityAtJournalBoundary() async throws {
@@ -277,10 +315,22 @@ func uninstallRefusesChangedEvidenceRunningApplicationsAndExcludedData() async t
             plan.digest=try plan.calculatedDigest()
             try fixture.fixture.store.write("uninstall-plans", id: plan.id, data: Codec.encode(plan))
         }
-        try await expectThrows { try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
-        try expect(FileManager.default.fileExists(atPath: fixture.app.path))
-        try expect(try await fixture.engine.history().isEmpty)
-        try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.fixture.trash.path).isEmpty)
+        if ["contents", "running", "duplicate"].contains(change) {
+            let receipt=try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+            try expect(receipt.state == "partial" && receipt.items.contains { $0.state == "failed" })
+            if change == "running" { try expect(receipt.items.allSatisfy { $0.state == "failed" }) }
+            else {
+                try expect(receipt.items.last?.state == "trashed")
+                let rejected=receipt.items.filter { $0.state == "failed" }
+                try expect(!rejected.isEmpty && rejected.allSatisfy { FileManager.default.fileExists(atPath: $0.originalPath) })
+            }
+            try expect(try await fixture.engine.history().count == 1)
+        } else {
+            try await expectThrows { try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test") }
+            try expect(FileManager.default.fileExists(atPath: fixture.app.path))
+            try expect(try await fixture.engine.history().isEmpty)
+            try expect(try FileManager.default.contentsOfDirectory(atPath: fixture.fixture.trash.path).isEmpty)
+        }
     }
     let fixture=try UninstallFixture()
     _ = try await fixture.engine.setGlobalExclusion(pattern: "**/dev.shou.fixture.uninstall/**", remove: false)
@@ -433,4 +483,63 @@ func administratorUninstallRequiresNativeTrashAndKeepsDataOnCancellation() async
         try expect(try fixture.hashes() == before)
     }
     try expect(try fixture.hashes() == before)
+}
+
+func uninstallMissingMetadataKeepsAssociationsAndRestoresBundle() async throws {
+    for mode in ["trash", "permanent"] {
+        let fixture=try UninstallFixture()
+        try FileManager.default.removeItem(at: fixture.app.appendingPathComponent("Contents/Info.plist"))
+        let before=try fixture.hashes()
+        let review=try await fixture.engine.reviewApplication(path: fixture.app.path)
+        try expect(review.application.bundleIdentifier == nil && review.components.count == 1)
+        let bundle=try require(review.components.first)
+        try expect(bundle.eligible && bundle.origin?.bundleIdentifier == nil && bundle.warnings == ["application_metadata_missing"])
+        let plan=try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id], action: mode)
+        let receipt=try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-incomplete-bundle")
+        try expect(receipt.state == "completed" && receipt.items.count == 1)
+        try expect(!FileManager.default.fileExists(atPath: fixture.app.path))
+        let after=try fixture.hashes()
+        for (path, hash) in before where !path.hasPrefix("Applications/") { try expect(after[path] == hash) }
+        if mode == "trash" {
+            let digest=try await fixture.engine.followUpDigest(executionId: receipt.id, itemIds: [bundle.id], action: "restore")
+            _ = try await fixture.engine.followUp(executionId: receipt.id, itemIds: [bundle.id], action: "restore", confirmedDigest: digest)
+            try expect(try fixture.hashes() == before)
+        }
+    }
+}
+
+func uninstallHardLinkedBundleUsesTrashAndPreservesExternalContent() async throws {
+    let fixture=try UninstallFixture(), payload=fixture.app.appendingPathComponent("Contents/MacOS/Fixture")
+    let external=fixture.fixture.workspace.appendingPathComponent("shared-executable")
+    try FileManager.default.linkItem(at: payload, to: external)
+    let original=try Data(contentsOf: external)
+    let review=try await fixture.engine.reviewApplication(path: fixture.app.path)
+    let bundle=try require(review.components.first { $0.kind == .application })
+    try expect(bundle.eligible && bundle.requiresTrash && !bundle.requiresAdministrator)
+    try await expectThrows { try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id], action: "permanent") }
+    if let cache=review.components.first(where: { $0.kind == .caches && $0.eligible }) {
+        try await expectThrows { try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id, cache.id], action: "trash") }
+    }
+    let plan=try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id], action: "trash")
+    let receipt=try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-linked-bundle")
+    try expect(receipt.state == "completed" && receipt.items[0].state == "trashed")
+    try expect(try Data(contentsOf: external) == original && !FileManager.default.fileExists(atPath: fixture.app.path))
+    let digest=try await fixture.engine.followUpDigest(executionId: receipt.id, itemIds: [bundle.id], action: "restore")
+    _ = try await fixture.engine.followUp(executionId: receipt.id, itemIds: [bundle.id], action: "restore", confirmedDigest: digest)
+    try expect(try Data(contentsOf: payload) == original && Data(contentsOf: external) == original)
+}
+
+func uninstallUserInstalledAppleAppsAndSingleSegmentIdentifiers() async throws {
+    for identifier in ["ynote-desktop", "com.apple.iWork.Pages"] {
+        let fixture=try UninstallFixture()
+        try PropertyListSerialization.data(fromPropertyList: ["CFBundleIdentifier": identifier, "CFBundleName": "Generated User Application"], format: .binary, options: 0)
+            .write(to: fixture.app.appendingPathComponent("Contents/Info.plist"))
+        let review=try await fixture.engine.reviewApplication(path: fixture.app.path)
+        try expect(!review.application.isSystemApplication && review.application.bundleIdentifier == identifier)
+        let bundle=try require(review.components.first { $0.kind == .application })
+        try expect(bundle.eligible)
+        let plan=try await fixture.engine.createUninstallPlan(reviewId: review.id, componentIds: [bundle.id], action: "trash")
+        let receipt=try await fixture.engine.executeUninstall(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-user-application")
+        try expect(receipt.state == "completed")
+    }
 }

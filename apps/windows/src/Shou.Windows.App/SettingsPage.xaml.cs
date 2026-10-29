@@ -26,20 +26,21 @@ public sealed partial class SettingsPage : UserControl
         ThemeTitle.Text = text.Get("Appearance");
         ThemeDescription.Visibility = Visibility.Collapsed;
         MotionTitle.Text = text.Get("Reduce Motion");
-        MotionDescription.Text = text.Get("Use static indicators and immediate transitions. Otherwise, follow Windows animation settings.");
+        MotionDescription.Visibility = Visibility.Collapsed;
         AboutHeading.Text = text.Get("About Shou"); UpdateButton.Content = text.Get("Check for Updates…");
         ToolTipService.SetToolTip(UpdateButton, text.Get("Checks the official GitHub release. Downloads open only when you choose."));
         ScanningHeading.Text = text.Get("Scanning and Privacy");
+        AdministratorTitle.Text = text.Get("Administrator Access");
         LocationsTitle.Text = text.Get("Scan Locations");
-        LocationsDescription.Text = text.Get("App caches and developer projects are discovered automatically. Extra folders are remembered.");
+        LocationsDescription.Visibility = Visibility.Collapsed;
         ExclusionsTitle.Text = text.Get("Exclusions");
-        ExclusionsDescription.Text = text.Get("Keep chosen files and projects out of cleanup.");
+        ExclusionsDescription.Visibility = Visibility.Collapsed;
         LocationsButton.Content = text.Get("View…"); ExclusionsButton.Content = text.Get("Manage…");
         LocalDataTitle.Text = text.Get("Local data");
         OpenDataButton.Content = text.Get("Open Folder…");
         SupportHeading.Text = text.Get("Support");
         DiagnosticsTitle.Text = text.Get("Diagnostics");
-        DiagnosticsDescription.Text = text.Get("This report contains bounded system facts, not personal paths or file contents. Nothing is uploaded.");
+        DiagnosticsDescription.Visibility = Visibility.Collapsed;
         DiagnosticsButton.Content = text.Get("Run Diagnostics…");
         DiagnosticsIcon.Content = ProductIcon.Create("configuration", (double)Application.Current.Resources["ShouSettingsIconSize"]);
         FeedbackTitle.Text = text.Get("Report an Issue");
@@ -53,7 +54,7 @@ public sealed partial class SettingsPage : UserControl
         catch (Exception error) { NativeDiagnostics.Write(error); LocalDataDescription.Text = text.Get("Local data"); OpenDataButton.IsEnabled = false; }
         AiHeading.Text = text.Get("AI Investigation"); AiTitle.Text = text.Get("Enable AI Investigation");
         AiNotice.Text = text.Get("AI investigation is not available in this Windows preview."); AutomationProperties.SetName(AiToggle, AiTitle.Text);
-        foreach (var (host, name) in new[] { (LanguageIcon, "language"), (ThemeIcon, "appearance"), (MotionIcon, "motion"), (LocationsIcon, "configuration"), (ExclusionsIcon, "privacy"), (LocalDataIcon, "drive"), (FeedbackIcon, "history"), (SourceIcon, "configuration") })
+        foreach (var (host, name) in new[] { (LanguageIcon, "language"), (ThemeIcon, "appearance"), (MotionIcon, "motion"), (AdministratorIcon, "privacy"), (LocationsIcon, "configuration"), (ExclusionsIcon, "privacy"), (LocalDataIcon, "drive"), (FeedbackIcon, "history"), (SourceIcon, "configuration") })
         {
             var icon = ProductIcon.Create(name, (double)Application.Current.Resources["ShouSettingsIconSize"]);
             ProductIcon.Select(icon, "TextFillColorSecondaryBrush"); host.Content = icon;
@@ -61,7 +62,7 @@ public sealed partial class SettingsPage : UserControl
         var brandSize = (double)Application.Current.Resources["ShouBrandIconSize"];
         PackageIcon.Content = WorkspaceVisuals.Artwork("brand-icon", brandSize, brandSize);
         VersionText.Text = "Shou " + typeof(SettingsPage).Assembly.GetName().Version?.ToString(3);
-        PreviewNotice.Text = text.Get("Windows portable preview. Native operations require review and current confirmation. Full Windows acceptance is not complete.");
+        PreviewNotice.Visibility = Visibility.Collapsed;
         LanguageBox.ItemsSource = new[] { text.Get("Follow System"), "简体中文", "English" };
         ThemeBox.ItemsSource = new[] { text.Get("Follow System"), text.Get("Light"), text.Get("Dark") };
         LanguageBox.SelectedIndex = AppearanceSettings.Preferences.Language switch { "zh-CN" => 1, "en-US" => 2, _ => 0 };

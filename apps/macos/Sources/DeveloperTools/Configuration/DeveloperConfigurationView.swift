@@ -61,6 +61,9 @@ struct DeveloperConfigurationView: View {
                 Text(model.t("No configuration file was found in the detected sources.")).foregroundStyle(ShouPalette.secondary)
             }
             if let failure=session.failure { Text(model.t(failure)).foregroundStyle(ShouPalette.danger).textSelection(.enabled) }
+            if let requirement=session.accessRequirement {
+                AccessRecoveryControls(model:model,requirement:requirement) { session.select(session.targetID) }
+            }
             if let message=session.message { Text(model.t(message)).foregroundStyle(ShouPalette.secondary) }
         }
     }
@@ -79,6 +82,9 @@ struct DeveloperConfigurationView: View {
                     DeveloperLogContentView(text:log,emptyText:model.t("No log entries yet."),identifier:"developer.logs.content")
                 }
                 if let failure=session.logFailure { Text(model.t(failure)).foregroundStyle(ShouPalette.secondary) }
+                if let requirement=session.logAccessRequirement {
+                    AccessRecoveryControls(model:model,requirement:requirement) { session.readLog() }
+                }
                 DeveloperLogCleanupControls(model:model,session:session.logCleanup,toolID:session.toolID,path:session.logID,
                     canReview:!session.logLoading && session.logText?.isEmpty == false,completed:{ session.logText="" })
             }

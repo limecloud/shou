@@ -1,6 +1,7 @@
 import AppKit
 import Observation
 import ShouPlatform
+import ShouCore
 import SwiftUI
 
 @MainActor @Observable final class ScanAccessController {
@@ -9,6 +10,25 @@ import SwiftUI
     var showingSetup=false
     var cliMessage: String?
     var setupError: String?
+    var administratorState=SystemAuthorizationState.notRequested
+    var authorizingAdministrator=false
+    var administratorError: String?
+    var administratorTitle: String {
+        if authorizingAdministrator { return "Waiting for administrator authorization…" }
+        if let administratorError { return administratorError }
+        return administratorState == .authorized ? "Authorized for this session" : "Administrator authorization required"
+    }
+    func authorizeAdministrator(then action: (() -> Void)? = nil) {
+        guard !authorizingAdministrator else { return }
+        authorizingAdministrator=true; setupError=nil; administratorError=nil
+        Task {
+            defer { authorizingAdministrator=false; administratorState=NativeSystemAuthorization.shared.administratorState }
+            do {
+                try await Task.detached(priority: .userInitiated) { try NativeSystemAuthorization.shared.authorizeAdministrator() }.value
+                action?()
+            } catch { administratorError=(error as? ShouError)?.code ?? "authorization_unavailable"; setupError=administratorError }
+        }
+    }
     private var pendingScan: (() -> Void)?
     private var refreshTask: Task<Void, Never>?
     private var preparingScan=false
@@ -28,6 +48,7 @@ import SwiftUI
         }
     }
     func refresh() async {
+        administratorState=NativeSystemAuthorization.shared.administratorState
         guard !checking else { await refreshTask?.value; return }
         checking=true
         refreshTask=Task {
@@ -81,85 +102,75 @@ struct SetupView: View {
     @Environment(\.dismiss) private var dismiss
     private var access: ScanAccessController { model.scanAccess }
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 16) {
-                Image(nsImage: AppIdentity.icon).resizable().frame(width: 64, height: 64)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(model.t("A little setup. More room to breathe.")).font(ShouType.title.bold())
-                    Text(model.t("Set up Shou once, then get straight to cleaning.")).foregroundStyle(ShouPalette.secondary)
+        VStack(alignment: .leading, spacing: ShouDesign.pageSpacing) {
+            HStack(spacing: ShouDesign.sectionSpacing) {
+                Image(nsImage: AppIdentity.icon).resizable().frame(width: ShouDesign.catalogIconSize, height: ShouDesign.catalogIconSize).accessibilityHidden(true)
+                Text(model.t("Set Up Shou")).font(ShouType.title)
+            }
+            VStack(spacing: 0) {
+                row("Applications", access.isInstalled ? "Installed" : "Move Shou to Applications", icon: "shippingbox") {
+                    Button(model.t("Show Shou in Finder")) { access.revealApplication() }
+                }
+                ShouDivider()
+                row("Full Disk Access", access.statusTitle, icon: "internaldrive") {
+                    Button(model.t("Open System Settings…")) { access.openSystemSettings() }
+                        .accessibilityIdentifier("setup.open-settings")
+                    Button(model.t("Check Again")) { Task { await access.refresh() } }
+                        .disabled(access.checking).accessibilityIdentifier("setup.recheck")
+                }
+                ShouDivider()
+                row("Administrator Access", access.administratorState == .authorized ? "Authorized for this session" : "Administrator authorization required", icon: "lock.shield") {
+                    if access.authorizingAdministrator { ProgressView().controlSize(.small) }
+                    Button(model.t("Authorize…")) { access.authorizeAdministrator() }
+                        .disabled(access.authorizingAdministrator || access.administratorState == .authorized)
+                        .accessibilityIdentifier("setup.authorize-administrator")
                 }
             }
-            GroupBox {
-                VStack(alignment: .leading, spacing: 16) {
-                    step(1, title: "Keep Shou in Applications", symbol: access.isInstalled ? "checkmark.circle.fill" : "shippingbox") {
-                        Text(model.t(access.isInstalled ? "Shou is installed in Applications. Updates keep the same location." : "Drag Shou.app into Applications, then open that copy before granting disk access."))
-                        if !access.isInstalled {
-                            Button(model.t("Show Shou in Finder")) { access.revealApplication() }
-                        }
-                    }
-                    Divider()
-                    step(2, title: "Enable complete scanning", symbol: access.needsAccess ? "internaldrive" : "checkmark.circle.fill") {
-                        Text(model.t("Full Disk Access lets Shou measure protected app data and caches, and avoids repeated macOS app-data prompts. It does not start cleanup."))
-                        Label(model.t(access.statusTitle), systemImage: access.needsAccess ? "info.circle" : "checkmark.circle.fill")
-                            .foregroundStyle(access.needsAccess ? ShouPalette.secondary : ShouPalette.success)
-                            .accessibilityIdentifier("setup.disk-access-status")
-                        if access.needsAccess {
-                            Text(model.t("Open Privacy & Security → Full Disk Access. Turn on Shou; if it is missing, click + and select Shou.app in Applications. Reopen Shou if macOS asks."))
-                            HStack {
-                                Button(model.t("Open System Settings…")) { access.openSystemSettings() }
-                                    .disabled(!access.isInstalled).accessibilityIdentifier("setup.open-settings")
-                                Button(model.t("Check Again")) { Task { await access.refresh() } }
-                                    .disabled(access.checking).accessibilityIdentifier("setup.recheck")
-                                Button(model.t("Show Shou in Finder")) { access.revealApplication() }
-                            }
-                            Text(model.t("You can continue with accessible folders. Protected app containers stay unmeasured until access is enabled; scan again afterward."))
-                        }
-                    }
-                    Divider()
-                    step(3, title: "Terminal and AI agents, optional", symbol: "terminal") {
-                        Text(model.t("Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed."))
-                        HStack {
-                            Button(model.t("Install CLI Command")) { access.installCLI(model: model) }
-                                .disabled(!access.isInstalled).accessibilityIdentifier("setup.install-cli")
-                            Text("~/.local/bin/shou").font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary)
-                        }
-                        if let message=access.cliMessage {
-                            Text(model.t("CLI installed. If shou is not on PATH, use the full path shown below.")).foregroundStyle(ShouPalette.success)
-                            Text(message + " --help").font(ShouType.caption.monospaced()).textSelection(.enabled)
-                        }
-                    }
-                }.padding(14)
+            DisclosureGroup(model.t("Terminal Tools")) {
+                HStack {
+                    Text(access.isInstalled ? "~/.local/bin/shou" : model.t("Install Shou in Applications first."))
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    Spacer()
+                    Button(model.t("Install CLI Command")) { access.installCLI(model: model) }
+                        .disabled(!access.isInstalled).accessibilityIdentifier("setup.install-cli")
+                }.padding(.top, ShouDesign.itemSpacing)
+                if let message=access.cliMessage {
+                    Text(message + " --help").font(ShouType.code).textSelection(.enabled)
+                }
             }
             DisclosureGroup(model.t("After an update")) {
-                Text(model.t("macOS links privacy permissions to the signed app. Development builds with temporary signatures may need access enabled again after an update. If the switch is on but access still fails, remove the old Shou entry with −, add this installed copy with +, and reopen Shou."))
-                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true).padding(.top, 6)
+                Text(model.t("If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou."))
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    .fixedSize(horizontal: false, vertical: true).padding(.top, ShouDesign.itemSpacing)
             }
             if let error=access.setupError {
-                Text(model.diagnostic(error)).font(ShouType.body).foregroundStyle(ShouPalette.danger)
+                Text(model.diagnostic(error)).font(ShouType.caption).foregroundStyle(ShouPalette.danger)
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack {
-                Text(model.t("You can revisit this guide in Settings.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 Spacer()
                 Button(model.t(access.needsAccess ? "Continue with Accessible Folders" : "Start Using Shou")) { access.finish(); dismiss() }
                     .buttonStyle(.borderedProminent).keyboardShortcut(.defaultAction)
                     .accessibilityIdentifier("setup.continue")
             }
         }.padding(28).frame(width: 650)
+            .font(ShouType.body).foregroundStyle(ShouPalette.text).tint(ShouPalette.accent)
             .task { await access.refresh() }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 Task { await access.refresh() }
             }
     }
-    private func step<Content: View>(_ number: Int, title: String, symbol: String, @ViewBuilder content: () -> Content) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            Text(String(number)).font(ShouType.body.bold()).frame(width: 25, height: 25)
-                .background(ShouPalette.accent.opacity(0.1), in: Circle()).foregroundStyle(ShouPalette.accent)
-            VStack(alignment: .leading, spacing: 9) {
-                Label(model.t(title), systemImage: symbol).font(ShouType.body.weight(.semibold))
-                content().font(ShouType.body).foregroundStyle(ShouPalette.secondary).fixedSize(horizontal: false, vertical: true)
-            }.frame(maxWidth: .infinity, alignment: .leading)
-        }
+    private func row<Content: View>(_ title: String, _ status: String, icon: String, @ViewBuilder content: () -> Content) -> some View {
+        HStack(spacing: ShouDesign.sectionSpacing) {
+            Image(systemName: icon).foregroundStyle(ShouPalette.secondary).frame(width: ShouDesign.catalogIconSize)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(model.t(title)).font(ShouType.body.weight(.semibold))
+                Text(model.t(status)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    .accessibilityIdentifier(title == "Full Disk Access" ? "setup.disk-access-status" : "")
+            }
+            Spacer(minLength: ShouDesign.sectionSpacing)
+            content().controlSize(.regular)
+        }.padding(.vertical, ShouDesign.itemSpacing)
     }
 }
 

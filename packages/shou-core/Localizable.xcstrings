@@ -2052,6 +2052,22 @@
         }
       }
     },
+    "Administrator Access": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator Access"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理员权限"
+          }
+        }
+      }
+    },
     "Administrator Required": {
       "localizations": {
         "en": {
@@ -2080,6 +2096,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "不会自动请求管理员权限，当前无法卸载需要提权的应用。"
+          }
+        }
+      }
+    },
+    "Administrator authorization required": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator authorization required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要管理员授权"
           }
         }
       }
@@ -2545,6 +2577,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "分配容量为估算值。硬链接归属、共享块和稀疏文件可能影响差值；这些数值不代表可释放空间。仅在一次分析中出现不证明项目被创建或删除。"
+          }
+        }
+      }
+    },
+    "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“完全磁盘访问”中允许 Shou，然后重新检查应用。文件访问权限也可能造成限制。"
           }
         }
       }
@@ -4131,6 +4179,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要身份验证"
+          }
+        }
+      }
+    },
+    "Authorize Administrator Access…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorize Administrator Access…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权管理员权限…"
+          }
+        }
+      }
+    },
+    "Authorized for this session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorized for this session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话已授权"
+          }
+        }
+      }
+    },
+    "Authorize…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorize…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权…"
           }
         }
       }
@@ -15138,6 +15234,22 @@
         }
       }
     },
+    "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。"
+          }
+        }
+      }
+    },
     "Images": {
       "localizations": {
         "en": {
@@ -15746,6 +15858,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "安装 CLI 命令"
+          }
+        }
+      }
+    },
+    "Install Shou in Applications first.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Shou in Applications first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先将 Shou 安装到应用程序。"
           }
         }
       }
@@ -19374,6 +19502,22 @@
         }
       }
     },
+    "Move Shou to Applications": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Shou to Applications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 Shou 移入应用程序"
+          }
+        }
+      }
+    },
     "Move these applications to Trash?": {
       "localizations": {
         "en": {
@@ -22788,6 +22932,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开系统设置…"
+          }
+        }
+      }
+    },
+    "Open the package manager to authorize this operation, then refresh in Shou.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the package manager to authorize this operation, then refresh in Shou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在包管理器中授权此操作，然后回到 Shou 刷新。"
           }
         }
       }
@@ -32193,6 +32353,22 @@
         }
       }
     },
+    "Set Up Shou": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set Up Shou"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置 Shou"
+          }
+        }
+      }
+    },
     "Set as Default": {
       "localizations": {
         "en": {
@@ -36132,6 +36308,22 @@
         }
       }
     },
+    "Terminal Tools": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminal Tools"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终端工具"
+          }
+        }
+      }
+    },
     "Terminal and AI agents · optional": {
       "localizations": {
         "en": {
@@ -37573,22 +37765,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "包管理器可能已经修改文件。请重新检查来源再尝试，Shou 不会自动重试。"
-          }
-        }
-      }
-    },
-    "The package manager needs permissions that Shou cannot request. Open the owning tool to continue.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "包管理器需要额外权限，请打开对应工具继续。"
           }
         }
       }
@@ -41828,6 +42004,22 @@
         }
       }
     },
+    "Waiting for administrator authorization…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for administrator authorization…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待管理员授权…"
+          }
+        }
+      }
+    },
     "Waiting for confirmation or the system installer result. Keep this window open.": {
       "localizations": {
         "en": {
@@ -42716,13 +42908,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS may ask you to authenticate when moving to Trash"
+            "value": "Administrator authorization required"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移到废纸篓时，macOS 可能会要求验证身份"
+            "value": "需要管理员授权"
+          }
+        }
+      }
+    },
+    "administrator_permanent_removal_available": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supports permanent removal with administrator authorization"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可授权管理员权限后永久删除"
           }
         }
       }
@@ -42755,6 +42963,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "应用在检查过程中发生变化。"
+          }
+        }
+      }
+    },
+    "application_metadata_missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application metadata is unavailable. Only the application bundle can be removed; associated data is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用安装信息缺失，仅卸载应用本体，保留关联数据。"
           }
         }
       }
@@ -42819,6 +43043,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法核验保留的 Cargo 包归档，已阻止清理。"
+          }
+        }
+      }
+    },
+    "authorization_cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator authorization was cancelled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消管理员授权。"
+          }
+        }
+      }
+    },
+    "authorization_channel_lost": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The authorization session disconnected. Inspect recorded results before retrying."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权会话已断开，请先检查记录中的结果再重试。"
+          }
+        }
+      }
+    },
+    "authorization_denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator authorization was denied. Authorize again to continue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理员授权未通过，请重新授权后继续。"
+          }
+        }
+      }
+    },
+    "authorization_unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrator authorization could not be completed. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法完成管理员授权，请重试。"
           }
         }
       }
@@ -43180,13 +43468,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "linked_application"
+            "value": "This is an application link. Its size can be read; manage removal at the actual installation location."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用路径是符号链接，不跟随读取。"
+            "value": "这是应用链接，可查看大小；请从实际安装位置管理卸载。"
           }
         }
       }
@@ -43287,6 +43575,22 @@
         }
       }
     },
+    "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS requests an administrator password when needed. Authorization is reused during this session. Only the selected application bundle is removed; associated data is kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要时，macOS 会请求管理员密码。本次会话复用授权，仅移除所选应用程序包，保留关联数据。"
+          }
+        }
+      }
+    },
     "macOS will request administrator approval for system background items.": {
       "localizations": {
         "en": {
@@ -43373,13 +43677,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The application contains shared hard links."
+            "value": "The application contains shared hard links. Only its application bundle can be moved to Trash."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用包含共享硬链接。"
+            "value": "应用包含共享硬链接，仅支持将应用本体移到废纸篓。"
           }
         }
       }

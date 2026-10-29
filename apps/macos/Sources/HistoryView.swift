@@ -53,7 +53,7 @@ struct HistoryView: View {
         guard let engine=model.engine, !model.busy else { return }
         Task {
             do { removal=try await engine.historyCleanupPreview(executionIds: ids, includeRecoverable: allowRecoveryLoss); includeRecoverable=allowRecoveryLoss }
-            catch { model.error=error.localizedDescription }
+            catch { model.presentFailure(error) }
         }
     }
 }

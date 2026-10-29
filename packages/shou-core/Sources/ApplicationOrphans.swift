@@ -112,31 +112,22 @@ extension ShouEngine {
             item.uninstallOrigin=component.origin; return item
         }
         let reviewedPlan=plan, executionConfiguration=try configuration()
-        var caseSensitivity=[Int: Bool]()
-        let validate: (Int, Bool) throws -> String? = { [self, plan=reviewedPlan] index, fullCheck in
+        let validate: (Int) throws -> String? = { [self, plan=reviewedPlan] index in
             let component=plan.components[index]
             guard component.eligible, let origin=component.origin, origin.kind != .application, origin.kind != .groupContainer,
-                  ReceiptOrigins.validIdentifier(origin.bundleIdentifier),
-                  component.path == origin.kind.associatedPath(bundleIdentifier: origin.bundleIdentifier, homeDirectory: homeDirectory),
+                  let identifier=origin.bundleIdentifier, ReceiptOrigins.validIdentifier(identifier),
+                  component.path == origin.kind.associatedPath(bundleIdentifier: identifier, homeDirectory: homeDirectory),
                   (!component.requiresUserDataConsent || plan.includesUserData),
                   try Digest.of(executionConfiguration) == plan.configurationDigest,
-                  try presence.absentIdentifiers(in: [origin.bundleIdentifier]).contains(origin.bundleIdentifier),
+                  try presence.absentIdentifiers(in: [identifier]).contains(identifier),
                   try filesystem.rootIdentity(origin.parentPath).sameObject(as: origin.parentIdentity) else { throw ShouError("ownership_unverified", "The owner or leftover scope changed. Scan again.") }
-            let entries: [FileEntry], sensitive: Bool
-            if fullCheck || !filesystem.verifiesMutationManifest {
-                let tree=try filesystem.inspectTarget(component.path, budget: plan.budget, cancelled: { Task.isCancelled })
-                guard tree.complete, FileManifestVerification.matches(tree.entries, component.manifest) else { throw ShouError("plan_stale", "Leftover contents changed. Scan again.") }
-                entries=tree.entries; sensitive=tree.caseSensitive; caseSensitivity[index]=sensitive
-            } else {
-                guard let observed=caseSensitivity[index] else { throw ShouError("plan_stale", "Leftover contents changed. Scan again.") }
-                entries=component.manifest; sensitive=observed
-            }
+            try FileManifestVerification.beforeMutation(filesystem: filesystem, path: component.path, manifest: component.manifest, budget: plan.budget)
+            let entries=component.manifest, sensitive=filesystem.caseSensitivePaths
             guard !entries.contains(where: { !$0.hasSameOwner(as: origin.parentIdentity) || $0.kind == "special" || $0.kind == "symlink" || ($0.kind == "file" && $0.links != 1) }),
                   !uninstallExcluded(target: component.path, manifest: entries, configuration: executionConfiguration, caseSensitive: sensitive) else { throw ShouError("plan_stale", "Leftover contents changed. Scan again.") }
             if origin.kind == .container, try uninstallEvidence.containerIdentifier(at: component.path) != origin.bundleIdentifier { throw ShouError("ownership_unverified", "Container ownership changed.") }
             return nil
         }
-        for index in items.indices { _ = try validate(index, true) }
         let begin: (ExecutionReceipt) throws -> Void = { receipt in
             var executing=reviewedPlan
             executing.executionId=receipt.id; executing.state="executing"
@@ -144,9 +135,9 @@ extension ShouEngine {
         }
         let receipt: ExecutionReceipt
         if plan.action == "permanent" {
-            receipt=try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "application_orphan_cleanup", progress: progress, didBegin: begin, validateItem: { index,_ in try validate(index, false) })
+            receipt=try PermanentExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "application_orphan_cleanup", progress: progress, didBegin: begin, validateItem: { index,_ in try validate(index) })
         } else {
-            receipt=try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "application_orphan_cleanup", progress: progress, didBegin: begin, validateItem: { index in try validate(index, false) })
+            receipt=try TrashExecution.run(planId: plan.id, workspace: workspace, items: items, entryPoint: entryPoint, store: store, filesystem: filesystem, now: now(), operation: "application_orphan_cleanup", progress: progress, didBegin: begin, validateItem: { index in try validate(index) })
         }
         plan.executionId=receipt.id; plan.state=receipt.state
         try store.write("orphan-plans", id: plan.id, data: Codec.encode(plan)); return receipt

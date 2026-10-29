@@ -29,7 +29,7 @@ import ShouPlatform
         selectedAppIDs.sorted().flatMap { id in reviews[id]?.components.filter { selection[id]?.contains($0.id) == true } ?? [] }
     }
     var selectedBytes: Int64 { selectedComponents.reduce(0) { $0 + $1.allocatedBytesEstimate } }
-    var selectionRequiresAdministrator: Bool { selectedComponents.contains(where: \.requiresAdministrator) }
+    var selectionRequiresTrash: Bool { selectedComponents.contains(where: \.requiresTrash) }
 
     func scan(app: AppModel, accessChecked: Bool = false) {
         guard let engine=app.engine, !app.busy else { return }
@@ -66,7 +66,7 @@ import ShouPlatform
                 app.statusKey="Applications checked. Review components before uninstalling."
             } catch {
                 app.statusKey="Application scan stopped."
-                if !Task.isCancelled { app.error=error.localizedDescription }
+                if !Task.isCancelled { app.presentFailure(error) }
             }
         }
     }
@@ -75,12 +75,13 @@ import ShouPlatform
         let id=summary.application.id
         if expandedID == id { expandedID=nil; return }
         expandedID=id
+        guard summary.application.identity.kind == "directory" else { return }
         guard reviews[id] == nil else { return }
         review([summary], select: false, app: app)
     }
 
     func selectable(_ summary: ApplicationSummary) -> Bool {
-        !hasChanges && ["ready", "admin-required"].contains(summary.status)
+        !hasChanges && ["ready", "admin-required", "trash-required"].contains(summary.status)
     }
     func isSelected(_ id: String) -> Bool { !(selection[id] ?? []).isEmpty }
     func toggle(_ summary: ApplicationSummary, app: AppModel) {
@@ -119,7 +120,7 @@ import ShouPlatform
                     if select {
                         if value.components.contains(where: { $0.kind == .application && $0.eligible }) {
                             selection[id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent &&
-                                (value.requiresAdministrator ? $0.kind == .application : ($0.kind == .application || $0.warnings.isEmpty)) }.map(\.id))
+                                (value.keepsAssociatedData ? $0.kind == .application : ($0.kind == .application || $0.warnings.isEmpty)) }.map(\.id))
                         } else {
                             failures.append(summary.application.name + "\n" + app.t("This application cannot be safely removed. Review its component details."))
                         }
@@ -141,7 +142,7 @@ import ShouPlatform
         }
     }
     func componentSelectable(_ component: UninstallComponent, appID: String) -> Bool {
-        !hasChanges && component.eligible && (reviews[appID]?.requiresAdministrator != true || component.kind == .application) &&
+        !hasChanges && component.eligible && (reviews[appID]?.keepsAssociatedData != true || component.kind == .application) &&
             (!component.requiresUserDataConsent || personalDataConsent.contains(appID))
     }
     func toggleComponent(_ component: UninstallComponent, appID: String, app: AppModel) {
@@ -161,9 +162,9 @@ import ShouPlatform
             guard let review=reviews[id], let components=selection[id] else { return nil }
             return ApplicationUninstallSelection(reviewId: review.id, componentIds: components.sorted(), includeUserData: personalDataConsent.contains(id))
         }
-        guard choices.count == selectedAppIDs.count, action != "permanent" || !selectionRequiresAdministrator else { return }
-        preparing=true; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
-        let execution=app.beginExecution(total: selectedComponents.count, action: action, stage: "preparing")
+        guard choices.count == selectedAppIDs.count, action != "permanent" || !selectionRequiresTrash else { return }
+        preparing=true; stopRequested=false; app.busy=true; app.statusKey=action == "permanent" ? "Permanently removing…" : "Moving to Trash…"
+        let execution=app.beginExecution(total: selectedComponents.count, action: action, stage: action == "permanent" ? "purging" : "moving")
         let token=UUID(); operation=token
         task=Task {
             defer { preparing=false; app.busy=false; app.isExecuting=false; app.stopRequested=false }
@@ -218,8 +219,9 @@ import ShouPlatform
                     summaries[summary.id]=summary
                     let value=try await engine.reviewApplication(path: path)
                     reviews[summary.id]=value
-                    selection[summary.id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent }.map(\.id))
-                } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+                    selection[summary.id]=Set(value.components.filter { $0.eligible && !$0.requiresUserDataConsent &&
+                        (!value.keepsAssociatedData || $0.kind == .application) }.map(\.id))
+                } catch { if !Task.isCancelled { app.presentFailure(error) } }
             }
             app.statusKey="Affected items refreshed. Review your selection to continue."
         }
@@ -237,7 +239,7 @@ import ShouPlatform
                     reviews[summary.application.id]=nil
                     app.statusKey="Application closed. Review its components to continue."
                 } else { app.error=results.compactMap(\.error).first ?? app.t("Still running. Save your work and quit the application.") }
-            } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+            } catch { if !Task.isCancelled { app.presentFailure(error) } }
         }
     }
     func stop() { if scanning || preparing { stopRequested=true }; task?.cancel() }

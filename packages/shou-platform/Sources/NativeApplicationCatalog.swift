@@ -27,6 +27,30 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
                 coverage.append(ApplicationSourceCoverage(source: source, status: "not_scanned", entryCount: 0, applicationCount: 0))
                 continue
             }
+            let duration=ContinuousClock.now.duration(to: deadline).components
+            let remainingSeconds=Double(duration.seconds) + Double(duration.attoseconds) / 1e18
+            if getuid() != 0, !source.systemOwned, remainingSeconds >= 1,
+               ["/Applications", FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path].contains(source.path),
+               NativeSystemAuthorization.shared.administratorState == .authorized {
+                do {
+                    let reply=try NativeSystemAuthorization.shared.perform(.applicationCatalog, path: source.path,
+                        budget: ScanBudget(maxEntries: options.maxEntries - visited, maxSeconds: min(30, remainingSeconds)))
+                    guard let catalog=reply.catalog, let observed=catalog.sources.first, catalog.sources.count == 1,
+                          (0...(options.maxEntries - visited)).contains(observed.entryCount) else { throw AuthorizationChannel.failure() }
+                    visited += observed.entryCount
+                    items += catalog.items.map { app in
+                        ApplicationDefinition(path: app.path, source: source, identity: app.identity, name: app.name,
+                            bundleIdentifier: app.bundleIdentifier, version: app.version, executableName: app.executableName, infoDigest: app.infoDigest)
+                    }
+                    issues += catalog.issues
+                    coverage.append(ApplicationSourceCoverage(source: source, status: observed.status, entryCount: observed.entryCount, applicationCount: catalog.items.count))
+                } catch let error as ShouError {
+                    if error.code == "cancelled" || Task.isCancelled { throw error }
+                    issues.append(ApplicationCatalogIssue(path: source.path, code: error.code))
+                    coverage.append(ApplicationSourceCoverage(source: source, status: "unavailable", entryCount: 0, applicationCount: 0))
+                }
+                continue
+            }
             let descriptor: Int32
             do { descriptor=try SecurePaths.directory(source.path) }
             catch let error as ShouError {
@@ -62,7 +86,22 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
                         continue
                     }
                     if metadata.st_mode & S_IFMT == S_IFLNK {
-                        if name.lowercased().hasSuffix(".app") { issues.append(ApplicationCatalogIssue(path: child, code: "linked_application")) }
+                        if name.lowercased().hasSuffix(".app") {
+                            let link=ApplicationDefinition(path: child, source: source, identity: SecurePaths.entry(metadata, path: "."),
+                                name: URL(fileURLWithPath: child).deletingPathExtension().lastPathComponent,
+                                bundleIdentifier: nil, version: nil, executableName: nil, infoDigest: nil)
+                            do {
+                                let (target, issue)=try resolvedApplicationLink(link, deadline: deadline)
+                                items.append(ApplicationDefinition(path: child, source: source, identity: link.identity, name: target.name,
+                                    bundleIdentifier: target.bundleIdentifier, version: target.version, executableName: target.executableName, infoDigest: target.infoDigest))
+                                if let issue { issues.append(ApplicationCatalogIssue(path: child, code: issue)) }
+                            } catch let error as ShouError {
+                                if error.code == "cancelled" { throw error }
+                                items.append(link)
+                                issues.append(ApplicationCatalogIssue(path: child, code: error.code))
+                            }
+                            issues.append(ApplicationCatalogIssue(path: child, code: "linked_application"))
+                        }
                         continue
                     }
                     guard metadata.st_mode & S_IFMT == S_IFDIR else { continue }
@@ -74,9 +113,12 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
                             if let issue { issues.append(ApplicationCatalogIssue(path: child, code: issue)) }
                         } catch let error as ShouError {
                             if error.code == "cancelled" { throw error }
+                            items.append(ApplicationDefinition(path: child, source: source, identity: SecurePaths.entry(metadata, path: "."),
+                                name: URL(fileURLWithPath: child).deletingPathExtension().lastPathComponent,
+                                bundleIdentifier: nil, version: nil, executableName: nil, infoDigest: nil))
                             issues.append(ApplicationCatalogIssue(path: child, code: error.code))
                         }
-                    } else if depth < 2 {
+                    } else if depth < ApplicationCatalogOptions.maxContainerDepth {
                         do {
                             let nested=try SecurePaths.directory(child)
                             defer { close(nested) }
@@ -120,7 +162,7 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
               let source=sources.first(where: { source in
                   guard path.hasPrefix(source.path + "/") else { return false }
                   let relative=String(path.dropFirst(source.path.count + 1)).split(separator: "/")
-                  return (1...3).contains(relative.count) && !relative.dropLast().contains { $0.lowercased().hasSuffix(".app") }
+                  return (1...(ApplicationCatalogOptions.maxContainerDepth + 1)).contains(relative.count) && !relative.dropLast().contains { $0.lowercased().hasSuffix(".app") }
               }) else { throw ShouError("invalid_argument", "Application path is outside supported application directories.") }
         return try definition(at: path, source: source, deadline: ContinuousClock.now.advanced(by: .seconds(5))).0
         #else
@@ -133,8 +175,49 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
         if Task.isCancelled { throw ShouError("cancelled", "Application discovery stopped.") }
     }
 
+    /// Links are resolved only for read-only inventory and size measurement.
+    /// Their original symlink identity never becomes an uninstallable directory.
+    func resolvedApplicationLink(_ application: ApplicationDefinition, deadline: ContinuousClock.Instant) throws -> (ApplicationDefinition, String?) {
+        try checkCancellation()
+        guard ContinuousClock.now < deadline, application.identity.kind == "symlink" else {
+            throw ShouError("resource_limit", "Application discovery reached its read limit.")
+        }
+        let (parent, leaf)=try SecurePaths.parent(application.path)
+        defer { close(parent) }
+        func verifyLink() throws {
+            var metadata=stat()
+            guard fstatat(parent, leaf, &metadata, AT_SYMLINK_NOFOLLOW) == 0,
+                  SecurePaths.entry(metadata, path: ".") == application.identity else {
+                throw ShouError("application_changed", "Application link changed while reading.")
+            }
+        }
+        func targetPath() throws -> String {
+            guard let resolved=realpath(application.path, nil) else { throw SecurePaths.failure("Resolve application link", path: application.path) }
+            defer { free(resolved) }
+            guard let path=String(validatingCString: resolved), path.lowercased().hasSuffix(".app"),
+                  path.rangeOfCharacter(from: .controlCharacters) == nil else {
+                throw ShouError("unsupported_bundle", "Application link does not identify an application bundle.")
+            }
+            return path
+        }
+        try verifyLink()
+        let path=try targetPath()
+        let result=try definition(at: path, source: application.source, deadline: deadline)
+        try verifyLink()
+        guard try targetPath() == path else { throw ShouError("application_changed", "Application link changed while reading.") }
+        return result
+    }
+
     private func definition(at path: String, source: ApplicationSource, deadline: ContinuousClock.Instant) throws -> (ApplicationDefinition, String?) {
-        let directory=try SecurePaths.directory(path)
+        let directory: Int32
+        do { directory=try SecurePaths.directory(path) }
+        catch let error as ShouError where error.code == "permission_denied" && getuid() != 0 && NativeSystemAuthorization.shared.administratorState == .authorized {
+            let reply=try NativeSystemAuthorization.shared.perform(.applicationMetadata, path: path)
+            guard let app=reply.application else { throw AuthorizationChannel.failure() }
+            return (ApplicationDefinition(path: path, source: source, identity: app.identity, name: app.name,
+                bundleIdentifier: app.bundleIdentifier, version: app.version, executableName: app.executableName, infoDigest: app.infoDigest),
+                app.infoDigest == nil ? "application_metadata_missing" : nil)
+        }
         defer { close(directory) }
         var before=stat()
         guard fstat(directory, &before) == 0 else { throw SecurePaths.failure("Inspect application", path: path) }
@@ -144,14 +227,17 @@ public struct NativeApplicationCatalog: ApplicationCatalogReading {
             let contents=openat(directory, "Contents", O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
             guard contents >= 0 else { throw ShouError("unsupported_bundle", "Application metadata uses an unsupported bundle layout.") }
             defer { close(contents) }
+            var info=stat()
+            if fstatat(contents, "Info.plist", &info, AT_SYMLINK_NOFOLLOW) != 0, errno == ENOENT {
+                throw ShouError("application_metadata_missing", "Application installation metadata is missing.")
+            }
             let data=try NativeDefinitionFiles.bytes(directory: contents, name: "Info.plist", path: path + "/Contents/Info.plist", deadline: deadline)
             guard let values=try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
                   values["CFBundlePackageType"] == nil || values["CFBundlePackageType"] as? String == "APPL" else {
                 throw ShouError("invalid_application_metadata", "Application metadata could not be interpreted.")
             }
             let bundleId=values["CFBundleIdentifier"] as? String
-            guard let bundleId, bundleId.utf8.count <= 255,
-                  bundleId.range(of: "^[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+$", options: .regularExpression) != nil else {
+            guard let bundleId, ApplicationDefinition.isValidBundleIdentifier(bundleId) else {
                 throw ShouError("invalid_bundle_identifier", "Application bundle identifier is unavailable or unsupported.")
             }
             identifier=bundleId; infoDigest=Digest.sha256(data)

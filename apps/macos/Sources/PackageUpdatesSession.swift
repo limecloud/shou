@@ -99,7 +99,7 @@ import ShouPlatform
         return switch (error as? ShouError)?.code {
         case "tool_not_installed": "The package manager is not installed in a supported location."
         case "tool_changed", "plan_stale", "package_changed", "update_changed": "Installed software or update metadata changed. Check again before upgrading."
-        case "permission_denied": "The package manager needs permissions that Shou cannot request. Open the owning tool to continue."
+        case "permission_denied": "Open the package manager to authorize this operation, then refresh in Shou."
         case "cancelled": "The update was stopped. Some software may have changed; check again before retrying."
         default: "The package manager could not finish. Open the owning tool or check again."
         }

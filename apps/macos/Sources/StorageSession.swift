@@ -60,7 +60,7 @@ struct StorageLocation: Identifiable {
                 guard self.scan?.id == scan.id, path == scope else { return }
                 if presentationCache.count >= 8 { presentationCache.removeAll() }
                 presentationCache[key]=result; applyPresentation(result); loadingPresentation=false
-            } catch { if !Task.isCancelled { loadingPresentation=false; app.error=error.localizedDescription } }
+            } catch { if !Task.isCancelled { loadingPresentation=false; app.presentFailure(error) } }
         }
     }
     private func applyPresentation(_ value: StoragePresentation) {
@@ -80,7 +80,7 @@ struct StorageLocation: Identifiable {
             includeItems(page.children); directoryTotals[scope]=page.totalCount
             directoryOffsets[scope]=offset + page.children.count
             if page.nextOffset == nil && offset == 0 { loadedDirectories.insert(scope) }
-        } catch { if !Task.isCancelled { app.error=error.localizedDescription } }
+        } catch { if !Task.isCancelled { app.presentFailure(error) } }
     }
     func copyAnalysis(app: AppModel) {
         guard !copyingAnalysis, let engine=app.engine, let scan else { return }
@@ -100,7 +100,7 @@ struct StorageLocation: Identifiable {
                 guard NSPasteboard.general.setString(text, forType: .string) else { throw ShouError("clipboard_unavailable", "Could not copy analysis.") }
                 analysisCopied=true; analysisHandoffStarted=true
                 Task { try? await Task.sleep(for: .seconds(3)); analysisCopied=false }
-            } catch { app.error=error.localizedDescription }
+            } catch { app.presentFailure(error) }
         }
     }
     var scan: StorageScan?
@@ -197,7 +197,7 @@ struct StorageLocation: Identifiable {
         panel.message=app.t("Choose a disk or folder to analyze.")
         guard panel.runModal() == .OK, let url=panel.url else { return }
         do { location=try NativeDirectorySelection.path(for: url) }
-        catch { app.error=error.localizedDescription; return }
+        catch { app.presentFailure(error); return }
         if !locations.contains(where: { $0.path == location }) { locations.append(StorageLocation(path: location, name: url.lastPathComponent, symbol: "folder")) }
         scan=nil; selected=[]
     }
@@ -228,7 +228,7 @@ struct StorageLocation: Identifiable {
                     }
                     selected=StorageSelection.toggle(node.path, selected: false, paths: selected, index: index)
                     selected=selected.filter { index.nodes[$0].map { reason($0) == nil } ?? false }
-                } catch { app.error=error.localizedDescription }
+                } catch { app.presentFailure(error) }
             }
             return
         }
@@ -351,7 +351,7 @@ struct StorageLocation: Identifiable {
             } catch {
                 if Task.isCancelled { app.statusKey="Scan stopped." }
                 else {
-                    app.error=error.localizedDescription
+                    app.presentFailure(error)
                     app.statusKey="Space analysis could not be completed."
                 }
             }
@@ -394,34 +394,48 @@ struct StorageLocation: Identifiable {
         // The inline action confirms this exact selection. Freeze it before
         // preparing the plan so subsequent UI changes cannot expand the scope.
         let paths=StorageSelection.normalized(selected).sorted(), sourceSection=app.section
-        reviewing=true; stopRequested=false; app.busy=true; app.statusKey="Checking selected files…"
-        let execution=app.beginExecution(total: paths.count, action: action, stage: "preparing")
+        reviewing=true; stopRequested=false; app.busy=true
+        app.statusKey=action == "permanent" ? "Permanently removing…" : "Moving to Trash…"
+        let execution=app.beginExecution(total: paths.count, action: action, stage: action == "permanent" ? "purging" : "moving")
         task=Task {
             defer { reviewing=false; app.busy=false; app.isExecuting=false; app.stopRequested=false; stopRequested=false }
-            do {
-                let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: paths, action: action, progress: { [weak self] update in
-                    Task { @MainActor in
-                        guard let self, self.reviewing, !self.stopRequested else { return }
-                        app.updateExecutionProgress(update, operation: execution)
+            var receipts=[ExecutionReceipt](), skippedItems=[ItemReceipt](), failures=[String](), handled=Set<String>()
+            for (position, selectedPath) in paths.enumerated() {
+                if Task.isCancelled { break }
+                handled.insert(selectedPath)
+                do {
+                    let review=try await engine.reviewStorageRemoval(scanId: scan.id, paths: [selectedPath], action: action)
+                    skippedItems.append(contentsOf: review.skippedItems)
+                    guard !Task.isCancelled else { handled.remove(selectedPath); break }
+                    if let plan=review.plan {
+                        let receipt=try await execute(app: app, engine: engine, plan: plan, execution: execution, position: position, total: paths.count)
+                        receipts.append(receipt)
+                        if receipt.state == "cancelled" || receipt.items.contains(where: { $0.state == "unknown" }) { break }
                     }
-                })
-                guard !Task.isCancelled else { return }
-                reviewing=false
-                try await execute(app: app, engine: engine, plan: plan, sourceSection: sourceSection, execution: execution)
-            } catch {
-                app.operationHadError=app.isExecuting
-                if !Task.isCancelled || app.isExecuting {
-                    let details=(error as? ShouError)?.details ?? [:]
-                    let failure=([error.localizedDescription] + [details["path"], details["reasons"]].compactMap { $0 }).joined(separator: "\n")
-                    app.completion=CleanupCompletion(receipts: [], failures: [failure], sourceSection: sourceSection)
-                    app.statusKey="Some items could not be removed. Review the result."
+                } catch {
+                    failures.append(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: selectedPath) + "\n" + error.localizedDescription)
+                    let code=(error as? ShouError)?.code ?? ""
+                    if ["cancelled", "store_corrupt", "journal_failed", "access_expired", "authorization_channel_lost"].contains(code) || Task.isCancelled { break }
                 }
             }
+            for path in paths where !handled.contains(path) {
+                skippedItems.append(.skipped(path: StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path),
+                    relativePath: path, reason: app.t("Cleanup stopped before this location was processed.")))
+            }
+            reviewing=false
+            app.operationHadError = !failures.isEmpty || receipts.contains { $0.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) } }
+            if !receipts.isEmpty || !skippedItems.isEmpty || !failures.isEmpty {
+                app.completion=CleanupCompletion(receipts: receipts, failures: failures, skippedItems: skippedItems, sourceSection: sourceSection)
+                app.statusKey=app.operationHadError || !skippedItems.isEmpty ? "Some items could not be removed. Review the result." : "Selected items processed. Refresh to measure current disk usage."
+            }
+            await app.refresh()
         }
     }
-    private func execute(app: AppModel, engine: ShouEngine, plan: StorageRemovalPlan, sourceSection: String, execution: UUID) async throws {
+    private func execute(app: AppModel, engine: ShouEngine, plan: StorageRemovalPlan, execution: UUID, position: Int, total: Int) async throws -> ExecutionReceipt {
         let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "desktop", progress: { update in
-            Task { @MainActor in app.updateExecutionProgress(update, operation: execution) }
+            let combined=ExecutionProgress(stage: update.stage, processedCount: position + update.processedCount, itemCount: total, path: update.path,
+                currentItemProcessedCount: update.currentItemProcessedCount, currentItemCount: update.currentItemCount)
+            Task { @MainActor in app.updateExecutionProgress(combined, operation: execution) }
         })
         let removed=receipt.items.filter { ["trashed", "purged"].contains($0.state) }.map(\.relativePath)
         app.operationHadError=receipt.items.contains { ["failed", "unknown", "moving", "purging"].contains($0.state) }
@@ -447,8 +461,6 @@ struct StorageLocation: Identifiable {
         let removedPaths=Set(removed.map { StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: plan.rootPath, relative: $0)) })
         app.space.discardRemovedCatalogs(removedPaths)
         app.largeFiles.storage.discardRemovedCatalogs(removedPaths)
-        app.completion=CleanupCompletion(receipts: [receipt], sourceSection: sourceSection)
-        app.statusKey=receipt.state == "completed" ? "Selected items processed. Refresh to measure current disk usage." : "Some items could not be removed. Review the result."
-        await app.refresh()
+        return receipt
     }
 }

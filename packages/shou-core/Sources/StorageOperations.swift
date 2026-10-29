@@ -277,50 +277,68 @@ extension ShouEngine {
         return (try? filesystem.analysisRootIdentity(homeDirectory.path).owner) ?? UInt32.max
     }
     public func createStorageRemovalPlan(scanId: String, paths: [String], action: String = "trash", budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> StorageRemovalPlan {
+        let review=try prepareStorageRemoval(scanId: scanId, paths: paths, action: action, budget: budget, skipUnavailable: false, progress: progress)
+        guard let plan=review.plan else { throw ShouError("invalid_argument", "Select explicit file or directory paths and a supported removal mode.") }
+        return plan
+    }
+    /// A desktop batch can omit unavailable targets without granting them a
+    /// manifest or execution authority. Strict CLI planning remains unchanged.
+    public func reviewStorageRemoval(scanId: String, paths: [String], action: String = "permanent", budget: ScanBudget = ScanBudget(maxEntries: 1_000_000, maxSeconds: 600), progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> (plan: StorageRemovalPlan?, skippedItems: [ItemReceipt]) {
+        try prepareStorageRemoval(scanId: scanId, paths: paths, action: action, budget: budget, skipUnavailable: true, progress: progress)
+    }
+    private func prepareStorageRemoval(scanId: String, paths: [String], action: String, budget: ScanBudget, skipUnavailable: Bool, progress: @Sendable (ExecutionProgress) -> Void) throws -> (plan: StorageRemovalPlan?, skippedItems: [ItemReceipt]) {
         try budget.validate()
         guard ["trash", "permanent"].contains(action), !paths.isEmpty, paths.count <= 5000,
               paths.allSatisfy(StorageRemovalPolicy.validRelative) else { throw ShouError("invalid_argument", "Select explicit file or directory paths and a supported removal mode.") }
         let lease=try store.lock(); defer { lease.release() }
         let scan=try storageScan(scanId)
         guard try filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
-        var items=[StorageRemovalItem]()
+        var items=[StorageRemovalItem](), skippedItems=[ItemReceipt]()
         let context=try storageReviewContext(scan: scan)
         let selected=StorageSelection.normalized(Set(paths)).sorted()
         for path in selected {
             if Task.isCancelled { throw ShouError("cancelled", "Selection review stopped.") }
-            if let reason=try storageRemovalReason(scan: scan, path: path, context: context, checkDescendants: false) { throw ShouError("permission_denied", reason, details: ["path": path]) }
             let full=StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path)
-            progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: full))
-            let tree=try filesystem.inspectStorageTarget(full, budget: budget, cancelled: { Task.isCancelled }, progress: { update in
-                let current=update.currentPath.isEmpty ? full : update.currentPath.hasPrefix("/") ? update.currentPath : full + "/" + update.currentPath
-                progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: current))
-            })
-            guard tree.complete else {
-                throw ShouError(tree.issues.contains("resource_limit") ? "resource_limit" : "incomplete_scan",
-                    "This selection could not be completely read. Review access or scan again.", details: ["path": path, "reasons": tree.issues.prefix(10).joined(separator: ",")])
+            do {
+                if let reason=try storageRemovalReason(scan: scan, path: path, context: context, checkDescendants: false) { throw ShouError("permission_denied", reason, details: ["path": path]) }
+                progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: full))
+                let tree=try filesystem.inspectStorageTarget(full, budget: budget, cancelled: { Task.isCancelled }, progress: { update in
+                    let current=update.currentPath.isEmpty ? full : update.currentPath.hasPrefix("/") ? update.currentPath : full + "/" + update.currentPath
+                    progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: current))
+                })
+                guard tree.complete else {
+                    throw ShouError(tree.issues.contains("resource_limit") ? "resource_limit" : "incomplete_scan",
+                        "This selection could not be completely read. Review access or scan again.", details: ["path": path, "reasons": tree.issues.prefix(10).joined(separator: ",")])
+                }
+                // Discovery is a navigation snapshot. A fresh manifest determines the scope
+                // shown for confirmation; replacing the selected object still invalidates it.
+                // The current disposable index can grow until its scan is sealed.
+                guard let current=tree.entries.first(where: { $0.path == "." }),
+                      let saved=try context.entry(path), current.sameObject(as: saved), current.hasSameOwner(as: saved),
+                      current.kind == "directory" || current.metadata == renamed(saved, to: ".").metadata ||
+                      store.protectedPaths.contains(where: { StorageRemovalPolicy.isRemovableCatalog(full, entry: current, recordDirectory: $0) }) else { throw ShouError("plan_stale", "Selected item changed. Scan again before removing it.", details: ["path": path]) }
+                if context.containsExclusion(path: path, manifest: tree.entries) {
+                    throw ShouError("permission_denied", "This selection contains excluded content.", details: ["path": path])
+                }
+                var charged=Set<String>(), bytes: Int64=0
+                for entry in tree.entries where entry.kind != "symlink" && entry.kind != "special" {
+                    if entry.links <= 1 || charged.insert(entry.objectIdentityKey).inserted { bytes += max(0, entry.allocatedBytes) }
+                }
+                items.append(StorageRemovalItem(path: path, manifest: tree.entries, allocatedBytesEstimate: bytes))
+                progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: full))
+            } catch let error as ShouError where skipUnavailable && !Task.isCancelled && ["permission_denied", "io_error", "incomplete_scan", "resource_limit"].contains(error.code) {
+                let diagnostic=([error.message] + [error.details["reasons"]].compactMap { $0 }).joined(separator: "\n")
+                skippedItems.append(ItemReceipt(id: Codec.id("item"), originalPath: full, relativePath: path, trashPath: nil,
+                    manifest: [], state: "skipped", allocatedBytesEstimate: 0, error: diagnostic, accessRequirement:error.accessRequirement))
             }
-            // Discovery is a navigation snapshot. A fresh manifest determines the scope
-            // shown for confirmation; replacing the selected object still invalidates it.
-            // The current disposable index can grow until its scan is sealed.
-            guard let current=tree.entries.first(where: { $0.path == "." }),
-                  let saved=try context.entry(path), current.sameObject(as: saved), current.hasSameOwner(as: saved),
-                  current.kind == "directory" || current.metadata == renamed(saved, to: ".").metadata ||
-                  store.protectedPaths.contains(where: { StorageRemovalPolicy.isRemovableCatalog(full, entry: current, recordDirectory: $0) }) else { throw ShouError("plan_stale", "Selected item changed. Scan again before removing it.", details: ["path": path]) }
-            if context.containsExclusion(path: path, manifest: tree.entries) {
-                throw ShouError("permission_denied", "This selection contains excluded content.", details: ["path": path])
-            }
-            var charged=Set<String>(), bytes: Int64=0
-            for entry in tree.entries where entry.kind != "symlink" && entry.kind != "special" {
-                if entry.links <= 1 || charged.insert(entry.objectIdentityKey).inserted { bytes += max(0, entry.allocatedBytes) }
-            }
-            items.append(StorageRemovalItem(path: path, manifest: tree.entries, allocatedBytesEstimate: bytes))
-            progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: full))
         }
+        if Task.isCancelled { throw ShouError("cancelled", "Selection review stopped.") }
+        guard !items.isEmpty else { return (nil, skippedItems) }
         var plan=StorageRemovalPlan(id: Codec.id("storage-plan"), scanId: scan.id, rootPath: scan.rootPath, identity: scan.identity, createdAt: now(), expiresAt: now().addingTimeInterval(900), action: action, items: items)
         try StorageRemovalPlanRecords.save(&plan, store: store, progress: { current in
             progress(ExecutionProgress(stage: "preparing", processedCount: 0, itemCount: selected.count, path: current))
         })
-        return plan
+        return (plan, skippedItems)
     }
     private func renamed(_ entry: FileEntry, to path: String) -> FileEntry { var copy=entry; copy.path=path; return copy }
     public func storageRemovalPlan(_ id: String) throws -> StorageRemovalPlan {
@@ -346,11 +364,10 @@ extension ShouEngine {
         // only the selected identities before any mutation can remove it.
         var savedEntries=[String: FileEntry]()
         for item in plan.items {
-            guard let entry=try context.entry(item.path) else { throw ShouError("plan_stale", "Selected item changed since confirmation.") }
-            savedEntries[item.path]=entry
+            if let entry=try context.entry(item.path) { savedEntries[item.path]=entry }
         }
         let validate: (Int, [FileEntry]) throws -> String? = { index, manifest in
-            guard try self.filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("plan_stale", "Analysis root changed.") }
+            guard try self.filesystem.analysisRootIdentity(scan.rootPath).sameObject(as: scan.identity) else { throw ShouError("access_expired", "Analysis root changed.") }
             let item=plan.items[index]
             if let reason=try self.storageRemovalReason(scan: scan, path: item.path, entry: savedEntries[item.path], context: context, checkDescendants: false) { return reason }
             guard let saved=savedEntries[item.path], manifest.first?.sameObject(as: saved) == true else {

@@ -40,6 +40,10 @@ python3 ".agents/skills/shou-windows-cloud-test/scripts/wuying.py" run "/tmp/sho
 
 `run` 默认 `shou-test` 用户会话；仅工具准备可加 `--system`。以当前脚本参数为准调用：
 
+系统授权测试先读 `HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\EnableLUA` 与 `whoami /groups`。`EnableLUA=0` 的管理员桌面不能证明 UAC 弹窗；从 `active-desktop.json.authorization` 复用已绑定本实例的明确授权，不重复询问同一项设置／重启。重启前等待同步、下载和当前测试退出，保存日志；重连后再核验设置和当前用户会话。
+
+官方 SDK 大包在默认地址超时可改用 `https://dotnetcli.blob.core.windows.net/dotnet/Sdk/<version>/dotnet-sdk-<version>-win-x64.zip`，保留官方 SHA512 校验。按实际速率给下载充分的有界时间；仅在服务器支持 Range 时用 `curl.exe --continue-at -` 续传本次固定 URL 的未完成文件。遇到 curl 33／Range 不支持时改为完整下载，不重复续传；最终摘要不符即失败，不能解压使用。下载速率和文件长度比早期未刷新的日志更能说明进度，不要反复重启下载。
+
 ```powershell
 $env:PATH="$Root/dotnet;$Root/python/tools;"+$env:PATH
 $env:DOTNET_ROOT="$Root/dotnet"
@@ -50,7 +54,7 @@ $env:DOTNET_ROOT="$Root/dotnet"
 
 长作业宜写为远程本地脚本再 `Start-Process`，用阶段文件、日志、最终退出码观察，避免 API 窗口超时。检查每个退出码，`InvocationStatus=Success` 可同时包含 `ExitCode=1`。GUI 及当前用户注册表／MSIX 验收必须在已登录的用户会话。构建成功和启动／正常关闭检查无法检出所有页面装载失败；还要检查各页、错误状态栏和 `application.jsonl`。
 
-发布检查后，在解锁的用户桌面运行 `powershell.exe -NoProfile -STA -File "$Source/scripts/windows/test-desktop-e2e.ps1" -PublishRoot "$Root/artifacts/win-x64/publish" -ArtifactsRoot "$Root/artifacts/e2e"`。它使用本次生成的隔离记录／项目，实际驱动首次扫描和各页只读旅程，保存截图、状态、命令、故障恢复及 `verification.json`。失败立即导出对应控件树和日志，再定位原因；不忽略步骤或接受未执行结果。原生变更、UI 视觉对齐、签名与安装仍为独立验收。
+发布检查后，在解锁的用户桌面运行 `powershell.exe -NoProfile -STA -File "$Source/scripts/windows/test-desktop-e2e.ps1" -PublishRoot "$Root/artifacts/win-x64/publish" -ArtifactsRoot "$Root/artifacts/e2e" -ReadOnlyPreview`。它使用本次生成的隔离记录／项目，实际驱动首次扫描和各页只读旅程，保存截图、状态、命令、故障恢复及 `verification.json`。失败立即导出对应控件树和日志，再定位原因；不忽略步骤或接受未执行结果。原生变更、UI 视觉对齐、签名与安装仍为独立验收。
 
 日志现位于 `%LOCALAPPDATA%/Shou/Diagnostics`；E2E 使用自己生成的 `Diagnostics` 目录。`collect-diagnostics.ps1 -OutputRoot <证据目录> -TestResultsRoot <本轮TRX目录> -PublishRoot <产物目录>` 读取带 XML 命名空间的实际 TRX 计数，避免 PowerShell 对 Counters 做 `ConvertTo-Json` 得到空数组。缺日志、丢失事件和跳过原生用例必须明确记录；不复制用户 Data 中的私有执行记录来替代普通诊断日志。
 

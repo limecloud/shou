@@ -1,9 +1,9 @@
 import Foundation
 
 /// Executes a root-bound permanent cleanup plan. The caller has already held
-/// the mutation lease, rechecked the current policy and verified each full
-/// manifest. This loop deliberately has the same journal boundaries as the
-/// Trash path, but never creates a recoverable Trash location.
+/// the mutation lease and frozen the selected scope. Each item's policy and
+/// native manifest boundary run immediately before that item. Both removal modes
+/// share the journal contract; permanent removal creates no Trash location.
 enum PermanentExecution {
     static func run(planId: String, workspace: Workspace, items: [ItemReceipt], entryPoint: String,
                     store: any RecordStore, filesystem: any PlatformFileSystem, now: Date, operation: String = "permanent_cleanup",
@@ -36,9 +36,10 @@ enum PermanentExecution {
             } catch {
                 if Task.isCancelled { receipt.state="cancelled"; break }
                 receipt.items[index].state="failed"; receipt.items[index].error=TrashExecution.diagnostic(error)
+                receipt.items[index].accessRequirement=(error as? ShouError)?.accessRequirement
                 try save()
-                if ["permission_denied", "io_error"].contains((error as? ShouError)?.code ?? "") {
-                    progress(ExecutionProgress(stage: "preflight", processedCount: index + 1, itemCount: items.count, path: path))
+                if ExecutionFailurePolicy.continues(after: error) {
+                    progress(ExecutionProgress(stage: "purging", processedCount: index + 1, itemCount: items.count, path: path))
                     continue
                 }
                 break
@@ -46,7 +47,7 @@ enum PermanentExecution {
             // A lost result write must leave a durable started-item intent.
             receipt.items[index].state="purging"
             try save()
-            var partialRemoval=false
+            var continueRemoval=false
             do {
                 try filesystem.purge(path, expected: receipt.items[index].manifest, context: &removalContext, progress: { completed, total, current in
                     progress(ExecutionProgress(stage: "purging", processedCount: index, itemCount: items.count, path: current,
@@ -57,13 +58,18 @@ enum PermanentExecution {
                 })
                 receipt.items[index].state="purged"
             } catch {
-                partialRemoval=["partial_removal", "permission_denied", "io_error"].contains((error as? ShouError)?.code ?? "")
-                receipt.items[index].state=["cancelled", "purge_outcome_unknown"].contains((error as? ShouError)?.code ?? "") ? "unknown" : "failed"
+                continueRemoval=ExecutionFailurePolicy.continues(after: error)
+                if ExecutionFailurePolicy.authorizationCancelled(error) {
+                    receipt.items[index].state="skipped"; receipt.state="cancelled"
+                } else {
+                    receipt.items[index].state=["cancelled", "purge_outcome_unknown", "authorization_channel_lost"].contains((error as? ShouError)?.code ?? "") ? "unknown" : "failed"
+                }
                 receipt.items[index].error=TrashExecution.diagnostic(error)
+                receipt.items[index].accessRequirement=(error as? ShouError)?.accessRequirement
             }
             try save()
             progress(ExecutionProgress(stage: "purging", processedCount: index + 1, itemCount: items.count, path: path))
-            if receipt.items[index].state != "purged" && !partialRemoval { break }
+            if receipt.state == "cancelled" || (receipt.items[index].state != "purged" && !continueRemoval) { break }
         }
         if receipt.state != "cancelled" { receipt.state=receipt.items.allSatisfy { $0.state == "purged" } ? "completed" : "partial" }
         progress(ExecutionProgress(stage: "finalizing", processedCount: receipt.items.filter { !["pending", "purging"].contains($0.state) }.count, itemCount: items.count, path: workspace.path))

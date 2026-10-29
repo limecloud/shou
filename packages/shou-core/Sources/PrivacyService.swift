@@ -101,7 +101,7 @@ public actor PrivacyService {
         guard sources.allSatisfy(\.eligible) else { throw ShouError("privacy_source_unavailable", "Only ready privacy sources can be selected.") }
         guard acknowledgeSignOut || !sources.contains(where: \.requiresSignOutConsent) else { throw ShouError("privacy_sign_out_consent_required", "Cookie removal can sign you out; explicit consent is required.") }
         var result=PrivacyPlan(id: Codec.id("privacy-plan"), scanId: scan.id, createdAt: now(), expiresAt: min(scan.expiresAt, now().addingTimeInterval(300)), range: scan.range, rangeStart: scan.rangeStart, rangeEnd: scan.rangeEnd, configurationDigest: scan.configurationDigest, homeIdentity: scan.homeIdentity, sources: sources, signOutAcknowledged: acknowledgeSignOut)
-        try preflight(result)
+        try validateScope(result)
         result.digest=try result.calculatedDigest(); try save(result, "privacy-plans", result.id); return result
     }
     public func execute(planId: String, digest: String, consent: PrivacyConsent, progress: @Sendable (ExecutionProgress) -> Void = { _ in }) throws -> PrivacyReceipt {
@@ -110,11 +110,14 @@ public actor PrivacyService {
         guard plan.state == "ready", plan.digest == digest else { throw ShouError("plan_stale", "The privacy plan is stale or was already used.") }
         guard consent.irreversibleDeletion else { throw ShouError("confirmation_required", "Privacy deletion is permanent; explicit confirmation is required.") }
         guard !plan.requiresSignOutConsent || (plan.signOutAcknowledged && consent.signOut) else { throw ShouError("privacy_sign_out_consent_required", "Cookie removal can sign you out; explicit consent is required.") }
-        progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.sources.count))
-        try preflight(plan, progress: progress)
+        try validateScope(plan)
         var receipt=PrivacyReceipt(id: Codec.id("privacy-execution"), planId: plan.id, createdAt: now(), range: plan.range, rangeStart: plan.rangeStart, rangeEnd: plan.rangeEnd, state: "executing", items: plan.sources.map { PrivacyItemResult(sourceId: $0.id, state: "pending", removedRecords: 0, reason: nil) })
+        func saveReceipt() throws {
+            do { try save(receipt, "privacy-history", receipt.id) }
+            catch { throw ShouError("journal_failed", "Privacy cleanup stopped because its result could not be recorded.") }
+        }
         // Persist intent before the first database transaction. Interrupted results are never retried.
-        plan.state="executing"; try save(plan, "privacy-plans", plan.id); try save(receipt, "privacy-history", receipt.id)
+        plan.state="executing"; try save(plan, "privacy-plans", plan.id); try saveReceipt()
         for (index, source) in plan.sources.enumerated() {
             let label=source.definition.browserName + " · " + source.definition.profile
             progress(ExecutionProgress(stage: "privacy-cleaning", processedCount: index, itemCount: plan.sources.count, path: label))
@@ -122,7 +125,7 @@ public actor PrivacyService {
                 let access=try catalog.acquire(source: source.definition, home: home, writable: true)
                 defer { access.release() }
                 try cancelled(); try verify(source, plan: plan)
-                receipt.items[index].state="executing"; try save(receipt, "privacy-history", receipt.id)
+                receipt.items[index].state="executing"; try saveReceipt()
                 let database=try PrivacyDatabase(path: absolute(source.definition), source: source.definition, start: plan.rangeStart, end: plan.rangeEnd, writable: true)
                 defer { database.close() }
                 let count=try database.remove(expectedCount: source.recordCount ?? 0) {
@@ -130,36 +133,37 @@ public actor PrivacyService {
                 }
                 receipt.items[index].state="completed"; receipt.items[index].removedRecords=count
             } catch {
+                if (error as? ShouError)?.code == "journal_failed" { throw error }
                 receipt.items[index].state="failed"
                 receipt.items[index].reason=(error as? ShouError)?.code ?? "privacy_database_unavailable"
-                if Task.isCancelled {
-                    for remaining in receipt.items.indices where remaining > index { receipt.items[remaining].state="cancelled" }
+                if Task.isCancelled || ["store_corrupt", "journal_failed", "authorization_channel_lost", "authorization_cancelled", "authorization_denied"].contains((error as? ShouError)?.code ?? "") {
+                    for remaining in receipt.items.indices where remaining > index { receipt.items[remaining].state=Task.isCancelled || ExecutionFailurePolicy.authorizationCancelled(error) ? "cancelled" : "skipped" }
                     break
                 }
             }
-            try save(receipt, "privacy-history", receipt.id)
+            try saveReceipt()
             progress(ExecutionProgress(stage: "privacy-cleaning", processedCount: index + 1, itemCount: plan.sources.count, path: label))
         }
         receipt.state=receipt.items.allSatisfy { $0.state == "completed" } ? "completed" : "partial"
-        plan.state=receipt.state; try save(receipt, "privacy-history", receipt.id); try save(plan, "privacy-plans", plan.id)
+        plan.state=receipt.state; try saveReceipt(); try save(plan, "privacy-plans", plan.id)
         return receipt
     }
     public func history() throws -> [PrivacyReceipt] {
         try store.ids("privacy-history").map { try load(PrivacyReceipt.self, "privacy-history", $0) }.sorted { $0.createdAt > $1.createdAt }
     }
-    private func preflight(_ plan: PrivacyPlan, progress: (ExecutionProgress) -> Void = { _ in }) throws {
+    private func validateScope(_ plan: PrivacyPlan) throws {
         try cancelled()
         let currentHome=try filesystem.analysisRootIdentity(home.path)
         guard now() < plan.expiresAt, !plan.sources.isEmpty, Set(plan.sources.map(\.id)).count == plan.sources.count,
               currentHome.sameObject(as: plan.homeIdentity), currentHome.hasSameOwner(as: plan.homeIdentity),
               try Digest.of(configuration()) == plan.configurationDigest else { throw ShouError("plan_stale", "The privacy plan expired or its protection settings changed; scan again.") }
-        for source in plan.sources {
-            progress(ExecutionProgress(stage: "preflight", processedCount: 0, itemCount: plan.sources.count, path: source.definition.browserName + " · " + source.definition.profile))
-            try verify(source, plan: plan)
+        guard plan.sources.allSatisfy({ $0.eligible && !$0.definition.unsupported && PrivacySourcePolicy.valid($0.definition) }) else {
+            throw ShouError("privacy_source_unavailable", "The privacy selection contains an unsupported source.")
         }
     }
     private func verify(_ source: PrivacySource, plan: PrivacyPlan, count: Bool = true) throws {
         try cancelled()
+        guard now() < plan.expiresAt else { throw ShouError("plan_stale", "The privacy plan expired; scan again.") }
         let currentHome=try filesystem.analysisRootIdentity(home.path)
         guard currentHome.sameObject(as: plan.homeIdentity), currentHome.hasSameOwner(as: plan.homeIdentity) else { throw ShouError("plan_stale", "The privacy home directory changed; scan again.") }
         guard source.eligible, !source.definition.unsupported, PrivacySourcePolicy.valid(source.definition) else { throw ShouError("privacy_source_unavailable", "The privacy source is outside supported scope.") }

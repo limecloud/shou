@@ -46,7 +46,7 @@ import ShouPlatform
         loadConnections()
         if let path {
             do { launch=AILaunchTarget(path: try NativeDirectorySelection.path(for: URL(fileURLWithPath: path))) }
-            catch { app.error=error.localizedDescription }
+            catch { app.presentFailure(error) }
             return
         }
         chooseLaunchFolder(app: app) { [weak self] path in self?.launch=AILaunchTarget(path: path) }

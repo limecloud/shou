@@ -46,8 +46,8 @@ extension ShouEngine {
         for app in applications {
             let current=try applicationCatalog.application(at: app.path)
             let facts=try uninstallEvidence.facts(for: current)
-            guard current == app, !app.source.systemOwned, app.bundleIdentifier?.hasPrefix("com.apple.") == false,
-                  app.bundleIdentifier?.hasPrefix("dev.limecloud.shou") == false, !facts.currentApplication else {
+            guard current == app, !app.isSystemApplication, app.identity.kind == "directory",
+                  app.bundleIdentifier?.hasPrefix("dev.limecloud.shou") != true, !facts.currentApplication else {
                 throw ShouError("protected_content", "This application cannot be closed by cleanup.")
             }
         }

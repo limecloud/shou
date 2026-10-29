@@ -116,6 +116,79 @@ func storageIncompleteReviewReportsCauseAndRemainsRetryable() async throws {
     try expect(retry.items.count == 1)
 }
 
+func storageBatchReviewSkipsIncompleteTargetsAndExecutesCompleteSiblings() async throws {
+    for action in ["permanent", "trash"] {
+        let fixture=try Fixture()
+        try fixture.put("project/target/extra.bin")
+        try fixture.put("project/z-complete.bin")
+        let engine=ShouEngine(store: fixture.store, filesystem: FixtureFileSystem(native: fixture.fs, trash: fixture.trash))
+        let scan=try await engine.scanStorage(path: fixture.workspace.path)
+        let review=try await engine.reviewStorageRemoval(scanId: scan.id, paths: ["project/target", "project/target/artifact.bin", "project/z-complete.bin"],
+            action: action, budget: ScanBudget(maxEntries: 2))
+        let plan=try require(review.plan)
+        try expect(plan.items.map(\.path) == ["project/z-complete.bin"])
+        try expect(review.skippedItems.count == 1 && review.skippedItems[0].relativePath == "project/target")
+        try expect(review.skippedItems[0].state == "skipped" && review.skippedItems[0].manifest.isEmpty)
+        try expect(review.skippedItems[0].error?.contains("resource_limit") == true)
+        try expect(try await engine.history().isEmpty)
+        try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/z-complete.bin").path))
+        let saved=try await engine.storageRemovalPlan(plan.id)
+        try expect(saved.items.map(\.path) == plan.items.map(\.path))
+        let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+        try expect(receipt.state == "completed" && receipt.items.count == 1)
+        try expect(receipt.items[0].state == (action == "permanent" ? "purged" : "trashed"))
+        try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+        try expect(!FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/z-complete.bin").path))
+    }
+}
+
+func storageBatchReviewAllExcludedTargetsProducesNoPlanOrMutation() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    _ = try await engine.addWorkspace(path: fixture.workspace.path, rootRef: "generated-workspace")
+    _ = try await engine.setGlobalExclusion(pattern: "project/target/**", remove: false)
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    let review=try await engine.reviewStorageRemoval(scanId: scan.id, paths: ["project/target"])
+    try expect(review.plan == nil && review.skippedItems.count == 1)
+    try expect(review.skippedItems[0].error == "This selection contains excluded content.")
+    try expect(try fixture.store.ids("storage-plans").isEmpty)
+    try expect(try await engine.history().isEmpty)
+    try await expectThrows { try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["project/target"]) }
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+}
+
+func storageBatchReviewSkipsDisappearedTargets() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    try fixture.put("project/0-disappeared.bin")
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    try FileManager.default.moveItem(at: fixture.workspace.appendingPathComponent("project/0-disappeared.bin"),
+        to: fixture.base.appendingPathComponent("moved-generated-file.bin"))
+    let review=try await engine.reviewStorageRemoval(scanId: scan.id, paths: ["project/0-disappeared.bin", "project/target"])
+    try expect(review.skippedItems.map(\.relativePath) == ["project/0-disappeared.bin"])
+    let plan=try require(review.plan)
+    try expect(plan.items.map(\.path) == ["project/target"])
+    let result=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    try expect(result.state == "completed" && result.items[0].state == "purged")
+    try expect(FileManager.default.fileExists(atPath: fixture.base.appendingPathComponent("moved-generated-file.bin").path))
+}
+
+func storageBatchReviewDoesNotSkipStaleObjectsOrCancellation() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    try fixture.put("project/target/artifact.bin", "changed since discovery")
+    do {
+        _ = try await engine.reviewStorageRemoval(scanId: scan.id, paths: ["project/Cargo.toml", "project/target/artifact.bin"])
+        throw CheckFailure(description: "Changed file identity or content must stop batch review.")
+    } catch let error as ShouError { try expect(error.code == "plan_stale") }
+    let task=Task {
+        withUnsafeCurrentTask { $0?.cancel() }
+        return try await engine.reviewStorageRemoval(scanId: scan.id, paths: ["project/target"])
+    }
+    do { _ = try await task.value; throw CheckFailure(description: "Cancelled review cannot produce a plan.") }
+    catch let error as ShouError { try expect(error.code == "cancelled") }
+    try expect(try fixture.store.ids("storage-plans").isEmpty)
+    try expect(try await engine.history().isEmpty)
+}
+
 func storageNativeRemovalReportsManifestProgress() async throws {
     let fixture=try Fixture(), native=NativeFileSystem()
     var values=[(Int, Int)]()
