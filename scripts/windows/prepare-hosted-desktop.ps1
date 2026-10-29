@@ -16,10 +16,9 @@ foreach ($Policy in @('HKLM:\SOFTWARE\Policies\Microsoft\Windows\OOBE', 'HKCU:\S
     New-Item -Path $Policy -Force | Out-Null
     New-ItemProperty -Path $Policy -Name DisablePrivacyExperience -Value 1 -PropertyType DWord -Force | Out-Null
 }
-$PrivacyState = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Privacy'
-New-Item -Path $PrivacyState -Force | Out-Null
-New-ItemProperty -Path $PrivacyState -Name PrivacyConsentStatus -Value 1 -PropertyType DWord -Force | Out-Null
-New-ItemProperty -Path $PrivacyState -Name TailoredExperiencesWithDiagnosticDataEnabled -Value 0 -PropertyType DWord -Force | Out-Null
+$Engagement = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement'
+New-Item -Path $Engagement -Force | Out-Null
+New-ItemProperty -Path $Engagement -Name ScoobeSystemSettingEnabled -Value 0 -PropertyType DWord -Force | Out-Null
 if (-not ('HostedDesktopSession' -as [type])) {
     Add-Type @'
 using System;
@@ -32,6 +31,18 @@ public static class HostedDesktopSession {
  [DllImport("user32.dll")] static extern IntPtr GetThreadDesktop(uint thread);
  [DllImport("user32.dll", SetLastError=true)] static extern IntPtr OpenInputDesktop(uint flags, bool inherit, uint access);
  [DllImport("user32.dll")] static extern bool CloseDesktop(IntPtr desktop);
+ [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
+ [DllImport("user32.dll", CharSet=CharSet.Unicode)] static extern int GetClassNameW(IntPtr window, StringBuilder value, int capacity);
+ [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(IntPtr window, uint attribute, out int value, int size);
+ [DllImport("user32.dll")] static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
+ public static uint OpenStartProcess() {
+  var window=GetForegroundWindow(); var name=new StringBuilder(256); uint process;
+  GetClassNameW(window,name,name.Capacity); int cloaked;
+  if (name.ToString() != "Windows.UI.Core.CoreWindow" || DwmGetWindowAttribute(window,14,out cloaked,4) != 0 || cloaked != 0) return 0;
+  GetWindowThreadProcessId(window,out process); return process;
+ }
+ public static void Escape() { keybd_event(0x1b,0,0,UIntPtr.Zero); keybd_event(0x1b,0,2,UIntPtr.Zero); }
  [DllImport("user32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern bool GetUserObjectInformationW(IntPtr handle, int index, StringBuilder value, int bytes, out int required);
  [DllImport("wtsapi32.dll", SetLastError=true)] static extern bool WTSQuerySessionInformationW(IntPtr server, int session, int field, out IntPtr buffer, out int bytes);
  [DllImport("wtsapi32.dll")] static extern void WTSFreeMemory(IntPtr buffer);
@@ -65,6 +76,7 @@ function Get-HostedConnection {
 $Evidence = Join-Path $env:RUNNER_TEMP ('ShouBuild/evidence/hosted-desktop-' + [Guid]::NewGuid().ToString('N') + '.json')
 New-Item -ItemType Directory -Path (Split-Path $Evidence) -Force | Out-Null
 $Before = $null; $After = $null; $Desktop = $null; $Failure = $null; $Transferred = $false
+$Stopped = [Collections.Generic.List[object]]::new(); $StartDismissed = $false
 try {
     $Before = Get-HostedConnection
     # Reconnect only this disposable runner's own authenticated RDP/disconnected
@@ -80,6 +92,30 @@ try {
     if ($Desktop.thread -ne 'Default' -or $Desktop.input -ne $Desktop.thread) {
         throw "Hosted UI requires the Default input desktop; thread=$($Desktop.thread), input=$($Desktop.input)."
     }
+    # The hosted ARM64 image leaves its first-sign-in WWAHost above ordinary
+    # windows (actions/runner-images#14069). Limit this workaround to known
+    # Windows binaries in this disposable runner's authenticated session.
+    foreach ($Entry in @(
+        @{ name='UserOOBEBroker'; path=(Join-Path $env:WINDIR 'System32\oobe\UserOOBEBroker.exe') },
+        @{ name='WWAHost'; path=(Join-Path $env:WINDIR 'System32\WWAHost.exe') }
+    )) {
+        foreach ($Process in @(Get-Process -Name $Entry.name -ErrorAction SilentlyContinue)) {
+            if ($Process.SessionId -eq $Session -and [StringComparer]::OrdinalIgnoreCase.Equals($Process.Path,$Entry.path)) {
+                $Stopped.Add([ordered]@{ id=$Process.Id; path=$Process.Path; session=$Process.SessionId })
+                Stop-Process -InputObject $Process -Force -ErrorAction Stop
+                if (-not $Process.WaitForExit(10000)) { throw 'Hosted first-sign-in process did not stop.' }
+            }
+        }
+    }
+    $StartId = [HostedDesktopSession]::OpenStartProcess()
+    if ($StartId -ne 0) {
+        $Start = Get-Process -Id $StartId -ErrorAction Stop
+        $StartPath = Join-Path $env:WINDIR 'SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe'
+        if ($Start.SessionId -eq $Session -and [StringComparer]::OrdinalIgnoreCase.Equals($Start.Path,$StartPath)) {
+            [HostedDesktopSession]::Escape()
+            $StartDismissed = $true
+        }
+    }
     if ($RestartExplorer) {
         $ExplorerPath = Join-Path $env:WINDIR 'explorer.exe'
         foreach ($Process in @(Get-Process -Name explorer -ErrorAction SilentlyContinue)) {
@@ -92,7 +128,8 @@ try {
     }
 } catch { $Failure = $_.Exception.ToString(); throw }
 finally {
-    [ordered]@{ passed=($null -eq $Failure); failure=$Failure; before=$Before; after=$After; desktop=$Desktop; transferred=$Transferred } |
+    [ordered]@{ passed=($null -eq $Failure); failure=$Failure; before=$Before; after=$After; desktop=$Desktop; transferred=$Transferred;
+        stopped_first_sign_in=@($Stopped); start_escape_sent=$StartDismissed } |
         ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $Evidence -Encoding utf8
     Write-Output "Hosted desktop receipt: $Evidence"
 }
