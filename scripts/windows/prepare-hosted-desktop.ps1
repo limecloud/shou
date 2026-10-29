@@ -52,7 +52,7 @@ try {
             $CandidateControls = @($Candidate.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
             $ObservedWindows[$Owner.Id] = [ordered]@{ process=$Owner.ProcessName; path=$Owner.Path; name=$Candidate.Current.Name;
                 controls=@($CandidateControls | Select-Object -First 300 | ForEach-Object {
-                    [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; offscreen=$_.Current.IsOffscreen; type=$_.Current.ControlType.ProgrammaticName }
+                    [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; offscreen=$_.Current.IsOffscreen; type=[string]$_.Current.ControlType }
                 }) }
             $Title = $CandidateControls | Where-Object { -not $_.Current.IsOffscreen -and
                 ($_.Current.Name -replace '\s+', ' ') -eq 'Choose privacy settings for your device' } | Select-Object -First 1
@@ -64,7 +64,7 @@ try {
             $QuietSince = [DateTime]::UtcNow
             $Controls = @($PrivacyWindow.FindAll([Windows.Automation.TreeScope]::Descendants, [Windows.Automation.Condition]::TrueCondition))
             $LastControls = @($Controls | Select-Object -First 300 | ForEach-Object {
-                [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; offscreen=$_.Current.IsOffscreen; type=$_.Current.ControlType.ProgrammaticName }
+                [ordered]@{ id=$_.Current.AutomationId; name=$_.Current.Name; offscreen=$_.Current.IsOffscreen; type=[string]$_.Current.ControlType }
             })
             foreach ($Control in $Controls) {
                 if ($Control.Current.IsOffscreen -or -not $Control.Current.IsEnabled) { continue }

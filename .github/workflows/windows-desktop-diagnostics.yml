@@ -29,16 +29,18 @@ jobs:
           path: ${{ runner.temp }}/ShouBuild/archives
       - name: Verify the existing preview bytes and record both sources
         run: |
+          [xml]$Properties = Get-Content apps/windows/Directory.Build.props
+          $Version = $Properties.Project.PropertyGroup.Version
           $Archives = "$env:RUNNER_TEMP/ShouBuild/archives"
           foreach ($Kind in @('app', 'cli')) {
             $Stem = if ($Kind -eq 'app') { 'Shou' } else { 'shou-cli' }
-            $Name = "$Stem-0.21.0-windows-arm64.zip"
+            $Name = "$Stem-$Version-windows-arm64.zip"
             $Expected = @(Get-Content "$Archives/SHA256SUMS-windows-arm64" | Where-Object { $_.EndsWith("  $Name") })
             if ($Expected.Count -ne 1 -or (Get-FileHash "$Archives/$Name" -Algorithm SHA256).Hash -ine $Expected[0].Substring(0, 64)) { throw 'Archive digest differs.' }
             $Destination = "$env:RUNNER_TEMP/ShouBuild/publish/$Kind"
             Expand-Archive -LiteralPath "$Archives/$Name" -DestinationPath $Destination
             $Build = Get-Content "$Destination/BUILD.json" -Raw | ConvertFrom-Json
-            if ($Build.version -ne '0.21.0' -or $Build.runtime -ne 'win-arm64' -or $Build.kind -ne $Kind -or $Build.public_mutation_available -ne $false) { throw 'Preview identity or gates differ.' }
+            if ($Build.version -ne $Version -or $Build.runtime -ne 'win-arm64' -or $Build.kind -ne $Kind -or $Build.public_mutation_available -ne $false) { throw 'Preview identity or gates differ.' }
             foreach ($File in $Build.files.PSObject.Properties) {
               if ((Get-FileHash -LiteralPath (Join-Path $Destination $File.Name) -Algorithm SHA256).Hash -ine $File.Value) { throw 'Published file digest differs.' }
             }

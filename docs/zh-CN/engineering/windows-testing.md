@@ -4,6 +4,8 @@
 
 本文件定义排错与验收入口，不代表全部 Windows 功能已可用。实际结果记录于 [SYNC.md](../../../SYNC.md)。本地开发时保持云电脑 `StopCharging`，本机检查与同步包准备好后再集中开机。
 
+GitHub ARM64 桌面排错可运行 `gh workflow run windows-desktop-diagnostics.yml -f source_run_id=<Windows检查运行ID>`，复用该次受限便携包，核验归档及文件摘要，分别记录应用源码与诊断脚本源码。它仅缩短桌面排错循环，不替代同一提交的完整原生验收；临时 runner 的首次隐私设置按观察到的系统控件完成，托盘前台所有权断言保持严格。
+
 ## 2026-10-29 系统授权候选版验收
 
 Windows 11 Pro x64 云电脑的原生主套件共 1,433 项通过（Core 805、Presentation 288、Platform 306、CLI 34），213 项 CLI 合同通过；12 项生成 MSI／计划任务 opt-in 跳过。最终 UI 构建另通过自包含发布、窗口启动与正常关闭，以及 15 项 `-ReadOnlyPreview` 真实控件旅程，覆盖扫描、原生目录选择、停止、空间／大文件结果、应用／启动项搜索、规则／空历史、隐私选择、设置持久化与入口、存储故障恢复、保留字节和日志健康。公开变更保持禁用，`public_mutation_tested=false`；不能计为真实清理或卸载通过。
