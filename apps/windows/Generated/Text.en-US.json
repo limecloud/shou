@@ -264,10 +264,20 @@
     "resource_id": "s6a10aea1bf7d67b276230d2b",
     "text": "2. Answer questions about your projects and what to keep."
   },
+  "3. Review independent cleanup batches in Shou.": {
+    "format": "3. Review independent cleanup batches in Shou.",
+    "resource_id": "se1137e0ba9953ba73bac3c97",
+    "text": "3. Review independent cleanup batches in Shou."
+  },
   "3. Review the draft in Shou, then enable it when ready.": {
     "format": "3. Review and enable the rule once. Future cleanups include it.",
     "resource_id": "s528cd801fff6e0c11dc1eb1f",
     "text": "3. Review and enable the rule once. Future cleanups include it."
+  },
+  "4. Clean selected items, then verify the result and retained items.": {
+    "format": "4. Clean selected items, then verify the result and retained items.",
+    "resource_id": "sd8204874cf3627603685cded",
+    "text": "4. Clean selected items, then verify the result and retained items."
   },
   "4. Clean selected rules, then verify the result and retained items.": {
     "format": "4. Clean selected rules, then verify the result and retained items.",
@@ -564,6 +574,11 @@
     "resource_id": "s121ce69f9e760922afef8154",
     "text": "Active or recoverable records were preserved. Review the history selection."
   },
+  "Active plan dependency": {
+    "format": "Active plan dependency",
+    "resource_id": "s46672cfdf9730b50f9dc51ca",
+    "text": "Active plan dependency"
+  },
   "Activity checks cover the installation folder; execution is not available yet.": {
     "format": "Activity checks cover the installation folder; execution is not available yet.",
     "resource_id": "s4612f1ecbba820a048eb6a48",
@@ -718,6 +733,11 @@
     "format": "Age uses the newest modification anywhere inside the target. MB means 1,000,000 allocated bytes; sizes remain estimates.",
     "resource_id": "s54f77add30290abb5c38e66d",
     "text": "Age uses the newest modification anywhere inside the target. MB means 1,000,000 allocated bytes; sizes remain estimates."
+  },
+  "Agent": {
+    "format": "Agent",
+    "resource_id": "s11b39c93777e8f1f3983bdba",
+    "text": "Agent"
   },
   "Alfred caches": {
     "format": "Alfred caches",
@@ -1408,6 +1428,11 @@
     "format": "Available on volume",
     "resource_id": "s75bdd648e9bfc3cd7ca05d92",
     "text": "Available on volume"
+  },
+  "Available space changed during this operation. Other writes, APFS and virtual disks can affect it.": {
+    "format": "Available space changed during this operation. Other writes, APFS and virtual disks can affect it.",
+    "resource_id": "s17642ed85bed9b5e7e7cb704",
+    "text": "Available space changed during this operation. Other writes, APFS and virtual disks can affect it."
   },
   "Back": {
     "format": "Back",
@@ -2259,6 +2284,11 @@
     "resource_id": "sd5003f2fe84a092d54996251",
     "text": "Choose an applicable scan location"
   },
+  "Choose an assistant": {
+    "format": "Choose an assistant",
+    "resource_id": "s06d8b8863ec7eeeb469d09a8",
+    "text": "Choose an assistant"
+  },
   "Choose an earlier analysis": {
     "format": "Choose an earlier analysis",
     "resource_id": "s9c74d90b741f6154fa6d1bb5",
@@ -2499,6 +2529,11 @@
     "resource_id": "s9a926490a8b16499b2dbd0dc",
     "text": "Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space."
   },
+  "Cleanup assistant": {
+    "format": "Cleanup assistant",
+    "resource_id": "s33e635fb287259111b9f161d",
+    "text": "Cleanup assistant"
+  },
   "Cleanup candidates": {
     "format": "Cleanup candidates",
     "resource_id": "s5e4255195c55051996e0c797",
@@ -2544,6 +2579,11 @@
     "resource_id": "s2b7fb300b5457d95ebf3d6ca",
     "text": "Cleanup finished with issues"
   },
+  "Cleanup plans": {
+    "format": "Cleanup plans",
+    "resource_id": "s331e91c41de46c1f02841a14",
+    "text": "Cleanup plans"
+  },
   "Cleanup preview failed.": {
     "format": "Cleanup preview failed.",
     "resource_id": "s339d462a7fc512f86ce9aa06",
@@ -2563,6 +2603,11 @@
     "format": "Cleanup safety checks changed. Scan again before cleaning this directory.",
     "resource_id": "s765417e6e8df153b6bf84328",
     "text": "Cleanup safety checks changed. Scan again before cleaning this directory."
+  },
+  "Cleanup scans": {
+    "format": "Cleanup scans",
+    "resource_id": "s5e0faca3fb4548d035c2354f",
+    "text": "Cleanup scans"
   },
   "Cleanup scans measure rule targets. Run space analysis to include other files.": {
     "format": "Cleanup scans measure rule targets. Run space analysis to include other files.",
@@ -3454,6 +3499,11 @@
     "resource_id": "s963f33bca2cb22cee1cb54cf",
     "text": "Delete Permanently…"
   },
+  "Delete reviewed records": {
+    "format": "Delete reviewed records",
+    "resource_id": "s1d0725f13210c10bffba0e77",
+    "text": "Delete reviewed records"
+  },
   "Delete these items permanently?": {
     "format": "Delete these items permanently?",
     "resource_id": "s749cc884bc6894e79bbb7167",
@@ -3799,6 +3849,11 @@
     "resource_id": "sc2c0a9ac8808051a78c10399",
     "text": "Docker build cache"
   },
+  "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.": {
+    "format": "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.",
+    "resource_id": "s4c7c545ac4b17927324b77cc",
+    "text": "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation."
+  },
   "Documents": {
     "format": "Documents",
     "resource_id": "sb4e929d8bcfe04189801a8ed",
@@ -4109,6 +4164,11 @@
     "resource_id": "sebce85fe2009745bf317f82c",
     "text": "Existing Installations"
   },
+  "Existing files with local changes are preserved.": {
+    "format": "Existing files with local changes are preserved.",
+    "resource_id": "safeda00b994d0c72e9ec3285",
+    "text": "Existing files with local changes are preserved."
+  },
   "Expand startup details": {
     "format": "Expand startup details",
     "resource_id": "s33f0babf357de687724cde15",
@@ -4158,6 +4218,11 @@
     "format": "Export Skill ZIP…",
     "resource_id": "sfe5cdf67f12ba5778116cd95",
     "text": "Export Skill ZIP…"
+  },
+  "Export Skill…": {
+    "format": "Export Skill…",
+    "resource_id": "s73a0b08acc93855ad81c5595",
+    "text": "Export Skill…"
   },
   "Exported": {
     "format": "Exported",
@@ -4303,6 +4368,11 @@
     "format": "Find large files",
     "resource_id": "s8f259f51f6ded0a1f9521d9a",
     "text": "Find large files"
+  },
+  "Find more large items": {
+    "format": "Find more large items",
+    "resource_id": "sd89eb10c326127c3008f4a90",
+    "text": "Find more large items"
   },
   "Find reviewable caches and build artifacts in known locations.": {
     "format": "Find reviewable caches and build artifacts in known locations.",
@@ -4724,6 +4794,11 @@
     "resource_id": "s0e769600933790607b2a13b3",
     "text": "History"
   },
+  "History dependency": {
+    "format": "History dependency",
+    "resource_id": "s4b5040143ee8c7e1ea4bf76f",
+    "text": "History dependency"
+  },
   "History is limited to readable recent analyses. Some records were skipped.": {
     "format": "History is limited to readable recent analyses. Some records were skipped.",
     "resource_id": "s42d9acaa0fb44d6f8db37ecd",
@@ -4733,6 +4808,11 @@
     "format": "History observations do not change completed operations or retry unfinished work.",
     "resource_id": "s5bd5b53315dbc4791c599a18",
     "text": "History observations do not change completed operations or retry unfinished work."
+  },
+  "History summaries": {
+    "format": "History summaries",
+    "resource_id": "s38065ca23d0ce9b6513d778f",
+    "text": "History summaries"
   },
   "History verification cancelled.": {
     "format": "History verification cancelled.",
@@ -5024,6 +5104,11 @@
     "resource_id": "scc5098bde78248090a63dcd7",
     "text": "Install CLI Command"
   },
+  "Install Directory": {
+    "format": "Install Directory",
+    "resource_id": "s057882f5489a63bd25bd1ccb",
+    "text": "Install Directory"
+  },
   "Install Shou in Applications first.": {
     "format": "Install Shou in Applications first.",
     "resource_id": "sd499e7c1555da21ca9525b5a",
@@ -5033,6 +5118,11 @@
     "format": "Install Skill",
     "resource_id": "s952c695be80a28c4657e1759",
     "text": "Install Skill"
+  },
+  "Install an assistant for investigating disk usage or authoring reusable cleanup rules.": {
+    "format": "Install an assistant for investigating disk usage or authoring reusable cleanup rules.",
+    "resource_id": "sc445a126350a7e53112f71f0",
+    "text": "Install an assistant for investigating disk usage or authoring reusable cleanup rules."
   },
   "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.": {
     "format": "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.",
@@ -5274,6 +5364,16 @@
     "resource_id": "s861309065e9f4125bb214eb5",
     "text": "Investigate a folder with built-in AI, or use your external AI tool to create personal rules."
   },
+  "Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes.": {
+    "format": "Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes.",
+    "resource_id": "s9f12678daba0707ffd7731fc",
+    "text": "Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes."
+  },
+  "Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup.": {
+    "format": "Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup.",
+    "resource_id": "s07334f61d293a1fc938b54c7",
+    "text": "Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup."
+  },
   "Investigate the entire saved scan, including its child folders. A broad overview may reach the per-investigation limit; you can then investigate individual folders.": {
     "format": "Investigate the entire saved scan, including its child folders. A broad overview may reach the per-investigation limit; you can then investigate individual folders.",
     "resource_id": "s8f94e7100ca6baf56f62470a",
@@ -5454,15 +5554,30 @@
     "resource_id": "s2bdbcbcc49c79dbf7ab42ff1",
     "text": "Keep the apps you love."
   },
+  "Keep the latest scan for later inspection": {
+    "format": "Keep the latest scan for later inspection",
+    "resource_id": "s9f984fdd92e4a65ddc89eb18",
+    "text": "Keep the latest scan for later inspection"
+  },
   "Keep the original rule ID when editing a version.": {
     "format": "Keep the original rule ID when editing a version.",
     "resource_id": "sc02438b6cd8f66744648f626",
     "text": "Keep the original rule ID when editing a version."
   },
+  "Keep this time": {
+    "format": "Keep this time",
+    "resource_id": "s554eea4b4861c2f0698e5abb",
+    "text": "Keep this time"
+  },
   "Keep your tools up to date.": {
     "format": "Keep your tools up to date.",
     "resource_id": "sf081c74414e0d26b62607fd1",
     "text": "Keep your tools up to date."
+  },
+  "Kept this time": {
+    "format": "Kept this time",
+    "resource_id": "s38ee7b9c303181f98a317b2c",
+    "text": "Kept this time"
   },
   "Kind": {
     "format": "Kind",
@@ -5578,6 +5693,11 @@
     "format": "Last seven days",
     "resource_id": "s7a2c86a8bf2242ca5bb83fc0",
     "text": "Last seven days"
+  },
+  "Latest scan": {
+    "format": "Latest scan",
+    "resource_id": "s05cd47a4063c97940c8b1840",
+    "text": "Latest scan"
   },
   "Latest version": {
     "format": "Latest version",
@@ -5863,6 +5983,11 @@
     "format": "Make room for more.",
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "Make room for more."
+  },
+  "Make the Shou CLI available as shou, or use its full path in the request.": {
+    "format": "Make the Shou CLI available as shou, or use its full path in the request.",
+    "resource_id": "s20185fe9b0625573e94f2afa",
+    "text": "Make the Shou CLI available as shou, or use its full path in the request."
   },
   "Manage Databases": {
     "format": "Manage Databases",
@@ -6338,6 +6463,11 @@
     "format": "Needs Verification",
     "resource_id": "s2721425dafa987c5bd10977a",
     "text": "Needs Verification"
+  },
+  "Needs a decision": {
+    "format": "Needs a decision",
+    "resource_id": "s11cbeb183b8b6bbfa5cd803a",
+    "text": "Needs a decision"
   },
   "Needs attention": {
     "format": "Needs attention",
@@ -7109,6 +7239,11 @@
     "resource_id": "sb42004078e671d4b95a6afdd",
     "text": "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained."
   },
+  "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.": {
+    "format": "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.",
+    "resource_id": "se8a7a315fc69830d66582fbe",
+    "text": "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs."
+  },
   "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.": {
     "format": "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.",
     "resource_id": "s2172af994fae9e627052f8bc",
@@ -7649,6 +7784,11 @@
     "resource_id": "se5da2242b6ee909040a9def5",
     "text": "Plan expired or workspace/configuration changed; preview again."
   },
+  "Plan file lists": {
+    "format": "Plan file lists",
+    "resource_id": "s189e0e33aeb45fdfc867af72",
+    "text": "Plan file lists"
+  },
   "Plan workspace does not match its registered binding.": {
     "format": "Plan workspace does not match its registered binding.",
     "resource_id": "s832887e6b90882f7e9667cb7",
@@ -7844,6 +7984,11 @@
     "resource_id": "s3a0f0e6222f0664a8aa520e9",
     "text": "Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat."
   },
+  "Processed (estimate)": {
+    "format": "Processed (estimate)",
+    "resource_id": "sa4869b1147b809e3cd255eee",
+    "text": "Processed (estimate)"
+  },
   "Processes": {
     "format": "Processes",
     "resource_id": "s4a81a7ba5358c26f74fbeb64",
@@ -7953,6 +8098,11 @@
     "format": "Protected locations may be omitted because disk access is limited.",
     "resource_id": "sc248e79a44b0d244044d91f9",
     "text": "Protected locations may be omitted because disk access is limited."
+  },
+  "Protected records exceed the cleanup quota.": {
+    "format": "Protected records exceed the cleanup quota.",
+    "resource_id": "s6ac05667ee21d3e0c8799703",
+    "text": "Protected records exceed the cleanup quota."
   },
   "Provider Configuration": {
     "format": "Provider Configuration",
@@ -8409,6 +8559,11 @@
     "resource_id": "s92d0274f76c957c98a5d10b2",
     "text": "Recent resource trend"
   },
+  "Recently created": {
+    "format": "Recently created",
+    "resource_id": "s61df24ec987075ce3bad83a8",
+    "text": "Recently created"
+  },
   "Recommended": {
     "format": "Recommended",
     "resource_id": "sd70604e8430461372849bbd1",
@@ -8468,6 +8623,21 @@
     "format": "Recorded result",
     "resource_id": "s66a0dfe68bb01099a9c91698",
     "text": "Recorded result"
+  },
+  "Records removed": {
+    "format": "Records removed",
+    "resource_id": "s3eb24707ffe5d10f63f49f61",
+    "text": "Records removed"
+  },
+  "Recovery dependency": {
+    "format": "Recovery dependency",
+    "resource_id": "s91840ab086dae44046462516",
+    "text": "Recovery dependency"
+  },
+  "Recovery file lists": {
+    "format": "Recovery file lists",
+    "resource_id": "s3f81a585071278e39b76b868",
+    "text": "Recovery file lists"
   },
   "Redis Insight caches": {
     "format": "Redis Insight caches",
@@ -8789,6 +8959,11 @@
     "resource_id": "s2a64df82cdaad5511bea0259",
     "text": "Retained"
   },
+  "Retention reasons can overlap. Recovery and active plans remain protected.": {
+    "format": "Retention reasons can overlap. Recovery and active plans remain protected.",
+    "resource_id": "s65b687bcd8c48676a0d36fad",
+    "text": "Retention reasons can overlap. Recovery and active plans remain protected."
+  },
   "Retry": {
     "format": "Retry",
     "resource_id": "s942087cc2d41e01304b71955",
@@ -8974,6 +9149,11 @@
     "resource_id": "s77acdaf440bd046ee3c38be4",
     "text": "Review Updated Configuration"
   },
+  "Review again": {
+    "format": "Review again",
+    "resource_id": "sd4ea61c79c9b77d6815ffb18",
+    "text": "Review again"
+  },
   "Review an app and its associated files before moving them to Trash.": {
     "format": "Review an app and its associated files before moving them to Trash.",
     "resource_id": "sffd511a9b027311b25ae9536",
@@ -9054,6 +9234,11 @@
     "resource_id": "s04f40e339c574e7a617c50a3",
     "text": "Review globally configured developer tools without changing project versions."
   },
+  "Review independent cleanup batches in Shou.": {
+    "format": "Review independent cleanup batches in Shou.",
+    "resource_id": "sdd3337c574051a86cadf6341",
+    "text": "Review independent cleanup batches in Shou."
+  },
   "Review installed Formula and Cask packages, compare versions, then choose what to upgrade.": {
     "format": "Review installed Formula and Cask packages, compare versions, then choose what to upgrade.",
     "resource_id": "sd4377e73b83e04bb27771e0a",
@@ -9063,6 +9248,11 @@
     "format": "Review large files and old scan indexes, then rescan after freeing space.",
     "resource_id": "s66b31cd3b09a2a4846c9890d",
     "text": "Review large files and old scan indexes, then rescan after freeing space."
+  },
+  "Review largest items": {
+    "format": "Review largest items",
+    "resource_id": "sb9ae791f175834411c0d7ea3",
+    "text": "Review largest items"
   },
   "Review leftovers again before cleaning.": {
     "format": "Review leftovers again before cleaning.",
@@ -9083,6 +9273,11 @@
     "format": "Review required agreements in the official package manager before updating here.",
     "resource_id": "s8b14074fe369c19d991cae1f",
     "text": "Review required agreements in the official package manager before updating here."
+  },
+  "Review status": {
+    "format": "Review status",
+    "resource_id": "sa410d70156a3a04c15d019bc",
+    "text": "Review status"
   },
   "Review the categories below, or use the recommended selection.": {
     "format": "Review the categories below, or use the recommended selection.",
@@ -9159,6 +9354,11 @@
     "resource_id": "sa86d576b79142eba6ed88a41",
     "text": "Reviewable estimate"
   },
+  "Reviewable records": {
+    "format": "Reviewable records",
+    "resource_id": "sfb75c4ad8cfaebdefa293ab1",
+    "text": "Reviewable records"
+  },
   "Reviewing application components…": {
     "format": "Reviewing application components…",
     "resource_id": "s07c77fd91ee9c1726594e800",
@@ -9223,6 +9423,11 @@
     "format": "Rule Versions and Locations",
     "resource_id": "s337b14755089f01509c977ae",
     "text": "Rule Versions and Locations"
+  },
+  "Rule authoring": {
+    "format": "Rule authoring",
+    "resource_id": "sb2fa8cbefbdfa3c98731ce08",
+    "text": "Rule authoring"
   },
   "Rule changed; preview again before saving.": {
     "format": "Rule changed; preview again before saving.",
@@ -9323,6 +9528,11 @@
     "format": "Rust build outputs",
     "resource_id": "s12d7e9a9e539d765cc6e9369",
     "text": "Rust build outputs"
+  },
+  "Rust offline documentation": {
+    "format": "Rust offline documentation",
+    "resource_id": "sff8b86c4b4ef788cda2c40f7",
+    "text": "Rust offline documentation"
   },
   "SQL backups written. Restore has not been tested.": {
     "format": "SQL backups written. Restore has not been tested.",
@@ -9648,6 +9858,11 @@
     "format": "Scan first. Review before anything is removed.",
     "resource_id": "s4d20593fc457afab16516d9b",
     "text": "Scan first. Review before anything is removed."
+  },
+  "Scan indexes, plans and recovery dependencies are reviewed separately from your files.": {
+    "format": "Scan indexes, plans and recovery dependencies are reviewed separately from your files.",
+    "resource_id": "s5a8cbdf8b9ef63fead124033",
+    "text": "Scan indexes, plans and recovery dependencies are reviewed separately from your files."
   },
   "Scan is incomplete. Cleanup is unavailable; you can still explore measured space.": {
     "format": "Scan is incomplete. Cleanup is unavailable; you can still explore measured space.",
@@ -10099,6 +10314,11 @@
     "resource_id": "s57fd7a0cf33f2666eede69e4",
     "text": "Selected"
   },
+  "Selected (estimate)": {
+    "format": "Selected (estimate)",
+    "resource_id": "s234b13ace117589c04aa8fdd",
+    "text": "Selected (estimate)"
+  },
   "Selected File": {
     "format": "Selected File",
     "resource_id": "s5282570a8cecad0e2917de37",
@@ -10414,6 +10634,16 @@
     "resource_id": "s8d424305fa272908b4273bb9",
     "text": "Shou is installed in Applications. Updates keep the same location."
   },
+  "Shou storage": {
+    "format": "Shou storage",
+    "resource_id": "sf3da357bb85718b53a53fd71",
+    "text": "Shou storage"
+  },
+  "Shou storage…": {
+    "format": "Shou storage…",
+    "resource_id": "s6712e53de09b11231a69296a",
+    "text": "Shou storage…"
+  },
   "Show More": {
     "format": "Show More",
     "resource_id": "sba8a80fdd7376631dea931d6",
@@ -10549,15 +10779,35 @@
     "resource_id": "s803eb25e504527e960baab76",
     "text": "Sketch caches"
   },
+  "Skill": {
+    "format": "Skill",
+    "resource_id": "s6df1bb18a59ab97df82e307b",
+    "text": "Skill"
+  },
   "Skill ZIP exported. Upload it in WorkBuddy to finish installation.": {
     "format": "Skill ZIP exported. Upload it in WorkBuddy to finish installation.",
     "resource_id": "s1ab1512729abf8ed5f149e80",
     "text": "Skill ZIP exported. Upload it in WorkBuddy to finish installation."
   },
+  "Skill exported": {
+    "format": "Skill exported",
+    "resource_id": "sac3341a03b63a14b6b9178ac",
+    "text": "Skill exported"
+  },
   "Skill installation cannot write through symbolic links.": {
     "format": "Skill installation cannot write through symbolic links.",
     "resource_id": "se2b03281c992446aa4919f48",
     "text": "Skill installation cannot write through symbolic links."
+  },
+  "Skill installation failed. Existing files were preserved.": {
+    "format": "Skill installation failed. Existing files were preserved.",
+    "resource_id": "sc21cc3a5f83571479a7c58ea",
+    "text": "Skill installation failed. Existing files were preserved."
+  },
+  "Skill installed": {
+    "format": "Skill installed",
+    "resource_id": "s048f89247b20d3b195b099d0",
+    "text": "Skill installed"
   },
   "Skill installed. Open your agent to use it.": {
     "format": "Skill installed. Open your agent to use it.",
@@ -10868,6 +11118,21 @@
     "format": "Space by Directory",
     "resource_id": "s232b3656cd4a488fb5d3d98a",
     "text": "Space by Directory"
+  },
+  "Space cleanup plans": {
+    "format": "Space cleanup plans",
+    "resource_id": "s1b9922f7b5fa37b2cab0dc3b",
+    "text": "Space cleanup plans"
+  },
+  "Space indexes": {
+    "format": "Space indexes",
+    "resource_id": "sd41ba4ef48412e56fd2f255b",
+    "text": "Space indexes"
+  },
+  "Space scans": {
+    "format": "Space scans",
+    "resource_id": "s1d6da752d7a2ba83e1ed17af",
+    "text": "Space scans"
   },
   "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.": {
     "format": "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.",
@@ -12779,6 +13044,11 @@
     "resource_id": "s44945c30a645e0153c0f3c35",
     "text": "Top CPU processes"
   },
+  "Total": {
+    "format": "Total",
+    "resource_id": "sc9b3c38247f744e17dd26fda",
+    "text": "Total"
+  },
   "Total machine capacity": {
     "format": "Total machine capacity",
     "resource_id": "s5fe2d46b260a32e3a5ce50a4",
@@ -13354,6 +13624,11 @@
     "resource_id": "s1e46410c64bb72fa53e4e969",
     "text": "Vivaldi download caches"
   },
+  "Volume available change": {
+    "format": "Volume available change",
+    "resource_id": "sdc1149ce68b52079c30c9469",
+    "text": "Volume available change"
+  },
   "WPS Office caches": {
     "format": "WPS Office caches",
     "resource_id": "sf8a5c8d87f6ba89cef0a8993",
@@ -13444,6 +13719,11 @@
     "resource_id": "s4e17656a62b95a61b72e5d25",
     "text": "WhatsApp caches"
   },
+  "Why records are kept": {
+    "format": "Why records are kept",
+    "resource_id": "s9a1c3323856fb71a58c59d48",
+    "text": "Why records are kept"
+  },
   "WinGet inventory could not be read.": {
     "format": "WinGet inventory could not be read.",
     "resource_id": "s4c9a003594d709067bf85f8a",
@@ -13483,6 +13763,11 @@
     "format": "Windows service control requires native acceptance. Current status is read-only.",
     "resource_id": "s0d10580b34985347fd4abd74",
     "text": "Windows service control requires native acceptance. Current status is read-only."
+  },
+  "Within retention policy": {
+    "format": "Within retention policy",
+    "resource_id": "s9468721eba7d5069898b9a3e",
+    "text": "Within retention policy"
   },
   "WorkBuddy caches": {
     "format": "WorkBuddy caches",

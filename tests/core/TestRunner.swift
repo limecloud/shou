@@ -127,8 +127,9 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes()
                 try await toolCleanupRejectsRemoteStaleAndUnknownOutcomes()
                 try await toolCleanupExpiresDuringOwnerPreview()
+                try await toolCleanupRemovesOnlySelectedRustDocumentation()
                 try nativeToolAdapterBoundsRealFixtureProcesses()
-                print("4/4 tool cleanup, executable binding, expiry and native bounded-process checks passed; generated tools only.")
+                print("5/5 tool cleanup, Rust documentation, executable binding, expiry and native bounded-process checks passed; generated tools only.")
             } catch { print("FAIL tool cleanup: \(error)"); Foundation.exit(1) }
             return
         }
@@ -213,7 +214,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota()
                 try await recordRetentionPreservesDependenciesAndRejectsChangedRecords()
                 try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence()
-                print("3/3 derived-record retention, reference protection and history-summary checks passed.")
+                try await recordRetentionReviewIsExactAndVolumeChangesRemainSigned()
+                print("4/4 derived-record retention, exact review, signed volume changes and history-summary checks passed.")
             } catch { print("FAIL record retention: \(error)"); Foundation.exit(1) }
             return
         }
@@ -837,6 +839,8 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("System scan honors platform read capacity", { try await systemScanHonorsPlatformReadConcurrency() }),
             ("Native cleanup concurrency preserves generated filesystem evidence", { try await nativeCleanupConcurrencyPreservesRealFilesystemEvidence() }),
             ("Derived record retention preserves active plans and recovery", { try await recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() }),
+            ("Record review is exact and volume changes remain signed", { try await recordRetentionReviewIsExactAndVolumeChangesRemainSigned() }),
+            ("Rust docs cleanup preserves the compiler", { try await toolCleanupRemovesOnlySelectedRustDocumentation() }),
             ("Orphan cleanup verifies absence, consent and shared recovery", { try await applicationOrphansRequireAbsenceConsentAndReuseDeletionJournals() }),
             ("Orphan cleanup retains unknown owners and changed or excluded targets", { try await applicationOrphansRespectUnknownOwnersExclusionsAndChangedContents() }),
             ("Agent rules measure new coverage and persist opt-in reuse", { try await agentRuleLoopMeasuresAdditionalCoverageAndPersistsReuse() }),

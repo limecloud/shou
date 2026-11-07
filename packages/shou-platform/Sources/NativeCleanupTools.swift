@@ -7,6 +7,7 @@ import Darwin
 public struct NativeCleanupTools: CleanupToolRunning {
     private let homeDirectory: URL
     public init(homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) { self.homeDirectory=homeDirectory }
+    public func availableBytes() -> Int64? { NativeFileSystem().availableBytes(homeDirectory.path) }
     public var platform: CleanupToolPlatform {
         #if os(macOS)
         .macOS
@@ -18,8 +19,10 @@ public struct NativeCleanupTools: CleanupToolRunning {
         #if os(macOS)
         guard timeoutSeconds.isFinite, (1...300).contains(timeoutSeconds),
               command.arguments.allSatisfy({ !$0.contains("\0") }) else { throw ShouError("invalid_argument", "Invalid tool operation budget.") }
-        if case .rustRemove(let name)=command {
+        switch command {
+        case .rustRemove(let name), .rustComponents(let name), .rustRemoveDocs(let name):
             guard name.range(of: "^[A-Za-z0-9][A-Za-z0-9_.+-]{1,160}$", options: .regularExpression) != nil else { throw ShouError("invalid_argument", "Invalid toolchain name.") }
+        default: break
         }
         let executable=try locate(command.tool)
         let before=try identity(executable)

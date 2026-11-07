@@ -38,11 +38,11 @@ public enum AgentSkillInstallation {
     }
     private static let manifestName = ".shou-skill-manifest.json"
 
-    public static func preview(client: Client, skillsDirectory: URL? = nil) throws -> Preview {
+    public static func preview(client: Client, skillsDirectory: URL? = nil, skill: String = ShouAgentSkill.name) throws -> Preview {
         let parent=skillsDirectory ?? client.skillsDirectory()
-        let destination=parent.appendingPathComponent(ShouAgentSkill.name)
+        let destination=parent.appendingPathComponent(skill)
         try rejectLinks(destination)
-        let contents=try bundledContents()
+        let contents=try bundledContents(skill: skill)
         var state="installed", existing: [String: String]=[:], manifest=""
         if FileManager.default.fileExists(atPath: destination.path) {
             existing=try inventory(destination)
@@ -50,7 +50,7 @@ public enum AgentSkillInstallation {
             if existing == desired { state="already_current" }
             else {
                 guard let data=try? fileData(destination.appendingPathComponent(manifestName), limit: 32_768),
-                      let saved=try? JSONDecoder().decode(Manifest.self, from: data), saved.skill == ShouAgentSkill.name, saved.files == existing else {
+                      let saved=try? JSONDecoder().decode(Manifest.self, from: data), saved.skill == skill, saved.files == existing else {
                     throw ShouError("version_conflict", "The installed Skill has local changes or is not managed by Shou. Existing files were preserved.", details: ["path": destination.path])
                 }
                 manifest=Digest.sha256(data); state="updated"
@@ -61,23 +61,23 @@ public enum AgentSkillInstallation {
         return Preview(agent: client.rawValue, directory: destination.path, state: state, digest: digest)
     }
 
-    public static func install(client: Client, skillsDirectory: URL? = nil, reviewedDigest: String? = nil) throws -> Result {
-        let review=try preview(client: client, skillsDirectory: skillsDirectory)
+    public static func install(client: Client, skillsDirectory: URL? = nil, reviewedDigest: String? = nil, skill: String = ShouAgentSkill.name) throws -> Result {
+        let review=try preview(client: client, skillsDirectory: skillsDirectory, skill: skill)
         if let reviewedDigest, reviewedDigest != review.digest { throw ShouError("plan_stale", "The Skill or destination changed. Review the installation again.") }
         try Task.checkCancellation()
         if review.state == "already_current" { return Result(agent: client.rawValue, directory: review.directory, state: review.state, backupDirectory: nil) }
         let fm = FileManager.default
         let parent = skillsDirectory ?? client.skillsDirectory()
-        let destination = parent.appendingPathComponent(ShouAgentSkill.name)
-        let contents = try bundledContents()
-        let manifest = Manifest(skill: ShouAgentSkill.name, files: contents.mapValues(Digest.sha256))
+        let destination = parent.appendingPathComponent(skill)
+        let contents = try bundledContents(skill: skill)
+        let manifest = Manifest(skill: skill, files: contents.mapValues(Digest.sha256))
         // Do not write through linked client directories or replace an existing link.
         try rejectLinks(parent)
         try fm.createDirectory(at: parent, withIntermediateDirectories: true)
         try rejectLinks(destination)
-        let backup=review.state == "updated" ? parent.appendingPathComponent(".shou-rule-authoring-backup-" + UUID().uuidString.lowercased()) : nil
+        let backup=review.state == "updated" ? parent.appendingPathComponent("." + skill + "-backup-" + UUID().uuidString.lowercased()) : nil
 
-        let staged = parent.appendingPathComponent(".shou-rule-authoring-install-" + UUID().uuidString.lowercased())
+        let staged = parent.appendingPathComponent("." + skill + "-install-" + UUID().uuidString.lowercased())
         try fm.createDirectory(at: staged, withIntermediateDirectories: false)
         defer { try? fm.removeItem(at: staged) }
         for (path, data) in contents {
@@ -88,8 +88,8 @@ public enum AgentSkillInstallation {
         }
         try JSONEncoder().encode(manifest).write(to: staged.appendingPathComponent(manifestName), options: .withoutOverwriting)
         // Recheck the reviewed files before publishing, including changes during staging.
-        guard try preview(client: client, skillsDirectory: skillsDirectory).digest == review.digest,
-              contents.mapValues(Digest.sha256) == (try bundledContents()).mapValues(Digest.sha256) else {
+        guard try preview(client: client, skillsDirectory: skillsDirectory, skill: skill).digest == review.digest,
+              contents.mapValues(Digest.sha256) == (try bundledContents(skill: skill)).mapValues(Digest.sha256) else {
             throw ShouError("plan_stale", "The Skill or destination changed. Review the installation again.")
         }
         try Task.checkCancellation()
@@ -103,18 +103,18 @@ public enum AgentSkillInstallation {
     }
 
     /// A ZIP with one top-level skill directory, suitable for WorkBuddy's upload UI.
-    public static func previewExport(to output: URL) throws -> ExportPreview {
+    public static func previewExport(to output: URL, skill: String = ShouAgentSkill.name) throws -> ExportPreview {
         guard output.pathExtension.lowercased() == "zip" else { throw ShouError("invalid_argument", "Choose a .zip file for the Skill package.") }
         try rejectLinks(output.deletingLastPathComponent())
         try rejectLinks(output)
         guard !FileManager.default.fileExists(atPath: output.path) else {
             throw ShouError("version_conflict", "The output file already exists. Choose another filename; existing files were preserved.")
         }
-        return try ExportPreview(path: output.path, digest: Digest.of(["path": output.path, "archive": Digest.sha256(archiveData())]))
+        return try ExportPreview(path: output.path, digest: Digest.of(["path": output.path, "archive": Digest.sha256(archiveData(skill: skill))]))
     }
 
-    public static func exportArchive(to output: URL, reviewedDigest: String? = nil) throws {
-        let review=try previewExport(to: output), archive=try archiveData()
+    public static func exportArchive(to output: URL, reviewedDigest: String? = nil, skill: String = ShouAgentSkill.name) throws {
+        let review=try previewExport(to: output, skill: skill), archive=try archiveData(skill: skill)
         guard (reviewedDigest == nil || reviewedDigest == review.digest),
               review.digest == (try Digest.of(["path": output.path, "archive": Digest.sha256(archive)])) else {
             throw ShouError("plan_stale", "The Skill or destination changed. Review the export again.")
@@ -123,13 +123,13 @@ public enum AgentSkillInstallation {
         try archive.write(to: output, options: .withoutOverwriting)
     }
 
-    private static func bundledContents() throws -> [String: Data] {
-        let source=try ShouAgentSkill.directory()
-        return try Dictionary(uniqueKeysWithValues: ShouAgentSkill.files.map { ($0, try fileData(source.appendingPathComponent($0), limit: 262_144)) })
+    private static func bundledContents(skill: String) throws -> [String: Data] {
+        let source=try ShouAgentSkill.directory(name: skill)
+        return try Dictionary(uniqueKeysWithValues: ShouAgentSkill.files(for: skill).map { ($0, try fileData(source.appendingPathComponent($0), limit: 262_144)) })
     }
 
-    private static func archiveData() throws -> Data {
-        try SkillArchive.encode(Dictionary(uniqueKeysWithValues: bundledContents().map { (ShouAgentSkill.name + "/" + $0.key, $0.value) }))
+    private static func archiveData(skill: String) throws -> Data {
+        try SkillArchive.encode(Dictionary(uniqueKeysWithValues: bundledContents(skill: skill).map { (skill + "/" + $0.key, $0.value) }))
     }
 
     private static func fileData(_ path: URL, limit: Int) throws -> Data {

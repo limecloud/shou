@@ -45335,6 +45335,918 @@
           }
         }
       }
+    },
+    "Active plan dependency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active plan dependency"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动计划依赖"
+          }
+        }
+      }
+    },
+    "Agent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客户端"
+          }
+        }
+      }
+    },
+    "Available space changed during this operation. Other writes, APFS and virtual disks can affect it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available space changed during this operation. Other writes, APFS and virtual disks can affect it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此数值是操作期间的可用空间变化，其他写入、APFS 和虚拟磁盘均可能影响结果。"
+          }
+        }
+      }
+    },
+    "Choose an assistant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an assistant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择辅助技能"
+          }
+        }
+      }
+    },
+    "Cleanup assistant": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup assistant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理助手"
+          }
+        }
+      }
+    },
+    "Cleanup plans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup plans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理计划"
+          }
+        }
+      }
+    },
+    "Cleanup scans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup scans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理扫描"
+          }
+        }
+      }
+    },
+    "Delete reviewed records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete reviewed records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除已审阅记录"
+          }
+        }
+      }
+    },
+    "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。"
+          }
+        }
+      }
+    },
+    "Existing files with local changes are preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing files with local changes are preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有文件如有本地修改，将予以保留。"
+          }
+        }
+      }
+    },
+    "Export Skill…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export Skill…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导出技能…"
+          }
+        }
+      }
+    },
+    "Find more large items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find more large items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查找更多大项"
+          }
+        }
+      }
+    },
+    "History dependency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History dependency"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史依赖"
+          }
+        }
+      }
+    },
+    "History summaries": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History summaries"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "历史摘要"
+          }
+        }
+      }
+    },
+    "Install Directory": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install Directory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装目录"
+          }
+        }
+      }
+    },
+    "Install an assistant for investigating disk usage or authoring reusable cleanup rules.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install an assistant for investigating disk usage or authoring reusable cleanup rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装用于分析磁盘占用或编写可复用清理规则的辅助技能。"
+          }
+        }
+      }
+    },
+    "Keep the latest scan for later inspection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the latest scan for later inspection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留最新扫描供后续查看"
+          }
+        }
+      }
+    },
+    "Keep this time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次保留"
+          }
+        }
+      }
+    },
+    "Kept this time": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kept this time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次保留"
+          }
+        }
+      }
+    },
+    "Latest scan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latest scan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新扫描"
+          }
+        }
+      }
+    },
+    "Needs a decision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs a decision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要判断"
+          }
+        }
+      }
+    },
+    "Plan file lists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan file lists"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计划文件清单"
+          }
+        }
+      }
+    },
+    "Processed (estimate)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Processed (estimate)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已处理（估算）"
+          }
+        }
+      }
+    },
+    "Protected records exceed the cleanup quota.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected records exceed the cleanup quota."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护记录已超过清理配额。"
+          }
+        }
+      }
+    },
+    "Recently created": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recently created"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近期创建"
+          }
+        }
+      }
+    },
+    "Records removed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records removed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已删除记录"
+          }
+        }
+      }
+    },
+    "Recovery dependency": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery dependency"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复依赖"
+          }
+        }
+      }
+    },
+    "Recovery file lists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery file lists"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复文件清单"
+          }
+        }
+      }
+    },
+    "Retention reasons can overlap. Recovery and active plans remain protected.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retention reasons can overlap. Recovery and active plans remain protected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留原因可能重叠，恢复依赖和活动计划始终受保护。"
+          }
+        }
+      }
+    },
+    "Review again": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新审阅"
+          }
+        }
+      }
+    },
+    "Review independent cleanup batches in Shou.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review independent cleanup batches in Shou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Shou 中分别审阅各批次清理。"
+          }
+        }
+      }
+    },
+    "Review largest items": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review largest items"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅最大占用"
+          }
+        }
+      }
+    },
+    "Review status": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审阅状态"
+          }
+        }
+      }
+    },
+    "Reviewable records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewable records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可清理记录"
+          }
+        }
+      }
+    },
+    "Rule authoring": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rule authoring"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规则编写"
+          }
+        }
+      }
+    },
+    "Rust offline documentation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rust offline documentation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rust 离线文档"
+          }
+        }
+      }
+    },
+    "Scan indexes, plans and recovery dependencies are reviewed separately from your files.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan indexes, plans and recovery dependencies are reviewed separately from your files."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描索引、计划和恢复依赖单独审阅，不涉及您的原始文件。"
+          }
+        }
+      }
+    },
+    "Selected (estimate)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected (estimate)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选（估算）"
+          }
+        }
+      }
+    },
+    "Shou storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou 存储"
+          }
+        }
+      }
+    },
+    "Shou storage…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou storage…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shou 存储…"
+          }
+        }
+      }
+    },
+    "Skill": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技能"
+          }
+        }
+      }
+    },
+    "Skill exported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill exported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技能已导出"
+          }
+        }
+      }
+    },
+    "Skill installation failed. Existing files were preserved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill installation failed. Existing files were preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技能安装失败，已有文件已保留。"
+          }
+        }
+      }
+    },
+    "Skill installed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技能已安装"
+          }
+        }
+      }
+    },
+    "Space cleanup plans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space cleanup plans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间清理计划"
+          }
+        }
+      }
+    },
+    "Space indexes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space indexes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间索引"
+          }
+        }
+      }
+    },
+    "Space scans": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Space scans"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空间扫描"
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总计"
+          }
+        }
+      }
+    },
+    "Volume available change": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volume available change"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卷可用空间变化"
+          }
+        }
+      }
+    },
+    "Why records are kept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why records are kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录保留原因"
+          }
+        }
+      }
+    },
+    "Within retention policy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Within retention policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留期限内"
+          }
+        }
+      }
+    },
+    "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。"
+          }
+        }
+      }
+    },
+    "Make the Shou CLI available as shou, or use its full path in the request.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make the Shou CLI available as shou, or use its full path in the request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确保可通过 shou 调用 Shou CLI，或在请求中使用它的完整路径。"
+          }
+        }
+      }
+    },
+    "Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调查可重建产物与保留条件，复用现有规则或预览禁用草稿。只追问无法确定的用途，不启用规则或执行清理。"
+          }
+        }
+      }
+    },
+    "Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "调查磁盘占用，说明用途、活跃情况、重建代价和保留条件，询问无法确定的项目。通过 Shou 计划与当前确认逐批审阅，不绕过不可用操作，核对回执与卷可用空间变化。"
+          }
+        }
+      }
+    },
+    "3. Review independent cleanup batches in Shou.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. Review independent cleanup batches in Shou."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. 在 Shou 中逐批审阅具体清理范围。"
+          }
+        }
+      }
+    },
+    "4. Clean selected items, then verify the result and retained items.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. Clean selected items, then verify the result and retained items."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. 清理所选项目，核对结果与保留对象。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

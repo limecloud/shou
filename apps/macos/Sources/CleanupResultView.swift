@@ -57,9 +57,20 @@ struct CleanupResultView: View {
             }
 
             if !result.receipts.isEmpty {
+                Text(model.t("Processed (estimate)")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary).padding(.top, 22)
                 Text(model.bytes(totalBytes))
                     .font(.system(size: ShouDesign.completionFigureSize, weight: .semibold, design: .rounded))
-                    .monospacedDigit().padding(.top, 28)
+                    .monospacedDigit().padding(.top, 4)
+                ForEach(CleanupVolumeObservation.from(result.receipts)) { observation in
+                    HStack {
+                        Text(model.t("Volume available change"))
+                        Spacer()
+                        Text(observation.change.map { ($0 >= 0 ? "+" : "−") + model.bytes(abs($0)) } ?? model.t("Not measured"))
+                            .monospacedDigit()
+                    }.font(ShouType.body).help(observation.path).padding(.top, 8)
+                }
+                Text(model.t("Available space changed during this operation. Other writes, APFS and virtual disks can affect it."))
+                    .font(ShouType.caption).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center).padding(.top, 4)
             }
             Text(model.t(cancelled ? "Removal stopped. Items not moved are kept in their original locations." : complete ? (permanent ? "Permanently removed; this cannot be undone." : "Moved to Trash; this is not freed space.") : "Some items could not be removed. Review the result."))
                 .font(ShouType.body).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center)

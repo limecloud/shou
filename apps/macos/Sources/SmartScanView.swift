@@ -5,20 +5,12 @@ import AppKit
 struct SmartScanView: View {
     @Bindable var model: AppModel
     @State private var category="all"
+    @State private var reviewFilter="all"
+    @State private var visibleCount=100
     @State private var query=""
     @State private var showIssues=false
     @State private var scanLocations=false
     @State private var agentSetup=false
-
-    private var groups: [CleanupRuleGroup] {
-        model.commonReview.categories.filter { category == "all" || $0.id == category }.flatMap(\.groups).filter {
-            query.isEmpty || model.t($0.title).localizedStandardContains(query) || $0.sources.contains { $0.path.localizedStandardContains(query) }
-        }
-    }
-    private var allGroups: [CleanupRuleGroup] { model.commonReview.categories.flatMap(\.groups) }
-    private var selectedGroupCount: Int {
-        allGroups.filter { $0.sources.contains { $0.selectable && model.commonSelection.contains($0.id) } }.count
-    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,62 +39,82 @@ struct SmartScanView: View {
         .sheet(isPresented: $agentSetup, onDismiss: { Task { await model.refresh() } }) { AgentRuleSetupView(model: model) }
         .toolbar {
             ToolbarItemGroup {
-                if !model.scanning && model.systemResult != nil {
-                }
                 DiskCapacityView(model: model)
             }
         }
     }
 
+    private var reviewItems: [CleanupReviewItem] { model.commonReview.reviewItems }
+    private var visibleItems: [CleanupReviewItem] {
+        reviewItems.filter { item in
+            let kept=model.commonKept.contains(item.id)
+            let matches=reviewFilter == "all" || (reviewFilter == "kept" ? kept : !kept && item.disposition.rawValue == reviewFilter)
+            return matches && (category == "all" || item.category == category) &&
+                (query.isEmpty || model.t(item.title).localizedStandardContains(query) || item.source.path.localizedStandardContains(query))
+        }
+    }
     private var resultBrowser: some View {
         VStack(spacing: 0) {
             HStack {
                 TextField(model.t("Search rules or paths"), text: $query)
-                    .textFieldStyle(.roundedBorder).frame(maxWidth: 340)
-                    .accessibilityIdentifier("smart.search")
+                    .textFieldStyle(.roundedBorder).frame(maxWidth: 340).accessibilityIdentifier("smart.search")
                 Spacer()
                 Picker(model.t("Category"), selection: $category) {
                     Text(model.t("All Items")).tag("all")
                     ForEach(model.commonReview.categories) { Text(title($0.id)).tag($0.id) }
-                }.frame(maxWidth: 230)
+                }.frame(maxWidth: 200)
                 CleanupOptionsMenu(model: model, showLocations: { scanLocations=true }, showAgentSetup: { agentSetup=true })
-            }.padding(.horizontal, ShouDesign.workspaceInset).padding(.bottom, 18)
+            }.padding(.horizontal, ShouDesign.workspaceInset).padding(.bottom, 12)
+            HStack(spacing: 12) {
+                Picker(model.t("Review status"), selection: $reviewFilter) {
+                    Text(model.t("All Items")).tag("all")
+                    Text(model.t("Recommended")).tag("recommended")
+                    Text(model.t("Needs a decision")).tag("decision")
+                    Text(model.t("Protected")).tag("protected")
+                    Text(model.t("Kept this time")).tag("kept")
+                }.pickerStyle(.segmented).accessibilityIdentifier("smart.review-filter")
+                Button(model.t("Find more large items")) { model.section="storage" }
+                    .accessibilityIdentifier("smart.find-large")
+            }.padding(.horizontal, ShouDesign.workspaceInset).padding(.bottom, 12)
             ScrollView {
-                LazyVStack(spacing: 14) {
-                    ForEach(model.commonReview.categories.filter { category == "all" || $0.id == category }) { item in
-                        let visible=item.groups.filter { group in groups.contains { $0.id == group.id } }
-                        if !visible.isEmpty {
-                            CleanupCategorySection(model: model, category: item, groups: visible, title: title(item.id), symbol: symbol(item.id), searching: !query.isEmpty)
-                        }
+                LazyVStack(spacing: 0) {
+                    ForEach(visibleItems.prefix(visibleCount)) { item in
+                        CleanupDecisionRow(model: model, item: item)
+                        Divider()
                     }
-                    if query.isEmpty && (category == "all" || category == "developer") { ToolCleanupPanel(model: model) }
-                }.padding(.horizontal, ShouDesign.workspaceInset).padding(.bottom, 24)
-            }
-            .overlay {
-                if groups.isEmpty {
-                    ContentUnavailableView(model.t("No matching cleanup items"), systemImage: "magnifyingglass")
-                }
+                    if visibleItems.count > visibleCount {
+                        Button(model.t("Show More")) { visibleCount += 100 }.padding(12)
+                    }
+                    if visibleItems.isEmpty {
+                        Text(model.t("No matching cleanup items")).font(ShouType.body).foregroundStyle(ShouPalette.secondary).padding(24)
+                    }
+                    ToolCleanupPanel(model: model).padding(.vertical, 18)
+                    RecordMaintenanceButton(model: model).padding(.bottom, 18)
+                }.padding(.horizontal, ShouDesign.workspaceInset)
             }
         }
+        .onChange(of: reviewFilter) { _, _ in visibleCount=100 }
+        .onChange(of: query) { _, _ in visibleCount=100 }
+        .onChange(of: category) { _, _ in visibleCount=100 }
     }
 
     private var resultSummary: some View {
         HStack(alignment: .center, spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(model.t("Ready to clean")).font(.system(size: ShouDesign.workspaceTitleSize, weight: .medium))
+                Text(model.t("Review largest items")).font(ShouType.title.weight(.medium))
                 HStack(spacing: 10) {
-                    Text(String(format: model.t("%lld cleanup items found"), locale: model.language.locale, allGroups.count))
+                    Text(String(format: model.t("%lld locations"), locale: model.language.locale, reviewItems.count))
                     Text(model.t(model.systemResult?.status == "complete" ? "Scan Complete" : "Partial Scan"))
                     if let result=model.systemResult, !result.issues.isEmpty {
                         Button { showIssues.toggle() } label: { Image(systemName: "info.circle") }
                             .buttonStyle(.plain).accessibilityLabel(model.t("Some locations need attention"))
                             .popover(isPresented: $showIssues) { issues(result) }
                     }
-                }.font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+                }.font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 6) {
-                Text(model.bytes(model.commonReview.bytes)).font(.system(size: ShouDesign.workspaceTitleSize, weight: .medium)).monospacedDigit()
+                Text(model.bytes(model.commonReview.bytes)).font(ShouType.title).monospacedDigit()
                 Text(model.t("Found (estimate)")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             }
             CleanupScanButton(model: model, rescan: true)
@@ -114,17 +126,15 @@ struct SmartScanView: View {
             Divider()
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(String(format: model.t("%lld items selected"), locale: model.language.locale, selectedGroupCount))
+                    Text(String(format: model.t("%lld locations selected"), locale: model.language.locale, model.commonSelected.count))
                         .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
-                    Text(model.t("Estimated Space to Free") + " " + model.bytes(model.commonSelectedBytes)).font(.system(size: ShouDesign.summaryFigureSize, weight: .medium)).monospacedDigit()
-                        .contentTransition(.numericText(value: Double(model.commonSelectedBytes)))
+                    Text(model.t("Selected (estimate)") + " " + model.bytes(model.commonSelectedBytes)).font(ShouType.title).monospacedDigit()
                 }
                 Spacer()
                 Menu(model.t("Select Items")) {
-                    Button(model.t("Use Recommended Selection")) { model.commonSelection=Set(model.commonRecommended.map(\.id)) }
-                    Button(model.t("Select Reviewable Items")) { model.commonSelection=[]; model.selectCommon(allGroups.flatMap(\.sources).filter { !$0.requiresManualReview && $0.candidate.risk != "high" }, selected: true) }
-                    Button(model.t("Select All Eligible Items, Including High Risk")) { model.commonSelection=[]; model.selectCommon(allGroups.flatMap(\.sources).filter { !$0.requiresManualReview }, selected: true) }
-                    Divider()
+                    Button(model.t("Use Recommended Selection")) {
+                        model.commonSelection=[]; model.selectCommon(model.commonRecommended, selected: true)
+                    }
                     Button(model.t("Clear Selection")) { model.commonSelection=[] }
                 }.fixedSize().disabled(model.busy)
                 CleanupActionButton(model: model, enabled: !model.busy && !model.commonSelected.isEmpty,
@@ -154,9 +164,7 @@ struct SmartScanView: View {
     private func title(_ id: String) -> String {
         model.t(["all":"All Items", "userCache":"User Cache Files", "application":"Application Caches", "browser":"Browser Data", "developer":"Developer Tools", "build":"Project Build Outputs", "personal":"Personal Rules", "system":"System Caches"][id] ?? "Other")
     }
-    private func symbol(_ id: String) -> String {
-        ["all":"tray.full", "userCache":"internaldrive", "application":"square.grid.2x2", "browser":"globe", "developer":"terminal", "build":"hammer", "personal":"slider.horizontal.3", "system":"internaldrive"][id] ?? "archivebox"
-    }
+
 }
 
 private struct SoftwareIcon: View {

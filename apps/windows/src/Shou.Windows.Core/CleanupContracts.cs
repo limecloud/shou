@@ -25,7 +25,15 @@ public sealed record CleanupItemResult(string ItemId, CleanupItemState State, in
     WindowsPath? ResultPath = null, FileIdentity? ResultIdentity = null);
 
 public sealed record CleanupExecution(int Version, string Id, string PlanId, string PlanDigest, CleanupAction Action,
-    DateTimeOffset StartedAt, DateTimeOffset UpdatedAt, CleanupExecutionState State, ImmutableArray<CleanupItemResult> Items);
+    DateTimeOffset StartedAt, DateTimeOffset UpdatedAt, CleanupExecutionState State, ImmutableArray<CleanupItemResult> Items)
+{
+    public ImmutableArray<CleanupVolumeObservation> VolumeObservations { get; init; } = [];
+}
+
+public sealed record CleanupVolumeObservation(ulong Volume, string Path, long? AvailableBefore, long? AvailableAfter)
+{
+    public long? Change => AvailableBefore is >= 0 && AvailableAfter is >= 0 ? AvailableAfter-AvailableBefore : null;
+}
 
 public sealed record CleanupMutationResult(CleanupMutationOutcome Outcome, int RemovedEntries = 0, string? Reason = null,
     WindowsPath? ResultPath = null, FileIdentity? ResultIdentity = null);

@@ -8,6 +8,8 @@
 
 Windows `plan create` 保留单扫描的明确选择参数。保存的 `CleanupPlan` 使用版本 2：`sources` 数组分别绑定扫描 ID、工作区身份与规则，每项通过 `scan_id` 绑定来源。界面的跨位置选择由同一 Core 保存为一个计划，`plan show`、记录查询与受控执行读取同一摘要。CLI 不接受任意路径、批准字段或隐式跨来源候选；详见[多位置审阅合同](../product/unified-cleanup.md#windows-扫描与审阅)。
 
+macOS 和 Windows 的 `skills list/read/install/export` 均接受 `--skill shou-cleanup-assistant|shou-rule-authoring`（list 不需要选择），默认规则编写；文件读取限于所选技能清单。`records preview/collect --keep-latest true|false` 展示并维护 Shou 派生记录，锁内重新核对当前清单。Windows collect 要求终端输入 `CLEAR RECORDS`，仅回收扫描与空间分析分页，保留全部计划、执行／恢复、配置及被引用的扫描；普通文件清理门禁保持关闭。
+
 ## 1. 两个一等入口
 
 Windows `startup list` 是不依赖清理存储的只读查询，覆盖固定 Run／RunOnce、启动文件夹和本机可见的开机／登录计划任务及当前用户包清单启动声明来源。支持来源／搜索筛选及偏移分页，返回明确的来源覆盖和未知启用／活动状态，不返回参数，也不授予启动项控制。`capabilities` 提供 `startup_control_available=false` 与实际预算；来源参数、解析及范围外项目由 [Windows 启动项合同](../product/startup-items.md#windows-启动项合同)统一维护，下文 macOS 的 `startup control` 合同不代表 Windows 已支持控制。

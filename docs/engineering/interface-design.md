@@ -4,6 +4,9 @@ English | [简体中文](../zh-CN/engineering/interface-design.md)
 
 This is Shou's current interface source of truth. The workspace design introduced on 2026-10-25 replaces the sidebar and compact-type baseline. Historical screenshots and parity records do not constrain this redesign. Product, safety and platform contracts retain their own authority.
 
+
+Smart Cleanup uses a largest-first exact-location list rather than nested category/rule disclosures. Category, search and All/Recommended/Needs a decision/Protected/Kept this time filters preserve selections elsewhere; recommendations never reselect kept rows. Scans initially select nothing. Purpose, path, blocking and rebuild evidence stay beside each item; the footer totals all selections. Completion separates processed estimates from per-volume available-space changes, retaining negative values and missing observations. Cleanup Options and Settings expose Shou record review. Skill setup offers Cleanup assistant and Rule authoring.
+
 ## Direction
 
 Build an open, legible workspace that users can inspect. Adapt the hierarchy, full-width lists, inline details and stable action areas shown in the reference demonstration, using Shou's own cool neutral surfaces and teal accent. Retain Shou branding and native behavior; do not copy logos, planetary artwork or individual screens pixel for pixel. See the [video review](workspace-design-review.md) for evidence.

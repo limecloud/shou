@@ -148,6 +148,11 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
         var now = clock.GetUtcNow();
         var execution = new CleanupExecution(1, CleanupRecordCodec.ExecutionId(plan.Id), plan.Id, plan.Digest, plan.Action, now, now,
             CleanupExecutionState.Executing, plan.Items.Select(item => new CleanupItemResult(item.Id, CleanupItemState.Pending)).ToImmutableArray());
+        var volumes=ImmutableArray.CreateBuilder<CleanupVolumeObservation>();
+        foreach (var source in plan.Sources.DistinctBy(source => source.Workspace.Identity.VolumeSerialNumber))
+            volumes.Add(new(source.Workspace.Identity.VolumeSerialNumber, source.Workspace.Path.Value,
+                await ObserveAvailableAsync(source.Workspace.Path), null));
+        execution=execution with { VolumeObservations=volumes.ToImmutable() };
         await SaveExecutionAsync(lease, execution, plan);
         var totalEntries = plan.Items.Sum(item => item.Manifest.Length);
         var completedEntries = 0;
@@ -197,11 +202,11 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
             try
             {
                 var removedBefore = completedEntries;
-                var observed = await mutation.ApplyAsync(source.Workspace, item, plan.Action,
+                var mutationObservation = await mutation.ApplyAsync(source.Workspace, item, plan.Action,
                     new InlineProgress<CleanupMutationProgress>(value => Report(progress, new(value.Phase, item.Id, value.Path, index, plan.Items.Length,
                         removedBefore + value.RemovedEntries, totalEntries))),
                     plan.Action == CleanupAction.Permanent ? cancellationToken : CancellationToken.None);
-                result = MutationResult(item, plan.Action, observed);
+                result = MutationResult(item, plan.Action, mutationObservation);
             }
             catch (Exception error) when (error is not OutOfMemoryException)
             {
@@ -227,8 +232,18 @@ public sealed partial class CleanupService(IRecordStore store, RuleSchemaValidat
             execution.Items.All(item => item.State is CleanupItemState.Purged or CleanupItemState.Trashed) ? CleanupExecutionState.Completed :
             execution.Items.Any(item => item.State == CleanupItemState.Cancelled) && !execution.Items.Any(item => item.State == CleanupItemState.Failed) ? CleanupExecutionState.Cancelled : CleanupExecutionState.Partial;
         execution = execution with { State = state, UpdatedAt = Updated(execution) };
+        var observed=ImmutableArray.CreateBuilder<CleanupVolumeObservation>();
+        foreach (var volume in execution.VolumeObservations)
+            observed.Add(volume with { AvailableAfter=await ObserveAvailableAsync(WindowsPath.Parse(volume.Path)) });
+        execution=execution with { VolumeObservations=observed.ToImmutable() };
         await SaveExecutionAsync(lease, execution, plan);
         return execution;
+    }
+
+    private async Task<long?> ObserveAvailableAsync(WindowsPath path)
+    {
+        try { return storageFiles is null ? null : await storageFiles.AvailableBytesAsync(path, CancellationToken.None); }
+        catch (Exception error) when (error is ShouException or IOException or UnauthorizedAccessException) { return null; }
     }
 
     private async Task<(ScanSnapshot Scan, RuleClassification Classification, FileTreeIndex Index)> ObserveAsync(Configuration configuration, Workspace workspace,

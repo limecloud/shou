@@ -9,6 +9,10 @@ internal sealed class MemoryRecordStore : IRecordStore, IRecordTransaction
     public bool Busy { get; set; }
     public Func<string, byte[], bool>? FailPublication { get; set; }
     public int Writes { get; private set; }
+    public DateTimeOffset ModifiedAt { get; set; } = DateTimeOffset.UnixEpoch;
+    internal StoredAppRecord Stamp(string key) => new(key, new(WindowsPath.Parse("C:/ShouRecords/" + key + ".json"),
+        new(1, Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Records[key]))[..32], "S-1-5-21-1000"),
+        EntryKind.File, Records[key].Length, Records[key].Length, ModifiedAt, ModifiedAt));
     private bool leased;
 
     public async Task<IRecordReadLease?> AcquireReadLeaseAsync(CancellationToken cancellationToken) =>
@@ -55,6 +59,17 @@ internal sealed class MemoryRecordStore : IRecordStore, IRecordTransaction
     private sealed class Lease(MemoryRecordStore store) : IRecordLease
     {
         private bool disposed;
+        public Task<StoredAppRecord[]> InspectRecordsAsync(CancellationToken token)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this); token.ThrowIfCancellationRequested();
+            return Task.FromResult(store.Records.Keys.Order(StringComparer.Ordinal).Select(store.Stamp).ToArray());
+        }
+        public Task RemoveDerivedRecordAsync(StoredAppRecord record, CancellationToken token)
+        {
+            ObjectDisposedException.ThrowIf(disposed, this); token.ThrowIfCancellationRequested();
+            if (!RecordRetentionService.IsDerivedKey(record.Key) || store.Stamp(record.Key) != record) throw new ShouException("plan_stale", "Changed fixture record.");
+            store.Records.Remove(record.Key); return Task.CompletedTask;
+        }
         public Task<string[]> ListKeysAsync(string prefix, int maximumDirectoryEntries, CancellationToken cancellationToken)
         {
             ObjectDisposedException.ThrowIf(disposed, this);

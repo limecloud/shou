@@ -9,6 +9,15 @@ namespace Shou.Windows.Platform;
 
 public sealed class WindowsFileSystem : IWindowsFileSystem, IProvisionedScanAccess
 {
+    public ValueTask<long?> AvailableBytesAsync(WindowsPath path, CancellationToken cancellationToken) =>
+        NativeOperationScheduler.RunAsync<long?>(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var pinned=PinPath(path);
+            var before=ReadEntry(path,pinned.Final);
+            if (!NativeMethods.GetDiskFreeSpace(Extended(path),out var available,out _,out _) || available > long.MaxValue) return null;
+            return ReadEntry(path,pinned.Final).Identity == before.Identity ? (long)available : null;
+        },cancellationToken);
     public async ValueTask VerifyReadOnlyRootAsync(FileEntry root, WindowsPath anchor, string ownerSid, CancellationToken cancellationToken)
     {
         if (WindowsSystemAuthorization.Shared.IsAuthorized)

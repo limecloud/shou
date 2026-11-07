@@ -6,19 +6,32 @@ Reviewed: 2026-10-20. Local installation, bundled reads and ZIP export are imple
 
 Earlier macOS validation: 137 core tests, 114 real CLI contract checks, four terminal-confirmation checks, and isolated native cleanup/restoration/permanent-removal checks passed. Installation tests cover repeated installs, managed-update backups, preservation of local changes, invalid files, links and ZIP contents without writing real client directories. Computer Use verified the installed Chinese handoff, Codex/Claude Code guidance and Copy Request; a separate-data application copy verified WorkBuddy export through the native save panel and the English Rules page. The exported ZIP matched all three source files. Later UI observation returned timeout/no-window errors, so a complete English handoff and a new return-to-Chinese pass are not counted. No external client was configured or launched for acceptance.
 
+### Cleanup assistant
+
+The assistant reuses Shou scans and receipts, investigating purpose, activity, rebuild cost and retention in largest-first batches. It separates recommendations, unresolved decisions, protected and kept objects. Retention preferences can persist; one deletion approval never covers newly discovered targets. Database, container and virtual-disk work uses actual supported owner operations; unsupported or gated actions return to the owning tool without Shell bypass.
+
+```sh
+shou skills list --json
+shou skills read --skill shou-cleanup-assistant --json
+shou skills install --skill shou-cleanup-assistant --agent codex --json
+shou skills export --skill shou-cleanup-assistant --output "$HOME/Downloads/shou-cleanup-assistant.zip" --json
+```
+
+Windows uses the same options with actual absolute Windows paths. Installing a Skill neither performs cleanup nor grants future deletion authority.
+
 ## What Lark CLI does
 
 The official [Lark CLI guide](https://github.com/larksuite/cli/blob/main/README.zh.md) offers `npx @larksuite/cli@latest install`. Its [installation wizard](https://github.com/larksuite/cli/blob/main/scripts/install-wizard.js) installs the CLI and delegates Skill installation to `npx skills add <repository> -y -g`. Source installations document `npx skills add larksuite/cli -y -g`.
 
 Its [skills commands](https://github.com/larksuite/cli/blob/main/cmd/skill/skill.go) also expose `skills list` and `skills read <name> [relative-file]`. Instructions and references are embedded at build time, so an agent can read the copy matching that CLI version without locating a source checkout. Reading skills does not require business authentication.
 
-Shou adopts these distribution and discovery ideas with its own Swift implementation. One standard Skill is sufficient for the current rule-authoring task. The native installer copies bundled files without requiring Node.js, an account or a network request. Shou has no dependency on Lark CLI or the Skills CLI.
+Shou implements the same distribution contract in Swift and C#, shipping `shou-cleanup-assistant` for disk investigation and `shou-rule-authoring` for reusable rules. The native installer copies bundled files without requiring Node.js, an account or a network request. Shou has no dependency on Lark CLI or the Skills CLI.
 
 ## Install the bundled Skill
 
-Open **Rules → Customize with AI**, select a client, then choose **Install Skill** or **Export Skill ZIP…**. Installation writes only the named Skill directory. It does not launch the client or edit its settings files. Copy the prepared request into the client to supply the exact CLI path and chosen workspace.
+On macOS, use Cleanup Options or **Rules → Customize with AI**. On Windows, use **External AI Tools** in Cleanup Options or Settings. Choose Cleanup assistant or Rule authoring and a client, then choose **Install Skill** or **Export Skill ZIP…**. Installation writes only the named Skill directory. It does not launch the client or edit its settings files. Copy the prepared request into the client to supply the exact CLI path and chosen workspace.
 
-The same operations are available in the app's independent CLI. Examples elsewhere use `shou` as shorthand; use this full path when it is not on `PATH`:
+The same operations are available in the macOS app's independent CLI. Examples elsewhere use `shou` as shorthand; use this full path when it is not on `PATH`:
 
 ```sh
 "/Applications/Shou.app/Contents/Helpers/shou" skills install --agent codex --json
@@ -26,11 +39,11 @@ The same operations are available in the app's independent CLI. Examples elsewhe
 "/Applications/Shou.app/Contents/Helpers/shou" skills export --output "$HOME/Downloads/shou-rule-authoring.zip" --json
 ```
 
-Windows Skill installation/export is planned with the .NET CLI and native confirmation; its filesystem and UI behavior requires Windows acceptance.
+Windows .NET CLI and WinUI Settings/Cleanup Options implement bundled reads, installation and ZIP export. The desktop and CLI are distributed separately: put the standalone CLI on `PATH` or replace `shou` in the copied request with its full path. Replace the example directory below with the CLI's actual extraction location. Portable tests do not establish Windows native UI acceptance. Both installers preserve local edits and back up managed updates.
 
 ```powershell
-& "C:/path/to/Shou/Engine/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
-& "C:/path/to/Shou/Engine/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
+& "C:/path/to/shou-cli/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
+& "C:/path/to/shou-cli/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
 ```
 
 
@@ -53,7 +66,7 @@ shou skills install --agent codex --directory "/path/to/project/.agents/skills" 
 shou skills install --agent claude-code --directory "/path/to/project/.claude/skills" --json
 ```
 
-The installer appends `shou-rule-authoring`; `--directory` is the parent folder, not the final Skill folder. It refuses symbolic links in the destination path or installed contents. If a client uses a linked skills directory, choose a real directory explicitly or manage the copy through the client's supported installer.
+`--skill shou-cleanup-assistant|shou-rule-authoring` selects the Skill, defaulting to rule authoring for existing callers. The installer appends the selected name; `--directory` is the parent folder, not the final Skill folder. It refuses symbolic links in the destination path or installed contents. If a client uses a linked skills directory, choose a real directory explicitly or manage the copy through the client's supported installer.
 
 ## Read without installation
 

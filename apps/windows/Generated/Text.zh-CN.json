@@ -264,10 +264,20 @@
     "resource_id": "s6a10aea1bf7d67b276230d2b",
     "text": "2. 回答项目用途、重建方式和保留项等必要问题。"
   },
+  "3. Review independent cleanup batches in Shou.": {
+    "format": "3. 在 Shou 中逐批审阅具体清理范围。",
+    "resource_id": "se1137e0ba9953ba73bac3c97",
+    "text": "3. 在 Shou 中逐批审阅具体清理范围。"
+  },
   "3. Review the draft in Shou, then enable it when ready.": {
     "format": "3. 确认并启用规则一次，后续清理自动包含。",
     "resource_id": "s528cd801fff6e0c11dc1eb1f",
     "text": "3. 确认并启用规则一次，后续清理自动包含。"
+  },
+  "4. Clean selected items, then verify the result and retained items.": {
+    "format": "4. 清理所选项目，核对结果与保留对象。",
+    "resource_id": "sd8204874cf3627603685cded",
+    "text": "4. 清理所选项目，核对结果与保留对象。"
   },
   "4. Clean selected rules, then verify the result and retained items.": {
     "format": "4. 清理所选规则，核验结果与保留项。",
@@ -564,6 +574,11 @@
     "resource_id": "s121ce69f9e760922afef8154",
     "text": "正在执行或恢复所需的记录已保留，请重新检查选择。"
   },
+  "Active plan dependency": {
+    "format": "活动计划依赖",
+    "resource_id": "s46672cfdf9730b50f9dc51ca",
+    "text": "活动计划依赖"
+  },
   "Activity checks cover the installation folder; execution is not available yet.": {
     "format": "活动检查覆盖安装目录；执行功能尚未开放。",
     "resource_id": "s4612f1ecbba820a048eb6a48",
@@ -718,6 +733,11 @@
     "format": "时间条件取整个目标内部的最新修改时间。1 MB 为 1,000,000 分配字节，容量仍为估计值。",
     "resource_id": "s54f77add30290abb5c38e66d",
     "text": "时间条件取整个目标内部的最新修改时间。1 MB 为 1,000,000 分配字节，容量仍为估计值。"
+  },
+  "Agent": {
+    "format": "客户端",
+    "resource_id": "s11b39c93777e8f1f3983bdba",
+    "text": "客户端"
   },
   "Alfred caches": {
     "format": "Alfred 缓存",
@@ -1408,6 +1428,11 @@
     "format": "卷可用容量",
     "resource_id": "s75bdd648e9bfc3cd7ca05d92",
     "text": "卷可用容量"
+  },
+  "Available space changed during this operation. Other writes, APFS and virtual disks can affect it.": {
+    "format": "此数值是操作期间的可用空间变化，其他写入、APFS 和虚拟磁盘均可能影响结果。",
+    "resource_id": "s17642ed85bed9b5e7e7cb704",
+    "text": "此数值是操作期间的可用空间变化，其他写入、APFS 和虚拟磁盘均可能影响结果。"
   },
   "Back": {
     "format": "上一步",
@@ -2259,6 +2284,11 @@
     "resource_id": "sd5003f2fe84a092d54996251",
     "text": "请选择适用的扫描位置"
   },
+  "Choose an assistant": {
+    "format": "选择辅助技能",
+    "resource_id": "s06d8b8863ec7eeeb469d09a8",
+    "text": "选择辅助技能"
+  },
   "Choose an earlier analysis": {
     "format": "选择较早的分析",
     "resource_id": "s9c74d90b741f6154fa6d1bb5",
@@ -2499,6 +2529,11 @@
     "resource_id": "s9a926490a8b16499b2dbd0dc",
     "text": "清理操作始终需要确认。移入废纸篓不会立即释放磁盘空间。"
   },
+  "Cleanup assistant": {
+    "format": "清理助手",
+    "resource_id": "s33e635fb287259111b9f161d",
+    "text": "清理助手"
+  },
   "Cleanup candidates": {
     "format": "清理候选项",
     "resource_id": "s5e4255195c55051996e0c797",
@@ -2544,6 +2579,11 @@
     "resource_id": "s2b7fb300b5457d95ebf3d6ca",
     "text": "清理已结束，部分项目需处理"
   },
+  "Cleanup plans": {
+    "format": "清理计划",
+    "resource_id": "s331e91c41de46c1f02841a14",
+    "text": "清理计划"
+  },
   "Cleanup preview failed.": {
     "format": "清理预览失败。",
     "resource_id": "s339d462a7fc512f86ce9aa06",
@@ -2563,6 +2603,11 @@
     "format": "此目录的清理安全检查结果已变化，请重新扫描后再清理。",
     "resource_id": "s765417e6e8df153b6bf84328",
     "text": "此目录的清理安全检查结果已变化，请重新扫描后再清理。"
+  },
+  "Cleanup scans": {
+    "format": "清理扫描",
+    "resource_id": "s5e0faca3fb4548d035c2354f",
+    "text": "清理扫描"
   },
   "Cleanup scans measure rule targets. Run space analysis to include other files.": {
     "format": "清理扫描仅统计规则匹配的目标。空间分析可查看其他文件。",
@@ -3454,6 +3499,11 @@
     "resource_id": "s963f33bca2cb22cee1cb54cf",
     "text": "永久删除…"
   },
+  "Delete reviewed records": {
+    "format": "删除已审阅记录",
+    "resource_id": "s1d0725f13210c10bffba0e77",
+    "text": "删除已审阅记录"
+  },
   "Delete these items permanently?": {
     "format": "永久删除这些项目？",
     "resource_id": "s749cc884bc6894e79bbb7167",
@@ -3799,6 +3849,11 @@
     "resource_id": "sc2c0a9ac8808051a78c10399",
     "text": "Docker 构建缓存"
   },
+  "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.": {
+    "format": "Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。",
+    "resource_id": "s4c7c545ac4b17927324b77cc",
+    "text": "Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。"
+  },
   "Documents": {
     "format": "文档",
     "resource_id": "sb4e929d8bcfe04189801a8ed",
@@ -4109,6 +4164,11 @@
     "resource_id": "sebce85fe2009745bf317f82c",
     "text": "已有安装"
   },
+  "Existing files with local changes are preserved.": {
+    "format": "已有文件如有本地修改，将予以保留。",
+    "resource_id": "safeda00b994d0c72e9ec3285",
+    "text": "已有文件如有本地修改，将予以保留。"
+  },
   "Expand startup details": {
     "format": "展开启动项详情",
     "resource_id": "s33f0babf357de687724cde15",
@@ -4158,6 +4218,11 @@
     "format": "导出 Skill 技能包…",
     "resource_id": "sfe5cdf67f12ba5778116cd95",
     "text": "导出 Skill 技能包…"
+  },
+  "Export Skill…": {
+    "format": "导出技能…",
+    "resource_id": "s73a0b08acc93855ad81c5595",
+    "text": "导出技能…"
   },
   "Exported": {
     "format": "已导出",
@@ -4303,6 +4368,11 @@
     "format": "查找大文件",
     "resource_id": "s8f259f51f6ded0a1f9521d9a",
     "text": "查找大文件"
+  },
+  "Find more large items": {
+    "format": "查找更多大项",
+    "resource_id": "sd89eb10c326127c3008f4a90",
+    "text": "查找更多大项"
   },
   "Find reviewable caches and build artifacts in known locations.": {
     "format": "扫描已知位置，查看可审阅的缓存与构建产物。",
@@ -4724,6 +4794,11 @@
     "resource_id": "s0e769600933790607b2a13b3",
     "text": "操作记录"
   },
+  "History dependency": {
+    "format": "历史依赖",
+    "resource_id": "s4b5040143ee8c7e1ea4bf76f",
+    "text": "历史依赖"
+  },
   "History is limited to readable recent analyses. Some records were skipped.": {
     "format": "历史范围仅限可读取的近期分析，部分记录已跳过。",
     "resource_id": "s42d9acaa0fb44d6f8db37ecd",
@@ -4733,6 +4808,11 @@
     "format": "历史核对只观察当前位置，不会改写操作结果或重试未完成的操作。",
     "resource_id": "s5bd5b53315dbc4791c599a18",
     "text": "历史核对只观察当前位置，不会改写操作结果或重试未完成的操作。"
+  },
+  "History summaries": {
+    "format": "历史摘要",
+    "resource_id": "s38065ca23d0ce9b6513d778f",
+    "text": "历史摘要"
   },
   "History verification cancelled.": {
     "format": "历史核验已取消。",
@@ -5024,6 +5104,11 @@
     "resource_id": "scc5098bde78248090a63dcd7",
     "text": "安装 CLI 命令"
   },
+  "Install Directory": {
+    "format": "安装目录",
+    "resource_id": "s057882f5489a63bd25bd1ccb",
+    "text": "安装目录"
+  },
   "Install Shou in Applications first.": {
     "format": "请先将 Shou 安装到应用程序。",
     "resource_id": "sd499e7c1555da21ca9525b5a",
@@ -5033,6 +5118,11 @@
     "format": "安装 Skill",
     "resource_id": "s952c695be80a28c4657e1759",
     "text": "安装 Skill"
+  },
+  "Install an assistant for investigating disk usage or authoring reusable cleanup rules.": {
+    "format": "安装用于分析磁盘占用或编写可复用清理规则的辅助技能。",
+    "resource_id": "sc445a126350a7e53112f71f0",
+    "text": "安装用于分析磁盘占用或编写可复用清理规则的辅助技能。"
   },
   "Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.": {
     "format": "安装 shou 命令，供终端、Codex、Claude Code 或 WorkBuddy 操作，无需接入模型。",
@@ -5274,6 +5364,16 @@
     "resource_id": "s861309065e9f4125bb214eb5",
     "text": "使用内置 AI 调查文件夹，或通过外部 AI 工具制定个人规则。"
   },
+  "Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes.": {
+    "format": "调查磁盘占用，说明用途、活跃情况、重建代价和保留条件，询问无法确定的项目。通过 Shou 计划与当前确认逐批审阅，不绕过不可用操作，核对回执与卷可用空间变化。",
+    "resource_id": "s9f12678daba0707ffd7731fc",
+    "text": "调查磁盘占用，说明用途、活跃情况、重建代价和保留条件，询问无法确定的项目。通过 Shou 计划与当前确认逐批审阅，不绕过不可用操作，核对回执与卷可用空间变化。"
+  },
+  "Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup.": {
+    "format": "调查可重建产物与保留条件，复用现有规则或预览禁用草稿。只追问无法确定的用途，不启用规则或执行清理。",
+    "resource_id": "s07334f61d293a1fc938b54c7",
+    "text": "调查可重建产物与保留条件，复用现有规则或预览禁用草稿。只追问无法确定的用途，不启用规则或执行清理。"
+  },
   "Investigate the entire saved scan, including its child folders. A broad overview may reach the per-investigation limit; you can then investigate individual folders.": {
     "format": "调查当前索引根及其子目录，不包含其他卷。概览可能达到单次调查上限，之后可选择具体子目录继续。",
     "resource_id": "s8f94e7100ca6baf56f62470a",
@@ -5454,15 +5554,30 @@
     "resource_id": "s2bdbcbcc49c79dbf7ab42ff1",
     "text": "留下喜欢的，整理多余的。"
   },
+  "Keep the latest scan for later inspection": {
+    "format": "保留最新扫描供后续查看",
+    "resource_id": "s9f984fdd92e4a65ddc89eb18",
+    "text": "保留最新扫描供后续查看"
+  },
   "Keep the original rule ID when editing a version.": {
     "format": "编辑版本时请保留原规则 ID。",
     "resource_id": "sc02438b6cd8f66744648f626",
     "text": "编辑版本时请保留原规则 ID。"
   },
+  "Keep this time": {
+    "format": "本次保留",
+    "resource_id": "s554eea4b4861c2f0698e5abb",
+    "text": "本次保留"
+  },
   "Keep your tools up to date.": {
     "format": "让常用工具保持更新。",
     "resource_id": "sf081c74414e0d26b62607fd1",
     "text": "让常用工具保持更新。"
+  },
+  "Kept this time": {
+    "format": "本次保留",
+    "resource_id": "s38ee7b9c303181f98a317b2c",
+    "text": "本次保留"
   },
   "Kind": {
     "format": "类型",
@@ -5578,6 +5693,11 @@
     "format": "最近七天",
     "resource_id": "s7a2c86a8bf2242ca5bb83fc0",
     "text": "最近七天"
+  },
+  "Latest scan": {
+    "format": "最新扫描",
+    "resource_id": "s05cd47a4063c97940c8b1840",
+    "text": "最新扫描"
   },
   "Latest version": {
     "format": "最新版本",
@@ -5863,6 +5983,11 @@
     "format": "大文件，一目了然。",
     "resource_id": "sf35caed894abb5a1dc266e47",
     "text": "大文件，一目了然。"
+  },
+  "Make the Shou CLI available as shou, or use its full path in the request.": {
+    "format": "请确保可通过 shou 调用 Shou CLI，或在请求中使用它的完整路径。",
+    "resource_id": "s20185fe9b0625573e94f2afa",
+    "text": "请确保可通过 shou 调用 Shou CLI，或在请求中使用它的完整路径。"
   },
   "Manage Databases": {
     "format": "管理数据库",
@@ -6338,6 +6463,11 @@
     "format": "需要核实",
     "resource_id": "s2721425dafa987c5bd10977a",
     "text": "需要核实"
+  },
+  "Needs a decision": {
+    "format": "需要判断",
+    "resource_id": "s11cbeb183b8b6bbfa5cd803a",
+    "text": "需要判断"
   },
   "Needs attention": {
     "format": "需要注意",
@@ -7109,6 +7239,11 @@
     "resource_id": "sb42004078e671d4b95a6afdd",
     "text": "仅匹配已明确列出的用户缓存目录。保留文稿、偏好设置和系统数据。"
   },
+  "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.": {
+    "format": "仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。",
+    "resource_id": "se8a7a315fc69830d66582fbe",
+    "text": "仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。"
+  },
   "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.": {
     "format": "仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。",
     "resource_id": "s2172af994fae9e627052f8bc",
@@ -7649,6 +7784,11 @@
     "resource_id": "se5da2242b6ee909040a9def5",
     "text": "清理计划已过期，或工作区、配置已变化，请重新预览。"
   },
+  "Plan file lists": {
+    "format": "计划文件清单",
+    "resource_id": "s189e0e33aeb45fdfc867af72",
+    "text": "计划文件清单"
+  },
   "Plan workspace does not match its registered binding.": {
     "format": "清理计划的工作区与登记信息不一致。",
     "resource_id": "s832887e6b90882f7e9667cb7",
@@ -7844,6 +7984,11 @@
     "resource_id": "s3a0f0e6222f0664a8aa520e9",
     "text": "进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。"
   },
+  "Processed (estimate)": {
+    "format": "已处理（估算）",
+    "resource_id": "sa4869b1147b809e3cd255eee",
+    "text": "已处理（估算）"
+  },
   "Processes": {
     "format": "进程",
     "resource_id": "s4a81a7ba5358c26f74fbeb64",
@@ -7953,6 +8098,11 @@
     "format": "磁盘访问受限，受保护位置可能无法纳入扫描。",
     "resource_id": "sc248e79a44b0d244044d91f9",
     "text": "磁盘访问受限，受保护位置可能无法纳入扫描。"
+  },
+  "Protected records exceed the cleanup quota.": {
+    "format": "受保护记录已超过清理配额。",
+    "resource_id": "s6ac05667ee21d3e0c8799703",
+    "text": "受保护记录已超过清理配额。"
   },
   "Provider Configuration": {
     "format": "服务商配置",
@@ -8409,6 +8559,11 @@
     "resource_id": "s92d0274f76c957c98a5d10b2",
     "text": "近期资源趋势"
   },
+  "Recently created": {
+    "format": "近期创建",
+    "resource_id": "s61df24ec987075ce3bad83a8",
+    "text": "近期创建"
+  },
   "Recommended": {
     "format": "推荐",
     "resource_id": "sd70604e8430461372849bbd1",
@@ -8468,6 +8623,21 @@
     "format": "已记录的结果",
     "resource_id": "s66a0dfe68bb01099a9c91698",
     "text": "已记录的结果"
+  },
+  "Records removed": {
+    "format": "已删除记录",
+    "resource_id": "s3eb24707ffe5d10f63f49f61",
+    "text": "已删除记录"
+  },
+  "Recovery dependency": {
+    "format": "恢复依赖",
+    "resource_id": "s91840ab086dae44046462516",
+    "text": "恢复依赖"
+  },
+  "Recovery file lists": {
+    "format": "恢复文件清单",
+    "resource_id": "s3f81a585071278e39b76b868",
+    "text": "恢复文件清单"
   },
   "Redis Insight caches": {
     "format": "Redis Insight 缓存",
@@ -8789,6 +8959,11 @@
     "resource_id": "s2a64df82cdaad5511bea0259",
     "text": "保留"
   },
+  "Retention reasons can overlap. Recovery and active plans remain protected.": {
+    "format": "保留原因可能重叠，恢复依赖和活动计划始终受保护。",
+    "resource_id": "s65b687bcd8c48676a0d36fad",
+    "text": "保留原因可能重叠，恢复依赖和活动计划始终受保护。"
+  },
   "Retry": {
     "format": "重试",
     "resource_id": "s942087cc2d41e01304b71955",
@@ -8974,6 +9149,11 @@
     "resource_id": "s77acdaf440bd046ee3c38be4",
     "text": "审阅更新后的配置"
   },
+  "Review again": {
+    "format": "重新审阅",
+    "resource_id": "sd4ea61c79c9b77d6815ffb18",
+    "text": "重新审阅"
+  },
   "Review an app and its associated files before moving them to Trash.": {
     "format": "查看应用及其关联文件，确认后移入废纸篓。",
     "resource_id": "sffd511a9b027311b25ae9536",
@@ -9054,6 +9234,11 @@
     "resource_id": "s04f40e339c574e7a617c50a3",
     "text": "检查全局配置的开发工具，保留各个项目的版本设置。"
   },
+  "Review independent cleanup batches in Shou.": {
+    "format": "在 Shou 中分别审阅各批次清理。",
+    "resource_id": "sdd3337c574051a86cadf6341",
+    "text": "在 Shou 中分别审阅各批次清理。"
+  },
   "Review installed Formula and Cask packages, compare versions, then choose what to upgrade.": {
     "format": "查看已安装的 Formula 与 Cask，对比版本后，选择需要升级的软件。",
     "resource_id": "sd4377e73b83e04bb27771e0a",
@@ -9063,6 +9248,11 @@
     "format": "请检查大文件和旧扫描索引，释放空间后重新扫描。",
     "resource_id": "s66b31cd3b09a2a4846c9890d",
     "text": "请检查大文件和旧扫描索引，释放空间后重新扫描。"
+  },
+  "Review largest items": {
+    "format": "审阅最大占用",
+    "resource_id": "sb9ae791f175834411c0d7ea3",
+    "text": "审阅最大占用"
   },
   "Review leftovers again before cleaning.": {
     "format": "清理前请重新检查应用残留。",
@@ -9083,6 +9273,11 @@
     "format": "请先在官方包管理器中审阅所需协议，再回到此处更新。",
     "resource_id": "s8b14074fe369c19d991cae1f",
     "text": "请先在官方包管理器中审阅所需协议，再回到此处更新。"
+  },
+  "Review status": {
+    "format": "审阅状态",
+    "resource_id": "sa410d70156a3a04c15d019bc",
+    "text": "审阅状态"
   },
   "Review the categories below, or use the recommended selection.": {
     "format": "按分类查看，或直接使用推荐选择。",
@@ -9159,6 +9354,11 @@
     "resource_id": "sa86d576b79142eba6ed88a41",
     "text": "可审阅容量估计"
   },
+  "Reviewable records": {
+    "format": "可清理记录",
+    "resource_id": "sfb75c4ad8cfaebdefa293ab1",
+    "text": "可清理记录"
+  },
   "Reviewing application components…": {
     "format": "正在审阅应用组件…",
     "resource_id": "s07c77fd91ee9c1726594e800",
@@ -9223,6 +9423,11 @@
     "format": "版本与位置",
     "resource_id": "s337b14755089f01509c977ae",
     "text": "版本与位置"
+  },
+  "Rule authoring": {
+    "format": "规则编写",
+    "resource_id": "sb2fa8cbefbdfa3c98731ce08",
+    "text": "规则编写"
   },
   "Rule changed; preview again before saving.": {
     "format": "规则已变化，请重新预览后再保存。",
@@ -9323,6 +9528,11 @@
     "format": "Rust 构建产物",
     "resource_id": "s12d7e9a9e539d765cc6e9369",
     "text": "Rust 构建产物"
+  },
+  "Rust offline documentation": {
+    "format": "Rust 离线文档",
+    "resource_id": "sff8b86c4b4ef788cda2c40f7",
+    "text": "Rust 离线文档"
   },
   "SQL backups written. Restore has not been tested.": {
     "format": "已写入 SQL 备份，尚未验证恢复。",
@@ -9648,6 +9858,11 @@
     "format": "先扫描，再由你确认清理范围。",
     "resource_id": "s4d20593fc457afab16516d9b",
     "text": "先扫描，再由你确认清理范围。"
+  },
+  "Scan indexes, plans and recovery dependencies are reviewed separately from your files.": {
+    "format": "扫描索引、计划和恢复依赖单独审阅，不涉及您的原始文件。",
+    "resource_id": "s5a8cbdf8b9ef63fead124033",
+    "text": "扫描索引、计划和恢复依赖单独审阅，不涉及您的原始文件。"
   },
   "Scan is incomplete. Cleanup is unavailable; you can still explore measured space.": {
     "format": "扫描未完成，清理暂不可用。仍可查看已测量的空间。",
@@ -10099,6 +10314,11 @@
     "resource_id": "s57fd7a0cf33f2666eede69e4",
     "text": "已选"
   },
+  "Selected (estimate)": {
+    "format": "已选（估算）",
+    "resource_id": "s234b13ace117589c04aa8fdd",
+    "text": "已选（估算）"
+  },
   "Selected File": {
     "format": "所选文件",
     "resource_id": "s5282570a8cecad0e2917de37",
@@ -10414,6 +10634,16 @@
     "resource_id": "s8d424305fa272908b4273bb9",
     "text": "Shou 已安装到应用程序，后续更新沿用此位置。"
   },
+  "Shou storage": {
+    "format": "Shou 存储",
+    "resource_id": "sf3da357bb85718b53a53fd71",
+    "text": "Shou 存储"
+  },
+  "Shou storage…": {
+    "format": "Shou 存储…",
+    "resource_id": "s6712e53de09b11231a69296a",
+    "text": "Shou 存储…"
+  },
   "Show More": {
     "format": "显示更多",
     "resource_id": "sba8a80fdd7376631dea931d6",
@@ -10549,15 +10779,35 @@
     "resource_id": "s803eb25e504527e960baab76",
     "text": "Sketch 缓存"
   },
+  "Skill": {
+    "format": "技能",
+    "resource_id": "s6df1bb18a59ab97df82e307b",
+    "text": "技能"
+  },
   "Skill ZIP exported. Upload it in WorkBuddy to finish installation.": {
     "format": "技能包已导出，请在 WorkBuddy 中上传以完成安装。",
     "resource_id": "s1ab1512729abf8ed5f149e80",
     "text": "技能包已导出，请在 WorkBuddy 中上传以完成安装。"
   },
+  "Skill exported": {
+    "format": "技能已导出",
+    "resource_id": "sac3341a03b63a14b6b9178ac",
+    "text": "技能已导出"
+  },
   "Skill installation cannot write through symbolic links.": {
     "format": "Skill 安装不能通过符号链接写入，请选择实际目录。",
     "resource_id": "se2b03281c992446aa4919f48",
     "text": "Skill 安装不能通过符号链接写入，请选择实际目录。"
+  },
+  "Skill installation failed. Existing files were preserved.": {
+    "format": "技能安装失败，已有文件已保留。",
+    "resource_id": "sc21cc3a5f83571479a7c58ea",
+    "text": "技能安装失败，已有文件已保留。"
+  },
+  "Skill installed": {
+    "format": "技能已安装",
+    "resource_id": "s048f89247b20d3b195b099d0",
+    "text": "技能已安装"
   },
   "Skill installed. Open your agent to use it.": {
     "format": "Skill 已安装，请在现有 Agent 中使用。",
@@ -10868,6 +11118,21 @@
     "format": "目录空间分布",
     "resource_id": "s232b3656cd4a488fb5d3d98a",
     "text": "目录空间分布"
+  },
+  "Space cleanup plans": {
+    "format": "空间清理计划",
+    "resource_id": "s1b9922f7b5fa37b2cab0dc3b",
+    "text": "空间清理计划"
+  },
+  "Space indexes": {
+    "format": "空间索引",
+    "resource_id": "sd41ba4ef48412e56fd2f255b",
+    "text": "空间索引"
+  },
+  "Space scans": {
+    "format": "空间扫描",
+    "resource_id": "s1d6da752d7a2ba83e1ed17af",
+    "text": "空间扫描"
   },
   "Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.": {
     "format": "占用空间并不代表可以删除。确认内容能够重新生成后，可为此目录添加规则。",
@@ -12779,6 +13044,11 @@
     "resource_id": "s44945c30a645e0153c0f3c35",
     "text": "CPU 占用最高的进程"
   },
+  "Total": {
+    "format": "总计",
+    "resource_id": "sc9b3c38247f744e17dd26fda",
+    "text": "总计"
+  },
   "Total machine capacity": {
     "format": "整机总容量",
     "resource_id": "s5fe2d46b260a32e3a5ce50a4",
@@ -13354,6 +13624,11 @@
     "resource_id": "s1e46410c64bb72fa53e4e969",
     "text": "Vivaldi 下载缓存"
   },
+  "Volume available change": {
+    "format": "卷可用空间变化",
+    "resource_id": "sdc1149ce68b52079c30c9469",
+    "text": "卷可用空间变化"
+  },
   "WPS Office caches": {
     "format": "WPS Office 缓存",
     "resource_id": "sf8a5c8d87f6ba89cef0a8993",
@@ -13444,6 +13719,11 @@
     "resource_id": "s4e17656a62b95a61b72e5d25",
     "text": "WhatsApp 缓存"
   },
+  "Why records are kept": {
+    "format": "记录保留原因",
+    "resource_id": "s9a1c3323856fb71a58c59d48",
+    "text": "记录保留原因"
+  },
   "WinGet inventory could not be read.": {
     "format": "无法读取 WinGet 安装清单。",
     "resource_id": "s4c9a003594d709067bf85f8a",
@@ -13483,6 +13763,11 @@
     "format": "Windows 服务控制仍待原生验收，当前仅显示只读状态。",
     "resource_id": "s0d10580b34985347fd4abd74",
     "text": "Windows 服务控制仍待原生验收，当前仅显示只读状态。"
+  },
+  "Within retention policy": {
+    "format": "保留期限内",
+    "resource_id": "s9468721eba7d5069898b9a3e",
+    "text": "保留期限内"
   },
   "WorkBuddy caches": {
     "format": "WorkBuddy 缓存",

@@ -6,19 +6,32 @@
 
 此前 macOS 验证：137 项核心测试、114 项真实 CLI 合同检查、4 项终端确认检查及隔离原生清理／恢复／永久移除检查通过。安装测试覆盖重复安装、受管更新备份、本地修改保留、非法文件、链接与 ZIP 内容，不写入真实客户端目录。Computer Use 验证了安装版中文交接页、Codex／Claude Code 指引和复制请求；独立数据副本验证了 WorkBuddy 原生保存面板导出及英文规则页。ZIP 的三个文件与源码一致。后续 UI 读取返回超时／无窗口错误，因此不计完整英文交接页及本轮切回中文通过。未配置或启动外部客户端进行验收。
 
+### 辅助清理技能
+
+清理助手复用 Shou 扫描和回执，按占用调查用途、活跃情况、重建代价和保留条件，分别列出建议、待判断、保护和本次保留。历史保留偏好可复用，一次性删除确认不能扩大到新目标；数据库、容器与虚拟磁盘只走当前已支持的专属操作，门禁关闭或无能力时交回所属工具，不用 Shell 绕过。
+
+```sh
+shou skills list --json
+shou skills read --skill shou-cleanup-assistant --json
+shou skills install --skill shou-cleanup-assistant --agent codex --json
+shou skills export --skill shou-cleanup-assistant --output "$HOME/Downloads/shou-cleanup-assistant.zip" --json
+```
+
+Windows 使用相同参数和实际绝对路径；不使用 macOS 的 `$HOME` 示例。安装技能不代表已经清理，也不授予未来删除权限。
+
 ## Lark CLI 的做法
 
 官方 [Lark CLI 指南](https://github.com/larksuite/cli/blob/main/README.zh.md) 提供 `npx @larksuite/cli@latest install`。[安装向导](https://github.com/larksuite/cli/blob/main/scripts/install-wizard.js) 安装 CLI 后，委托 `npx skills add <repository> -y -g` 安装 Skill。源码安装路径则明确列出 `npx skills add larksuite/cli -y -g`。
 
 其 [skills 命令实现](https://github.com/larksuite/cli/blob/main/cmd/skill/skill.go) 还提供 `skills list` 和 `skills read <name> [relative-file]`。技能指令与参考文件在构建时嵌入，Agent 无需查找源码仓库，就能读取与当前 CLI 版本对应的内容；读取技能不需要业务认证。
 
-Shou 学习这种分发与发现方式，使用自己的 Swift 实现。当前规则制定任务只需要一个标准 Skill。原生安装器复制随包文件，不要求 Node.js、账号或联网；Shou 不依赖 Lark CLI 或 Skills CLI。
+Shou 以 Swift 和 C# 原生实现相同分发合同，随包提供 `shou-cleanup-assistant` 清理调查和 `shou-rule-authoring` 规则编写两种技能。原生安装器复制随包文件，不要求 Node.js、账号或联网；Shou 不依赖 Lark CLI 或 Skills CLI。
 
 ## 安装随包 Skill
 
-打开**规则 → 通过 AI 定制**，选择客户端，再点击**安装 Skill**或**导出 Skill 技能包…**。安装只写入指定技能目录，不启动客户端、不编辑其设置文件。将准备好的请求复制给客户端，即可提供确切 CLI 路径和选定工作区。
+macOS 从清理选项或规则的**通过 AI 定制**进入；Windows 从清理选项或设置的**外部 AI 工具**进入。选择清理助手或规则编写及客户端，再点击**安装 Skill**或**导出 Skill 技能包…**。安装只写入指定技能目录，不启动客户端、不编辑其设置文件。将准备好的请求复制给客户端，即可提供确切 CLI 路径和选定工作区。
 
-应用内的独立 CLI 提供相同能力。其他示例使用 `shou` 简写；未加入 `PATH` 时使用完整路径：
+macOS 应用内的独立 CLI 提供相同能力。其他示例使用 `shou` 简写；未加入 `PATH` 时使用完整路径：
 
 ```sh
 "/Applications/Shou.app/Contents/Helpers/shou" skills install --agent codex --json
@@ -26,11 +39,11 @@ Shou 学习这种分发与发现方式，使用自己的 Swift 实现。当前�
 "/Applications/Shou.app/Contents/Helpers/shou" skills export --output "$HOME/Downloads/shou-rule-authoring.zip" --json
 ```
 
-Windows Skill 安装与导出待实现，使用 .NET CLI 与原生确认，文件系统和界面行为需独立验收。
+Windows .NET CLI 与 WinUI 设置／清理选项已接入随包读取、安装和 ZIP 导出；桌面与 CLI 分别分发，复制请求前需将独立 CLI 加入 `PATH` 或替换为实际完整路径。以下路径需替换为自己的 CLI 解压位置。便携测试不替代 Windows 原生界面验收。两端安装器保留本地改动并备份受管更新。
 
 ```powershell
-& "C:/path/to/Shou/Engine/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
-& "C:/path/to/Shou/Engine/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
+& "C:/path/to/shou-cli/shou.exe" skills install --agent codex --directory "C:/path/to/project/.agents/skills" --json
+& "C:/path/to/shou-cli/shou.exe" skills export --output "$env:USERPROFILE/Downloads/shou-rule-authoring.zip" --json
 ```
 
 
@@ -53,7 +66,7 @@ shou skills install --agent codex --directory "/path/to/project/.agents/skills" 
 shou skills install --agent claude-code --directory "/path/to/project/.claude/skills" --json
 ```
 
-安装器会追加 `shou-rule-authoring`，`--directory` 是父目录，不是最终技能目录。目标路径或已安装内容包含符号链接时拒绝写入；若客户端使用链接目录，可显式选择真实目录，或通过客户端支持的安装工具管理副本。
+`--skill shou-cleanup-assistant|shou-rule-authoring` 选择技能，默认保留规则编写以兼容已有调用。安装器追加所选技能名，`--directory` 是父目录，不是最终技能目录。目标路径或已安装内容包含符号链接时拒绝写入；若客户端使用链接目录，可显式选择真实目录，或通过客户端支持的安装工具管理副本。
 
 ## 无需安装也能读取
 
@@ -65,7 +78,7 @@ shou skills read --file references/questionnaire.md --json
 shou agent skill --json
 ```
 
-`skills read` 默认输出原始 Markdown；`--json` 在标准信封中返回 `name`、`file`、`content`。只允许读取三个随包文件：`SKILL.md`、`references/questionnaire.md`、`agents/openai.yaml`。`agent skill` 另返回本地 `directory` 和 `entrypoint`。以上命令均不打开清理记录存储。
+`skills read` 默认输出原始 Markdown；`--json` 在标准信封中返回 `name`、`file`、`content`。每种技能只允许读取其封闭文件清单，`skills list` 返回实际文件。清理助手包含 macOS、Windows、数据库与容器参考；规则技能保留问询矩阵。Windows 非 JSON 的 `skills read` 同样输出 Markdown，但 `agent skill` 仅为 macOS 旧入口。`agent skill` 另返回本地 `directory` 和 `entrypoint`。以上命令均不打开清理记录存储。
 
 与 Lark CLI 类似，支持 `skills read shou-rule-authoring`、单独的相对文件参数，以及 `skills read shou-rule-authoring/references/questionnaire.md`。同时使用位置参数和 `--file` 选择文件会被拒绝。`shou skills --help` 只展示技能组，`shou capabilities --command skills --json` 返回该组机器合同；能力发现同样不依赖清理存储可用。
 

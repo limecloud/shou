@@ -12,6 +12,10 @@ func recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() async throws {
     _ = try await engine.scan(workspaceId: root.id)
     let preview=try await engine.collectRecords(policy: .init(maxAgeSeconds: 0, maxBytes: 0, graceSeconds: 0))
     try expect(preview.records.contains { $0.id == old.id })
+    try expect(preview.collections.reduce(Int64(0)) { $0 + $1.totalBytes } == preview.totalBytes)
+    try expect(preview.collections.reduce(Int64(0)) { $0 + $1.removableBytes } == preview.removableBytes)
+    try expect(preview.retentionReasons.contains { $0.reason == "active_plan" && $0.byteCount > 0 })
+    try expect(preview.quotaExcessBytes > 0)
     try expect(try fixture.store.read("scans", id: scan.id) != nil)
     try expect(try fixture.store.read("plans", id: plan.id) != nil)
     let receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
@@ -22,6 +26,30 @@ func recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() async throws {
     try expect(results.allSatisfy { $0.state == "completed" })
     try expect(!FileManager.default.fileExists(atPath: trash))
     try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+}
+
+func recordRetentionReviewIsExactAndVolumeChangesRemainSigned() async throws {
+    let fixture=try Fixture()
+    let (engine, _, scan, candidate)=try await fixture.ready()
+    let policy=RecordRetentionPolicy(maxAgeSeconds: 0, maxBytes: 0, graceSeconds: 0, keepLatestScans: false)
+    let preview=try await engine.recordRetentionPreview(policy: policy)
+    let record=try require(preview.records.first)
+    try await expectThrows { try await engine.collectRecords(policy: policy, reviewedRecords: [record,record]) }
+    // A plan created after the review protects its scan and invalidates the reviewed collection.
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
+    try await expectThrows { try await engine.collectRecords(policy: policy, reviewedRecords: preview.records) }
+    try expect(try fixture.store.read("scans", id: scan.id) != nil)
+    var first=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "test")
+    first.volumeAvailableBefore=1000; first.volumeAvailableAfter=900
+    var second=first; second.id="execution_second"; second.createdAt=first.createdAt
+    second.volumeAvailableBefore=900; second.volumeAvailableAfter=700
+    let observed=CleanupVolumeObservation.from([first,second,first])
+    try expect(observed.count == 1 && observed[0].change == -300)
+    second.workspace.identity.device += 1
+    try expect(CleanupVolumeObservation.from([first,second]).count == 2)
+    second.workspace.identity.device=first.workspace.identity.device
+    second.volumeAvailableAfter=nil
+    try expect(CleanupVolumeObservation.from([first,second])[0].change == nil)
 }
 
 func recordRetentionPreservesDependenciesAndRejectsChangedRecords() async throws {

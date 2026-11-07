@@ -80,6 +80,7 @@ struct CleanupCompletion: Identifiable {
     var systemResult: SystemScanResult?
     var commonReview=CleanupReview()
     var commonSelection=Set<String>()
+    var commonKept=Set<String>()
     private var commonRefinements: [CleanupTargetRefinement]=[]
     var scanningCleanupPath: String?
     var cleanupScanScope=CleanupScanScope.standard
@@ -227,7 +228,7 @@ struct CleanupCompletion: Identifiable {
     func date(_ value: Date) -> String { value.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(language.locale)) }
     var workspace: Workspace? { configuration.workspaces.first { $0.id == workspaceId } }
     var projectWorkspaces: [Workspace] { configuration.workspaces.filter { root in !knownLocations.contains { $0.path == root.path } } }
-    var commonSelected: [CleanupSource] { commonReview.sources.filter { commonSelection.contains($0.id) && $0.selectable } }
+    var commonSelected: [CleanupSource] { commonReview.sources.filter { commonSelection.contains($0.id) && !commonKept.contains($0.id) && $0.selectable } }
     var commonRecommended: [CleanupSource] { commonReview.recommendedSources }
     var commonSelectedBytes: Int64 { commonSelected.reduce(0) { $0 + $1.candidate.allocatedBytesEstimate } }
     var selected: [Candidate] { snapshot?.candidates.filter { selection.contains($0.id) } ?? [] }
@@ -445,7 +446,7 @@ struct CleanupCompletion: Identifiable {
             scanAccess.prepareScan { [weak self] in self?.scanCommonLocations(scope: scope, accessChecked: true) }
             return
         }
-        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonRefinements=[]
+        busy=true; scanning=true; stopRequested=false; scanProgress=nil; scanningLocation=nil; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonKept=[]; commonRefinements=[]
         statusKey="Preparing common app scan…"
         cleanupScanScope=scope; scanningCleanupPath=nil
         switch scope {
@@ -469,7 +470,7 @@ struct CleanupCompletion: Identifiable {
                 // Fixed rules are the product's fast path. The selection is
                 // visible and editable, but the first result is immediately
                 // actionable instead of presenting an empty checklist.
-                commonSelection=Set(commonRecommended.map(\.id))
+                commonSelection=[]; commonKept=[]
                 statusKey=systemResult?.status == "complete" ? "Common app scan complete" : "Some locations could not be fully scanned."
                 await refresh()
             } catch {
@@ -503,8 +504,13 @@ struct CleanupCompletion: Identifiable {
     }
     func selectCommon(_ sources: [CleanupSource], selected: Bool) {
         guard !busy else { return }
-        let ids=Set(sources.filter(\.selectable).map(\.id))
+        let ids=Set(sources.filter { $0.selectable && !commonKept.contains($0.id) }.map(\.id))
         if selected { commonSelection.formUnion(ids) } else { commonSelection.subtract(ids) }
+    }
+    func keepCommon(_ source: CleanupSource, keep: Bool) {
+        guard !busy else { return }
+        commonSelection.remove(source.id)
+        if keep { commonKept.insert(source.id) } else { commonKept.remove(source.id) }
     }
     func continueCleanupScan(_ source: CleanupSource) {
         guard let engine, !busy, let previous=systemResult,
@@ -536,7 +542,7 @@ struct CleanupCompletion: Identifiable {
                 commonRefinements=replacements
                 systemResult=SystemScanResult(locations: previous.locations, snapshots: snapshots, issues: previous.issues, skippedLocationIds: previous.skippedLocationIds)
                 // New evidence always requires a fresh selection; unrelated choices keep their original IDs.
-                commonSelection=selected.intersection(Set(review.sources.filter(\.selectable).map(\.id)))
+                commonSelection=selected.intersection(Set(review.sources.filter { $0.selectable && !commonKept.contains($0.id) }.map(\.id)))
                 statusKey=review.sources.contains { $0.snapshotId == updated.id && $0.candidate.reasons.contains("incomplete_scan") }
                     ? "This directory still exceeds the scan limit." : "Directory scanned. Review it before selecting."
             } catch {
@@ -591,7 +597,7 @@ struct CleanupCompletion: Identifiable {
             }
             completion=CleanupCompletion(receipts: receipts, failures: failures, skippedItems: notStarted, sourceSection: sourceSection, retryPaths: remaining,
                 retryWorkspaces: roots.filter { root in remaining.contains { $0.hasPrefix(root.path + "/") } })
-            snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]
+            snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonKept=[]
             statusKey=remaining.isEmpty ? (permanent ? "Selected items permanently removed." : "Moved to Trash. Available disk space is measured separately.") : "Some items could not be removed. Review the result."
             await refresh()
         }
@@ -815,7 +821,7 @@ struct CleanupCompletion: Identifiable {
         commonReview=try CleanupReview(snapshots: snapshots, locations: refreshed.locations, refinements: refinements)
         commonRefinements=refinements
         systemResult=refreshed
-        commonSelection=Set(commonReview.sources.filter { $0.selectable && selectedPaths.contains($0.path) }.map(\.id))
+        commonSelection=Set(commonReview.sources.filter { $0.selectable && !commonKept.contains($0.id) && selectedPaths.contains($0.path) }.map(\.id))
         statusKey="Affected items refreshed. Review your selection to continue."
     }
     func closeCleanupApplications(_ plan: ApplicationClosePlan) {
@@ -990,7 +996,7 @@ struct CleanupCompletion: Identifiable {
         await refresh(); section="rules"
     }
     private func invalidateScanEvidence() {
-        snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; prompt=nil
+        snapshot=nil; selection=[]; systemResult=nil; commonReview=CleanupReview(); commonSelection=[]; commonKept=[]; prompt=nil
         statusKey="Configuration changed; scan again."
     }
     func savePreset(_ name: String) {

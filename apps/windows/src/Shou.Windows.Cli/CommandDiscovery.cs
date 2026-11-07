@@ -16,6 +16,12 @@ internal static class CommandDiscovery
         new("applications updates check", "network", ["application-id", "allow-network"], [], [], "Compare this application's version with its official stable release catalog. Requires allow-network=true; no application list, credentials or paths are sent; does not download packages or install updates."),
         new("completion", "read", ["shell"], [], [], "Generate a static Bash, Zsh or PowerShell completion script from this command registry. Does not install integration or invoke Shou during completion."),
         new("capabilities", "read", [], ["command"], [], "Discover current commands, inputs and platform limits without opening storage."),
+        new("skills list", "read", [], [], [], "List bundled cleanup-assistant and rule-authoring Skills without installation or client configuration."),
+        new("skills read", "read", [], ["skill", "file"], [], "Read a bundled Skill file from its closed file catalog."),
+        new("skills install", "configuration", ["agent"], ["skill", "directory"], [], "Install a bundled Skill for Codex or Claude Code. Preserves local edits and backs up managed updates; does not start a client or edit its settings."),
+        new("skills export", "configuration", ["output"], ["skill"], [], "Export a bundled Skill ZIP to a new absolute path without overwriting existing files."),
+        new("records preview", "read", [], ["keep-latest"], [], "Inspect private Shou record usage, removable scans, retained dependencies and soft quota excess. Does not scan or remove personal files."),
+        new("records collect", "destructive", [], ["keep-latest"], [], "Recheck an exact private-record inventory under the storage lease after interactive confirmation. Preserves plans, history and all referenced scans."),
         new("rules schema", "read", [], [], [], "Read the bundled rule schema without network access."),
         new("rules catalog", "read", [], ["workspace"], [], "Read bundled templates or rules scoped to a registered workspace without importing them."),
         new("system locations", "read", [], ["include-projects"], [], "Inspect fixed and optional conventional project locations without registering or scanning them."),
@@ -67,6 +73,21 @@ internal static class CommandDiscovery
 
     public static CommandRequest Parse(List<string> arguments)
     {
+        if (arguments.Take(2).SequenceEqual(["skills", "read"]) && arguments.Count > 2 && !arguments[2].StartsWith("--", StringComparison.Ordinal))
+        {
+            var value = arguments[2]; var slash = value.IndexOf('/');
+            var name = slash < 0 ? value : value[..slash];
+            var file = slash < 0 ? null : value[(slash + 1)..];
+            var consumed = 3;
+            if (arguments.Count > 3 && !arguments[3].StartsWith("--", StringComparison.Ordinal))
+            {
+                if (file is not null) throw new ShouException("invalid_argument", "Choose one bundled Skill file.");
+                file = arguments[3]; consumed++;
+            }
+            if (arguments.Skip(consumed).Any(value => value is "--skill" or "--file"))
+                throw new ShouException("invalid_argument", "Choose positional or named Skill arguments.");
+            arguments = ["skills", "read", "--skill", name, .. file is null ? Array.Empty<string>() : new[] { "--file", file }, .. arguments.Skip(consumed)];
+        }
         var spec = Commands.OrderByDescending(value => value.Command.Length).FirstOrDefault(value =>
             arguments.Take(value.Command.Split(' ').Length).SequenceEqual(value.Command.Split(' ')))
             ?? throw new ShouException("invalid_argument", "Unknown command. Use shou --help.");
@@ -163,6 +184,14 @@ internal sealed record CommandRequest(string Command, IReadOnlyDictionary<string
 
     public void Validate()
     {
+        if (Optional("keep-latest") is { } keep && keep is not ("true" or "false")) throw Invalid("Choose true or false for keep-latest.");
+        if (Command.StartsWith("skills ", StringComparison.Ordinal))
+        {
+            var skill = Optional("skill") ?? BundledAgentSkills.DefaultName;
+            _ = BundledAgentSkills.Files(skill);
+            if (Command == "skills read") _ = BundledAgentSkills.Read(skill, Optional("file") ?? "SKILL.md");
+            if (Optional("agent") is { } agent && agent is not ("codex" or "claude-code")) throw Invalid("Choose codex or claude-code.");
+        }
         if (Command != "analysis compare") _ = Path;
         if (Command is "analysis history" or "analysis compare")
         {

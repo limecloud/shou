@@ -298,6 +298,44 @@ public sealed class WindowsRecordStore : IRecordStore
 
         public byte[]? Read(string key, int maximumBytes) => Read(key, maximumBytes, cancellationToken);
 
+        internal StoredAppRecord[] InspectRecords(CancellationToken operationToken)
+        {
+            Check(operationToken);
+            var before = WindowsFileSystem.ReadEntry(store.root, pinned.Final);
+            var names = NativeFileHandles.Names(pinned.Final, before.IsCaseSensitive, 10_000, () => Check(operationToken));
+            var records = new List<StoredAppRecord>();
+            foreach (var name in names.Order(StringComparer.Ordinal))
+            {
+                Check(operationToken);
+                if (!name.EndsWith(".json", StringComparison.Ordinal)) continue;
+                var key = name[..^5]; RecordKey.Validate(key);
+                var path = store.root.Append(name);
+                using var handle = NativeFileHandles.OpenChild(pinned.Final, path, before.IsCaseSensitive);
+                var entry = WindowsFileSystem.ReadEntry(path, handle);
+                store.RequireRecord(entry, handle, MaximumRecordBytes);
+                records.Add(new(key, entry));
+            }
+            if (WindowsFileSystem.ReadEntry(store.root, pinned.Final) != before)
+                throw new ShouException("source_changed", "The record directory changed during inspection.");
+            return records.ToArray();
+        }
+
+        internal void RemoveDerivedRecord(StoredAppRecord record, CancellationToken operationToken)
+        {
+            Check(operationToken);
+            if (!RecordRetentionService.IsDerivedKey(record.Key))
+                throw new ShouException("invalid_argument", "Only derived scan records can be collected.");
+            var path = store.root.Append(record.Key + ".json");
+            if (record.Entry.Path != path) throw new ShouException("plan_stale", "The reviewed record path changed.");
+            var parent = WindowsFileSystem.ReadEntry(store.root, pinned.Final);
+            using var handle = NativeFileHandles.OpenChild(pinned.Final, path, parent.IsCaseSensitive, deletion: true);
+            var entry = WindowsFileSystem.ReadEntry(path, handle);
+            store.RequireRecord(entry, handle, MaximumRecordBytes);
+            if (entry != record.Entry) throw new ShouException("plan_stale", "The reviewed record changed.");
+            Check(operationToken);
+            NativeFileHandles.MarkForRemoval(handle);
+        }
+
         internal string[] ListKeys(string prefix, int maximumDirectoryEntries, CancellationToken operationToken)
         {
             Check(operationToken);
@@ -414,6 +452,28 @@ public sealed class WindowsRecordStore : IRecordStore
     {
         private readonly SemaphoreSlim operations = new(1, 1);
         private bool disposed;
+
+        public async Task<StoredAppRecord[]> InspectRecordsAsync(CancellationToken cancellationToken)
+        {
+            await operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                ObjectDisposedException.ThrowIf(disposed, this);
+                return await NativeOperationScheduler.RunToCompletionAsync(() => lease.InspectRecords(cancellationToken), cancellationToken).ConfigureAwait(false);
+            }
+            finally { operations.Release(); }
+        }
+
+        public async Task RemoveDerivedRecordAsync(StoredAppRecord record, CancellationToken cancellationToken)
+        {
+            await operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                ObjectDisposedException.ThrowIf(disposed, this);
+                await NativeOperationScheduler.RunToCompletionAsync(() => { lease.RemoveDerivedRecord(record, cancellationToken); return true; }, cancellationToken).ConfigureAwait(false);
+            }
+            finally { operations.Release(); }
+        }
 
         public async Task<string[]> ListKeysAsync(string prefix, int maximumDirectoryEntries, CancellationToken cancellationToken)
         {

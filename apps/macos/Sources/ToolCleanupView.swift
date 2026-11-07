@@ -19,6 +19,7 @@ struct ToolCleanupPanel: View {
                         Image(systemName: "shippingbox").foregroundStyle(ShouPalette.secondary)
                         VStack(alignment: .leading, spacing: 3) {
                             Text(model.t(target.title)).font(ShouType.body)
+                            if let toolchain=target.toolchain { Text(toolchain).font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary) }
                             Text(target.estimatedBytes.map(model.bytes) ?? model.t("Review tool preview")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                         }
                         Spacer()
@@ -29,6 +30,20 @@ struct ToolCleanupPanel: View {
                 ForEach(Array(scan.issues.filter { $0.code != "tool_not_installed" }.enumerated()), id: \.offset) { _, issue in
                     Text(issue.tool + ", " + model.t(issue.code)).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 }
+            }
+            if let plan {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text(model.t(plan.target.title)).font(ShouType.body.weight(.semibold))
+                    if let toolchain=plan.target.toolchain { Text(toolchain).font(ShouType.caption.monospaced()) }
+                    Text(model.t(plan.target.impact)).font(ShouType.body)
+                    HStack {
+                        Button(model.t("Cancel")) { self.plan=nil }
+                        Spacer()
+                        Button(model.t("Clean Permanently"), role: .destructive) {
+                            if let service { model.executeToolCleanup(plan, service: service) }; self.plan=nil
+                        }.buttonStyle(.borderedProminent).tint(ShouPalette.danger)
+                    }
+                }.padding(.vertical, 12)
             }
             HStack {
                 Button(model.t("Check Again")) { load() }.disabled(model.busy || loading)
@@ -44,14 +59,6 @@ struct ToolCleanupPanel: View {
         } label: { Label(model.t("Tool-managed Storage"), systemImage: "wrench.and.screwdriver") }
         .task(id: model.systemResult?.snapshots.first?.id) { load() }
         .onDisappear { operation?.cancel() }
-        .alert(model.t("Permanently clean this tool's storage?"), isPresented: Binding(get: { plan != nil }, set: { if !$0 { plan=nil } })) {
-            Button(model.t("Cancel"), role: .cancel) { plan=nil }
-            Button(model.t("Clean Permanently"), role: .destructive) {
-                if let plan, let service { model.executeToolCleanup(plan, service: service) }; plan=nil
-            }
-        } message: {
-            if let plan { Text(model.t(plan.target.title) + "\n\n" + model.t(plan.target.impact)) }
-        }
     }
     private func load() {
         guard !loading else { return }
@@ -90,6 +97,13 @@ struct ToolCleanupResultView: View {
             Text(model.t(result.target.title)).font(ShouType.body.weight(.semibold))
             Text(model.t("The tool completed its operation and its storage was checked again. Space estimates are separate from available disk space.")).foregroundStyle(ShouPalette.secondary).multilineTextAlignment(.center)
                 .opacity(result.state == "completed" ? 1 : 0)
+            if let before=result.volumeAvailableBefore, let after=result.volumeAvailableAfter {
+                Text(model.t("Volume available change") + " " + (after >= before ? "+" : "−") + model.bytes(abs(after-before))).font(ShouType.body).monospacedDigit()
+                Text(model.t("Available space changed during this operation. Other writes, APFS and virtual disks can affect it.")).font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+            }
+            if result.target.tool == "docker" {
+                Text(model.t("Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary)
+            }
             if let error=result.error { Text(model.diagnostic(error)).font(ShouType.body).textSelection(.enabled) }
             if result.state != "completed" { Text(model.t("Review the tool's current state before trying again. The previous operation may have changed data.")).font(ShouType.body).foregroundStyle(ShouPalette.secondary) }
             Spacer()

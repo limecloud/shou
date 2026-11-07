@@ -6,6 +6,8 @@ Status: the bundled Skill, desktop handoff, public CLI, and rule preview have so
 
 Space Analysis offers Simple/Detailed views and a Copy for AI action in both. It copies the existing scan ID, scope, exact paths, size/extension evidence, coverage, selected/removed paths and local CLI/Skill entries. Users paste it into their existing agent; Shou neither uploads it nor calls a model. The agent reuses analysis context/map/children before inspecting rules, resolving purpose and previewing a draft. See the [space-analysis contract and acceptance](../engineering/space-analysis-agent-design.md).
 
+The bundle ships [Cleanup assistant](../../skills/shou-cleanup-assistant/SKILL.md) and [Rule authoring](../../skills/shou-rule-authoring/SKILL.md). macOS and Windows expose `skills list/read/install/export` with `--skill`. Desktop setup is available from Cleanup Options or Settings/Rules. External Skill distribution is separate from embedded Windows AI and does not open native mutation gates.
+
 ## 1. Boundary
 
 **Shou's next stage adds a built-in cleanup Agent while retaining external coding-agent CLI/Skill access.** The first built-in investigation is implemented; see [usage and acceptance](../engineering/embedded-ai-implementation.md) and see the [PRD](../product/prd.md) and [integration design](../engineering/embedded-ai-investigation.md). This document covers the existing external-agent contract.

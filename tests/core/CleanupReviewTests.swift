@@ -13,6 +13,9 @@ func commonReviewGroupsEvidenceWithoutGrantingAuthority() async throws {
     try expect(view.sources.count == 2)
     try expect(view.sources.allSatisfy(\.selectable))
     try expect(view.sources.contains { $0.candidate.risk == "high" })
+    try expect(view.reviewItems.count == view.sources.count)
+    try expect(view.reviewItems.map { $0.source.candidate.allocatedBytesEstimate } == view.reviewItems.map { $0.source.candidate.allocatedBytesEstimate }.sorted(by: >))
+    try expect(view.reviewItems.filter { $0.source.candidate.risk == "high" }.allSatisfy { $0.disposition == .decision })
     try expect(view.recommendedSources.allSatisfy { $0.candidate.risk != "high" })
     try expect(view.bytes == CleanupOverview.candidates(scan.candidates).reduce(0) { $0 + $1.allocatedBytesEstimate })
     var partial=scan
@@ -28,6 +31,7 @@ func commonReviewGroupsEvidenceWithoutGrantingAuthority() async throws {
     var draft=scan
     draft.previewOnly=true
     try expect(try CleanupReview(snapshots: [draft]).sources.allSatisfy { !$0.selectable })
+    try expect(try CleanupReview(snapshots: [draft]).reviewItems.allSatisfy { $0.disposition == .protected })
     try expect(try await engine.history().isEmpty)
 }
 

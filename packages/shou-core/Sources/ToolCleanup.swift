@@ -5,6 +5,7 @@ public enum CleanupToolCommand: Sendable, Equatable {
     case dockerContext, dockerPreview, dockerPrune
     case brewPreview, brewPrune, condaPreview, condaPrune
     case rustList, rustOverrides, rustDefault, rustRemove(String)
+    case rustComponents(String), rustRemoveDocs(String)
     public var tool: String {
         switch self {
         case .dockerContext, .dockerPreview, .dockerPrune: "docker"
@@ -26,10 +27,12 @@ public enum CleanupToolCommand: Sendable, Equatable {
         case .rustOverrides: ["override","list"]
         case .rustDefault: ["show","active-toolchain"]
         case .rustRemove(let name): ["toolchain","uninstall",name]
+        case .rustComponents(let name): ["component","list","--toolchain",name,"--installed"]
+        case .rustRemoveDocs(let name): ["component","remove","rust-docs","--toolchain",name]
         }
     }
     public var mutating: Bool {
-        switch self { case .dockerPrune,.brewPrune,.condaPrune,.rustRemove: true; default: false }
+        switch self { case .dockerPrune,.brewPrune,.condaPrune,.rustRemove,.rustRemoveDocs: true; default: false }
     }
 }
 public struct CleanupToolOutput: Sendable {
@@ -41,9 +44,11 @@ public enum CleanupToolPlatform: String, Sendable { case macOS, unsupported }
 public protocol CleanupToolRunning: Sendable {
     var platform: CleanupToolPlatform { get }
     func run(_ command: CleanupToolCommand, timeoutSeconds: Double, expectedExecutableIdentity: String?) throws -> CleanupToolOutput
+    func availableBytes() -> Int64?
 }
 public extension CleanupToolRunning {
     var platform: CleanupToolPlatform { .macOS }
+    func availableBytes() -> Int64? { nil }
     func run(_ command: CleanupToolCommand, timeoutSeconds: Double) throws -> CleanupToolOutput {
         try run(command, timeoutSeconds: timeoutSeconds, expectedExecutableIdentity: nil)
     }
@@ -57,6 +62,7 @@ public struct ToolCleanupTarget: Codable, Sendable, Identifiable, Equatable {
     public let impact: String
     public let toolchain: String?
     public let executableIdentity: String?
+    public var component: String? = nil
 }
 public struct ToolCleanupIssue: Codable, Sendable { public let tool: String; public let code: String }
 public struct ToolCleanupScan: Codable, Sendable, Identifiable {
@@ -81,6 +87,8 @@ public struct ToolCleanupReceipt: Codable, Sendable, Identifiable {
     public var state: String
     public var remainingBytesEstimate: Int64?
     public var error: String?
+    public var volumeAvailableBefore: Int64? = nil
+    public var volumeAvailableAfter: Int64? = nil
 }
 
 public actor ToolCleanupService {
@@ -134,11 +142,15 @@ public actor ToolCleanupService {
         case "conda": command = .condaPrune
         case "rustup":
             guard let name=plan.target.toolchain, Self.validToolchain(name) else { throw ShouError("store_corrupt", "Invalid toolchain selection.") }
-            command = .rustRemove(name)
+            if let component=plan.target.component {
+                guard component == "rust-docs" else { throw ShouError("store_corrupt", "Invalid component selection.") }
+                command = .rustRemoveDocs(name)
+            } else { command = .rustRemove(name) }
         default: throw ShouError("capability_unavailable", "Unknown cleanup tool.")
         }
         if Task.isCancelled { throw ShouError("cancelled", "Tool cleanup cancelled before execution.") }
         var receipt=ToolCleanupReceipt(id: Codec.id("toolrun"), planId: plan.id, createdAt: now(), target: plan.target, state: "executing")
+        receipt.volumeAvailableBefore=runner.availableBytes()
         try store.write("tool-history", id: receipt.id, data: Codec.encode(receipt))
         plan.state="executing"; try store.write("tool-plans", id: plan.id, data: Codec.encode(plan))
         do {
@@ -151,6 +163,7 @@ public actor ToolCleanupService {
         } catch {
             receipt.state="unknown"; receipt.error=(error as? ShouError)?.code ?? (Task.isCancelled ? "cancelled" : "tool_failed")
         }
+        receipt.volumeAvailableAfter=runner.availableBytes()
         try store.write("tool-history", id: receipt.id, data: Codec.encode(receipt))
         plan.state=receipt.state; try store.write("tool-plans", id: plan.id, data: Codec.encode(plan))
         return receipt
@@ -206,11 +219,20 @@ public actor ToolCleanupService {
         case "rustup":
             let list=try output(.rustList), overrides=try output(.rustOverrides), active=try output(.rustDefault)
             let protected=Set(overrides.text.split(whereSeparator: \.isWhitespace).map(String.init) + active.text.split(whereSeparator: \.isWhitespace).prefix(1).map(String.init))
-            return try list.text.split(separator: "\n").compactMap { line in
+            let toolchains=list.text.split(separator: "\n")
+            var targets=try toolchains.compactMap { line -> ToolCleanupTarget? in
                 guard let name=line.split(whereSeparator: \.isWhitespace).first.map(String.init), Self.validToolchain(name),
                       !line.contains("(default"), !line.contains("default)"), !line.contains("active"), !protected.contains(name) else { return nil }
                 return try target(id: "rustup." + name, tool: tool, title: name, bytes: nil, outputs: [list,overrides,active], impact: "This toolchain is not the current/default toolchain or a rustup directory override. Projects that pin it in rust-toolchain files may need it again; removal requires a later download.", toolchain: name)
             }
+            for line in toolchains {
+                guard let name=line.split(whereSeparator: \.isWhitespace).first.map(String.init), Self.validToolchain(name) else { continue }
+                let components=try output(.rustComponents(name))
+                guard components.text.split(separator: "\n").contains(where: { $0 == "rust-docs" || $0.hasPrefix("rust-docs-") }) else { continue }
+                var value=try target(id: "rustup.docs." + name, tool: tool, title: "Rust offline documentation", bytes: nil, outputs: [list,components], impact: "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.", toolchain: name)
+                value.component="rust-docs"; targets.append(value)
+            }
+            return targets
         default: throw ShouError("capability_unavailable", "Unsupported cleanup tool.")
         }
     }

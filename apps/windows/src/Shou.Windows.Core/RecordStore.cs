@@ -12,6 +12,8 @@ public interface IRecordStore
 /// <summary>Reads a consistent set of records without creating a missing data root.</summary>
 public interface IRecordReadLease : IAsyncDisposable
 {
+    Task<StoredAppRecord[]> InspectRecordsAsync(CancellationToken cancellationToken) =>
+        throw new ShouException("unsupported_capability", "Record maintenance is unavailable for this store.");
     ValueTask<byte[]?> ReadAsync(string key, int maximumBytes, CancellationToken cancellationToken);
     Task<string[]> ListKeysAsync(string prefix, int maximumDirectoryEntries, CancellationToken cancellationToken);
 }
@@ -19,6 +21,8 @@ public interface IRecordReadLease : IAsyncDisposable
 /// <summary>Holds the cross-process lease across asynchronous validation and native operations.</summary>
 public interface IRecordLease : IRecordReadLease
 {
+    Task RemoveDerivedRecordAsync(StoredAppRecord record, CancellationToken cancellationToken) =>
+        throw new ShouException("unsupported_capability", "Record maintenance is unavailable for this store.");
     Task WriteAsync(string key, ReadOnlyMemory<byte> bytes, CancellationToken cancellationToken);
 }
 

@@ -19,7 +19,7 @@ var targets: [Target] = [
     .target(name: "CShouMacLegacy", path: "packages/shou-platform/Legacy", publicHeadersPath: "include",
             linkerSettings: [.linkedFramework("Security", .when(platforms: [.macOS])), .linkedFramework("CoreServices", .when(platforms: [.macOS]))]),
     .target(name: "ShouContracts", path: "packages/shou-contracts", exclude: ["README.md", "README.zh-CN.md"], resources: [.copy("rule.schema.json")]),
-    .target(name: "ShouAgentSupport", path: "skills", resources: [.copy("shou-rule-authoring")]),
+    .target(name: "ShouAgentSupport", path: "skills", resources: [.copy("shou-rule-authoring"), .copy("shou-cleanup-assistant")]),
     .target(name: "ShouCore", dependencies: ["ShouContracts", "CSQLite"], path: "packages/shou-core/Sources", resources: [.process("Resources")]),
     .target(name: "ShouPlatform", dependencies: platformDependencies, path: "packages/shou-platform/Sources"),
     .target(name: "ShouAI", dependencies: ["ShouCore", .product(name: "SwiftAISDK", package: "swift-ai-sdk", condition: .when(platforms: [.macOS])), .product(name: "OpenAIProvider", package: "swift-ai-sdk", condition: .when(platforms: [.macOS])), .product(name: "AnthropicProvider", package: "swift-ai-sdk", condition: .when(platforms: [.macOS]))], path: "packages/shou-ai/Sources"),

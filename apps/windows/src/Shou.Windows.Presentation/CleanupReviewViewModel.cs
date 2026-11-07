@@ -18,8 +18,12 @@ public interface ICleanupReviewOperations
 
 public enum CleanupReviewState { Empty, Loading, Discovering, Scanning, Ready, Partial, Preparing, Review, Cancelled, Failed }
 public enum CleanupReviewScope { All, ProjectOutputs }
+public enum CleanupDecisionFilter { All, Recommended, Decision, Protected, Kept }
 public sealed record CleanupCandidateSelection(RuleCandidate Candidate, string ScanId, string WorkspaceId, string RuleName, string Category,
-    bool Selected, bool Selectable, bool Recommended);
+    bool Selected, bool Selectable, bool Recommended)
+{
+    public string RebuildNote { get; init; } = "";
+}
 public sealed record CleanupRuleGroup(string RuleId, string Name, string Category, int Count, int SelectableCount, int SelectedCount,
     long AllocatedBytes, long SelectedBytes)
 {
@@ -52,6 +56,9 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
     private ImmutableArray<CleanupProjectGroup> projects = [];
     private HashSet<string> projectCandidateIds = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CleanupCandidateSelection> selected = new(StringComparer.Ordinal);
+    private readonly HashSet<string> kept = new(StringComparer.Ordinal);
+    public CleanupDecisionFilter DecisionFilter { get; private set; }
+    public bool IsKept(string candidateId) => kept.Contains(candidateId);
     public event PropertyChangedEventHandler? PropertyChanged;
     public CleanupReviewState State { get; private set; }
     public ImmutableArray<Workspace> Workspaces { get; private set; } = [];
@@ -133,9 +140,10 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         {
             var matching = ScopeResults.Where(row => (AllLocations || row.WorkspaceId == WorkspaceId) &&
                 (Category is null || row.Category == Category) && (RuleId is null || row.Candidate.RuleId == RuleId) &&
-                (Search.Length == 0 || row.RuleName.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
+                MatchesDecision(row) && (Search.Length == 0 || row.RuleName.Contains(Search, StringComparison.OrdinalIgnoreCase) ||
                     row.Candidate.Path.Value.Contains(Search, StringComparison.OrdinalIgnoreCase))).ToImmutableArray();
-            if (ReviewScope == CleanupReviewScope.All) return matching;
+            if (ReviewScope == CleanupReviewScope.All) return matching.OrderByDescending(row => row.Candidate.AllocatedBytes)
+                .ThenBy(row => row.Candidate.Path.Value, StringComparer.Ordinal).ToImmutableArray();
             var byId = matching.ToDictionary(row => row.Candidate.Id, StringComparer.Ordinal);
             return projects.SelectMany(group => group.Sources).Where(source => byId.ContainsKey(source.Candidate.Id))
                 .Select(source => byId[source.Candidate.Id]).ToImmutableArray();
@@ -290,6 +298,28 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         var row = Filtered.FirstOrDefault(item => item.Candidate.Id == candidateId);
         if (row is null) { SelectionErrorCode = "selection_unavailable"; NotifyAll(); return false; }
         return ChangeSelection([row], value);
+    }
+
+    private bool MatchesDecision(CleanupCandidateSelection row) => DecisionFilter switch
+    {
+        CleanupDecisionFilter.All => true,
+        CleanupDecisionFilter.Kept => kept.Contains(row.Candidate.Id),
+        CleanupDecisionFilter.Recommended => !kept.Contains(row.Candidate.Id) && row.Recommended,
+        CleanupDecisionFilter.Decision => !kept.Contains(row.Candidate.Id) && row.Selectable && !row.Recommended,
+        CleanupDecisionFilter.Protected => !kept.Contains(row.Candidate.Id) && !row.Selectable,
+        _ => false
+    };
+    public void SetDecisionFilter(CleanupDecisionFilter filter)
+    {
+        if (IsBusy) return;
+        DecisionFilter=filter; Offset=0; NotifyAll();
+    }
+    public bool KeepThisTime(string candidateId, bool keep)
+    {
+        if (IsBusy || requiresRescan || !results.Any(row => row.Candidate.Id == candidateId)) return false;
+        selected.Remove(candidateId);
+        if (keep) kept.Add(candidateId); else kept.Remove(candidateId);
+        Plan=null; State=CoverageState(); NotifyAll(); return true;
     }
 
     public void ShowAllResults()
@@ -456,7 +486,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
 
     private static long SumBytes(IEnumerable<CleanupCandidateSelection> rows) => rows.Aggregate(0L, (total, row) =>
         row.Candidate.AllocatedBytes > long.MaxValue - total ? long.MaxValue : total + row.Candidate.AllocatedBytes);
-    private bool Selectable(CleanupCandidateSelection row) => !requiresRescan && !BatchRequiresRescan && row.Selectable;
+    private bool Selectable(CleanupCandidateSelection row) => !requiresRescan && !BatchRequiresRescan && row.Selectable && !kept.Contains(row.Candidate.Id);
     private bool? SelectionState(IEnumerable<CleanupCandidateSelection> rows)
     {
         var eligible = rows.Where(Selectable).ToArray();
@@ -475,7 +505,11 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
             var selectable = !snapshot.PreviewOnly && candidate.Complete && candidate.State == "review" && candidate.BlockedReasons.IsEmpty;
             var recommended = selectable && candidate.Risk == "review" && snapshot.Scan.IsScopeComplete && snapshot.AnalysisIssues.IsEmpty &&
                 (Batch is null || Batch.State == "complete");
-            return new CleanupCandidateSelection(candidate, snapshot.Id, snapshot.WorkspaceId, source.RuleName, source.Category, false, selectable, recommended);
+            var definition = snapshot.Rules.FirstOrDefault(rule => rule.Definition.GetProperty("id").GetString() == candidate.RuleId)?.Definition;
+            var note = definition is { ValueKind: System.Text.Json.JsonValueKind.Object } observed &&
+                observed.TryGetProperty("risk", out var risk) && risk.ValueKind == System.Text.Json.JsonValueKind.Object &&
+                risk.TryGetProperty("rebuild_note", out var rebuild) && rebuild.ValueKind == System.Text.Json.JsonValueKind.String ? rebuild.GetString()! : "";
+            return new CleanupCandidateSelection(candidate, snapshot.Id, snapshot.WorkspaceId, source.RuleName, source.Category, false, selectable, recommended) { RebuildNote = note };
         })
             .OrderBy(row => row.Category, StringComparer.Ordinal).ThenBy(row => row.RuleName, StringComparer.Ordinal)
             .ThenBy(row => row.Candidate.Path.Value, StringComparer.Ordinal).ToImmutableArray();
@@ -503,6 +537,7 @@ public sealed class CleanupReviewViewModel(ICleanupReviewOperations operations, 
         filters.Clear();
         requiresRescan = false;
         selected.Clear();
+        kept.Clear(); DecisionFilter=CleanupDecisionFilter.All;
     }
     private void NotifyAll() => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(null));
 }

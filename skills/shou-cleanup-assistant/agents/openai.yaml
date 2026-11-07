@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shou 辅助清理"
+  short_description: "调查 Mac 与 Windows 磁盘大项，分批审阅用途与保留条件，并核验 Shou 清理结果"
+  default_prompt: "使用 $shou-cleanup-assistant 调查这台电脑的主要占用，列出可判断的清理批次，并通过 Shou 审阅和核验。"

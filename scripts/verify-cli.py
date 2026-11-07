@@ -106,7 +106,17 @@ with tempfile.TemporaryDirectory(prefix='shou-cli-') as temporary:
         assert (skill_directory / relative).read_bytes() == (root / 'skills/shou-rule-authoring' / relative).read_bytes()
 
     bundled_skills = run('skills', 'list', env_override=startup_environment)['data']
-    assert len(bundled_skills) == 1 and bundled_skills[0]['name'] == skill['name']
+    assert {entry['name'] for entry in bundled_skills} == {'shou-rule-authoring', 'shou-cleanup-assistant'}
+    cleanup_skill = next(entry for entry in bundled_skills if entry['name'] == 'shou-cleanup-assistant')
+    for relative in cleanup_skill['files']:
+        content = run('skills', 'read', '--skill', cleanup_skill['name'], '--file', relative, env_override=startup_environment)['data']['content']
+        assert content == (root / 'skills/shou-cleanup-assistant' / relative).read_text()
+    assistant = run('skills', 'install', '--skill', cleanup_skill['name'], '--agent', 'codex', '--directory', str(base / 'assistant-skills'), env_override=startup_environment)['data']
+    assert assistant['state'] == 'installed'
+    archive = base / 'cleanup-assistant.zip'
+    run('skills', 'export', '--skill', cleanup_skill['name'], '--output', str(archive), env_override=startup_environment)
+    with zipfile.ZipFile(archive) as zipped:
+        assert set(zipped.namelist()) == {cleanup_skill['name'] + '/' + file for file in cleanup_skill['files']}
     skill_files = bundled_skills[0]['files']
     assert set(skill_files) == {'SKILL.md', 'references/questionnaire.md', 'agents/openai.yaml'}
     for relative in skill_files:

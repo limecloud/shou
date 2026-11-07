@@ -159,8 +159,14 @@
   <data name="s6a10aea1bf7d67b276230d2b" xml:space="preserve">
     <value>2. Answer questions about your projects and what to keep.</value>
   </data>
+  <data name="se1137e0ba9953ba73bac3c97" xml:space="preserve">
+    <value>3. Review independent cleanup batches in Shou.</value>
+  </data>
   <data name="s528cd801fff6e0c11dc1eb1f" xml:space="preserve">
     <value>3. Review and enable the rule once. Future cleanups include it.</value>
+  </data>
+  <data name="sd8204874cf3627603685cded" xml:space="preserve">
+    <value>4. Clean selected items, then verify the result and retained items.</value>
   </data>
   <data name="sbc5f660bc678e9e5f125499b" xml:space="preserve">
     <value>4. Clean selected rules, then verify the result and retained items.</value>
@@ -339,6 +345,9 @@
   <data name="s121ce69f9e760922afef8154" xml:space="preserve">
     <value>Active or recoverable records were preserved. Review the history selection.</value>
   </data>
+  <data name="s46672cfdf9730b50f9dc51ca" xml:space="preserve">
+    <value>Active plan dependency</value>
+  </data>
   <data name="s4612f1ecbba820a048eb6a48" xml:space="preserve">
     <value>Activity checks cover the installation folder; execution is not available yet.</value>
   </data>
@@ -431,6 +440,9 @@
   </data>
   <data name="s54f77add30290abb5c38e66d" xml:space="preserve">
     <value>Age uses the newest modification anywhere inside the target. MB means 1,000,000 allocated bytes; sizes remain estimates.</value>
+  </data>
+  <data name="s11b39c93777e8f1f3983bdba" xml:space="preserve">
+    <value>Agent</value>
   </data>
   <data name="s2283220cf184bfa39271fd44" xml:space="preserve">
     <value>Alfred caches</value>
@@ -845,6 +857,9 @@
   </data>
   <data name="s75bdd648e9bfc3cd7ca05d92" xml:space="preserve">
     <value>Available on volume</value>
+  </data>
+  <data name="s17642ed85bed9b5e7e7cb704" xml:space="preserve">
+    <value>Available space changed during this operation. Other writes, APFS and virtual disks can affect it.</value>
   </data>
   <data name="s76900f1bfd16c8d4dd3d25e6" xml:space="preserve">
     <value>Back</value>
@@ -1356,6 +1371,9 @@
   <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
     <value>Choose an applicable scan location</value>
   </data>
+  <data name="s06d8b8863ec7eeeb469d09a8" xml:space="preserve">
+    <value>Choose an assistant</value>
+  </data>
   <data name="s9c74d90b741f6154fa6d1bb5" xml:space="preserve">
     <value>Choose an earlier analysis</value>
   </data>
@@ -1500,6 +1518,9 @@
   <data name="s9a926490a8b16499b2dbd0dc" xml:space="preserve">
     <value>Cleanup always requires confirmation. Moving items to Trash does not immediately free disk space.</value>
   </data>
+  <data name="s33e635fb287259111b9f161d" xml:space="preserve">
+    <value>Cleanup assistant</value>
+  </data>
   <data name="s5e4255195c55051996e0c797" xml:space="preserve">
     <value>Cleanup candidates</value>
   </data>
@@ -1527,6 +1548,9 @@
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>Cleanup finished with issues</value>
   </data>
+  <data name="s331e91c41de46c1f02841a14" xml:space="preserve">
+    <value>Cleanup plans</value>
+  </data>
   <data name="s339d462a7fc512f86ce9aa06" xml:space="preserve">
     <value>Cleanup preview failed.</value>
   </data>
@@ -1538,6 +1562,9 @@
   </data>
   <data name="s765417e6e8df153b6bf84328" xml:space="preserve">
     <value>Cleanup safety checks changed. Scan again before cleaning this directory.</value>
+  </data>
+  <data name="s5e0faca3fb4548d035c2354f" xml:space="preserve">
+    <value>Cleanup scans</value>
   </data>
   <data name="s1275c73051f209470123dc8d" xml:space="preserve">
     <value>Cleanup scans measure rule targets. Run space analysis to include other files.</value>
@@ -2073,6 +2100,9 @@
   <data name="s963f33bca2cb22cee1cb54cf" xml:space="preserve">
     <value>Delete Permanently…</value>
   </data>
+  <data name="s1d0725f13210c10bffba0e77" xml:space="preserve">
+    <value>Delete reviewed records</value>
+  </data>
   <data name="s749cc884bc6894e79bbb7167" xml:space="preserve">
     <value>Delete these items permanently?</value>
   </data>
@@ -2280,6 +2310,9 @@
   <data name="sc2c0a9ac8808051a78c10399" xml:space="preserve">
     <value>Docker build cache</value>
   </data>
+  <data name="s4c7c545ac4b17927324b77cc" xml:space="preserve">
+    <value>Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.</value>
+  </data>
   <data name="sb4e929d8bcfe04189801a8ed" xml:space="preserve">
     <value>Documents</value>
   </data>
@@ -2466,6 +2499,9 @@
   <data name="sebce85fe2009745bf317f82c" xml:space="preserve">
     <value>Existing Installations</value>
   </data>
+  <data name="safeda00b994d0c72e9ec3285" xml:space="preserve">
+    <value>Existing files with local changes are preserved.</value>
+  </data>
   <data name="s33f0babf357de687724cde15" xml:space="preserve">
     <value>Expand startup details</value>
   </data>
@@ -2495,6 +2531,9 @@
   </data>
   <data name="sfe5cdf67f12ba5778116cd95" xml:space="preserve">
     <value>Export Skill ZIP…</value>
+  </data>
+  <data name="s73a0b08acc93855ad81c5595" xml:space="preserve">
+    <value>Export Skill…</value>
   </data>
   <data name="s391065e4dc23592acd6913e7" xml:space="preserve">
     <value>Exported</value>
@@ -2582,6 +2621,9 @@
   </data>
   <data name="s8f259f51f6ded0a1f9521d9a" xml:space="preserve">
     <value>Find large files</value>
+  </data>
+  <data name="sd89eb10c326127c3008f4a90" xml:space="preserve">
+    <value>Find more large items</value>
   </data>
   <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
     <value>Find reviewable caches and build artifacts in known locations.</value>
@@ -2835,11 +2877,17 @@
   <data name="s0e769600933790607b2a13b3" xml:space="preserve">
     <value>History</value>
   </data>
+  <data name="s4b5040143ee8c7e1ea4bf76f" xml:space="preserve">
+    <value>History dependency</value>
+  </data>
   <data name="s42d9acaa0fb44d6f8db37ecd" xml:space="preserve">
     <value>History is limited to readable recent analyses. Some records were skipped.</value>
   </data>
   <data name="s5bd5b53315dbc4791c599a18" xml:space="preserve">
     <value>History observations do not change completed operations or retry unfinished work.</value>
+  </data>
+  <data name="s38065ca23d0ce9b6513d778f" xml:space="preserve">
+    <value>History summaries</value>
   </data>
   <data name="sff380bc4c90465556dcbeba1" xml:space="preserve">
     <value>History verification cancelled.</value>
@@ -3015,11 +3063,17 @@
   <data name="scc5098bde78248090a63dcd7" xml:space="preserve">
     <value>Install CLI Command</value>
   </data>
+  <data name="s057882f5489a63bd25bd1ccb" xml:space="preserve">
+    <value>Install Directory</value>
+  </data>
   <data name="sd499e7c1555da21ca9525b5a" xml:space="preserve">
     <value>Install Shou in Applications first.</value>
   </data>
   <data name="s952c695be80a28c4657e1759" xml:space="preserve">
     <value>Install Skill</value>
+  </data>
+  <data name="sc445a126350a7e53112f71f0" xml:space="preserve">
+    <value>Install an assistant for investigating disk usage or authoring reusable cleanup rules.</value>
   </data>
   <data name="s925e5a0a8cbffb7542198e6c" xml:space="preserve">
     <value>Install the shou command for your terminal, Codex, Claude Code, or WorkBuddy. No model connection is needed.</value>
@@ -3165,6 +3219,12 @@
   <data name="s861309065e9f4125bb214eb5" xml:space="preserve">
     <value>Investigate a folder with built-in AI, or use your external AI tool to create personal rules.</value>
   </data>
+  <data name="s9f12678daba0707ffd7731fc" xml:space="preserve">
+    <value>Investigate disk usage, explain purpose, activity, rebuild cost and retention, and ask about unresolved items. Review independent batches through Shou plans and current confirmation. Do not bypass unavailable operations; verify receipts and volume space changes.</value>
+  </data>
+  <data name="s07334f61d293a1fc938b54c7" xml:space="preserve">
+    <value>Investigate rebuildable artifacts and retention. Reuse existing rules or preview disabled drafts. Ask about unresolved purpose; do not enable rules or execute cleanup.</value>
+  </data>
   <data name="s8f94e7100ca6baf56f62470a" xml:space="preserve">
     <value>Investigate the entire saved scan, including its child folders. A broad overview may reach the per-investigation limit; you can then investigate individual folders.</value>
   </data>
@@ -3273,11 +3333,20 @@
   <data name="s2bdbcbcc49c79dbf7ab42ff1" xml:space="preserve">
     <value>Keep the apps you love.</value>
   </data>
+  <data name="s9f984fdd92e4a65ddc89eb18" xml:space="preserve">
+    <value>Keep the latest scan for later inspection</value>
+  </data>
   <data name="sc02438b6cd8f66744648f626" xml:space="preserve">
     <value>Keep the original rule ID when editing a version.</value>
   </data>
+  <data name="s554eea4b4861c2f0698e5abb" xml:space="preserve">
+    <value>Keep this time</value>
+  </data>
   <data name="sf081c74414e0d26b62607fd1" xml:space="preserve">
     <value>Keep your tools up to date.</value>
+  </data>
+  <data name="s38ee7b9c303181f98a317b2c" xml:space="preserve">
+    <value>Kept this time</value>
   </data>
   <data name="sf5387f9bb6ed70315a77fdcb" xml:space="preserve">
     <value>Kind</value>
@@ -3347,6 +3416,9 @@
   </data>
   <data name="s7a2c86a8bf2242ca5bb83fc0" xml:space="preserve">
     <value>Last seven days</value>
+  </data>
+  <data name="s05cd47a4063c97940c8b1840" xml:space="preserve">
+    <value>Latest scan</value>
   </data>
   <data name="sef7105b62f7474e8f3861e4b" xml:space="preserve">
     <value>Latest version</value>
@@ -3518,6 +3590,9 @@
   </data>
   <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
     <value>Make room for more.</value>
+  </data>
+  <data name="s20185fe9b0625573e94f2afa" xml:space="preserve">
+    <value>Make the Shou CLI available as shou, or use its full path in the request.</value>
   </data>
   <data name="sa7ce49eacadd57176cfb3652" xml:space="preserve">
     <value>Manage Databases</value>
@@ -3803,6 +3878,9 @@
   </data>
   <data name="s2721425dafa987c5bd10977a" xml:space="preserve">
     <value>Needs Verification</value>
+  </data>
+  <data name="s11cbeb183b8b6bbfa5cd803a" xml:space="preserve">
+    <value>Needs a decision</value>
   </data>
   <data name="sc1ebc7817870e5be78fceae5" xml:space="preserve">
     <value>Needs attention</value>
@@ -4266,6 +4344,9 @@
   <data name="sb42004078e671d4b95a6afdd" xml:space="preserve">
     <value>Only named user cache directories are targeted. Documents, preferences and system-owned data are retained.</value>
   </data>
+  <data name="se8a7a315fc69830d66582fbe" xml:space="preserve">
+    <value>Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.</value>
+  </data>
   <data name="s2172af994fae9e627052f8bc" xml:space="preserve">
     <value>Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.</value>
   </data>
@@ -4590,6 +4671,9 @@
   <data name="se5da2242b6ee909040a9def5" xml:space="preserve">
     <value>Plan expired or workspace/configuration changed; preview again.</value>
   </data>
+  <data name="s189e0e33aeb45fdfc867af72" xml:space="preserve">
+    <value>Plan file lists</value>
+  </data>
   <data name="s832887e6b90882f7e9667cb7" xml:space="preserve">
     <value>Plan workspace does not match its registered binding.</value>
   </data>
@@ -4707,6 +4791,9 @@
   <data name="s3a0f0e6222f0664a8aa520e9" xml:space="preserve">
     <value>Process CPU uses total machine capacity. Memory is resident size; shared pages may repeat.</value>
   </data>
+  <data name="sa4869b1147b809e3cd255eee" xml:space="preserve">
+    <value>Processed (estimate)</value>
+  </data>
   <data name="s4a81a7ba5358c26f74fbeb64" xml:space="preserve">
     <value>Processes</value>
   </data>
@@ -4772,6 +4859,9 @@
   </data>
   <data name="sc248e79a44b0d244044d91f9" xml:space="preserve">
     <value>Protected locations may be omitted because disk access is limited.</value>
+  </data>
+  <data name="s6ac05667ee21d3e0c8799703" xml:space="preserve">
+    <value>Protected records exceed the cleanup quota.</value>
   </data>
   <data name="se423aa73a3e7e8e6419678f3" xml:space="preserve">
     <value>Provider Configuration</value>
@@ -5046,6 +5136,9 @@
   <data name="s92d0274f76c957c98a5d10b2" xml:space="preserve">
     <value>Recent resource trend</value>
   </data>
+  <data name="s61df24ec987075ce3bad83a8" xml:space="preserve">
+    <value>Recently created</value>
+  </data>
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>Recommended</value>
   </data>
@@ -5081,6 +5174,15 @@
   </data>
   <data name="s66a0dfe68bb01099a9c91698" xml:space="preserve">
     <value>Recorded result</value>
+  </data>
+  <data name="s3eb24707ffe5d10f63f49f61" xml:space="preserve">
+    <value>Records removed</value>
+  </data>
+  <data name="s91840ab086dae44046462516" xml:space="preserve">
+    <value>Recovery dependency</value>
+  </data>
+  <data name="s3f81a585071278e39b76b868" xml:space="preserve">
+    <value>Recovery file lists</value>
   </data>
   <data name="s9372b5901c15a4649fc8f716" xml:space="preserve">
     <value>Redis Insight caches</value>
@@ -5274,6 +5376,9 @@
   <data name="s2a64df82cdaad5511bea0259" xml:space="preserve">
     <value>Retained</value>
   </data>
+  <data name="s65b687bcd8c48676a0d36fad" xml:space="preserve">
+    <value>Retention reasons can overlap. Recovery and active plans remain protected.</value>
+  </data>
   <data name="s942087cc2d41e01304b71955" xml:space="preserve">
     <value>Retry</value>
   </data>
@@ -5385,6 +5490,9 @@
   <data name="s77acdaf440bd046ee3c38be4" xml:space="preserve">
     <value>Review Updated Configuration</value>
   </data>
+  <data name="sd4ea61c79c9b77d6815ffb18" xml:space="preserve">
+    <value>Review again</value>
+  </data>
   <data name="sffd511a9b027311b25ae9536" xml:space="preserve">
     <value>Review an app and its associated files before moving them to Trash.</value>
   </data>
@@ -5433,11 +5541,17 @@
   <data name="s04f40e339c574e7a617c50a3" xml:space="preserve">
     <value>Review globally configured developer tools without changing project versions.</value>
   </data>
+  <data name="sdd3337c574051a86cadf6341" xml:space="preserve">
+    <value>Review independent cleanup batches in Shou.</value>
+  </data>
   <data name="sd4377e73b83e04bb27771e0a" xml:space="preserve">
     <value>Review installed Formula and Cask packages, compare versions, then choose what to upgrade.</value>
   </data>
   <data name="s66b31cd3b09a2a4846c9890d" xml:space="preserve">
     <value>Review large files and old scan indexes, then rescan after freeing space.</value>
+  </data>
+  <data name="sb9ae791f175834411c0d7ea3" xml:space="preserve">
+    <value>Review largest items</value>
   </data>
   <data name="s20a70822946594d2991342d5" xml:space="preserve">
     <value>Review leftovers again before cleaning.</value>
@@ -5450,6 +5564,9 @@
   </data>
   <data name="s8b14074fe369c19d991cae1f" xml:space="preserve">
     <value>Review required agreements in the official package manager before updating here.</value>
+  </data>
+  <data name="sa410d70156a3a04c15d019bc" xml:space="preserve">
+    <value>Review status</value>
   </data>
   <data name="s2a55683c78691759fb748d98" xml:space="preserve">
     <value>Review the categories below, or use the recommended selection.</value>
@@ -5496,6 +5613,9 @@
   <data name="sa86d576b79142eba6ed88a41" xml:space="preserve">
     <value>Reviewable estimate</value>
   </data>
+  <data name="sfb75c4ad8cfaebdefa293ab1" xml:space="preserve">
+    <value>Reviewable records</value>
+  </data>
   <data name="s07c77fd91ee9c1726594e800" xml:space="preserve">
     <value>Reviewing application components…</value>
   </data>
@@ -5534,6 +5654,9 @@
   </data>
   <data name="s337b14755089f01509c977ae" xml:space="preserve">
     <value>Rule Versions and Locations</value>
+  </data>
+  <data name="sb2fa8cbefbdfa3c98731ce08" xml:space="preserve">
+    <value>Rule authoring</value>
   </data>
   <data name="sd205d4db914351ae5a6c3636" xml:space="preserve">
     <value>Rule changed; preview again before saving.</value>
@@ -5594,6 +5717,9 @@
   </data>
   <data name="s12d7e9a9e539d765cc6e9369" xml:space="preserve">
     <value>Rust build outputs</value>
+  </data>
+  <data name="sff8b86c4b4ef788cda2c40f7" xml:space="preserve">
+    <value>Rust offline documentation</value>
   </data>
   <data name="s9007989af13cfccbc26e49cf" xml:space="preserve">
     <value>SQL backups written. Restore has not been tested.</value>
@@ -5789,6 +5915,9 @@
   </data>
   <data name="s4d20593fc457afab16516d9b" xml:space="preserve">
     <value>Scan first. Review before anything is removed.</value>
+  </data>
+  <data name="s5a8cbdf8b9ef63fead124033" xml:space="preserve">
+    <value>Scan indexes, plans and recovery dependencies are reviewed separately from your files.</value>
   </data>
   <data name="s35807dd57f6d0f259b0f3431" xml:space="preserve">
     <value>Scan is incomplete. Cleanup is unavailable; you can still explore measured space.</value>
@@ -6060,6 +6189,9 @@
   <data name="s57fd7a0cf33f2666eede69e4" xml:space="preserve">
     <value>Selected</value>
   </data>
+  <data name="s234b13ace117589c04aa8fdd" xml:space="preserve">
+    <value>Selected (estimate)</value>
+  </data>
   <data name="s5282570a8cecad0e2917de37" xml:space="preserve">
     <value>Selected File</value>
   </data>
@@ -6249,6 +6381,12 @@
   <data name="s8d424305fa272908b4273bb9" xml:space="preserve">
     <value>Shou is installed in Applications. Updates keep the same location.</value>
   </data>
+  <data name="sf3da357bb85718b53a53fd71" xml:space="preserve">
+    <value>Shou storage</value>
+  </data>
+  <data name="s6712e53de09b11231a69296a" xml:space="preserve">
+    <value>Shou storage…</value>
+  </data>
   <data name="sba8a80fdd7376631dea931d6" xml:space="preserve">
     <value>Show More</value>
   </data>
@@ -6330,11 +6468,23 @@
   <data name="s803eb25e504527e960baab76" xml:space="preserve">
     <value>Sketch caches</value>
   </data>
+  <data name="s6df1bb18a59ab97df82e307b" xml:space="preserve">
+    <value>Skill</value>
+  </data>
   <data name="s1ab1512729abf8ed5f149e80" xml:space="preserve">
     <value>Skill ZIP exported. Upload it in WorkBuddy to finish installation.</value>
   </data>
+  <data name="sac3341a03b63a14b6b9178ac" xml:space="preserve">
+    <value>Skill exported</value>
+  </data>
   <data name="se2b03281c992446aa4919f48" xml:space="preserve">
     <value>Skill installation cannot write through symbolic links.</value>
+  </data>
+  <data name="sc21cc3a5f83571479a7c58ea" xml:space="preserve">
+    <value>Skill installation failed. Existing files were preserved.</value>
+  </data>
+  <data name="s048f89247b20d3b195b099d0" xml:space="preserve">
+    <value>Skill installed</value>
   </data>
   <data name="s366e5d8f5a433b80d1fd7a7d" xml:space="preserve">
     <value>Skill installed. Open your agent to use it.</value>
@@ -6521,6 +6671,15 @@
   </data>
   <data name="s232b3656cd4a488fb5d3d98a" xml:space="preserve">
     <value>Space by Directory</value>
+  </data>
+  <data name="s1b9922f7b5fa37b2cab0dc3b" xml:space="preserve">
+    <value>Space cleanup plans</value>
+  </data>
+  <data name="sd41ba4ef48412e56fd2f255b" xml:space="preserve">
+    <value>Space indexes</value>
+  </data>
+  <data name="s1d6da752d7a2ba83e1ed17af" xml:space="preserve">
+    <value>Space scans</value>
   </data>
   <data name="s4d45f1ae8aa1ddbd7ef697d2" xml:space="preserve">
     <value>Space usage does not mean this folder is disposable. Add a reviewed rule if you know how its contents can be rebuilt.</value>
@@ -7668,6 +7827,9 @@
   <data name="s44945c30a645e0153c0f3c35" xml:space="preserve">
     <value>Top CPU processes</value>
   </data>
+  <data name="sc9b3c38247f744e17dd26fda" xml:space="preserve">
+    <value>Total</value>
+  </data>
   <data name="s5fe2d46b260a32e3a5ce50a4" xml:space="preserve">
     <value>Total machine capacity</value>
   </data>
@@ -8013,6 +8175,9 @@
   <data name="s1e46410c64bb72fa53e4e969" xml:space="preserve">
     <value>Vivaldi download caches</value>
   </data>
+  <data name="sdc1149ce68b52079c30c9469" xml:space="preserve">
+    <value>Volume available change</value>
+  </data>
   <data name="sf8a5c8d87f6ba89cef0a8993" xml:space="preserve">
     <value>WPS Office caches</value>
   </data>
@@ -8067,6 +8232,9 @@
   <data name="s4e17656a62b95a61b72e5d25" xml:space="preserve">
     <value>WhatsApp caches</value>
   </data>
+  <data name="s9a1c3323856fb71a58c59d48" xml:space="preserve">
+    <value>Why records are kept</value>
+  </data>
   <data name="s4c9a003594d709067bf85f8a" xml:space="preserve">
     <value>WinGet inventory could not be read.</value>
   </data>
@@ -8090,6 +8258,9 @@
   </data>
   <data name="s0d10580b34985347fd4abd74" xml:space="preserve">
     <value>Windows service control requires native acceptance. Current status is read-only.</value>
+  </data>
+  <data name="s9468721eba7d5069898b9a3e" xml:space="preserve">
+    <value>Within retention policy</value>
   </data>
   <data name="sc6f654a29ae4697d3d7241c7" xml:space="preserve">
     <value>WorkBuddy caches</value>

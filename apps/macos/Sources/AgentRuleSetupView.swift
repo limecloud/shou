@@ -11,38 +11,60 @@ struct AgentRuleSetupView: View {
     @State private var copied = false
     @State private var issue: String?
     @State private var client = "codex"
+    @State private var selectedSkill = ShouAgentSkill.cleanupName
     @State private var installation: AgentSkillInstallation.Result?
     @State private var exported = false
 
     private var prompt: String {
-        let skill = (try? ShouAgentSkill.directory().appendingPathComponent("SKILL.md").path) ?? ""
+        let skill = (try? ShouAgentSkill.directory(name: selectedSkill).appendingPathComponent("SKILL.md").path) ?? ""
         let executable = Bundle.main.bundleURL.pathExtension == "app"
             ? Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/shou").path
             : Bundle.main.executableURL!.deletingLastPathComponent().appendingPathComponent("shou").path
+        let request=contextPath ?? (model.language == .simplifiedChinese ? "当前电脑主要磁盘占用" : "the largest disk consumers on this computer")
+        let invocation=(client == "claude-code" ? "/" : "$") + selectedSkill
+        if selectedSkill == ShouAgentSkill.name {
+            return model.language == .simplifiedChinese ? """
+            请阅读本地 Shou Skill：\(skill)
+            使用 Shou CLI：\(executable)
+            使用 \(invocation)，针对 \(request) 调查可重建产物与保留条件，复用现有规则，必要时验证、导入并预览禁用草稿。
+            只追问证据无法确定的用途；不要启用规则或执行删除。
+            """ : """
+            Read the local Shou Skill: \(skill)
+            Use this Shou CLI: \(executable)
+            Use \(invocation) to investigate \(request), rebuild requirements and retention. Reuse existing rules or validate, import and preview disabled drafts.
+            Ask only unresolved purpose questions. Do not enable rules or execute cleanup.
+            """
+        }
         if model.language == .simplifiedChinese {
             return """
             请阅读本地 Shou Skill：\(skill)
             使用 Shou CLI：\(executable)
-            \(contextPath.map { "请分析这个目录并制定规则：" + $0 } ?? "先查看常用位置、开发项目和现有规则，再定位尚未覆盖的占用大头。")
-
-            请按 Skill 认真分析主要占用，沿大目录调查到具体用途，不要只清小缓存。按用途、重建代价和保留条件拆分可独立选择的规则，每条分别校验、导入为禁用草稿并预览，说明命中、保护项和新增收益。对不能处理的大项说明未知点与下一步。只追问证据不能回答的用途、活跃项目与保留要求。预览后由我逐条决定；回到 Shou“规则 → 审阅并清理…”启用并扫描所选规则，再确认实际删除。已有明确授权可继续，未有回执不得称已清理；执行后核验逐项结果与剩余占用。
+            使用 \(invocation) 调查：\(request)。
+            先发现当前平台实际能力，复用扫描，按大项说明用途、大小、活跃情况、重建代价和保留条件。
+            将建议清理、需要判断、受保护和本次保留分开，逐批让我选择。现有授权按范围继续；新增目标另列，不继承历史删除确认。
+            通过 Shou 当前计划与确认执行，未支持或门禁关闭的操作交回产品，不用 Shell 绕过。核对逐项回执、保留对象和宿主空间变化；没有回执不得称已清理。
             """
         }
         return """
         Read the local Shou Skill: \(skill)
         Use this Shou CLI: \(executable)
-        \(contextPath.map { "Investigate this directory to author a rule: " + $0 } ?? "Inspect common locations, developer projects and existing rules, then find large areas not yet covered.")
-
-        Follow the Skill to investigate the largest consumers to their actual purpose, including unresolved large areas and next diagnostics. Split independently selectable rules by purpose, rebuild cost and retention. Validate, import disabled and preview each; explain matches, protections and additional benefit. Ask only what evidence cannot resolve. Let me choose each rule, then return to Shou Rules → Review & Clean… → Enable & Scan This Rule and confirm actual deletion. Reuse explicit authorization, never claim cleanup without a receipt, and verify per-item outcomes and remaining space afterwards.
+        Use \(invocation) to investigate \(request).
+        Discover current platform capabilities and reuse scan evidence. Explain purpose, size, activity, rebuild cost and retention for the largest consumers.
+        Separate recommendations, decisions, protected and kept items. Let me select independent batches; reuse explicit scope only.
+        Execute through Shou plans and current confirmation. Hand unsupported or gated actions back without Shell bypass. Verify receipts, retained objects and host space change; do not claim cleanup without a receipt.
         """
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Label(model.t("Customize with AI"), systemImage: "sparkles").font(ShouType.title.bold())
-            Text(model.t("Tell your coding agent what to clean. It asks the right questions and writes the rules for you."))
+            Text(model.t("Install an assistant for investigating disk usage or authoring reusable cleanup rules."))
                 .foregroundStyle(ShouPalette.secondary)
             VStack(alignment: .leading, spacing: 10) {
+                Picker(model.t("Skill"), selection: $selectedSkill) {
+                    Text(model.t("Cleanup assistant")).tag(ShouAgentSkill.cleanupName)
+                    Text(model.t("Rule authoring")).tag(ShouAgentSkill.name)
+                }.pickerStyle(.segmented).accessibilityIdentifier("rules.agent.skill")
                 HStack {
                     Picker(model.t("Your AI Agent"), selection: $client) {
                         Text("Codex").tag("codex")
@@ -54,9 +76,9 @@ struct AgentRuleSetupView: View {
                         .accessibilityIdentifier("rules.agent.install")
                 }
                 if let selected = AgentSkillInstallation.Client(rawValue: client) {
-                    Text(selected.skillsDirectory().appendingPathComponent(ShouAgentSkill.name).path)
+                    Text(selected.skillsDirectory().appendingPathComponent(selectedSkill).path)
                         .font(ShouType.caption.monospaced()).foregroundStyle(ShouPalette.secondary).textSelection(.enabled)
-                    Text(model.t(client == "codex" ? "After installation, use $shou-rule-authoring in Codex. Restart Codex if it does not appear." : "After installation, use /shou-rule-authoring in a local Claude Code session."))
+                    Text((client == "codex" ? "$" : "/") + selectedSkill)
                         .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
                 } else {
                     Text(model.t("In WorkBuddy, open Skills → Add Skill → Upload Skill, select the ZIP, enable it, and start a new task."))
@@ -72,8 +94,8 @@ struct AgentRuleSetupView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Label(model.t("1. Copy the request to Codex, Claude Code, or WorkBuddy."), systemImage: "doc.on.doc")
                 Label(model.t("2. Answer questions about your projects and what to keep."), systemImage: "text.bubble")
-                Label(model.t("3. Review the draft in Shou, then enable it when ready."), systemImage: "checkmark.circle")
-                Label(model.t("4. Clean selected rules, then verify the result and retained items."), systemImage: "checkmark.seal")
+                Label(model.t("3. Review independent cleanup batches in Shou."), systemImage: "checkmark.circle")
+                Label(model.t("4. Clean selected items, then verify the result and retained items."), systemImage: "checkmark.seal")
             }.font(ShouType.body)
             ScrollView {
                 Text(prompt).font(ShouType.body.monospaced()).textSelection(.enabled)
@@ -87,7 +109,7 @@ struct AgentRuleSetupView: View {
             if let issue { Text(issue).font(ShouType.caption).foregroundStyle(ShouPalette.danger) }
             HStack {
                 Button(model.t("Show Skill in Finder…")) {
-                    do { NSWorkspace.shared.activateFileViewerSelecting([try ShouAgentSkill.directory().appendingPathComponent("SKILL.md")]) }
+                    do { NSWorkspace.shared.activateFileViewerSelecting([try ShouAgentSkill.directory(name: selectedSkill).appendingPathComponent("SKILL.md")]) }
                     catch { issue = error.localizedDescription }
                 }.accessibilityIdentifier("rules.agent.reveal")
                 Spacer()
@@ -100,6 +122,7 @@ struct AgentRuleSetupView: View {
                 .accessibilityIdentifier("rules.agent.copy")
             }
         }.padding(24).frame(width: 740, height: 520)
+            .onChange(of: selectedSkill) { _, _ in installation=nil; exported=false; issue=nil; copied=false }
             .onChange(of: client) { _, _ in installation = nil; exported = false; issue = nil }
     }
 
@@ -107,13 +130,13 @@ struct AgentRuleSetupView: View {
         issue = nil
         do {
             if let selected = AgentSkillInstallation.Client(rawValue: client) {
-                installation = try AgentSkillInstallation.install(client: selected)
+                installation = try AgentSkillInstallation.install(client: selected, skill: selectedSkill)
             } else {
                 let panel = NSSavePanel()
                 panel.allowedContentTypes = [.zip]
-                panel.nameFieldStringValue = ShouAgentSkill.name + ".zip"
+                panel.nameFieldStringValue = selectedSkill + ".zip"
                 guard panel.runModal() == .OK, let url = panel.url else { return }
-                try AgentSkillInstallation.exportArchive(to: url)
+                try AgentSkillInstallation.exportArchive(to: url, skill: selectedSkill)
                 exported = true
             }
         } catch { issue = model.t(error.localizedDescription) }

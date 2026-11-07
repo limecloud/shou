@@ -12,6 +12,7 @@ private final class ToolFixtureRunner: CleanupToolRunning, @unchecked Sendable {
     var platform: CleanupToolPlatform = .macOS
     var replaceBeforeMutation=false
     var onPreview: (@Sendable () -> Void)?
+    var includeRustDocs=false
     var mutationCount: Int { lock.lock(); defer { lock.unlock() }; return mutations.count }
     func run(_ command: CleanupToolCommand, timeoutSeconds: Double, expectedExecutableIdentity: String? = nil) throws -> CleanupToolOutput {
         lock.lock(); defer { lock.unlock() }
@@ -31,10 +32,23 @@ private final class ToolFixtureRunner: CleanupToolRunning, @unchecked Sendable {
         case .rustList: text="stable-aarch64-apple-darwin (active, default) /fixture/stable\nnightly-aarch64-apple-darwin /fixture/nightly\n" + (removed.contains("rustup") ? "" : "1.75.0-aarch64-apple-darwin /fixture/old\n")
         case .rustOverrides: text="/fixture/pinned\tnightly-aarch64-apple-darwin\n"
         case .rustDefault: text="stable-aarch64-apple-darwin (default)"
+        case .rustComponents: text=includeRustDocs && !removed.contains("rustup") ? "rust-docs-aarch64-apple-darwin\nrustc-aarch64-apple-darwin\n" : "rustc-aarch64-apple-darwin\n"
         default: text="done"
         }
         return .init(text: text, executableIdentity: "generated-" + command.tool)
     }
+}
+
+func toolCleanupRemovesOnlySelectedRustDocumentation() async throws {
+    let fixture=try Fixture(), runner=ToolFixtureRunner(); runner.includeRustDocs=true
+    let service=ToolCleanupService(runner: runner, store: fixture.store)
+    let scan=try await service.scan()
+    let docs=try require(scan.targets.first { $0.component == "rust-docs" && $0.toolchain?.hasPrefix("stable") == true })
+    let plan=try await service.createPlan(scanId: scan.id, targetId: docs.id)
+    let result=try await service.execute(planId: plan.id, confirmedDigest: plan.digest)
+    try expect(result.state == "completed" && runner.mutationCount == 1)
+    try expect(CleanupToolCommand.rustRemoveDocs(docs.toolchain!).arguments == ["component","remove","rust-docs","--toolchain",docs.toolchain!])
+    try expect(try await service.scan().targets.allSatisfy { $0.component == nil })
 }
 
 func toolCleanupUsesFixedOwnerOperationsAndVerifiesOutcomes() async throws {

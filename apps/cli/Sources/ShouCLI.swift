@@ -93,10 +93,10 @@ let commands: [CommandSpec] = [
     .init("diagnostics", "read", [], [], "Collect a sanitized, metadata-only report of disk capacity, access and local-record directory safety. Never opens or creates the record store, changes permissions or uploads data."),
     .init("capabilities", "read", [], ["command"], "Discover operations, inputs, limits, and platform capabilities without opening storage. Command optionally selects one command or group."),
     .init("agent skill", "read", [], [], "Read the bundled rule-authoring skill and its local entrypoint. External agents use it to ask questions, inspect evidence, and preview custom rules; no model or agent is started."),
-    .init("skills list", "read", [], [], "List the bundled rule-authoring skill and supporting files; no record-store access."),
-    .init("skills read", "read", [], ["file"], "Read bundled instructions; file is SKILL.md (default), references/questionnaire.md, or agents/openai.yaml."),
-    .init("skills install", "configuration", ["agent"], ["directory"], "Install the bundled Skill for codex or claude-code. Directory overrides the parent skills folder; default is the client's user skills folder. Preserve local edits; back up managed updates."),
-    .init("skills export", "configuration", ["output"], [], "Export the whole Skill as a ZIP for WorkBuddy's Add Skill > Upload Skill. Never overwrite an existing output file."),
+    .init("skills list", "read", [], [], "List bundled cleanup-assistant and rule-authoring Skills and their files; no record-store access."),
+    .init("skills read", "read", [], ["file", "skill"], "Read bundled instructions; file is SKILL.md (default), references/questionnaire.md, or agents/openai.yaml."),
+    .init("skills install", "configuration", ["agent"], ["directory", "skill"], "Install the bundled Skill for codex or claude-code. Directory overrides the parent skills folder; default is the client's user skills folder. Preserve local edits; back up managed updates."),
+    .init("skills export", "configuration", ["output"], ["skill"], "Export the whole Skill as a ZIP for WorkBuddy's Add Skill > Upload Skill. Never overwrite an existing output file."),
     .init("locations list", "read", [], [], "List built-in application and developer cache roots, their existence, and scoped rules; does not scan or grant access."),
     .init("startup list", "read", [], ["include-system"], "Read bounded macOS launchd definitions; include-system adds machine sources (true/false, default false). Report configured/runtime states and explicit unknowns without changing settings. macOS Login Items and background registrations remain in System Settings."),
     .init("startup control", "configuration", ["path", "action"], [], "Enable or disable one current-user LaunchAgent on macOS. Rechecks the exact definition and identity before mutation and verifies the result. Action is enable or disable; other sources use system management."),
@@ -155,8 +155,8 @@ let commands: [CommandSpec] = [
     .init("plan execute", "destructive", ["plan-id"], [], "Execute the current Trash or permanent plan after terminal confirmation."),
     .init("history list", "read", [], [], "List execution receipts."),
     .init("history summaries", "read", [], ["offset", "limit"], "Page through lightweight execution summaries without filesystem manifests. Use history show for full evidence."),
-    .init("records preview", "read", [], [], "Preview automatic expiry/quota cleanup of derived Shou scans and plans. Recovery journals and user files are retained."),
-    .init("records collect", "configuration", [], [], "Collect expired or over-quota derived Shou records under the mutation lease. Preserves active plans, recent scans and recovery journals."),
+    .init("records preview", "read", [], ["keep-latest"], "Preview automatic expiry/quota cleanup of derived Shou scans and plans. Recovery journals and user files are retained."),
+    .init("records collect", "configuration", [], ["keep-latest"], "Collect expired or over-quota derived Shou records under the mutation lease. Preserves active plans, recent scans and recovery journals."),
     .init("tools scan", "snapshot", [], [], "Preview local Docker build cache, Conda caches and non-current Rust toolchains with fixed owner-tool operations; Homebrew cleanup is macOS-only."),
     .init("tools plan", "plan", ["scan-id", "target-id"], [], "Create a short-lived plan for one explicit tool-managed target. Preview includes rebuild and environment impact."),
     .init("tools execute", "destructive", ["plan-id"], [], "Confirm permanent owner-tool cleanup; no arbitrary shell commands or remote Docker context. Outcomes enter tool history."),
@@ -197,10 +197,11 @@ struct Arguments {
         command=words.joined(separator: " ")
         if words.starts(with: ["skills", "read"]), words.count > 2 {
             let target=words[2].split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
-            guard (3...4).contains(words.count), target.first.map(String.init) == ShouAgentSkill.name,
-                  target.count == 1 || words.count == 3, values["file"] == nil else {
+            guard (3...4).contains(words.count), target.first.map(String.init).map(ShouAgentSkill.names.contains) == true,
+                  target.count == 1 || words.count == 3, values["file"] == nil, values["skill"] == nil else {
                 throw ShouError("invalid_argument", "Use skills read shou-rule-authoring [relative-file], or skills read --file <relative-file>.")
             }
+            values["skill"]=[String(target[0])]
             if target.count == 2 { values["file"]=[String(target[1])] }
             else if words.count == 4 { values["file"]=[words[3]] }
             command="skills read"
@@ -251,7 +252,7 @@ enum Terminal {
 }
 
 @main enum ShouCLI {
-    static let version = "0.22.0"
+    static let version = "0.23.0"
     static func main() async {
         if let status=await NativeSystemAuthorizationWorker.runIfRequested(Array(CommandLine.arguments.dropFirst())) { Foundation.exit(status) }
         #if canImport(Darwin) || canImport(Glibc)
@@ -333,23 +334,25 @@ enum Terminal {
             }
             if args.command.hasPrefix("skills ") {
                 let value: JSONValue
+                let skill=args.values["skill"]?.first ?? ShouAgentSkill.name
+                guard ShouAgentSkill.names.contains(skill) else { throw ShouError("invalid_argument", "Unknown bundled Skill.") }
                 switch args.command {
                 case "skills list":
-                    value = .array([.object(["name": .string(ShouAgentSkill.name), "files": try .from(ShouAgentSkill.files)])])
+                    value = .array(try ShouAgentSkill.names.map { .object(["name": .string($0), "files": try .from(ShouAgentSkill.files(for: $0))]) })
                 case "skills read":
                     let file = args.values["file"]?.first ?? "SKILL.md"
-                    guard ShouAgentSkill.files.contains(file) else { throw ShouError("invalid_argument", "Unknown bundled Skill file.", details: ["file": file]) }
-                    let content = try ShouAgentSkill.read(file: file)
+                    guard try ShouAgentSkill.files(for: skill).contains(file) else { throw ShouError("invalid_argument", "Unknown bundled Skill file.", details: ["file": file]) }
+                    let content = try ShouAgentSkill.read(file: file, name: skill)
                     if !args.json { print(content, terminator: ""); return }
-                    value = .object(["name": .string(ShouAgentSkill.name), "file": .string(file), "content": .string(content)])
+                    value = .object(["name": .string(skill), "file": .string(file), "content": .string(content)])
                 case "skills install":
                     guard let client = AgentSkillInstallation.Client(rawValue: args.value("agent")) else { throw ShouError("invalid_argument", "Choose agent codex or claude-code. Export a ZIP and use Upload Skill for WorkBuddy.") }
                     let directory = args.values["directory"]?.first.map { URL(fileURLWithPath: $0) }
-                    value = try .from(AgentSkillInstallation.install(client: client, skillsDirectory: directory))
+                    value = try .from(AgentSkillInstallation.install(client: client, skillsDirectory: directory, skill: skill))
                 case "skills export":
                     let output = URL(fileURLWithPath: args.value("output"))
-                    try AgentSkillInstallation.exportArchive(to: output)
-                    value = .object(["name": .string(ShouAgentSkill.name), "path": .string(output.path), "state": .string("exported")])
+                    try AgentSkillInstallation.exportArchive(to: output, skill: skill)
+                    value = .object(["name": .string(skill), "path": .string(output.path), "state": .string("exported")])
                 default: throw ShouError("invalid_argument", "Unknown Skill operation.")
                 }
                 try result(value, json: args.json)
@@ -618,8 +621,15 @@ enum Terminal {
             case "history summaries":
                 guard let offset=Int(args.values["offset"]?.first ?? "0"), let limit=Int(args.values["limit"]?.first ?? "50") else { throw ShouError("invalid_argument", "Invalid history page.") }
                 value=try .from(await engine.historySummaries(offset: offset, limit: limit))
-            case "records preview": value=try .from(await engine.recordRetentionPreview())
-            case "records collect": value=try .from(await engine.collectRecords())
+            case "records preview", "records collect":
+                let keep=args.values["keep-latest"]?.first ?? "true"
+                guard ["true","false"].contains(keep) else { throw ShouError("invalid_argument", "Keep-latest must be true or false.") }
+                let policy=RecordRetentionPolicy(keepLatestScans: keep == "true")
+                let preview=try await engine.recordRetentionPreview(policy: policy)
+                if args.command == "records collect" {
+                    if keep == "false" { try Terminal.confirm(preview, phrase: "CLEAR RECORDS", locale: args.locale) }
+                    value=try .from(await engine.collectRecords(policy: policy, reviewedRecords: preview.records))
+                } else { value=try .from(preview) }
             case "tools scan", "tools plan", "tools execute", "tools history":
                 let service=ToolCleanupService(runner: NativeCleanupTools(), store: try LocalRecordStore())
                 switch args.command {

@@ -120,6 +120,16 @@ def resources():
     developer_catalog = 'packages/shou-core/Sources/Resources/developer-tools.json'
     inputs.append(developer_catalog)
     outputs['developer-tools.json'] = (ROOT / developer_catalog).read_bytes()
+    # The same authored files ship on both platforms; no platform-specific Skill copy.
+    skills = {}
+    for name in ['shou-rule-authoring', 'shou-cleanup-assistant']:
+        directory = ROOT / 'skills' / name
+        skills[name] = {}
+        for source in sorted(directory.rglob('*')):
+            if source.is_file():
+                inputs.append(source.relative_to(ROOT).as_posix())
+                skills[name][source.relative_to(directory).as_posix()] = source.read_text(encoding='utf-8')
+    outputs['agent-skills.json'] = json_bytes(skills)
 
     outputs['Design.xaml'] = design_tokens.xaml(design_tokens.load())
     # ICO embeds the canonical PNG bytes, preserving the macOS brand artwork.

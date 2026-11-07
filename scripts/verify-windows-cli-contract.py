@@ -72,6 +72,20 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
             driver.write_text("param([string]$CompletionFile)\n. $CompletionFile\n$result = TabExpansion2 'shou analysis c' 15\nif ($result.CompletionMatches.CompletionText -notcontains 'compare') { throw 'Missing comparison completion' }\n$result = TabExpansion2 'shou --locale ' 14\nif ($result.CompletionMatches.CompletionText -notcontains 'zh-CN') { throw 'Missing locale completion' }\n", encoding='utf-8')
             completed = subprocess.run([shutil.which('pwsh'), '-NoProfile', '-NonInteractive', '-File', str(driver), str(destination)], capture_output=True, text=True, timeout=20)
             assert completed.returncode == 0, (completed.stdout, completed.stderr)
+    skills = run(['skills', 'list', '--json'])['data']
+    assert {entry['name'] for entry in skills} == {'shou-cleanup-assistant', 'shou-rule-authoring'}
+    for skill in skills:
+        for file in skill['files']:
+            content = run(['skills', 'read', '--skill', skill['name'], '--file', file, '--json'])['data']['content']
+            assert content == (ROOT / 'skills' / skill['name'] / file).read_text(encoding='utf-8')
+        positional = run(['skills', 'read', skill['name'], '--json'])['data']['content']
+        assert positional == (ROOT / 'skills' / skill['name'] / 'SKILL.md').read_text(encoding='utf-8')
+    export_root = Path(directory).resolve()
+    archive = export_root / 'cleanup-skill.zip'
+    run(['skills', 'export', '--skill', 'shou-cleanup-assistant', '--output', str(archive), '--json'])
+    import zipfile
+    with zipfile.ZipFile(archive) as zipped:
+        assert set(zipped.namelist()) == {'shou-cleanup-assistant/' + file for file in next(entry for entry in skills if entry['name'] == 'shou-cleanup-assistant')['files']}
     assert not data_directory.exists()
 
     import xml.etree.ElementTree as ET
@@ -86,23 +100,23 @@ with tempfile.TemporaryDirectory(prefix='shou-dotnet-cli-contract-') as director
     assert capabilities['application_uninstall_available'] is False
     assert capabilities['startup_control_available'] is False
     assert capabilities['trash_available'] is False
-    read_commands = {'applications updates source', 'diagnostics', 'completion', 'capabilities', 'rules schema', 'rules catalog', 'system locations', 'rules validate', 'analysis history', 'analysis compare', 'applications summary', 'applications inspect', 'applications plan show', 'applications execution show', 'startup list', 'startup inspect', 'startup execution show',
+    read_commands = {'records preview', 'skills list', 'skills read', 'applications updates source', 'diagnostics', 'completion', 'capabilities', 'rules schema', 'rules catalog', 'system locations', 'rules validate', 'analysis history', 'analysis compare', 'applications summary', 'applications inspect', 'applications plan show', 'applications execution show', 'startup list', 'startup inspect', 'startup execution show',
                      'workspaces list', 'workspaces show', 'exclusions list',
                      'rules list', 'rules show', 'rules export', 'scan results',
                      'plan show', 'history list', 'history show', 'history inspect', 'privacy scan show'}
-    configuration_commands = {'workspaces add', 'workspaces remove', 'workspaces exclude add', 'workspaces exclude remove',
+    configuration_commands = {'skills install', 'skills export', 'workspaces add', 'workspaces remove', 'workspaces exclude add', 'workspaces exclude remove',
                               'exclusions global add', 'exclusions global remove', 'rules import', 'rules enable', 'rules disable'}
     snapshot_commands = {'analysis scan', 'scan', 'rules preview', 'system scan', 'privacy scan'}
     plan_commands = {'plan create', 'applications plan'}
-    destructive_commands = {'plan execute', 'applications uninstall', 'startup control'}
+    destructive_commands = {'records collect', 'plan execute', 'applications uninstall', 'startup control'}
     network_commands = {'applications updates check'}
     all_commands = network_commands | read_commands | configuration_commands | snapshot_commands | plan_commands | destructive_commands
     assert {item['command'] for item in capabilities['commands']} == all_commands
     for command in capabilities['commands']:
         expected = 'network' if command['command'] in network_commands else 'read' if command['command'] in read_commands else 'configuration' if command['command'] in configuration_commands else 'snapshot' if command['command'] in snapshot_commands else 'plan' if command['command'] in plan_commands else 'destructive'
         assert command['side_effect'] == expected
-        assert command['available'] == (command['command'] not in destructive_commands)
-        if command['command'] in destructive_commands:
+        assert command['available'] == (command['command'] not in {'plan execute', 'applications uninstall', 'startup control'})
+        if not command['available']:
             assert command['unavailable_reason'] == 'native_acceptance_pending'
     assert all({'required', 'optional', 'repeated', 'description'} <= item.keys() for item in capabilities['commands'])
     focused = run(['capabilities', '--command', 'rules', '--json'])['data']['commands']

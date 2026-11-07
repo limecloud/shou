@@ -5,6 +5,9 @@ namespace Shou.Windows.Platform;
 
 internal static partial class NativeMethods
 {
+    [LibraryImport("kernel32.dll", EntryPoint="GetDiskFreeSpaceExW", StringMarshalling=StringMarshalling.Utf16, SetLastError=true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool GetDiskFreeSpace(string directory, out ulong available, out ulong total, out ulong free);
     internal const uint ReadData = 1;
     internal const uint ReadAttributes = 0x80;
     internal const uint ReadControl = 0x20000;

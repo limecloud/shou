@@ -38,6 +38,7 @@ public sealed partial class SettingsPage : UserControl
         LocationsButton.Content = text.Get("View…"); ExclusionsButton.Content = text.Get("Manage…");
         LocalDataTitle.Text = text.Get("Local data");
         OpenDataButton.Content = text.Get("Open Folder…");
+        RecordsButton.Content = text.Get("Shou storage…");
         SupportHeading.Text = text.Get("Support");
         DiagnosticsTitle.Text = text.Get("Diagnostics");
         DiagnosticsDescription.Visibility = Visibility.Collapsed;
@@ -54,6 +55,7 @@ public sealed partial class SettingsPage : UserControl
         catch (Exception error) { NativeDiagnostics.Write(error); LocalDataDescription.Text = text.Get("Local data"); OpenDataButton.IsEnabled = false; }
         AiHeading.Text = text.Get("AI Investigation"); AiTitle.Text = text.Get("Enable AI Investigation");
         AiNotice.Text = text.Get("AI investigation is not available in this Windows preview."); AutomationProperties.SetName(AiToggle, AiTitle.Text);
+        SkillsButton.Content = text.Get("External AI Tools…");
         foreach (var (host, name) in new[] { (LanguageIcon, "language"), (ThemeIcon, "appearance"), (MotionIcon, "motion"), (AdministratorIcon, "privacy"), (LocationsIcon, "configuration"), (ExclusionsIcon, "privacy"), (LocalDataIcon, "drive"), (FeedbackIcon, "history"), (SourceIcon, "configuration") })
         {
             var icon = ProductIcon.Create(name, (double)Application.Current.Resources["ShouSettingsIconSize"]);
@@ -73,6 +75,8 @@ public sealed partial class SettingsPage : UserControl
         initialized = true;
     }
     private void ViewScanLocations(object sender, RoutedEventArgs args) => ScanLocationsRequested?.Invoke(this, EventArgs.Empty);
+    private async void OpenSkills(object sender, RoutedEventArgs args) => await new AgentSkillDialog(XamlRoot).ShowAsync();
+    private async void OpenRecords(object sender, RoutedEventArgs args) => await new RecordMaintenanceDialog(XamlRoot).ShowAsync();
     private async void CheckDesktopUpdate(object sender, RoutedEventArgs args)
     {
         UpdateButton.IsEnabled = false;

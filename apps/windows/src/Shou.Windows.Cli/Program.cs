@@ -77,6 +77,22 @@ internal static class Program
                     limitations = new[] { "Local NTFS/ReFS only", "Trash and restore are unavailable", "Rule previews do not grant execution" }
                 });
             if (request.Command == "rules schema") return Write(requestId, RuleResources.CreateValidator().ExportSchema());
+            if (request.Command == "skills list")
+                return Write(requestId, BundledAgentSkills.Names.Select(name => new { name, files = BundledAgentSkills.Files(name).Keys }));
+            if (request.Command == "skills read")
+            {
+                var skill = request.Optional("skill") ?? BundledAgentSkills.DefaultName;
+                var file = request.Optional("file") ?? "SKILL.md";
+                var content = BundledAgentSkills.Read(skill, file);
+                if (!json) { Console.Write(content); return 0; }
+                return Write(requestId, new { name = skill, file, content });
+            }
+            if (request.Command == "skills export")
+            {
+                var skill = request.Optional("skill") ?? BundledAgentSkills.DefaultName;
+                AgentSkillInstallation.Export(request.Required("output"), skill);
+                return Write(requestId, new { name = skill, output = request.Required("output"), state = "exported" });
+            }
             if (request.Command == "completion")
             {
                 var shell = request.Required("shell");
@@ -92,6 +108,20 @@ internal static class Program
                 return Write(requestId, catalog.Templates);
             }
             RequireWindows();
+            if (request.Command is "records preview" or "records collect")
+            {
+                var maintenance = new RecordRetentionService(WindowsRecordStore.ForCurrentUser(), RuleResources.CreateValidator());
+                var policy = new RecordRetentionPolicy(KeepLatestScans: request.Optional("keep-latest") != "false");
+                var preview = await maintenance.PreviewAsync(policy, cancelled.Token);
+                if (request.Command == "records preview") return Write(requestId, preview);
+                var message = JsonSerializer.Serialize(preview, ContractJson.Options) + Environment.NewLine +
+                    new TextCatalog(locale).Format("Review the exact scope above. Type %@ to confirm; any other input cancels.", "CLEAR RECORDS") + Environment.NewLine;
+                if (await WindowsConsolePrompt.ReadAsync(message, cancelled.Token) != "CLEAR RECORDS")
+                    throw new ShouException("confirmation_required", "The current record cleanup was not confirmed.");
+                return Write(requestId, await maintenance.CollectAsync(policy, preview.Records, cancelled.Token));
+            }
+            if (request.Command == "skills install")
+                return Write(requestId, AgentSkillInstallation.Install(request.Required("agent"), request.Optional("skill") ?? BundledAgentSkills.DefaultName, request.Optional("directory")));
             if (request.Command is "applications updates source" or "applications updates check")
             {
                 var checker = WindowsApplicationUpdateCatalog.CreateChecker();
@@ -197,7 +227,7 @@ internal static class Program
         try
         {
             RemoveFlag(arguments, "--json"); RemoveFlag(arguments, "--help"); RemoveOption(arguments, "--locale");
-            return arguments.FirstOrDefault() is "diagnostics" or "completion" || arguments.Take(2).SequenceEqual(["applications", "updates"]);
+            return arguments.FirstOrDefault() is "diagnostics" or "completion" or "skills" || arguments.Take(2).SequenceEqual(["applications", "updates"]);
         }
         catch (ShouException) { return false; }
     }

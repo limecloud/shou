@@ -9,6 +9,26 @@ namespace Shou.Windows.Platform.Tests;
 public sealed class WindowsRecordStoreTests
 {
     [WindowsFact]
+    public async Task DerivedCollectionRechecksNativeIdentityAndCannotDeleteConfiguration()
+    {
+        using var fixture = new NativeFixture();
+        var store = new WindowsRecordStore(WindowsPath.Parse(Path.Combine(fixture.Root, "Data")));
+        var key = "scan_" + new string('a', 32);
+        await using var lease = await store.AcquireLeaseAsync(default);
+        await lease.WriteAsync(key, new byte[] { 1 }, default);
+        await lease.WriteAsync("configuration", new byte[] { 2 }, default);
+        var records = await lease.InspectRecordsAsync(default);
+        var reviewed = records.Single(record => record.Key == key);
+        var configuration = records.Single(record => record.Key == "configuration");
+        Assert.Equal("invalid_argument", (await Assert.ThrowsAsync<ShouException>(() => lease.RemoveDerivedRecordAsync(configuration, default))).Code);
+        await lease.WriteAsync(key, new byte[] { 3, 4 }, default);
+        Assert.Equal("plan_stale", (await Assert.ThrowsAsync<ShouException>(() => lease.RemoveDerivedRecordAsync(reviewed, default))).Code);
+        var current = (await lease.InspectRecordsAsync(default)).Single(record => record.Key == key);
+        await lease.RemoveDerivedRecordAsync(current, default);
+        Assert.Null(await lease.ReadAsync(key, 1024, default));
+        Assert.Equal(new byte[] { 2 }, await lease.ReadAsync("configuration", 1024, default));
+    }
+    [WindowsFact]
     public async Task AsyncLeaseKeepsTheCrossProcessLockWithoutKeepingTheAcquisitionToken()
     {
         using var fixture = new NativeFixture();

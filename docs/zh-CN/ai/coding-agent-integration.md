@@ -6,6 +6,8 @@
 
 空间分析支持简洁／详细切换；两种视图的“复制给 AI”会把本次扫描 ID、范围、完整路径、占用与扩展名统计、覆盖说明、选中／已删除路径，以及本地 CLI／Skill 入口复制到剪贴板。用户直接粘贴给已有 Agent。此复制流程由用户交给外部 Agent；Agent 可以用 analysis context、analysis map 与分页 analysis children 复用同一扫描，再查询已有规则、问询用途并预览草稿。详细合同与验收见 [空间分析协作设计](../engineering/space-analysis-agent-design.md)。
 
+随包提供 [清理助手](../../../skills/shou-cleanup-assistant/SKILL.md) 与 [规则编写](../../../skills/shou-rule-authoring/SKILL.md)。macOS 和 Windows 都可用 `skills list/read/install/export`，通过 `--skill` 选择。桌面从清理选项或设置／规则进入安装；Windows 内置 AI 调查与外部技能分发分开，安装技能不解除原生变更门禁。
+
 ## 1. 产品边界
 
 **Shou 下一阶段内置清理专用 Agent，外部编码 Agent 的 CLI／Skill 路径继续支持。** 内置调查首版已实现，使用和验收见[实现记录](../engineering/embedded-ai-implementation.md)；范围以 [PRD](../product/prd.md) 和[接入设计](../engineering/embedded-ai-investigation.md)为准；本文说明现有外部 Agent 的操作合同。

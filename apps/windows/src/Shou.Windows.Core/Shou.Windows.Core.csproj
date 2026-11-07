@@ -1,1 +1,3 @@
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><EmbeddedResource Include="../../Generated/agent-skills.json" LogicalName="Shou.AgentSkills.json" /></ItemGroup>
+</Project>

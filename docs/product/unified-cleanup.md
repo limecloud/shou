@@ -4,6 +4,22 @@ English | [简体中文](../zh-CN/product/unified-cleanup.md)
 
 Shou saves the user time by discovering cleanup targets together. Primary navigation groups Cleanup, Applications, Space Analysis and Monitor. Cleanup Options contains project cleanup and rules; Toolbox contains professional management; users do not need to register workspaces first. Smart Cleanup covers application caches, developer caches, project artifacts and enabled personal rules in one scan and one exact-scope cleanup confirmation.
 
+## Cleanup review workspace
+
+One task owns its evidence, selection and outcomes. Results are ordered by allocated size and offer Recommended, Needs a decision, Protected, Kept this time and All views. Search and view changes retain selections elsewhere. Categories filter objects without hiding large consumers behind several disclosure levels.
+
+Each object presents purpose, exact location, allocated-byte estimate, blocking evidence and rebuild impact. Recommendations require complete evidence and existing policy eligibility. Inactivity, lack of references and a test-like name alone never prove removability. Keeping an item affects only this scan and grants no future deletion authority.
+
+Find more large items opens read-only space analysis for the chosen location. Direct archive files and directories are both visible. Unknown or unmeasured space is investigation evidence, never estimated cleanup benefit. Exact file selection uses space analysis; packages, components, containers and databases use their own closed operations rather than deleting mixed parent directories.
+
+The fixed footer totals all selected locations and estimated processed bytes. Permanent deletion confirms the frozen scope once. Results separate item outcomes, processed estimates and the observed free-space change on the same volume. Concurrent writes, APFS and virtual-disk reclamation affect that difference. Preserve negative values; do not sum unrelated volumes or missing observations into a freed-space claim.
+
+Shou record maintenance shows collection totals, removable bytes and retention reasons, including quota excess caused by active plans, grace periods, latest scans and recovery dependencies. Recovery data remains protected. Keeping the latest scan is a separate explicit choice; disabling it never removes evidence referenced by an active plan.
+
+On macOS, tool operations review the exact object, estimate and consequences inline. Rust offline documentation is independent of compilers. Docker internal reclamation is separate from host volume space. Windows aligns review, record maintenance and Skill distribution; tool mutations follow each platform's actual capabilities. Database operations remain in their dedicated contracts: see [MySQL administration](mysql-administration.md). PostgreSQL database cleanup, Docker volume deletion and host virtual-disk compaction are not automatic workbench operations; the assistant hands unsupported work to the owning tool for review.
+
+Windows record maintenance collects reproducible cleanup/space scans and their pages only. Plans, configuration, execution/recovery records and scans referenced by any plan remain protected. Exact inventory is rechecked under the lease; native deletion uses the verified private directory handle and file identity. Unreadable plans close scan collection. Both platforms explain retention, soft quota excess and the independent latest-scan choice.
+
 ## Windows scanning and review
 
 Automatic discovery may read SYSTEM/Administrators-provisioned roots at exact bundled cache locations for the current account. The native adapter verifies the resolved current-user Home/AppData anchor, pins the path, rejects reparse points, and checks each directory's identity, owner and ACL, including foreign inheritable write grants. Discovery, registration and batch rescans revalidate access without changing ownership or ACLs. These roots publish read-only results: candidates carry `scan_root_read_only` and cannot enter cleanup plans. Manual registrations, project collections and mutation targets retain current-user ownership requirements. Owner mismatches and access failures use separate messages.
@@ -77,12 +93,12 @@ sequenceDiagram
 ## User experience
 
 1. Open Smart Cleanup and choose Start Scan. The split menu offers Standard Scan, Select Disks and Select Folders. Scanning only shows results and never deletes automatically.
-2. Shou finds fixed cache roots, actual home-directory project collections and previously included folders. It applies built-in and enabled personal rules and selects eligible results.
+2. Shou finds fixed cache roots, actual home-directory project collections and previously included folders. It applies built-in and enabled personal rules without automatically selecting results. Select paths manually or explicitly use the recommended selection.
 3. Review and select exact paths in the results. Click the prominent red Delete Permanently button once to confirm the current scope, validate and execute without a second dialog. Trash remains an explicit alternative; actual outcomes stay itemized.
 
 The first page presents original folder artwork, a soft gradient and one primary scan action, followed by illustrated links to existing application/project, storage and rule pages. Its secondary row offers optional AI investigation; the native toolbar retains disk capacity. Scan Locations is an optional view in Smart Cleanup and Settings. Include Folder supports several extra folders at once and remembers them for later scans. Advanced rule previews can still open one folder's detail view, with a return action to Smart Cleanup.
 
-The result browser separates User Cache Files, Application Caches, Browser Data, Developer Tools and Project Build Outputs, adding Personal Rules when they match. Categories and the footer count rule groups; expanding a group reveals every matching directory across projects, its file count, size, warnings and individual selection. Category and group checkboxes support mixed selection. Search matches rule names and full paths; large groups initially show ten locations and expose the remainder in batches. The footer selection menu applies across all categories; each category and rule checkbox controls only its own displayed group. High-risk outputs and dependencies require explicit selection and stay outside the recommended selection.
+Results show exact locations in descending allocated-size order. Categories and review status filter the flat list, with rule-purpose/path search. Each row supports independent selection, blocking/rebuild details, Keep this time and Review again. macOS loads 100 locations at a time; Windows pages 200. The footer always totals all selections across filters. High-risk outputs and dependencies require manual selection and are excluded from recommendations.
 
 User cache groups include the maintained app/tool caches, pnpm, browser automation downloads and named macOS service caches. Homebrew, Node.js toolchain and SwiftPM cache groups retain the original shared rule binding. pnpm store discovery targets only `~/Library/pnpm/store`, preserving global executables and configuration. Unknown cache directories are not made removable merely because they reside inside a cache root.
 

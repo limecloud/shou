@@ -131,6 +131,8 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
         ValidateExecutionStructure(execution);
         if (execution.PlanId != plan.Id || execution.PlanDigest != plan.Digest || execution.Action != plan.Action ||
             execution.StartedAt < plan.CreatedAt || execution.StartedAt >= plan.ExpiresAt || execution.Items.Length != plan.Items.Length) throw Corrupt();
+        if (execution.VolumeObservations.Any(value => !plan.Sources.Any(source =>
+                source.Workspace.Identity.VolumeSerialNumber == value.Volume && source.Workspace.Path.Value == value.Path))) throw Corrupt();
         for (var index = 0; index < execution.Items.Length; index++)
         {
             var item = execution.Items[index];
@@ -147,6 +149,9 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
             !RecordJson.IsDigest(execution.PlanDigest) || !Enum.IsDefined(execution.Action) ||
             execution.StartedAt.Offset != TimeSpan.Zero || execution.UpdatedAt.Offset != TimeSpan.Zero || execution.UpdatedAt < execution.StartedAt ||
             !Enum.IsDefined(execution.State) || execution.Items.IsDefaultOrEmpty || execution.Items.Length > MaximumPlanItems) throw Corrupt();
+        if (execution.VolumeObservations.IsDefault || execution.VolumeObservations.Length > MaximumPlanItems ||
+            execution.VolumeObservations.Any(value => value is null || value.AvailableBefore is < 0 || value.AvailableAfter is < 0 || !ValidObservationPath(value.Path)) ||
+            execution.VolumeObservations.Select(value => value.Volume).Distinct().Count() != execution.VolumeObservations.Length) throw Corrupt();
         var ids = new HashSet<string>(StringComparer.Ordinal);
         for (var index = 0; index < execution.Items.Length; index++)
         {
@@ -166,6 +171,12 @@ internal sealed class CleanupRecordCodec(RuleSchemaValidator validator)
             allDone ? CleanupExecutionState.Completed :
             execution.Items.Any(item => item.State == CleanupItemState.Cancelled) && !execution.Items.Any(item => item.State == CleanupItemState.Failed) ? CleanupExecutionState.Cancelled : CleanupExecutionState.Partial;
         if (execution.State != CleanupExecutionState.Executing && (unfinished || execution.State != expected)) throw Corrupt();
+    }
+
+    private static bool ValidObservationPath(string path)
+    {
+        try { return path is { Length: > 0 and <= 32767 } && WindowsPath.Parse(path).Value == path; }
+        catch (ShouException) { return false; }
     }
 
     private static T Decode<T>(Func<T> read)

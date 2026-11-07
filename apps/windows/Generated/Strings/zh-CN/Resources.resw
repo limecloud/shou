@@ -159,8 +159,14 @@
   <data name="s6a10aea1bf7d67b276230d2b" xml:space="preserve">
     <value>2. 回答项目用途、重建方式和保留项等必要问题。</value>
   </data>
+  <data name="se1137e0ba9953ba73bac3c97" xml:space="preserve">
+    <value>3. 在 Shou 中逐批审阅具体清理范围。</value>
+  </data>
   <data name="s528cd801fff6e0c11dc1eb1f" xml:space="preserve">
     <value>3. 确认并启用规则一次，后续清理自动包含。</value>
+  </data>
+  <data name="sd8204874cf3627603685cded" xml:space="preserve">
+    <value>4. 清理所选项目，核对结果与保留对象。</value>
   </data>
   <data name="sbc5f660bc678e9e5f125499b" xml:space="preserve">
     <value>4. 清理所选规则，核验结果与保留项。</value>
@@ -339,6 +345,9 @@
   <data name="s121ce69f9e760922afef8154" xml:space="preserve">
     <value>正在执行或恢复所需的记录已保留，请重新检查选择。</value>
   </data>
+  <data name="s46672cfdf9730b50f9dc51ca" xml:space="preserve">
+    <value>活动计划依赖</value>
+  </data>
   <data name="s4612f1ecbba820a048eb6a48" xml:space="preserve">
     <value>活动检查覆盖安装目录；执行功能尚未开放。</value>
   </data>
@@ -431,6 +440,9 @@
   </data>
   <data name="s54f77add30290abb5c38e66d" xml:space="preserve">
     <value>时间条件取整个目标内部的最新修改时间。1 MB 为 1,000,000 分配字节，容量仍为估计值。</value>
+  </data>
+  <data name="s11b39c93777e8f1f3983bdba" xml:space="preserve">
+    <value>客户端</value>
   </data>
   <data name="s2283220cf184bfa39271fd44" xml:space="preserve">
     <value>Alfred 缓存</value>
@@ -845,6 +857,9 @@
   </data>
   <data name="s75bdd648e9bfc3cd7ca05d92" xml:space="preserve">
     <value>卷可用容量</value>
+  </data>
+  <data name="s17642ed85bed9b5e7e7cb704" xml:space="preserve">
+    <value>此数值是操作期间的可用空间变化，其他写入、APFS 和虚拟磁盘均可能影响结果。</value>
   </data>
   <data name="s76900f1bfd16c8d4dd3d25e6" xml:space="preserve">
     <value>上一步</value>
@@ -1356,6 +1371,9 @@
   <data name="sd5003f2fe84a092d54996251" xml:space="preserve">
     <value>请选择适用的扫描位置</value>
   </data>
+  <data name="s06d8b8863ec7eeeb469d09a8" xml:space="preserve">
+    <value>选择辅助技能</value>
+  </data>
   <data name="s9c74d90b741f6154fa6d1bb5" xml:space="preserve">
     <value>选择较早的分析</value>
   </data>
@@ -1500,6 +1518,9 @@
   <data name="s9a926490a8b16499b2dbd0dc" xml:space="preserve">
     <value>清理操作始终需要确认。移入废纸篓不会立即释放磁盘空间。</value>
   </data>
+  <data name="s33e635fb287259111b9f161d" xml:space="preserve">
+    <value>清理助手</value>
+  </data>
   <data name="s5e4255195c55051996e0c797" xml:space="preserve">
     <value>清理候选项</value>
   </data>
@@ -1527,6 +1548,9 @@
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>清理已结束，部分项目需处理</value>
   </data>
+  <data name="s331e91c41de46c1f02841a14" xml:space="preserve">
+    <value>清理计划</value>
+  </data>
   <data name="s339d462a7fc512f86ce9aa06" xml:space="preserve">
     <value>清理预览失败。</value>
   </data>
@@ -1538,6 +1562,9 @@
   </data>
   <data name="s765417e6e8df153b6bf84328" xml:space="preserve">
     <value>此目录的清理安全检查结果已变化，请重新扫描后再清理。</value>
+  </data>
+  <data name="s5e0faca3fb4548d035c2354f" xml:space="preserve">
+    <value>清理扫描</value>
   </data>
   <data name="s1275c73051f209470123dc8d" xml:space="preserve">
     <value>清理扫描仅统计规则匹配的目标。空间分析可查看其他文件。</value>
@@ -2073,6 +2100,9 @@
   <data name="s963f33bca2cb22cee1cb54cf" xml:space="preserve">
     <value>永久删除…</value>
   </data>
+  <data name="s1d0725f13210c10bffba0e77" xml:space="preserve">
+    <value>删除已审阅记录</value>
+  </data>
   <data name="s749cc884bc6894e79bbb7167" xml:space="preserve">
     <value>永久删除这些项目？</value>
   </data>
@@ -2280,6 +2310,9 @@
   <data name="sc2c0a9ac8808051a78c10399" xml:space="preserve">
     <value>Docker 构建缓存</value>
   </data>
+  <data name="s4c7c545ac4b17927324b77cc" xml:space="preserve">
+    <value>Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。</value>
+  </data>
   <data name="sb4e929d8bcfe04189801a8ed" xml:space="preserve">
     <value>文档</value>
   </data>
@@ -2466,6 +2499,9 @@
   <data name="sebce85fe2009745bf317f82c" xml:space="preserve">
     <value>已有安装</value>
   </data>
+  <data name="safeda00b994d0c72e9ec3285" xml:space="preserve">
+    <value>已有文件如有本地修改，将予以保留。</value>
+  </data>
   <data name="s33f0babf357de687724cde15" xml:space="preserve">
     <value>展开启动项详情</value>
   </data>
@@ -2495,6 +2531,9 @@
   </data>
   <data name="sfe5cdf67f12ba5778116cd95" xml:space="preserve">
     <value>导出 Skill 技能包…</value>
+  </data>
+  <data name="s73a0b08acc93855ad81c5595" xml:space="preserve">
+    <value>导出技能…</value>
   </data>
   <data name="s391065e4dc23592acd6913e7" xml:space="preserve">
     <value>已导出</value>
@@ -2582,6 +2621,9 @@
   </data>
   <data name="s8f259f51f6ded0a1f9521d9a" xml:space="preserve">
     <value>查找大文件</value>
+  </data>
+  <data name="sd89eb10c326127c3008f4a90" xml:space="preserve">
+    <value>查找更多大项</value>
   </data>
   <data name="s2cd9a0a13261468ab40fa308" xml:space="preserve">
     <value>扫描已知位置，查看可审阅的缓存与构建产物。</value>
@@ -2835,11 +2877,17 @@
   <data name="s0e769600933790607b2a13b3" xml:space="preserve">
     <value>操作记录</value>
   </data>
+  <data name="s4b5040143ee8c7e1ea4bf76f" xml:space="preserve">
+    <value>历史依赖</value>
+  </data>
   <data name="s42d9acaa0fb44d6f8db37ecd" xml:space="preserve">
     <value>历史范围仅限可读取的近期分析，部分记录已跳过。</value>
   </data>
   <data name="s5bd5b53315dbc4791c599a18" xml:space="preserve">
     <value>历史核对只观察当前位置，不会改写操作结果或重试未完成的操作。</value>
+  </data>
+  <data name="s38065ca23d0ce9b6513d778f" xml:space="preserve">
+    <value>历史摘要</value>
   </data>
   <data name="sff380bc4c90465556dcbeba1" xml:space="preserve">
     <value>历史核验已取消。</value>
@@ -3015,11 +3063,17 @@
   <data name="scc5098bde78248090a63dcd7" xml:space="preserve">
     <value>安装 CLI 命令</value>
   </data>
+  <data name="s057882f5489a63bd25bd1ccb" xml:space="preserve">
+    <value>安装目录</value>
+  </data>
   <data name="sd499e7c1555da21ca9525b5a" xml:space="preserve">
     <value>请先将 Shou 安装到应用程序。</value>
   </data>
   <data name="s952c695be80a28c4657e1759" xml:space="preserve">
     <value>安装 Skill</value>
+  </data>
+  <data name="sc445a126350a7e53112f71f0" xml:space="preserve">
+    <value>安装用于分析磁盘占用或编写可复用清理规则的辅助技能。</value>
   </data>
   <data name="s925e5a0a8cbffb7542198e6c" xml:space="preserve">
     <value>安装 shou 命令，供终端、Codex、Claude Code 或 WorkBuddy 操作，无需接入模型。</value>
@@ -3165,6 +3219,12 @@
   <data name="s861309065e9f4125bb214eb5" xml:space="preserve">
     <value>使用内置 AI 调查文件夹，或通过外部 AI 工具制定个人规则。</value>
   </data>
+  <data name="s9f12678daba0707ffd7731fc" xml:space="preserve">
+    <value>调查磁盘占用，说明用途、活跃情况、重建代价和保留条件，询问无法确定的项目。通过 Shou 计划与当前确认逐批审阅，不绕过不可用操作，核对回执与卷可用空间变化。</value>
+  </data>
+  <data name="s07334f61d293a1fc938b54c7" xml:space="preserve">
+    <value>调查可重建产物与保留条件，复用现有规则或预览禁用草稿。只追问无法确定的用途，不启用规则或执行清理。</value>
+  </data>
   <data name="s8f94e7100ca6baf56f62470a" xml:space="preserve">
     <value>调查当前索引根及其子目录，不包含其他卷。概览可能达到单次调查上限，之后可选择具体子目录继续。</value>
   </data>
@@ -3273,11 +3333,20 @@
   <data name="s2bdbcbcc49c79dbf7ab42ff1" xml:space="preserve">
     <value>留下喜欢的，整理多余的。</value>
   </data>
+  <data name="s9f984fdd92e4a65ddc89eb18" xml:space="preserve">
+    <value>保留最新扫描供后续查看</value>
+  </data>
   <data name="sc02438b6cd8f66744648f626" xml:space="preserve">
     <value>编辑版本时请保留原规则 ID。</value>
   </data>
+  <data name="s554eea4b4861c2f0698e5abb" xml:space="preserve">
+    <value>本次保留</value>
+  </data>
   <data name="sf081c74414e0d26b62607fd1" xml:space="preserve">
     <value>让常用工具保持更新。</value>
+  </data>
+  <data name="s38ee7b9c303181f98a317b2c" xml:space="preserve">
+    <value>本次保留</value>
   </data>
   <data name="sf5387f9bb6ed70315a77fdcb" xml:space="preserve">
     <value>类型</value>
@@ -3347,6 +3416,9 @@
   </data>
   <data name="s7a2c86a8bf2242ca5bb83fc0" xml:space="preserve">
     <value>最近七天</value>
+  </data>
+  <data name="s05cd47a4063c97940c8b1840" xml:space="preserve">
+    <value>最新扫描</value>
   </data>
   <data name="sef7105b62f7474e8f3861e4b" xml:space="preserve">
     <value>最新版本</value>
@@ -3518,6 +3590,9 @@
   </data>
   <data name="sf35caed894abb5a1dc266e47" xml:space="preserve">
     <value>大文件，一目了然。</value>
+  </data>
+  <data name="s20185fe9b0625573e94f2afa" xml:space="preserve">
+    <value>请确保可通过 shou 调用 Shou CLI，或在请求中使用它的完整路径。</value>
   </data>
   <data name="sa7ce49eacadd57176cfb3652" xml:space="preserve">
     <value>管理数据库</value>
@@ -3803,6 +3878,9 @@
   </data>
   <data name="s2721425dafa987c5bd10977a" xml:space="preserve">
     <value>需要核实</value>
+  </data>
+  <data name="s11cbeb183b8b6bbfa5cd803a" xml:space="preserve">
+    <value>需要判断</value>
   </data>
   <data name="sc1ebc7817870e5be78fceae5" xml:space="preserve">
     <value>需要注意</value>
@@ -4266,6 +4344,9 @@
   <data name="sb42004078e671d4b95a6afdd" xml:space="preserve">
     <value>仅匹配已明确列出的用户缓存目录。保留文稿、偏好设置和系统数据。</value>
   </data>
+  <data name="se8a7a315fc69830d66582fbe" xml:space="preserve">
+    <value>仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。</value>
+  </data>
   <data name="s2172af994fae9e627052f8bc" xml:space="preserve">
     <value>仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。</value>
   </data>
@@ -4590,6 +4671,9 @@
   <data name="se5da2242b6ee909040a9def5" xml:space="preserve">
     <value>清理计划已过期，或工作区、配置已变化，请重新预览。</value>
   </data>
+  <data name="s189e0e33aeb45fdfc867af72" xml:space="preserve">
+    <value>计划文件清单</value>
+  </data>
   <data name="s832887e6b90882f7e9667cb7" xml:space="preserve">
     <value>清理计划的工作区与登记信息不一致。</value>
   </data>
@@ -4707,6 +4791,9 @@
   <data name="s3a0f0e6222f0664a8aa520e9" xml:space="preserve">
     <value>进程 CPU 按整机总容量计量。内存为驻留大小，共享页可能重复计算。</value>
   </data>
+  <data name="sa4869b1147b809e3cd255eee" xml:space="preserve">
+    <value>已处理（估算）</value>
+  </data>
   <data name="s4a81a7ba5358c26f74fbeb64" xml:space="preserve">
     <value>进程</value>
   </data>
@@ -4772,6 +4859,9 @@
   </data>
   <data name="sc248e79a44b0d244044d91f9" xml:space="preserve">
     <value>磁盘访问受限，受保护位置可能无法纳入扫描。</value>
+  </data>
+  <data name="s6ac05667ee21d3e0c8799703" xml:space="preserve">
+    <value>受保护记录已超过清理配额。</value>
   </data>
   <data name="se423aa73a3e7e8e6419678f3" xml:space="preserve">
     <value>服务商配置</value>
@@ -5046,6 +5136,9 @@
   <data name="s92d0274f76c957c98a5d10b2" xml:space="preserve">
     <value>近期资源趋势</value>
   </data>
+  <data name="s61df24ec987075ce3bad83a8" xml:space="preserve">
+    <value>近期创建</value>
+  </data>
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>推荐</value>
   </data>
@@ -5081,6 +5174,15 @@
   </data>
   <data name="s66a0dfe68bb01099a9c91698" xml:space="preserve">
     <value>已记录的结果</value>
+  </data>
+  <data name="s3eb24707ffe5d10f63f49f61" xml:space="preserve">
+    <value>已删除记录</value>
+  </data>
+  <data name="s91840ab086dae44046462516" xml:space="preserve">
+    <value>恢复依赖</value>
+  </data>
+  <data name="s3f81a585071278e39b76b868" xml:space="preserve">
+    <value>恢复文件清单</value>
   </data>
   <data name="s9372b5901c15a4649fc8f716" xml:space="preserve">
     <value>Redis Insight 缓存</value>
@@ -5274,6 +5376,9 @@
   <data name="s2a64df82cdaad5511bea0259" xml:space="preserve">
     <value>保留</value>
   </data>
+  <data name="s65b687bcd8c48676a0d36fad" xml:space="preserve">
+    <value>保留原因可能重叠，恢复依赖和活动计划始终受保护。</value>
+  </data>
   <data name="s942087cc2d41e01304b71955" xml:space="preserve">
     <value>重试</value>
   </data>
@@ -5385,6 +5490,9 @@
   <data name="s77acdaf440bd046ee3c38be4" xml:space="preserve">
     <value>审阅更新后的配置</value>
   </data>
+  <data name="sd4ea61c79c9b77d6815ffb18" xml:space="preserve">
+    <value>重新审阅</value>
+  </data>
   <data name="sffd511a9b027311b25ae9536" xml:space="preserve">
     <value>查看应用及其关联文件，确认后移入废纸篓。</value>
   </data>
@@ -5433,11 +5541,17 @@
   <data name="s04f40e339c574e7a617c50a3" xml:space="preserve">
     <value>检查全局配置的开发工具，保留各个项目的版本设置。</value>
   </data>
+  <data name="sdd3337c574051a86cadf6341" xml:space="preserve">
+    <value>在 Shou 中分别审阅各批次清理。</value>
+  </data>
   <data name="sd4377e73b83e04bb27771e0a" xml:space="preserve">
     <value>查看已安装的 Formula 与 Cask，对比版本后，选择需要升级的软件。</value>
   </data>
   <data name="s66b31cd3b09a2a4846c9890d" xml:space="preserve">
     <value>请检查大文件和旧扫描索引，释放空间后重新扫描。</value>
+  </data>
+  <data name="sb9ae791f175834411c0d7ea3" xml:space="preserve">
+    <value>审阅最大占用</value>
   </data>
   <data name="s20a70822946594d2991342d5" xml:space="preserve">
     <value>清理前请重新检查应用残留。</value>
@@ -5450,6 +5564,9 @@
   </data>
   <data name="s8b14074fe369c19d991cae1f" xml:space="preserve">
     <value>请先在官方包管理器中审阅所需协议，再回到此处更新。</value>
+  </data>
+  <data name="sa410d70156a3a04c15d019bc" xml:space="preserve">
+    <value>审阅状态</value>
   </data>
   <data name="s2a55683c78691759fb748d98" xml:space="preserve">
     <value>按分类查看，或直接使用推荐选择。</value>
@@ -5496,6 +5613,9 @@
   <data name="sa86d576b79142eba6ed88a41" xml:space="preserve">
     <value>可审阅容量估计</value>
   </data>
+  <data name="sfb75c4ad8cfaebdefa293ab1" xml:space="preserve">
+    <value>可清理记录</value>
+  </data>
   <data name="s07c77fd91ee9c1726594e800" xml:space="preserve">
     <value>正在审阅应用组件…</value>
   </data>
@@ -5534,6 +5654,9 @@
   </data>
   <data name="s337b14755089f01509c977ae" xml:space="preserve">
     <value>版本与位置</value>
+  </data>
+  <data name="sb2fa8cbefbdfa3c98731ce08" xml:space="preserve">
+    <value>规则编写</value>
   </data>
   <data name="sd205d4db914351ae5a6c3636" xml:space="preserve">
     <value>规则已变化，请重新预览后再保存。</value>
@@ -5594,6 +5717,9 @@
   </data>
   <data name="s12d7e9a9e539d765cc6e9369" xml:space="preserve">
     <value>Rust 构建产物</value>
+  </data>
+  <data name="sff8b86c4b4ef788cda2c40f7" xml:space="preserve">
+    <value>Rust 离线文档</value>
   </data>
   <data name="s9007989af13cfccbc26e49cf" xml:space="preserve">
     <value>已写入 SQL 备份，尚未验证恢复。</value>
@@ -5789,6 +5915,9 @@
   </data>
   <data name="s4d20593fc457afab16516d9b" xml:space="preserve">
     <value>先扫描，再由你确认清理范围。</value>
+  </data>
+  <data name="s5a8cbdf8b9ef63fead124033" xml:space="preserve">
+    <value>扫描索引、计划和恢复依赖单独审阅，不涉及您的原始文件。</value>
   </data>
   <data name="s35807dd57f6d0f259b0f3431" xml:space="preserve">
     <value>扫描未完成，清理暂不可用。仍可查看已测量的空间。</value>
@@ -6060,6 +6189,9 @@
   <data name="s57fd7a0cf33f2666eede69e4" xml:space="preserve">
     <value>已选</value>
   </data>
+  <data name="s234b13ace117589c04aa8fdd" xml:space="preserve">
+    <value>已选（估算）</value>
+  </data>
   <data name="s5282570a8cecad0e2917de37" xml:space="preserve">
     <value>所选文件</value>
   </data>
@@ -6249,6 +6381,12 @@
   <data name="s8d424305fa272908b4273bb9" xml:space="preserve">
     <value>Shou 已安装到应用程序，后续更新沿用此位置。</value>
   </data>
+  <data name="sf3da357bb85718b53a53fd71" xml:space="preserve">
+    <value>Shou 存储</value>
+  </data>
+  <data name="s6712e53de09b11231a69296a" xml:space="preserve">
+    <value>Shou 存储…</value>
+  </data>
   <data name="sba8a80fdd7376631dea931d6" xml:space="preserve">
     <value>显示更多</value>
   </data>
@@ -6330,11 +6468,23 @@
   <data name="s803eb25e504527e960baab76" xml:space="preserve">
     <value>Sketch 缓存</value>
   </data>
+  <data name="s6df1bb18a59ab97df82e307b" xml:space="preserve">
+    <value>技能</value>
+  </data>
   <data name="s1ab1512729abf8ed5f149e80" xml:space="preserve">
     <value>技能包已导出，请在 WorkBuddy 中上传以完成安装。</value>
   </data>
+  <data name="sac3341a03b63a14b6b9178ac" xml:space="preserve">
+    <value>技能已导出</value>
+  </data>
   <data name="se2b03281c992446aa4919f48" xml:space="preserve">
     <value>Skill 安装不能通过符号链接写入，请选择实际目录。</value>
+  </data>
+  <data name="sc21cc3a5f83571479a7c58ea" xml:space="preserve">
+    <value>技能安装失败，已有文件已保留。</value>
+  </data>
+  <data name="s048f89247b20d3b195b099d0" xml:space="preserve">
+    <value>技能已安装</value>
   </data>
   <data name="s366e5d8f5a433b80d1fd7a7d" xml:space="preserve">
     <value>Skill 已安装，请在现有 Agent 中使用。</value>
@@ -6521,6 +6671,15 @@
   </data>
   <data name="s232b3656cd4a488fb5d3d98a" xml:space="preserve">
     <value>目录空间分布</value>
+  </data>
+  <data name="s1b9922f7b5fa37b2cab0dc3b" xml:space="preserve">
+    <value>空间清理计划</value>
+  </data>
+  <data name="sd41ba4ef48412e56fd2f255b" xml:space="preserve">
+    <value>空间索引</value>
+  </data>
+  <data name="s1d6da752d7a2ba83e1ed17af" xml:space="preserve">
+    <value>空间扫描</value>
   </data>
   <data name="s4d45f1ae8aa1ddbd7ef697d2" xml:space="preserve">
     <value>占用空间并不代表可以删除。确认内容能够重新生成后，可为此目录添加规则。</value>
@@ -7668,6 +7827,9 @@
   <data name="s44945c30a645e0153c0f3c35" xml:space="preserve">
     <value>CPU 占用最高的进程</value>
   </data>
+  <data name="sc9b3c38247f744e17dd26fda" xml:space="preserve">
+    <value>总计</value>
+  </data>
   <data name="s5fe2d46b260a32e3a5ce50a4" xml:space="preserve">
     <value>整机总容量</value>
   </data>
@@ -8013,6 +8175,9 @@
   <data name="s1e46410c64bb72fa53e4e969" xml:space="preserve">
     <value>Vivaldi 下载缓存</value>
   </data>
+  <data name="sdc1149ce68b52079c30c9469" xml:space="preserve">
+    <value>卷可用空间变化</value>
+  </data>
   <data name="sf8a5c8d87f6ba89cef0a8993" xml:space="preserve">
     <value>WPS Office 缓存</value>
   </data>
@@ -8067,6 +8232,9 @@
   <data name="s4e17656a62b95a61b72e5d25" xml:space="preserve">
     <value>WhatsApp 缓存</value>
   </data>
+  <data name="s9a1c3323856fb71a58c59d48" xml:space="preserve">
+    <value>记录保留原因</value>
+  </data>
   <data name="s4c9a003594d709067bf85f8a" xml:space="preserve">
     <value>无法读取 WinGet 安装清单。</value>
   </data>
@@ -8090,6 +8258,9 @@
   </data>
   <data name="s0d10580b34985347fd4abd74" xml:space="preserve">
     <value>Windows 服务控制仍待原生验收，当前仅显示只读状态。</value>
+  </data>
+  <data name="s9468721eba7d5069898b9a3e" xml:space="preserve">
+    <value>保留期限内</value>
   </data>
   <data name="sc6f654a29ae4697d3d7241c7" xml:space="preserve">
     <value>WorkBuddy 缓存</value>

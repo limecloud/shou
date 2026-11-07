@@ -70,7 +70,7 @@ v0.13.0 同时提供独立 WinUI 3/.NET 10 的 Windows 自包含便携预览包�
 
 ## 让现有 Agent 定制清理
 
-在**规则 → 通过 AI 定制**中选择 Codex 或 Claude Code 安装 Skill；使用 WorkBuddy 时导出 ZIP 并上传。复制请求，交给现有 Agent。它读取随包的 [Shou Skill](skills/shou-rule-authoring/SKILL.md)，分析指定目录，询问重建方式与保留项，自动校验、导入并预览禁用草稿。你决定何时启用和清理。
+在**规则 → 通过 AI 定制**中选择 Codex 或 Claude Code 安装 Skill；使用 WorkBuddy 时导出 ZIP 并上传。复制请求，交给现有 Agent。可选择 [清理助手](skills/shou-cleanup-assistant/SKILL.md) 调查大项，或选择 [规则编写](skills/shou-rule-authoring/SKILL.md) 制定可复用规则。两端通过 `skills list/read/install/export` 和 `--skill` 分发同源技能。Agent 分析指定目录，询问重建方式与保留项，自动校验、导入并预览禁用草稿。你决定何时启用和清理。
 
 可选内置 AI 调查默认关闭。在「设置 → AI 调查」启用并配置连接后，可选择目录或已有扫描进行智能分析；原生检查器支持追问、服务用量和逐条禁用规则预览。启动调查会将限定范围的索引元数据和你的回答发送给所选服务；常规扫描与清理仍在本地完成。服务支持与验收边界见[使用与实现记录](docs/zh-CN/engineering/embedded-ai-implementation.md)。
 

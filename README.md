@@ -70,7 +70,7 @@ Rules run locally and cannot execute shell commands. No account, model connectio
 
 ## Customize with your agent
 
-In **Rules → Customize with AI**, select Codex or Claude Code and install the Skill, or export a ZIP to upload in WorkBuddy. Copy the prepared request into your existing coding agent. It reads the shipped [Shou Skill](skills/shou-rule-authoring/SKILL.md), investigates the chosen directory, asks about rebuild steps and keep paths, then validates, imports, and previews a disabled rule. You decide when to enable it and clean.
+In **Rules → Customize with AI**, select Codex or Claude Code and install the Skill, or export a ZIP to upload in WorkBuddy. Copy the prepared request into your existing coding agent. Choose [Cleanup assistant](skills/shou-cleanup-assistant/SKILL.md) for disk investigation or [Rule authoring](skills/shou-rule-authoring/SKILL.md) for reusable rules. Both platforms provide `skills list/read/install/export`; read, install and export accept `--skill <name>`. The agent investigates the chosen directory, asks about rebuild steps and keep paths, then validates, imports, and previews a disabled rule. You decide when to enable it and clean.
 
 Optional built-in AI investigation is off by default. Enable it in Settings → AI Investigation and configure a connection, then choose Investigate for a folder or saved scan. A native inspector handles focused questions, service usage and independent disabled-rule previews. Starting an investigation sends bounded index metadata and your answers to the selected services; ordinary scanning and cleanup stay local. See [usage and implementation](docs/engineering/embedded-ai-implementation.md) for provider and acceptance limits.
 
