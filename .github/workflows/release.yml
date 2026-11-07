@@ -8,7 +8,7 @@ on:
       tag:
         description: Existing version tag to release
         required: true
-        default: v0.23.1
+        default: v0.24.0
       prepare_only:
         description: Build verified artifacts without publishing or changing the tag
         type: boolean

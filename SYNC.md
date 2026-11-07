@@ -1,5 +1,9 @@
 # Platform synchronization / 跨端对齐
 
+## v0.24.0 release candidate / 发布候选
+
+The user-selected release version is `0.24.0`, aligned across macOS app/build, Swift CLI, Windows and npm source template. The earlier `v0.23.1` preparation run is cancelled before publication; existing tags remain unchanged. This candidate includes the native WinUI binding-setter correction and requires a fresh complete release pipeline / 本地安装也使用 `0.24.0`，不把此前候选安装或中止的流水线计作本版本发布完成。
+
 ## v0.23.1 release candidate / 发布候选
 
 The `v0.23.0` release gate rejected the native Windows XAML build: generated binding metadata assigns the two new `CleanupCandidateDisplay` strings, which cannot use C# `init` setters. The display properties now use ordinary setters; the original tag remains unchanged and no `v0.23.0` release was published. Version owners and current release documentation advance to `0.23.1` for a fresh native build and publication / Mac 引用编译未覆盖 WinUI 生成代码；不跳过原生构建，不重写已推送标签。

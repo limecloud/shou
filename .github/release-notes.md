@@ -1,4 +1,4 @@
-Shou v0.23.1 redesigns cleanup review around the largest locations and adds a bundled cleanup assistant for existing AI clients.
+Shou v0.24.0 redesigns cleanup review around the largest locations and adds a bundled cleanup assistant for existing AI clients.
 
 - Review exact cleanup locations in descending size order, with recommendations, decisions, protected items and items kept for this scan. Scans start without selections; filters preserve selections and kept items stay out of recommendations.
 - Keep purpose, full paths, rebuild impact and blocking evidence close to each item. Find more large items through space analysis without expanding cleanup scope.
@@ -11,7 +11,7 @@ PostgreSQL database deletion, Docker volume deletion and host virtual-disk compa
 
 macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. The app uses an ad-hoc signature and is not Apple-notarized; Full Disk Access may need to be granted again after replacement. Windows x64/ARM64 downloads are unsigned, self-contained previews for Windows 11. Native fixture checks, interactive preview journeys, UAC, ARM64 interaction, signing, installation and updates are separate acceptance scopes. npm registry publication is verified separately from GitHub assets.
 
-简体中文：Shou v0.23.1 围绕大项占用重新设计清理审阅，并为现有 AI 客户端提供随包辅助清理技能。
+简体中文：Shou v0.24.0 围绕大项占用重新设计清理审阅，并为现有 AI 客户端提供随包辅助清理技能。
 
 - 具体清理位置按占用倒序排列，支持建议清理、需要判断、受保护和本次保留。扫描完成默认不勾选，筛选保留已有选择，推荐排除保留项。
 - 在对象附近显示用途、完整路径、重建影响和阻断依据；通过空间分析查找更多大项，不扩大清理范围。
