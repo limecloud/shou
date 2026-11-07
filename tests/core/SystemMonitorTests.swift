@@ -1,6 +1,19 @@
 import Foundation
 import ShouCore
 import ShouPlatform
+#if os(macOS)
+import Darwin
+
+private func monitorProcessCPUTime() throws -> Double {
+    var usage=rusage()
+    guard getrusage(RUSAGE_SELF,&usage) == 0 else {
+        throw CheckFailure(description:"getrusage could not read the monitor fixture's CPU time")
+    }
+    let user=Double(usage.ru_utime.tv_sec)+Double(usage.ru_utime.tv_usec)/1e6
+    let system=Double(usage.ru_stime.tv_sec)+Double(usage.ru_stime.tv_usec)/1e6
+    return user+system
+}
+#endif
 
 private func monitorObservation(_ time: Double,_ busy: UInt64=100,_ received: UInt64=100) -> SystemMonitorObservation {
     var value=SystemMonitorObservation(); value.uptime=time; value.logicalCPUCount=2
@@ -73,16 +86,30 @@ private actor MonitorControlledSource: SystemMonitorSampling {
 }
 func nativeMonitorReadsWithoutMutation() async throws {
     #if os(macOS)
+    let firstLower=try monitorProcessCPUTime()
     let source=NativeSystemMonitor(), first=try await source.observe()
+    let firstUpper=try monitorProcessCPUTime()
     try expect(first.uptime > 0 && first.logicalCPUCount > 0 && !first.cpu.isEmpty)
     try expect(first.memoryTotal != nil && first.memoryUsed != nil && !first.hardware.isEmpty)
     try expect(first.processes.contains { $0.pid == ProcessInfo.processInfo.processIdentifier })
     try expect(first.processes.count <= 4096 && first.fanRPM.allSatisfy { $0.isFinite && $0 >= 0 })
     let before=try require(first.processes.first { $0.pid == ProcessInfo.processInfo.processIdentifier })
-    let until=ProcessInfo.processInfo.systemUptime+0.12
-    while ProcessInfo.processInfo.systemUptime < until { _ = sqrt(ProcessInfo.processInfo.systemUptime) }
+    try expect(before.cpuSeconds >= firstLower-0.001 && before.cpuSeconds <= firstUpper+0.001)
+    // Wall time does not guarantee scheduled CPU time on a shared runner.
+    let target=try monitorProcessCPUTime()+0.12
+    let deadline=ProcessInfo.processInfo.systemUptime+10
+    while try monitorProcessCPUTime() < target {
+        guard ProcessInfo.processInfo.systemUptime < deadline else {
+            throw CheckFailure(description:"The monitor fixture could not accumulate CPU time within its workload budget")
+        }
+    }
+    let afterLower=try monitorProcessCPUTime()
     let after=try require(try await source.observe().processes.first { $0.pid == ProcessInfo.processInfo.processIdentifier })
-    try expect(after.cpuSeconds-before.cpuSeconds >= 0.08 && after.cpuSeconds-before.cpuSeconds < 2)
+    let afterUpper=try monitorProcessCPUTime()
+    print("Native monitor CPU seconds: \(before.cpuSeconds) → \(after.cpuSeconds); getrusage bracket \(afterLower)...\(afterUpper).")
+    // Independent kernel accounting checks the conversion, including ARM timebase.
+    try expect(after.cpuSeconds >= afterLower-0.001 && after.cpuSeconds <= afterUpper+0.001)
+    try expect(after.cpuSeconds-before.cpuSeconds >= 0.12-0.001)
     print("Native monitor: \(first.cpu.count) cores, \(first.processes.count) processes (\(first.processCoverage)); CPU temperature \(first.cpuTemperature.map(String.init(describing:)) ?? "unavailable"), GPU \(first.gpuPercent.map(String.init(describing:)) ?? "unavailable"), fans \(first.fanRPM.count).")
     #endif
 }

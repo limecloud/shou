@@ -4,6 +4,8 @@
 
 The user-selected release version is `0.24.0`, aligned across macOS app/build, Swift CLI, Windows and npm source template. The earlier `v0.23.1` preparation run is cancelled before publication; existing tags remain unchanged. This candidate includes the native WinUI binding-setter correction and requires a fresh complete release pipeline / 本地安装也使用 `0.24.0`，不把此前候选安装或中止的流水线计作本版本发布完成。
 
+The separate ARM64 branch-check run `42343029257` failed 1/365 checks at the native monitor's wall-time workload assertion, while its Intel job and the release pipeline's ARM64 job passed. The regression now accumulates measured process CPU time, keeps a bounded workload deadline and cross-checks native samples against bracketing `getrusage` readings with 1 ms precision allowance. This preserves CPU-unit and monotonicity checks without assuming 120 ms wall time guarantees 80 ms CPU time. Local monitor checks pass 4/4; `.build/v024-monitor-regression.log` records the independent counters. A native probe confirms the existing ARM timebase conversion matches `getrusage`; production monitor code and the `v0.24.0` tag are unchanged / 修正仅涉及测试与验收记录，推送主分支触发新的双架构 CI，不把旧失败任务重跑冒充修复验证。
+
 ## v0.23.1 release candidate / 发布候选
 
 The `v0.23.0` release gate rejected the native Windows XAML build: generated binding metadata assigns the two new `CleanupCandidateDisplay` strings, which cannot use C# `init` setters. The display properties now use ordinary setters; the original tag remains unchanged and no `v0.23.0` release was published. Version owners and current release documentation advance to `0.23.1` for a fresh native build and publication / Mac 引用编译未覆盖 WinUI 生成代码；不跳过原生构建，不重写已推送标签。
