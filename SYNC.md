@@ -1,5 +1,9 @@
 # Platform synchronization / 跨端对齐
 
+## v0.23.1 release candidate / 发布候选
+
+The `v0.23.0` release gate rejected the native Windows XAML build: generated binding metadata assigns the two new `CleanupCandidateDisplay` strings, which cannot use C# `init` setters. The display properties now use ordinary setters; the original tag remains unchanged and no `v0.23.0` release was published. Version owners and current release documentation advance to `0.23.1` for a fresh native build and publication / Mac 引用编译未覆盖 WinUI 生成代码；不跳过原生构建，不重写已推送标签。
+
 ## v0.23.0 release candidate / 发布候选
 
 Native macOS app/build, Swift CLI, Windows and npm-template versions are aligned at `0.23.0`. Local versioned validation passes 166 packaged Swift CLI contracts and 1,371 Windows portable tests plus 204 CLI contracts, with 99 native/opt-in cases skipped on macOS. The authorized local Release replacement verifies 194 packaged files and preserves all 824 existing Shou record hashes; `/Applications/Shou.app` and its CLI both report `0.23.0`, retaining the installed ad-hoc signing mode. Logs: `.build/v023-local-release-build.log`, `.build/v023-local-install.log`, `.build/v023-packaged-cli-tests.log` and `.build/v023-windows-portable-tests.log` / GitHub 发布仍须精确标签对应的双架构原生 CI、签名更新和附件校验全部通过；npm registry 发布单独取证。

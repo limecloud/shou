@@ -682,8 +682,8 @@ public sealed partial class CleanupPage : UserControl, IPageChrome, IDisposable
 [Microsoft.UI.Xaml.Data.Bindable]
 public sealed class CleanupCandidateDisplay(CleanupCandidateSelection row, string ruleName, string explanation)
 {
-    public string KeepLabel { get; init; } = "";
-    public string RebuildNote { get; init; } = "";
+    public string KeepLabel { get; set; } = "";
+    public string RebuildNote { get; set; } = "";
     public CleanupCandidateSelection Row { get; } = row;
     public string RuleName { get; } = ruleName;
     public string Explanation { get; } = explanation;
