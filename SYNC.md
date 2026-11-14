@@ -1,5 +1,9 @@
 # Platform synchronization / 跨端对齐
 
+## v0.24.1 signed release / 签名发布
+
+macOS app/build, Swift CLI, Windows and npm template versions are aligned at `0.24.1`, tag `v0.24.1`. This release includes the Developer ID/notarization distribution pipeline and preserves existing cleanup and Windows preview gates. Release CI verifies the exact tagged source before publication; npm registry publication is independent / 本次公开下载要求签名、公证、更新签名和最终摘要全部通过，不覆盖既有版本附件。
+
 ## macOS Developer ID distribution, 2026-11-14 / 开发者签名分发
 
 macOS release tooling requires Developer ID signatures with a trusted timestamp and Hardened Runtime for the app, CLI and nested Sparkle code. App/DMG notarization and stapled-ticket/Gatekeeper checks precede final update signatures and checksums. Native npm payloads are signed and their enclosing apps notarized before staging hashes. Temporary signing keychains are isolated and cleaned; ordinary branch/PR checks retain ad-hoc signing. The manual signing workflow uploads universal validation packages without publishing releases or npm updates / 发布签名、公证、普通 CI 与公开发布分别取证；现有公开附件不被替换，Windows 签名、安装和公开能力门禁保持原有范围。

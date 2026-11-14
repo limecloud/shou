@@ -13,30 +13,17 @@
 
 ## First launch on macOS
 
-The v0.13.0 Mac downloads linked below use an ad-hoc signature and are not Apple-notarized. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then drag **Shou.app** into **Applications**. If macOS blocks the first launch, run in Terminal:
-
-```sh
-xattr -dr com.apple.quarantine "/Applications/Shou.app"
-open "/Applications/Shou.app"
-```
-
-`xattr` removes only this app's download quarantine attribute. It does not grant Full Disk Access; configure scanning access in the first-use guide. See [installation and permissions](docs/product/installation-and-access.md).
-
-A native macOS cleaner with cleanup rules tailored by your existing AI agent. Tell Codex, Claude Code, or WorkBuddy what takes space and what to keep; it asks the missing questions and drafts reusable rules. Shou scans, validates, previews, and cleans locally.
-
-Shou v0.13.0 unifies native traversal, pages large cleanup manifests and keeps measured cleanup progress in the main window. The npm CLI uses one installation entry with exact-version native platform packages. See the [release notes](https://github.com/limecloud/shou/releases/tag/v0.13.0) and [npm distribution](docs/engineering/npm-distribution.md).
+Mac downloads use Developer ID signatures and Apple notarization. Download the DMG below and drag **Shou.app** into **Applications**. Replacing an older ad-hoc installation may require granting Full Disk Access again.
 
 ## Download and install
 
-Download Shou v0.13.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.24.1 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.24.1 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.24.1/shou-0.24.1-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-windows-arm64.zip)
 
-v0.13.0 includes unsigned, self-contained Windows portable previews with independent WinUI 3/.NET 10 implementations. Extract the app ZIP and run Shou.Windows.App.exe. Native cleanup, uninstall and startup mutation gates remain closed; ARM64 runtime, signing, installation and updates await separate acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
-
-If the first launch is blocked, follow the `xattr` steps above, or allow this app through **System Settings → Privacy & Security → Open Anyway**.
+v0.24.1 includes unsigned, self-contained Windows portable previews with independent WinUI 3/.NET 10 implementations. Extract the app ZIP and run Shou.Windows.App.exe. Native cleanup, uninstall and startup mutation gates remain closed; ARM64 runtime, signing, installation and updates await separate acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
 
 The first-use guide explains Full Disk Access and optional CLI installation. You can continue with accessible folders and revisit **Settings → Setup Guide** at any time. See [installation and permissions](docs/product/installation-and-access.md).
 

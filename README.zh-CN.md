@@ -13,30 +13,17 @@
 
 ## macOS 首次打开
 
-下方链接的 v0.13.0 Mac 下载使用临时签名，尚未经过 Apple 公证。从本仓库的 [Releases](https://github.com/limecloud/shou/releases) 下载后，将 **Shou.app** 拖入**应用程序**。如果首次打开被 macOS 拦截，在“终端”执行：
-
-```sh
-xattr -dr com.apple.quarantine "/Applications/Shou.app"
-open "/Applications/Shou.app"
-```
-
-`xattr` 只移除这个应用的下载隔离标记，不授予完全磁盘访问权限。扫描授权在应用首次使用引导中设置，详见[安装与权限](docs/zh-CN/product/installation-and-access.md)。
-
-让现有 AI Agent 为你定制清理规则的原生 macOS 清理工具。告诉 Codex、Claude Code 或 WorkBuddy 哪些目录占空间、哪些内容要保留，由它追问、分析并编写可复用规则；Shou 在本地完成扫描、校验、预览与清理。
-
-Shou v0.13.0 统一原生遍历、大清单分页和页面内清理进度，减少准备与执行的重复工作。npm CLI 使用统一安装入口和精确版本的原生平台包。详见[发布说明](https://github.com/limecloud/shou/releases/tag/v0.13.0)和[npm 分发](docs/zh-CN/engineering/npm-distribution.md)。
+Mac 下载使用 Developer ID 签名并通过 Apple 公证。下载下方 DMG，将 **Shou.app** 拖入**应用程序**。替换旧的临时签名安装可能需要重新授予完全磁盘访问权限。
 
 ## 下载与安装
 
-下载 Shou v0.13.0，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
+下载 Shou v0.24.1，支持 **macOS 14 及以上**。通用版本适用于 Apple Silicon 和 Intel Mac。打开磁盘映像，将 **Shou.app** 拖入 **Applications（应用程序）**。界面支持英文和简体中文。
 
-[**Shou v0.13.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.13.0/shou-0.13.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.24.1 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.24.1/shou-0.24.1-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.13.0/Shou-0.13.0-windows-arm64.zip)
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-windows-arm64.zip)
 
-v0.13.0 同时提供独立 WinUI 3/.NET 10 的 Windows 自包含便携预览包；解压后运行 Shou.Windows.App.exe。Windows 清理、卸载和启动项变更门禁仍关闭，ARM64 运行、签名、安装和更新另行验收，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
-
-首次打开被拦截时，按文首的 `xattr` 步骤处理；也可在**系统设置 → 隐私与安全性 → 仍要打开**中放行本次应用。
+v0.24.1 同时提供独立 WinUI 3/.NET 10 的 Windows 自包含便携预览包；解压后运行 Shou.Windows.App.exe。Windows 清理、卸载和启动项变更门禁仍关闭，ARM64 运行、签名、安装和更新另行验收，见[Windows 方案](docs/zh-CN/engineering/windows-native-plan.md)。
 
 首次启动会引导完成磁盘访问设置，并可直接安装 CLI 命令。也可以先使用可访问范围，之后随时在**设置 → 设置引导**继续配置。参见[安装与权限说明](docs/zh-CN/product/installation-and-access.md)。
 
