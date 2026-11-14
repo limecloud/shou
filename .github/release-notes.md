@@ -9,7 +9,7 @@ Shou v0.24.0 redesigns cleanup review around the largest locations and adds a bu
 
 PostgreSQL database deletion, Docker volume deletion and host virtual-disk compaction have no new automatic execution entry point in this release. Interactive appearance and complete preview journeys remain separate acceptance scopes.
 
-macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. The app uses an ad-hoc signature and is not Apple-notarized; Full Disk Access may need to be granted again after replacement. Windows x64/ARM64 downloads are unsigned, self-contained previews for Windows 11. Native fixture checks, interactive preview journeys, UAC, ARM64 interaction, signing, installation and updates are separate acceptance scopes. npm registry publication is verified separately from GitHub assets.
+macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone CLI, Sparkle-signed updates and checksums. Release packaging requires Developer ID signatures and Apple notarization; replacing an older ad-hoc installation may require granting Full Disk Access again. Windows x64/ARM64 downloads are unsigned, self-contained previews for Windows 11. Native fixture checks, interactive preview journeys, UAC, ARM64 interaction, signing, installation and updates are separate acceptance scopes. npm registry publication is verified separately from GitHub assets.
 
 简体中文：Shou v0.24.0 围绕大项占用重新设计清理审阅，并为现有 AI 客户端提供随包辅助清理技能。
 
@@ -22,4 +22,4 @@ macOS supports 14+, Apple Silicon and Intel, with universal DMG/ZIP, standalone 
 
 本版未新增 PostgreSQL 数据库删除、Docker 卷删除或宿主虚拟磁盘压缩的自动执行入口。明暗外观及完整预览版交互旅程仍需单独验收。
 
-macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新及校验和。应用为 ad-hoc 签名，未经 Apple 公证，替换后可能需要重新授予完全磁盘访问权限。Windows 提供 Windows 11 未签名 x64／ARM64 自包含便携预览。原生夹具、预览版界面旅程、UAC、ARM64 交互、签名、安装与更新分别验收；npm registry 与 GitHub 附件分别验证。
+macOS 支持 14+、Apple Silicon 与 Intel，提供通用 DMG／ZIP、独立 CLI、Sparkle 签名更新及校验和。发布打包要求 Developer ID 签名及 Apple 公证；替换旧的临时签名安装可能需要重新授予完全磁盘访问权限。Windows 提供 Windows 11 未签名 x64／ARM64 自包含便携预览。原生夹具、预览版界面旅程、UAC、ARM64 交互、签名、安装与更新分别验收；npm registry 与 GitHub 附件分别验证。
