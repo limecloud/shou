@@ -74,7 +74,15 @@ class AppleSigningTests(unittest.TestCase):
                 binary.parent.mkdir(parents=True, exist_ok=True)
                 binary.write_bytes(bytes.fromhex('cffaedfe') + b'fixture')
             info = app / 'Contents/Info.plist'
-            info.write_bytes(plistlib.dumps({'CFBundleIdentifier': 'dev.limecloud.shou'}))
+            info.write_bytes(plistlib.dumps({'CFBundleIdentifier': 'dev.limecloud.shou', 'CFBundleExecutable': 'Shou'}))
+            (xpc / 'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleExecutable': 'Downloader'}))
+            framework_info = framework / 'Versions/B/Resources/Info.plist'
+            framework_info.parent.mkdir()
+            framework_info.write_bytes(plistlib.dumps({'CFBundleExecutable': 'Sparkle'}))
+            (framework / 'Resources').symlink_to('Versions/Current/Resources', target_is_directory=True)
+            resource = app / 'Contents/Helpers/Shou_ShouAgentSupport.bundle'
+            resource.mkdir()
+            (resource / 'SKILL.md').write_text('unsigned fixture')
             (framework / 'Versions/Current').symlink_to('B', target_is_directory=True)
             (framework / 'Sparkle').symlink_to('Versions/Current/Sparkle')
             calls = []
@@ -83,8 +91,10 @@ class AppleSigningTests(unittest.TestCase):
                 apple.sign_app(app)
             paths = [call[-1] for call in calls]
             self.assertEqual(len(paths), len(set(paths)))
-            self.assertLess(paths.index(binaries[2]), paths.index(xpc))
+            for owned in (binaries[0], binaries[2], binaries[3]):
+                self.assertNotIn(owned, paths)
             self.assertLess(paths.index(xpc), paths.index(framework))
+            self.assertLess(paths.index(resource), paths.index(app))
             self.assertEqual(paths[-1], app)
             cli_call = next(call for call in calls if call[-1] == binaries[1])
             self.assertIn('dev.limecloud.shou.cli', cli_call)

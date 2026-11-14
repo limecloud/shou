@@ -126,6 +126,20 @@ def code_paths(app):
     return binaries, bundles
 
 
+def bundle_executable(bundle):
+    if bundle.suffix == '.framework':
+        info_path = bundle / 'Resources/Info.plist'
+    else:
+        info_path = bundle / 'Contents/Info.plist'
+    if not info_path.is_file():
+        return None
+    name = plistlib.loads(info_path.read_bytes()).get('CFBundleExecutable')
+    if not name:
+        return None
+    executable = bundle / name if bundle.suffix == '.framework' else bundle / 'Contents/MacOS' / name
+    return executable.resolve()
+
+
 def verify_code(path, team, runtime=True, timestamp=True):
     run(['codesign', '--verify', '--strict', path])
     details = run(['codesign', '--display', '--verbose=4', path]).splitlines()
@@ -161,12 +175,15 @@ def sign_app(app):
     if os.environ.get('SHOU_SIGNING_KEYCHAIN'):
         options += ['--keychain', os.environ['SHOU_SIGNING_KEYCHAIN']]
     binaries, bundles = code_paths(app)
-    for binary in binaries:
-        identifier = ['--identifier', 'dev.limecloud.shou.cli'] if binary == app / 'Contents/Helpers/shou' else []
-        run([*options, *identifier, binary])
-    # Sign Sparkle's helpers/XPC/updater before their enclosing framework and app.
-    for bundle in [*bundles, app]:
-        run([*options, bundle])
+    containers = [*bundles, app]
+    owned_executables = {bundle_executable(bundle) for bundle in containers}
+    # Signing an app's main executable also examines its enclosing bundle.
+    # Sign it through the container only after every nested resource is sealed.
+    loose_binaries = [binary for binary in binaries if binary.resolve() not in owned_executables]
+    targets = sorted([*loose_binaries, *containers], key=lambda p: (-len(p.parts), str(p)))
+    for target in targets:
+        identifier = ['--identifier', 'dev.limecloud.shou.cli'] if target == app / 'Contents/Helpers/shou' else []
+        run([*options, *identifier, target])
     verify_app(app, timestamp=timestamp)
 
 
