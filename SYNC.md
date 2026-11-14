@@ -1,5 +1,11 @@
 # Platform synchronization / 跨端对齐
 
+## macOS Developer ID distribution, 2026-11-14 / 开发者签名分发
+
+macOS release tooling requires Developer ID signatures with a trusted timestamp and Hardened Runtime for the app, CLI and nested Sparkle code. App/DMG notarization and stapled-ticket/Gatekeeper checks precede final update signatures and checksums. Native npm payloads are signed and their enclosing apps notarized before staging hashes. Temporary signing keychains are isolated and cleaned; ordinary branch/PR checks retain ad-hoc signing. The manual signing workflow uploads universal validation packages without publishing releases or npm updates / 发布签名、公证、普通 CI 与公开发布分别取证；现有公开附件不被替换，Windows 签名、安装和公开能力门禁保持原有范围。
+
+Local validation passes seven signing regressions, ten npm packaging tests, workflow syntax and bilingual documentation checks. A disposable copy of the existing universal app passes real Developer ID signing, all nested signature checks and packaged CLI execution. Signing regressions cover certificate selection, nested signing order, credential cleanup/redaction and unknown notarization recovery. Real Apple acceptance is recorded separately / 本地签名及离线回归不冒充 Apple 公证、Windows 原生或已发布下载的验收。
+
 ## v0.24.0 release candidate / 发布候选
 
 The user-selected release version is `0.24.0`, aligned across macOS app/build, Swift CLI, Windows and npm source template. The earlier `v0.23.1` preparation run is cancelled before publication; existing tags remain unchanged. This candidate includes the native WinUI binding-setter correction and requires a fresh complete release pipeline / 本地安装也使用 `0.24.0`，不把此前候选安装或中止的流水线计作本版本发布完成。

@@ -42,6 +42,10 @@ def verify_app(app):
     assert (app / 'Contents/Resources/Sparkle-LICENSE.txt').read_bytes() == Path('.build/artifacts/sparkle/Sparkle/LICENSE').read_bytes()
     assert (app / 'Contents/Resources/SwiftAISDK-LICENSE.txt').read_bytes() == Path('.build/checkouts/swift-ai-sdk/LICENSE').read_bytes()
     subprocess.run(['codesign', '--verify', '--deep', '--strict', str(app)], check=True)
+    assert info['ShouSigningMode'] == 'developer-id'
+    subprocess.run([sys.executable, 'scripts/apple-signing.py', 'verify-app', str(app)], check=True)
+    subprocess.run(['xcrun', 'stapler', 'validate', str(app)], check=True)
+    subprocess.run(['spctl', '--assess', '--type', 'execute', str(app)], check=True)
     for relative in ('Contents/MacOS/Shou', 'Contents/Helpers/shou', 'Contents/Frameworks/Sparkle.framework/Sparkle'):
         architectures = subprocess.check_output(['lipo', '-archs', str(app / relative)], text=True).split()
         assert set(architectures) == {'arm64', 'x86_64'}, (relative, architectures)
@@ -85,12 +89,15 @@ def verify_packaged_resource_lookup(executable, resources, base, app=None):
 
 with tempfile.TemporaryDirectory(prefix='shou-distribution-') as directory:
     base = Path(directory).resolve()
+    subprocess.run(['xcrun', 'stapler', 'validate', str(image)], check=True)
+    subprocess.run(['spctl', '--assess', '--type', 'open', '--context', 'context:primary-signature', str(image)], check=True)
     subprocess.run(['ditto', '-x', '-k', str(archive), str(base / 'zip')], check=True)
     verify_app(base / 'zip/Shou.app')
     with tarfile.open(cli) as package:
         assert all(not p.name.startswith('/') and '..' not in Path(p.name).parts for p in package)
         package.extractall(base / 'cli', filter='data')
     executable = base / 'cli/shou'
+    subprocess.run([sys.executable, 'scripts/apple-signing.py', 'verify-code', str(executable)], check=True)
     assert (base / 'cli/SwiftAISDK-LICENSE.txt').read_bytes() == Path('.build/checkouts/swift-ai-sdk/LICENSE').read_bytes()
     assert set(subprocess.check_output(['lipo', '-archs', str(executable)], text=True).split()) == {'arm64', 'x86_64'}
     assert subprocess.check_output([str(executable), '--version'], text=True).startswith(f'shou {version} ')

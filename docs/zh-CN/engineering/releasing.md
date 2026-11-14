@@ -14,12 +14,25 @@
 
 流水线将 Secret 写入权限为 `0600` 的临时文件，签名后移除临时副本。Sparkle 要求签名订阅，并在解压前验证下载包。应用从 GitHub 最新 Release 的 `appcast.xml` 获取更新；包地址与校验信息均指向明确版本的 Release。
 
-Sparkle 更新签名与 Apple Developer ID 签名、公证分别管理。初始打包脚本使用 ad-hoc 应用签名；下载说明和 Release Notes 会说明安装限制。
+Sparkle 更新签名与 Apple Developer ID 签名、公证分别管理。发布工作流使用以下仓库 Secrets；常规分支／PR 检查继续使用临时签名，不读取发布凭据。
+
+| Secret | 内容 |
+| --- | --- |
+| `APPLE_CERTIFICATE` | 包含证书链和私钥的 PKCS#12 文件，单行 base64 |
+| `APPLE_CERTIFICATE_PASSWORD` | PKCS#12 导出密码 |
+| `APPLE_SIGNING_IDENTITY` | `Developer ID Application: <组织> (<团队 ID>)` |
+| `APPLE_TEAM_ID` | 十位 Apple 开发者团队标识 |
+| `APPLE_ID` | 有公证权限的 Apple 账户 |
+| `APPLE_PASSWORD` | 该账户生成的 App 专用密码，不能使用登录密码 |
+
+`scripts/apple-signing.py run --notarize -- <命令>` 将证书导入私有临时钥匙串，按本次导入证书的唯一指纹签名，结束时恢复钥匙串列表并清理临时凭据。Sparkle framework 内的可执行文件、XPC 和 Updater 与 CLI／应用按从内到外的顺序签名，保留原有 entitlements，并验证团队、Hardened Runtime 和可信时间戳。App 公证通过并装订票据后才生成 ZIP／DMG；DMG 再单独签名、公证及装订。Sparkle 签名与 SHA-256 基于最终字节生成。两个架构的 npm CLI 在平台包摘要生成前完成签名及所属 App 的公证；原始 CLI 不支持装订票据，需要系统联机获取对应代码的公证票据。
+
+公证提交 ID 和结果保存在构建附件中；等待超时或状态不明时沿原 ID 查询，不自动重新提交。`.github/workflows/macos-signing.yml` 仅供 `main` 手动构建、签名和公证通用 App／DMG，上传验证附件，不创建 Release、不签发 Sparkle 更新，也不发布 npm 包。现有公开下载的签名状态以对应版本实际产物为准。
 
 ## 验证与发布
 
 1. 执行 `sh scripts/test.sh --native-trash-purge` 并检查实际日志。该参数显式启用原生规则目录夹具的清理、恢复与永久移除。默认规则目录检查仅恢复、不永久移除；部分 CLI 检查会独立永久移除其自行生成的夹具。任何检查均不得指向个人数据。
-2. 执行 `sh scripts/release-macos.sh v0.24.0 /absolute/path/to/private-key-file`。构建两种 CPU 架构，测试 Release 核心和包内 CLI，检查 DMG、ZIP、独立 CLI、更新签名，并验证篡改包与订阅被拒绝。
+2. 在已设置上述 Apple 凭据的受控环境执行 `python3 scripts/apple-signing.py run --notarize -- sh scripts/release-macos.sh v0.24.0 /absolute/path/to/private-key-file`。构建两种 CPU 架构，测试 Release 核心和包内 CLI，检查 DMG、ZIP、独立 CLI、公证票据和更新签名，并验证篡改包与订阅被拒绝。缺少签名／公证配置时停止，不退回临时签名。
 3. 审阅源码、文档、运行资源与 Release Notes。提交、推送或发布前，取得用户要求的递交确认。
 4. 推送版本标签。`.github/workflows/release.yml` 在 Apple Silicon 与 Intel 上运行全量测试（含超过 10 万个文件的原生清理及恢复）、启用优化的授权索引传输／catalog 回归和发布构建，再生成并验证通用发布包。只有成功的任务才能进入发布阶段。手动重跑要求标签已存在。
 5. 发布任务核对上传后的 SHA-256，在草稿中完成附件上传后公开发布，拒绝覆盖已经发布的版本。发布后确认下载链接，并从已安装应用检查更新。

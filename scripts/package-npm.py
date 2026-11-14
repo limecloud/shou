@@ -11,6 +11,7 @@ import re
 import shutil
 import struct
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -138,7 +139,7 @@ def native_check(directory, target, version, development):
                 raise ValueError("The packaged native rule resources are unavailable.")
     if not development:
         if target.startswith("darwin-"):
-            run("codesign", "--verify", "--strict", str(executable))
+            run(sys.executable, str(ROOT / "scripts/apple-signing.py"), "verify-code", str(executable))
         else:
             if not capabilities["data"].get("host_supported"):
                 raise ValueError("This Windows host is below the minimum supported version.")

@@ -13,7 +13,7 @@
 
 ## macOS 首次打开
 
-目前暂无 Apple 开发者证书，Mac 版本使用临时签名，尚未经过 Apple 公证。从本仓库的 [Releases](https://github.com/limecloud/shou/releases) 下载后，将 **Shou.app** 拖入**应用程序**。如果首次打开被 macOS 拦截，在“终端”执行：
+下方链接的 v0.13.0 Mac 下载使用临时签名，尚未经过 Apple 公证。从本仓库的 [Releases](https://github.com/limecloud/shou/releases) 下载后，将 **Shou.app** 拖入**应用程序**。如果首次打开被 macOS 拦截，在“终端”执行：
 
 ```sh
 xattr -dr com.apple.quarantine "/Applications/Shou.app"

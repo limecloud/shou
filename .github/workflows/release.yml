@@ -105,7 +105,17 @@ jobs:
         with:
           node-version: '22'
       - name: Stage and verify native npm package
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         run: |
+          python3 scripts/apple-signing.py run --notarize -- sh -eu <<'SH'
+          python3 scripts/apple-signing.py sign-app dist/Shou.app
+          python3 scripts/apple-signing.py notarize-app dist/Shou.app --evidence dist/notarization-native
           case "$(uname -m)" in arm64) task_target=darwin-arm64 ;; x86_64) task_target=darwin-x64 ;; *) exit 1 ;; esac
           task_version="${SHOU_RELEASE_TAG#v}"
           mkdir -p "$RUNNER_TEMP/shou-npm-notices"
@@ -113,6 +123,14 @@ jobs:
           python3 scripts/package-npm.py platform --version "$task_version" --platform "$task_target" --payload dist/Shou.app/Contents/Helpers --licenses "$RUNNER_TEMP/shou-npm-notices" --output "dist/npm/$task_target"
           python3 scripts/package-npm.py launcher --version "$task_version" --platform-package "dist/npm/$task_target" --output "$RUNNER_TEMP/shou-npm-launcher"
           python3 scripts/verify-npm-distribution.py --launcher "$RUNNER_TEMP/shou-npm-launcher" --platform-package "dist/npm/$task_target" --output "$RUNNER_TEMP/shou-npm-verification"
+          SH
+      - name: Retain native notarization receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shou-notarization-${{ matrix.runner }}
+          path: dist/notarization-native/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: shou-npm-${{ matrix.runner }}
@@ -157,13 +175,26 @@ jobs:
       - name: Build, test, package, and sign universal updates
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         run: |
           test -n "$SPARKLE_PRIVATE_KEY" || { echo 'SPARKLE_PRIVATE_KEY repository secret is required'; exit 1; }
           task_key_file="$RUNNER_TEMP/shou-update-key"
           umask 077
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$task_key_file"
           trap 'rm -f "$task_key_file"' EXIT
-          sh scripts/release-macos.sh "$SHOU_RELEASE_TAG" "$task_key_file"
+          python3 scripts/apple-signing.py run --notarize -- sh scripts/release-macos.sh "$SHOU_RELEASE_TAG" "$task_key_file"
+      - name: Retain universal notarization receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shou-notarization-universal
+          path: dist/release-*/notarization/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: shou-release

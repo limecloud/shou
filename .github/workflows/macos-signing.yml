@@ -1,0 +1,59 @@
+name: macOS signing validation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-signing-validation
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.2.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify signing tooling
+        run: python3 tests/test-apple-signing.py
+      - name: Build, sign and notarize universal application and disk image
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: |
+          python3 scripts/apple-signing.py run --notarize -- sh -eu <<'SH'
+          export SHOU_APP_OUTPUT="$RUNNER_TEMP/shou-signing/Shou.app"
+          sh scripts/build-macos.sh release universal
+          python3 scripts/apple-signing.py notarize-app "$SHOU_APP_OUTPUT" --evidence dist/signing-evidence/app
+          mkdir -p dist/signing-check "$RUNNER_TEMP/shou-signing/disk-image"
+          ditto -c -k --sequesterRsrc --keepParent "$SHOU_APP_OUTPUT" dist/signing-check/Shou.zip
+          ditto "$SHOU_APP_OUTPUT" "$RUNNER_TEMP/shou-signing/disk-image/Shou.app"
+          ln -s /Applications "$RUNNER_TEMP/shou-signing/disk-image/Applications"
+          hdiutil create -volname Shou -fs HFS+ -srcfolder "$RUNNER_TEMP/shou-signing/disk-image" -ov -format UDZO dist/signing-check/Shou.dmg
+          python3 scripts/apple-signing.py notarize-dmg dist/signing-check/Shou.dmg --evidence dist/signing-evidence/dmg
+          "$SHOU_APP_OUTPUT/Contents/Helpers/shou" --version
+          (cd dist/signing-check && shasum -a 256 Shou.zip Shou.dmg > SHA256SUMS)
+          SH
+      - name: Retain notarization receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shou-signing-evidence
+          path: dist/signing-evidence/
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shou-signed-universal-validation
+          path: dist/signing-check/
+          if-no-files-found: error

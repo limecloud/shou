@@ -13,7 +13,7 @@
 
 ## First launch on macOS
 
-We do not currently have an Apple Developer certificate. Mac builds use an ad-hoc signature and are not Apple-notarized. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then drag **Shou.app** into **Applications**. If macOS blocks the first launch, run in Terminal:
+The v0.13.0 Mac downloads linked below use an ad-hoc signature and are not Apple-notarized. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then drag **Shou.app** into **Applications**. If macOS blocks the first launch, run in Terminal:
 
 ```sh
 xattr -dr com.apple.quarantine "/Applications/Shou.app"

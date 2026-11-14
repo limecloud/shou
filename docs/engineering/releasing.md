@@ -14,12 +14,25 @@ The application embeds a Sparkle Ed25519 public key in `SUPublicEDKey`. Put the 
 
 The workflow reads the secret into a temporary file with mode `0600`, uses it to sign updates, and removes that temporary copy. Sparkle verifies archives before extraction and requires signed feeds. The app's update feed points at the latest GitHub release's `appcast.xml`. Both archive URLs and checksums refer to the immutable versioned release.
 
-Sparkle update signatures are separate from Apple Developer ID signing and notarization. The initial packaging script uses an ad-hoc application signature. Downloads and release notes disclose that installation limitation.
+Sparkle update signatures are separate from Apple Developer ID signing and notarization. Release workflows require these repository secrets; ordinary branch/PR checks retain ad-hoc signatures and do not read release credentials.
+
+| Secret | Value |
+| --- | --- |
+| `APPLE_CERTIFICATE` | Single-line base64 PKCS#12 containing the certificate chain and private key |
+| `APPLE_CERTIFICATE_PASSWORD` | PKCS#12 export password |
+| `APPLE_SIGNING_IDENTITY` | `Developer ID Application: <organization> (<team ID>)` |
+| `APPLE_TEAM_ID` | Ten-character Apple developer team identifier |
+| `APPLE_ID` | Apple account authorized for notarization |
+| `APPLE_PASSWORD` | An App-specific password generated for that account, never its login password |
+
+`scripts/apple-signing.py run --notarize -- <command>` imports the certificate into a private temporary keychain, selects its unique fingerprint, and restores the keychain list and removes temporary credentials on exit. Sparkle executables, XPC services, Updater, framework, CLI and application are signed from the inside out, preserving existing entitlements and checking the team, Hardened Runtime and trusted timestamp. The app must pass notarization and stapling before ZIP/DMG creation; the DMG is then separately signed, notarized and stapled. Sparkle signatures and SHA-256 cover the final bytes. Both native npm CLIs are signed and their enclosing apps notarized before platform-package hashes are generated; raw CLI executables cannot carry a stapled ticket and require the system to retrieve their code's notarization ticket online.
+
+Submission IDs and results are retained as workflow artifacts. Query the original ID after a timeout or unknown result instead of automatically resubmitting. `.github/workflows/macos-signing.yml` manually builds, signs and notarizes the universal app/DMG from `main`, uploading validation artifacts without creating a Release, signing Sparkle updates or publishing npm packages. Existing public downloads retain the signing status of their actual versioned artifacts.
 
 ## Verification and publication
 
 1. Run `sh scripts/test.sh --native-trash-purge` and review the actual logs. This explicitly enables native catalog cleanup, restoration, and permanent removal of generated fixtures. Default catalog checks restore without purging; some CLI checks independently remove their own generated fixtures permanently. No checks may target personal data.
-2. Run `sh scripts/release-macos.sh v0.24.0 /absolute/path/to/private-key-file`. This builds both CPU architectures, tests the release core and packaged CLI, inspects the DMG/ZIP/CLI archives, checks signatures, and rejects modified update archives and feeds.
+2. In a controlled environment with the Apple credentials above, run `python3 scripts/apple-signing.py run --notarize -- sh scripts/release-macos.sh v0.24.0 /absolute/path/to/private-key-file`. This builds both CPU architectures, tests the release core and packaged CLI, inspects DMG/ZIP/CLI archives, checks notarization tickets and update signatures, and rejects modified archives/feeds. Missing signing/notarization configuration stops packaging without falling back to ad-hoc signatures.
 3. Review all source, documentation, runtime resources, and release notes before committing. Obtain any user-required submission approval before commit, push, or publication.
 4. Push the version tag. `.github/workflows/release.yml` runs all tests, including native cleanup and restoration of over 100,000 files, optimized authorization-index transfer/catalog regressions, and release packaging on Apple Silicon and Intel, then builds and validates the universal release. Only successful jobs reach publication. Manual reruns require an existing tag.
 5. The publication job checks transferred SHA-256 checksums, stages assets in a draft, and publishes after upload. It refuses to replace a published release. Confirm the final release downloads and check updates from an installed app.

@@ -5,6 +5,11 @@ cd "$TASK_ROOT"
 TASK_TAG=${1:?Usage: sh scripts/release-macos.sh v0.24.0 private-key-file}
 TASK_KEY=${2:?Pass the update signing key file; never pass the key itself}
 TASK_VERSION=${TASK_TAG#v}
+# Public artifacts must never fall back to ad-hoc signing or skip notarization.
+test -n "${SHOU_NOTARY_PROFILE:-}" && test -n "${SHOU_SIGNING_KEYCHAIN:-}" || {
+    echo 'Run release-macos.sh through scripts/apple-signing.py run --notarize' >&2; exit 1;
+}
+test "${SHOU_SIGNING_TIMESTAMP:-none}" = required || { echo 'A trusted signing timestamp is required' >&2; exit 1; }
 python3 - "$TASK_TAG" <<'PY'
 import plistlib, re, sys
 from pathlib import Path
@@ -30,10 +35,12 @@ TASK_APP_NAME="Shou-$TASK_VERSION-macos-universal"
 TASK_CLI_NAME="shou-$TASK_VERSION-macos-universal"
 TASK_OUTPUT="$TASK_ROOT/dist/release-$TASK_VERSION"
 mkdir -p "$TASK_OUTPUT" "$TASK_OUTPUT/disk-image" "$TASK_OUTPUT/cli"
+python3 "scripts/apple-signing.py" notarize-app "dist/Shou.app" --evidence "$TASK_OUTPUT/notarization/app"
 ditto -c -k --sequesterRsrc --keepParent "dist/Shou.app" "$TASK_OUTPUT/$TASK_APP_NAME.zip"
 ditto "dist/Shou.app" "$TASK_OUTPUT/disk-image/Shou.app"
 if [ ! -e "$TASK_OUTPUT/disk-image/Applications" ]; then ln -s "/Applications" "$TASK_OUTPUT/disk-image/Applications"; fi
 hdiutil create -volname "Shou" -fs HFS+ -srcfolder "$TASK_OUTPUT/disk-image" -ov -format UDZO "$TASK_OUTPUT/$TASK_APP_NAME.dmg"
+python3 "scripts/apple-signing.py" notarize-dmg "$TASK_OUTPUT/$TASK_APP_NAME.dmg" --evidence "$TASK_OUTPUT/notarization/dmg"
 cp "dist/Shou.app/Contents/Helpers/shou" "$TASK_OUTPUT/cli/shou"
 ditto "dist/Shou.app/Contents/Helpers/Shou_ShouCore.bundle" "$TASK_OUTPUT/cli/Shou_ShouCore.bundle"
 ditto "dist/Shou.app/Contents/Helpers/Shou_ShouContracts.bundle" "$TASK_OUTPUT/cli/Shou_ShouContracts.bundle"

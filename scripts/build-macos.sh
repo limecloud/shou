@@ -55,22 +55,14 @@ cp -R "$TASK_BIN/Shou_ShouContracts.bundle" "$TASK_APP/Contents/Helpers/"
 ditto "$TASK_BIN/Shou_ShouAgentSupport.bundle" "$TASK_APP/Contents/Resources/Shou_ShouAgentSupport.bundle"
 ditto "$TASK_BIN/Shou_ShouAgentSupport.bundle" "$TASK_APP/Contents/Helpers/Shou_ShouAgentSupport.bundle"
 ditto ".build/artifacts/sparkle/Sparkle/Sparkle.xcframework/macos-arm64_x86_64/Sparkle.framework" "$TASK_APP/Contents/Frameworks/Sparkle.framework"
-for TASK_BUNDLE in "$TASK_APP/Contents/Resources/"*.bundle "$TASK_APP/Contents/Helpers/"*.bundle; do
-    codesign --force --sign - "$TASK_BUNDLE"
-done
 if [ "$TASK_SIGNING_IDENTITY" = - ]; then
+    for TASK_BUNDLE in "$TASK_APP/Contents/Resources/"*.bundle "$TASK_APP/Contents/Helpers/"*.bundle; do
+        codesign --force --sign - "$TASK_BUNDLE"
+    done
     codesign --force --sign - --identifier dev.limecloud.shou.cli "$TASK_APP/Contents/Helpers/shou"
     codesign --force --sign - "$TASK_APP"
 else
-    # Use an explicitly selected identity. Never silently pick a team from the keychain.
-    # Local builds can omit the network timestamp; public releases require it.
-    if [ "${SHOU_SIGNING_TIMESTAMP:-none}" = none ]; then
-        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp=none --identifier dev.limecloud.shou.cli "$TASK_APP/Contents/Helpers/shou"
-        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp=none "$TASK_APP"
-    else
-        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp --identifier dev.limecloud.shou.cli "$TASK_APP/Contents/Helpers/shou"
-        codesign --force --sign "$TASK_SIGNING_IDENTITY" --options runtime --timestamp "$TASK_APP"
-    fi
+    python3 "scripts/apple-signing.py" sign-app "$TASK_APP"
 fi
 codesign --verify --deep --strict "$TASK_APP"
 python3 "scripts/verify-products.py" --bin "$TASK_BIN" --app "$TASK_APP"

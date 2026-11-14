@@ -2,9 +2,9 @@
 
 English | [简体中文](../zh-CN/product/installation-and-access.md)
 
-## Installation without a Developer certificate
+## Installing ad-hoc builds
 
-Current Mac builds use an ad-hoc signature without an Apple Developer certificate or Apple notarization. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then place `Shou.app` in **Applications**. If macOS blocks its first launch, run in Terminal:
+Mac downloads using an ad-hoc signature lack Apple notarization. Check the signing status in that version's release notes; the [Developer ID release workflow](../engineering/releasing.md#signing) does not modify older downloads. Download from this repository's [Releases](https://github.com/limecloud/shou/releases), then place `Shou.app` in **Applications**. If macOS blocks an ad-hoc build's first launch, run in Terminal:
 
 ```sh
 xattr -dr com.apple.quarantine "/Applications/Shou.app"

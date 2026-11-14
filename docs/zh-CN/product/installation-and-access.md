@@ -2,9 +2,9 @@
 
 [English](../../product/installation-and-access.md) | 简体中文
 
-## 暂无开发者证书时的安装
+## 临时签名版本的安装
 
-当前 Mac 版本使用临时签名，尚无 Apple 开发者证书和 Apple 公证。从本仓库 [Releases](https://github.com/limecloud/shou/releases) 下载并将 `Shou.app` 放入**应用程序**后，如果 macOS 阻止首次打开，在“终端”执行：
+使用临时签名的 Mac 下载未经 Apple 公证。请查看对应版本发布说明中的签名状态；[Developer ID 发布流程](../engineering/releasing.md#签名)不会修改旧版下载。从本仓库 [Releases](https://github.com/limecloud/shou/releases) 下载并将 `Shou.app` 放入**应用程序**后，如果 macOS 阻止临时签名版本首次打开，在“终端”执行：
 
 ```sh
 xattr -dr com.apple.quarantine "/Applications/Shou.app"
