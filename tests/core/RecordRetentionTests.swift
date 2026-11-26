@@ -2,6 +2,84 @@ import Foundation
 import ShouCore
 import ShouPlatform
 
+func recordRetentionExplicitScanCleanupKeepsActivePlansAndUnpublishedCatalogs() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    let pending=try require(fixture.store.storageCatalogURL(id: "storage_unpublished_fixture"))
+    try Data("generated unpublished worker placeholder".utf8).write(to: pending)
+    let policy=RecordRetentionPolicy(keepLatestScans: false)
+    let reviewed=try await engine.recordRetentionPreview(policy: policy)
+    try expect(reviewed.records.contains { $0.collection == "storage-scans" && $0.id == scan.id })
+    try expect(reviewed.records.contains { $0.collection == "storage-catalogs" && $0.id == scan.id })
+    try expect(!reviewed.records.contains { $0.id == "storage_unpublished_fixture" })
+    let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["project/target"], action: "permanent")
+    let protected=try await engine.recordRetentionPreview(policy: policy)
+    try expect(!protected.records.contains { $0.id == scan.id || $0.id == plan.id || $0.id == "storage_unpublished_fixture" })
+    try expect(FileManager.default.fileExists(atPath: fixture.workspace.appendingPathComponent("project/target/artifact.bin").path))
+}
+
+func recordRetentionExplicitHistoryCleanupReclaimsOnlyFinishedDependencies() async throws {
+    let fixture=try Fixture(), engine=ShouEngine(store: fixture.store, filesystem: fixture.fs)
+    for index in 0..<1100 { try fixture.put("generated-history-cache/file-\(index)", "generated") }
+    try fixture.put("sentinel.txt", "keep this generated sibling")
+    let scan=try await engine.scanStorage(path: fixture.workspace.path)
+    let plan=try await engine.createStorageRemovalPlan(scanId: scan.id, paths: ["generated-history-cache"], action: "permanent")
+    let receipt=try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-history-cleanup")
+    try expect(receipt.state == "completed")
+    let pages=try fixture.store.ids("history-manifests")
+    try expect(!pages.isEmpty)
+    _ = try await engine.historySummaries()
+    let historyBytes=try require(fixture.store.read("history", id: receipt.id))
+    let configBytes=try fixture.store.read("configuration", id: "current")
+    let ordinary=try await engine.recordRetentionPreview()
+    try expect(!ordinary.records.contains { $0.collection == "history" || $0.collection == "history-manifests" })
+    let reviewed=try await engine.recordRetentionPreview(includeFinishedHistory: true)
+    try expect(reviewed.records.contains { $0.collection == "history" && $0.id == receipt.id })
+    try expect(reviewed.records.filter { $0.collection == "history-manifests" }.count == pages.count)
+    try expect(reviewed.records.contains { $0.collection == "history-summaries" && $0.id == receipt.id })
+    try expect(reviewed.collections.reduce(Int64(0)) { $0 + $1.totalBytes } == reviewed.totalBytes)
+    try expect(reviewed.collections.reduce(Int64(0)) { $0 + $1.removableBytes } == reviewed.removableBytes)
+    try expect(try fixture.store.read("history", id: receipt.id) == historyBytes)
+    try await expectThrows { try await engine.collectRecords(includeFinishedHistory: true) }
+    _ = try await engine.collectRecords(reviewedRecords: reviewed.records, includeFinishedHistory: true)
+    try expect(try fixture.store.ids("history").isEmpty && fixture.store.ids("history-manifests").isEmpty && fixture.store.ids("history-summaries").isEmpty)
+    try expect(try fixture.store.read("configuration", id: "current") == configBytes)
+    try expect(try String(contentsOf: fixture.workspace.appendingPathComponent("sentinel.txt"), encoding: .utf8) == "keep this generated sibling")
+    try await expectThrows { try await engine.executeStorageRemoval(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "no-replay-after-history-cleanup") }
+}
+
+func recordRetentionHistoryReviewRejectsChangesAndKeepsRecoveryOrUncertainty() async throws {
+    let fixture=try Fixture()
+    let (engine, _, scan, candidate)=try await fixture.ready()
+    let plan=try await engine.createPlan(scanId: scan.id, candidateIds: [candidate.id])
+    var receipt=try await engine.execute(planId: plan.id, confirmedDigest: plan.digest, entryPoint: "generated-history-review")
+    let trash=try require(receipt.items.first?.trashPath)
+    try expect(try await engine.recordRetentionPreview(includeFinishedHistory: true).records.allSatisfy { $0.collection != "history" })
+    // A terminal permanent-removal journal is eligible. The referenced Trash
+    // fixture remains untouched while exercising changes to the review evidence.
+    receipt.items[0].state="purged"
+    try fixture.store.write("history", id: receipt.id, data: Codec.encode(receipt))
+    let reviewed=try await engine.recordRetentionPreview(includeFinishedHistory: true)
+    try expect(reviewed.records.contains { $0.collection == "history" })
+    for state in ["executing", "future_unknown_state"] {
+        receipt.state=state
+        try fixture.store.write("history", id: receipt.id, data: Codec.encode(receipt))
+        try await expectThrows { try await engine.collectRecords(reviewedRecords: reviewed.records, includeFinishedHistory: true) }
+        try expect(try fixture.store.read("history", id: receipt.id) != nil)
+    }
+    receipt.state="completed"; receipt.items[0].state="unknown"
+    try fixture.store.write("history", id: receipt.id, data: Codec.encode(receipt))
+    try expect(try await engine.recordRetentionPreview(includeFinishedHistory: true).records.allSatisfy { $0.collection != "history" })
+    receipt.items[0].state="purged"
+    try fixture.store.write("history", id: receipt.id, data: Codec.encode(receipt))
+    let fresh=try await engine.recordRetentionPreview(includeFinishedHistory: true)
+    var second=receipt; second.id="execution_second_finished"
+    try fixture.store.write("history", id: second.id, data: Codec.encode(second))
+    try await expectThrows { try await engine.collectRecords(reviewedRecords: fresh.records, includeFinishedHistory: true) }
+    try expect(try fixture.store.ids("history").count == 2)
+    try expect(FileManager.default.fileExists(atPath: trash))
+}
+
 func recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() async throws {
     let fixture=try Fixture()
     let (engine, root, scan, candidate)=try await fixture.ready()

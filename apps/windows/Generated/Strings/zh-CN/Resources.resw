@@ -513,6 +513,9 @@
   <data name="s70b89fb92e56e02b450e4082" xml:space="preserve">
     <value>允许选择应用个人数据</value>
   </data>
+  <data name="sfc0f55ad24acd13b2216debe" xml:space="preserve">
+    <value>同时删除已完成的清理历史及文件清单</value>
+  </data>
   <data name="sa60d2a7b35e82367c3910b04" xml:space="preserve">
     <value>API 密钥不可用。请在 AI 设置中使用本地存储重新保存密钥，再新建调查；无需输入系统密码。</value>
   </data>
@@ -972,6 +975,9 @@
   <data name="s63fb2e296ad79ad6c8e88378" xml:space="preserve">
     <value>构建产物</value>
   </data>
+  <data name="sb6e6f3dd12882dcbd3fa4455" xml:space="preserve">
+    <value>构建缓存</value>
+  </data>
   <data name="sd69bdb11f95fd93d11db8b47" xml:space="preserve">
     <value>无法检查构建进程状态。</value>
   </data>
@@ -1248,6 +1254,9 @@
   <data name="sd6d07c512675c55089535ebf" xml:space="preserve">
     <value>请检查所选位置和相对路径。同一个规则位置引用只能登记一次。</value>
   </data>
+  <data name="s27567d52078d85b4115d289c" xml:space="preserve">
+    <value>正在检查 Docker 存储…</value>
+  </data>
   <data name="s00e84ea9ffa8190764315589" xml:space="preserve">
     <value>正在检查服务…</value>
   </data>
@@ -1464,6 +1473,9 @@
   <data name="sd5bfe92a46737b7fe10acfa2" xml:space="preserve">
     <value>清理并释放空间</value>
   </data>
+  <data name="sf8409f8b32c2ea05f0c68e5c" xml:space="preserve">
+    <value>通过 Docker 专项清理容器数据，并由对应后端归还虚拟磁盘空间。</value>
+  </data>
   <data name="se7e36e96a3f6361090a832a3" xml:space="preserve">
     <value>永久清理</value>
   </data>
@@ -1547,6 +1559,9 @@
   </data>
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>清理已结束，部分项目需处理</value>
+  </data>
+  <data name="s848a15453321482ac2a6a20b" xml:space="preserve">
+    <value>清理历史</value>
   </data>
   <data name="s331e91c41de46c1f02841a14" xml:space="preserve">
     <value>清理计划</value>
@@ -1646,6 +1661,9 @@
   </data>
   <data name="s640ee2686f6166fbcf077039" xml:space="preserve">
     <value>Codex 会按需重建网页资源、代码和图形缓存。</value>
+  </data>
+  <data name="sfbd83295f630f140299f68de" xml:space="preserve">
+    <value>Colima VZ 通过在线 TRIM 归还未使用块。虚拟机保持运行，逻辑容量不变。</value>
   </data>
   <data name="sca42c3a074dceb05deb8c8a9" xml:space="preserve">
     <value>收起启动项详情</value>
@@ -2301,6 +2319,9 @@
   <data name="s48b6ba356724e7c373e51d40" xml:space="preserve">
     <value>磁盘可用空间／总容量（字节）</value>
   </data>
+  <data name="s91eb92621ebd487749b4581c" xml:space="preserve">
+    <value>磁盘空间回收</value>
+  </data>
   <data name="s48845bff334a50a59aaecf49" xml:space="preserve">
     <value>关闭提示</value>
   </data>
@@ -2312,6 +2333,18 @@
   </data>
   <data name="s4c7c545ac4b17927324b77cc" xml:space="preserve">
     <value>Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。</value>
+  </data>
+  <data name="sf0f09afa19d76623d92f7967" xml:space="preserve">
+    <value>容器</value>
+  </data>
+  <data name="s46fb7f26123ea1d270096763" xml:space="preserve">
+    <value>镜像</value>
+  </data>
+  <data name="s144c4498d21db971320c17f4" xml:space="preserve">
+    <value>Docker 存储</value>
+  </data>
+  <data name="sb8d50adb5631098ace9ed8be" xml:space="preserve">
+    <value>Docker 存储…</value>
   </data>
   <data name="sb4e929d8bcfe04189801a8ed" xml:space="preserve">
     <value>文档</value>
@@ -2811,6 +2844,9 @@
   <data name="sfb4f7e1c33b7997f2f50454f" xml:space="preserve">
     <value>按扫描位置归组</value>
   </data>
+  <data name="s8575bc08bf96e41f14d705ef" xml:space="preserve">
+    <value>虚拟机内可用空间</value>
+  </data>
   <data name="sd87d6fae2b07d108d057f5d1" xml:space="preserve">
     <value>提供使用指南</value>
   </data>
@@ -2949,8 +2985,20 @@
   <data name="scf731a3c7fd27092f9ca1b77" xml:space="preserve">
     <value>若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。</value>
   </data>
+  <data name="s52bc9e6cb0b73a60a7ea8ac1" xml:space="preserve">
+    <value>无法核实镜像身份</value>
+  </data>
+  <data name="s20665cb1eaee59d42425dc9b" xml:space="preserve">
+    <value>镜像可能共享数据层。卷可能包含数据库，未引用不代表可删除。</value>
+  </data>
   <data name="sbe7e2f20129365c2899b2c11" xml:space="preserve">
     <value>图片</value>
+  </data>
+  <data name="sf4a32e4891f31aae6a1ef86e" xml:space="preserve">
+    <value>镜像和构建缓存之后可能需要重新下载或构建。</value>
+  </data>
+  <data name="s59df03b39fbe74134059d175" xml:space="preserve">
+    <value>保留具有多个标签的镜像</value>
   </data>
   <data name="s1b222c4ea4c38d2fe393e04c" xml:space="preserve">
     <value>导入规则…</value>
@@ -3480,6 +3528,9 @@
   <data name="sba3bbbe10d8bef66441c8853" xml:space="preserve">
     <value>正在加载…</value>
   </data>
+  <data name="sf287b33967eac6247f139d8e" xml:space="preserve">
+    <value>本机 Docker 环境</value>
+  </data>
   <data name="sd20438c426cbbc44218612c3" xml:space="preserve">
     <value>本地备注</value>
   </data>
@@ -3969,6 +4020,9 @@
   <data name="s21b149ff8adcf693be5e85b4" xml:space="preserve">
     <value>未找到配置文件。</value>
   </data>
+  <data name="s7fd55f3febeb7b1c316eb892" xml:space="preserve">
+    <value>未被容器引用</value>
+  </data>
   <data name="s3f9f23f395368204620ff53c" xml:space="preserve">
     <value>未发现常见项目目录，可包含其他文件夹，或让 AI 帮你定位。</value>
   </data>
@@ -3990,6 +4044,9 @@
   <data name="s8b1a1abe26bd3d6135807356" xml:space="preserve">
     <value>此范围内暂无排除项。</value>
   </data>
+  <data name="sdafb10ab21adee2910c90fb7" xml:space="preserve">
+    <value>此分类没有项目。</value>
+  </data>
   <data name="se8b816a8beb3e8681bf849b4" xml:space="preserve">
     <value>未处理任何项目</value>
   </data>
@@ -3998,6 +4055,9 @@
   </data>
   <data name="s580cbecbc580ce1cd286d8ee" xml:space="preserve">
     <value>未发现已知位置</value>
+  </data>
+  <data name="sd4039e72c6ccc9e15752e3a8" xml:space="preserve">
+    <value>未找到本机 Docker 环境。</value>
   </data>
   <data name="s985ed9835264ebdfa8f57853" xml:space="preserve">
     <value>暂无日志内容。</value>
@@ -4106,6 +4166,9 @@
   </data>
   <data name="s00991aac06c453f6e185b0aa" xml:space="preserve">
     <value>未找到此计划的卸载记录。这不能证明当前安装的状态。</value>
+  </data>
+  <data name="s81652a6b3d1723c53dfb2472" xml:space="preserve">
+    <value>没有闲置构建缓存</value>
   </data>
   <data name="s4c8f830d1e9fb898be04af25" xml:space="preserve">
     <value>当前结果没有可升级的软件包</value>
@@ -4347,6 +4410,9 @@
   <data name="se8a7a315fc69830d66582fbe" xml:space="preserve">
     <value>仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。</value>
   </data>
+  <data name="s471d625cb392dc238c63f16c" xml:space="preserve">
+    <value>仅支持普通本地卷</value>
+  </data>
   <data name="s2172af994fae9e627052f8bc" xml:space="preserve">
     <value>仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。</value>
   </data>
@@ -4358,6 +4424,9 @@
   </data>
   <data name="s0bc3187d75ab7b66f0231584" xml:space="preserve">
     <value>仅包含当前用户 Library/Caches 下的指定目录。受保护文件仍禁止清理，保留偏好设置、个人数据及缓存目录之外的已下载模型。</value>
+  </data>
+  <data name="s3686b9d65ee834d91ba90245" xml:space="preserve">
+    <value>仅删除本次审阅的对象，保留运行中的容器及未选择的数据。</value>
   </data>
   <data name="s145a043ed5b5a3eaa2cad6fb" xml:space="preserve">
     <value>仅移除此已停止实例的登记，数据库、配置和日志仍保留在磁盘上。此操作不会释放磁盘空间。</value>
@@ -4613,6 +4682,9 @@
   </data>
   <data name="s4f22cd4eac4a43f954f50faf" xml:space="preserve">
     <value>永久删除所选残留？</value>
+  </data>
+  <data name="sb4180bc322464daee5ae291a" xml:space="preserve">
+    <value>永久删除所选卷中的数据</value>
   </data>
   <data name="s4d058fbff5dac4549071b338" xml:space="preserve">
     <value>永久移除这些项目？</value>
@@ -5139,6 +5211,12 @@
   <data name="s61df24ec987075ce3bad83a8" xml:space="preserve">
     <value>近期创建</value>
   </data>
+  <data name="sbb1e529fa4a4ae97ebdb37ac" xml:space="preserve">
+    <value>回收磁盘空间</value>
+  </data>
+  <data name="s116a8fba4652545e8ede2df8" xml:space="preserve">
+    <value>清理后回收虚拟磁盘空间</value>
+  </data>
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>推荐</value>
   </data>
@@ -5178,17 +5256,26 @@
   <data name="s3eb24707ffe5d10f63f49f61" xml:space="preserve">
     <value>已删除记录</value>
   </data>
+  <data name="s3eac3bc92599eac79200b413" xml:space="preserve">
+    <value>保留可恢复、未完成及结果不确定的记录，不影响您的文件、设置和凭据。</value>
+  </data>
   <data name="s91840ab086dae44046462516" xml:space="preserve">
     <value>恢复依赖</value>
   </data>
   <data name="s3f81a585071278e39b76b868" xml:space="preserve">
     <value>恢复文件清单</value>
   </data>
+  <data name="s8daea0c23b7c2701c63af394" xml:space="preserve">
+    <value>恢复记录</value>
+  </data>
   <data name="s9372b5901c15a4649fc8f716" xml:space="preserve">
     <value>Redis Insight 缓存</value>
   </data>
   <data name="s159f641008ba451e82441439" xml:space="preserve">
     <value>减少动态效果</value>
+  </data>
+  <data name="s7ef57bec14a18dccb8f7c878" xml:space="preserve">
+    <value>已被容器引用</value>
   </data>
   <data name="s0e91610117029a62a478b7fa" xml:space="preserve">
     <value>刷新</value>
@@ -5288,6 +5375,9 @@
   </data>
   <data name="s3836d2eb12b64f8836600b39" xml:space="preserve">
     <value>是否移除此位置及其规则设置？文件和已导入的规则会保留。</value>
+  </data>
+  <data name="sf0eee271208ea0aba07c47ee" xml:space="preserve">
+    <value>删除停止的容器会永久删除其可写文件，关联卷保留。</value>
   </data>
   <data name="s4403ae673ea3308d36015fc8" xml:space="preserve">
     <value>移除此保护后，需要重新扫描才能审阅清理项目。</value>
@@ -5477,6 +5567,9 @@
   </data>
   <data name="s8e26200867ca706e43da13ef" xml:space="preserve">
     <value>审阅所选更新…</value>
+  </data>
+  <data name="s9f026b7c572e22dcb4ec4ae8" xml:space="preserve">
+    <value>从 Shou 存储审阅并清理扫描数据和已完成的历史记录。</value>
   </data>
   <data name="s225a104a4945324fada223e6" xml:space="preserve">
     <value>审阅此项目</value>
@@ -5709,6 +5802,9 @@
   <data name="s060fae44a5d9e7ce101ee49b" xml:space="preserve">
     <value>外部实例运行中</value>
   </data>
+  <data name="sb79a3abfff226c5cc9ae5fb3" xml:space="preserve">
+    <value>保留运行中的容器</value>
+  </data>
   <data name="s780ffdf20cf0899fd9c8aae3" xml:space="preserve">
     <value>无法核实运行中的程序，请刷新后再卸载。</value>
   </data>
@@ -5882,6 +5978,9 @@
   </data>
   <data name="s3febb1c7af79d4e9f6cc763e" xml:space="preserve">
     <value>请重新扫描或查看扫描覆盖范围。</value>
+  </data>
+  <data name="s01c286b7dcdb180f9bd175c7" xml:space="preserve">
+    <value>重新扫描以测量当前磁盘占用。</value>
   </data>
   <data name="saf51a972745cff6429a1090b" xml:space="preserve">
     <value>重新扫描以更新大小与状态</value>
@@ -6386,6 +6485,9 @@
   </data>
   <data name="s6712e53de09b11231a69296a" xml:space="preserve">
     <value>Shou 存储…</value>
+  </data>
+  <data name="s0df6f1cad36c49da768a6efd" xml:space="preserve">
+    <value>显示</value>
   </data>
   <data name="sba8a80fdd7376631dea931d6" xml:space="preserve">
     <value>显示更多</value>
@@ -7407,6 +7509,9 @@
   <data name="s1d99f0dc054d8db4b70bc043" xml:space="preserve">
     <value>保留的 Cargo 包归档与包校验值不一致。</value>
   </data>
+  <data name="sdb6f8a341515ce2332598943" xml:space="preserve">
+    <value>本次缓存范围仅包含在扫描前最后使用的闲置构建缓存，保留之后产生的缓存。</value>
+  </data>
   <data name="sff6918d9d047722d471c2731" xml:space="preserve">
     <value>无法读取规则文件。请选择本地文件后重试。</value>
   </data>
@@ -7586,6 +7691,9 @@
   </data>
   <data name="sf2cf79abce9ec829981fdab3" xml:space="preserve">
     <value>此应用需要管理员权限，暂不支持自动提权卸载。</value>
+  </data>
+  <data name="sa9db6a7f8ff7f746e79a9644" xml:space="preserve">
+    <value>当前后端没有已核实的磁盘回收适配，不会通过停止或删除容器、卷来缩小磁盘。</value>
   </data>
   <data name="s4d1425b3d09b13997313b8a0" xml:space="preserve">
     <value>此操作无法通过 Shou 撤销。各来源分别提交，失败时可能仅部分完成。云端同步副本及其他浏览器数据不在本次范围内。</value>
@@ -7956,6 +8064,12 @@
   <data name="sed56fb560d5609d2e98eb000" xml:space="preserve">
     <value>数据库结构不支持</value>
   </data>
+  <data name="s378a8b14e8abefdb5963d4c1" xml:space="preserve">
+    <value>无标签镜像</value>
+  </data>
+  <data name="scabd4ae5ff7ce80549dcccf9" xml:space="preserve">
+    <value>闲置构建缓存</value>
+  </data>
   <data name="s56b9e6d0264d2a56d513074f" xml:space="preserve">
     <value>永久移除未使用的构建缓存，保留镜像、容器与数据卷。后续构建可能需要下载或重新构建层。</value>
   </data>
@@ -8018,6 +8132,9 @@
   </data>
   <data name="s8ab64c40fb464b4e9323d9e4" xml:space="preserve">
     <value>使用此连接</value>
+  </data>
+  <data name="s8b8d65ed50ae4ce88d0f8cf8" xml:space="preserve">
+    <value>请从 Docker 存储审阅容器数据并回收虚拟磁盘空间。</value>
   </data>
   <data name="s3e554c21b6dfa8d465f96c3e" xml:space="preserve">
     <value>使用已有空间分析结果</value>
@@ -8154,6 +8271,12 @@
   <data name="se374be0493fe4d08bd7beb67" xml:space="preserve">
     <value>查看…</value>
   </data>
+  <data name="s7bd91e6066739a6428ac4621" xml:space="preserve">
+    <value>虚拟磁盘实际占用</value>
+  </data>
+  <data name="s92e6dcc141e2e6233572139e" xml:space="preserve">
+    <value>虚拟磁盘逻辑容量</value>
+  </data>
   <data name="s4206c05196a99cef392d52d0" xml:space="preserve">
     <value>Visual Studio Code Insiders 缓存</value>
   </data>
@@ -8178,8 +8301,14 @@
   <data name="sdc1149ce68b52079c30c9469" xml:space="preserve">
     <value>卷可用空间变化</value>
   </data>
+  <data name="s53a480e304c08274bf58cc0d" xml:space="preserve">
+    <value>数据卷</value>
+  </data>
   <data name="sf8a5c8d87f6ba89cef0a8993" xml:space="preserve">
     <value>WPS Office 缓存</value>
+  </data>
+  <data name="s7a1d53f9d88619334da14978" xml:space="preserve">
+    <value>请等待 Docker 返回结果，中断请求可能导致结果不确定。</value>
   </data>
   <data name="s859e2cc6fd2e59a75e372167" xml:space="preserve">
     <value>等待管理员授权…</value>
@@ -8420,6 +8549,21 @@
   </data>
   <data name="sc22044d76f4db49bcf5f0754" xml:space="preserve">
     <value>目录超过支持的发现深度。</value>
+  </data>
+  <data name="sbceebc3ca5efb218e537ce21" xml:space="preserve">
+    <value>所选 Colima 环境未运行，请自行启动后重新检查。</value>
+  </data>
+  <data name="s9090441c21341e724b593184" xml:space="preserve">
+    <value>当前后端不支持已验证的在线磁盘回收。</value>
+  </data>
+  <data name="s298bf938e427cf164036e126" xml:space="preserve">
+    <value>无法核实 Colima 虚拟磁盘身份。</value>
+  </data>
+  <data name="s41417a0d268873c13c239052" xml:space="preserve">
+    <value>无法核实容器数据的挂载文件系统。</value>
+  </data>
+  <data name="s895ec8ced9dcf2b8f5263aa9" xml:space="preserve">
+    <value>无法检查虚拟磁盘空间回收能力。</value>
   </data>
   <data name="s387fb310337bb92e91fb6299" xml:space="preserve">
     <value>包含被排除的内容</value>

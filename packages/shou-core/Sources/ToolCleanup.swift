@@ -98,9 +98,9 @@ public actor ToolCleanupService {
     public init(runner: any CleanupToolRunning, store: any RecordStore, now: @escaping @Sendable () -> Date = { Date() }) {
         self.runner=runner; self.store=store; self.now=now
     }
-    public func scan() throws -> ToolCleanupScan {
+    public func scan(includeDocker: Bool = true) throws -> ToolCleanupScan {
         var targets=[ToolCleanupTarget](), issues=[ToolCleanupIssue]()
-        let tools=runner.platform == .macOS ? ["docker","brew","conda","rustup"] : []
+        let tools=runner.platform == .macOS ? (includeDocker ? ["docker"] : []) + ["brew","conda","rustup"] : []
         for tool in tools {
             if Task.isCancelled { throw ShouError("cancelled", "Tool scan cancelled.") }
             do { targets += try preview(tool) }

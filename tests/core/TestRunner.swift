@@ -215,8 +215,40 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
                 try await recordRetentionPreservesDependenciesAndRejectsChangedRecords()
                 try await historySummariesPageAndInvalidateWithoutChangingRecoveryEvidence()
                 try await recordRetentionReviewIsExactAndVolumeChangesRemainSigned()
-                print("4/4 derived-record retention, exact review, signed volume changes and history-summary checks passed.")
+                try await recordRetentionExplicitHistoryCleanupReclaimsOnlyFinishedDependencies()
+                try await recordRetentionHistoryReviewRejectsChangesAndKeepsRecoveryOrUncertainty()
+                try await recordRetentionExplicitScanCleanupKeepsActivePlansAndUnpublishedCatalogs()
+                print("7/7 derived-record retention, explicit scan/history cleanup, active/unpublished evidence protection and signed volume checks passed.")
             } catch { print("FAIL record retention: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--docker-storage-only"] {
+            do {
+                try await dockerStorageSeparatesExactObjectsVolumeConsentAndReclamation()
+                try await dockerStorageRejectsBackendChangesAndNeverReplaysUnknownRequests()
+                try await dockerStorageReclamationIsIndependentAndUnsupportedBackendsStayClosed()
+                try await dockerStorageDiskIdentityChangesAndUncertainTrimRemainRecorded()
+                try await dockerStorageExpiresBeforeDispatchWithoutInterruptingAnAuthorizedBatch()
+                try nativeDockerRemovalCommandsKeepExactIdentitiesAndProtectVmDirectories()
+                print("6/6 Docker exact selection, volume consent, backend/disk identity, confirmation lifetime, unknown outcomes, fixed commands and generated reclamation checks passed; no personal Docker data changed.")
+            } catch { print("FAIL Docker storage: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--docker-storage-read-only"] {
+            do {
+                let platform=NativeDockerStorage(), contexts=try platform.contexts()
+                let context=try require(contexts.first(where: \.current) ?? contexts.first)
+                let inventory=try platform.observe(context: context.name)
+                print("Read-only Docker probe: \(inventory.objects.count) objects, \(inventory.objects.filter { $0.blockingReason == nil }.count) selectable; no mutation dispatched.")
+                if let disk=inventory.reclamation {
+                    print("Verified Colima VZ disk: logical=\(disk.logicalBytes), allocated=\(disk.allocatedBytes), guest_available=\(disk.guestAvailableBytes). TRIM was dry-run only.")
+                } else { print("Reclamation unavailable: \(inventory.reclamationIssue ?? "unknown")") }
+            } catch { print("FAIL Docker read-only probe: \(error)"); Foundation.exit(1) }
+            return
+        }
+        if Array(CommandLine.arguments.dropFirst()) == ["--docker-storage-native-generated"] {
+            do { try await nativeDockerStorageRemovesOnlyResourcesCreatedByThisRun() }
+            catch { print("FAIL generated native Docker acceptance: \(error)"); Foundation.exit(1) }
             return
         }
         if Array(CommandLine.arguments.dropFirst()) == ["--permanent-removal-only"] {
@@ -598,6 +630,11 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             } catch { print("FAIL Rule catalog coverage: \(error)"); Foundation.exit(1) }
             return
         }
+        if Array(CommandLine.arguments.dropFirst()) == ["--native-catalog-trash-purge-only"] {
+            do { try await nativeCatalogCleanupAndRestore(includePurge: true) }
+            catch { print("FAIL native catalog Trash/restore/purge: \(error)"); Foundation.exit(1) }
+            return
+        }
         var cases: [(String, () async throws -> Void)] = [
             ("Broken shortcuts remove only the confirmed link", { try await applicationShortcutsRemoveOnlyVerifiedBrokenLinks() }),
             ("Broken shortcuts reject reappearing targets and replaced links", { try await applicationShortcutsRejectReappearingTargetsAndReplacements() }),
@@ -839,6 +876,15 @@ func expectThrows<T>(_ body: () async throws -> T, file: StaticString = #filePat
             ("System scan honors platform read capacity", { try await systemScanHonorsPlatformReadConcurrency() }),
             ("Native cleanup concurrency preserves generated filesystem evidence", { try await nativeCleanupConcurrencyPreservesRealFilesystemEvidence() }),
             ("Derived record retention preserves active plans and recovery", { try await recordRetentionProtectsActivePlansAndRecoveryWithZeroQuota() }),
+            ("Docker exact objects and volume consent remain separate from reclamation", { try await dockerStorageSeparatesExactObjectsVolumeConsentAndReclamation() }),
+            ("Docker backend changes and unknown operations prevent replay", { try await dockerStorageRejectsBackendChangesAndNeverReplaysUnknownRequests() }),
+            ("Docker disk reclamation works independently with closed backend gates", { try await dockerStorageReclamationIsIndependentAndUnsupportedBackendsStayClosed() }),
+            ("Docker disk replacement and uncertain TRIM remain recorded", { try await dockerStorageDiskIdentityChangesAndUncertainTrimRemainRecorded() }),
+            ("Docker confirmation expires before dispatch and permits the frozen batch", { try await dockerStorageExpiresBeforeDispatchWithoutInterruptingAnAuthorizedBatch() }),
+            ("Native Docker arguments preserve exact identities and VM protection", { try nativeDockerRemovalCommandsKeepExactIdentitiesAndProtectVmDirectories() }),
+            ("Explicit self-storage cleanup removes finished history dependencies", { try await recordRetentionExplicitHistoryCleanupReclaimsOnlyFinishedDependencies() }),
+            ("Self-storage history review rejects changes and preserves recovery", { try await recordRetentionHistoryReviewRejectsChangesAndKeepsRecoveryOrUncertainty() }),
+            ("Explicit scan cleanup preserves active plans and unpublished worker catalogs", { try await recordRetentionExplicitScanCleanupKeepsActivePlansAndUnpublishedCatalogs() }),
             ("Record review is exact and volume changes remain signed", { try await recordRetentionReviewIsExactAndVolumeChangesRemainSigned() }),
             ("Rust docs cleanup preserves the compiler", { try await toolCleanupRemovesOnlySelectedRustDocumentation() }),
             ("Orphan cleanup verifies absence, consent and shared recovery", { try await applicationOrphansRequireAbsenceConsentAndReuseDeletionJournals() }),

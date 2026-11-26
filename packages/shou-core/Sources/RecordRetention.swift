@@ -53,7 +53,7 @@ public struct RecordRetentionPreview: Codable, Sendable {
 /// Reproducible evidence and detached journal dependencies. Manifest files with
 /// a live history parent are always protected, including unfinished operations.
 public enum DerivedRecords {
-    public static let collections=["scans", "plans", "storage-scans", "storage-scan-entries", "storage-plans", "storage-plan-manifests", "storage-catalogs", "history-summaries", "history-manifests", "application-close-plans", "tool-scans", "tool-plans", "orphan-reviews", "orphan-plans"]
+    public static let collections=["scans", "plans", "storage-scans", "storage-scan-entries", "storage-plans", "storage-plan-manifests", "storage-catalogs", "history-summaries", "history-manifests", "application-close-plans", "tool-scans", "tool-plans", "orphan-reviews", "orphan-plans", "docker-storage-scans", "docker-storage-plans"]
 }
 
 extension ShouEngine {
@@ -64,7 +64,7 @@ extension ShouEngine {
         // must not prevent a normal scan when another process holds the lease.
         if (try? collectRecords()) != nil { lastRecordMaintenance=timestamp }
     }
-    public func recordRetentionPreview(policy: RecordRetentionPolicy = .init()) throws -> RecordRetentionPreview {
+    public func recordRetentionPreview(policy: RecordRetentionPolicy = .init(), includeFinishedHistory: Bool = false) throws -> RecordRetentionPreview {
         guard policy.maxAgeSeconds.isFinite, policy.graceSeconds.isFinite,
               policy.maxAgeSeconds >= 0, policy.maxBytes >= 0, policy.graceSeconds >= 0 else {
             throw ShouError("invalid_argument", "Record retention limits must be finite and nonnegative.")
@@ -77,6 +77,7 @@ extension ShouEngine {
             let manifests: [Manifest]
         }
         struct ToolPlanReference: Decodable { let expiresAt: Date; let state: String }
+        struct DockerPlanReference: Decodable { struct Scan: Decodable { let id: String }; let scan: Scan; let expiresAt: Date }
         struct StorageReference: Decodable {
             struct Scan: Decodable { let catalogId: String? }
             struct Page: Decodable { let id: String }
@@ -84,7 +85,15 @@ extension ShouEngine {
             let scan: Scan?
             let pages: [Page]?
         }
-        let records=try DerivedRecords.collections.flatMap { try store.records($0) }
+        let collections=DerivedRecords.collections + (includeFinishedHistory ? ["history", "followups"] : [])
+        let records=try collections.flatMap { try store.records($0) }
+        let finishedHistory=includeFinishedHistory ? try historyCleanupPreview() : nil
+        if let finishedHistory {
+            let inventory=Dictionary(uniqueKeysWithValues: records.map { ($0.collection + "/" + $0.id, $0) })
+            guard finishedHistory.records.allSatisfy({ inventory[$0.collection + "/" + $0.id] == $0 }) else {
+                throw ShouError("plan_stale", "History changed. Review the current records again.")
+            }
+        }
         let timestamp=now(), grace=timestamp.addingTimeInterval(-policy.graceSeconds)
         var protected=Set<String>(), issues=[String]()
         var reasons=[String: Set<String>]()
@@ -118,10 +127,19 @@ extension ShouEngine {
             }
             if plan.state == "executing" || (plan.state == "ready" && plan.expiresAt > timestamp) { protect(key(record.collection,record.id), "active_plan") }
         }
+        for record in records where record.collection == "docker-storage-plans" {
+            guard let data=try store.read(record.collection, id: record.id), let plan=try? Codec.decode(DockerPlanReference.self, from: data) else {
+                issues.append("unreadable_docker_plan:" + record.id); continue
+            }
+            if plan.expiresAt > timestamp {
+                protect(key(record.collection, record.id), "active_plan")
+                protect(key("docker-storage-scans", plan.scan.id), "active_plan")
+            }
+        }
         // Recent scans can still be in a desktop selection or an unpublished worker.
         for record in records where record.modifiedAt >= grace { protect(key(record.collection, record.id), "grace_period") }
         // Keep the latest result in each scan family for later inspection.
-        for collection in ["scans", "storage-scans", "tool-scans"] where policy.keepLatestScans {
+        for collection in ["scans", "storage-scans", "tool-scans", "docker-storage-scans"] where policy.keepLatestScans {
             if let latest=records.filter({ $0.collection == collection }).max(by: { $0.modifiedAt < $1.modifiedAt }) {
                 protect(key(collection, latest.id), "latest_scan")
             }
@@ -135,6 +153,9 @@ extension ShouEngine {
             for page in scan.pages ?? [] { parents[key("storage-scan-entries", page.id)]=parent }
         }
         let historyIDs=Set(try store.ids("history"))
+        for record in records where ["history", "followups"].contains(record.collection) {
+            protect(key(record.collection, record.id), "recovery_dependency")
+        }
         for record in records where record.collection == "history-summaries" && historyIDs.contains(record.id) {
             protect(key(record.collection, record.id), "history_dependency")
         }
@@ -168,6 +189,18 @@ extension ShouEngine {
         }
         var remaining=total, removal=[StoredRecord]()
         let groups=Dictionary(grouping: records) { record in parents[key(record.collection, record.id)] ?? key(record.collection, record.id) }
+        // Explicitly giving up published scans also gives up their grace period.
+        // Unpublished worker catalogs still need grace, and active plans keep
+        // their parent/dependency protection independently of this choice.
+        if !policy.keepLatestScans {
+            for group in groups.values where group.contains(where: { ["scans", "storage-scans", "tool-scans", "docker-storage-scans"].contains($0.collection) }) {
+                for record in group {
+                    let value=key(record.collection, record.id)
+                    reasons[value]?.remove("grace_period")
+                    if reasons[value]?.isEmpty == true { protected.remove(value); reasons.removeValue(forKey: value) }
+                }
+            }
+        }
         let ordered=groups.values.sorted { a,b in
             let left=a.map(\.modifiedAt).max()!, right=b.map(\.modifiedAt).max()!
             return left == right ? key(a[0].collection,a[0].id) < key(b[0].collection,b[0].id) : left < right
@@ -181,21 +214,32 @@ extension ShouEngine {
             }
         }
         for group in ordered where !group.contains(where: { protected.contains(key($0.collection,$0.id)) }) {
-            if group.allSatisfy({ timestamp.timeIntervalSince($0.modifiedAt) >= policy.maxAgeSeconds }) || remaining > policy.maxBytes {
+            let explicitlyDiscardedScan = !policy.keepLatestScans && group.contains { ["scans", "storage-scans", "tool-scans", "docker-storage-scans"].contains($0.collection) }
+            if explicitlyDiscardedScan || group.allSatisfy({ timestamp.timeIntervalSince($0.modifiedAt) >= policy.maxAgeSeconds }) || remaining > policy.maxBytes {
                 // Unpublish a scan before its dependent pages/catalog. An
                 // interrupted collection can leave only inert orphan data.
                 let sorted=group.sorted { (["storage-scans", "storage-plans"].contains($0.collection) ? 0 : 1) < (["storage-scans", "storage-plans"].contains($1.collection) ? 0 : 1) }
                 removal.append(contentsOf: sorted); remaining -= group.reduce(0) { $0 + $1.byteCount }
             }
         }
+        if let finishedHistory {
+            // Explicit history cleanup releases terminal journals and their own
+            // dependencies, even when they are recent. Active, uncertain and
+            // recoverable journals never enter this default history preview.
+            let selected=Set(removal.map { key($0.collection, $0.id) })
+            removal.append(contentsOf: finishedHistory.records.filter { !selected.contains(key($0.collection, $0.id)) })
+            // Unpublish every history parent before removing any dependent page.
+            removal.sort { ($0.collection == "history" ? 0 : 1) < ($1.collection == "history" ? 0 : 1) }
+        }
         return result(removal,reasons)
     }
 
-    /// Only derived Shou records are collected. Plans are re-evaluated while the
-    /// mutation lease is held, so a new execution cannot race this decision.
-    public func collectRecords(policy: RecordRetentionPolicy = .init(), reviewedRecords: [StoredRecord]? = nil) throws -> RecordRetentionPreview {
+    /// Default maintenance collects only derived records. Explicit reviewed
+    /// history cleanup reuses terminal-journal eligibility under the same lease.
+    public func collectRecords(policy: RecordRetentionPolicy = .init(), reviewedRecords: [StoredRecord]? = nil, includeFinishedHistory: Bool = false) throws -> RecordRetentionPreview {
+        guard !includeFinishedHistory || reviewedRecords != nil else { throw ShouError("confirmation_required", "Review finished history records before removing them.") }
         let lease=try store.lock(); defer { lease.release() }
-        let preview=try recordRetentionPreview(policy: policy)
+        let preview=try recordRetentionPreview(policy: policy, includeFinishedHistory: includeFinishedHistory)
         if let reviewedRecords {
             guard Set(reviewedRecords.map { $0.collection + "/" + $0.id }).count == reviewedRecords.count,
                   Set(reviewedRecords.map { $0.collection + "/" + $0.id }) == Set(preview.records.map { $0.collection + "/" + $0.id }),
@@ -205,7 +249,10 @@ extension ShouEngine {
         }
         for record in preview.records {
             if Task.isCancelled { throw ShouError("cancelled", "Record cleanup cancelled.") }
-            try store.removeDerivedRecord(record)
+            if ["history", "followups"].contains(record.collection) {
+                guard try store.recordMetadata(record.collection, id: record.id) == record else { throw ShouError("plan_stale", "History changed. Review the current records again.") }
+                try store.removeHistoryRecord(record.collection, id: record.id)
+            } else { try store.removeDerivedRecord(record) }
         }
         return preview
     }

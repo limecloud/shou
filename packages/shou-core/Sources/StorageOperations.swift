@@ -134,6 +134,9 @@ public enum StorageRemovalPolicy {
         let system=["/System", "/usr", "/bin", "/sbin", "/dev", "/etc", "/private/etc", "/private/var/db", "/Library/Apple", "/Library/Security"]
         if system.contains(where: { canonical == $0 || canonical.hasPrefix($0 + "/") }) { return "This system location is protected." }
         let containers=["/", "/Users", "/Applications", "/Volumes", "/opt", "/Library", "/private", "/private/var", "/private/var/folders", home, home + "/Library"]
+        if DockerStorageLocations.protectedPaths(home: home).contains(where: { canonical == $0 || canonical.hasPrefix($0 + "/") || $0.hasPrefix(canonical + "/") }) {
+            return "Use Docker storage to review container data and reclaim virtual disk space."
+        }
         let protected=[home + "/.Trash", home + "/.ssh", home + "/.gnupg", home + "/Library/Mobile Documents", home + "/Library/CloudStorage"] + protectedPaths.filter {
             !isRemovableCatalog(canonical, entry: entry, recordDirectory: $0)
         }.map { Self.canonical($0) }

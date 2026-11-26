@@ -90,6 +90,8 @@ struct LargeFilesView: View {
                     ProgressView().controlSize(.small)
                     Button(model.t("Stop")) { session.stop() }
                 }
+                RecordMaintenanceButton(model: model, identifier: "large-files.clean-shou-records")
+                DockerStorageButton(model: model, identifier: "large-files.docker-storage")
             }.padding(.horizontal, 20).padding(.bottom, 14)
             Divider()
             HStack(spacing: 10) {

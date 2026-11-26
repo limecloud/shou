@@ -88,20 +88,25 @@ struct OperationProgressMeter: View {
 
     var body: some View {
         VStack(spacing: compact ? ShouDesign.operationCompactMeterSpacing : ShouDesign.operationMeterSpacing) {
-            if let value {
-                Text(value, format: .percent.precision(.fractionLength(0)))
-                    .font(.system(size: compact ? ShouDesign.operationCompactPercentageSize : ShouDesign.operationPercentageSize, weight: .semibold, design: .rounded))
-                    .monospacedDigit().contentTransition(.identity)
-                    .transaction { $0.animation=nil }
-                    .accessibilityIdentifier("operation.percentage")
-            }
             Group {
-                if let value { ProgressView(value: value, total: 1) }
+                if let value { Text(value, format: .percent.precision(.fractionLength(0))) }
+                else { Text(0.0, format: .percent.precision(.fractionLength(0))).hidden() }
+            }
+            .font(.system(size: compact ? ShouDesign.operationCompactPercentageSize : ShouDesign.operationPercentageSize, weight: .semibold, design: .rounded))
+            .monospacedDigit().contentTransition(.identity)
+            .accessibilityHidden(value == nil)
+            .accessibilityIdentifier("operation.percentage")
+            Group {
+                if let value {
+                    ProgressView(value: value, total: 1)
+                        .animation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration)), value: value)
+                }
                 else if reduceMotion { Capsule().fill(.quaternary).frame(height: ShouDesign.operationMeterHeight) }
                 else { ProgressView().progressViewStyle(.linear) }
             }
             .progressViewStyle(.linear).controlSize(compact ? .regular : .large)
+            .frame(height: ShouDesign.operationMeterHeight)
             .accessibilityLabel(label).accessibilityIdentifier("operation.progress")
-        }.animation(reduceMotion ? nil : .easeOut(duration: Double(ShouDesign.transitionDuration)), value: value)
+        }.transaction { transaction in transaction.animation=nil }
     }
 }

@@ -17,13 +17,13 @@ Mac downloads use Developer ID signatures and Apple notarization. Download the D
 
 ## Download and install
 
-Download Shou v0.24.1 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
+Download Shou v0.25.0 for **macOS 14 or later**. The universal app runs on Apple Silicon and Intel Macs. Open the disk image and drag **Shou.app** into **Applications**. The interface is available in English and Simplified Chinese.
 
-[**Shou v0.24.1 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.24.1/shou-0.24.1-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
+[**Shou v0.25.0 · macOS (.dmg)**](https://github.com/limecloud/shou/releases/download/v0.25.0/Shou-0.25.0-macos-universal.dmg) · [.zip](https://github.com/limecloud/shou/releases/download/v0.25.0/Shou-0.25.0-macos-universal.zip) · [CLI](https://github.com/limecloud/shou/releases/download/v0.25.0/shou-0.25.0-macos-universal.tar.gz) · [Releases](https://github.com/limecloud/shou/releases)
 
-[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.24.1/Shou-0.24.1-windows-arm64.zip)
+[Windows x64 · Preview](https://github.com/limecloud/shou/releases/download/v0.25.0/Shou-0.25.0-windows-x64.zip) · [Windows ARM64 · Preview](https://github.com/limecloud/shou/releases/download/v0.25.0/Shou-0.25.0-windows-arm64.zip)
 
-v0.24.1 includes unsigned, self-contained Windows portable previews with independent WinUI 3/.NET 10 implementations. Extract the app ZIP and run Shou.Windows.App.exe. Native cleanup, uninstall and startup mutation gates remain closed; ARM64 runtime, signing, installation and updates await separate acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
+v0.25.0 includes unsigned, self-contained Windows portable previews with independent WinUI 3/.NET 10 implementations. Extract the app ZIP and run Shou.Windows.App.exe. Native cleanup, uninstall and startup mutation gates remain closed; ARM64 runtime, signing, installation and updates await separate acceptance. See the [Windows plan](docs/engineering/windows-native-plan.md).
 
 The first-use guide explains Full Disk Access and optional CLI installation. You can continue with accessible folders and revisit **Settings → Setup Guide** at any time. See [installation and permissions](docs/product/installation-and-access.md).
 

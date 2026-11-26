@@ -854,6 +854,11 @@
     "resource_id": "s70b89fb92e56e02b450e4082",
     "text": "允许选择应用个人数据"
   },
+  "Also delete finished cleanup history and its file lists": {
+    "format": "同时删除已完成的清理历史及文件清单",
+    "resource_id": "sfc0f55ad24acd13b2216debe",
+    "text": "同时删除已完成的清理历史及文件清单"
+  },
   "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.": {
     "format": "API 密钥不可用。请在 AI 设置中使用本地存储重新保存密钥，再新建调查；无需输入系统密码。",
     "resource_id": "sa60d2a7b35e82367c3910b04",
@@ -1619,6 +1624,11 @@
     "resource_id": "s63fb2e296ad79ad6c8e88378",
     "text": "构建产物"
   },
+  "Build cache": {
+    "format": "构建缓存",
+    "resource_id": "sb6e6f3dd12882dcbd3fa4455",
+    "text": "构建缓存"
+  },
   "Build process activity could not be checked.": {
     "format": "无法检查构建进程状态。",
     "resource_id": "sd69bdb11f95fd93d11db8b47",
@@ -2079,6 +2089,11 @@
     "resource_id": "sd6d07c512675c55089535ebf",
     "text": "请检查所选位置和相对路径。同一个规则位置引用只能登记一次。"
   },
+  "Checking Docker storage…": {
+    "format": "正在检查 Docker 存储…",
+    "resource_id": "s27567d52078d85b4115d289c",
+    "text": "正在检查 Docker 存储…"
+  },
   "Checking Service…": {
     "format": "正在检查服务…",
     "resource_id": "s00e84ea9ffa8190764315589",
@@ -2439,6 +2454,11 @@
     "resource_id": "sd5bfe92a46737b7fe10acfa2",
     "text": "清理并释放空间"
   },
+  "Clean Docker objects and reclaim virtual disk space through the owning backend.": {
+    "format": "通过 Docker 专项清理容器数据，并由对应后端归还虚拟磁盘空间。",
+    "resource_id": "sf8409f8b32c2ea05f0c68e5c",
+    "text": "通过 Docker 专项清理容器数据，并由对应后端归还虚拟磁盘空间。"
+  },
   "Clean Permanently": {
     "format": "永久清理",
     "resource_id": "se7e36e96a3f6361090a832a3",
@@ -2578,6 +2598,11 @@
     "format": "清理已结束，部分项目需处理",
     "resource_id": "s2b7fb300b5457d95ebf3d6ca",
     "text": "清理已结束，部分项目需处理"
+  },
+  "Cleanup history": {
+    "format": "清理历史",
+    "resource_id": "s848a15453321482ac2a6a20b",
+    "text": "清理历史"
   },
   "Cleanup plans": {
     "format": "清理计划",
@@ -2743,6 +2768,11 @@
     "format": "Codex 会按需重建网页资源、代码和图形缓存。",
     "resource_id": "s640ee2686f6166fbcf077039",
     "text": "Codex 会按需重建网页资源、代码和图形缓存。"
+  },
+  "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged.": {
+    "format": "Colima VZ 通过在线 TRIM 归还未使用块。虚拟机保持运行，逻辑容量不变。",
+    "resource_id": "sfbd83295f630f140299f68de",
+    "text": "Colima VZ 通过在线 TRIM 归还未使用块。虚拟机保持运行，逻辑容量不变。"
   },
   "Collapse startup details": {
     "format": "收起启动项详情",
@@ -3834,6 +3864,11 @@
     "resource_id": "s48b6ba356724e7c373e51d40",
     "text": "磁盘可用空间／总容量（字节）"
   },
+  "Disk reclamation": {
+    "format": "磁盘空间回收",
+    "resource_id": "s91eb92621ebd487749b4581c",
+    "text": "磁盘空间回收"
+  },
   "Dismiss": {
     "format": "关闭提示",
     "resource_id": "s48845bff334a50a59aaecf49",
@@ -3853,6 +3888,26 @@
     "format": "Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。",
     "resource_id": "s4c7c545ac4b17927324b77cc",
     "text": "Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。"
+  },
+  "Docker containers": {
+    "format": "容器",
+    "resource_id": "sf0f09afa19d76623d92f7967",
+    "text": "容器"
+  },
+  "Docker images": {
+    "format": "镜像",
+    "resource_id": "s46fb7f26123ea1d270096763",
+    "text": "镜像"
+  },
+  "Docker storage": {
+    "format": "Docker 存储",
+    "resource_id": "s144c4498d21db971320c17f4",
+    "text": "Docker 存储"
+  },
+  "Docker storage…": {
+    "format": "Docker 存储…",
+    "resource_id": "sb8d50adb5631098ace9ed8be",
+    "text": "Docker 存储…"
   },
   "Documents": {
     "format": "文档",
@@ -4684,6 +4739,11 @@
     "resource_id": "sfb4f7e1c33b7997f2f50454f",
     "text": "按扫描位置归组"
   },
+  "Guest free space": {
+    "format": "虚拟机内可用空间",
+    "resource_id": "s8575bc08bf96e41f14d705ef",
+    "text": "虚拟机内可用空间"
+  },
   "Guide available": {
     "format": "提供使用指南",
     "resource_id": "sd87d6fae2b07d108d057f5d1",
@@ -4914,10 +4974,30 @@
     "resource_id": "scf731a3c7fd27092f9ca1b77",
     "text": "若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。"
   },
+  "Image identity could not be verified": {
+    "format": "无法核实镜像身份",
+    "resource_id": "s52bc9e6cb0b73a60a7ea8ac1",
+    "text": "无法核实镜像身份"
+  },
+  "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable.": {
+    "format": "镜像可能共享数据层。卷可能包含数据库，未引用不代表可删除。",
+    "resource_id": "s20665cb1eaee59d42425dc9b",
+    "text": "镜像可能共享数据层。卷可能包含数据库，未引用不代表可删除。"
+  },
   "Images": {
     "format": "图片",
     "resource_id": "sbe7e2f20129365c2899b2c11",
     "text": "图片"
+  },
+  "Images and build cache may need to be downloaded or rebuilt later.": {
+    "format": "镜像和构建缓存之后可能需要重新下载或构建。",
+    "resource_id": "sf4a32e4891f31aae6a1ef86e",
+    "text": "镜像和构建缓存之后可能需要重新下载或构建。"
+  },
+  "Images with multiple tags are kept": {
+    "format": "保留具有多个标签的镜像",
+    "resource_id": "s59df03b39fbe74134059d175",
+    "text": "保留具有多个标签的镜像"
   },
   "Import Rule…": {
     "format": "导入规则…",
@@ -5799,6 +5879,11 @@
     "resource_id": "sba3bbbe10d8bef66441c8853",
     "text": "正在加载…"
   },
+  "Local Docker context": {
+    "format": "本机 Docker 环境",
+    "resource_id": "sf287b33967eac6247f139d8e",
+    "text": "本机 Docker 环境"
+  },
   "Local Note": {
     "format": "本地备注",
     "resource_id": "sd20438c426cbbc44218612c3",
@@ -6614,6 +6699,11 @@
     "resource_id": "s21b149ff8adcf693be5e85b4",
     "text": "未找到配置文件。"
   },
+  "No container references": {
+    "format": "未被容器引用",
+    "resource_id": "s7fd55f3febeb7b1c316eb892",
+    "text": "未被容器引用"
+  },
   "No conventional project folders found. Include another folder or ask your AI agent.": {
     "format": "未发现常见项目目录，可包含其他文件夹，或让 AI 帮你定位。",
     "resource_id": "s3f9f23f395368204620ff53c",
@@ -6649,6 +6739,11 @@
     "resource_id": "s8b1a1abe26bd3d6135807356",
     "text": "此范围内暂无排除项。"
   },
+  "No items in this category.": {
+    "format": "此分类没有项目。",
+    "resource_id": "sdafb10ab21adee2910c90fb7",
+    "text": "此分类没有项目。"
+  },
   "No items were processed": {
     "format": "未处理任何项目",
     "resource_id": "se8b816a8beb3e8681bf849b4",
@@ -6663,6 +6758,11 @@
     "format": "未发现已知位置",
     "resource_id": "s580cbecbc580ce1cd286d8ee",
     "text": "未发现已知位置"
+  },
+  "No local Docker context found.": {
+    "format": "未找到本机 Docker 环境。",
+    "resource_id": "sd4039e72c6ccc9e15752e3a8",
+    "text": "未找到本机 Docker 环境。"
   },
   "No log entries yet.": {
     "format": "暂无日志内容。",
@@ -6843,6 +6943,11 @@
     "format": "未找到此计划的卸载记录。这不能证明当前安装的状态。",
     "resource_id": "s00991aac06c453f6e185b0aa",
     "text": "未找到此计划的卸载记录。这不能证明当前安装的状态。"
+  },
+  "No unused build cache": {
+    "format": "没有闲置构建缓存",
+    "resource_id": "s81652a6b3d1723c53dfb2472",
+    "text": "没有闲置构建缓存"
   },
   "No upgradable packages in this result": {
     "format": "当前结果没有可升级的软件包",
@@ -7244,6 +7349,11 @@
     "resource_id": "se8a7a315fc69830d66582fbe",
     "text": "仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。"
   },
+  "Only ordinary local volumes are supported": {
+    "format": "仅支持普通本地卷",
+    "resource_id": "s471d625cb392dc238c63f16c",
+    "text": "仅支持普通本地卷"
+  },
   "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.": {
     "format": "仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。",
     "resource_id": "s2172af994fae9e627052f8bc",
@@ -7263,6 +7373,11 @@
     "format": "仅包含当前用户 Library/Caches 下的指定目录。受保护文件仍禁止清理，保留偏好设置、个人数据及缓存目录之外的已下载模型。",
     "resource_id": "s0bc3187d75ab7b66f0231584",
     "text": "仅包含当前用户 Library/Caches 下的指定目录。受保护文件仍禁止清理，保留偏好设置、个人数据及缓存目录之外的已下载模型。"
+  },
+  "Only the reviewed objects are removed. Running containers and unselected data are kept.": {
+    "format": "仅删除本次审阅的对象，保留运行中的容器及未选择的数据。",
+    "resource_id": "s3686b9d65ee834d91ba90245",
+    "text": "仅删除本次审阅的对象，保留运行中的容器及未选择的数据。"
   },
   "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.": {
     "format": "仅移除此已停止实例的登记，数据库、配置和日志仍保留在磁盘上。此操作不会释放磁盘空间。",
@@ -7688,6 +7803,11 @@
     "format": "永久删除所选残留？",
     "resource_id": "s4f22cd4eac4a43f954f50faf",
     "text": "永久删除所选残留？"
+  },
+  "Permanently delete the data in the selected volumes": {
+    "format": "永久删除所选卷中的数据",
+    "resource_id": "sb4180bc322464daee5ae291a",
+    "text": "永久删除所选卷中的数据"
   },
   "Permanently remove these items?": {
     "format": "永久移除这些项目？",
@@ -8564,6 +8684,16 @@
     "resource_id": "s61df24ec987075ce3bad83a8",
     "text": "近期创建"
   },
+  "Reclaim Disk Space": {
+    "format": "回收磁盘空间",
+    "resource_id": "sbb1e529fa4a4ae97ebdb37ac",
+    "text": "回收磁盘空间"
+  },
+  "Reclaim virtual disk space after cleanup": {
+    "format": "清理后回收虚拟磁盘空间",
+    "resource_id": "s116a8fba4652545e8ede2df8",
+    "text": "清理后回收虚拟磁盘空间"
+  },
   "Recommended": {
     "format": "推荐",
     "resource_id": "sd70604e8430461372849bbd1",
@@ -8629,6 +8759,11 @@
     "resource_id": "s3eb24707ffe5d10f63f49f61",
     "text": "已删除记录"
   },
+  "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place.": {
+    "format": "保留可恢复、未完成及结果不确定的记录，不影响您的文件、设置和凭据。",
+    "resource_id": "s3eac3bc92599eac79200b413",
+    "text": "保留可恢复、未完成及结果不确定的记录，不影响您的文件、设置和凭据。"
+  },
   "Recovery dependency": {
     "format": "恢复依赖",
     "resource_id": "s91840ab086dae44046462516",
@@ -8639,6 +8774,11 @@
     "resource_id": "s3f81a585071278e39b76b868",
     "text": "恢复文件清单"
   },
+  "Recovery records": {
+    "format": "恢复记录",
+    "resource_id": "s8daea0c23b7c2701c63af394",
+    "text": "恢复记录"
+  },
   "Redis Insight caches": {
     "format": "Redis Insight 缓存",
     "resource_id": "s9372b5901c15a4649fc8f716",
@@ -8648,6 +8788,11 @@
     "format": "减少动态效果",
     "resource_id": "s159f641008ba451e82441439",
     "text": "减少动态效果"
+  },
+  "Referenced by a container": {
+    "format": "已被容器引用",
+    "resource_id": "s7ef57bec14a18dccb8f7c878",
+    "text": "已被容器引用"
   },
   "Refresh": {
     "format": "刷新",
@@ -8813,6 +8958,11 @@
     "format": "是否移除此位置及其规则设置？文件和已导入的规则会保留。",
     "resource_id": "s3836d2eb12b64f8836600b39",
     "text": "是否移除此位置及其规则设置？文件和已导入的规则会保留。"
+  },
+  "Removing a stopped container permanently deletes its writable files. Its volumes are kept.": {
+    "format": "删除停止的容器会永久删除其可写文件，关联卷保留。",
+    "resource_id": "sf0eee271208ea0aba07c47ee",
+    "text": "删除停止的容器会永久删除其可写文件，关联卷保留。"
   },
   "Removing this protection requires a new scan before cleanup can be reviewed.": {
     "format": "移除此保护后，需要重新扫描才能审阅清理项目。",
@@ -9128,6 +9278,11 @@
     "format": "审阅所选更新…",
     "resource_id": "s8e26200867ca706e43da13ef",
     "text": "审阅所选更新…"
+  },
+  "Review Shou's scan data and finished history before cleaning them.": {
+    "format": "从 Shou 存储审阅并清理扫描数据和已完成的历史记录。",
+    "resource_id": "s9f026b7c572e22dcb4ec4ae8",
+    "text": "从 Shou 存储审阅并清理扫描数据和已完成的历史记录。"
   },
   "Review This Item": {
     "format": "审阅此项目",
@@ -9514,6 +9669,11 @@
     "resource_id": "s060fae44a5d9e7ce101ee49b",
     "text": "外部实例运行中"
   },
+  "Running containers are kept": {
+    "format": "保留运行中的容器",
+    "resource_id": "sb79a3abfff226c5cc9ae5fb3",
+    "text": "保留运行中的容器"
+  },
   "Running programs could not be verified. Refresh before uninstalling.": {
     "format": "无法核实运行中的程序，请刷新后再卸载。",
     "resource_id": "s780ffdf20cf0899fd9c8aae3",
@@ -9803,6 +9963,11 @@
     "format": "请重新扫描或查看扫描覆盖范围。",
     "resource_id": "s3febb1c7af79d4e9f6cc763e",
     "text": "请重新扫描或查看扫描覆盖范围。"
+  },
+  "Scan again to measure current disk usage.": {
+    "format": "重新扫描以测量当前磁盘占用。",
+    "resource_id": "s01c286b7dcdb180f9bd175c7",
+    "text": "重新扫描以测量当前磁盘占用。"
   },
   "Scan again to update sizes and status": {
     "format": "重新扫描以更新大小与状态",
@@ -10643,6 +10808,11 @@
     "format": "Shou 存储…",
     "resource_id": "s6712e53de09b11231a69296a",
     "text": "Shou 存储…"
+  },
+  "Show": {
+    "format": "显示",
+    "resource_id": "s0df6f1cad36c49da768a6efd",
+    "text": "显示"
   },
   "Show More": {
     "format": "显示更多",
@@ -12344,6 +12514,11 @@
     "resource_id": "s1d99f0dc054d8db4b70bc043",
     "text": "保留的 Cargo 包归档与包校验值不一致。"
   },
+  "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept.": {
+    "format": "本次缓存范围仅包含在扫描前最后使用的闲置构建缓存，保留之后产生的缓存。",
+    "resource_id": "sdb6f8a341515ce2332598943",
+    "text": "本次缓存范围仅包含在扫描前最后使用的闲置构建缓存，保留之后产生的缓存。"
+  },
   "The rule file could not be read. Choose a local file and try again.": {
     "format": "无法读取规则文件。请选择本地文件后重试。",
     "resource_id": "sff6918d9d047722d471c2731",
@@ -12643,6 +12818,11 @@
     "format": "此应用需要管理员权限，暂不支持自动提权卸载。",
     "resource_id": "sf2cf79abce9ec829981fdab3",
     "text": "此应用需要管理员权限，暂不支持自动提权卸载。"
+  },
+  "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk.": {
+    "format": "当前后端没有已核实的磁盘回收适配，不会通过停止或删除容器、卷来缩小磁盘。",
+    "resource_id": "sa9db6a7f8ff7f746e79a9644",
+    "text": "当前后端没有已核实的磁盘回收适配，不会通过停止或删除容器、卷来缩小磁盘。"
   },
   "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.": {
     "format": "此操作无法通过 Shou 撤销。各来源分别提交，失败时可能仅部分完成。云端同步副本及其他浏览器数据不在本次范围内。",
@@ -13259,6 +13439,16 @@
     "resource_id": "sed56fb560d5609d2e98eb000",
     "text": "数据库结构不支持"
   },
+  "Untagged Docker image": {
+    "format": "无标签镜像",
+    "resource_id": "s378a8b14e8abefdb5963d4c1",
+    "text": "无标签镜像"
+  },
+  "Unused build cache": {
+    "format": "闲置构建缓存",
+    "resource_id": "scabd4ae5ff7ce80549dcccf9",
+    "text": "闲置构建缓存"
+  },
   "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.": {
     "format": "永久移除未使用的构建缓存，保留镜像、容器与数据卷。后续构建可能需要下载或重新构建层。",
     "resource_id": "s56b9e6d0264d2a56d513074f",
@@ -13363,6 +13553,11 @@
     "format": "使用此连接",
     "resource_id": "s8ab64c40fb464b4e9323d9e4",
     "text": "使用此连接"
+  },
+  "Use Docker storage to review container data and reclaim virtual disk space.": {
+    "format": "请从 Docker 存储审阅容器数据并回收虚拟磁盘空间。",
+    "resource_id": "s8b8d65ed50ae4ce88d0f8cf8",
+    "text": "请从 Docker 存储审阅容器数据并回收虚拟磁盘空间。"
   },
   "Use Latest Space Analysis": {
     "format": "使用已有空间分析结果",
@@ -13589,6 +13784,16 @@
     "resource_id": "se374be0493fe4d08bd7beb67",
     "text": "查看…"
   },
+  "Virtual disk allocated space": {
+    "format": "虚拟磁盘实际占用",
+    "resource_id": "s7bd91e6066739a6428ac4621",
+    "text": "虚拟磁盘实际占用"
+  },
+  "Virtual disk logical capacity": {
+    "format": "虚拟磁盘逻辑容量",
+    "resource_id": "s92e6dcc141e2e6233572139e",
+    "text": "虚拟磁盘逻辑容量"
+  },
   "Visual Studio Code Insiders caches": {
     "format": "Visual Studio Code Insiders 缓存",
     "resource_id": "s4206c05196a99cef392d52d0",
@@ -13629,10 +13834,20 @@
     "resource_id": "sdc1149ce68b52079c30c9469",
     "text": "卷可用空间变化"
   },
+  "Volumes": {
+    "format": "数据卷",
+    "resource_id": "s53a480e304c08274bf58cc0d",
+    "text": "数据卷"
+  },
   "WPS Office caches": {
     "format": "WPS Office 缓存",
     "resource_id": "sf8a5c8d87f6ba89cef0a8993",
     "text": "WPS Office 缓存"
+  },
+  "Wait for Docker's result. An interrupted request can have an uncertain outcome.": {
+    "format": "请等待 Docker 返回结果，中断请求可能导致结果不确定。",
+    "resource_id": "s7a1d53f9d88619334da14978",
+    "text": "请等待 Docker 返回结果，中断请求可能导致结果不确定。"
   },
   "Waiting for administrator authorization…": {
     "format": "等待管理员授权…",
@@ -14033,6 +14248,31 @@
     "format": "目录超过支持的发现深度。",
     "resource_id": "sc22044d76f4db49bcf5f0754",
     "text": "目录超过支持的发现深度。"
+  },
+  "disk_backend_stopped": {
+    "format": "所选 Colima 环境未运行，请自行启动后重新检查。",
+    "resource_id": "sbceebc3ca5efb218e537ce21",
+    "text": "所选 Colima 环境未运行，请自行启动后重新检查。"
+  },
+  "disk_backend_unsupported": {
+    "format": "当前后端不支持已验证的在线磁盘回收。",
+    "resource_id": "s9090441c21341e724b593184",
+    "text": "当前后端不支持已验证的在线磁盘回收。"
+  },
+  "disk_identity_unavailable": {
+    "format": "无法核实 Colima 虚拟磁盘身份。",
+    "resource_id": "s298bf938e427cf164036e126",
+    "text": "无法核实 Colima 虚拟磁盘身份。"
+  },
+  "disk_mount_unsupported": {
+    "format": "无法核实容器数据的挂载文件系统。",
+    "resource_id": "s41417a0d268873c13c239052",
+    "text": "无法核实容器数据的挂载文件系统。"
+  },
+  "disk_reclamation_unavailable": {
+    "format": "无法检查虚拟磁盘空间回收能力。",
+    "resource_id": "s895ec8ced9dcf2b8f5263aa9",
+    "text": "无法检查虚拟磁盘空间回收能力。"
   },
   "excluded_descendant": {
     "format": "包含被排除的内容",

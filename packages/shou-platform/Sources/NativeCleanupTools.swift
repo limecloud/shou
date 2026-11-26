@@ -37,7 +37,7 @@ public struct NativeCleanupTools: CleanupToolRunning {
         #endif
     }
     #if os(macOS)
-    private func locate(_ tool: String) throws -> String {
+    func locate(_ tool: String) throws -> String {
         let home=homeDirectory.path
         var paths=["/opt/homebrew/bin/" + tool, "/usr/local/bin/" + tool, "/usr/bin/" + tool]
         if tool == "rustup" { paths.insert(home + "/.cargo/bin/rustup", at: 0) }
@@ -50,7 +50,7 @@ public struct NativeCleanupTools: CleanupToolRunning {
         }
         throw ShouError("tool_not_installed", "The cleanup tool is not installed in a supported location.", details: ["tool":tool])
     }
-    private func identity(_ path: String) throws -> String {
+    func identity(_ path: String) throws -> String {
         var metadata=stat()
         guard lstat(path, &metadata) == 0, metadata.st_mode & S_IFMT == S_IFREG,
               [0,getuid()].contains(metadata.st_uid), metadata.st_mode & 0o022 == 0 else {

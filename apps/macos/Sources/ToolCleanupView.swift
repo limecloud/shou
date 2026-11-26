@@ -46,6 +46,7 @@ struct ToolCleanupPanel: View {
                 }.padding(.vertical, 12)
             }
             HStack {
+                DockerStorageButton(model: model)
                 Button(model.t("Check Again")) { load() }.disabled(model.busy || loading)
                 Spacer()
                 if !history.isEmpty {
@@ -69,7 +70,7 @@ struct ToolCleanupPanel: View {
                 let current: ToolCleanupService
                 if let service { current=service }
                 else { current=ToolCleanupService(runner: NativeCleanupTools(), store: try LocalRecordStore()); service=current }
-                let result=try await current.scan(), receipts=try await current.history()
+                let result=try await current.scan(includeDocker: false), receipts=try await current.history()
                 guard !Task.isCancelled else { return }
                 scan=result; history=receipts
             } catch { if !Task.isCancelled { model.presentFailure(error) } }

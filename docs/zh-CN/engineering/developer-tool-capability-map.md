@@ -69,4 +69,6 @@ AI 需要逐项核实可达功能：OpenCode Providers 当前只列 id/type；He
 
 后续配置增量新增 Apache、Caddy、Meilisearch、Consul、etcd、Numa、Mailpit 七种软件目录及配置／日志路径策略，与前四种共用确切文件读写；MySQL 仍保留专属任务。按真实文件与安装观察发现已有存储，Caddyfile、TOML、JSON 使用同一编辑安全边界，配置发现移至后台。它们不是新增的本机启停配方，也未实现各软件的全部业务任务。实现与实际验证见配置适配增量 (本地证据: `output/reviews/developer-configurations-2026-10-27/REPORT.md`)。
 
+macOS 已接入独立的 Docker 存储清理与 Colima VZ 在线 TRIM，范围和验证见[空间分析](../product/space-analysis.md)与[逐软件适配](developer-tool-adapters.md#docker-存储专项)。这不开放完整容器编排或 Windows 变更。
+
 其余软件的专属管理，以及站点证书、语言项目／环境写入、容器、任务、完整网络和 AI 管理仍未接通。Homebrew 主管的共用能力可能覆盖更多软件，仍需精确登记与实例核验；不能因此宣称每个软件已验收。Windows SCM 与安装器的公共执行门禁继续关闭，新增配置任务尚未在 Windows 实现。

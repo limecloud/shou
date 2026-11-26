@@ -170,6 +170,7 @@
 "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access." = "在“完全磁盘访问”中允许 Shou，然后重新检查应用。文件访问权限也可能造成限制。";
 "Allow access to application caches that macOS protects." = "允许访问受 macOS 保护的应用缓存。";
 "Allow selecting personal app data" = "允许选择应用个人数据";
+"Also delete finished cleanup history and its file lists" = "同时删除已完成的清理历史及文件清单";
 "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required." = "API 密钥不可用。请在 AI 设置中使用本地存储重新保存密钥，再新建调查；无需输入系统密码。";
 "An absolute local path is required." = "请提供本地绝对路径。";
 "An application or build tool may be using these files. Close it and scan again." = "应用或构建工具可能正在使用这些文件，请关闭后重新扫描。";
@@ -323,6 +324,7 @@
 "Browsing history" = "浏览历史";
 "Build Artifacts" = "构建产物";
 "Build Outputs" = "构建产物";
+"Build cache" = "构建缓存";
 "Build process activity could not be checked." = "无法检查构建进程状态。";
 "Build process names must be exact executable names." = "构建进程必须使用确切的可执行文件名。";
 "Build process output could not be decoded." = "无法读取构建进程检查结果。";
@@ -415,6 +417,7 @@
 "Check the official WinGet catalog, review exact versions, then update the applications you select." = "检查 WinGet 官方目录，审阅具体版本后，更新你选择的应用。";
 "Check the relative path, project markers and discovery depth. Conditions and protections still apply." = "请核对相对路径、项目标记和发现深度；条件与保护仍然生效。";
 "Check the selected location and relative paths. A rule's location reference can be registered only once." = "请检查所选位置和相对路径。同一个规则位置引用只能登记一次。";
+"Checking Docker storage…" = "正在检查 Docker 存储…";
 "Checking Service…" = "正在检查服务…";
 "Checking a rule suggestion…" = "正在检查规则建议…";
 "Checking disk access…" = "正在检查磁盘访问权限…";
@@ -487,6 +490,7 @@
 "Claude preview application caches" = "Claude 预览版应用缓存";
 "Claude recreates web-resource, code and graphics caches when needed." = "Claude 会按需重建网页资源、代码和图形缓存。";
 "Clean & Free Space" = "清理并释放空间";
+"Clean Docker objects and reclaim virtual disk space through the owning backend." = "通过 Docker 专项清理容器数据，并由对应后端归还虚拟磁盘空间。";
 "Clean Permanently" = "永久清理";
 "Clean Permanently…" = "永久清理…";
 "Clean Recommended" = "清理推荐项目";
@@ -515,6 +519,7 @@
 "Cleanup execution is unavailable in this development build." = "当前开发版本尚未开放清理执行。";
 "Cleanup execution is unavailable until native Windows verification is complete." = "Windows 原生验收完成前，暂不提供清理执行。";
 "Cleanup finished with issues" = "清理已结束，部分项目需处理";
+"Cleanup history" = "清理历史";
 "Cleanup plans" = "清理计划";
 "Cleanup preview failed." = "清理预览失败。";
 "Cleanup rules made for your Mac" = "为你的 Mac 定制清理规则";
@@ -548,6 +553,7 @@
 "Codex application caches" = "Codex 应用缓存";
 "Codex download caches" = "Codex 下载缓存";
 "Codex recreates web-resource, code and graphics caches when needed." = "Codex 会按需重建网页资源、代码和图形缓存。";
+"Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged." = "Colima VZ 通过在线 TRIM 归还未使用块。虚拟机保持运行，逻辑容量不变。";
 "Collapse startup details" = "收起启动项详情";
 "Collecting rate baseline…" = "正在建立速率基线…";
 "Colors indicate extensions, not cleanup eligibility." = "颜色表示文件扩展名，不代表可以清理。";
@@ -766,10 +772,15 @@
 "Disk capacity could not be observed." = "无法获取磁盘容量。";
 "Disk capacity was observed without scanning files." = "已读取磁盘容量，没有扫描文件。";
 "Disk free / capacity (bytes)" = "磁盘可用空间／总容量（字节）";
+"Disk reclamation" = "磁盘空间回收";
 "Dismiss" = "关闭提示";
 "Docker BuildX caches" = "Docker BuildX 缓存";
 "Docker build cache" = "Docker 构建缓存";
 "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation." = "Docker 缓存先在虚拟磁盘内回收，宿主空间可能需要通过后端支持的回收操作释放。";
+"Docker containers" = "容器";
+"Docker images" = "镜像";
+"Docker storage" = "Docker 存储";
+"Docker storage…" = "Docker 存储…";
 "Documents" = "文档";
 "Done" = "完成";
 "Dot path components are not supported." = "路径中不支持点目录段。";
@@ -936,6 +947,7 @@
 "Gradle generated caches" = "Gradle 构建缓存";
 "Gradle normally recreates project caches and generated build outputs on the next build." = "Gradle 通常会在下次构建时重新生成项目缓存与构建产物。";
 "Grouped by scan location" = "按扫描位置归组";
+"Guest free space" = "虚拟机内可用空间";
 "Guide available" = "提供使用指南";
 "HTTP storage" = "HTTP 存储";
 "Have a folder that needs a closer look?" = "有不确定如何整理的文件夹？";
@@ -982,7 +994,11 @@
 "IINA caches" = "IINA 缓存";
 "Identifier unavailable" = "标识不可用";
 "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou." = "若访问仍受限，请在完全磁盘访问权限中移除旧 Shou，重新添加当前版本并重启应用。";
+"Image identity could not be verified" = "无法核实镜像身份";
+"Image sizes can share layers. Volumes may contain databases; unused does not mean disposable." = "镜像可能共享数据层。卷可能包含数据库，未引用不代表可删除。";
 "Images" = "图片";
+"Images and build cache may need to be downloaded or rebuilt later." = "镜像和构建缓存之后可能需要重新下载或构建。";
+"Images with multiple tags are kept" = "保留具有多个标签的镜像";
 "Import Rule…" = "导入规则…";
 "Import a rule, choose its scan folder, then enable the version you want to use." = "导入规则，为它选择扫描文件夹，然后启用需要使用的版本。";
 "Import → review → enable. Enablement never authorizes deletion." = "导入 → 审阅 → 启用。启用规则不代表授权删除。";
@@ -1159,6 +1175,7 @@
 "Loaded" = "已加载";
 "Loading measured results…" = "正在加载统计结果…";
 "Loading…" = "正在加载…";
+"Local Docker context" = "本机 Docker 环境";
 "Local Note" = "本地备注";
 "Local analysis → main model. Structured decisions are not used by this strategy." = "本地分析 → 大模型。当前策略不使用结构化决策服务。";
 "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs." = "本地分析 → 结构化决策 → 必要时大模型。两项服务在同一方案中协作，按需调用。";
@@ -1322,6 +1339,7 @@
 "No compatible installer is available for this installation scope." = "没有适用于此安装范围的兼容安装程序。";
 "No compatible update is available." = "暂无兼容的更新。";
 "No configuration file was found in the detected sources." = "未找到配置文件。";
+"No container references" = "未被容器引用";
 "No conventional project folders found. Include another folder or ask your AI agent." = "未发现常见项目目录，可包含其他文件夹，或让 AI 帮你定位。";
 "No current verified recipe. Refresh status, or review the saved configuration before registering it again." = "当前没有已核实的启动配方。请刷新状态，或审阅已保存的配置后重新登记。";
 "No definitions found in the inspected sources" = "已检查的来源中没有发现配置";
@@ -1329,9 +1347,11 @@
 "No error-log path is configured for this instance." = "此实例未配置错误日志路径。";
 "No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults." = "未找到确切配置，请选择此实例的 .cnf 文件；不会创建或替换其他版本的默认配置。";
 "No exclusions in this scope." = "此范围内暂无排除项。";
+"No items in this category." = "此分类没有项目。";
 "No items were processed" = "未处理任何项目";
 "No known cleanup items found" = "未发现已知清理项";
 "No known locations were found" = "未发现已知位置";
+"No local Docker context found." = "未找到本机 Docker 环境。";
 "No log entries yet." = "暂无日志内容。";
 "No log path was found for this instance." = "未找到此实例的日志路径。";
 "No matching application updates. Applications without a verified WinGet match are not included." = "没有匹配的应用更新。此处不包含无法与 WinGet 核实匹配的应用。";
@@ -1368,6 +1388,7 @@
 "No supported catalog source for this application. Check for updates in the app." = "此应用暂无受支持的目录来源。请在应用内检查更新。";
 "No supported update source" = "暂无受支持的更新来源";
 "No uninstall record was found for this plan. This does not confirm the current installation state." = "未找到此计划的卸载记录。这不能证明当前安装的状态。";
+"No unused build cache" = "没有闲置构建缓存";
 "No upgradable packages in this result" = "当前结果没有可升级的软件包";
 "No usage record" = "暂无使用记录";
 "No verified application leftovers found." = "未发现已确认的应用残留。";
@@ -1448,10 +1469,12 @@
 "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review." = "仅包含默认 Windows 用户位置下明确命名的缓存子目录。请先关闭所属应用并停止相关构建。用户配置、账号、凭据、会话、设置、扩展、环境和项目源码都会保留；自定义位置需单独审阅。";
 "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained." = "仅匹配已明确列出的用户缓存目录。保留文稿、偏好设置和系统数据。";
 "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs." = "仅移除 Rust 离线文档，保留编译器与目标平台。再次离线阅读时需要重新安装 rust-docs。";
+"Only ordinary local volumes are supported" = "仅支持普通本地卷";
 "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records." = "仅删除记录，文件保持原位。删除后将无法通过 Shou 恢复或核验这些记录。";
 "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview." = "本次仅在发现深度和扫描预算内测量规则路径，不代表整个工作区的空间分析。修改任一字段后需重新预览。";
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "仅检查列出的应用目录及其下两层文件夹。不枚举内嵌应用、安装包收据或自定义安装位置。";
 "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained." = "仅包含当前用户 Library/Caches 下的指定目录。受保护文件仍禁止清理，保留偏好设置、个人数据及缓存目录之外的已下载模型。";
+"Only the reviewed objects are removed. Running containers and unselected data are kept." = "仅删除本次审阅的对象，保留运行中的容器及未选择的数据。";
 "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space." = "仅移除此已停止实例的登记，数据库、配置和日志仍保留在磁盘上。此操作不会释放磁盘空间。";
 "Only the versions shown above are included in this review." = "本次审阅仅包含上方列出的软件和目标版本。";
 "Only this broken shortcut is removed. Its target and associated data are kept." = "仅清理此失效快捷方式，保留目标位置和关联数据。";
@@ -1537,6 +1560,7 @@
 "Permanently clear this log's contents? The file will be kept." = "永久清空此日志的内容？日志文件将保留。";
 "Permanently delete privacy records?" = "永久删除隐私记录？";
 "Permanently delete selected leftovers?" = "永久删除所选残留？";
+"Permanently delete the data in the selected volumes" = "永久删除所选卷中的数据";
 "Permanently remove these items?" = "永久移除这些项目？";
 "Permanently removed" = "已永久移除";
 "Permanently removed (estimate)" = "永久移除（估算）";
@@ -1712,6 +1736,8 @@
 "Recent privacy receipts" = "最近的隐私清理记录";
 "Recent resource trend" = "近期资源趋势";
 "Recently created" = "近期创建";
+"Reclaim Disk Space" = "回收磁盘空间";
+"Reclaim virtual disk space after cleanup" = "清理后回收虚拟磁盘空间";
 "Recommended" = "推荐";
 "Reconnect to the selected MySQL instance before continuing." = "请重新连接所选 MySQL 实例后继续。";
 "Record does not exist." = "记录不存在。";
@@ -1725,10 +1751,13 @@
 "Recorded object is at its original path" = "记录的对象仍在原路径";
 "Recorded result" = "已记录的结果";
 "Records removed" = "已删除记录";
+"Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place." = "保留可恢复、未完成及结果不确定的记录，不影响您的文件、设置和凭据。";
 "Recovery dependency" = "恢复依赖";
 "Recovery file lists" = "恢复文件清单";
+"Recovery records" = "恢复记录";
 "Redis Insight caches" = "Redis Insight 缓存";
 "Reduce Motion" = "减少动态效果";
+"Referenced by a container" = "已被容器引用";
 "Refresh" = "刷新";
 "Refresh Log" = "刷新日志";
 "Refresh Status" = "刷新状态";
@@ -1762,6 +1791,7 @@
 "Remove startup items…" = "移除启动项…";
 "Remove this configuration from available choices. Saved investigations and their keys are retained. You can restore it from Deleted Configurations." = "从可用配置中移除此方案，保留已保存的调查及其密钥。之后可在“已删除配置”中恢复。";
 "Remove this location and its rule settings? Files and imported rules are kept." = "是否移除此位置及其规则设置？文件和已导入的规则会保留。";
+"Removing a stopped container permanently deletes its writable files. Its volumes are kept." = "删除停止的容器会永久删除其可写文件，关联卷保留。";
 "Removing this protection requires a new scan before cleanup can be reviewed." = "移除此保护后，需要重新扫描才能审阅清理项目。";
 "Report" = "报告";
 "Report an Issue" = "问题反馈";
@@ -1825,6 +1855,7 @@
 "Review Rules" = "审阅规则";
 "Review Selected Items" = "审阅所选项目";
 "Review Selected Updates…" = "审阅所选更新…";
+"Review Shou's scan data and finished history before cleaning them." = "从 Shou 存储审阅并清理扫描数据和已完成的历史记录。";
 "Review This Item" = "审阅此项目";
 "Review Uninstall" = "审阅卸载";
 "Review Uninstall…" = "审阅卸载…";
@@ -1902,6 +1933,7 @@
 "Run two space analyses of the same folder to compare them. Cleared and legacy analyses may be unavailable." = "对同一文件夹完成两次空间分析后即可比较。已清理索引或旧格式的分析可能无法使用。";
 "Running" = "运行中";
 "Running Elsewhere" = "外部实例运行中";
+"Running containers are kept" = "保留运行中的容器";
 "Running programs could not be verified. Refresh before uninstalling." = "无法核实运行中的程序，请刷新后再卸载。";
 "Runtime State" = "运行状态";
 "Rust build outputs" = "Rust 构建产物";
@@ -1960,6 +1992,7 @@
 "Scan Workspace" = "扫描工作区";
 "Scan a disk or folder, then review the largest files." = "扫描磁盘或文件夹，查看占用空间最多的文件。";
 "Scan again or review discovery coverage." = "请重新扫描或查看扫描覆盖范围。";
+"Scan again to measure current disk usage." = "重新扫描以测量当前磁盘占用。";
 "Scan again to update sizes and status" = "重新扫描以更新大小与状态";
 "Scan app caches, developer build outputs, and your personal cleanup rules together." = "应用缓存、开发构建产物与个人规则，一次扫描，一起收好。";
 "Scan budget is outside supported limits." = "扫描资源限制超出支持范围。";
@@ -2128,6 +2161,7 @@
 "Shou is installed in Applications. Updates keep the same location." = "Shou 已安装到应用程序，后续更新沿用此位置。";
 "Shou storage" = "Shou 存储";
 "Shou storage…" = "Shou 存储…";
+"Show" = "显示";
 "Show More" = "显示更多";
 "Show More (%lld remaining)" = "显示更多（剩余 %lld 项）";
 "Show Service Definition" = "定位服务定义";
@@ -2468,6 +2502,7 @@
 "The required project marker is missing." = "缺少所需的项目标记文件。";
 "The retained Cargo package archive could not be verified." = "无法核验保留的 Cargo 包归档。";
 "The retained Cargo package archive does not match the package checksum." = "保留的 Cargo 包归档与包校验值不一致。";
+"The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept." = "本次缓存范围仅包含在扫描前最后使用的闲置构建缓存，保留之后产生的缓存。";
 "The rule file could not be read. Choose a local file and try again." = "无法读取规则文件。请选择本地文件后重试。";
 "The rule or settings exceed the supported size limit." = "规则或设置超出了支持的大小限制。";
 "The same rule version already exists with different content." = "已存在内容不同的同版本规则。";
@@ -2528,6 +2563,7 @@
 "This application is protected and cannot be uninstalled." = "此应用受系统保护，无法卸载。";
 "This application or one of its files is in use. Close it and review the installation again." = "此应用或其文件正在使用中。请关闭应用后重新审阅安装。";
 "This application requires elevated access. Automatic administrator removal is not supported." = "此应用需要管理员权限，暂不支持自动提权卸载。";
+"This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk." = "当前后端没有已核实的磁盘回收适配，不会通过停止或删除容器、卷来缩小磁盘。";
 "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope." = "此操作无法通过 Shou 撤销。各来源分别提交，失败时可能仅部分完成。云端同步副本及其他浏览器数据不在本次范围内。";
 "This changes only the task switch. Running instances are not stopped, and startup conditions may still prevent it from running." = "此操作仅更改任务开关，不会停止正在运行的实例；启动条件仍可能阻止任务运行。";
 "This changes startup configuration for the selected items. Running processes are not terminated." = "此操作会更改所选项目的启动配置，不会终止正在运行的进程。";
@@ -2651,6 +2687,8 @@
 "Unsafe or overbroad relative pattern." = "相对路径模式不安全或范围过大。";
 "Unsupported configuration version." = "不支持此配置版本。";
 "Unsupported database" = "数据库结构不支持";
+"Untagged Docker image" = "无标签镜像";
+"Unused build cache" = "闲置构建缓存";
 "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers." = "永久移除未使用的构建缓存，保留镜像、容器与数据卷。后续构建可能需要下载或重新构建层。";
 "Unverified" = "未核实";
 "Up" = "上一级";
@@ -2672,6 +2710,7 @@
 "Uptime: %lld hours" = "已运行：%lld 小时";
 "Use Browsed Folder" = "使用当前浏览目录";
 "Use Connection" = "使用此连接";
+"Use Docker storage to review container data and reclaim virtual disk space." = "请从 Docker 存储审阅容器数据并回收虚拟磁盘空间。";
 "Use Latest Space Analysis" = "使用已有空间分析结果";
 "Use Recommended Selection" = "使用推荐选择";
 "Use Structured Decisions" = "使用结构化决策服务";
@@ -2717,6 +2756,8 @@
 "View Service Log" = "查看服务日志";
 "View Tool" = "查看工具";
 "View…" = "查看…";
+"Virtual disk allocated space" = "虚拟磁盘实际占用";
+"Virtual disk logical capacity" = "虚拟磁盘逻辑容量";
 "Visual Studio Code Insiders caches" = "Visual Studio Code Insiders 缓存";
 "Visual Studio Code caches" = "Visual Studio Code 缓存";
 "Visual Studio Code logs" = "Visual Studio Code 日志";
@@ -2725,7 +2766,9 @@
 "Vivaldi caches" = "Vivaldi 缓存";
 "Vivaldi download caches" = "Vivaldi 下载缓存";
 "Volume available change" = "卷可用空间变化";
+"Volumes" = "数据卷";
 "WPS Office caches" = "WPS Office 缓存";
+"Wait for Docker's result. An interrupted request can have an uncertain outcome." = "请等待 Docker 返回结果，中断请求可能导致结果不确定。";
 "Waiting for administrator authorization…" = "等待管理员授权…";
 "Waiting for confirmation or the system installer result. Keep this window open." = "正在等待确认或系统安装程序的结果，请保持窗口打开。";
 "Waiting for the service to reach its requested state…" = "正在等待服务完成状态切换…";
@@ -2806,6 +2849,11 @@
 "completed" = "已完成";
 "cross_filesystem" = "目录跨越文件系统边界。";
 "depth_limit" = "目录超过支持的发现深度。";
+"disk_backend_stopped" = "所选 Colima 环境未运行，请自行启动后重新检查。";
+"disk_backend_unsupported" = "当前后端不支持已验证的在线磁盘回收。";
+"disk_identity_unavailable" = "无法核实 Colima 虚拟磁盘身份。";
+"disk_mount_unsupported" = "无法核实容器数据的挂载文件系统。";
+"disk_reclamation_unavailable" = "无法检查虚拟磁盘空间回收能力。";
 "excluded_descendant" = "包含被排除的内容";
 "executing" = "未完成的清理";
 "failed" = "失败";

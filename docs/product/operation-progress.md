@@ -57,7 +57,7 @@ flowchart LR
   Cancel --> Execute
 ```
 
-Decorative motion does not drive measured progress. It pauses when stopping or when either Reduce Motion preference is enabled. Visible progress keeps animating when the window loses focus. Native typography, controls, accent color and accessibility identifiers accompany directly updated text, while the progress bar can animate. Short windows use a compact layout that retains the action, percentage, path and Stop; detailed counts remain in domain events and results. Smart scanning exposes one Stop action.
+Decorative motion does not drive measured progress. It pauses when stopping or when either Reduce Motion preference is enabled. Visible progress keeps animating when the window loses focus. Native typography, controls, accent color and accessibility identifiers accompany directly updated text; only the progress bar animates, without applying transitions to text or the surrounding layout. Unknown percentages retain the number area's dimensions without displaying or announcing a value, so stage changes do not shift the title, path or Stop button. Short windows use a compact layout that retains the action, percentage, path and Stop; detailed counts remain in domain events and results. Smart scanning exposes one Stop action.
 
 ## State flow
 

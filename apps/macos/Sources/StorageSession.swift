@@ -137,6 +137,21 @@ struct StorageLocation: Identifiable {
     @ObservationIgnored private var visibleChildrenCache: (revision: Int, path: String, query: String, sort: String, root: String?, nodes: [StorageNode], eligible: [StorageNode])?
     private let homeDirectory=FileManager.default.homeDirectoryForCurrentUser.path
     private let recordDirectory=LocalRecordStore.defaultDirectory.path
+    var showsRecordMaintenance: Bool {
+        guard let scan else { return false }
+        let current=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path))
+        let records=StorageRemovalPolicy.canonical(recordDirectory)
+        if current == records || current.hasPrefix(records + "/") { return true }
+        return index.children(of: path).contains { StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: $0.path)) == records }
+    }
+    var showsDockerStorage: Bool {
+        guard let scan else { return false }
+        let current=StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: path))
+        let roots=DockerStorageLocations.protectedPaths(home: homeDirectory)
+        return roots.contains { current == $0 || current.hasPrefix($0 + "/") } || index.children(of: path).contains { node in
+            roots.contains(StorageRemovalPolicy.canonical(StorageRemovalPolicy.absolute(root: scan.rootPath, relative: node.path)))
+        }
+    }
     var hasChanges: Bool { !removedNodes.isEmpty }
     var coverageNotes: [StorageCoverageNote] { (scan?.tree.issues ?? []).map { StorageCoverageNote(issue: $0, root: scan?.rootPath ?? location) }.filter { $0.concerns(path) } }
     var actionableCoverage: [StorageCoverageNote] { coverageNotes.filter { !$0.systemManaged } }

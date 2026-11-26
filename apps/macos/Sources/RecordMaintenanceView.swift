@@ -3,10 +3,11 @@ import SwiftUI
 
 struct RecordMaintenanceButton: View {
     var model: AppModel
+    var identifier="settings.clean-scan-records"
     @State private var presented=false
     var body: some View {
         Button(model.t("Shou storage…")) { presented=true }
-            .disabled(model.busy).accessibilityIdentifier("settings.clean-scan-records")
+            .disabled(model.busy).accessibilityIdentifier(identifier)
             .sheet(isPresented: $presented) { RecordMaintenanceView(model: model) }
     }
 }
@@ -16,6 +17,7 @@ private struct RecordMaintenanceView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var preview: RecordRetentionPreview?
     @State private var keepLatest=true
+    @State private var includeFinishedHistory=false
     @State private var loading=false
     @State private var issue: String?
     @State private var collectedBytes: Int64?
@@ -27,12 +29,18 @@ private struct RecordMaintenanceView: View {
                 .font(ShouType.body).foregroundStyle(ShouPalette.secondary)
             Toggle(model.t("Keep the latest scan for later inspection"), isOn: $keepLatest).disabled(loading)
                 .onChange(of: keepLatest) { _, _ in preview=nil; load() }
+            Toggle(model.t("Also delete finished cleanup history and its file lists"), isOn: $includeFinishedHistory).disabled(loading)
+                .accessibilityIdentifier("records.include-finished-history")
+                .onChange(of: includeFinishedHistory) { _, _ in preview=nil; load() }
+            Text(model.t("Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place."))
+                .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
             if loading { ProgressView().controlSize(.small) }
             if let preview {
                 HStack {
                     Text(model.t("Total") + " " + model.bytes(preview.totalBytes))
                     Spacer()
-                    Text(model.t("Reviewable records") + " " + model.bytes(preview.removableBytes))
+                    Text(String(format: model.t("%lld records, %@ of local data"), locale: model.language.locale,
+                        preview.records.count, model.bytes(preview.removableBytes)))
                 }.font(ShouType.body).monospacedDigit()
                 if preview.quotaExcessBytes > 0 {
                     Label(model.t("Protected records exceed the cleanup quota.") + " " + model.bytes(preview.quotaExcessBytes), systemImage: "info.circle")
@@ -61,43 +69,48 @@ private struct RecordMaintenanceView: View {
                 }
                 if !preview.issues.isEmpty { Text(model.t("Some records need verification and were kept.")).foregroundStyle(ShouPalette.warning) }
             }
-            if let collectedBytes { Text(model.t("Records removed") + " " + model.bytes(collectedBytes)).font(ShouType.body).foregroundStyle(ShouPalette.success) }
+            if let collectedBytes { Text(model.t("Records removed") + " " + model.bytes(collectedBytes) + "\n" + model.t("Scan again to measure current disk usage.")).font(ShouType.body).foregroundStyle(ShouPalette.success) }
             if let issue { Text(issue).font(ShouType.caption).foregroundStyle(ShouPalette.danger) }
             HStack {
-                Button(model.t("Done")) { dismiss() }.keyboardShortcut(.cancelAction)
+                Button(model.t("Done")) { dismiss() }.keyboardShortcut(.cancelAction).disabled(loading)
                 Spacer()
                 Button(model.t("Check Again")) { load() }.disabled(loading)
                 Button(model.t("Delete reviewed records"), role: .destructive) { collect() }
                     .buttonStyle(.borderedProminent).tint(ShouPalette.danger)
                     .disabled(loading || preview?.records.isEmpty != false)
             }
-        }.padding(24).frame(width: 650, height: 560).task { load() }
+        }.padding(24).frame(width: 650, height: 560).interactiveDismissDisabled(loading).task { load() }
     }
     private func load() {
         guard !loading, let engine=model.engine else { return }
         loading=true; issue=nil
-        let policy=policy
+        let policy=policy, includeHistory=includeFinishedHistory
         Task {
             defer { loading=false }
-            do { preview=try await engine.recordRetentionPreview(policy: policy) }
+            do { preview=try await engine.recordRetentionPreview(policy: policy, includeFinishedHistory: includeHistory) }
             catch { issue=error.localizedDescription }
         }
     }
     private func collect() {
-        guard !loading, let engine=model.engine, let preview else { return }
-        let reviewed=preview.records, policy=policy
-        loading=true; issue=nil
+        guard !loading, !model.busy, let engine=model.engine, let preview else { return }
+        let reviewed=preview.records, policy=policy, includeHistory=includeFinishedHistory
+        loading=true; model.busy=true; issue=nil; collectedBytes=nil
         Task {
-            defer { loading=false }
+            defer {
+                loading=false; model.busy=false
+                model.space.restart(app: model)
+                model.largeFiles.storage.restart(app: model)
+            }
             do {
-                let result=try await engine.collectRecords(policy: policy, reviewedRecords: reviewed)
+                let result=try await engine.collectRecords(policy: policy, reviewedRecords: reviewed, includeFinishedHistory: includeHistory)
                 collectedBytes=result.removableBytes
-                self.preview=try await engine.recordRetentionPreview(policy: policy)
+                await model.refresh()
+                self.preview=try await engine.recordRetentionPreview(policy: policy, includeFinishedHistory: includeHistory)
             } catch { issue=error.localizedDescription; self.preview=nil }
         }
     }
     private func collectionTitle(_ value: String) -> String {
-        model.t(["storage-catalogs":"Space indexes", "storage-scans":"Space scans", "storage-plan-manifests":"Plan file lists", "storage-plans":"Space cleanup plans", "history-manifests":"Recovery file lists", "history-summaries":"History summaries", "scans":"Cleanup scans", "plans":"Cleanup plans"][value] ?? value)
+        model.t(["storage-catalogs":"Space indexes", "storage-scans":"Space scans", "storage-plan-manifests":"Plan file lists", "storage-plans":"Space cleanup plans", "history":"Cleanup history", "followups":"Recovery records", "history-manifests":"Recovery file lists", "history-summaries":"History summaries", "scans":"Cleanup scans", "plans":"Cleanup plans"][value] ?? value)
     }
     private func reasonTitle(_ value: String) -> String {
         model.t(["active_plan":"Active plan dependency", "grace_period":"Recently created", "latest_scan":"Latest scan", "history_dependency":"History dependency", "recovery_dependency":"Recovery dependency", "within_policy":"Within retention policy", "verification_required":"Needs verification"][value] ?? value)

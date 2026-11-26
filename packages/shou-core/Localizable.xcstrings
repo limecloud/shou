@@ -46247,6 +46247,774 @@
           }
         }
       }
+    },
+    "Also delete finished cleanup history and its file lists": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also delete finished cleanup history and its file lists"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时删除已完成的清理历史及文件清单"
+          }
+        }
+      }
+    },
+    "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留可恢复、未完成及结果不确定的记录，不影响您的文件、设置和凭据。"
+          }
+        }
+      }
+    },
+    "Scan again to measure current disk usage.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan again to measure current disk usage."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新扫描以测量当前磁盘占用。"
+          }
+        }
+      }
+    },
+    "Review Shou's scan data and finished history before cleaning them.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review Shou's scan data and finished history before cleaning them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从 Shou 存储审阅并清理扫描数据和已完成的历史记录。"
+          }
+        }
+      }
+    },
+    "Cleanup history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cleanup history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理历史"
+          }
+        }
+      }
+    },
+    "Recovery records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复记录"
+          }
+        }
+      }
+    },
+    "Docker storage…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker storage…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker 存储…"
+          }
+        }
+      }
+    },
+    "Docker storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker storage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Docker 存储"
+          }
+        }
+      }
+    },
+    "Local Docker context": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local Docker context"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机 Docker 环境"
+          }
+        }
+      }
+    },
+    "Checking Docker storage…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking Docker storage…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查 Docker 存储…"
+          }
+        }
+      }
+    },
+    "Wait for Docker's result. An interrupted request can have an uncertain outcome.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wait for Docker's result. An interrupted request can have an uncertain outcome."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请等待 Docker 返回结果，中断请求可能导致结果不确定。"
+          }
+        }
+      }
+    },
+    "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "镜像可能共享数据层。卷可能包含数据库，未引用不代表可删除。"
+          }
+        }
+      }
+    },
+    "No items in this category.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No items in this category."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此分类没有项目。"
+          }
+        }
+      }
+    },
+    "Permanently delete the data in the selected volumes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently delete the data in the selected volumes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久删除所选卷中的数据"
+          }
+        }
+      }
+    },
+    "Virtual disk allocated space": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Virtual disk allocated space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "虚拟磁盘实际占用"
+          }
+        }
+      }
+    },
+    "Guest free space": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guest free space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "虚拟机内可用空间"
+          }
+        }
+      }
+    },
+    "Reclaim virtual disk space after cleanup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reclaim virtual disk space after cleanup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清理后回收虚拟磁盘空间"
+          }
+        }
+      }
+    },
+    "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colima VZ 通过在线 TRIM 归还未使用块。虚拟机保持运行，逻辑容量不变。"
+          }
+        }
+      }
+    },
+    "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前后端没有已核实的磁盘回收适配，不会通过停止或删除容器、卷来缩小磁盘。"
+          }
+        }
+      }
+    },
+    "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次缓存范围仅包含在扫描前最后使用的闲置构建缓存，保留之后产生的缓存。"
+          }
+        }
+      }
+    },
+    "Only the reviewed objects are removed. Running containers and unselected data are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the reviewed objects are removed. Running containers and unselected data are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅删除本次审阅的对象，保留运行中的容器及未选择的数据。"
+          }
+        }
+      }
+    },
+    "Reclaim Disk Space": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reclaim Disk Space"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回收磁盘空间"
+          }
+        }
+      }
+    },
+    "No local Docker context found.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No local Docker context found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到本机 Docker 环境。"
+          }
+        }
+      }
+    },
+    "Unused build cache": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unused build cache"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "闲置构建缓存"
+          }
+        }
+      }
+    },
+    "Build cache": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Build cache"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "构建缓存"
+          }
+        }
+      }
+    },
+    "Volumes": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volumes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数据卷"
+          }
+        }
+      }
+    },
+    "Referenced by a container": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Referenced by a container"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已被容器引用"
+          }
+        }
+      }
+    },
+    "Running containers are kept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Running containers are kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留运行中的容器"
+          }
+        }
+      }
+    },
+    "Only ordinary local volumes are supported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only ordinary local volumes are supported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅支持普通本地卷"
+          }
+        }
+      }
+    },
+    "Image identity could not be verified": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image identity could not be verified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实镜像身份"
+          }
+        }
+      }
+    },
+    "No unused build cache": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No unused build cache"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有闲置构建缓存"
+          }
+        }
+      }
+    },
+    "Virtual disk logical capacity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Virtual disk logical capacity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "虚拟磁盘逻辑容量"
+          }
+        }
+      }
+    },
+    "Disk reclamation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disk reclamation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘空间回收"
+          }
+        }
+      }
+    },
+    "Use Docker storage to review container data and reclaim virtual disk space.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Docker storage to review container data and reclaim virtual disk space."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请从 Docker 存储审阅容器数据并回收虚拟磁盘空间。"
+          }
+        }
+      }
+    },
+    "Clean Docker objects and reclaim virtual disk space through the owning backend.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean Docker objects and reclaim virtual disk space through the owning backend."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过 Docker 专项清理容器数据，并由对应后端归还虚拟磁盘空间。"
+          }
+        }
+      }
+    },
+    "disk_backend_unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disk_backend_unsupported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前后端不支持已验证的在线磁盘回收。"
+          }
+        }
+      }
+    },
+    "disk_backend_stopped": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disk_backend_stopped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选 Colima 环境未运行，请自行启动后重新检查。"
+          }
+        }
+      }
+    },
+    "disk_mount_unsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disk_mount_unsupported"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实容器数据的挂载文件系统。"
+          }
+        }
+      }
+    },
+    "disk_identity_unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disk_identity_unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实 Colima 虚拟磁盘身份。"
+          }
+        }
+      }
+    },
+    "disk_reclamation_unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "disk_reclamation_unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法检查虚拟磁盘空间回收能力。"
+          }
+        }
+      }
+    },
+    "Show": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示"
+          }
+        }
+      }
+    },
+    "Images with multiple tags are kept": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images with multiple tags are kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留具有多个标签的镜像"
+          }
+        }
+      }
+    },
+    "Removing a stopped container permanently deletes its writable files. Its volumes are kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removing a stopped container permanently deletes its writable files. Its volumes are kept."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除停止的容器会永久删除其可写文件，关联卷保留。"
+          }
+        }
+      }
+    },
+    "Images and build cache may need to be downloaded or rebuilt later.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images and build cache may need to be downloaded or rebuilt later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "镜像和构建缓存之后可能需要重新下载或构建。"
+          }
+        }
+      }
+    },
+    "Docker containers": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Containers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "容器"
+          }
+        }
+      }
+    },
+    "Docker images": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Images"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "镜像"
+          }
+        }
+      }
+    },
+    "Untagged Docker image": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untagged Docker image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无标签镜像"
+          }
+        }
+      }
+    },
+    "No container references": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No container references"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未被容器引用"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -30,6 +30,7 @@ private struct StorageAnalysisView: View {
     @State private var previewURL: URL?
     @State private var showingCoverage=false
     @State private var showingComparison=false
+    @State private var showingDockerStorage=false
     @FocusState private var keyboardArea: StorageKeyboardArea?
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +52,7 @@ private struct StorageAnalysisView: View {
         .sheet(isPresented: $showingComparison) {
             if let scan=session.scan { StorageComparisonView(model: model, scanId: scan.id, initialPath: session.path) }
         }
+        .sheet(isPresented: $showingDockerStorage) { DockerStorageView(model: model) }
         .quickLookPreview($previewURL)
     }
     private var entry: some View {
@@ -75,6 +77,24 @@ private struct StorageAnalysisView: View {
         VStack(spacing: 0) {
             navigation
             Divider()
+            if session.showsRecordMaintenance {
+                HStack(spacing: 10) {
+                    Text(model.t("Review Shou's scan data and finished history before cleaning them."))
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    Spacer(minLength: 8)
+                    RecordMaintenanceButton(model: model, identifier: "storage.clean-shou-records")
+                }.padding(.horizontal, 16).padding(.vertical, 8)
+                Divider()
+            }
+            if session.showsDockerStorage {
+                HStack(spacing: 10) {
+                    Text(model.t("Clean Docker objects and reclaim virtual disk space through the owning backend."))
+                        .font(ShouType.caption).foregroundStyle(ShouPalette.secondary)
+                    Spacer(minLength: 8)
+                    DockerStorageButton(model: model)
+                }.padding(.horizontal, 16).padding(.vertical, 8)
+                Divider()
+            }
             if let suffix=session.extensionFilter {
                 HStack { Text(model.t("Highlighted extension") + ": " + (suffix.isEmpty ? model.t("No Extension") : "." + suffix)); Button(model.t("Clear")) { session.extensionFilter=nil }; Spacer() }.font(ShouType.caption).padding(6)
             }
@@ -127,6 +147,8 @@ private struct StorageAnalysisView: View {
             }.disabled(session.loadingDirectory || model.busy).help(model.t("Investigate this folder with your model"))
                 .accessibilityIdentifier("storage.investigate")
             Menu {
+                Button(model.t("Docker storage…")) { showingDockerStorage=true }
+                    .disabled(model.busy).accessibilityIdentifier("storage.docker-storage-menu")
                 Button(model.t("Compare Analyses…")) { showingComparison=true }
                     .disabled(session.hasChanges || model.busy).accessibilityIdentifier("storage.compare")
                 Divider()

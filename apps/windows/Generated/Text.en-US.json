@@ -854,6 +854,11 @@
     "resource_id": "s70b89fb92e56e02b450e4082",
     "text": "Allow selecting personal app data"
   },
+  "Also delete finished cleanup history and its file lists": {
+    "format": "Also delete finished cleanup history and its file lists",
+    "resource_id": "sfc0f55ad24acd13b2216debe",
+    "text": "Also delete finished cleanup history and its file lists"
+  },
   "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.": {
     "format": "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.",
     "resource_id": "sa60d2a7b35e82367c3910b04",
@@ -1619,6 +1624,11 @@
     "resource_id": "s63fb2e296ad79ad6c8e88378",
     "text": "Build Outputs"
   },
+  "Build cache": {
+    "format": "Build cache",
+    "resource_id": "sb6e6f3dd12882dcbd3fa4455",
+    "text": "Build cache"
+  },
   "Build process activity could not be checked.": {
     "format": "Build process activity could not be checked.",
     "resource_id": "sd69bdb11f95fd93d11db8b47",
@@ -2079,6 +2089,11 @@
     "resource_id": "sd6d07c512675c55089535ebf",
     "text": "Check the selected location and relative paths. A rule's location reference can be registered only once."
   },
+  "Checking Docker storage…": {
+    "format": "Checking Docker storage…",
+    "resource_id": "s27567d52078d85b4115d289c",
+    "text": "Checking Docker storage…"
+  },
   "Checking Service…": {
     "format": "Checking Service…",
     "resource_id": "s00e84ea9ffa8190764315589",
@@ -2439,6 +2454,11 @@
     "resource_id": "sd5bfe92a46737b7fe10acfa2",
     "text": "Clean & Free Space"
   },
+  "Clean Docker objects and reclaim virtual disk space through the owning backend.": {
+    "format": "Clean Docker objects and reclaim virtual disk space through the owning backend.",
+    "resource_id": "sf8409f8b32c2ea05f0c68e5c",
+    "text": "Clean Docker objects and reclaim virtual disk space through the owning backend."
+  },
   "Clean Permanently": {
     "format": "Clean Permanently",
     "resource_id": "se7e36e96a3f6361090a832a3",
@@ -2578,6 +2598,11 @@
     "format": "Cleanup finished with issues",
     "resource_id": "s2b7fb300b5457d95ebf3d6ca",
     "text": "Cleanup finished with issues"
+  },
+  "Cleanup history": {
+    "format": "Cleanup history",
+    "resource_id": "s848a15453321482ac2a6a20b",
+    "text": "Cleanup history"
   },
   "Cleanup plans": {
     "format": "Cleanup plans",
@@ -2743,6 +2768,11 @@
     "format": "Codex recreates web-resource, code and graphics caches when needed.",
     "resource_id": "s640ee2686f6166fbcf077039",
     "text": "Codex recreates web-resource, code and graphics caches when needed."
+  },
+  "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged.": {
+    "format": "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged.",
+    "resource_id": "sfbd83295f630f140299f68de",
+    "text": "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged."
   },
   "Collapse startup details": {
     "format": "Collapse startup details",
@@ -3834,6 +3864,11 @@
     "resource_id": "s48b6ba356724e7c373e51d40",
     "text": "Disk free / capacity (bytes)"
   },
+  "Disk reclamation": {
+    "format": "Disk reclamation",
+    "resource_id": "s91eb92621ebd487749b4581c",
+    "text": "Disk reclamation"
+  },
   "Dismiss": {
     "format": "Dismiss",
     "resource_id": "s48845bff334a50a59aaecf49",
@@ -3853,6 +3888,26 @@
     "format": "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.",
     "resource_id": "s4c7c545ac4b17927324b77cc",
     "text": "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation."
+  },
+  "Docker containers": {
+    "format": "Containers",
+    "resource_id": "sf0f09afa19d76623d92f7967",
+    "text": "Containers"
+  },
+  "Docker images": {
+    "format": "Images",
+    "resource_id": "s46fb7f26123ea1d270096763",
+    "text": "Images"
+  },
+  "Docker storage": {
+    "format": "Docker storage",
+    "resource_id": "s144c4498d21db971320c17f4",
+    "text": "Docker storage"
+  },
+  "Docker storage…": {
+    "format": "Docker storage…",
+    "resource_id": "sb8d50adb5631098ace9ed8be",
+    "text": "Docker storage…"
   },
   "Documents": {
     "format": "Documents",
@@ -4684,6 +4739,11 @@
     "resource_id": "sfb4f7e1c33b7997f2f50454f",
     "text": "Grouped by scan location"
   },
+  "Guest free space": {
+    "format": "Guest free space",
+    "resource_id": "s8575bc08bf96e41f14d705ef",
+    "text": "Guest free space"
+  },
   "Guide available": {
     "format": "Guide available",
     "resource_id": "sd87d6fae2b07d108d057f5d1",
@@ -4914,10 +4974,30 @@
     "resource_id": "scf731a3c7fd27092f9ca1b77",
     "text": "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou."
   },
+  "Image identity could not be verified": {
+    "format": "Image identity could not be verified",
+    "resource_id": "s52bc9e6cb0b73a60a7ea8ac1",
+    "text": "Image identity could not be verified"
+  },
+  "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable.": {
+    "format": "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable.",
+    "resource_id": "s20665cb1eaee59d42425dc9b",
+    "text": "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable."
+  },
   "Images": {
     "format": "Images",
     "resource_id": "sbe7e2f20129365c2899b2c11",
     "text": "Images"
+  },
+  "Images and build cache may need to be downloaded or rebuilt later.": {
+    "format": "Images and build cache may need to be downloaded or rebuilt later.",
+    "resource_id": "sf4a32e4891f31aae6a1ef86e",
+    "text": "Images and build cache may need to be downloaded or rebuilt later."
+  },
+  "Images with multiple tags are kept": {
+    "format": "Images with multiple tags are kept",
+    "resource_id": "s59df03b39fbe74134059d175",
+    "text": "Images with multiple tags are kept"
   },
   "Import Rule…": {
     "format": "Import Rule…",
@@ -5799,6 +5879,11 @@
     "resource_id": "sba3bbbe10d8bef66441c8853",
     "text": "Loading…"
   },
+  "Local Docker context": {
+    "format": "Local Docker context",
+    "resource_id": "sf287b33967eac6247f139d8e",
+    "text": "Local Docker context"
+  },
   "Local Note": {
     "format": "Local Note",
     "resource_id": "sd20438c426cbbc44218612c3",
@@ -6614,6 +6699,11 @@
     "resource_id": "s21b149ff8adcf693be5e85b4",
     "text": "No configuration file was found in the detected sources."
   },
+  "No container references": {
+    "format": "No container references",
+    "resource_id": "s7fd55f3febeb7b1c316eb892",
+    "text": "No container references"
+  },
   "No conventional project folders found. Include another folder or ask your AI agent.": {
     "format": "No conventional project folders found. Include another folder or ask your AI agent.",
     "resource_id": "s3f9f23f395368204620ff53c",
@@ -6649,6 +6739,11 @@
     "resource_id": "s8b1a1abe26bd3d6135807356",
     "text": "No exclusions in this scope."
   },
+  "No items in this category.": {
+    "format": "No items in this category.",
+    "resource_id": "sdafb10ab21adee2910c90fb7",
+    "text": "No items in this category."
+  },
   "No items were processed": {
     "format": "No items were processed",
     "resource_id": "se8b816a8beb3e8681bf849b4",
@@ -6663,6 +6758,11 @@
     "format": "No known locations were found",
     "resource_id": "s580cbecbc580ce1cd286d8ee",
     "text": "No known locations were found"
+  },
+  "No local Docker context found.": {
+    "format": "No local Docker context found.",
+    "resource_id": "sd4039e72c6ccc9e15752e3a8",
+    "text": "No local Docker context found."
   },
   "No log entries yet.": {
     "format": "No log entries yet.",
@@ -6843,6 +6943,11 @@
     "format": "No uninstall record was found for this plan. This does not confirm the current installation state.",
     "resource_id": "s00991aac06c453f6e185b0aa",
     "text": "No uninstall record was found for this plan. This does not confirm the current installation state."
+  },
+  "No unused build cache": {
+    "format": "No unused build cache",
+    "resource_id": "s81652a6b3d1723c53dfb2472",
+    "text": "No unused build cache"
   },
   "No upgradable packages in this result": {
     "format": "No upgradable packages in this result",
@@ -7244,6 +7349,11 @@
     "resource_id": "se8a7a315fc69830d66582fbe",
     "text": "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs."
   },
+  "Only ordinary local volumes are supported": {
+    "format": "Only ordinary local volumes are supported",
+    "resource_id": "s471d625cb392dc238c63f16c",
+    "text": "Only ordinary local volumes are supported"
+  },
   "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.": {
     "format": "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.",
     "resource_id": "s2172af994fae9e627052f8bc",
@@ -7263,6 +7373,11 @@
     "format": "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained.",
     "resource_id": "s0bc3187d75ab7b66f0231584",
     "text": "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained."
+  },
+  "Only the reviewed objects are removed. Running containers and unselected data are kept.": {
+    "format": "Only the reviewed objects are removed. Running containers and unselected data are kept.",
+    "resource_id": "s3686b9d65ee834d91ba90245",
+    "text": "Only the reviewed objects are removed. Running containers and unselected data are kept."
   },
   "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.": {
     "format": "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.",
@@ -7688,6 +7803,11 @@
     "format": "Permanently delete selected leftovers?",
     "resource_id": "s4f22cd4eac4a43f954f50faf",
     "text": "Permanently delete selected leftovers?"
+  },
+  "Permanently delete the data in the selected volumes": {
+    "format": "Permanently delete the data in the selected volumes",
+    "resource_id": "sb4180bc322464daee5ae291a",
+    "text": "Permanently delete the data in the selected volumes"
   },
   "Permanently remove these items?": {
     "format": "Permanently remove these items?",
@@ -8564,6 +8684,16 @@
     "resource_id": "s61df24ec987075ce3bad83a8",
     "text": "Recently created"
   },
+  "Reclaim Disk Space": {
+    "format": "Reclaim Disk Space",
+    "resource_id": "sbb1e529fa4a4ae97ebdb37ac",
+    "text": "Reclaim Disk Space"
+  },
+  "Reclaim virtual disk space after cleanup": {
+    "format": "Reclaim virtual disk space after cleanup",
+    "resource_id": "s116a8fba4652545e8ede2df8",
+    "text": "Reclaim virtual disk space after cleanup"
+  },
   "Recommended": {
     "format": "Recommended",
     "resource_id": "sd70604e8430461372849bbd1",
@@ -8629,6 +8759,11 @@
     "resource_id": "s3eb24707ffe5d10f63f49f61",
     "text": "Records removed"
   },
+  "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place.": {
+    "format": "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place.",
+    "resource_id": "s3eac3bc92599eac79200b413",
+    "text": "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place."
+  },
   "Recovery dependency": {
     "format": "Recovery dependency",
     "resource_id": "s91840ab086dae44046462516",
@@ -8639,6 +8774,11 @@
     "resource_id": "s3f81a585071278e39b76b868",
     "text": "Recovery file lists"
   },
+  "Recovery records": {
+    "format": "Recovery records",
+    "resource_id": "s8daea0c23b7c2701c63af394",
+    "text": "Recovery records"
+  },
   "Redis Insight caches": {
     "format": "Redis Insight caches",
     "resource_id": "s9372b5901c15a4649fc8f716",
@@ -8648,6 +8788,11 @@
     "format": "Reduce Motion",
     "resource_id": "s159f641008ba451e82441439",
     "text": "Reduce Motion"
+  },
+  "Referenced by a container": {
+    "format": "Referenced by a container",
+    "resource_id": "s7ef57bec14a18dccb8f7c878",
+    "text": "Referenced by a container"
   },
   "Refresh": {
     "format": "Refresh",
@@ -8813,6 +8958,11 @@
     "format": "Remove this location and its rule settings? Files and imported rules are kept.",
     "resource_id": "s3836d2eb12b64f8836600b39",
     "text": "Remove this location and its rule settings? Files and imported rules are kept."
+  },
+  "Removing a stopped container permanently deletes its writable files. Its volumes are kept.": {
+    "format": "Removing a stopped container permanently deletes its writable files. Its volumes are kept.",
+    "resource_id": "sf0eee271208ea0aba07c47ee",
+    "text": "Removing a stopped container permanently deletes its writable files. Its volumes are kept."
   },
   "Removing this protection requires a new scan before cleanup can be reviewed.": {
     "format": "Removing this protection requires a new scan before cleanup can be reviewed.",
@@ -9128,6 +9278,11 @@
     "format": "Review Selected Updates…",
     "resource_id": "s8e26200867ca706e43da13ef",
     "text": "Review Selected Updates…"
+  },
+  "Review Shou's scan data and finished history before cleaning them.": {
+    "format": "Review Shou's scan data and finished history before cleaning them.",
+    "resource_id": "s9f026b7c572e22dcb4ec4ae8",
+    "text": "Review Shou's scan data and finished history before cleaning them."
   },
   "Review This Item": {
     "format": "Review This Item",
@@ -9514,6 +9669,11 @@
     "resource_id": "s060fae44a5d9e7ce101ee49b",
     "text": "Running Elsewhere"
   },
+  "Running containers are kept": {
+    "format": "Running containers are kept",
+    "resource_id": "sb79a3abfff226c5cc9ae5fb3",
+    "text": "Running containers are kept"
+  },
   "Running programs could not be verified. Refresh before uninstalling.": {
     "format": "Running programs could not be verified. Refresh before uninstalling.",
     "resource_id": "s780ffdf20cf0899fd9c8aae3",
@@ -9803,6 +9963,11 @@
     "format": "Scan again or review discovery coverage.",
     "resource_id": "s3febb1c7af79d4e9f6cc763e",
     "text": "Scan again or review discovery coverage."
+  },
+  "Scan again to measure current disk usage.": {
+    "format": "Scan again to measure current disk usage.",
+    "resource_id": "s01c286b7dcdb180f9bd175c7",
+    "text": "Scan again to measure current disk usage."
   },
   "Scan again to update sizes and status": {
     "format": "Scan again to update sizes and status",
@@ -10643,6 +10808,11 @@
     "format": "Shou storage…",
     "resource_id": "s6712e53de09b11231a69296a",
     "text": "Shou storage…"
+  },
+  "Show": {
+    "format": "Show",
+    "resource_id": "s0df6f1cad36c49da768a6efd",
+    "text": "Show"
   },
   "Show More": {
     "format": "Show More",
@@ -12344,6 +12514,11 @@
     "resource_id": "s1d99f0dc054d8db4b70bc043",
     "text": "The retained Cargo package archive does not match the package checksum."
   },
+  "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept.": {
+    "format": "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept.",
+    "resource_id": "sdb6f8a341515ce2332598943",
+    "text": "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept."
+  },
   "The rule file could not be read. Choose a local file and try again.": {
     "format": "The rule file could not be read. Choose a local file and try again.",
     "resource_id": "sff6918d9d047722d471c2731",
@@ -12643,6 +12818,11 @@
     "format": "This application requires elevated access. Automatic administrator removal is not supported.",
     "resource_id": "sf2cf79abce9ec829981fdab3",
     "text": "This application requires elevated access. Automatic administrator removal is not supported."
+  },
+  "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk.": {
+    "format": "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk.",
+    "resource_id": "sa9db6a7f8ff7f746e79a9644",
+    "text": "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk."
   },
   "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.": {
     "format": "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.",
@@ -13259,6 +13439,16 @@
     "resource_id": "sed56fb560d5609d2e98eb000",
     "text": "Unsupported database"
   },
+  "Untagged Docker image": {
+    "format": "Untagged Docker image",
+    "resource_id": "s378a8b14e8abefdb5963d4c1",
+    "text": "Untagged Docker image"
+  },
+  "Unused build cache": {
+    "format": "Unused build cache",
+    "resource_id": "scabd4ae5ff7ce80549dcccf9",
+    "text": "Unused build cache"
+  },
   "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.": {
     "format": "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.",
     "resource_id": "s56b9e6d0264d2a56d513074f",
@@ -13363,6 +13553,11 @@
     "format": "Use Connection",
     "resource_id": "s8ab64c40fb464b4e9323d9e4",
     "text": "Use Connection"
+  },
+  "Use Docker storage to review container data and reclaim virtual disk space.": {
+    "format": "Use Docker storage to review container data and reclaim virtual disk space.",
+    "resource_id": "s8b8d65ed50ae4ce88d0f8cf8",
+    "text": "Use Docker storage to review container data and reclaim virtual disk space."
   },
   "Use Latest Space Analysis": {
     "format": "Use Latest Space Analysis",
@@ -13589,6 +13784,16 @@
     "resource_id": "se374be0493fe4d08bd7beb67",
     "text": "View…"
   },
+  "Virtual disk allocated space": {
+    "format": "Virtual disk allocated space",
+    "resource_id": "s7bd91e6066739a6428ac4621",
+    "text": "Virtual disk allocated space"
+  },
+  "Virtual disk logical capacity": {
+    "format": "Virtual disk logical capacity",
+    "resource_id": "s92e6dcc141e2e6233572139e",
+    "text": "Virtual disk logical capacity"
+  },
   "Visual Studio Code Insiders caches": {
     "format": "Visual Studio Code Insiders caches",
     "resource_id": "s4206c05196a99cef392d52d0",
@@ -13629,10 +13834,20 @@
     "resource_id": "sdc1149ce68b52079c30c9469",
     "text": "Volume available change"
   },
+  "Volumes": {
+    "format": "Volumes",
+    "resource_id": "s53a480e304c08274bf58cc0d",
+    "text": "Volumes"
+  },
   "WPS Office caches": {
     "format": "WPS Office caches",
     "resource_id": "sf8a5c8d87f6ba89cef0a8993",
     "text": "WPS Office caches"
+  },
+  "Wait for Docker's result. An interrupted request can have an uncertain outcome.": {
+    "format": "Wait for Docker's result. An interrupted request can have an uncertain outcome.",
+    "resource_id": "s7a1d53f9d88619334da14978",
+    "text": "Wait for Docker's result. An interrupted request can have an uncertain outcome."
   },
   "Waiting for administrator authorization…": {
     "format": "Waiting for administrator authorization…",
@@ -14033,6 +14248,31 @@
     "format": "depth_limit",
     "resource_id": "sc22044d76f4db49bcf5f0754",
     "text": "depth_limit"
+  },
+  "disk_backend_stopped": {
+    "format": "disk_backend_stopped",
+    "resource_id": "sbceebc3ca5efb218e537ce21",
+    "text": "disk_backend_stopped"
+  },
+  "disk_backend_unsupported": {
+    "format": "disk_backend_unsupported",
+    "resource_id": "s9090441c21341e724b593184",
+    "text": "disk_backend_unsupported"
+  },
+  "disk_identity_unavailable": {
+    "format": "disk_identity_unavailable",
+    "resource_id": "s298bf938e427cf164036e126",
+    "text": "disk_identity_unavailable"
+  },
+  "disk_mount_unsupported": {
+    "format": "disk_mount_unsupported",
+    "resource_id": "s41417a0d268873c13c239052",
+    "text": "disk_mount_unsupported"
+  },
+  "disk_reclamation_unavailable": {
+    "format": "disk_reclamation_unavailable",
+    "resource_id": "s895ec8ced9dcf2b8f5263aa9",
+    "text": "disk_reclamation_unavailable"
   },
   "excluded_descendant": {
     "format": "excluded_descendant",

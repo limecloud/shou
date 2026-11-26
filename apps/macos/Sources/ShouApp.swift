@@ -878,6 +878,26 @@ struct CleanupCompletion: Identifiable {
             } catch { operationHadError=true; self.presentFailure(error) }
         }
     }
+    func executeDockerStorage(_ plan: DockerStoragePlan, service: DockerStorageService,
+        completion: @escaping (Result<DockerStorageReceipt, Error>) -> Void) {
+        guard !busy else { return }
+        busy=true
+        let operation=beginExecution(total: plan.objects.count + (plan.reclaimDisk ? 1 : 0), action: "tool")
+        statusKey="Cleaning tool-managed storage…"
+        task=Task {
+            defer {
+                busy=false; isExecuting=false; stopRequested=false
+                space.restart(app: self); largeFiles.storage.restart(app: self)
+            }
+            do {
+                let result=try await service.execute(plan)
+                operationHadError=result.state != "completed"
+                let processed=result.items.filter { !["pending", "removing"].contains($0.state) }.count + (result.diskState == nil ? 0 : 1)
+                updateExecutionProgress(.init(stage: "finalizing", processedCount: processed, itemCount: plan.objects.count + (plan.reclaimDisk ? 1 : 0)), operation: operation)
+                completion(.success(result))
+            } catch { operationHadError=true; completion(.failure(error)) }
+        }
+    }
     func executeApplicationOrphans(_ plan: ApplicationOrphanPlan) {
         guard !busy, let engine else { return }
         busy=true

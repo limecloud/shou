@@ -164,7 +164,10 @@ func nativeCatalogCleanupAndRestore(includePurge: Bool = false) async throws {
             for item in receipt.items {
                 try expect(!FileManager.default.fileExists(atPath: item.originalPath))
                 try expect(NativeFileSystem().isTrashLocation(try require(item.trashPath)))
-                try expect(FileManager.default.fileExists(atPath: try require(item.trashPath)))
+                let trashPath=try require(item.trashPath)
+                guard FileManager.default.fileExists(atPath: trashPath) else {
+                    throw CheckFailure(description: "\(template.id): native Trash result disappeared: \(item.relativePath), state=\(item.state), trash=\(trashPath)")
+                }
             }
             return receipt
         }

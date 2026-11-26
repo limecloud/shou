@@ -170,6 +170,7 @@
 "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access." = "Allow Shou in Full Disk Access, then check this application again. File permissions may also restrict access.";
 "Allow access to application caches that macOS protects." = "Allow access to application caches that macOS protects.";
 "Allow selecting personal app data" = "Allow selecting personal app data";
+"Also delete finished cleanup history and its file lists" = "Also delete finished cleanup history and its file lists";
 "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required." = "An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.";
 "An absolute local path is required." = "An absolute local path is required.";
 "An application or build tool may be using these files. Close it and scan again." = "An application or build tool may be using these files. Close it and scan again.";
@@ -323,6 +324,7 @@
 "Browsing history" = "Browsing history";
 "Build Artifacts" = "Build Artifacts";
 "Build Outputs" = "Build Outputs";
+"Build cache" = "Build cache";
 "Build process activity could not be checked." = "Build process activity could not be checked.";
 "Build process names must be exact executable names." = "Build process names must be exact executable names.";
 "Build process output could not be decoded." = "Build process output could not be decoded.";
@@ -415,6 +417,7 @@
 "Check the official WinGet catalog, review exact versions, then update the applications you select." = "Check the official WinGet catalog, review exact versions, then update the applications you select.";
 "Check the relative path, project markers and discovery depth. Conditions and protections still apply." = "Check the relative path, project markers and discovery depth. Conditions and protections still apply.";
 "Check the selected location and relative paths. A rule's location reference can be registered only once." = "Check the selected location and relative paths. A rule's location reference can be registered only once.";
+"Checking Docker storage…" = "Checking Docker storage…";
 "Checking Service…" = "Checking Service…";
 "Checking a rule suggestion…" = "Checking a rule suggestion…";
 "Checking disk access…" = "Checking disk access…";
@@ -487,6 +490,7 @@
 "Claude preview application caches" = "Claude preview application caches";
 "Claude recreates web-resource, code and graphics caches when needed." = "Claude recreates web-resource, code and graphics caches when needed.";
 "Clean & Free Space" = "Clean & Free Space";
+"Clean Docker objects and reclaim virtual disk space through the owning backend." = "Clean Docker objects and reclaim virtual disk space through the owning backend.";
 "Clean Permanently" = "Clean Permanently";
 "Clean Permanently…" = "Clean Permanently…";
 "Clean Recommended" = "Clean Recommended";
@@ -515,6 +519,7 @@
 "Cleanup execution is unavailable in this development build." = "Cleanup execution is unavailable in this development build.";
 "Cleanup execution is unavailable until native Windows verification is complete." = "Cleanup execution is unavailable until native Windows verification is complete.";
 "Cleanup finished with issues" = "Cleanup finished with issues";
+"Cleanup history" = "Cleanup history";
 "Cleanup plans" = "Cleanup plans";
 "Cleanup preview failed." = "Cleanup preview failed.";
 "Cleanup rules made for your Mac" = "Cleanup rules made for your Mac";
@@ -548,6 +553,7 @@
 "Codex application caches" = "Codex application caches";
 "Codex download caches" = "Codex download caches";
 "Codex recreates web-resource, code and graphics caches when needed." = "Codex recreates web-resource, code and graphics caches when needed.";
+"Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged." = "Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged.";
 "Collapse startup details" = "Collapse startup details";
 "Collecting rate baseline…" = "Collecting rate baseline…";
 "Colors indicate extensions, not cleanup eligibility." = "Colors indicate extensions, not cleanup eligibility.";
@@ -766,10 +772,15 @@
 "Disk capacity could not be observed." = "Disk capacity could not be observed.";
 "Disk capacity was observed without scanning files." = "Disk capacity was observed without scanning files.";
 "Disk free / capacity (bytes)" = "Disk free / capacity (bytes)";
+"Disk reclamation" = "Disk reclamation";
 "Dismiss" = "Dismiss";
 "Docker BuildX caches" = "Docker BuildX caches";
 "Docker build cache" = "Docker build cache";
 "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation." = "Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.";
+"Docker containers" = "Containers";
+"Docker images" = "Images";
+"Docker storage" = "Docker storage";
+"Docker storage…" = "Docker storage…";
 "Documents" = "Documents";
 "Done" = "Done";
 "Dot path components are not supported." = "Dot path components are not supported.";
@@ -936,6 +947,7 @@
 "Gradle generated caches" = "Gradle generated caches";
 "Gradle normally recreates project caches and generated build outputs on the next build." = "Gradle normally recreates project caches and generated build outputs on the next build.";
 "Grouped by scan location" = "Grouped by scan location";
+"Guest free space" = "Guest free space";
 "Guide available" = "Guide available";
 "HTTP storage" = "HTTP storage";
 "Have a folder that needs a closer look?" = "Have a folder that needs a closer look?";
@@ -982,7 +994,11 @@
 "IINA caches" = "IINA caches";
 "Identifier unavailable" = "Identifier unavailable";
 "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou." = "If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.";
+"Image identity could not be verified" = "Image identity could not be verified";
+"Image sizes can share layers. Volumes may contain databases; unused does not mean disposable." = "Image sizes can share layers. Volumes may contain databases; unused does not mean disposable.";
 "Images" = "Images";
+"Images and build cache may need to be downloaded or rebuilt later." = "Images and build cache may need to be downloaded or rebuilt later.";
+"Images with multiple tags are kept" = "Images with multiple tags are kept";
 "Import Rule…" = "Import Rule…";
 "Import a rule, choose its scan folder, then enable the version you want to use." = "Import a rule, choose its scan folder, then enable the version you want to use.";
 "Import → review → enable. Enablement never authorizes deletion." = "Import → review → enable. Enablement never authorizes deletion.";
@@ -1159,6 +1175,7 @@
 "Loaded" = "Loaded";
 "Loading measured results…" = "Loading measured results…";
 "Loading…" = "Loading…";
+"Local Docker context" = "Local Docker context";
 "Local Note" = "Local Note";
 "Local analysis → main model. Structured decisions are not used by this strategy." = "Local analysis → main model. Structured decisions are not used by this strategy.";
 "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs." = "Local analysis → structured decisions → main model when needed. Both services belong to this configuration; each request uses only what it needs.";
@@ -1322,6 +1339,7 @@
 "No compatible installer is available for this installation scope." = "No compatible installer is available for this installation scope.";
 "No compatible update is available." = "No compatible update is available.";
 "No configuration file was found in the detected sources." = "No configuration file was found in the detected sources.";
+"No container references" = "No container references";
 "No conventional project folders found. Include another folder or ask your AI agent." = "No conventional project folders found. Include another folder or ask your AI agent.";
 "No current verified recipe. Refresh status, or review the saved configuration before registering it again." = "No current verified recipe. Refresh status, or review the saved configuration before registering it again.";
 "No definitions found in the inspected sources" = "No definitions found in the inspected sources";
@@ -1329,9 +1347,11 @@
 "No error-log path is configured for this instance." = "No error-log path is configured for this instance.";
 "No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults." = "No exact configuration file was found. Choose this instance's .cnf file; Shou will not create or replace another version's defaults.";
 "No exclusions in this scope." = "No exclusions in this scope.";
+"No items in this category." = "No items in this category.";
 "No items were processed" = "No items were processed";
 "No known cleanup items found" = "No known cleanup items found";
 "No known locations were found" = "No known locations were found";
+"No local Docker context found." = "No local Docker context found.";
 "No log entries yet." = "No log entries yet.";
 "No log path was found for this instance." = "No log path was found for this instance.";
 "No matching application updates. Applications without a verified WinGet match are not included." = "No matching application updates. Applications without a verified WinGet match are not included.";
@@ -1368,6 +1388,7 @@
 "No supported catalog source for this application. Check for updates in the app." = "No supported catalog source for this application. Check for updates in the app.";
 "No supported update source" = "No supported update source";
 "No uninstall record was found for this plan. This does not confirm the current installation state." = "No uninstall record was found for this plan. This does not confirm the current installation state.";
+"No unused build cache" = "No unused build cache";
 "No upgradable packages in this result" = "No upgradable packages in this result";
 "No usage record" = "No usage record";
 "No verified application leftovers found." = "No verified application leftovers found.";
@@ -1448,10 +1469,12 @@
 "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review." = "Only named cache subdirectories in the default Windows user location are included. Close the owning application and stop affected builds first. Profiles, accounts, credentials, sessions, settings, extensions, environments and project sources are retained. Custom locations require separate review.";
 "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained." = "Only named user cache directories are targeted. Documents, preferences and system-owned data are retained.";
 "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs." = "Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.";
+"Only ordinary local volumes are supported" = "Only ordinary local volumes are supported";
 "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records." = "Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.";
 "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview." = "Only rule paths are measured, within the discovery depth and scan budget. This is not a full workspace space analysis. Editing any field requires a new preview.";
 "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated." = "Only the listed application directories and two levels of folders are checked. Embedded apps, package receipts and custom installation locations are not enumerated.";
 "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained." = "Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained.";
+"Only the reviewed objects are removed. Running containers and unselected data are kept." = "Only the reviewed objects are removed. Running containers and unselected data are kept.";
 "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space." = "Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.";
 "Only the versions shown above are included in this review." = "Only the versions shown above are included in this review.";
 "Only this broken shortcut is removed. Its target and associated data are kept." = "Only this broken shortcut is removed. Its target and associated data are kept.";
@@ -1537,6 +1560,7 @@
 "Permanently clear this log's contents? The file will be kept." = "Permanently clear this log's contents? The file will be kept.";
 "Permanently delete privacy records?" = "Permanently delete privacy records?";
 "Permanently delete selected leftovers?" = "Permanently delete selected leftovers?";
+"Permanently delete the data in the selected volumes" = "Permanently delete the data in the selected volumes";
 "Permanently remove these items?" = "Permanently remove these items?";
 "Permanently removed" = "Permanently removed";
 "Permanently removed (estimate)" = "Permanently removed (estimate)";
@@ -1712,6 +1736,8 @@
 "Recent privacy receipts" = "Recent privacy receipts";
 "Recent resource trend" = "Recent resource trend";
 "Recently created" = "Recently created";
+"Reclaim Disk Space" = "Reclaim Disk Space";
+"Reclaim virtual disk space after cleanup" = "Reclaim virtual disk space after cleanup";
 "Recommended" = "Recommended";
 "Reconnect to the selected MySQL instance before continuing." = "Reconnect to the selected MySQL instance before continuing.";
 "Record does not exist." = "Record does not exist.";
@@ -1725,10 +1751,13 @@
 "Recorded object is at its original path" = "Recorded object is at its original path";
 "Recorded result" = "Recorded result";
 "Records removed" = "Records removed";
+"Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place." = "Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place.";
 "Recovery dependency" = "Recovery dependency";
 "Recovery file lists" = "Recovery file lists";
+"Recovery records" = "Recovery records";
 "Redis Insight caches" = "Redis Insight caches";
 "Reduce Motion" = "Reduce Motion";
+"Referenced by a container" = "Referenced by a container";
 "Refresh" = "Refresh";
 "Refresh Log" = "Refresh Log";
 "Refresh Status" = "Refresh Status";
@@ -1762,6 +1791,7 @@
 "Remove startup items…" = "Remove startup items…";
 "Remove this configuration from available choices. Saved investigations and their keys are retained. You can restore it from Deleted Configurations." = "Remove this configuration from available choices. Saved investigations and their keys are retained. You can restore it from Deleted Configurations.";
 "Remove this location and its rule settings? Files and imported rules are kept." = "Remove this location and its rule settings? Files and imported rules are kept.";
+"Removing a stopped container permanently deletes its writable files. Its volumes are kept." = "Removing a stopped container permanently deletes its writable files. Its volumes are kept.";
 "Removing this protection requires a new scan before cleanup can be reviewed." = "Removing this protection requires a new scan before cleanup can be reviewed.";
 "Report" = "Report";
 "Report an Issue" = "Report an Issue";
@@ -1825,6 +1855,7 @@
 "Review Rules" = "Review Rules";
 "Review Selected Items" = "Review Selected Items";
 "Review Selected Updates…" = "Review Selected Updates…";
+"Review Shou's scan data and finished history before cleaning them." = "Review Shou's scan data and finished history before cleaning them.";
 "Review This Item" = "Review This Item";
 "Review Uninstall" = "Review Uninstall";
 "Review Uninstall…" = "Review Uninstall…";
@@ -1902,6 +1933,7 @@
 "Run two space analyses of the same folder to compare them. Cleared and legacy analyses may be unavailable." = "Run two space analyses of the same folder to compare them. Cleared and legacy analyses may be unavailable.";
 "Running" = "Running";
 "Running Elsewhere" = "Running Elsewhere";
+"Running containers are kept" = "Running containers are kept";
 "Running programs could not be verified. Refresh before uninstalling." = "Running programs could not be verified. Refresh before uninstalling.";
 "Runtime State" = "Runtime State";
 "Rust build outputs" = "Rust build outputs";
@@ -1960,6 +1992,7 @@
 "Scan Workspace" = "Scan Workspace";
 "Scan a disk or folder, then review the largest files." = "Scan a disk or folder, then review the largest files.";
 "Scan again or review discovery coverage." = "Scan again or review discovery coverage.";
+"Scan again to measure current disk usage." = "Scan again to measure current disk usage.";
 "Scan again to update sizes and status" = "Scan again to update sizes and status";
 "Scan app caches, developer build outputs, and your personal cleanup rules together." = "Scan app caches, developer build outputs, and your personal cleanup rules together.";
 "Scan budget is outside supported limits." = "Scan budget is outside supported limits.";
@@ -2128,6 +2161,7 @@
 "Shou is installed in Applications. Updates keep the same location." = "Shou is installed in Applications. Updates keep the same location.";
 "Shou storage" = "Shou storage";
 "Shou storage…" = "Shou storage…";
+"Show" = "Show";
 "Show More" = "Show More";
 "Show More (%lld remaining)" = "Show More (%lld remaining)";
 "Show Service Definition" = "Show Service Definition";
@@ -2468,6 +2502,7 @@
 "The required project marker is missing." = "The required project marker is missing.";
 "The retained Cargo package archive could not be verified." = "The retained Cargo package archive could not be verified.";
 "The retained Cargo package archive does not match the package checksum." = "The retained Cargo package archive does not match the package checksum.";
+"The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept." = "The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept.";
 "The rule file could not be read. Choose a local file and try again." = "The rule file could not be read. Choose a local file and try again.";
 "The rule or settings exceed the supported size limit." = "The rule or settings exceed the supported size limit.";
 "The same rule version already exists with different content." = "The same rule version already exists with different content.";
@@ -2528,6 +2563,7 @@
 "This application is protected and cannot be uninstalled." = "This application is protected and cannot be uninstalled.";
 "This application or one of its files is in use. Close it and review the installation again." = "This application or one of its files is in use. Close it and review the installation again.";
 "This application requires elevated access. Automatic administrator removal is not supported." = "This application requires elevated access. Automatic administrator removal is not supported.";
+"This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk." = "This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk.";
 "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope." = "This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.";
 "This changes only the task switch. Running instances are not stopped, and startup conditions may still prevent it from running." = "This changes only the task switch. Running instances are not stopped, and startup conditions may still prevent it from running.";
 "This changes startup configuration for the selected items. Running processes are not terminated." = "This changes startup configuration for the selected items. Running processes are not terminated.";
@@ -2651,6 +2687,8 @@
 "Unsafe or overbroad relative pattern." = "Unsafe or overbroad relative pattern.";
 "Unsupported configuration version." = "Unsupported configuration version.";
 "Unsupported database" = "Unsupported database";
+"Untagged Docker image" = "Untagged Docker image";
+"Unused build cache" = "Unused build cache";
 "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers." = "Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.";
 "Unverified" = "Unverified";
 "Up" = "Up";
@@ -2672,6 +2710,7 @@
 "Uptime: %lld hours" = "Uptime: %lld hours";
 "Use Browsed Folder" = "Use Browsed Folder";
 "Use Connection" = "Use Connection";
+"Use Docker storage to review container data and reclaim virtual disk space." = "Use Docker storage to review container data and reclaim virtual disk space.";
 "Use Latest Space Analysis" = "Use Latest Space Analysis";
 "Use Recommended Selection" = "Use Recommended Selection";
 "Use Structured Decisions" = "Use Structured Decisions";
@@ -2717,6 +2756,8 @@
 "View Service Log" = "View Service Log";
 "View Tool" = "View Tool";
 "View…" = "View…";
+"Virtual disk allocated space" = "Virtual disk allocated space";
+"Virtual disk logical capacity" = "Virtual disk logical capacity";
 "Visual Studio Code Insiders caches" = "Visual Studio Code Insiders caches";
 "Visual Studio Code caches" = "Visual Studio Code caches";
 "Visual Studio Code logs" = "Visual Studio Code logs";
@@ -2725,7 +2766,9 @@
 "Vivaldi caches" = "Vivaldi caches";
 "Vivaldi download caches" = "Vivaldi download caches";
 "Volume available change" = "Volume available change";
+"Volumes" = "Volumes";
 "WPS Office caches" = "WPS Office caches";
+"Wait for Docker's result. An interrupted request can have an uncertain outcome." = "Wait for Docker's result. An interrupted request can have an uncertain outcome.";
 "Waiting for administrator authorization…" = "Waiting for administrator authorization…";
 "Waiting for confirmation or the system installer result. Keep this window open." = "Waiting for confirmation or the system installer result. Keep this window open.";
 "Waiting for the service to reach its requested state…" = "Waiting for the service to reach its requested state…";
@@ -2806,6 +2849,11 @@
 "completed" = "Completed";
 "cross_filesystem" = "cross_filesystem";
 "depth_limit" = "depth_limit";
+"disk_backend_stopped" = "disk_backend_stopped";
+"disk_backend_unsupported" = "disk_backend_unsupported";
+"disk_identity_unavailable" = "disk_identity_unavailable";
+"disk_mount_unsupported" = "disk_mount_unsupported";
+"disk_reclamation_unavailable" = "disk_reclamation_unavailable";
 "excluded_descendant" = "excluded_descendant";
 "executing" = "Unfinished cleanup";
 "failed" = "Failed";

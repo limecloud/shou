@@ -513,6 +513,9 @@
   <data name="s70b89fb92e56e02b450e4082" xml:space="preserve">
     <value>Allow selecting personal app data</value>
   </data>
+  <data name="sfc0f55ad24acd13b2216debe" xml:space="preserve">
+    <value>Also delete finished cleanup history and its file lists</value>
+  </data>
   <data name="sa60d2a7b35e82367c3910b04" xml:space="preserve">
     <value>An API key is unavailable. Open AI settings and save the key using local storage, then start a new investigation. No system password is required.</value>
   </data>
@@ -972,6 +975,9 @@
   <data name="s63fb2e296ad79ad6c8e88378" xml:space="preserve">
     <value>Build Outputs</value>
   </data>
+  <data name="sb6e6f3dd12882dcbd3fa4455" xml:space="preserve">
+    <value>Build cache</value>
+  </data>
   <data name="sd69bdb11f95fd93d11db8b47" xml:space="preserve">
     <value>Build process activity could not be checked.</value>
   </data>
@@ -1248,6 +1254,9 @@
   <data name="sd6d07c512675c55089535ebf" xml:space="preserve">
     <value>Check the selected location and relative paths. A rule's location reference can be registered only once.</value>
   </data>
+  <data name="s27567d52078d85b4115d289c" xml:space="preserve">
+    <value>Checking Docker storage…</value>
+  </data>
   <data name="s00e84ea9ffa8190764315589" xml:space="preserve">
     <value>Checking Service…</value>
   </data>
@@ -1464,6 +1473,9 @@
   <data name="sd5bfe92a46737b7fe10acfa2" xml:space="preserve">
     <value>Clean &amp; Free Space</value>
   </data>
+  <data name="sf8409f8b32c2ea05f0c68e5c" xml:space="preserve">
+    <value>Clean Docker objects and reclaim virtual disk space through the owning backend.</value>
+  </data>
   <data name="se7e36e96a3f6361090a832a3" xml:space="preserve">
     <value>Clean Permanently</value>
   </data>
@@ -1547,6 +1559,9 @@
   </data>
   <data name="s2b7fb300b5457d95ebf3d6ca" xml:space="preserve">
     <value>Cleanup finished with issues</value>
+  </data>
+  <data name="s848a15453321482ac2a6a20b" xml:space="preserve">
+    <value>Cleanup history</value>
   </data>
   <data name="s331e91c41de46c1f02841a14" xml:space="preserve">
     <value>Cleanup plans</value>
@@ -1646,6 +1661,9 @@
   </data>
   <data name="s640ee2686f6166fbcf077039" xml:space="preserve">
     <value>Codex recreates web-resource, code and graphics caches when needed.</value>
+  </data>
+  <data name="sfbd83295f630f140299f68de" xml:space="preserve">
+    <value>Colima VZ uses online TRIM to return unused blocks. The VM stays running; logical capacity stays unchanged.</value>
   </data>
   <data name="sca42c3a074dceb05deb8c8a9" xml:space="preserve">
     <value>Collapse startup details</value>
@@ -2301,6 +2319,9 @@
   <data name="s48b6ba356724e7c373e51d40" xml:space="preserve">
     <value>Disk free / capacity (bytes)</value>
   </data>
+  <data name="s91eb92621ebd487749b4581c" xml:space="preserve">
+    <value>Disk reclamation</value>
+  </data>
   <data name="s48845bff334a50a59aaecf49" xml:space="preserve">
     <value>Dismiss</value>
   </data>
@@ -2312,6 +2333,18 @@
   </data>
   <data name="s4c7c545ac4b17927324b77cc" xml:space="preserve">
     <value>Docker cache reclamation happens inside its virtual disk. Host space may require the backend’s supported reclamation operation.</value>
+  </data>
+  <data name="sf0f09afa19d76623d92f7967" xml:space="preserve">
+    <value>Containers</value>
+  </data>
+  <data name="s46fb7f26123ea1d270096763" xml:space="preserve">
+    <value>Images</value>
+  </data>
+  <data name="s144c4498d21db971320c17f4" xml:space="preserve">
+    <value>Docker storage</value>
+  </data>
+  <data name="sb8d50adb5631098ace9ed8be" xml:space="preserve">
+    <value>Docker storage…</value>
   </data>
   <data name="sb4e929d8bcfe04189801a8ed" xml:space="preserve">
     <value>Documents</value>
@@ -2811,6 +2844,9 @@
   <data name="sfb4f7e1c33b7997f2f50454f" xml:space="preserve">
     <value>Grouped by scan location</value>
   </data>
+  <data name="s8575bc08bf96e41f14d705ef" xml:space="preserve">
+    <value>Guest free space</value>
+  </data>
   <data name="sd87d6fae2b07d108d057f5d1" xml:space="preserve">
     <value>Guide available</value>
   </data>
@@ -2949,8 +2985,20 @@
   <data name="scf731a3c7fd27092f9ca1b77" xml:space="preserve">
     <value>If access remains limited, remove the old Shou entry in Full Disk Access, add this copy again, and reopen Shou.</value>
   </data>
+  <data name="s52bc9e6cb0b73a60a7ea8ac1" xml:space="preserve">
+    <value>Image identity could not be verified</value>
+  </data>
+  <data name="s20665cb1eaee59d42425dc9b" xml:space="preserve">
+    <value>Image sizes can share layers. Volumes may contain databases; unused does not mean disposable.</value>
+  </data>
   <data name="sbe7e2f20129365c2899b2c11" xml:space="preserve">
     <value>Images</value>
+  </data>
+  <data name="sf4a32e4891f31aae6a1ef86e" xml:space="preserve">
+    <value>Images and build cache may need to be downloaded or rebuilt later.</value>
+  </data>
+  <data name="s59df03b39fbe74134059d175" xml:space="preserve">
+    <value>Images with multiple tags are kept</value>
   </data>
   <data name="s1b222c4ea4c38d2fe393e04c" xml:space="preserve">
     <value>Import Rule…</value>
@@ -3480,6 +3528,9 @@
   <data name="sba3bbbe10d8bef66441c8853" xml:space="preserve">
     <value>Loading…</value>
   </data>
+  <data name="sf287b33967eac6247f139d8e" xml:space="preserve">
+    <value>Local Docker context</value>
+  </data>
   <data name="sd20438c426cbbc44218612c3" xml:space="preserve">
     <value>Local Note</value>
   </data>
@@ -3969,6 +4020,9 @@
   <data name="s21b149ff8adcf693be5e85b4" xml:space="preserve">
     <value>No configuration file was found in the detected sources.</value>
   </data>
+  <data name="s7fd55f3febeb7b1c316eb892" xml:space="preserve">
+    <value>No container references</value>
+  </data>
   <data name="s3f9f23f395368204620ff53c" xml:space="preserve">
     <value>No conventional project folders found. Include another folder or ask your AI agent.</value>
   </data>
@@ -3990,6 +4044,9 @@
   <data name="s8b1a1abe26bd3d6135807356" xml:space="preserve">
     <value>No exclusions in this scope.</value>
   </data>
+  <data name="sdafb10ab21adee2910c90fb7" xml:space="preserve">
+    <value>No items in this category.</value>
+  </data>
   <data name="se8b816a8beb3e8681bf849b4" xml:space="preserve">
     <value>No items were processed</value>
   </data>
@@ -3998,6 +4055,9 @@
   </data>
   <data name="s580cbecbc580ce1cd286d8ee" xml:space="preserve">
     <value>No known locations were found</value>
+  </data>
+  <data name="sd4039e72c6ccc9e15752e3a8" xml:space="preserve">
+    <value>No local Docker context found.</value>
   </data>
   <data name="s985ed9835264ebdfa8f57853" xml:space="preserve">
     <value>No log entries yet.</value>
@@ -4106,6 +4166,9 @@
   </data>
   <data name="s00991aac06c453f6e185b0aa" xml:space="preserve">
     <value>No uninstall record was found for this plan. This does not confirm the current installation state.</value>
+  </data>
+  <data name="s81652a6b3d1723c53dfb2472" xml:space="preserve">
+    <value>No unused build cache</value>
   </data>
   <data name="s4c8f830d1e9fb898be04af25" xml:space="preserve">
     <value>No upgradable packages in this result</value>
@@ -4347,6 +4410,9 @@
   <data name="se8a7a315fc69830d66582fbe" xml:space="preserve">
     <value>Only offline Rust documentation is removed. The compiler and targets stay installed. Reading documentation offline requires reinstalling rust-docs.</value>
   </data>
+  <data name="s471d625cb392dc238c63f16c" xml:space="preserve">
+    <value>Only ordinary local volumes are supported</value>
+  </data>
   <data name="s2172af994fae9e627052f8bc" xml:space="preserve">
     <value>Only records are removed. Files stay in place, but Shou can no longer restore or verify these records.</value>
   </data>
@@ -4358,6 +4424,9 @@
   </data>
   <data name="s0bc3187d75ab7b66f0231584" xml:space="preserve">
     <value>Only the named directory under the current user's Library/Caches is included. Protected files remain blocked; preferences, personal data and downloaded models outside the cache are retained.</value>
+  </data>
+  <data name="s3686b9d65ee834d91ba90245" xml:space="preserve">
+    <value>Only the reviewed objects are removed. Running containers and unselected data are kept.</value>
   </data>
   <data name="s145a043ed5b5a3eaa2cad6fb" xml:space="preserve">
     <value>Only the stopped instance's registration is removed. Its database, configuration and logs stay on disk. This does not free disk space.</value>
@@ -4613,6 +4682,9 @@
   </data>
   <data name="s4f22cd4eac4a43f954f50faf" xml:space="preserve">
     <value>Permanently delete selected leftovers?</value>
+  </data>
+  <data name="sb4180bc322464daee5ae291a" xml:space="preserve">
+    <value>Permanently delete the data in the selected volumes</value>
   </data>
   <data name="s4d058fbff5dac4549071b338" xml:space="preserve">
     <value>Permanently remove these items?</value>
@@ -5139,6 +5211,12 @@
   <data name="s61df24ec987075ce3bad83a8" xml:space="preserve">
     <value>Recently created</value>
   </data>
+  <data name="sbb1e529fa4a4ae97ebdb37ac" xml:space="preserve">
+    <value>Reclaim Disk Space</value>
+  </data>
+  <data name="s116a8fba4652545e8ede2df8" xml:space="preserve">
+    <value>Reclaim virtual disk space after cleanup</value>
+  </data>
   <data name="sd70604e8430461372849bbd1" xml:space="preserve">
     <value>Recommended</value>
   </data>
@@ -5178,17 +5256,26 @@
   <data name="s3eb24707ffe5d10f63f49f61" xml:space="preserve">
     <value>Records removed</value>
   </data>
+  <data name="s3eac3bc92599eac79200b413" xml:space="preserve">
+    <value>Recoverable, unfinished and uncertain records are kept. Your files, settings and credentials stay in place.</value>
+  </data>
   <data name="s91840ab086dae44046462516" xml:space="preserve">
     <value>Recovery dependency</value>
   </data>
   <data name="s3f81a585071278e39b76b868" xml:space="preserve">
     <value>Recovery file lists</value>
   </data>
+  <data name="s8daea0c23b7c2701c63af394" xml:space="preserve">
+    <value>Recovery records</value>
+  </data>
   <data name="s9372b5901c15a4649fc8f716" xml:space="preserve">
     <value>Redis Insight caches</value>
   </data>
   <data name="s159f641008ba451e82441439" xml:space="preserve">
     <value>Reduce Motion</value>
+  </data>
+  <data name="s7ef57bec14a18dccb8f7c878" xml:space="preserve">
+    <value>Referenced by a container</value>
   </data>
   <data name="s0e91610117029a62a478b7fa" xml:space="preserve">
     <value>Refresh</value>
@@ -5288,6 +5375,9 @@
   </data>
   <data name="s3836d2eb12b64f8836600b39" xml:space="preserve">
     <value>Remove this location and its rule settings? Files and imported rules are kept.</value>
+  </data>
+  <data name="sf0eee271208ea0aba07c47ee" xml:space="preserve">
+    <value>Removing a stopped container permanently deletes its writable files. Its volumes are kept.</value>
   </data>
   <data name="s4403ae673ea3308d36015fc8" xml:space="preserve">
     <value>Removing this protection requires a new scan before cleanup can be reviewed.</value>
@@ -5477,6 +5567,9 @@
   </data>
   <data name="s8e26200867ca706e43da13ef" xml:space="preserve">
     <value>Review Selected Updates…</value>
+  </data>
+  <data name="s9f026b7c572e22dcb4ec4ae8" xml:space="preserve">
+    <value>Review Shou's scan data and finished history before cleaning them.</value>
   </data>
   <data name="s225a104a4945324fada223e6" xml:space="preserve">
     <value>Review This Item</value>
@@ -5709,6 +5802,9 @@
   <data name="s060fae44a5d9e7ce101ee49b" xml:space="preserve">
     <value>Running Elsewhere</value>
   </data>
+  <data name="sb79a3abfff226c5cc9ae5fb3" xml:space="preserve">
+    <value>Running containers are kept</value>
+  </data>
   <data name="s780ffdf20cf0899fd9c8aae3" xml:space="preserve">
     <value>Running programs could not be verified. Refresh before uninstalling.</value>
   </data>
@@ -5882,6 +5978,9 @@
   </data>
   <data name="s3febb1c7af79d4e9f6cc763e" xml:space="preserve">
     <value>Scan again or review discovery coverage.</value>
+  </data>
+  <data name="s01c286b7dcdb180f9bd175c7" xml:space="preserve">
+    <value>Scan again to measure current disk usage.</value>
   </data>
   <data name="saf51a972745cff6429a1090b" xml:space="preserve">
     <value>Scan again to update sizes and status</value>
@@ -6386,6 +6485,9 @@
   </data>
   <data name="s6712e53de09b11231a69296a" xml:space="preserve">
     <value>Shou storage…</value>
+  </data>
+  <data name="s0df6f1cad36c49da768a6efd" xml:space="preserve">
+    <value>Show</value>
   </data>
   <data name="sba8a80fdd7376631dea931d6" xml:space="preserve">
     <value>Show More</value>
@@ -7407,6 +7509,9 @@
   <data name="s1d99f0dc054d8db4b70bc043" xml:space="preserve">
     <value>The retained Cargo package archive does not match the package checksum.</value>
   </data>
+  <data name="sdb6f8a341515ce2332598943" xml:space="preserve">
+    <value>The reviewed cache scope includes unused build cache last used before this scan; later cache entries are kept.</value>
+  </data>
   <data name="sff6918d9d047722d471c2731" xml:space="preserve">
     <value>The rule file could not be read. Choose a local file and try again.</value>
   </data>
@@ -7586,6 +7691,9 @@
   </data>
   <data name="sf2cf79abce9ec829981fdab3" xml:space="preserve">
     <value>This application requires elevated access. Automatic administrator removal is not supported.</value>
+  </data>
+  <data name="sa9db6a7f8ff7f746e79a9644" xml:space="preserve">
+    <value>This backend has no verified disk reclamation adapter. Containers and volumes are not stopped or removed to shrink a disk.</value>
   </data>
   <data name="s4d1425b3d09b13997313b8a0" xml:space="preserve">
     <value>This cannot be undone through Shou. Each source commits separately; a failure may leave a partial result. Cloud-synced copies and other browser data remain outside this scope.</value>
@@ -7956,6 +8064,12 @@
   <data name="sed56fb560d5609d2e98eb000" xml:space="preserve">
     <value>Unsupported database</value>
   </data>
+  <data name="s378a8b14e8abefdb5963d4c1" xml:space="preserve">
+    <value>Untagged Docker image</value>
+  </data>
+  <data name="scabd4ae5ff7ce80549dcccf9" xml:space="preserve">
+    <value>Unused build cache</value>
+  </data>
   <data name="s56b9e6d0264d2a56d513074f" xml:space="preserve">
     <value>Unused build cache is removed permanently. Images, containers and volumes are retained; later builds may download or rebuild layers.</value>
   </data>
@@ -8018,6 +8132,9 @@
   </data>
   <data name="s8ab64c40fb464b4e9323d9e4" xml:space="preserve">
     <value>Use Connection</value>
+  </data>
+  <data name="s8b8d65ed50ae4ce88d0f8cf8" xml:space="preserve">
+    <value>Use Docker storage to review container data and reclaim virtual disk space.</value>
   </data>
   <data name="s3e554c21b6dfa8d465f96c3e" xml:space="preserve">
     <value>Use Latest Space Analysis</value>
@@ -8154,6 +8271,12 @@
   <data name="se374be0493fe4d08bd7beb67" xml:space="preserve">
     <value>View…</value>
   </data>
+  <data name="s7bd91e6066739a6428ac4621" xml:space="preserve">
+    <value>Virtual disk allocated space</value>
+  </data>
+  <data name="s92e6dcc141e2e6233572139e" xml:space="preserve">
+    <value>Virtual disk logical capacity</value>
+  </data>
   <data name="s4206c05196a99cef392d52d0" xml:space="preserve">
     <value>Visual Studio Code Insiders caches</value>
   </data>
@@ -8178,8 +8301,14 @@
   <data name="sdc1149ce68b52079c30c9469" xml:space="preserve">
     <value>Volume available change</value>
   </data>
+  <data name="s53a480e304c08274bf58cc0d" xml:space="preserve">
+    <value>Volumes</value>
+  </data>
   <data name="sf8a5c8d87f6ba89cef0a8993" xml:space="preserve">
     <value>WPS Office caches</value>
+  </data>
+  <data name="s7a1d53f9d88619334da14978" xml:space="preserve">
+    <value>Wait for Docker's result. An interrupted request can have an uncertain outcome.</value>
   </data>
   <data name="s859e2cc6fd2e59a75e372167" xml:space="preserve">
     <value>Waiting for administrator authorization…</value>
@@ -8420,6 +8549,21 @@
   </data>
   <data name="sc22044d76f4db49bcf5f0754" xml:space="preserve">
     <value>depth_limit</value>
+  </data>
+  <data name="sbceebc3ca5efb218e537ce21" xml:space="preserve">
+    <value>disk_backend_stopped</value>
+  </data>
+  <data name="s9090441c21341e724b593184" xml:space="preserve">
+    <value>disk_backend_unsupported</value>
+  </data>
+  <data name="s298bf938e427cf164036e126" xml:space="preserve">
+    <value>disk_identity_unavailable</value>
+  </data>
+  <data name="s41417a0d268873c13c239052" xml:space="preserve">
+    <value>disk_mount_unsupported</value>
+  </data>
+  <data name="s895ec8ced9dcf2b8f5263aa9" xml:space="preserve">
+    <value>disk_reclamation_unavailable</value>
   </data>
   <data name="s387fb310337bb92e91fb6299" xml:space="preserve">
     <value>excluded_descendant</value>
